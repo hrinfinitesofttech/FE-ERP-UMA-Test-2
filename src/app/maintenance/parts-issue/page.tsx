@@ -21,26 +21,24 @@ export default function ServicePartsIssuePage() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   const [formData, setFormData] = useState({
-    workOrderNumber: 'SWO-2026-001',
-    serviceRequestId: 'SR-2026-001',
-    customerName: 'Reliance Industries Ltd (Hazira Complex)',
-    machineName: 'Heavy Structural Automatic Heavy Chemical Reactor Unit 500L',
-    technicianId: 'EMP-TECH-01',
-    technicianName: 'Anil Desai (Sr Service Engineer)',
-    items: [
-      {
-        itemCode: 'SEAL-HYD-500',
-        itemName: 'Viton High Temp Hydraulic Seal Kit',
-        requiredQty: 1,
-        issuedQty: 1,
-        rate: 12500,
-        warehouse: 'Main Store - Maintenance Bay',
-        location: 'Rack M-04-B',
-        batchSerial: 'BAT-SEAL-8821',
-      },
-    ],
+    workOrderNumber: '',
+    serviceRequestId: '',
+    customerName: '',
+    machineName: '',
+    technicianId: '',
+    technicianName: '',
+    items: [] as {
+      itemCode: string;
+      itemName: string;
+      requiredQty: number;
+      issuedQty: number;
+      rate: number;
+      warehouse: string;
+      location: string;
+      batchSerial: string;
+    }[],
     status: 'Issued' as const,
-    remarks: 'Issued directly for Reliance Hazira service site trip.',
+    remarks: '',
   });
 
   const filteredIssues = servicePartIssues.filter((spi) =>

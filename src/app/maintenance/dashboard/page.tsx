@@ -327,22 +327,36 @@ export default function MaintenanceDashboardPage() {
             <span className="text-xs text-slate-400">Distribution</span>
           </div>
           <div className="space-y-2.5 pt-1">
-            {[
-              { name: 'Reliance Industries (Hazira)', count: 4, pct: 35, color: 'bg-blue-500' },
-              { name: 'Tata Motors (Pune)', count: 3, pct: 26, color: 'bg-indigo-500' },
-              { name: 'L&T Heavy Engineering', count: 3, pct: 26, color: 'bg-amber-500' },
-              { name: 'Adani Ports (Mundra)', count: 2, pct: 13, color: 'bg-emerald-500' },
-            ].map((cust, i) => (
-              <div key={i} className="space-y-1">
-                <div className="flex justify-between text-xs font-medium">
-                  <span className="text-slate-700 dark:text-slate-300 truncate max-w-[200px]">{cust.name}</span>
-                  <span className="text-slate-500 font-mono">{cust.count} SRs ({cust.pct}%)</span>
-                </div>
-                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
-                  <div className={`h-2 rounded-full ${cust.color}`} style={{ width: `${cust.pct}%` }} />
-                </div>
-              </div>
-            ))}
+            {(() => {
+              const counts: Record<string, number> = {};
+              serviceRequests.forEach((sr) => {
+                if (sr.customerName) counts[sr.customerName] = (counts[sr.customerName] || 0) + 1;
+              });
+              const entries = Object.entries(counts);
+              const total = serviceRequests.length || 1;
+              const colors = ['bg-blue-500', 'bg-indigo-500', 'bg-amber-500', 'bg-emerald-500', 'bg-purple-500'];
+              if (entries.length === 0) {
+                return (
+                  <div className="py-4 text-center text-xs text-slate-400">
+                    No service requests logged yet
+                  </div>
+                );
+              }
+              return entries.slice(0, 5).map(([name, count], i) => {
+                const pct = Math.round((count / total) * 100);
+                return (
+                  <div key={i} className="space-y-1">
+                    <div className="flex justify-between text-xs font-medium">
+                      <span className="text-slate-700 dark:text-slate-300 truncate max-w-[200px]">{name}</span>
+                      <span className="text-slate-500 font-mono">{count} SRs ({pct}%)</span>
+                    </div>
+                    <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                      <div className={`h-2 rounded-full ${colors[i % colors.length]}`} style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              });
+            })()}
           </div>
         </div>
 

@@ -25,32 +25,32 @@ export default function WorkOrdersPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Form state
-  const [jobNumber, setJobNumber] = useState('JOB-2026-001');
-  const [productName, setProductName] = useState('Heavy SS 316L Chemical Reactor Vessel (10 KL)');
+  const [jobNumber, setJobNumber] = useState(manufacturingJobs[0]?.jobNumber || '');
+  const [productName, setProductName] = useState(manufacturingJobs[0]?.productName || '');
   const [qty, setQty] = useState(1);
-  const [priority, setPriority] = useState<'Low' | 'Medium' | 'High' | 'Urgent'>('High');
+  const [priority, setPriority] = useState<'Low' | 'Medium' | 'High' | 'Urgent'>('Medium');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState('2026-10-15');
+  const [endDate, setEndDate] = useState('');
 
   const handleCreateWo = (e: React.FormEvent) => {
     e.preventDefault();
     const targetJob = manufacturingJobs.find((j) => j.jobNumber === jobNumber);
 
     addWorkOrder({
-      jobId: targetJob?.projectId || 'PRJ-2026-0001',
-      jobNumber,
-      projectId: targetJob?.projectId || 'PRJ-2026-0001',
-      customerId: targetJob?.customerId || 'CUST-2026-0001',
-      customerName: targetJob?.customerName || 'Gujarat Alkalies & Chemicals Ltd.',
-      salesOrderNumber: targetJob?.salesOrderNumber || 'SO-2026-0042',
+      jobId: targetJob?.projectId || targetJob?.id || '',
+      jobNumber: jobNumber || targetJob?.jobNumber || '',
+      projectId: targetJob?.projectId || targetJob?.id || '',
+      customerId: targetJob?.customerId || '',
+      customerName: targetJob?.customerName || '',
+      salesOrderNumber: targetJob?.salesOrderNumber || '',
       designRevision: targetJob?.designRevision || 'REV-01',
       bomRevision: targetJob?.bomRevision || 'Rev-01',
-      productName,
+      productName: productName || targetJob?.productName || '',
       productionQuantity: qty,
       uom: 'Unit',
       plannedStartDate: startDate,
-      plannedEndDate: endDate,
-      productionManager: 'Bhavin Shah (Senior Production Manager)',
+      plannedEndDate: endDate || startDate,
+      productionManager: targetJob?.projectManager || 'Production Manager',
       priority,
       status: 'Planned',
       remarks: 'Created via Work Order Manager',

@@ -96,7 +96,7 @@ export default function NewLeadPage() {
                   required
                   value={formData.companyName}
                   onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                  placeholder="e.g. Reliance Industries Ltd. / Aarti Pharma"
+                  placeholder="e.g. Industrial Enterprises Ltd."
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-lg text-slate-900 dark:text-white font-bold"
                 />
               </div>

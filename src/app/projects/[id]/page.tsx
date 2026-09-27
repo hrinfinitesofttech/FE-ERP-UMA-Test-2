@@ -512,9 +512,9 @@ export default function ProjectDetailPage() {
           <div className="space-y-4">
             <h3 className="font-bold text-slate-900 dark:text-white text-xs">Logistics & Dispatch Planning</h3>
             <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
-              <div>Target Dispatch Date: <strong>12th October 2026</strong></div>
-              <div>Transport Type: Low Bed Heavy Trailer (24 Mtr)</div>
-              <div>Destination: Gujarat Alkalies & Chemicals Ltd, Dahej Complex, Plot 31, GIDC.</div>
+              <div>Target Dispatch Date: <strong>{project.deliveryDate || 'TBD'}</strong></div>
+              <div>Transport Type: Standard Heavy Industrial Freight</div>
+              <div>Destination: {project.customerName || 'Client Site'}</div>
               <div className="text-slate-400">Delivery Challan & E-Way Bill will be generated upon final QC approval.</div>
             </div>
           </div>

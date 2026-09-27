@@ -15,8 +15,20 @@ export default function QuotationsListPage() {
   const { quotations } = useERP();
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
+  const getSummary = (q: Quotation) => {
+    if (q.latestSummary) return q.latestSummary;
+    const revs = q.revisions || [];
+    const lastRev = revs[revs.length - 1];
+    return {
+      machineProduct: lastRev?.items?.[0]?.productName || 'Process Equipment',
+      grandTotal: lastRev?.grandTotal || 0,
+      status: lastRev?.status || 'draft',
+    };
+  };
+
   const filteredQuotations = quotations.filter((q) => {
-    if (statusFilter !== 'all' && q.latestSummary.status !== statusFilter) return false;
+    const summary = getSummary(q);
+    if (statusFilter !== 'all' && summary.status !== statusFilter) return false;
     return true;
   });
 
@@ -34,7 +46,7 @@ export default function QuotationsListPage() {
       header: 'ACTIVE REVISION',
       cell: (q) => (
         <span className="px-2.5 py-1 rounded-lg bg-[#FAF0E6] text-[#75401F] font-mono text-[10px] font-bold border border-[#E7DED5] whitespace-nowrap inline-block">
-          {q.currentRevision} ({q.revisions.length} Revs)
+          {q.currentRevision || 'Rev-00'} ({(q.revisions || []).length} Revs)
         </span>
       ),
     },
@@ -42,26 +54,32 @@ export default function QuotationsListPage() {
       header: 'CUSTOMER & CONTACT',
       cell: (q) => (
         <div className="min-w-[180px]">
-          <span className="font-bold text-[#211B17] block">{q.customerName}</span>
-          <span className="text-[11px] text-[#70665F]">{q.contactPerson}</span>
+          <span className="font-bold text-[#211B17] block">{q.customerName || 'N/A'}</span>
+          <span className="text-[11px] text-[#70665F]">{q.contactPerson || '-'}</span>
         </div>
       ),
     },
     {
       header: 'EQUIPMENT SCOPE',
-      cell: (q) => (
-        <span className="font-semibold text-[#544B45] block max-w-sm truncate" title={q.latestSummary.machineProduct}>
-          {q.latestSummary.machineProduct}
-        </span>
-      ),
+      cell: (q) => {
+        const summary = getSummary(q);
+        return (
+          <span className="font-semibold text-[#544B45] block max-w-sm truncate" title={summary.machineProduct}>
+            {summary.machineProduct}
+          </span>
+        );
+      },
     },
     {
       header: 'GRAND TOTAL (INR)',
-      cell: (q) => (
-        <span className="font-bold text-[#169B62] font-mono text-xs whitespace-nowrap inline-block">
-          {formatCurrency(q.latestSummary.grandTotal)}
-        </span>
-      ),
+      cell: (q) => {
+        const summary = getSummary(q);
+        return (
+          <span className="font-bold text-[#169B62] font-mono text-xs whitespace-nowrap inline-block">
+            {formatCurrency(summary.grandTotal)}
+          </span>
+        );
+      },
     },
     {
       header: 'DATE',
@@ -69,7 +87,10 @@ export default function QuotationsListPage() {
     },
     {
       header: 'STATUS',
-      cell: (q) => <div className="whitespace-nowrap"><StatusBadge status={q.latestSummary.status as any} /></div>,
+      cell: (q) => {
+        const summary = getSummary(q);
+        return <div className="whitespace-nowrap"><StatusBadge status={summary.status as any} /></div>;
+      },
     },
     {
       header: 'ACTIONS',

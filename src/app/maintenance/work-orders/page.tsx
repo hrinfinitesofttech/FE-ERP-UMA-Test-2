@@ -23,22 +23,22 @@ export default function WorkOrdersPage() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   const [formData, setFormData] = useState({
-    serviceRequestId: 'SR-2026-001',
-    requestNumber: 'SR-2026-001',
-    customerId: 'CUST-001',
-    customerName: 'Reliance Industries Ltd (Hazira Complex)',
-    customerMachineId: 'CM-2026-001',
-    machineName: 'Heavy Structural Automatic Heavy Chemical Reactor Unit 500L',
-    technicianId: 'EMP-TECH-01',
-    technicianName: 'Anil Desai (Sr Service Engineer)',
-    problem: 'Agitator seal replacement',
-    scopeOfWork: 'Replace high temp Viton seal, inspect bearing, pressure test to 210 bar.',
-    requiredParts: [{ itemCode: 'SEAL-HYD-500', itemName: 'Viton Seal Kit', requestedQty: 1, rate: 12500 }],
-    labourHours: 6,
-    estimatedCost: 24500,
-    actualCost: 20900,
+    serviceRequestId: '',
+    requestNumber: '',
+    customerId: '',
+    customerName: '',
+    customerMachineId: '',
+    machineName: '',
+    technicianId: '',
+    technicianName: '',
+    problem: '',
+    scopeOfWork: '',
+    requiredParts: [] as { itemCode: string; itemName: string; requestedQty: number; rate: number }[],
+    labourHours: 0,
+    estimatedCost: 0,
+    actualCost: 0,
     approvalRequired: false,
-    status: 'Approved' as WorkOrderStatus,
+    status: 'Pending' as WorkOrderStatus,
   });
 
   const filteredOrders = serviceWorkOrders.filter((swo) =>
