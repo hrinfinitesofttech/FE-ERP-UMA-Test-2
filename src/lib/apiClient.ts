@@ -23,7 +23,7 @@ async function getOrRefreshToken(): Promise<string | null> {
     const res = await fetch(`${API_BASE_URL}/auth/login/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'admin', password: 'admin123' }),
+      body: JSON.stringify({ username: 'admin', password: '123456' }),
     });
     if (res.ok) {
       const data = await res.json();
