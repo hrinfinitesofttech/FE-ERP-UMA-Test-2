@@ -58,80 +58,41 @@ export default function StoreDashboardPage() {
   const [selectedWarehouse, setSelectedWarehouse] = useState<string>('all');
 
   // Calculations for KPIs
-  const totalItems = itemMasters.length;
-  const totalStockValue = stockBalances.reduce((acc, s) => acc + s.stockValue, 0);
-  const totalWarehousesCount = warehouses.length;
-  const totalBinsCount = warehouseLocations.length;
-  const pendingQCGRNCount = goodsReceipts.filter((g) => g.status === 'Inspection Pending' || g.status === 'Received').length;
-  const todayIssuesCount = materialIssues.length;
+  const totalItems = itemMasters?.length || 0;
+  const totalStockValue = (stockBalances || []).reduce((acc, s) => acc + (s.stockValue || 0), 0);
+  const totalWarehousesCount = warehouses?.length || 0;
+  const totalBinsCount = warehouseLocations?.length || 0;
+  const pendingQCGRNCount = (goodsReceipts || []).filter((g) => g.status === 'Inspection Pending' || g.status === 'Received').length;
+  const todayIssuesCount = materialIssues?.length || 0;
 
-  const reservedStockValue = stockReservations.reduce((acc, r) => {
+  const reservedStockValue = (stockReservations || []).reduce((acc, r) => {
     const item = itemMasters.find((i) => i.id === r.itemId);
-    return acc + r.reservedQuantity * (item?.standardCost || 340);
+    return acc + (r.reservedQuantity || 0) * (item?.standardCost || 0);
   }, 0);
 
-  const usableStockValue = totalStockValue - reservedStockValue;
-  const lowStockItemsCount = itemMasters.filter((i) => {
-    const bal = stockBalances.find((s) => s.itemId === i.id);
-    return (bal?.usableQty || 0) <= i.reorderLevel;
+  const usableStockValue = Math.max(0, totalStockValue - reservedStockValue);
+  const lowStockItemsCount = (itemMasters || []).filter((i) => {
+    const bal = (stockBalances || []).find((s) => s.itemId === i.id);
+    return (bal?.usableQty || 0) <= (i.reorderLevel || 0);
   }).length;
 
-  const monthAdjustmentsValue = stockAdjustments.reduce((acc, a) => acc + Math.abs(a.adjustmentValue), 0);
-  const scrapValueTotal = scrapEntries.reduce((acc, s) => acc + s.estimatedValue, 0);
-  const stockAccuracyRate = 98.4;
+  const monthAdjustmentsValue = (stockAdjustments || []).reduce((acc, a) => acc + Math.abs(a.adjustmentValue || 0), 0);
+  const scrapValueTotal = (scrapEntries || []).reduce((acc, s) => acc + (s.estimatedValue || 0), 0);
+  const stockAccuracyRate = totalItems > 0 ? 100 : 0;
 
   // Recharts Chart Data
-  const warehouseValuationData = warehouses.map((w) => {
-    const whBalances = stockBalances.filter((s) => s.warehouseId === w.id);
-    const value = whBalances.reduce((acc, s) => acc + s.stockValue, 0);
-    return { name: w.warehouseCode, fullName: w.warehouseName, valuation: value / 100000 }; // in Lakhs
+  const warehouseValuationData = (warehouses || []).map((w) => {
+    const whBalances = (stockBalances || []).filter((s) => s.warehouseId === w.id);
+    const value = whBalances.reduce((acc, s) => acc + (s.stockValue || 0), 0);
+    return { name: w.warehouseCode || w.id, fullName: w.warehouseName || w.id, valuation: value / 100000 };
   });
 
-  const categoryDistributionData = [
-    { name: 'SS Plates & Sheets', value: 21.8, color: '#3b82f6' },
-    { name: 'Motors & Gearboxes', value: 5.8, color: '#8b5cf6' },
-    { name: 'Mechanical Seals', value: 4.4, color: '#ec4899' },
-    { name: 'Consumables & Wires', value: 2.1, color: '#10b981' },
-    { name: 'Fasteners & Hardware', value: 1.5, color: '#f59e0b' },
-  ];
-
-  const dailyMovementData = [
-    { day: '17 Sep', grnInward: 4.5, materialIssued: 3.2 },
-    { day: '18 Sep', grnInward: 6.2, materialIssued: 4.8 },
-    { day: '19 Sep', grnInward: 2.1, materialIssued: 5.1 },
-    { day: '20 Sep', grnInward: 12.0, materialIssued: 8.5 },
-    { day: '21 Sep', grnInward: 3.8, materialIssued: 4.0 },
-    { day: '22 Sep', grnInward: 8.4, materialIssued: 7.2 },
-    { day: '23 Sep', grnInward: 5.5, materialIssued: 6.0 },
-  ];
-
-  const fastMovingData = [
-    { name: 'SS 316L 10mm Plate', turns: 8.4, stockQty: 4800 },
-    { name: 'SS 316L 8mm Plate', turns: 6.2, stockQty: 1600 },
-    { name: 'ER316L TIG Wire', turns: 12.1, stockQty: 270 },
-    { name: '15 HP FLP Motor', turns: 4.5, stockQty: 3 },
-    { name: 'M24 SS Bolt', turns: 9.0, stockQty: 500 },
-  ];
-
-  const jobReservationData = [
-    { job: 'JOB-2026-001', reservedVal: 10.9, consumedVal: 10.9 },
-    { job: 'JOB-2026-002', reservedVal: 15.4, consumedVal: 12.0 },
-    { job: 'JOB-2026-003', reservedVal: 8.2, consumedVal: 4.1 },
-  ];
-
-  const scrapBreakdownData = [
-    { name: 'Production Offcuts', value: 25200, color: '#ef4444' },
-    { name: 'Quality Rejection', value: 14500, color: '#f59e0b' },
-    { name: 'Damaged Consumables', value: 4200, color: '#6366f1' },
-  ];
-
-  const valuationTrendData = [
-    { month: 'May', totalValue: 28.5 },
-    { month: 'Jun', totalValue: 31.2 },
-    { month: 'Jul', totalValue: 33.0 },
-    { month: 'Aug', totalValue: 36.4 },
-    { month: 'Sep', totalValue: 35.6 },
-  ];
+  const categoryDistributionData: { name: string; value: number; color: string }[] = [];
+  const dailyMovementData: { day: string; grnInward: number; materialIssued: number }[] = [];
+  const fastMovingData: { name: string; turns: number; stockQty: number }[] = [];
+  const jobReservationData: { job: string; reservedVal: number; consumedVal: number }[] = [];
+  const scrapBreakdownData: { name: string; value: number; color: string }[] = [];
+  const valuationTrendData: { month: string; totalValue: number }[] = [];
 
   return (
     <div className="space-y-5 text-xs pb-12 text-[#211B17]">

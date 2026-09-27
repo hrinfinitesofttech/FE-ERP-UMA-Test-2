@@ -11,70 +11,57 @@ export default function GoodsReceiptPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Form State
-  const [supplierId, setSupplierId] = useState(suppliers[0]?.id || 'SUP-2026-001');
-  const [poId, setPoId] = useState(purchaseOrders[0]?.id || 'PO-2026-0081');
-  const [dcNo, setDcNo] = useState('DC/TATA/90415');
-  const [invNo, setInvNo] = useState('INV/TATA/2026/895');
-  const [warehouseId, setWarehouseId] = useState(warehouses[0]?.id || 'WH-001');
-  const [vehicleNo, setVehicleNo] = useState('GJ-06-AX-9915');
-  const [transporter, setTransporter] = useState('VRL Logistics');
-  const [remarks, setRemarks] = useState('Plates received with Mill Test Certificate (MTC) Heat No. HEAT-98425.');
+  const [supplierId, setSupplierId] = useState(suppliers[0]?.id || '');
+  const [poId, setPoId] = useState(purchaseOrders[0]?.id || '');
+  const [dcNo, setDcNo] = useState('');
+  const [invNo, setInvNo] = useState('');
+  const [warehouseId, setWarehouseId] = useState(warehouses[0]?.id || '');
+  const [vehicleNo, setVehicleNo] = useState('');
+  const [transporter, setTransporter] = useState('');
+  const [remarks, setRemarks] = useState('');
 
   const selectedSupplier = suppliers.find((s) => s.id === supplierId) || suppliers[0];
   const selectedPo = purchaseOrders.find((p) => p.id === poId) || purchaseOrders[0];
   const selectedWh = warehouses.find((w) => w.id === warehouseId) || warehouses[0];
 
-  const filtered = goodsReceipts.filter(
-    (g) =>
-      g.grnNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      g.supplierName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      g.poNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      g.deliveryChallanNumber.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtered = (goodsReceipts || []).filter((g) => {
+    const grnNo = g.grnNumber || (g as any).grn_number || '';
+    const supp = g.supplierName || (g as any).supplier_name || '';
+    const poNo = g.poNumber || (g as any).po_number || '';
+    const dcNoVal = g.deliveryChallanNumber || (g as any).challanNumber || (g as any).challan_number || '';
+    const term = searchTerm.toLowerCase();
+    return (
+      grnNo.toLowerCase().includes(term) ||
+      supp.toLowerCase().includes(term) ||
+      poNo.toLowerCase().includes(term) ||
+      dcNoVal.toLowerCase().includes(term)
+    );
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const supp = selectedSupplier || { id: 'SUP-2026-001', supplierName: 'Tata Steel Limited' };
-    const wh = selectedWh || { id: 'WH-001', warehouseName: 'Raw Material Yard' };
+    const supp = selectedSupplier || { id: supplierId || 'SUP-001', supplierName: 'Supplier' };
+    const wh = selectedWh || { id: warehouseId || 'WH-001', warehouseName: 'Main Store' };
 
     addGRN({
       grnDate: new Date().toISOString().split('T')[0],
       supplierId: supp.id,
-      supplierName: supp.supplierName || supp.name || 'Tata Steel Limited',
-      poId: selectedPo?.id || 'PO-2026-0081',
-      poNumber: selectedPo?.poNumber || 'PO-2026-0081',
-      projectId: (selectedPo && selectedPo.projectId) ? selectedPo.projectId : 'PRJ-2026-0001',
-      jobId: selectedPo?.jobNumber || 'JOB-2026-001',
+      supplierName: (supp as any).supplierName || (supp as any).name || 'Supplier',
+      poId: selectedPo?.id || poId || '',
+      poNumber: selectedPo?.poNumber || '',
+      projectId: (selectedPo && selectedPo.projectId) ? selectedPo.projectId : '',
+      jobId: selectedPo?.jobNumber || '',
       deliveryChallanNumber: dcNo,
       invoiceNumber: invNo,
       warehouseId: wh.id,
-      warehouseName: wh.warehouseName,
-      receivedBy: 'Hitesh Rawal (Store Head)',
+      warehouseName: wh.warehouseName || wh.id,
+      receivedBy: 'Store Officer',
       vehicleNumber: vehicleNo,
       transporterName: transporter,
       status: 'Inspection Pending',
-      totalReceivedValue: 850000,
+      totalReceivedValue: 0,
       remarks,
-      items: [
-        {
-          id: `grn-item-${Date.now().toString().slice(-4)}`,
-          grnId: '',
-          itemId: 'ITEM-001',
-          itemCode: 'RM-SS316-10MM',
-          itemName: 'SS 316L Hot Rolled Plate (10mm Thick)',
-          poQuantity: 2500,
-          receivedQuantity: 2500,
-          acceptedQuantity: 0,
-          rejectedQuantity: 0,
-          shortQuantity: 0,
-          uom: 'Kg',
-          unitPrice: 340,
-          totalAmount: 850000,
-          batchLot: 'HEAT-98425',
-          locationCode: 'W1-ZA-R1-S1-B01',
-          remarks: 'PMI test & thickness measurement pending',
-        },
-      ],
+      items: [],
     });
 
     setIsModalOpen(false);
@@ -139,44 +126,71 @@ export default function GoodsReceiptPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
-              {filtered.map((g) => (
-                <tr key={g.id} className="hover:bg-slate-800/40 transition">
-                  <td className="p-3.5 font-medium">
-                    <div className="font-bold text-cyan-400 text-xs font-mono">{g.grnNumber}</div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">{g.grnDate}</div>
-                  </td>
-                  <td className="p-3.5 font-bold text-white">{g.supplierName}</td>
-                  <td className="p-3.5 font-mono text-slate-300">
-                    <div className="text-blue-400 font-semibold">{g.poNumber}</div>
-                    <div className="text-[10px] text-amber-400 mt-0.5">{g.jobId || 'General Stock'}</div>
-                  </td>
-                  <td className="p-3.5 text-slate-300">
-                    <div>DC: {g.deliveryChallanNumber}</div>
-                    <div className="text-[10px] text-slate-400">Inv: {g.invoiceNumber}</div>
-                  </td>
-                  <td className="p-3.5 text-slate-300 font-medium">{g.warehouseName}</td>
-                  <td className="p-3.5 text-slate-300 text-xs">
-                    <div>{g.vehicleNumber}</div>
-                    <div className="text-[10px] text-slate-400">{g.transporterName}</div>
-                  </td>
-                  <td className="p-3.5 text-right font-mono font-bold text-white">
-                    ₹{g.totalReceivedValue.toLocaleString('en-IN')}
-                  </td>
-                  <td className="p-3.5 text-center">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                        g.status === 'Accepted'
-                          ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                          : g.status === 'Inspection Pending'
-                          ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                          : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
-                      }`}
-                    >
-                      {g.status}
-                    </span>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="p-8 text-center text-slate-500">
+                    No Goods Receipt Notes found. Click &quot;Create New GRN&quot; to inward materials.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filtered.map((g) => {
+                  const grnNo = g.grnNumber || (g as any).grn_number || g.id || 'GRN';
+                  const dateStr = g.grnDate || (g as any).date || '';
+                  const suppName = g.supplierName || (g as any).supplier_name || '-';
+                  const poNo = g.poNumber || (g as any).po_number || '-';
+                  const job = g.jobId || 'General Stock';
+                  const dc = g.deliveryChallanNumber || (g as any).challanNumber || (g as any).challan_number || '-';
+                  const inv = g.invoiceNumber || (g as any).invoice_number || '-';
+                  const wh = g.warehouseName || g.warehouseId || '-';
+                  const veh = g.vehicleNumber || (g as any).vehicle_number || '-';
+                  const trans = g.transporterName || (g as any).transporter_name || '-';
+                  const totalVal = Number(
+                    g.totalReceivedValue ??
+                    (g.items && Array.isArray(g.items)
+                      ? g.items.reduce((sum: number, itm: any) => sum + Number(itm.totalAmount || itm.amount || 0), 0)
+                      : 0)
+                  ) || 0;
+
+                  return (
+                    <tr key={g.id || grnNo} className="hover:bg-slate-800/40 transition">
+                      <td className="p-3.5 font-medium">
+                        <div className="font-bold text-cyan-400 text-xs font-mono">{grnNo}</div>
+                        <div className="text-[10px] text-slate-400 mt-0.5">{dateStr}</div>
+                      </td>
+                      <td className="p-3.5 font-bold text-white">{suppName}</td>
+                      <td className="p-3.5 font-mono text-slate-300">
+                        <div className="text-blue-400 font-semibold">{poNo}</div>
+                        <div className="text-[10px] text-amber-400 mt-0.5">{job}</div>
+                      </td>
+                      <td className="p-3.5 text-slate-300">
+                        <div>DC: {dc}</div>
+                        <div className="text-[10px] text-slate-400">Inv: {inv}</div>
+                      </td>
+                      <td className="p-3.5 text-slate-300 font-medium">{wh}</td>
+                      <td className="p-3.5 text-slate-300 text-xs">
+                        <div>{veh}</div>
+                        <div className="text-[10px] text-slate-400">{trans}</div>
+                      </td>
+                      <td className="p-3.5 text-right font-mono font-bold text-white">
+                        ₹{totalVal.toLocaleString('en-IN')}
+                      </td>
+                      <td className="p-3.5 text-center">
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                            g.status === 'Accepted'
+                              ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                              : g.status === 'Inspection Pending'
+                              ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                              : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                          }`}
+                        >
+                          {g.status || 'Received'}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>

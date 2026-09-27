@@ -12,18 +12,18 @@ export default function PurchaseInvoicesPage() {
 
   // Form State
   const [supplierId, setSupplierId] = useState(suppliers[0]?.id || '');
-  const [vendorInvoiceNumber, setVendorInvoiceNumber] = useState('V-INV-9921');
-  const [poNumber, setPoNumber] = useState(purchaseOrders[0]?.poNumber || 'PO-2026-0001');
-  const [grnNumber, setGrnNumber] = useState(goodsReceipts[0]?.grnNumber || 'GRN-2026-0001');
-  const [subTotal, setSubTotal] = useState(1450000);
+  const [vendorInvoiceNumber, setVendorInvoiceNumber] = useState('');
+  const [poNumber, setPoNumber] = useState(purchaseOrders[0]?.poNumber || '');
+  const [grnNumber, setGrnNumber] = useState(goodsReceipts[0]?.grnNumber || '');
+  const [subTotal, setSubTotal] = useState(0);
   const [taxRate, setTaxRate] = useState(18);
   const [tdsSection, setTdsSection] = useState('194C');
   const [tdsRate, setTdsRate] = useState(2);
 
-  const filteredInvoices = purchaseInvoices.filter((inv) => {
+  const filteredInvoices = (purchaseInvoices || []).filter((inv) => {
     const matchesSearch =
-      inv.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      inv.supplierName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (inv.invoiceNumber || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (inv.supplierName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (inv.vendorInvoiceNumber || inv.supplierInvoiceNumber || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = selectedStatus === 'All' || inv.status === selectedStatus;
     return matchesSearch && matchesStatus;

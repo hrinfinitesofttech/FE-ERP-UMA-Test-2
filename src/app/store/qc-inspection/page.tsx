@@ -16,11 +16,11 @@ export default function QualityInspectionPage() {
   const [acceptedQty, setAcceptedQty] = useState(3500);
   const [rejectedQty, setRejectedQty] = useState(0);
 
-  const filtered = qcInspections.filter(
+  const filtered = (qcInspections || []).filter(
     (q) =>
-      q.inspectionNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      q.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      q.supplierName.toLowerCase().includes(searchTerm.toLowerCase())
+      (q.inspectionNumber || (q as any).inspection_number || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (q.itemName || (q as any).item_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (q.supplierName || (q as any).supplier_name || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleApprove = (e: React.FormEvent) => {
@@ -82,55 +82,77 @@ export default function QualityInspectionPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
-              {filtered.map((q) => (
-                <tr key={q.id} className="hover:bg-slate-800/40 transition">
-                  <td className="p-3.5 font-medium">
-                    <div className="font-bold text-orange-400 text-xs font-mono">{q.inspectionNumber}</div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">{q.inspectionDate}</div>
-                  </td>
-                  <td className="p-3.5 font-mono text-slate-300">
-                    <div className="text-cyan-400 font-semibold">{q.grnNumber}</div>
-                    <div className="text-[10px] text-amber-400 mt-0.5">{q.jobId || 'General Stock'}</div>
-                  </td>
-                  <td className="p-3.5 font-medium">
-                    <div className="font-bold text-white text-xs">{q.itemCode}</div>
-                    <div className="text-[11px] text-slate-400 mt-0.5">{q.itemName}</div>
-                  </td>
-                  <td className="p-3.5 font-bold text-slate-200">{q.supplierName}</td>
-                  <td className="p-3.5 text-right font-mono font-bold text-emerald-400">
-                    {q.acceptedQuantity.toLocaleString('en-IN')}
-                  </td>
-                  <td className="p-3.5 text-right font-mono font-bold text-rose-400">
-                    {q.rejectedQuantity.toLocaleString('en-IN')}
-                  </td>
-                  <td className="p-3.5 text-center">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                        q.qcResult === 'Pass'
-                          ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                          : q.qcResult === 'Fail'
-                          ? 'bg-rose-500/20 text-rose-400 border-rose-500/30'
-                          : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                      }`}
-                    >
-                      {q.qcResult}
-                    </span>
-                  </td>
-                  <td className="p-3.5 text-slate-300 text-xs">{q.inspectorName}</td>
-                  <td className="p-3.5 text-right">
-                    <button
-                      onClick={() => {
-                        setSelectedInspection(q);
-                        setAcceptedQty(q.acceptedQuantity || 3500);
-                        setRejectedQty(q.rejectedQuantity || 0);
-                      }}
-                      className="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white text-xs font-semibold transition"
-                    >
-                      Update QC
-                    </button>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="p-8 text-center text-slate-500">
+                    No Quality Inspections found.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filtered.map((q) => {
+                  const inspNo = q.inspectionNumber || (q as any).inspection_number || q.id || 'QC';
+                  const dateStr = q.inspectionDate || (q as any).inspection_date || '';
+                  const grnNo = q.grnNumber || (q as any).grn_number || '-';
+                  const job = q.jobId || 'General Stock';
+                  const itmCode = q.itemCode || (q as any).item_code || '-';
+                  const itmName = q.itemName || (q as any).item_name || '-';
+                  const suppName = q.supplierName || (q as any).supplier_name || '-';
+                  const accQty = Number(q.acceptedQuantity ?? 0);
+                  const rejQty = Number(q.rejectedQuantity ?? 0);
+                  const qcRes = q.qcResult || (q as any).overall_result || 'Pass';
+                  const inspLead = q.inspectorName || (q as any).inspector || '-';
+
+                  return (
+                    <tr key={q.id || inspNo} className="hover:bg-slate-800/40 transition">
+                      <td className="p-3.5 font-medium">
+                        <div className="font-bold text-orange-400 text-xs font-mono">{inspNo}</div>
+                        <div className="text-[10px] text-slate-400 mt-0.5">{dateStr}</div>
+                      </td>
+                      <td className="p-3.5 font-mono text-slate-300">
+                        <div className="text-cyan-400 font-semibold">{grnNo}</div>
+                        <div className="text-[10px] text-amber-400 mt-0.5">{job}</div>
+                      </td>
+                      <td className="p-3.5 font-medium">
+                        <div className="font-bold text-white text-xs">{itmCode}</div>
+                        <div className="text-[11px] text-slate-400 mt-0.5">{itmName}</div>
+                      </td>
+                      <td className="p-3.5 font-bold text-slate-200">{suppName}</td>
+                      <td className="p-3.5 text-right font-mono font-bold text-emerald-400">
+                        {accQty.toLocaleString('en-IN')}
+                      </td>
+                      <td className="p-3.5 text-right font-mono font-bold text-rose-400">
+                        {rejQty.toLocaleString('en-IN')}
+                      </td>
+                      <td className="p-3.5 text-center">
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                            qcRes === 'Pass'
+                              ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                              : qcRes === 'Fail'
+                              ? 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                              : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                          }`}
+                        >
+                          {qcRes}
+                        </span>
+                      </td>
+                      <td className="p-3.5 text-slate-300 text-xs">{inspLead}</td>
+                      <td className="p-3.5 text-right">
+                        <button
+                          onClick={() => {
+                            setSelectedInspection(q);
+                            setAcceptedQty(accQty || 0);
+                            setRejectedQty(rejQty || 0);
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white text-xs font-semibold transition"
+                        >
+                          Update QC
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
