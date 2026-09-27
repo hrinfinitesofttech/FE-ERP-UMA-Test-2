@@ -155,12 +155,16 @@ export function Topbar() {
             }}
             className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-[#F3EDE4] transition cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-full bg-[#182B49] text-white font-bold text-xs flex items-center justify-center shadow-xs">
-              JD
+            <div className="w-8 h-8 rounded-full bg-[#182B49] text-white font-bold text-xs flex items-center justify-center shadow-xs uppercase">
+              {((currentUser.firstName?.[0] || currentUser.username?.[0] || 'U') + (currentUser.lastName?.[0] || ''))}
             </div>
             <div className="text-left hidden md:block">
-              <div className="font-bold text-[#211B17] text-xs leading-tight">Durgesh Jadav</div>
-              <div className="text-[10px] text-[#70665F] leading-tight font-medium">Admin</div>
+              <div className="font-bold text-[#211B17] text-xs leading-tight">
+                {currentUser.name || `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.username || 'Admin User'}
+              </div>
+              <div className="text-[10px] text-[#70665F] leading-tight font-medium">
+                {currentUser.roleName || currentUser.role || 'Admin'}
+              </div>
             </div>
           </button>
 

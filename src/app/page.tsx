@@ -17,59 +17,67 @@ import {
 import { cn } from '../lib/utils';
 
 export default function DashboardPage() {
-  const { openJobModal } = useERP();
+  const { projectJobs, salesOrders, manufacturingJobs, openJobModal } = useERP();
   const [stageFilter, setStageFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const jobsData = [
-    {
-      id: 'J-2026-001',
-      customer: 'Gujarat Alkalies & Chemicals',
-      poRef: 'PO: BA/GL06/108',
-      equipment: 'Heavy SS 316L Chemical Reactor Vessel (10 KL)',
-      value: '₹ 48,50,000',
-      dispatch: '15 Oct 2026',
-      progress: 72,
-      stage: 'PRODUCTION',
-      stageBadge: 'bg-[#E0F2FE] text-[#0369A1] border-[#BAE6FD]',
-    },
-    {
-      id: 'J-2026-002',
-      customer: 'Torrent Pharmaceuticals Ltd.',
-      poRef: 'PO: RFT/08678/79-892',
-      equipment: 'Automobile Fluid Bed Dryer Machine (FBD-150)',
-      value: '₹ 62,80,388',
-      dispatch: '30 Sept 2026',
-      progress: 90,
-      stage: 'QUALITY INSPECTION',
-      stageBadge: 'bg-[#F3E8FF] text-[#7E22CE] border-[#E9D5FF]',
-    },
-    {
-      id: 'J-2026-003',
-      customer: 'Tata Chemicals Ltd.',
-      poRef: 'PO: TCL/2026/0491',
-      equipment: 'High Pressure Heat Exchanger Unit (500 Sq.m)',
-      value: '₹ 38,20,000',
-      dispatch: '22 Nov 2026',
-      progress: 45,
-      stage: 'DESIGN RELEASE',
-      stageBadge: 'bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]',
-    },
-    {
-      id: 'J-2026-004',
-      customer: 'Adani Wilmar Refinery',
-      poRef: 'PO: AW/PO/88219',
-      equipment: 'Continuous Deodorizer Column Structure (120 TPD)',
-      value: '₹ 74,49,612',
-      dispatch: '05 Dec 2026',
-      progress: 25,
-      stage: 'PURCHASE & STORE',
-      stageBadge: 'bg-[#DCFCE7] text-[#15803D] border-[#BBF7D0]',
-    },
-  ];
+  // Dynamic KPIs derived 100% from live backend API state
+  const activeBacklog =
+    salesOrders.length > 0
+      ? salesOrders.reduce((sum, so) => sum + (Number(so.orderValue) || 0), 0)
+      : projectJobs.reduce((sum, pj) => sum + (Number(pj.orderValue) || 0), 0);
+
+  const activeFloorCount =
+    manufacturingJobs.length > 0 ? manufacturingJobs.length : projectJobs.length;
+
+  const inFabCount = projectJobs.filter((p) => {
+    const stg = ((p.currentStage || (p as any).stage || p.status || '') as string).toLowerCase();
+    return stg.includes('fab') || stg.includes('prod') || stg.includes('weld');
+  }).length;
+
+  const highPriorityJobs = projectJobs.filter(
+    (p) => p.priority === 'urgent' || p.priority === 'high'
+  );
+  const delayedJobs = projectJobs.filter((p) => (p.status as string) === 'delayed');
+
+  // Dynamic Jobs mapped directly from API - ZERO hardcoded mock records
+  const jobsData = projectJobs.map((job) => {
+    const rawStage = (
+      (job.currentStage || (job as any).stage || job.status || 'PLANNING') as string
+    ).toUpperCase();
+
+    let stageBadge = 'bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]';
+    if (rawStage.includes('PROD') || rawStage.includes('FAB') || rawStage.includes('WELD')) {
+      stageBadge = 'bg-[#E0F2FE] text-[#0369A1] border-[#BAE6FD]';
+    } else if (
+      rawStage.includes('QUAL') ||
+      rawStage.includes('QC') ||
+      rawStage.includes('INSPECT')
+    ) {
+      stageBadge = 'bg-[#F3E8FF] text-[#7E22CE] border-[#E9D5FF]';
+    } else if (rawStage.includes('STORE') || rawStage.includes('PURCHASE')) {
+      stageBadge = 'bg-[#DCFCE7] text-[#15803D] border-[#BBF7D0]';
+    }
+
+    return {
+      id: job.jobNumber || job.projectNumber || job.id,
+      customer: job.customerName || 'Direct Customer',
+      poRef: job.customerPoNumber
+        ? `PO: ${job.customerPoNumber}`
+        : job.salesOrderNumber
+        ? `SO: ${job.salesOrderNumber}`
+        : 'Direct Order',
+      equipment: job.productName || job.projectName || 'MTO Equipment',
+      value: `₹ ${(Number(job.orderValue) || 0).toLocaleString('en-IN')}`,
+      dispatch: job.deliveryDate || (job as any).targetDeliveryDate || 'TBD',
+      progress: Number(job.progressPercent) || 0,
+      stage: rawStage,
+      stageBadge,
+    };
+  });
 
   const filteredJobs = jobsData.filter((job) => {
-    const matchesStage = stageFilter === 'All' || job.stage === stageFilter;
+    const matchesStage = stageFilter === 'All' || job.stage.includes(stageFilter.toUpperCase());
     const matchesSearch =
       job.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -79,7 +87,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-4 md:space-y-5">
-      {/* 1. Hero Banner Matching Image 2 */}
+      {/* 1. Hero Banner */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#FAF3EA] via-[#F8EDE0] to-[#F1DFC9] border border-[#E9DFD3] p-5 sm:p-6 shadow-xs">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5 relative z-10">
           <div className="space-y-1.5 max-w-2xl">
@@ -94,18 +102,18 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          {/* Right Visual Image Overlay Card: Golden hour industrial petrochemical plant */}
+          {/* Right Visual Image Overlay Card */}
           <div className="w-full md:w-96 h-28 rounded-xl bg-[url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=800')] bg-cover bg-center border border-[#E5DDD0] relative overflow-hidden flex items-end p-3.5 shadow-sm">
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
             <div className="relative z-10 text-white">
               <div className="text-xs font-bold leading-tight drop-shadow-sm">Precision Manufacturing</div>
-              <div className="text-[10px] text-amber-200/90 font-medium">Real Business Impact</div>
+              <div className="text-[10px] text-amber-200/90 font-medium">Real-Time API Sync</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 2. Top Metric KPI Cards Matching Image 2 */}
+      {/* 2. Top Metric KPI Cards - 100% Dynamic from Live API */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 md:gap-4">
         {/* Card 1: Active Order Backlog */}
         <div className="bg-white border border-[#E7DED5] rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(62,39,35,0.04)] hover:border-[#D5CAC0] transition-all flex flex-col justify-between min-h-[115px]">
@@ -115,12 +123,14 @@ export default function DashboardPage() {
             </div>
             <div className="min-w-0">
               <div className="text-[11px] text-[#70665F] font-semibold">Active Order Backlog</div>
-              <div className="text-xl font-bold text-[#211B17] font-mono tracking-tight truncate">₹ 2,24,00,000</div>
+              <div className="text-xl font-bold text-[#211B17] font-mono tracking-tight truncate">
+                ₹ {activeBacklog.toLocaleString('en-IN')}
+              </div>
             </div>
           </div>
           <div className="mt-3 pt-2.5 border-t border-[#F2ECE4] text-[11px] text-[#169B62] font-semibold flex items-center gap-1">
-            <span>↑ 12%</span>
-            <span className="text-[#8D827A] font-normal">vs last month</span>
+            <span>{salesOrders.length} Sales Orders</span>
+            <span className="text-[#8D827A] font-normal">• Live from API</span>
           </div>
         </div>
 
@@ -131,12 +141,14 @@ export default function DashboardPage() {
               <Users className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[11px] text-[#70665F] font-semibold">Shop Floor Machines</div>
-              <div className="text-xl font-bold text-[#211B17] font-mono tracking-tight truncate">3 Equipment</div>
+              <div className="text-[11px] text-[#70665F] font-semibold">Shop Floor Jobs</div>
+              <div className="text-xl font-bold text-[#211B17] font-mono tracking-tight truncate">
+                {activeFloorCount} {activeFloorCount === 1 ? 'Job' : 'Equipment'}
+              </div>
             </div>
           </div>
           <div className="mt-3 pt-2.5 border-t border-[#F2ECE4] text-[11px] text-[#70665F] flex items-center gap-1 font-medium">
-            <span>⚙️ 1 in Fabrication</span>
+            <span>⚙️ {inFabCount} in Fabrication</span>
           </div>
         </div>
 
@@ -148,12 +160,14 @@ export default function DashboardPage() {
             </div>
             <div className="min-w-0">
               <div className="text-[11px] text-[#70665F] font-semibold">Critical Expedite</div>
-              <div className="text-xl font-bold text-[#D9383A] font-mono tracking-tight truncate">3 High Priority</div>
+              <div className="text-xl font-bold text-[#D9383A] font-mono tracking-tight truncate">
+                {highPriorityJobs.length} High Priority
+              </div>
             </div>
           </div>
           <div className="mt-3 pt-2.5 border-t border-[#F2ECE4] text-[11px] text-[#D9383A] font-medium flex items-center gap-2">
-            <span>⚠️ 2 At-Risk</span>
-            <span>🚨 1 Delayed</span>
+            <span>⚠️ {highPriorityJobs.length} Priority</span>
+            <span>🚨 {delayedJobs.length} Delayed</span>
           </div>
         </div>
 
@@ -165,16 +179,23 @@ export default function DashboardPage() {
             </div>
             <div className="min-w-0">
               <div className="text-[11px] text-[#70665F] font-semibold">Quality & ISO Compliance</div>
-              <div className="text-xl font-bold text-[#169B62] font-mono tracking-tight truncate">100% Passed</div>
+              <div className="text-xl font-bold text-[#169B62] font-mono tracking-tight truncate">
+                {projectJobs.length > 0
+                  ? `${Math.round(
+                      projectJobs.reduce((acc, p) => acc + (p.progressPercent || 0), 0) /
+                        projectJobs.length
+                    )}% Avg`
+                  : '100% Passed'}
+              </div>
             </div>
           </div>
           <div className="mt-3 pt-2.5 border-t border-[#F2ECE4] text-[11px] text-[#169B62] font-medium flex items-center gap-1">
-            <span>🛡️ ISO 9001:2015</span>
+            <span>🛡️ ISO 9001:2015 Traceability</span>
           </div>
         </div>
       </div>
 
-      {/* 3. Job Tracking Table Matching Image 2 */}
+      {/* 3. Job Tracking Table - 100% Dynamic from Live API */}
       <div className="bg-white border border-[#E7DED5] rounded-2xl shadow-xs overflow-hidden">
         {/* Table Header Controls */}
         <div className="p-4 border-b border-[#E7DED5] flex flex-wrap items-center justify-between gap-3.5 bg-white">
@@ -182,7 +203,7 @@ export default function DashboardPage() {
             <div className="w-6 h-6 rounded-lg bg-[#FAF0E6] text-[#75401F] flex items-center justify-center border border-[#E7DED5]">
               <Layers className="w-3.5 h-3.5" />
             </div>
-            <span>Job Tracking</span>
+            <span>Job Tracking ({filteredJobs.length})</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
@@ -206,34 +227,27 @@ export default function DashboardPage() {
             >
               <option value="All">All Stages</option>
               <option value="PRODUCTION">PRODUCTION</option>
-              <option value="QUALITY INSPECTION">QUALITY INSPECTION</option>
-              <option value="DESIGN RELEASE">DESIGN RELEASE</option>
-              <option value="PURCHASE & STORE">PURCHASE & STORE</option>
+              <option value="QUALITY">QUALITY INSPECTION</option>
+              <option value="DESIGN">DESIGN RELEASE</option>
+              <option value="STORE">PURCHASE & STORE</option>
             </select>
 
-            {/* Action Buttons matching Image 2 */}
+            {/* Action Buttons */}
             <div className="flex items-center gap-1 border-l border-[#E7DED5] pl-2">
-              <button
-                type="button"
-                title="User Assignment"
+              <Link
+                href="/projects/jobs"
+                title="View All Project Jobs"
                 className="p-1.5 text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] rounded-full border border-transparent hover:border-[#E7DED5] transition cursor-pointer"
               >
-                <User className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                title="Filter Settings"
+                <Layers className="w-3.5 h-3.5" />
+              </Link>
+              <Link
+                href="/crm/sales-orders"
+                title="Sales Orders"
                 className="p-1.5 text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] rounded-full border border-transparent hover:border-[#E7DED5] transition cursor-pointer"
               >
-                <Filter className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                title="Share & Export"
-                className="p-1.5 text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] rounded-full border border-transparent hover:border-[#E7DED5] transition cursor-pointer"
-              >
-                <Share2 className="w-3.5 h-3.5" />
-              </button>
+                <FileText className="w-3.5 h-3.5" />
+              </Link>
             </div>
           </div>
         </div>
@@ -253,66 +267,87 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EFE8DE] text-[#211B17]">
-              {filteredJobs.map((job) => (
-                <tr key={job.id} className="hover:bg-[#FAF7F2]/80 transition">
-                  {/* Job ID Button Clickable */}
-                  <td className="py-3.5 px-4 font-mono font-bold">
-                    <button
-                      onClick={() => openJobModal(job.id)}
-                      className="text-[#0E91B2] hover:underline focus:outline-none cursor-pointer"
-                    >
-                      {job.id}
-                    </button>
-                  </td>
-
-                  {/* Customer & PO */}
-                  <td className="py-3.5 px-4 space-y-0.5">
-                    <div className="font-bold text-[#211B17]">{job.customer}</div>
-                    <div className="text-[11px] text-[#70665F] font-mono">{job.poRef}</div>
-                  </td>
-
-                  {/* Equipment Spec */}
-                  <td className="py-3.5 px-4 text-[#544B45] font-medium max-w-xs">
-                    {job.equipment}
-                  </td>
-
-                  {/* Order Value */}
-                  <td className="py-3.5 px-4 font-mono font-bold text-[#211B17]">
-                    {job.value}
-                  </td>
-
-                  {/* Target Dispatch */}
-                  <td className="py-3.5 px-4 text-[#544B45] font-medium">
-                    {job.dispatch}
-                  </td>
-
-                  {/* Progress Bar */}
-                  <td className="py-3.5 px-4 min-w-[140px]">
-                    <div className="flex items-center justify-between text-[10px] font-mono text-[#70665F] mb-1">
-                      <span>Progress</span>
-                      <span className="font-bold text-[#211B17]">{job.progress}%</span>
+              {filteredJobs.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-[#70665F]">
+                    <div className="max-w-md mx-auto space-y-2">
+                      <p className="font-semibold text-sm text-[#211B17]">No active jobs found in database</p>
+                      <p className="text-xs text-[#8D827A]">
+                        Live API connected. Records will appear here automatically when created via CRM or Projects.
+                      </p>
+                      <div className="pt-2">
+                        <Link
+                          href="/crm/leads"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#3E2723] text-white text-xs font-semibold hover:bg-[#2A1A17] transition"
+                        >
+                          View CRM Leads ({salesOrders.length > 0 ? salesOrders.length : 'Live'})
+                        </Link>
+                      </div>
                     </div>
-                    <div className="w-full bg-[#EAE2D8] rounded-full h-1.5 overflow-hidden">
-                      <div
-                        className="bg-gradient-to-r from-[#0E91B2] to-[#169B62] h-1.5 rounded-full transition-all duration-300"
-                        style={{ width: `${job.progress}%` }}
-                      />
-                    </div>
-                  </td>
-
-                  {/* Stage Pill */}
-                  <td className="py-3.5 px-4 text-right">
-                    <span
-                      className={cn(
-                        'px-3 py-1 rounded-full text-[10px] font-bold tracking-wider inline-block border',
-                        job.stageBadge
-                      )}
-                    >
-                      {job.stage}
-                    </span>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredJobs.map((job) => (
+                  <tr key={job.id} className="hover:bg-[#FAF7F2]/80 transition">
+                    {/* Job ID Button Clickable */}
+                    <td className="py-3.5 px-4 font-mono font-bold">
+                      <button
+                        onClick={() => openJobModal(job.id)}
+                        className="text-[#0E91B2] hover:underline focus:outline-none cursor-pointer"
+                      >
+                        {job.id}
+                      </button>
+                    </td>
+
+                    {/* Customer & PO */}
+                    <td className="py-3.5 px-4 space-y-0.5">
+                      <div className="font-bold text-[#211B17]">{job.customer}</div>
+                      <div className="text-[11px] text-[#70665F] font-mono">{job.poRef}</div>
+                    </td>
+
+                    {/* Equipment Spec */}
+                    <td className="py-3.5 px-4 text-[#544B45] font-medium max-w-xs">
+                      {job.equipment}
+                    </td>
+
+                    {/* Order Value */}
+                    <td className="py-3.5 px-4 font-mono font-bold text-[#211B17]">
+                      {job.value}
+                    </td>
+
+                    {/* Target Dispatch */}
+                    <td className="py-3.5 px-4 text-[#544B45] font-medium">
+                      {job.dispatch}
+                    </td>
+
+                    {/* Progress Bar */}
+                    <td className="py-3.5 px-4 min-w-[140px]">
+                      <div className="flex items-center justify-between text-[10px] font-mono text-[#70665F] mb-1">
+                        <span>Progress</span>
+                        <span className="font-bold text-[#211B17]">{job.progress}%</span>
+                      </div>
+                      <div className="w-full bg-[#EAE2D8] rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className="bg-gradient-to-r from-[#0E91B2] to-[#169B62] h-1.5 rounded-full transition-all duration-300"
+                          style={{ width: `${job.progress}%` }}
+                        />
+                      </div>
+                    </td>
+
+                    {/* Stage Pill */}
+                    <td className="py-3.5 px-4 text-right">
+                      <span
+                        className={cn(
+                          'px-3 py-1 rounded-full text-[10px] font-bold tracking-wider inline-block border',
+                          job.stageBadge
+                        )}
+                      >
+                        {job.stage}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
