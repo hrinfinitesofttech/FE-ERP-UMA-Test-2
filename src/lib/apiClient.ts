@@ -305,6 +305,7 @@ export const api = {
     workOrders: {
       list: () => request<any[]>('/work-orders/'),
       create: (data: any) => request<any>('/work-orders/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/work-orders/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       release: (id: string) => request<any>(`/work-orders/${id}/release/`, { method: 'POST' }),
     },
     entries: () => request<any[]>('/production-entries/'),

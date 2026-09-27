@@ -2038,6 +2038,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setContacts((prev) => [...prev, newContact]);
     logAction('CREATE', 'CRM', 'Contacts', newContact.id, `Added Contact ${newContact.name}`);
+    api.crm.contacts.create(newContact).then((res) => {
+      if (res && res.id) {
+        setContacts((prev) => prev.map((c) => (c.id === newContact.id ? { ...c, ...res } : c)));
+      }
+    }).catch((err) => console.warn('Failed to sync contact to backend:', err));
   };
 
   // Enquiries & Opportunities
@@ -2051,12 +2056,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setEnquiries((prev) => [newEnq, ...prev]);
     logAction('CREATE', 'CRM', 'Enquiries', enqNo, `Created Enquiry ${enqNo}`);
+    api.crm.enquiries.create(newEnq).then((res) => {
+      if (res && res.id) {
+        setEnquiries((prev) => prev.map((e) => (e.id === enqNo ? { ...e, ...res } : e)));
+      }
+    }).catch((err) => console.warn('Failed to sync enquiry to backend:', err));
     return newEnq;
   };
 
   const updateEnquiry = (id: string, enqData: Partial<Enquiry>) => {
     setEnquiries((prev) => prev.map((e) => (e.id === id ? { ...e, ...enqData } : e)));
     logAction('UPDATE', 'CRM', 'Enquiries', id, `Updated Enquiry ${id}`);
+    api.crm.enquiries.update(id, enqData).catch((err) => console.warn('Failed to update enquiry on backend:', err));
   };
 
   const addOpportunity = (oppData: Omit<Opportunity, 'id' | 'opportunityNo'>): Opportunity => {
@@ -2068,6 +2079,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setOpportunities((prev) => [newOpp, ...prev]);
     logAction('CREATE', 'CRM', 'Opportunities', oppNo, `Created Opportunity ${oppNo}`);
+    api.crm.opportunities.create(newOpp).then((res) => {
+      if (res && res.id) {
+        setOpportunities((prev) => prev.map((o) => (o.id === oppNo ? { ...o, ...res } : o)));
+      }
+    }).catch((err) => console.warn('Failed to sync opportunity to backend:', err));
     return newOpp;
   };
 
@@ -2129,7 +2145,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       quotationNumber: quoNo,
     };
     setQuotations((prev) => [newQuo, ...prev]);
-    logAction('CREATE', 'CRM', 'Quotations', quoNo, `Generated Quotation ${quoNo} (Rev-00) for ₹${newQuo.latestSummary.grandTotal}`);
+    logAction('CREATE', 'CRM', 'Quotations', quoNo, `Generated Quotation ${quoNo} (Rev-00) for ₹${newQuo.latestSummary?.grandTotal || 0}`);
     sendNotification({
       title: 'Quotation Ready for Approval',
       message: `${quoNo} for ${newQuo.customerName} requires Manager Review.`,
@@ -2138,6 +2154,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       linkUrl: `/crm/quotations/${quoNo}`,
       priority: 'high',
     });
+    api.crm.quotations.create(newQuo).then((res) => {
+      if (res && res.id) {
+        setQuotations((prev) => prev.map((q) => (q.id === quoNo ? { ...q, ...res } : q)));
+      }
+    }).catch((err) => console.warn('Failed to sync quotation to backend:', err));
     return newQuo;
   };
 
@@ -2195,6 +2216,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       linkUrl: '/crm/customer-po',
       priority: 'high',
     });
+    api.crm.customerPos.create(newPO).then((res) => {
+      if (res && res.id) {
+        setCustomerPOs((prev) => prev.map((p) => (p.id === poId ? { ...p, ...res } : p)));
+      }
+    }).catch((err) => console.warn('Failed to sync customer PO to backend:', err));
     return newPO;
   };
 
@@ -2242,6 +2268,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       linkUrl: '/crm/sales-orders',
       priority: 'high',
     });
+    api.crm.salesOrders.create(newSO).then((res) => {
+      if (res && res.id) {
+        setSalesOrders((prev) => prev.map((s) => (s.id === soNo ? { ...s, ...res } : s)));
+      }
+    }).catch((err) => console.warn('Failed to sync sales order to backend:', err));
     return newSO;
   };
 
@@ -2254,6 +2285,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setSalesOrders((prev) => [newSO, ...prev]);
     logAction('CREATE', 'CRM', 'Sales Orders', soNo, `Created Sales Order ${soNo}`);
+    api.crm.salesOrders.create(newSO).then((res) => {
+      if (res && res.id) {
+        setSalesOrders((prev) => prev.map((s) => (s.id === soNo ? { ...s, ...res } : s)));
+      }
+    }).catch((err) => console.warn('Failed to sync sales order to backend:', err));
     return newSO;
   };
 
@@ -2309,6 +2345,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     setSalesOrders((prev) =>
       prev.map((s) => (s.id === salesOrderId ? { ...s, status: 'project_created', projectId: prjNo, jobNumber: jobNo } : s))
     );
+
+    api.projects.create(newProject).then((res) => {
+      if (res && res.id) {
+        setProjectJobs((prev) => prev.map((p) => (p.id === prjNo ? { ...p, ...res } : p)));
+      }
+    }).catch((err) => console.warn('Failed to sync project to backend:', err));
 
     // Also inject into Master Job Traceability
     const newTraceableJob: JobTraceabilityRecord = {
@@ -3366,11 +3408,19 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       updateJobStatus(newWo.jobNumber, 'step-7', 'in_progress');
     }
     logAction('CREATE', 'Production', 'Work Orders', newWo.id, `Generated Work Order ${newWo.workOrderNumber} for ${newWo.jobNumber}`);
+    api.production.workOrders.create(newWo).then((res) => {
+      if (res && res.id) {
+        setWorkOrders((prev) => prev.map((w) => (w.id === workOrderNumber ? { ...w, ...res } : w)));
+      }
+    }).catch((err) => console.warn('Failed to sync work order to backend:', err));
   };
 
   const releaseWorkOrder = (id: string) => {
     setWorkOrders((prev) => prev.map((w) => (w.id === id || w.workOrderNumber === id ? { ...w, status: 'Released' } : w)));
     logAction('UPDATE', 'Production', 'Work Orders', id, `Released Work Order ${id} to shop floor`);
+    api.production.workOrders.release(id).catch((err: any) =>
+      console.warn('Failed to update work order on backend:', err)
+    );
   };
 
   const addProductionOrder = (data: Omit<ProductionOrder, 'id' | 'productionOrderNumber' | 'createdAt'>) => {
