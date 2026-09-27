@@ -21,6 +21,7 @@ import {
   MOCK_ITEM_360_LIST,
   MOCK_EMPLOYEE_360_LIST,
 } from '../data/mockIntegrationData';
+import { api } from '../lib/apiClient';
 import {
   CompanySetting,
   NumberingSetting,
@@ -1151,6 +1152,110 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Live Backend Data Fetching from PythonAnywhere
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadLiveData() {
+      try {
+        const [
+          liveLeads,
+          liveCustomers,
+          liveEmployees,
+          liveDepartments,
+          liveRoles,
+          liveProjects,
+          liveQuotations,
+          liveSalesOrders,
+          liveSuppliers,
+          liveItems,
+          liveWarehouses,
+          liveWorkOrders,
+          liveFinishedGoods,
+          liveServiceRequests,
+          liveApprovals,
+          liveAlerts,
+        ] = await Promise.allSettled([
+          api.crm.leads.list(),
+          api.crm.customers.list(),
+          api.employees.list(),
+          api.departments.list(),
+          api.roles.list(),
+          api.projects.list(),
+          api.crm.quotations.list(),
+          api.crm.salesOrders.list(),
+          api.purchase.suppliers.list(),
+          api.store.items.list(),
+          api.store.warehouses.list(),
+          api.production.workOrders.list(),
+          api.production.finishedGoods.list(),
+          api.maintenance.serviceRequests.list(),
+          api.integration.approvals.list(),
+          api.integration.alerts.list(),
+        ]);
+
+        if (!isMounted) return;
+
+        if (liveLeads.status === 'fulfilled' && Array.isArray(liveLeads.value) && liveLeads.value.length > 0) {
+          setLeads(liveLeads.value);
+        }
+        if (liveCustomers.status === 'fulfilled' && Array.isArray(liveCustomers.value) && liveCustomers.value.length > 0) {
+          setCustomers(liveCustomers.value);
+        }
+        if (liveEmployees.status === 'fulfilled' && Array.isArray(liveEmployees.value) && liveEmployees.value.length > 0) {
+          setEmployees(liveEmployees.value);
+        }
+        if (liveDepartments.status === 'fulfilled' && Array.isArray(liveDepartments.value) && liveDepartments.value.length > 0) {
+          setDepartments(liveDepartments.value);
+        }
+        if (liveRoles.status === 'fulfilled' && Array.isArray(liveRoles.value) && liveRoles.value.length > 0) {
+          setRoles(liveRoles.value);
+        }
+        if (liveProjects.status === 'fulfilled' && Array.isArray(liveProjects.value) && liveProjects.value.length > 0) {
+          setProjectJobs(liveProjects.value);
+        }
+        if (liveQuotations.status === 'fulfilled' && Array.isArray(liveQuotations.value) && liveQuotations.value.length > 0) {
+          setQuotations(liveQuotations.value);
+        }
+        if (liveSalesOrders.status === 'fulfilled' && Array.isArray(liveSalesOrders.value) && liveSalesOrders.value.length > 0) {
+          setSalesOrders(liveSalesOrders.value);
+        }
+        if (liveSuppliers.status === 'fulfilled' && Array.isArray(liveSuppliers.value) && liveSuppliers.value.length > 0) {
+          setSuppliers(liveSuppliers.value);
+        }
+        if (liveItems.status === 'fulfilled' && Array.isArray(liveItems.value) && liveItems.value.length > 0) {
+          setItemMasters(liveItems.value);
+        }
+        if (liveWarehouses.status === 'fulfilled' && Array.isArray(liveWarehouses.value) && liveWarehouses.value.length > 0) {
+          setWarehouses(liveWarehouses.value);
+        }
+        if (liveWorkOrders.status === 'fulfilled' && Array.isArray(liveWorkOrders.value) && liveWorkOrders.value.length > 0) {
+          setWorkOrders(liveWorkOrders.value);
+        }
+        if (liveFinishedGoods.status === 'fulfilled' && Array.isArray(liveFinishedGoods.value) && liveFinishedGoods.value.length > 0) {
+          setFinishedGoods(liveFinishedGoods.value);
+        }
+        if (liveServiceRequests.status === 'fulfilled' && Array.isArray(liveServiceRequests.value) && liveServiceRequests.value.length > 0) {
+          setServiceRequests(liveServiceRequests.value);
+        }
+        if (liveApprovals.status === 'fulfilled' && Array.isArray(liveApprovals.value) && liveApprovals.value.length > 0) {
+          setCentralApprovals(liveApprovals.value);
+        }
+        if (liveAlerts.status === 'fulfilled' && Array.isArray(liveAlerts.value) && liveAlerts.value.length > 0) {
+          setCentralAlerts(liveAlerts.value);
+        }
+      } catch (err) {
+        console.warn('Initial live data load warning:', err);
+      }
+    }
+
+    loadLiveData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Cross-Department Automatic Synchronization:
   // When a project is created or planned, it automatically creates/syncs:
   // 1. Engineering & Design (designJobs & customerRequirements) with assigned designers!
@@ -1632,17 +1737,25 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       linkUrl: `/crm/leads/${newLead.id}`,
       priority: newLead.priority === 'urgent' ? 'high' : 'normal',
     });
+    // Sync to PythonAnywhere Backend
+    api.crm.leads.create(newLead).then((res) => {
+      if (res && res.id) {
+        setLeads((prev) => prev.map((l) => (l.id === leadNo ? { ...l, ...res } : l)));
+      }
+    }).catch((err) => console.warn('Failed to sync lead to backend:', err));
     return newLead;
   };
 
   const updateLead = (id: string, leadData: Partial<Lead>) => {
     setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, ...leadData } : l)));
     logAction('UPDATE', 'CRM', 'Leads', id, `Updated lead ${id}`);
+    api.crm.leads.update(id, leadData).catch((err) => console.warn('Failed to update lead on backend:', err));
   };
 
   const deleteLead = (id: string) => {
     setLeads((prev) => prev.filter((l) => l.id !== id));
     logAction('DELETE', 'CRM', 'Leads', id, `Deleted lead ${id}`);
+    api.crm.leads.delete(id).catch((err) => console.warn('Failed to delete lead on backend:', err));
   };
 
   const convertLeadToCustomer = (leadId: string): { customer: Customer; enquiry?: Enquiry; opportunity?: Opportunity } => {
@@ -1727,6 +1840,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       convertedOpportunityId: newOpp.id,
     });
 
+    // Asynchronously trigger lead conversion on PythonAnywhere backend
+    api.crm.leads.convert(lead.id).catch((err) => console.warn('Failed to sync lead conversion on backend:', err));
+
     logAction('APPROVE', 'CRM', 'Convert Lead', lead.id, `Converted lead to Customer ${newCustomer.companyName}, Enquiry ${enqNo}, Opportunity ${oppNo}`);
     return { customer: newCustomer, enquiry: newEnquiry, opportunity: newOpp };
   };
@@ -1742,12 +1858,19 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setCustomers((prev) => [newCust, ...prev]);
     logAction('CREATE', 'CRM', 'Customers', custId, `Added Customer ${newCust.companyName}`);
+    // Sync to PythonAnywhere Backend
+    api.crm.customers.create(newCust).then((res) => {
+      if (res && res.id) {
+        setCustomers((prev) => prev.map((c) => (c.id === custId ? { ...c, ...res } : c)));
+      }
+    }).catch((err) => console.warn('Failed to sync customer to backend:', err));
     return newCust;
   };
 
   const updateCustomer = (id: string, custData: Partial<Customer>) => {
     setCustomers((prev) => prev.map((c) => (c.id === id ? { ...c, ...custData } : c)));
     logAction('UPDATE', 'CRM', 'Customers', id, `Updated Customer ${id}`);
+    api.crm.customers.update(id, custData).catch((err) => console.warn('Failed to update customer on backend:', err));
   };
 
   const addContact = (contact: Omit<Contact, 'id'>) => {
@@ -2138,6 +2261,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       linkUrl: '/projects/tasks',
       priority: newTask.priority === 'urgent' ? 'high' : 'normal',
     });
+    // Sync to PythonAnywhere backend
+    api.projects.createTask(newTask).catch((err) => console.warn('Failed to sync task to backend:', err));
     return newTask;
   };
 
@@ -2163,6 +2288,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     );
 
     logProjectActivity(target.projectId, target.jobNumber, 'Task Status Updated', `Task ${target.taskName} updated to ${taskUpdates.status || 'modified'}`);
+    // Sync to PythonAnywhere backend
+    api.projects.updateTask(id, taskUpdates).catch((err) => console.warn('Failed to update task on backend:', err));
   };
 
   const deleteProjectTask = (id: string) => {
@@ -2170,6 +2297,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       throw new Error('Unauthorized: You do not have project.delete permission');
     }
     setProjectTasks((prev) => prev.filter((t) => t.id !== id));
+    // Sync to PythonAnywhere backend
+    api.projects.deleteTask(id).catch((err) => console.warn('Failed to delete task on backend:', err));
   };
 
   const updatePlanningStage = (id: string, stageUpdates: Partial<ProjectPlanningStage>) => {
@@ -2639,10 +2768,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newSup: Supplier = { ...data, id };
     setSuppliers((prev) => [newSup, ...prev]);
     logAction('CREATE', 'Purchase', 'Supplier Master', id, `Added supplier ${data.supplierName}`);
+    // Sync to PythonAnywhere backend
+    api.purchase.suppliers.create(newSup).then((res) => {
+      if (res && res.id) {
+        setSuppliers((prev) => prev.map((s) => (s.id === id ? { ...s, ...res } : s)));
+      }
+    }).catch((err) => console.warn('Failed to sync supplier to backend:', err));
   };
 
   const updateSupplier = (id: string, updates: Partial<Supplier>) => {
     setSuppliers((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
+    // Sync to PythonAnywhere backend
+    api.purchase.suppliers.update(id, updates).catch((err) => console.warn('Failed to update supplier on backend:', err));
   };
 
   const addSupplierContact = (data: Omit<SupplierContact, 'id'>) => {
@@ -2814,11 +2951,19 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newItem: ItemMaster = { ...data, id, createdAt: new Date().toISOString().split('T')[0] };
     setItemMasters((prev) => [newItem, ...prev]);
     logAction('CREATE', 'Store', 'Item Master', id, `Added Item ${data.itemCode} - ${data.itemName}`);
+    // Sync to PythonAnywhere backend
+    api.store.items.create(newItem).then((res) => {
+      if (res && res.id) {
+        setItemMasters((prev) => prev.map((item) => (item.id === id ? { ...item, ...res } : item)));
+      }
+    }).catch((err) => console.warn('Failed to sync item to backend:', err));
   };
 
   const updateItemMaster = (id: string, updates: Partial<ItemMaster>) => {
     setItemMasters((prev) => prev.map((item) => (item.id === id ? { ...item, ...updates } : item)));
     logAction('UPDATE', 'Store', 'Item Master', id, `Updated item ${id}`);
+    // Sync to PythonAnywhere backend
+    api.store.items.update(id, updates).catch((err) => console.warn('Failed to update item on backend:', err));
   };
 
   const addItemCategory = (data: Omit<ItemCategory, 'id'>) => {
