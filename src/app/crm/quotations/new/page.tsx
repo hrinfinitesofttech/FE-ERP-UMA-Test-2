@@ -133,22 +133,22 @@ function QuotationFormContent() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-4 text-xs pb-10">
-      <Link href="/crm/quotations" className="inline-flex items-center gap-1.5 text-blue-600 hover:underline font-semibold">
+      <Link href="/crm/quotations" className="inline-flex items-center gap-1.5 text-crm-brand-700 hover:underline font-semibold">
         <ArrowLeft className="w-3.5 h-3.5" /> Back to Quotations
       </Link>
 
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-6">
-        <div className="border-b border-slate-100 dark:border-slate-800 pb-4 flex items-center justify-between">
+      <div className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl p-6 shadow-sm space-y-6">
+        <div className="border-b border-slate-100 dark:border-[#EBE3DB] pb-4 flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <FileCheck2 className="w-5 h-5 text-blue-600" />
+            <h1 className="text-lg font-bold text-slate-900 dark:text-[#211B17] flex items-center gap-2">
+              <FileCheck2 className="w-5 h-5 text-crm-brand-700" />
               Generate Technical & Commercial Quotation (Rev-00)
             </h1>
-            <p className="text-slate-500 mt-0.5">
+            <p className="text-[#70665F] mt-0.5">
               Build formal machine quotation with line items, tax calculations, technical scope, and payment milestones.
             </p>
           </div>
-          <span className="px-3 py-1 bg-purple-100 text-purple-800 font-mono font-bold rounded-lg text-xs">
+          <span className="px-3 py-1 bg-crm-brand- text-crm-brand- font-mono font-bold rounded-lg text-xs">
             NEW REVISION: Rev-00
           </span>
         </div>
@@ -157,11 +157,11 @@ function QuotationFormContent() {
           {/* HEADER METADATA */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Customer *</label>
+              <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Customer *</label>
               <select
                 value={customerId}
                 onChange={(e) => setCustomerId(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-lg font-bold text-slate-900 dark:text-white"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-bold text-slate-900 dark:text-[#211B17]"
               >
                 {customers.map((c) => (
                   <option key={c.id} value={c.id}>{c.companyName}</option>
@@ -169,29 +169,29 @@ function QuotationFormContent() {
               </select>
             </div>
             <div>
-              <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Quotation Date</label>
+              <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Quotation Date</label>
               <input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
               />
             </div>
             <div>
-              <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Valid Until</label>
+              <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Valid Until</label>
               <input
                 type="date"
                 value={validUntil}
                 onChange={(e) => setValidUntil(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
               />
             </div>
           </div>
 
           {/* LINE ITEMS TABLE */}
-          <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-[#EBE3DB]">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-sm text-slate-800 dark:text-slate-200">Equipment / Machine Line Items</h3>
+              <h3 className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Equipment / Machine Line Items</h3>
               <button
                 type="button"
                 onClick={addItem}
@@ -203,7 +203,7 @@ function QuotationFormContent() {
 
             <div className="space-y-3">
               {items.map((item, idx) => (
-                <div key={item.id} className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-3">
+                <div key={item.id} className="p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] bg-slate-50/50 dark:bg-[#FAF7F2]/30 space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 grid grid-cols-1 sm:grid-cols-4 gap-3">
                       <div className="sm:col-span-3">
@@ -214,7 +214,7 @@ function QuotationFormContent() {
                           value={item.productName}
                           onChange={(e) => handleItemChange(idx, 'productName', e.target.value)}
                           placeholder="e.g. 10 KL SS 316L Limpet Jacketed Reactor"
-                          className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border rounded-lg font-bold"
+                          className="w-full px-3 py-1.5 bg-white dark:bg-white border rounded-lg font-bold"
                         />
                       </div>
                       <div>
@@ -223,7 +223,7 @@ function QuotationFormContent() {
                           type="text"
                           value={item.unit}
                           onChange={(e) => handleItemChange(idx, 'unit', e.target.value)}
-                          className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border rounded-lg font-mono"
+                          className="w-full px-3 py-1.5 bg-white dark:bg-white border rounded-lg font-mono"
                         />
                       </div>
                     </div>
@@ -245,45 +245,45 @@ function QuotationFormContent() {
                       value={item.description}
                       onChange={(e) => handleItemChange(idx, 'description', e.target.value)}
                       placeholder="Shell thk, dish ends, agitator drive, motor rating..."
-                      className="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border rounded-lg"
+                      className="w-full px-3 py-1.5 bg-white dark:bg-white border rounded-lg"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-[11px]">
                     <div>
-                      <label className="block text-slate-500 mb-0.5">Quantity</label>
+                      <label className="block text-[#70665F] mb-0.5">Quantity</label>
                       <input
                         type="number"
                         min={1}
                         value={item.quantity}
                         onChange={(e) => handleItemChange(idx, 'quantity', Number(e.target.value))}
-                        className="w-full px-2 py-1 bg-white dark:bg-slate-900 border rounded font-mono font-bold"
+                        className="w-full px-2 py-1 bg-white dark:bg-white border rounded font-mono font-bold"
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-500 mb-0.5">Unit Rate (₹)</label>
+                      <label className="block text-[#70665F] mb-0.5">Unit Rate (₹)</label>
                       <input
                         type="number"
                         value={item.rate}
                         onChange={(e) => handleItemChange(idx, 'rate', Number(e.target.value))}
-                        className="w-full px-2 py-1 bg-white dark:bg-slate-900 border rounded font-mono font-bold text-slate-800 dark:text-slate-200"
+                        className="w-full px-2 py-1 bg-white dark:bg-white border rounded font-mono font-bold text-slate-800 dark:text-[#544B45]"
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-500 mb-0.5">Discount %</label>
+                      <label className="block text-[#70665F] mb-0.5">Discount %</label>
                       <input
                         type="number"
                         value={item.discountPercent}
                         onChange={(e) => handleItemChange(idx, 'discountPercent', Number(e.target.value))}
-                        className="w-full px-2 py-1 bg-white dark:bg-slate-900 border rounded font-mono"
+                        className="w-full px-2 py-1 bg-white dark:bg-white border rounded font-mono"
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-500 mb-0.5">GST %</label>
+                      <label className="block text-[#70665F] mb-0.5">GST %</label>
                       <select
                         value={item.taxPercent}
                         onChange={(e) => handleItemChange(idx, 'taxPercent', Number(e.target.value))}
-                        className="w-full px-2 py-1 bg-white dark:bg-slate-900 border rounded font-mono"
+                        className="w-full px-2 py-1 bg-white dark:bg-white border rounded font-mono"
                       >
                         <option value={18}>18% GST</option>
                         <option value={12}>12% GST</option>
@@ -292,8 +292,8 @@ function QuotationFormContent() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-slate-500 mb-0.5">Total Amount (₹)</label>
-                      <span className="px-2 py-1 bg-slate-200 dark:bg-slate-800 rounded font-mono font-bold text-emerald-600 block text-center">
+                      <label className="block text-[#70665F] mb-0.5">Total Amount (₹)</label>
+                      <span className="px-2 py-1 bg-slate-200 dark:bg-[#FAF7F2] rounded font-mono font-bold text-emerald-600 block text-center">
                         {formatCurrency(item.amount)}
                       </span>
                     </div>
@@ -303,12 +303,12 @@ function QuotationFormContent() {
             </div>
 
             {/* Total Summary Strip */}
-            <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-3">
-              <span className="font-semibold text-slate-600 dark:text-slate-400">
+            <div className="p-4 bg-slate-100 dark:bg-[#FAF7F2] rounded-xl flex flex-col sm:flex-row justify-between items-center gap-3">
+              <span className="font-semibold text-slate-600 dark:text-[#70665F]">
                 Taxable Subtotal: {formatCurrency(subTotal)} • Total Tax: {formatCurrency(totalTax)}
               </span>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-sm text-slate-800 dark:text-slate-200">Grand Total:</span>
+                <span className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Grand Total:</span>
                 <span className="text-base font-extrabold text-emerald-600 font-mono">
                   {formatCurrency(grandTotal)}
                 </span>
@@ -317,8 +317,8 @@ function QuotationFormContent() {
           </div>
 
           {/* COMMERCIAL TERMS & SPECS */}
-          <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-            <h3 className="font-bold text-sm text-slate-800 dark:text-slate-200">Technical Scope & Commercial Terms</h3>
+          <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-[#EBE3DB]">
+            <h3 className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Technical Scope & Commercial Terms</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-slate-700 font-semibold mb-1">Technical Specifications</label>
@@ -326,7 +326,7 @@ function QuotationFormContent() {
                   rows={2}
                   value={technicalSpecs}
                   onChange={(e) => setTechnicalSpecs(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                  className="w-full px-3 py-1.5 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                 />
               </div>
               <div>
@@ -335,7 +335,7 @@ function QuotationFormContent() {
                   rows={2}
                   value={scopeOfSupply}
                   onChange={(e) => setScopeOfSupply(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                  className="w-full px-3 py-1.5 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                 />
               </div>
             </div>
@@ -347,7 +347,7 @@ function QuotationFormContent() {
                   type="text"
                   value={paymentTerms}
                   onChange={(e) => setPaymentTerms(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                  className="w-full px-3 py-1.5 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                 />
               </div>
               <div>
@@ -356,7 +356,7 @@ function QuotationFormContent() {
                   type="text"
                   value={deliveryTime}
                   onChange={(e) => setDeliveryTime(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                  className="w-full px-3 py-1.5 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                 />
               </div>
               <div>
@@ -365,7 +365,7 @@ function QuotationFormContent() {
                   type="text"
                   value={warranty}
                   onChange={(e) => setWarranty(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                  className="w-full px-3 py-1.5 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                 />
               </div>
             </div>
@@ -376,12 +376,12 @@ function QuotationFormContent() {
                 rows={2}
                 value={termsAndConditions}
                 onChange={(e) => setTermsAndConditions(e.target.value)}
-                className="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                className="w-full px-3 py-1.5 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
               />
             </div>
           </div>
 
-          <div className="pt-4 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="pt-4 flex justify-end gap-3 border-t border-slate-100 dark:border-[#EBE3DB]">
             <Link
               href="/crm/quotations"
               className="px-4 py-2 border rounded-lg hover:bg-slate-100 font-semibold"
@@ -390,7 +390,7 @@ function QuotationFormContent() {
             </Link>
             <button
               type="submit"
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-md transition"
+              className="px-6 py-2.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-xl font-bold shadow-md transition"
             >
               Save & Generate Quotation
             </button>
@@ -403,7 +403,7 @@ function QuotationFormContent() {
 
 export default function NewQuotationPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-xs text-slate-500">Loading quotation editor...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-xs text-[#70665F]">Loading quotation editor...</div>}>
       <QuotationFormContent />
     </Suspense>
   );

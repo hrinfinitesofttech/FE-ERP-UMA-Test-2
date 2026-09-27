@@ -34,11 +34,11 @@ export default function RFQPage() {
   const filteredRFQs = rfqs.filter(r => {
     if (statusFilter !== 'ALL' && r.status !== statusFilter) return false;
     if (searchQuery) {
-      const q = searchQuery.toLowerCase();
+      const q = searchQuery?.toLowerCase();
       return (
-        r.rfqNumber.toLowerCase().includes(q) ||
-        r.jobId.toLowerCase().includes(q) ||
-        r.prNumber.toLowerCase().includes(q)
+        r.rfqNumber?.toLowerCase().includes(q) ||
+        r.jobId?.toLowerCase().includes(q) ||
+        r.prNumber?.toLowerCase().includes(q)
       );
     }
     return true;
@@ -100,24 +100,24 @@ export default function RFQPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-slate-950 text-slate-100 min-h-screen">
+    <div className="p-6 space-y-6 bg-[#FAF7F2] text-[#544B45] ">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#EBE3DB]">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-mono font-bold border border-cyan-500/30">
+            <span className="px-2.5 py-0.5 rounded-full bg-crm-brand-600/20 text-crm-brand-500 text-xs font-mono font-bold border border-crm-brand-600/30">
               RFQ MANAGEMENT
             </span>
-            <h1 className="text-2xl font-black text-white tracking-tight">Request for Quotation (RFQ) Register</h1>
+            <h1 className="text-2xl font-black text-[#211B17] tracking-tight">Request for Quotation (RFQ) Register</h1>
           </div>
-          <p className="text-slate-400 text-xs mt-1">
+          <p className="text-[#70665F] text-xs mt-1">
             Issue digital RFQs to multiple verified suppliers for competitive quotation comparison.
           </p>
         </div>
 
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-cyan-600/30 transition"
+          className="flex items-center gap-2 px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-crm-brand-700/30 transition"
         >
           <Plus className="w-4 h-4" />
           Create New RFQ
@@ -125,25 +125,25 @@ export default function RFQPage() {
       </div>
 
       {/* Filter Toolbar */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white border border-[#EBE3DB] rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#70665F]" />
             <input
               type="text"
               placeholder="Search RFQ No, PR No, Job ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-500 w-64"
+              className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-4 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-crm-brand-600 w-64"
             />
           </div>
 
           <div className="flex items-center gap-2 text-xs">
-            <span className="text-slate-400">Status:</span>
+            <span className="text-[#70665F]">Status:</span>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none cursor-pointer"
+              className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-1.5 text-xs text-[#211B17] focus:outline-none cursor-pointer"
             >
               <option value="ALL">All Statuses</option>
               <option value="Draft">Draft</option>
@@ -154,16 +154,16 @@ export default function RFQPage() {
           </div>
         </div>
 
-        <div className="text-xs text-slate-400">
-          Showing <span className="text-white font-bold">{filteredRFQs.length}</span> RFQs
+        <div className="text-xs text-[#70665F]">
+          Showing <span className="text-[#211B17] font-bold">{filteredRFQs.length}</span> RFQs
         </div>
       </div>
 
       {/* RFQ List Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left text-slate-300">
-            <thead className="bg-slate-950 text-slate-400 font-semibold border-b border-slate-800">
+          <table className="w-full text-xs text-left text-[#544B45]">
+            <thead className="bg-[#FAF7F2] text-[#70665F] font-semibold border-b border-[#EBE3DB]">
               <tr>
                 <th className="p-3">RFQ Number</th>
                 <th className="p-3">PR & Job Reference</th>
@@ -175,18 +175,18 @@ export default function RFQPage() {
                 <th className="p-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-[#EBE3DB]">
               {filteredRFQs.map(rfq => {
                 const receivedCount = rfq.invitedSuppliers.filter(s => s.quotationReceived).length;
 
                 return (
-                  <tr key={rfq.id} className="hover:bg-slate-800/40 transition">
-                    <td className="p-3 font-mono font-bold text-cyan-400">{rfq.rfqNumber}</td>
+                  <tr key={rfq.id} className="hover:bg-[#FAF7F2]/40 transition">
+                    <td className="p-3 font-mono font-bold text-crm-brand-500">{rfq.rfqNumber}</td>
                     <td className="p-3">
                       <div className="font-bold text-amber-400">{rfq.jobId}</div>
-                      <div className="text-[10px] text-slate-400">PR Ref: {rfq.prNumber}</div>
+                      <div className="text-[10px] text-[#70665F]">PR Ref: {rfq.prNumber}</div>
                     </td>
-                    <td className="p-3 text-slate-300 font-mono text-[11px]">{rfq.rfqDate}</td>
+                    <td className="p-3 text-[#544B45] font-mono text-[11px]">{rfq.rfqDate}</td>
                     <td className="p-3 font-mono text-amber-400 font-semibold text-[11px]">{rfq.dueDate}</td>
                     <td className="p-3">
                       <div className="flex flex-wrap gap-1">
@@ -196,7 +196,7 @@ export default function RFQPage() {
                             className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${
                               s.quotationReceived
                                 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                                : 'bg-slate-800 text-slate-400'
+                                : 'bg-[#FAF7F2] text-[#70665F]'
                             }`}
                           >
                             {s.supplierName}
@@ -204,13 +204,13 @@ export default function RFQPage() {
                         ))}
                       </div>
                     </td>
-                    <td className="p-3 text-center font-mono font-bold text-white">
+                    <td className="p-3 text-center font-mono font-bold text-[#211B17]">
                       {receivedCount} / {rfq.invitedSuppliers.length}
                     </td>
                     <td className="p-3">
                       <span className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
-                        rfq.status === 'Sent to Suppliers' ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30' :
-                        rfq.status === 'Quotation Received' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 'bg-slate-800 text-slate-400'
+                        rfq.status === 'Sent to Suppliers' ? 'bg-crm-brand-600/20 text-crm-brand- border-crm-brand-600/30' :
+                        rfq.status === 'Quotation Received' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 'bg-[#FAF7F2] text-[#70665F]'
                       }`}>
                         {rfq.status}
                       </span>
@@ -218,7 +218,7 @@ export default function RFQPage() {
                     <td className="p-3 text-right">
                       <button
                         onClick={() => setViewRFQ(rfq)}
-                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition"
+                        className="p-1.5 rounded-lg bg-[#FAF7F2] hover:bg-[#FAF7F2] text-[#544B45] hover:text-[#211B17] transition"
                         title="View RFQ"
                       >
                         <Eye className="w-3.5 h-3.5" />
@@ -235,40 +235,40 @@ export default function RFQPage() {
       {/* VIEW RFQ MODAL */}
       {viewRFQ && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl">
-            <div className="p-5 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl">
+            <div className="p-5 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-mono bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded font-bold">
+                <span className="text-[10px] font-mono bg-crm-brand-600/20 text-crm-brand- px-2 py-0.5 rounded font-bold">
                   RFQ DETAILS
                 </span>
-                <h2 className="text-xl font-black text-white mt-1">{viewRFQ.rfqNumber}</h2>
+                <h2 className="text-xl font-black text-[#211B17] mt-1">{viewRFQ.rfqNumber}</h2>
               </div>
-              <button onClick={() => setViewRFQ(null)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setViewRFQ(null)} className="text-[#70665F] hover:text-[#211B17]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="p-6 space-y-4 text-xs">
-              <div className="grid grid-cols-3 gap-4 p-4 bg-slate-950 rounded-xl border border-slate-800">
+              <div className="grid grid-cols-3 gap-4 p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
                 <div>
-                  <div className="text-slate-500">Job Reference:</div>
+                  <div className="text-[#70665F]">Job Reference:</div>
                   <div className="font-bold text-amber-400">{viewRFQ.jobId}</div>
                 </div>
                 <div>
-                  <div className="text-slate-500">Due Date:</div>
+                  <div className="text-[#70665F]">Due Date:</div>
                   <div className="font-bold text-amber-400 font-mono">{viewRFQ.dueDate}</div>
                 </div>
                 <div>
-                  <div className="text-slate-500">Issued By:</div>
-                  <div className="font-semibold text-white">{viewRFQ.issuedBy}</div>
+                  <div className="text-[#70665F]">Issued By:</div>
+                  <div className="font-semibold text-[#211B17]">{viewRFQ.issuedBy}</div>
                 </div>
               </div>
 
               <div>
-                <h4 className="font-bold text-white mb-2">Requested Line Items</h4>
-                <div className="border border-slate-800 rounded-xl overflow-hidden">
+                <h4 className="font-bold text-[#211B17] mb-2">Requested Line Items</h4>
+                <div className="border border-[#EBE3DB] rounded-xl overflow-hidden">
                   <table className="w-full text-xs text-left">
-                    <thead className="bg-slate-950 text-slate-400">
+                    <thead className="bg-[#FAF7F2] text-[#70665F]">
                       <tr>
                         <th className="p-2.5">Item Code</th>
                         <th className="p-2.5">Item Name & Spec</th>
@@ -276,12 +276,12 @@ export default function RFQPage() {
                         <th className="p-2.5 text-right">Target Price</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800">
+                    <tbody className="divide-y divide-[#EBE3DB]">
                       {viewRFQ.items.map(it => (
                         <tr key={it.id}>
-                          <td className="p-2.5 font-mono text-cyan-400">{it.itemCode}</td>
-                          <td className="p-2.5 font-semibold text-white">{it.itemName} ({it.specification})</td>
-                          <td className="p-2.5 text-right font-mono text-white">{it.requiredQuantity} {it.unitOfMeasure}</td>
+                          <td className="p-2.5 font-mono text-crm-brand-500">{it.itemCode}</td>
+                          <td className="p-2.5 font-semibold text-[#211B17]">{it.itemName} ({it.specification})</td>
+                          <td className="p-2.5 text-right font-mono text-[#211B17]">{it.requiredQuantity} {it.unitOfMeasure}</td>
                           <td className="p-2.5 text-right font-mono text-emerald-400">₹{it.targetPrice}</td>
                         </tr>
                       ))}
@@ -291,8 +291,8 @@ export default function RFQPage() {
               </div>
             </div>
 
-            <div className="p-4 bg-slate-950 border-t border-slate-800 flex justify-end">
-              <button onClick={() => setViewRFQ(null)} className="px-4 py-2 bg-slate-800 text-white font-bold rounded-xl">
+            <div className="p-4 bg-[#FAF7F2] border-t border-[#EBE3DB] flex justify-end">
+              <button onClick={() => setViewRFQ(null)} className="px-4 py-2 bg-[#FAF7F2] text-[#211B17] font-bold rounded-xl">
                 Close
               </button>
             </div>
@@ -303,10 +303,10 @@ export default function RFQPage() {
       {/* CREATE RFQ MODAL */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl">
-            <div className="p-5 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
-              <h2 className="text-lg font-black text-white">Create & Issue Request for Quotation (RFQ)</h2>
-              <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-white">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl">
+            <div className="p-5 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between">
+              <h2 className="text-lg font-black text-[#211B17]">Create & Issue Request for Quotation (RFQ)</h2>
+              <button onClick={() => setShowCreateModal(false)} className="text-[#70665F] hover:text-[#211B17]">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -314,11 +314,11 @@ export default function RFQPage() {
             <form onSubmit={handleCreateRFQ} className="p-6 space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-400 mb-1">Select Purchase Requisition</label>
+                  <label className="block text-[#70665F] mb-1">Select Purchase Requisition</label>
                   <select
                     value={newPrId}
                     onChange={(e) => setNewPrId(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 p-2 rounded-xl text-white"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
                   >
                     {purchaseRequisitions.map(pr => (
                       <option key={pr.id} value={pr.id}>{pr.prNumber} - {pr.jobId} ({pr.totalItems} items)</option>
@@ -326,49 +326,49 @@ export default function RFQPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">RFQ Response Due Date</label>
+                  <label className="block text-[#70665F] mb-1">RFQ Response Due Date</label>
                   <input
                     type="date"
                     value={newDueDate}
                     onChange={(e) => setNewDueDate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 p-2 rounded-xl text-white font-mono"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-2 font-bold">Select Suppliers to Invite for Quote</label>
-                <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                <label className="block text-[#70665F] mb-2 font-bold">Select Suppliers to Invite for Quote</label>
+                <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-3 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl">
                   {suppliers.map(sup => (
-                    <label key={sup.id} className="flex items-center gap-2 p-1.5 hover:bg-slate-900 rounded cursor-pointer">
+                    <label key={sup.id} className="flex items-center gap-2 p-1.5 hover:bg-white rounded cursor-pointer">
                       <input
                         type="checkbox"
                         checked={newSelectedSuppliers.includes(sup.id)}
                         onChange={() => toggleSupplier(sup.id)}
-                        className="rounded bg-slate-900 text-cyan-500"
+                        className="rounded bg-white text-crm-brand-600"
                       />
-                      <span className="text-white font-medium">{sup.name}</span>
-                      <span className="text-[10px] text-slate-500">({sup.category})</span>
+                      <span className="text-[#211B17] font-medium">{sup.name}</span>
+                      <span className="text-[10px] text-[#70665F]">({sup.category})</span>
                     </label>
                   ))}
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1">Commercial Terms & Guidelines</label>
+                <label className="block text-[#70665F] mb-1">Commercial Terms & Guidelines</label>
                 <textarea
                   value={newTerms}
                   onChange={(e) => setNewTerms(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 p-2 rounded-xl text-white h-20"
+                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] h-20"
                 />
               </div>
 
-              <div className="pt-4 flex justify-end gap-2 border-t border-slate-800">
-                <button type="button" onClick={() => setShowCreateModal(false)} className="px-4 py-2 bg-slate-800 text-white rounded-xl">
+              <div className="pt-4 flex justify-end gap-2 border-t border-[#EBE3DB]">
+                <button type="button" onClick={() => setShowCreateModal(false)} className="px-4 py-2 bg-[#FAF7F2] text-[#211B17] rounded-xl">
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl flex items-center gap-1.5">
+                <button type="submit" className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-white font-bold rounded-xl flex items-center gap-1.5">
                   <Send className="w-3.5 h-3.5" /> Issue RFQ
                 </button>
               </div>

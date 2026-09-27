@@ -24,8 +24,8 @@ export default function AttendancePage() {
 
   const filteredRecords = attendanceRecords.filter((a) => {
     const matchesSearch =
-      a.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      a.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      a.employeeName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      a.department?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       a.date.includes(searchTerm);
     const matchesStatus = statusFilter === 'ALL' || a.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -54,22 +54,22 @@ export default function AttendancePage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-slate-900 text-slate-100 min-h-screen">
+    <div className="p-6 space-y-6 bg-white text-[#211B17] ">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
-            <Clock className="w-7 h-7 text-blue-400" />
+          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2">
+            <Clock className="w-7 h-7 text-crm-brand-500" />
             Daily Attendance Management & Biometric Log
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-[#70665F] mt-1">
             Real-Time Punch In/Out Logs, Late Coming Tracking, Overtime & Biometric Integration
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowPunchModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm rounded-lg shadow-md transition"
+            className="flex items-center gap-2 px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-[#211B17] font-semibold text-sm rounded-lg shadow-md transition"
           >
             <Plus className="w-4 h-4" /> Manual Punch / Log Entry
           </button>
@@ -77,23 +77,23 @@ export default function AttendancePage() {
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-slate-800/80 border border-slate-700/60 rounded-xl p-4 flex flex-col sm:flex-row gap-4 justify-between items-center">
+      <div className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl p-4 flex flex-col sm:flex-row gap-4 justify-between items-center">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-3 text-[#70665F]" />
           <input
             type="text"
             placeholder="Search by employee name, department, date..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+            className="w-full pl-9 pr-4 py-2 bg-white border border-[#EBE3DB] rounded-lg text-sm text-[#3E2723] focus:outline-none focus:border-crm-brand-600"
           />
         </div>
         <div className="flex items-center gap-3">
-          <Filter className="w-4 h-4 text-slate-400" />
+          <Filter className="w-4 h-4 text-[#70665F]" />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+            className="bg-white border border-[#EBE3DB] rounded-lg px-3 py-2 text-sm text-[#3E2723] focus:outline-none focus:border-crm-brand-600"
           >
             <option value="ALL">All Attendance Statuses</option>
             <option value="Present">Present</option>
@@ -106,11 +106,11 @@ export default function AttendancePage() {
       </div>
 
       {/* Data Table */}
-      <div className="bg-slate-800/80 border border-slate-700/60 rounded-xl overflow-hidden shadow-xl">
+      <div className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="bg-slate-900/80 border-b border-slate-700 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              <tr className="bg-white/80 border-b border-[#EBE3DB] text-xs font-semibold text-[#70665F] uppercase tracking-wider">
                 <th className="p-4">Employee</th>
                 <th className="p-4">Date & Shift</th>
                 <th className="p-4">Check-In / Out</th>
@@ -119,23 +119,23 @@ export default function AttendancePage() {
                 <th className="p-4">Source</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700/60 text-slate-200">
+            <tbody className="divide-y divide-[#EBE3DB] text-[#3E2723]">
               {filteredRecords.map((rec) => (
-                <tr key={rec.id} className="hover:bg-slate-700/40 transition">
+                <tr key={rec.id} className="hover:bg-[#FAF7F2]/40 transition">
                   <td className="p-4">
-                    <div className="font-bold text-white">{rec.employeeName}</div>
-                    <div className="text-xs text-slate-400">{rec.department}</div>
+                    <div className="font-bold text-[#211B17]">{rec.employeeName}</div>
+                    <div className="text-xs text-[#70665F]">{rec.department}</div>
                   </td>
                   <td className="p-4">
-                    <div className="font-semibold text-slate-200">{rec.date}</div>
-                    <div className="text-xs text-slate-400">{rec.shiftName}</div>
+                    <div className="font-semibold text-[#3E2723]">{rec.date}</div>
+                    <div className="text-xs text-[#70665F]">{rec.shiftName}</div>
                   </td>
-                  <td className="p-4 font-mono text-xs text-slate-300">
+                  <td className="p-4 font-mono text-xs text-[#544B45]">
                     <div className="text-emerald-400 font-bold">In: {rec.checkIn || '--:--'}</div>
                     <div className="text-pink-400 font-bold">Out: {rec.checkOut || '--:--'}</div>
                   </td>
                   <td className="p-4 text-xs">
-                    <div>Hours: <strong className="text-white">{rec.totalHours} Hrs</strong></div>
+                    <div>Hours: <strong className="text-[#211B17]">{rec.totalHours} Hrs</strong></div>
                     {rec.lateMinutes > 0 && <div className="text-amber-400 font-semibold">Late: {rec.lateMinutes} Mins</div>}
                     {rec.overtimeHours > 0 && <div className="text-emerald-400 font-semibold">OT: {rec.overtimeHours} Hrs</div>}
                   </td>
@@ -148,13 +148,13 @@ export default function AttendancePage() {
                           ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                           : rec.status === 'Absent'
                           ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                          : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                          : 'bg-crm-brand-600/10 text-crm-brand-500 border border-crm-brand-600/20'
                       }`}
                     >
                       {rec.status}
                     </span>
                   </td>
-                  <td className="p-4 text-xs text-slate-400">{rec.source}</td>
+                  <td className="p-4 text-xs text-[#70665F]">{rec.source}</td>
                 </tr>
               ))}
             </tbody>
@@ -165,23 +165,23 @@ export default function AttendancePage() {
       {/* Modal */}
       {showPunchModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <Clock className="w-5 h-5 text-blue-400" /> Manual Punch / Attendance Log
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+              <h2 className="text-lg font-bold text-[#211B17] flex items-center gap-2">
+                <Clock className="w-5 h-5 text-crm-brand-500" /> Manual Punch / Attendance Log
               </h2>
-              <button onClick={() => setShowPunchModal(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setShowPunchModal(false)} className="text-[#70665F] hover:text-[#211B17]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handlePunchSubmit} className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-400 mb-1">Select Employee</label>
+                <label className="block text-[#70665F] mb-1">Select Employee</label>
                 <select
                   value={formData.employeeId}
                   onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
                 >
                   {availableEmployees.map((e) => (
                     <option key={e.id} value={e.id}>
@@ -193,20 +193,20 @@ export default function AttendancePage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">Date</label>
+                  <label className="block text-[#70665F] mb-1">Date</label>
                   <input
                     type="date"
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Status</label>
+                  <label className="block text-[#70665F] mb-1">Status</label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
                   >
                     <option value="Present">Present</option>
                     <option value="Late">Late</option>
@@ -219,32 +219,32 @@ export default function AttendancePage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">Check-In Time</label>
+                  <label className="block text-[#70665F] mb-1">Check-In Time</label>
                   <input
                     type="text"
                     placeholder="09:00"
                     value={formData.checkIn}
                     onChange={(e) => setFormData({ ...formData, checkIn: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono"
+                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17] font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Check-Out Time</label>
+                  <label className="block text-[#70665F] mb-1">Check-Out Time</label>
                   <input
                     type="text"
                     placeholder="18:00"
                     value={formData.checkOut}
                     onChange={(e) => setFormData({ ...formData, checkOut: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono"
+                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17] font-mono"
                   />
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-800 flex justify-end gap-3">
-                <button type="button" onClick={() => setShowPunchModal(false)} className="px-4 py-2 bg-slate-800 text-slate-300 font-semibold rounded-lg">
+              <div className="pt-3 border-t border-[#EBE3DB] flex justify-end gap-3">
+                <button type="button" onClick={() => setShowPunchModal(false)} className="px-4 py-2 bg-white text-[#544B45] font-semibold rounded-lg">
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg">
+                <button type="submit" className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-[#211B17] font-semibold rounded-lg">
                   Save Attendance
                 </button>
               </div>

@@ -33,12 +33,12 @@ export default function FollowUpsPage() {
     {
       header: 'Follow-up #',
       accessorKey: 'followUpNo',
-      cell: (f) => <span className="font-mono font-bold text-blue-600">{f.followUpNo}</span>,
+      cell: (f) => <span className="font-mono font-bold text-crm-brand-700">{f.followUpNo}</span>,
     },
     {
       header: 'Lead / Customer',
       accessorKey: 'leadOrCustomerName',
-      cell: (f) => <span className="font-bold text-slate-900 dark:text-white">{f.leadOrCustomerName}</span>,
+      cell: (f) => <span className="font-bold text-slate-900 dark:text-[#211B17]">{f.leadOrCustomerName}</span>,
     },
     {
       header: 'Type',
@@ -53,7 +53,7 @@ export default function FollowUpsPage() {
       cell: (f) => (
         <div className="font-mono">
           <span className="font-semibold block">{formatDate(f.date)}</span>
-          <span className="text-[10px] text-slate-400">{f.time}</span>
+          <span className="text-[10px] text-[#70665F]">{f.time}</span>
         </div>
       ),
     },
@@ -61,8 +61,8 @@ export default function FollowUpsPage() {
       header: 'Discussion Purpose & Notes',
       cell: (f) => (
         <div className="max-w-xs">
-          <span className="font-medium text-slate-800 dark:text-slate-200 block truncate">{f.purpose}</span>
-          <span className="text-[10px] text-slate-400 block truncate">{f.notes}</span>
+          <span className="font-medium text-slate-800 dark:text-[#544B45] block truncate">{f.purpose}</span>
+          <span className="text-[10px] text-[#70665F] block truncate">{f.notes}</span>
         </div>
       ),
     },
@@ -98,20 +98,20 @@ export default function FollowUpsPage() {
             <span>Mark Done</span>
           </button>
         ) : (
-          <span className="text-[11px] text-slate-400 font-mono">Completed</span>
+          <span className="text-[11px] text-[#70665F] font-mono">Completed</span>
         ),
     },
   ];
 
   return (
     <div className="space-y-4 text-xs">
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+      <div className="bg-white dark:bg-white p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
         <div>
-          <h1 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <PhoneCall className="w-5 h-5 text-blue-600" />
+          <h1 className="text-lg font-bold text-slate-900 dark:text-[#211B17] flex items-center gap-2">
+            <PhoneCall className="w-5 h-5 text-crm-brand-700" />
             Follow-up & Communication Management
           </h1>
-          <p className="text-slate-500 mt-0.5">
+          <p className="text-[#70665F] mt-0.5">
             Call logs, WhatsApp interactions, and client meeting schedules with automated alerts.
           </p>
         </div>
@@ -136,7 +136,7 @@ export default function FollowUpsPage() {
           <button
             onClick={() => setViewFilter('all')}
             className={`px-3 py-1.5 rounded-lg font-bold ${
-              viewFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'
+              viewFilter === 'all' ? 'bg-crm-brand-700 text-white' : 'bg-slate-100 text-slate-700'
             }`}
           >
             All Follow-ups
@@ -152,29 +152,29 @@ export default function FollowUpsPage() {
 
       {/* Completion Modal */}
       {completeModalId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 border rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">Log Follow-up Outcome</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FAF7F2] backdrop-blur-sm">
+          <div className="bg-white dark:bg-white border rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
+            <h3 className="text-base font-bold text-slate-900 dark:text-[#211B17]">Log Follow-up Outcome</h3>
             <div className="space-y-3">
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Discussion Summary / Outcome *</label>
+                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Discussion Summary / Outcome *</label>
                 <textarea
                   rows={3}
                   required
                   value={completionNotes}
                   onChange={(e) => setCompletionNotes(e.target.value)}
                   placeholder="Customer agreed on delivery timeline, requested revised commercial terms..."
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Schedule Next Action Date</label>
+                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Schedule Next Action Date</label>
                 <input
                   type="date"
                   value={nextFollowUpDate}
                   onChange={(e) => setNextFollowUpDate(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                 />
               </div>
 

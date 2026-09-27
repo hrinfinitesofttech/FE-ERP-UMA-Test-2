@@ -120,7 +120,7 @@ export default function SalesOrdersPage() {
           <div className="flex items-center gap-3">
             <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
             <div>
-              <span className="text-white text-sm">CRM → Project Integration Triggered Successfully!</span>
+              <span className="text-[#211B17] text-sm">CRM → Project Integration Triggered Successfully!</span>
               <p className="text-[11px] font-normal text-emerald-300 mt-0.5">
                 Created Project: <strong>{successInfo.prj}</strong> | Master Job Number: <strong>{successInfo.job}</strong>. Redirecting to Shop Floor Projects...
               </p>

@@ -50,28 +50,28 @@ export default function HRDashboardPage() {
   const totalMonthlyPayrollCost = salaryStructures.reduce((acc, curr) => acc + curr.totalCTC, 0);
 
   return (
-    <div className="p-6 space-y-6 bg-slate-900 text-slate-100 min-h-screen">
+    <div className="p-6 space-y-6 bg-white text-[#211B17] ">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2">
             <Users className="w-7 h-7 text-pink-500" />
             HR & Payroll Dashboard
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-[#70665F] mt-1">
             Uma Techno Fab Manufacturing ERP — Workforce Analytics, Attendance, Payroll & Recruitment Overview
           </p>
         </div>
         <div className="flex items-center gap-3">
           <Link
             href="/hr/employees"
-            className="flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-500 text-white font-semibold text-sm rounded-lg shadow-md transition"
+            className="flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-500 text-[#211B17] font-semibold text-sm rounded-lg shadow-md transition"
           >
             <Plus className="w-4 h-4" /> Add Employee
           </Link>
           <Link
             href="/hr/monthly-payroll"
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm rounded-lg shadow-md transition"
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] font-semibold text-sm rounded-lg shadow-md transition"
           >
             <DollarSign className="w-4 h-4" /> Run Monthly Payroll
           </Link>
@@ -80,35 +80,35 @@ export default function HRDashboardPage() {
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
-        <div className="bg-slate-800/80 border border-slate-700/60 rounded-xl p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
+        <div className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl p-4 flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#70665F] text-xs font-semibold">
             <span>Total Headcount</span>
-            <Users className="w-4 h-4 text-blue-400" />
+            <Users className="w-4 h-4 text-crm-brand-500" />
           </div>
-          <div className="mt-2 text-2xl font-black text-white">{totalEmployees}</div>
-          <span className="text-[11px] text-blue-400 mt-1">All Roles & Plants</span>
+          <div className="mt-2 text-2xl font-black text-[#211B17]">{totalEmployees}</div>
+          <span className="text-[11px] text-crm-brand-500 mt-1">All Roles & Plants</span>
         </div>
 
-        <div className="bg-slate-800/80 border border-slate-700/60 rounded-xl p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
+        <div className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl p-4 flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#70665F] text-xs font-semibold">
             <span>Active Staff</span>
             <UserCheck className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="mt-2 text-2xl font-black text-emerald-400">{activeEmployees}</div>
-          <span className="text-[11px] text-slate-400 mt-1">On Active Payroll</span>
+          <span className="text-[11px] text-[#70665F] mt-1">On Active Payroll</span>
         </div>
 
-        <div className="bg-slate-800/80 border border-slate-700/60 rounded-xl p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
+        <div className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl p-4 flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#70665F] text-xs font-semibold">
             <span>Present Today</span>
-            <CheckCircle2 className="w-4 h-4 text-cyan-400" />
+            <CheckCircle2 className="w-4 h-4 text-crm-brand-500" />
           </div>
-          <div className="mt-2 text-2xl font-black text-cyan-400">{presentToday}</div>
-          <span className="text-[11px] text-slate-400 mt-1">Punch In Verified</span>
+          <div className="mt-2 text-2xl font-black text-crm-brand-500">{presentToday}</div>
+          <span className="text-[11px] text-[#70665F] mt-1">Punch In Verified</span>
         </div>
 
-        <div className="bg-slate-800/80 border border-slate-700/60 rounded-xl p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
+        <div className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl p-4 flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#70665F] text-xs font-semibold">
             <span>Absent Today</span>
             <AlertTriangle className="w-4 h-4 text-red-400" />
           </div>
@@ -116,17 +116,17 @@ export default function HRDashboardPage() {
           <span className="text-[11px] text-red-400 mt-1">Requires Regularization</span>
         </div>
 
-        <div className="bg-slate-800/80 border border-slate-700/60 rounded-xl p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
+        <div className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl p-4 flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#70665F] text-xs font-semibold">
             <span>WFH / Remote</span>
             <Clock className="w-4 h-4 text-violet-400" />
           </div>
           <div className="mt-2 text-2xl font-black text-violet-400">{wfhToday}</div>
-          <span className="text-[11px] text-slate-400 mt-1">Approved Remote</span>
+          <span className="text-[11px] text-[#70665F] mt-1">Approved Remote</span>
         </div>
 
-        <div className="bg-slate-800/80 border border-slate-700/60 rounded-xl p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
+        <div className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl p-4 flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#70665F] text-xs font-semibold">
             <span>Late Check-in</span>
             <Clock className="w-4 h-4 text-amber-400" />
           </div>
@@ -134,8 +134,8 @@ export default function HRDashboardPage() {
           <span className="text-[11px] text-amber-400 mt-1">Grace Exceeded</span>
         </div>
 
-        <div className="bg-slate-800/80 border border-slate-700/60 rounded-xl p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
+        <div className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl p-4 flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#70665F] text-xs font-semibold">
             <span>Pending Leaves</span>
             <FileCheck2 className="w-4 h-4 text-pink-400" />
           </div>
@@ -146,9 +146,9 @@ export default function HRDashboardPage() {
 
       {/* Secondary KPI Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4 flex items-center justify-between">
+        <div className="bg-white/60 border border-[#EBE3DB]/50 rounded-xl p-4 flex items-center justify-between">
           <div>
-            <div className="text-xs text-slate-400 font-medium">Pending Attendance Corrections</div>
+            <div className="text-xs text-[#70665F] font-medium">Pending Attendance Corrections</div>
             <div className="text-xl font-bold text-amber-400 mt-1">{pendingCorrections} Requests</div>
           </div>
           <div className="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
@@ -156,9 +156,9 @@ export default function HRDashboardPage() {
           </div>
         </div>
 
-        <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4 flex items-center justify-between">
+        <div className="bg-white/60 border border-[#EBE3DB]/50 rounded-xl p-4 flex items-center justify-between">
           <div>
-            <div className="text-xs text-slate-400 font-medium">Monthly Payroll Budget CTC</div>
+            <div className="text-xs text-[#70665F] font-medium">Monthly Payroll Budget CTC</div>
             <div className="text-xl font-bold text-emerald-400 mt-1">₹{(totalMonthlyPayrollCost / 100000).toFixed(2)} Lakhs</div>
           </div>
           <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
@@ -166,9 +166,9 @@ export default function HRDashboardPage() {
           </div>
         </div>
 
-        <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4 flex items-center justify-between">
+        <div className="bg-white/60 border border-[#EBE3DB]/50 rounded-xl p-4 flex items-center justify-between">
           <div>
-            <div className="text-xs text-slate-400 font-medium">Employees on Notice Period</div>
+            <div className="text-xs text-[#70665F] font-medium">Employees on Notice Period</div>
             <div className="text-xl font-bold text-rose-400 mt-1">{noticePeriodEmployees} Active Resignations</div>
           </div>
           <div className="w-10 h-10 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
@@ -176,13 +176,13 @@ export default function HRDashboardPage() {
           </div>
         </div>
 
-        <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4 flex items-center justify-between">
+        <div className="bg-white/60 border border-[#EBE3DB]/50 rounded-xl p-4 flex items-center justify-between">
           <div>
-            <div className="text-xs text-slate-400 font-medium">Upcoming Birthdays / Work Anniversaries</div>
-            <div className="text-xl font-bold text-purple-400 mt-1">2 This Week</div>
+            <div className="text-xs text-[#70665F] font-medium">Upcoming Birthdays / Work Anniversaries</div>
+            <div className="text-xl font-bold text-crm-brand-500 mt-1">2 This Week</div>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
-            <Gift className="w-5 h-5 text-purple-400" />
+          <div className="w-10 h-10 rounded-lg bg-crm-brand-600/10 border border-crm-brand-600/20 flex items-center justify-center">
+            <Gift className="w-5 h-5 text-crm-brand-500" />
           </div>
         </div>
       </div>
@@ -190,8 +190,8 @@ export default function HRDashboardPage() {
       {/* Main Grid Section: Analytics & Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Department Breakup */}
-        <div className="bg-slate-800/80 border border-slate-700/60 rounded-xl p-5 space-y-4">
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
+        <div className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl p-5 space-y-4">
+          <h3 className="text-base font-bold text-[#211B17] flex items-center gap-2">
             <BarChart3 className="w-5 h-5 text-pink-400" />
             Department-wise Employee Headcount
           </h3>
@@ -202,11 +202,11 @@ export default function HRDashboardPage() {
               return (
                 <div key={dept.id || i} className="space-y-1">
                   <div className="flex justify-between text-xs font-semibold">
-                    <span className="text-slate-300">{dept.departmentName}</span>
+                    <span className="text-[#544B45]">{dept.departmentName}</span>
                     <span className="text-pink-400">{count} Employees</span>
                   </div>
-                  <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-pink-500 to-indigo-500 rounded-full" style={{ width: `${pct}%` }}></div>
+                  <div className="w-full h-2 bg-[#FAF7F2] rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-pink-500 to-crm-brand-600 rounded-full" style={{ width: `${pct}%` }}></div>
                   </div>
                 </div>
               );
@@ -215,50 +215,50 @@ export default function HRDashboardPage() {
         </div>
 
         {/* Attendance & Leave Analytics */}
-        <div className="bg-slate-800/80 border border-slate-700/60 rounded-xl p-5 space-y-4">
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
+        <div className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl p-5 space-y-4">
+          <h3 className="text-base font-bold text-[#211B17] flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-emerald-400" />
             Attendance & Overtime Trend (Current Month)
           </h3>
           <div className="space-y-4">
-            <div className="p-3 bg-slate-900/60 border border-slate-700/40 rounded-lg flex items-center justify-between">
+            <div className="p-3 bg-white/60 border border-[#EBE3DB]/40 rounded-lg flex items-center justify-between">
               <div>
-                <span className="text-xs text-slate-400">Average Plant Attendance</span>
+                <span className="text-xs text-[#70665F]">Average Plant Attendance</span>
                 <div className="text-lg font-bold text-emerald-400">96.4%</div>
               </div>
-              <div className="text-xs text-slate-400 text-right">
+              <div className="text-xs text-[#70665F] text-right">
                 <div>Shift Target: 95.0%</div>
                 <div className="text-emerald-400 font-semibold">+1.4% Surplus</div>
               </div>
             </div>
 
-            <div className="p-3 bg-slate-900/60 border border-slate-700/40 rounded-lg flex items-center justify-between">
+            <div className="p-3 bg-white/60 border border-[#EBE3DB]/40 rounded-lg flex items-center justify-between">
               <div>
-                <span className="text-xs text-slate-400">Shop Floor Overtime Hours</span>
+                <span className="text-xs text-[#70665F]">Shop Floor Overtime Hours</span>
                 <div className="text-lg font-bold text-amber-400">142.5 Hrs</div>
               </div>
-              <div className="text-xs text-slate-400 text-right">
+              <div className="text-xs text-[#70665F] text-right">
                 <div>Estimated Cost: ₹42,750</div>
                 <div className="text-amber-400 font-semibold">Approved by Supervisors</div>
               </div>
             </div>
 
-            <div className="p-3 bg-slate-900/60 border border-slate-700/40 rounded-lg flex items-center justify-between">
+            <div className="p-3 bg-white/60 border border-[#EBE3DB]/40 rounded-lg flex items-center justify-between">
               <div>
-                <span className="text-xs text-slate-400">Leave Utilization Rate</span>
+                <span className="text-xs text-[#70665F]">Leave Utilization Rate</span>
                 <div className="text-lg font-bold text-pink-400">8.2%</div>
               </div>
-              <div className="text-xs text-slate-400 text-right">
+              <div className="text-xs text-[#70665F] text-right">
                 <div>Casual / Sick Quota</div>
-                <div className="text-slate-300 font-semibold">Normal Range</div>
+                <div className="text-[#544B45] font-semibold">Normal Range</div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Quick Actions Panel */}
-        <div className="bg-slate-800/80 border border-slate-700/60 rounded-xl p-5 space-y-4">
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
+        <div className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl p-5 space-y-4">
+          <h3 className="text-base font-bold text-[#211B17] flex items-center gap-2">
             <Award className="w-5 h-5 text-amber-400" />
             Quick HR Actions & Navigation
           </h3>
@@ -266,68 +266,68 @@ export default function HRDashboardPage() {
           <div className="grid grid-cols-1 gap-2.5">
             <Link
               href="/hr/employees"
-              className="flex items-center justify-between p-3 bg-slate-900/80 hover:bg-slate-700/60 border border-slate-700/60 rounded-lg text-sm text-slate-200 transition"
+              className="flex items-center justify-between p-3 bg-white/80 hover:bg-[#FAF7F2]/60 border border-[#EBE3DB]/60 rounded-lg text-sm text-[#3E2723] transition"
             >
               <div className="flex items-center gap-3">
-                <Users className="w-4 h-4 text-blue-400" />
+                <Users className="w-4 h-4 text-crm-brand-500" />
                 <span>Employee Master & Profiles</span>
               </div>
-              <ArrowRight className="w-4 h-4 text-slate-400" />
+              <ArrowRight className="w-4 h-4 text-[#70665F]" />
             </Link>
 
             <Link
               href="/hr/attendance"
-              className="flex items-center justify-between p-3 bg-slate-900/80 hover:bg-slate-700/60 border border-slate-700/60 rounded-lg text-sm text-slate-200 transition"
+              className="flex items-center justify-between p-3 bg-white/80 hover:bg-[#FAF7F2]/60 border border-[#EBE3DB]/60 rounded-lg text-sm text-[#3E2723] transition"
             >
               <div className="flex items-center gap-3">
-                <Clock className="w-4 h-4 text-cyan-400" />
+                <Clock className="w-4 h-4 text-crm-brand-500" />
                 <span>Daily Shop Floor Attendance Log</span>
               </div>
-              <ArrowRight className="w-4 h-4 text-slate-400" />
+              <ArrowRight className="w-4 h-4 text-[#70665F]" />
             </Link>
 
             <Link
               href="/hr/leave-approvals"
-              className="flex items-center justify-between p-3 bg-slate-900/80 hover:bg-slate-700/60 border border-slate-700/60 rounded-lg text-sm text-slate-200 transition"
+              className="flex items-center justify-between p-3 bg-white/80 hover:bg-[#FAF7F2]/60 border border-[#EBE3DB]/60 rounded-lg text-sm text-[#3E2723] transition"
             >
               <div className="flex items-center gap-3">
                 <FileCheck2 className="w-4 h-4 text-pink-400" />
                 <span>Approve Leave & WFH Requests ({pendingLeaves})</span>
               </div>
-              <ArrowRight className="w-4 h-4 text-slate-400" />
+              <ArrowRight className="w-4 h-4 text-[#70665F]" />
             </Link>
 
             <Link
               href="/hr/monthly-payroll"
-              className="flex items-center justify-between p-3 bg-slate-900/80 hover:bg-slate-700/60 border border-slate-700/60 rounded-lg text-sm text-slate-200 transition"
+              className="flex items-center justify-between p-3 bg-white/80 hover:bg-[#FAF7F2]/60 border border-[#EBE3DB]/60 rounded-lg text-sm text-[#3E2723] transition"
             >
               <div className="flex items-center gap-3">
                 <DollarSign className="w-4 h-4 text-emerald-400" />
                 <span>Monthly Payroll Calculation Engine</span>
               </div>
-              <ArrowRight className="w-4 h-4 text-slate-400" />
+              <ArrowRight className="w-4 h-4 text-[#70665F]" />
             </Link>
 
             <Link
               href="/hr/advances"
-              className="flex items-center justify-between p-3 bg-slate-900/80 hover:bg-slate-700/60 border border-slate-700/60 rounded-lg text-sm text-slate-200 transition"
+              className="flex items-center justify-between p-3 bg-white/80 hover:bg-[#FAF7F2]/60 border border-[#EBE3DB]/60 rounded-lg text-sm text-[#3E2723] transition"
             >
               <div className="flex items-center gap-3">
                 <Gift className="w-4 h-4 text-amber-400" />
                 <span>Employee Advances & Loan EMI</span>
               </div>
-              <ArrowRight className="w-4 h-4 text-slate-400" />
+              <ArrowRight className="w-4 h-4 text-[#70665F]" />
             </Link>
 
             <Link
               href="/hr/payroll-reports"
-              className="flex items-center justify-between p-3 bg-slate-900/80 hover:bg-slate-700/60 border border-slate-700/60 rounded-lg text-sm text-slate-200 transition"
+              className="flex items-center justify-between p-3 bg-white/80 hover:bg-[#FAF7F2]/60 border border-[#EBE3DB]/60 rounded-lg text-sm text-[#3E2723] transition"
             >
               <div className="flex items-center gap-3">
-                <BarChart3 className="w-4 h-4 text-purple-400" />
+                <BarChart3 className="w-4 h-4 text-crm-brand-500" />
                 <span>PF / ESI / Statutory Reports</span>
               </div>
-              <ArrowRight className="w-4 h-4 text-slate-400" />
+              <ArrowRight className="w-4 h-4 text-[#70665F]" />
             </Link>
           </div>
         </div>

@@ -63,7 +63,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
       case 'urgent':
         return {
           label: 'URGENT PRIORITY',
-          bg: 'bg-[#991B1B] text-white border-[#7F1D1D] shadow-xs',
+          bg: 'bg-[#991B1B] text-[#211B17] border-[#7F1D1D] shadow-xs',
           dot: 'bg-white animate-ping',
         };
       case 'high':
@@ -84,7 +84,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
       case 'pending':
       default:
         return {
-          label: String(status).replace('_', ' ').toUpperCase(),
+          label: String(status)?.replace('_', ' ')?.toUpperCase(),
           bg: 'bg-[#F3ECE4] text-[#70665F] border-[#E7DED5]',
           dot: 'bg-[#8D827A]',
         };

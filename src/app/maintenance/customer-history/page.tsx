@@ -29,45 +29,45 @@ export default function CustomerServiceHistoryPage() {
 
   // Full permanent traceability timeline mock steps for selected serial number
   const timelineSteps = [
-    { stage: 'Manufacturing Job Order', date: selectedMachine?.manufacturingDate || '2025-11-20', detail: `Job Order #${selectedMachine?.jobNumber || 'JOB-2026-001'} completed at Bay 2`, icon: Layers, color: 'text-blue-500 bg-blue-50 border-blue-200' },
-    { stage: 'Dispatch & Transport', date: selectedMachine?.installationDate || '2025-12-01', detail: `Dispatched under Challan #${selectedMachine?.dispatchNumber || 'DSP-2026-088'}`, icon: Truck, color: 'text-indigo-500 bg-indigo-50 border-indigo-200' },
+    { stage: 'Manufacturing Job Order', date: selectedMachine?.manufacturingDate || '2025-11-20', detail: `Job Order #${selectedMachine?.jobNumber || 'JOB-2026-001'} completed at Bay 2`, icon: Layers, color: 'text-crm-brand-600 bg-crm-brand- border-crm-brand-' },
+    { stage: 'Dispatch & Transport', date: selectedMachine?.installationDate || '2025-12-01', detail: `Dispatched under Challan #${selectedMachine?.dispatchNumber || 'DSP-2026-088'}`, icon: Truck, color: 'text-crm-brand-600 bg-indigo-50 border-indigo-200' },
     { stage: 'Installation & Commissioning', date: selectedMachine?.commissioningDate || '2025-12-15', detail: `Commissioned on site. Certificate #${selectedMachine?.installationNumber || 'INST-2026-014'} signed`, icon: CheckCircle2, color: 'text-emerald-500 bg-emerald-50 border-emerald-200' },
     { stage: 'Warranty Commencement', date: selectedMachine?.warrantyStart || '2025-12-22', detail: `Standard 1 Year Warranty active until ${formatDate(selectedMachine?.warrantyEnd || '2026-12-21')}`, icon: ShieldCheck, color: 'text-amber-500 bg-amber-50 border-amber-200' },
     { stage: 'Service Request Logged', date: '2026-09-20', detail: `Service Request SR-2026-001 logged for hydraulic pressure checkup`, icon: Wrench, color: 'text-sky-500 bg-sky-50 border-sky-200' },
-    { stage: 'Field Service Visit & Spare Parts', date: '2026-09-21', detail: `Technician Anil Desai completed Visit VISIT-2026-010. Issued Viton Seal Kit`, icon: FileCheck2, color: 'text-purple-500 bg-purple-50 border-purple-200' },
+    { stage: 'Field Service Visit & Spare Parts', date: '2026-09-21', detail: `Technician Anil Desai completed Visit VISIT-2026-010. Issued Viton Seal Kit`, icon: FileCheck2, color: 'text-crm-brand-600 bg-crm-brand- border-crm-brand-' },
     { stage: 'Annual Maintenance Contract (AMC)', date: selectedMachine?.amcStart || '2026-12-22', detail: `Active AMC Contract initialized for 12 months`, icon: FileCheck, color: 'text-teal-500 bg-teal-50 border-teal-200' },
     { stage: 'Next Scheduled PM Visit', date: '2026-10-15', detail: `Quarterly Preventive Maintenance Inspection scheduled`, icon: RotateCcw, color: 'text-orange-500 bg-orange-50 border-orange-200' },
   ];
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen">
+    <div className="p-4 sm:p-6 space-y-6 bg-slate-50 dark:bg-[#FAF7F2] ">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-white p-5 rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 rounded bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-mono text-xs font-bold">
               360° LIFECYCLE TRACEABILITY
             </span>
-            <span className="text-xs text-slate-400">Permanent Traceability by Machine Serial Number</span>
+            <span className="text-xs text-[#70665F]">Permanent Traceability by Machine Serial Number</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-1 flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-[#211B17] mt-1 flex items-center gap-2">
             <History className="w-6 h-6 text-teal-500" />
             Customer Machine Service History Timeline
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[#70665F]">
             Complete lifecycle audit trail: Job -&gt; Dispatch -&gt; Installation -&gt; Warranty -&gt; Service -&gt; Parts -&gt; AMC -&gt; PM.
           </p>
         </div>
       </div>
 
       {/* Select Machine Dropdown */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white dark:bg-white p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3 w-full md:w-auto">
-          <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Select Customer Machine Serial Number:</span>
+          <span className="text-xs font-bold text-slate-600 dark:text-[#70665F]">Select Customer Machine Serial Number:</span>
           <select
             value={selectedSerial}
             onChange={(e) => setSelectedSerial(e.target.value)}
-            className="px-4 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono font-bold text-indigo-600 focus:outline-none"
+            className="px-4 py-2 text-xs bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-xl font-mono font-bold text-crm-brand-700 focus:outline-none"
           >
             {customerMachines.map((m) => (
               <option key={m.id} value={m.serialNumber}>
@@ -80,7 +80,7 @@ export default function CustomerServiceHistoryPage() {
         {selectedMachine && selectedMachine.jobNumber && (
           <button
             onClick={() => openJobModal(selectedMachine.jobNumber!)}
-            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition flex items-center gap-1.5 shadow"
+            className="px-4 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-600 text-white font-semibold text-xs transition flex items-center gap-1.5 shadow"
           >
             <Layers className="w-4 h-4" /> View Full Job 360° Modal
           </button>
@@ -89,24 +89,24 @@ export default function CustomerServiceHistoryPage() {
 
       {/* Selected Machine Header Box */}
       {selectedMachine && (
-        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 rounded-2xl border border-slate-800 shadow-lg grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-[#211B17] p-6 rounded-2xl border border-[#EBE3DB] shadow-lg grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
           <div>
-            <span className="text-slate-400 font-mono text-[10px] block">Machine Serial Number</span>
+            <span className="text-[#70665F] font-mono text-[10px] block">Machine Serial Number</span>
             <div className="text-lg font-black text-amber-400 font-mono">{selectedMachine.serialNumber}</div>
-            <div className="font-bold text-slate-200 mt-1">{selectedMachine.machineName}</div>
+            <div className="font-bold text-[#544B45] mt-1">{selectedMachine.machineName}</div>
           </div>
           <div>
-            <span className="text-slate-400 text-[10px] block">Customer & Site Location</span>
-            <div className="font-bold text-white text-sm">{selectedMachine.customerName}</div>
-            <div className="text-slate-300">{selectedMachine.machineLocation}</div>
+            <span className="text-[#70665F] text-[10px] block">Customer & Site Location</span>
+            <div className="font-bold text-[#211B17] text-sm">{selectedMachine.customerName}</div>
+            <div className="text-[#544B45]">{selectedMachine.machineLocation}</div>
           </div>
           <div>
-            <span className="text-slate-400 text-[10px] block">Manufacturing Job & PO</span>
-            <div className="font-mono text-blue-300 font-bold">Job: {selectedMachine.jobNumber || 'N/A'}</div>
-            <div className="text-slate-300 font-mono">PO: {selectedMachine.customerPo || 'N/A'}</div>
+            <span className="text-[#70665F] text-[10px] block">Manufacturing Job & PO</span>
+            <div className="font-mono text-crm-brand- font-bold">Job: {selectedMachine.jobNumber || 'N/A'}</div>
+            <div className="text-[#544B45] font-mono">PO: {selectedMachine.customerPo || 'N/A'}</div>
           </div>
           <div>
-            <span className="text-slate-400 text-[10px] block">Current Status</span>
+            <span className="text-[#70665F] text-[10px] block">Current Status</span>
             <span className="inline-block mt-1 px-3 py-1 rounded-md text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
               {selectedMachine.status}
             </span>
@@ -115,13 +115,13 @@ export default function CustomerServiceHistoryPage() {
       )}
 
       {/* Permanent Timeline Stepper */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-6">
-        <h3 className="font-bold text-sm text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+      <div className="bg-white dark:bg-white rounded-2xl border border-slate-200 dark:border-[#EBE3DB] p-6 shadow-sm space-y-6">
+        <h3 className="font-bold text-sm text-slate-900 dark:text-[#211B17] uppercase tracking-wider flex items-center gap-2">
           <History className="w-4 h-4 text-teal-500" />
           Permanent Lifecycle Timeline Trail
         </h3>
 
-        <div className="relative border-l-2 border-slate-200 dark:border-slate-800 ml-4 space-y-8 pl-6">
+        <div className="relative border-l-2 border-slate-200 dark:border-[#EBE3DB] ml-4 space-y-8 pl-6">
           {timelineSteps.map((step, idx) => {
             const Icon = step.icon;
             return (
@@ -132,12 +132,12 @@ export default function CustomerServiceHistoryPage() {
 
                 <div className="space-y-1">
                   <div className="flex items-center gap-3">
-                    <h4 className="font-bold text-sm text-slate-900 dark:text-white">{step.stage}</h4>
-                    <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-mono text-slate-500 font-bold">
+                    <h4 className="font-bold text-sm text-slate-900 dark:text-[#211B17]">{step.stage}</h4>
+                    <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-[#FAF7F2] text-[10px] font-mono text-[#70665F] font-bold">
                       {formatDate(step.date)}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400">{step.detail}</p>
+                  <p className="text-xs text-slate-600 dark:text-[#70665F]">{step.detail}</p>
                 </div>
               </div>
             );

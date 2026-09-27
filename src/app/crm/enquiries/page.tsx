@@ -47,7 +47,7 @@ export default function EnquiriesPage() {
       header: 'Enquiry No.',
       accessorKey: 'enquiryNo',
       cell: (enq) => (
-        <span className="font-mono font-bold text-blue-600 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded border border-blue-200">
+        <span className="font-mono font-bold text-crm-brand-700 bg-crm-brand- dark:bg-crm-brand-/60 px-2 py-0.5 rounded border border-crm-brand-">
           {enq.enquiryNo}
         </span>
       ),
@@ -56,8 +56,8 @@ export default function EnquiriesPage() {
       header: 'Customer',
       cell: (enq) => (
         <div>
-          <span className="font-bold text-slate-900 dark:text-white block">{enq.customerName}</span>
-          <span className="text-[10px] text-slate-400 font-mono">ID: {enq.customerId}</span>
+          <span className="font-bold text-slate-900 dark:text-[#211B17] block">{enq.customerName}</span>
+          <span className="text-[10px] text-[#70665F] font-mono">ID: {enq.customerId}</span>
         </div>
       ),
     },
@@ -65,8 +65,8 @@ export default function EnquiriesPage() {
       header: 'Machine / Equipment Requirement',
       cell: (enq) => (
         <div>
-          <span className="font-semibold text-slate-800 dark:text-slate-200 block">{enq.machineProduct}</span>
-          <span className="text-[10px] text-slate-500 block truncate max-w-xs">{enq.specification}</span>
+          <span className="font-semibold text-slate-800 dark:text-[#544B45] block">{enq.machineProduct}</span>
+          <span className="text-[10px] text-[#70665F] block truncate max-w-xs">{enq.specification}</span>
         </div>
       ),
     },
@@ -94,7 +94,7 @@ export default function EnquiriesPage() {
           ) : (
             <Link
               href={`/crm/quotations/new?customerId=${enq.customerId}&enquiryId=${enq.id}`}
-              className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[11px] font-bold"
+              className="px-2.5 py-1 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded text-[11px] font-bold"
             >
               Generate Quotation
             </Link>
@@ -106,13 +106,13 @@ export default function EnquiriesPage() {
 
   return (
     <div className="space-y-4 text-xs">
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+      <div className="bg-white dark:bg-white p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
         <div>
-          <h1 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <FileText className="w-5 h-5 text-blue-600" />
+          <h1 className="text-lg font-bold text-slate-900 dark:text-[#211B17] flex items-center gap-2">
+            <FileText className="w-5 h-5 text-crm-brand-700" />
             Technical Enquiries & Requirement Review
           </h1>
-          <p className="text-slate-500 mt-0.5">
+          <p className="text-[#70665F] mt-0.5">
             Technical feasibility checks and estimation before raising formal Quotations.
           </p>
         </div>
@@ -133,16 +133,16 @@ export default function EnquiriesPage() {
       />
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl w-full max-w-md p-6 text-xs space-y-4">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">Create Technical Enquiry</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FAF7F2] backdrop-blur-sm">
+          <div className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl shadow-xl w-full max-w-md p-6 text-xs space-y-4">
+            <h3 className="text-base font-bold text-slate-900 dark:text-[#211B17]">Create Technical Enquiry</h3>
             <form onSubmit={handleCreate} className="space-y-3">
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Customer *</label>
+                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Customer *</label>
                 <select
                   value={customerId}
                   onChange={(e) => setCustomerId(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-lg font-semibold"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-semibold"
                 >
                   {customers.map((c) => (
                     <option key={c.id} value={c.id}>{c.companyName}</option>
@@ -151,45 +151,45 @@ export default function EnquiriesPage() {
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Machine / Equipment Name *</label>
+                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Machine / Equipment Name *</label>
                 <input
                   type="text"
                   required
                   value={machineProduct}
                   onChange={(e) => setMachineProduct(e.target.value)}
                   placeholder="e.g. 5000L Limpet Jacketed SS Reactor"
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-lg font-bold"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-bold"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Quantity</label>
+                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Quantity</label>
                   <input
                     type="number"
                     min={1}
                     value={quantity}
                     onChange={(e) => setQuantity(Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-lg font-mono"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Expected Delivery</label>
+                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Expected Delivery</label>
                   <input
                     type="date"
                     value={expectedDelivery}
                     onChange={(e) => setExpectedDelivery(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Assigned Estimation Engineer</label>
+                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Assigned Estimation Engineer</label>
                 <select
                   value={assignedPersonId}
                   onChange={(e) => setAssignedPersonId(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                 >
                   {employees.map((emp) => (
                     <option key={emp.id} value={emp.id}>{emp.firstName} {emp.lastName}</option>
@@ -198,13 +198,13 @@ export default function EnquiriesPage() {
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Technical Specifications</label>
+                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Technical Specifications</label>
                 <textarea
                   rows={3}
                   value={specification}
                   onChange={(e) => setSpecification(e.target.value)}
                   placeholder="Material specs, pressure, temperature ratings..."
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                 />
               </div>
 
@@ -218,7 +218,7 @@ export default function EnquiriesPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold"
+                  className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-lg font-bold"
                 >
                   Save Enquiry
                 </button>

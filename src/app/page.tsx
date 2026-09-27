@@ -31,7 +31,7 @@ export default function DashboardPage() {
     manufacturingJobs.length > 0 ? manufacturingJobs.length : projectJobs.length;
 
   const inFabCount = projectJobs.filter((p) => {
-    const stg = ((p.currentStage || (p as any).stage || p.status || '') as string).toLowerCase();
+    const stg = ((p.currentStage || (p as any).stage || p.status || '') as string)?.toLowerCase();
     return stg.includes('fab') || stg.includes('prod') || stg.includes('weld');
   }).length;
 
@@ -44,7 +44,7 @@ export default function DashboardPage() {
   const jobsData = projectJobs.map((job) => {
     const rawStage = (
       (job.currentStage || (job as any).stage || job.status || 'PLANNING') as string
-    ).toUpperCase();
+    )?.toUpperCase();
 
     let stageBadge = 'bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]';
     if (rawStage.includes('PROD') || rawStage.includes('FAB') || rawStage.includes('WELD')) {
@@ -68,7 +68,7 @@ export default function DashboardPage() {
         ? `SO: ${job.salesOrderNumber}`
         : 'Direct Order',
       equipment: job.productName || job.projectName || 'MTO Equipment',
-      value: `₹ ${(Number(job.orderValue) || 0).toLocaleString('en-IN')}`,
+      value: `₹ ${(Number(job.orderValue) || 0)?.toLocaleString('en-IN')}`,
       dispatch: job.deliveryDate || (job as any).targetDeliveryDate || 'TBD',
       progress: Number(job.progressPercent) || 0,
       stage: rawStage,
@@ -77,11 +77,11 @@ export default function DashboardPage() {
   });
 
   const filteredJobs = jobsData.filter((job) => {
-    const matchesStage = stageFilter === 'All' || job.stage.includes(stageFilter.toUpperCase());
+    const matchesStage = stageFilter === 'All' || job.stage.includes(stageFilter?.toUpperCase());
     const matchesSearch =
-      job.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.equipment.toLowerCase().includes(searchQuery.toLowerCase());
+      job.id?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
+      job.customer?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
+      job.equipment?.toLowerCase().includes(searchQuery?.toLowerCase());
     return matchesStage && matchesSearch;
   });
 
@@ -103,9 +103,9 @@ export default function DashboardPage() {
           </div>
 
           {/* Right Visual Image Overlay Card */}
-          <div className="w-full md:w-96 h-28 rounded-xl bg-[url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=800')] bg-cover bg-center border border-[#E5DDD0] relative overflow-hidden flex items-end p-3.5 shadow-sm">
+          <div className="w-full md:w-96 h-28 rounded-xl bg-[url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=800&auto=format&fit=crop')] bg-cover bg-center border border-[#E5DDD0] relative overflow-hidden flex items-end p-3.5 shadow-sm">
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
-            <div className="relative z-10 text-white">
+            <div className="relative z-10 text-[#211B17]">
               <div className="text-xs font-bold leading-tight drop-shadow-sm">Precision Manufacturing</div>
               <div className="text-[10px] text-amber-200/90 font-medium">Real-Time API Sync</div>
             </div>
@@ -124,7 +124,7 @@ export default function DashboardPage() {
             <div className="min-w-0">
               <div className="text-[11px] text-[#70665F] font-semibold">Active Order Backlog</div>
               <div className="text-xl font-bold text-[#211B17] font-mono tracking-tight truncate">
-                ₹ {activeBacklog.toLocaleString('en-IN')}
+                ₹ {activeBacklog?.toLocaleString('en-IN')}
               </div>
             </div>
           </div>

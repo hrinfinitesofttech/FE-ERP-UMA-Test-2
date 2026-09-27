@@ -118,7 +118,7 @@ export function Sidebar() {
     cn(
       'flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all group relative',
       isActive(href)
-        ? 'bg-[#3E2723] text-white shadow-xs font-semibold'
+        ? 'bg-crm-brand-700 text-white shadow-xs font-semibold'
         : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
     );
 
@@ -126,14 +126,14 @@ export function Sidebar() {
     cn(
       'flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11.5px] font-medium transition-all group relative',
       isActive(href)
-        ? 'bg-[#3E2723] text-white font-medium shadow-xs'
+        ? 'bg-crm-brand-700 text-white font-medium shadow-xs'
         : 'text-[#6E5D53] hover:text-[#211B17] hover:bg-[#F3ECE4]'
     );
 
   return (
     <aside
       className={cn(
-        'bg-[#FAF7F2] text-[#3E2723] border-r border-[#EBE3DB] flex flex-col transition-all duration-300 select-none z-30 shadow-xs relative',
+        'bg-[#FAF7F2] text-[#3E2723] border-r border-[#EBE3DB] flex flex-col h-full transition-all duration-300 select-none z-30 shadow-xs relative',
         sidebarCollapsed ? 'w-20' : 'w-64'
       )}
     >
@@ -141,7 +141,7 @@ export function Sidebar() {
       <div className="h-16 flex items-center justify-between px-3.5 border-b border-[#EBE3DB] bg-[#FAF7F2] flex-shrink-0">
         {!sidebarCollapsed ? (
           <Link href="/" className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-8 h-8 rounded-xl bg-[#75401F] flex items-center justify-center text-white font-black text-sm shadow-xs flex-shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-crm-brand-700 flex items-center justify-center text-white font-black text-sm shadow-xs flex-shrink-0">
               <Settings className="w-4 h-4 animate-spin-slow" />
             </div>
             <div className="leading-tight truncate">
@@ -154,7 +154,7 @@ export function Sidebar() {
             </div>
           </Link>
         ) : (
-          <Link href="/" className="mx-auto w-8 h-8 rounded-xl bg-[#75401F] flex items-center justify-center text-white font-black text-sm shadow-xs">
+          <Link href="/" className="mx-auto w-8 h-8 rounded-xl bg-crm-brand-700 flex items-center justify-center text-white font-black text-sm shadow-xs">
             <Settings className="w-4 h-4" />
           </Link>
         )}
@@ -168,18 +168,18 @@ export function Sidebar() {
       </div>
 
       {/* Navigation Links Scrollable */}
-      <div className="flex-1 overflow-y-auto py-2 px-2.5 space-y-0.5 scrollbar-thin">
+      <div className="flex-1 overflow-y-auto py-2 px-2.5 space-y-0.5 scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {/* Executive Dashboard */}
         <Link
           href="/"
           className={cn(
             'flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all group relative',
             isActive('/')
-              ? 'bg-[#3E2723] text-white shadow-xs'
+              ? 'bg-crm-brand-700 text-white shadow-xs'
               : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
           )}
         >
-          <LayoutDashboard className={cn('w-4 h-4 flex-shrink-0', isActive('/') ? 'text-white' : 'text-[#75401F]')} />
+          <LayoutDashboard className={cn('w-4 h-4 flex-shrink-0', isActive('/') ? 'text-white' : 'text-crm-brand-700')} />
           {!sidebarCollapsed && <span>Dashboard</span>}
         </Link>
 
@@ -196,7 +196,7 @@ export function Sidebar() {
               )}
             >
               <div className="flex items-center gap-2.5">
-                <Users className="w-4 h-4 text-[#75401F] flex-shrink-0" />
+                <Users className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
                 <span>CRM & Sales</span>
               </div>
               <ChevronDown
@@ -219,7 +219,7 @@ export function Sidebar() {
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Leads (360° View)</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-[#75401F] font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
                       {leads.length}
                     </span>
                   </div>
@@ -254,7 +254,7 @@ export function Sidebar() {
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Quotations & Rev</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-[#75401F] font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
                       {quotations.length}
                     </span>
                   </div>
@@ -269,7 +269,7 @@ export function Sidebar() {
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Sales Orders</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-[#75401F] font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
                       {salesOrders.length}
                     </span>
                   </div>
@@ -296,7 +296,7 @@ export function Sidebar() {
               )}
             >
               <div className="flex items-center gap-2.5">
-                <Briefcase className="w-4 h-4 text-[#75401F] flex-shrink-0" />
+                <Briefcase className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
                 <span>Project & Job Management</span>
               </div>
               <ChevronDown
@@ -319,7 +319,7 @@ export function Sidebar() {
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Projects</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-[#75401F] font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
                       {projectJobs.length}
                     </span>
                   </div>
@@ -394,7 +394,7 @@ export function Sidebar() {
               )}
             >
               <div className="flex items-center gap-2.5">
-                <Palette className="w-4 h-4 text-[#75401F] flex-shrink-0" />
+                <Palette className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
                 <span>Designer & Engineering</span>
               </div>
               <ChevronDown
@@ -417,7 +417,7 @@ export function Sidebar() {
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Design Jobs</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-[#75401F] font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
                       {designJobs.length}
                     </span>
                   </div>
@@ -492,7 +492,7 @@ export function Sidebar() {
               )}
             >
               <div className="flex items-center gap-2.5">
-                <ShoppingCart className="w-4 h-4 text-[#75401F] flex-shrink-0" />
+                <ShoppingCart className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
                 <span>Purchase Management</span>
               </div>
               <ChevronDown
@@ -519,7 +519,7 @@ export function Sidebar() {
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Purchase Requisition</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-[#75401F] font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
                       {purchaseRequisitions.length}
                     </span>
                   </div>
@@ -550,7 +550,7 @@ export function Sidebar() {
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Purchase Orders</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-[#75401F] font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
                       {purchaseOrders.length}
                     </span>
                   </div>
@@ -593,7 +593,7 @@ export function Sidebar() {
               )}
             >
               <div className="flex items-center gap-2.5">
-                <Box className="w-4 h-4 text-[#75401F] flex-shrink-0" />
+                <Box className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
                 <span>Store & Warehouse</span>
               </div>
               <ChevronDown
@@ -616,7 +616,7 @@ export function Sidebar() {
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Item / Material Master</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-[#75401F] font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
                       {itemMasters.length}
                     </span>
                   </div>
@@ -647,7 +647,7 @@ export function Sidebar() {
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Goods Receipt / GRN</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-[#75401F] font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
                       {goodsReceipts.length}
                     </span>
                   </div>
@@ -718,7 +718,7 @@ export function Sidebar() {
               )}
             >
               <div className="flex items-center gap-2.5">
-                <Factory className="w-4 h-4 text-[#75401F] flex-shrink-0" />
+                <Factory className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
                 <span>Production & Shop Floor</span>
               </div>
               <ChevronDown
@@ -749,7 +749,7 @@ export function Sidebar() {
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Work Orders</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-[#75401F] font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
                       {workOrders ? workOrders.length : 0}
                     </span>
                   </div>
@@ -760,7 +760,7 @@ export function Sidebar() {
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Production Orders</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-[#75401F] font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
                       {productionOrders ? productionOrders.length : 0}
                     </span>
                   </div>
@@ -847,7 +847,7 @@ export function Sidebar() {
               )}
             >
               <div className="flex items-center gap-2.5">
-                <Landmark className="w-4 h-4 text-[#75401F] flex-shrink-0" />
+                <Landmark className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
                 <span>Accounting & Finance</span>
               </div>
               <ChevronDown
@@ -990,7 +990,7 @@ export function Sidebar() {
               )}
             >
               <div className="flex items-center gap-2.5">
-                <Wrench className="w-4 h-4 text-[#75401F] flex-shrink-0" />
+                <Wrench className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
                 <span>Maintenance & Services</span>
               </div>
               <ChevronDown
@@ -1113,7 +1113,7 @@ export function Sidebar() {
               )}
             >
               <div className="flex items-center gap-2.5">
-                <UserCheck className="w-4 h-4 text-[#75401F] flex-shrink-0" />
+                <UserCheck className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
                 <span>HR & Payroll</span>
               </div>
               <ChevronDown
@@ -1314,7 +1314,7 @@ export function Sidebar() {
               )}
             >
               <div className="flex items-center gap-2.5">
-                <Workflow className="w-4 h-4 text-[#75401F] flex-shrink-0" />
+                <Workflow className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
                 <span>Integration & 360°</span>
               </div>
               <ChevronDown
@@ -1389,7 +1389,7 @@ export function Sidebar() {
               )}
             >
               <div className="flex items-center gap-2.5">
-                <ShieldCheck className="w-4 h-4 text-[#75401F] flex-shrink-0" />
+                <ShieldCheck className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
                 <span>Testing & Security</span>
               </div>
               <ChevronDown
@@ -1448,7 +1448,7 @@ export function Sidebar() {
               )}
             >
               <div className="flex items-center gap-2.5">
-                <Settings className="w-4 h-4 text-[#75401F] flex-shrink-0" />
+                <Settings className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
                 <span>Foundation & Admin</span>
               </div>
               <ChevronDown

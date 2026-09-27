@@ -53,37 +53,37 @@ export default function CustomerChangeRequestsPage() {
   return (
     <div className="space-y-6 text-xs pb-12">
       {/* Header Banner */}
-      <div className="bg-white dark:bg-[#0B1120] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
+      <div className="bg-white dark:bg-[#0B1120] p-5 rounded-2xl border border-slate-200 dark:border-[#EBE3DB] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-2.5 py-0.5 rounded-full bg-pink-500/10 text-pink-500 font-mono text-[10px] font-bold uppercase tracking-wider border border-pink-500/20">
               MTO Change Governance
             </span>
           </div>
-          <h1 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+          <h1 className="text-lg font-black text-slate-900 dark:text-[#211B17] flex items-center gap-2">
             <RotateCcw className="w-5 h-5 text-pink-500" />
             Customer Specification Change Requests
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-[#70665F] dark:text-[#70665F] mt-0.5">
             Controlled revision control for design, material, cost, and timeline modifications requested after order confirmation.
           </p>
         </div>
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-pink-600/30 transition cursor-pointer"
+          className="px-4 py-2 bg-pink-600 hover:bg-pink-500 text-[#211B17] font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-pink-600/30 transition cursor-pointer"
         >
           <Plus className="w-4 h-4" /> New Change Request
         </button>
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-white dark:bg-[#0B1120] p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
-        <span className="font-bold text-slate-700 dark:text-slate-300">Filter by Project:</span>
+      <div className="bg-white dark:bg-[#0B1120] p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] flex items-center justify-between gap-3">
+        <span className="font-bold text-slate-700 dark:text-[#544B45]">Filter by Project:</span>
         <select
           value={selectedProjectId}
           onChange={(e) => setSelectedProjectId(e.target.value)}
-          className="px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs font-semibold focus:outline-none"
+          className="px-3 py-2 bg-slate-50 dark:bg-white border border-slate-200 dark:border-[#EBE3DB]/80 rounded-xl text-xs font-semibold focus:outline-none"
         >
           <option value="all">All Projects</option>
           {projectJobs.map((p) => (
@@ -108,11 +108,11 @@ export default function CustomerChangeRequestsPage() {
             </div>
 
             <div>
-              <h3 className="font-bold text-slate-900 dark:text-white text-xs">{cr.customerName}</h3>
-              <div className="text-[11px] text-slate-400 font-mono">Requested by: {cr.requestedBy} ({formatDate(cr.requestDate)})</div>
+              <h3 className="font-bold text-slate-900 dark:text-[#211B17] text-xs">{cr.customerName}</h3>
+              <div className="text-[11px] text-[#70665F] font-mono">Requested by: {cr.requestedBy} ({formatDate(cr.requestDate)})</div>
             </div>
 
-            <p className="text-slate-700 dark:text-slate-300 text-xs bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+            <p className="text-slate-700 dark:text-[#544B45] text-xs bg-slate-50 dark:bg-white p-2.5 rounded-xl border border-slate-200 dark:border-[#EBE3DB]">
               <strong>Modification Scope:</strong> {cr.changeDescription}
             </p>
 
@@ -121,8 +121,8 @@ export default function CustomerChangeRequestsPage() {
               <div>Timeline Impact: <strong className="text-rose-500">+{cr.timelineImpactDays} Days</strong></div>
             </div>
 
-            <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
-              <div className="text-[10px] text-slate-400 font-mono">
+            <div className="pt-2 border-t border-slate-200 dark:border-[#EBE3DB] flex items-center justify-between">
+              <div className="text-[10px] text-[#70665F] font-mono">
                 {cr.approvedBy ? `Approved by ${cr.approvedBy} on ${cr.approvedDate}` : 'Awaiting Review'}
               </div>
 
@@ -149,24 +149,24 @@ export default function CustomerChangeRequestsPage() {
 
       {/* NEW CHANGE REQUEST MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
-            <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FAF7F2] backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+            <div className="p-4 border-b border-slate-200 dark:border-[#EBE3DB] bg-slate-50 dark:bg-white flex justify-between items-center">
+              <h3 className="font-bold text-slate-900 dark:text-[#211B17] text-sm flex items-center gap-2">
                 <RotateCcw className="w-4 h-4 text-pink-500" /> Create Customer Change Request
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-1 rounded text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <button onClick={() => setIsModalOpen(false)} className="p-1 rounded text-[#70665F] hover:bg-slate-100 dark:hover:bg-[#FAF7F2]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleCreateCR} className="p-5 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Target Project *</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Target Project *</label>
                 <select
                   value={projectId}
                   onChange={(e) => setProjectId(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold"
                 >
                   {projectJobs.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -177,60 +177,60 @@ export default function CustomerChangeRequestsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Requested By (Customer Person)</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Requested By (Customer Person)</label>
                 <input
                   type="text"
                   value={requestedBy}
                   onChange={(e) => setRequestedBy(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Change Specification Description *</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Change Specification Description *</label>
                 <textarea
                   rows={2}
                   value={changeDescription}
                   onChange={(e) => setChangeDescription(e.target.value)}
                   placeholder="Detail requested modifications (e.g. Upgrade agitator motor, change vessel nozzle flanges)..."
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Cost Impact (₹)</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Cost Impact (₹)</label>
                   <input
                     type="number"
                     value={costImpact}
                     onChange={(e) => setCostImpact(Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold font-mono"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold font-mono"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Timeline Impact (Days)</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Timeline Impact (Days)</label>
                   <input
                     type="number"
                     value={timelineImpactDays}
                     onChange={(e) => setTimelineImpactDays(Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold font-mono"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold font-mono"
                   />
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2">
+              <div className="pt-3 border-t border-slate-200 dark:border-[#EBE3DB] flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl"
+                  className="px-4 py-2 bg-slate-200 dark:bg-[#FAF7F2] text-slate-700 dark:text-[#544B45] font-bold rounded-xl"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-xl"
+                  className="px-4 py-2 bg-pink-600 hover:bg-pink-500 text-[#211B17] font-bold rounded-xl"
                 >
                   Submit Change Request
                 </button>

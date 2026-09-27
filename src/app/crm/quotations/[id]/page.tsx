@@ -38,9 +38,9 @@ export default function QuotationDetailPage() {
 
   if (!quotation) {
     return (
-      <div className="p-8 text-center text-slate-500 text-xs">
+      <div className="p-8 text-center text-[#70665F] text-xs">
         <p>Quotation not found ({quotationId}).</p>
-        <Link href="/crm/quotations" className="text-blue-600 font-bold underline mt-2 block">
+        <Link href="/crm/quotations" className="text-crm-brand-700 font-bold underline mt-2 block">
           Return to Quotations
         </Link>
       </div>
@@ -69,7 +69,7 @@ export default function QuotationDetailPage() {
   const handleCreateCustomerPO = (e: React.FormEvent) => {
     e.preventDefault();
     const createdPo = addCustomerPO({
-      poNumber: poNumber || `PO/${quotation.customerName.slice(0, 4).toUpperCase()}/${Date.now().toString().slice(-4)}`,
+      poNumber: poNumber || `PO/${quotation.customerName.slice(0, 4)?.toUpperCase()}/${Date.now().toString().slice(-4)}`,
       poDate,
       customerId: quotation.customerId,
       customerName: quotation.customerName,
@@ -106,13 +106,13 @@ export default function QuotationDetailPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-4 text-xs pb-10">
-      <div className="flex items-center justify-between">
-        <Link href="/crm/quotations" className="inline-flex items-center gap-1.5 text-blue-600 hover:underline font-semibold">
+      <div className="flex items-center justify-between print:hidden">
+        <Link href="/crm/quotations" className="inline-flex items-center gap-1.5 text-crm-brand-700 hover:underline font-semibold">
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Quotations Master
         </Link>
         <button
           onClick={() => window.print()}
-          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg font-bold flex items-center gap-1.5 shadow-sm"
+          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#FAF7F2] text-slate-700 dark:text-[#544B45] rounded-lg font-bold flex items-center gap-1.5 shadow-sm"
         >
           <Printer className="w-3.5 h-3.5" />
           <span>Print Quotation Sheet</span>
@@ -120,40 +120,40 @@ export default function QuotationDetailPage() {
       </div>
 
       {actionMsg && (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl font-semibold">
+        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl font-semibold print:hidden">
           ✓ {actionMsg}
         </div>
       )}
 
       {/* Top Header Card */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl p-6 shadow-sm space-y-4 print:hidden">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-mono font-bold text-base bg-blue-600 text-white px-2.5 py-0.5 rounded-lg">
+              <span className="font-mono font-bold text-base bg-crm-brand-700 text-white px-2.5 py-0.5 rounded-lg">
                 {quotation.quotationNumber}
               </span>
-              <span className="px-2.5 py-0.5 rounded-lg bg-purple-100 text-purple-800 font-mono font-bold">
+              <span className="px-2.5 py-0.5 rounded-lg bg-crm-brand- text-crm-brand- font-mono font-bold">
                 {currentRev.revisionNumber}
               </span>
               <StatusBadge status={currentRev.status as any} />
             </div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white mt-1">{quotation.customerName}</h1>
-            <p className="text-slate-500">Contact: {quotation.contactPerson} • {quotation.contactMobile}</p>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-[#211B17] mt-1">{quotation.customerName}</h1>
+            <p className="text-[#70665F]">Contact: {quotation.contactPerson} • {quotation.contactMobile}</p>
           </div>
 
-          <div className="bg-slate-50 dark:bg-slate-800/80 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 text-right">
-            <span className="text-[10px] text-slate-400 font-semibold uppercase block">Grand Total Value</span>
+          <div className="bg-slate-50 dark:bg-[#FAF7F2] p-3.5 rounded-xl border border-slate-200 dark:border-[#EBE3DB] text-right">
+            <span className="text-[10px] text-[#70665F] font-semibold uppercase block">Grand Total Value</span>
             <span className="text-lg font-black text-emerald-600 block">{formatCurrency(currentRev.grandTotal)}</span>
-            <span className="text-[10px] text-slate-500">Valid Until: {formatDate(quotation.validUntil)}</span>
+            <span className="text-[10px] text-[#70665F]">Valid Until: {formatDate(quotation.validUntil)}</span>
           </div>
         </div>
 
         {/* Action Controls Strip */}
-        <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+        <div className="pt-3 border-t border-slate-100 dark:border-[#EBE3DB] flex flex-wrap items-center justify-between gap-3">
           {/* Revision Selector */}
           <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-600 dark:text-slate-400">View Revision:</span>
+            <span className="font-bold text-slate-600 dark:text-[#70665F]">View Revision:</span>
             <div className="flex items-center gap-1">
               {quotation.revisions.map((rev) => (
                 <button
@@ -193,7 +193,7 @@ export default function QuotationDetailPage() {
             {currentRev.status === 'approved' && (
               <button
                 onClick={handleSendToCustomer}
-                className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold flex items-center gap-1 shadow-sm"
+                className="px-3.5 py-1.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-lg font-bold flex items-center gap-1 shadow-sm"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>Dispatch to Customer</span>
@@ -214,41 +214,41 @@ export default function QuotationDetailPage() {
       </div>
 
       {/* Quotation Document Sheet Preview (Formal Letterhead) */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-6">
+      <div className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl p-6 shadow-sm space-y-6 print:border-none print:shadow-none print:p-0 print:m-0">
         {/* Letterhead Header */}
-        <div className="flex justify-between items-start border-b-2 border-slate-900 dark:border-slate-100 pb-4">
+        <div className="flex justify-between items-start border-b-2 border-[#EBE3DB] dark:border-slate-100 pb-4">
           <div>
-            <h2 className="text-lg font-black tracking-tight text-slate-900 dark:text-white">UMA TECHNO FAB PVT. LTD.</h2>
-            <p className="text-slate-500 text-[11px]">Plot No. 48/B, GIDC Industrial Estate, Makarpura, Vadodara - 390010</p>
-            <span className="text-[10px] text-slate-400 font-mono">GSTIN: 24AABCU9821R1ZX • PAN: AABCU9821R</span>
+            <h2 className="text-lg font-black tracking-tight text-slate-900 dark:text-[#211B17]">UMA TECHNO FAB PVT. LTD.</h2>
+            <p className="text-[#70665F] text-[11px]">Plot No. 48/B, GIDC Industrial Estate, Makarpura, Vadodara - 390010</p>
+            <span className="text-[10px] text-[#70665F] font-mono">GSTIN: 24AABCU9821R1ZX • PAN: AABCU9821R</span>
           </div>
           <div className="text-right">
-            <span className="text-sm font-bold font-mono text-blue-600 block">{quotation.quotationNumber}</span>
-            <span className="font-mono text-purple-700 font-bold">{currentRev.revisionNumber}</span>
-            <span className="text-slate-500 text-[11px] block mt-0.5">Date: {formatDate(currentRev.date)}</span>
+            <span className="text-sm font-bold font-mono text-crm-brand-700 block">{quotation.quotationNumber}</span>
+            <span className="font-mono text-crm-brand-800 font-bold">{currentRev.revisionNumber}</span>
+            <span className="text-[#70665F] text-[11px] block mt-0.5">Date: {formatDate(currentRev.date)}</span>
           </div>
         </div>
 
         {/* Customer Box */}
-        <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl grid grid-cols-2 gap-3 text-[11px]">
+        <div className="p-3 bg-slate-50 dark:bg-[#FAF7F2]/60 rounded-xl grid grid-cols-2 gap-3 text-[11px]">
           <div>
-            <span className="text-slate-400 block font-semibold">Quotation Addressed To:</span>
-            <strong className="text-slate-900 dark:text-white block text-xs">{quotation.customerName}</strong>
-            <span className="text-slate-600 dark:text-slate-300 block">Attn: {quotation.contactPerson}</span>
-            <span className="text-slate-500 block">{quotation.contactEmail}</span>
+            <span className="text-[#70665F] block font-semibold">Quotation Addressed To:</span>
+            <strong className="text-slate-900 dark:text-[#211B17] block text-xs">{quotation.customerName}</strong>
+            <span className="text-slate-600 dark:text-[#544B45] block">Attn: {quotation.contactPerson}</span>
+            <span className="text-[#70665F] block">{quotation.contactEmail}</span>
           </div>
           <div className="text-right">
-            <span className="text-slate-400 block font-semibold">Prepared By:</span>
-            <strong className="text-slate-900 dark:text-white block">{currentRev.preparedBy}</strong>
-            <span className="text-slate-500 block">Validity: {formatDate(quotation.validUntil)}</span>
+            <span className="text-[#70665F] block font-semibold">Prepared By:</span>
+            <strong className="text-slate-900 dark:text-[#211B17] block">{currentRev.preparedBy}</strong>
+            <span className="text-[#70665F] block">Validity: {formatDate(quotation.validUntil)}</span>
           </div>
         </div>
 
         {/* Items Table */}
         <div className="space-y-2">
-          <h3 className="font-bold text-sm text-slate-800 dark:text-slate-200">Bill of Quantities & Pricing</h3>
-          <table className="w-full text-left border-collapse border border-slate-200 dark:border-slate-800">
-            <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-[11px]">
+          <h3 className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Bill of Quantities & Pricing</h3>
+          <table className="w-full text-left border-collapse border border-slate-200 dark:border-[#EBE3DB]">
+            <thead className="bg-slate-100 dark:bg-[#FAF7F2] text-slate-700 dark:text-[#544B45] font-bold text-[11px]">
               <tr>
                 <th className="p-2 border">#</th>
                 <th className="p-2 border">Equipment Description</th>
@@ -258,24 +258,24 @@ export default function QuotationDetailPage() {
                 <th className="p-2 border text-right">Total Amount (₹)</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-[11px]">
+            <tbody className="divide-y divide-slate-200 dark:divide-[#EBE3DB] text-[11px]">
               {currentRev.items.map((item, idx) => (
                 <tr key={idx}>
                   <td className="p-2 border text-center font-mono">{idx + 1}</td>
                   <td className="p-2 border">
-                    <strong className="block text-slate-900 dark:text-white">{item.productName}</strong>
-                    <span className="text-slate-500 text-[10px]">{item.description}</span>
+                    <strong className="block text-slate-900 dark:text-[#211B17]">{item.productName}</strong>
+                    <span className="text-[#70665F] text-[10px]">{item.description}</span>
                   </td>
                   <td className="p-2 border text-center font-mono font-bold">{item.quantity} {item.unit}</td>
                   <td className="p-2 border text-right font-mono">{formatCurrency(item.rate)}</td>
                   <td className="p-2 border text-right font-mono">{item.taxPercent}%</td>
-                  <td className="p-2 border text-right font-mono font-bold text-slate-900 dark:text-white">
+                  <td className="p-2 border text-right font-mono font-bold text-slate-900 dark:text-[#211B17]">
                     {formatCurrency(item.amount)}
                   </td>
                 </tr>
               ))}
             </tbody>
-            <tfoot className="bg-slate-50 dark:bg-slate-800/60 font-bold text-[11px]">
+            <tfoot className="bg-slate-50 dark:bg-[#FAF7F2]/60 font-bold text-[11px]">
               <tr>
                 <td colSpan={5} className="p-2 border text-right">Taxable Subtotal:</td>
                 <td className="p-2 border text-right font-mono">{formatCurrency(currentRev.subTotal)}</td>
@@ -284,7 +284,7 @@ export default function QuotationDetailPage() {
                 <td colSpan={5} className="p-2 border text-right">Applicable GST Taxes:</td>
                 <td className="p-2 border text-right font-mono">{formatCurrency(currentRev.taxAmount)}</td>
               </tr>
-              <tr className="bg-slate-100 dark:bg-slate-800 text-xs">
+              <tr className="bg-slate-100 dark:bg-[#FAF7F2] text-xs">
                 <td colSpan={5} className="p-2 border text-right font-black">Grand Total (INR):</td>
                 <td className="p-2 border text-right font-mono font-black text-emerald-600">
                   {formatCurrency(currentRev.grandTotal)}
@@ -295,20 +295,20 @@ export default function QuotationDetailPage() {
         </div>
 
         {/* Commercial Terms */}
-        <div className="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-[11px]">
-          <h3 className="font-bold text-sm text-slate-800 dark:text-slate-200">Commercial Terms & Scope</h3>
+        <div className="space-y-3 pt-3 border-t border-slate-200 dark:border-[#EBE3DB] text-[11px]">
+          <h3 className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Commercial Terms & Scope</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border">
-              <strong className="block mb-1 text-slate-800 dark:text-slate-200">Technical Scope & Codes:</strong>
-              <p className="text-slate-600 dark:text-slate-400">{currentRev.technicalSpecs}</p>
-              <strong className="block mt-2 mb-1 text-slate-800 dark:text-slate-200">Scope of Supply:</strong>
-              <p className="text-slate-600 dark:text-slate-400">{currentRev.scopeOfSupply}</p>
+            <div className="p-3 bg-slate-50 dark:bg-[#FAF7F2]/40 rounded-xl border">
+              <strong className="block mb-1 text-slate-800 dark:text-[#544B45]">Technical Scope & Codes:</strong>
+              <p className="text-slate-600 dark:text-[#70665F]">{currentRev.technicalSpecs}</p>
+              <strong className="block mt-2 mb-1 text-slate-800 dark:text-[#544B45]">Scope of Supply:</strong>
+              <p className="text-slate-600 dark:text-[#70665F]">{currentRev.scopeOfSupply}</p>
             </div>
-            <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border">
-              <strong className="block mb-1 text-slate-800 dark:text-slate-200">Payment Terms:</strong>
-              <p className="text-slate-600 dark:text-slate-400">{currentRev.paymentTerms}</p>
-              <strong className="block mt-2 mb-1 text-slate-800 dark:text-slate-200">Delivery & Warranty:</strong>
-              <p className="text-slate-600 dark:text-slate-400">Delivery: {currentRev.deliveryTime} • Warranty: {currentRev.warranty}</p>
+            <div className="p-3 bg-slate-50 dark:bg-[#FAF7F2]/40 rounded-xl border">
+              <strong className="block mb-1 text-slate-800 dark:text-[#544B45]">Payment Terms:</strong>
+              <p className="text-slate-600 dark:text-[#70665F]">{currentRev.paymentTerms}</p>
+              <strong className="block mt-2 mb-1 text-slate-800 dark:text-[#544B45]">Delivery & Warranty:</strong>
+              <p className="text-slate-600 dark:text-[#70665F]">Delivery: {currentRev.deliveryTime} • Warranty: {currentRev.warranty}</p>
             </div>
           </div>
         </div>
@@ -316,10 +316,10 @@ export default function QuotationDetailPage() {
 
       {/* Customer PO Inward Modal */}
       {showPoModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 border rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">Customer PO Inward Receipt</h3>
-            <p className="text-slate-500">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FAF7F2] backdrop-blur-sm">
+          <div className="bg-white dark:bg-white border rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
+            <h3 className="text-base font-bold text-slate-900 dark:text-[#211B17]">Customer PO Inward Receipt</h3>
+            <p className="text-[#70665F]">
               Customer has accepted {quotation.quotationNumber} ({currentRev.revisionNumber}). Record their formal purchase order.
             </p>
             <form onSubmit={handleCreateCustomerPO} className="space-y-3">
@@ -331,7 +331,7 @@ export default function QuotationDetailPage() {
                   value={poNumber}
                   onChange={(e) => setPoNumber(e.target.value)}
                   placeholder="e.g. PO/ABC/2026/89"
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-lg font-mono font-bold"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-mono font-bold"
                 />
               </div>
 
@@ -341,7 +341,7 @@ export default function QuotationDetailPage() {
                   type="date"
                   value={poDate}
                   onChange={(e) => setPoDate(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                 />
               </div>
 
@@ -351,7 +351,7 @@ export default function QuotationDetailPage() {
                   type="text"
                   disabled
                   value={formatCurrency(currentRev.grandTotal)}
-                  className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border rounded-lg font-mono font-bold text-emerald-600"
+                  className="w-full px-3 py-2 bg-slate-100 dark:bg-[#FAF7F2] border rounded-lg font-mono font-bold text-emerald-600"
                 />
               </div>
 

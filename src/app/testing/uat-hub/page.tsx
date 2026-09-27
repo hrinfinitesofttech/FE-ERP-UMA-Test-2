@@ -47,10 +47,10 @@ export default function UATHubPage() {
     const matchesModule = selectedModule === 'All' || tc.module === selectedModule;
     const matchesStatus = selectedStatus === 'All' || tc.status === selectedStatus;
     const matchesSearch =
-      tc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tc.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tc.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tc.description.toLowerCase().includes(searchQuery.toLowerCase());
+      tc.title?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
+      tc.id?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
+      tc.category?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
+      tc.description?.toLowerCase().includes(searchQuery?.toLowerCase());
     return matchesModule && matchesStatus && matchesSearch;
   });
 
@@ -98,17 +98,17 @@ export default function UATHubPage() {
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white border border-[#EBE3DB] p-6 rounded-2xl shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400">
               <FileCheck className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white tracking-wide">
+              <h1 className="text-xl font-bold text-[#211B17] tracking-wide">
                 ERP Testing & UAT Master Hub
               </h1>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-[#70665F]">
                 Uma Techno Fab Manufacturing ERP — Module 11 Quality Assurance & System Verification Matrix
               </p>
             </div>
@@ -126,7 +126,7 @@ export default function UATHubPage() {
           </button>
           <button
             onClick={() => alert('Exporting full UAT Execution Report (PDF/Excel)...')}
-            className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition border border-slate-700"
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#FAF7F2] hover:bg-[#FAF7F2] text-[#544B45] rounded-xl text-xs font-semibold transition border border-[#EBE3DB]"
           >
             <Download className="w-4 h-4" />
             Export UAT Report
@@ -136,25 +136,25 @@ export default function UATHubPage() {
 
       {/* Workflow Simulation Modal / Status Box */}
       {workflowLog.length > 0 && (
-        <div className="bg-slate-900/90 border border-emerald-500/30 rounded-2xl p-5 shadow-2xl space-y-3">
+        <div className="bg-white border border-emerald-500/30 rounded-2xl p-5 shadow-2xl space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
               <Zap className="w-4 h-4" />
               Automated MTO Business Workflow Verification
             </div>
-            <span className="text-xs text-slate-400 font-mono">
+            <span className="text-xs text-[#70665F] font-mono">
               Progress: {simulationStep} / 13 Steps
             </span>
           </div>
 
-          <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-[#FAF7F2] rounded-full h-2 overflow-hidden">
             <div
               className="bg-emerald-500 h-2 transition-all duration-300 rounded-full"
               style={{ width: `${(simulationStep / 13) * 100}%` }}
             />
           </div>
 
-          <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs text-slate-300 max-h-40 overflow-y-auto space-y-1">
+          <div className="bg-[#FAF7F2] p-3 rounded-xl border border-[#EBE3DB] font-mono text-xs text-[#544B45] max-h-40 overflow-y-auto space-y-1">
             {workflowLog.map((log, idx) => (
               <div key={idx} className="flex items-center gap-2">
                 <span className="text-emerald-400 font-semibold">{log}</span>
@@ -166,13 +166,13 @@ export default function UATHubPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-1">
-          <div className="text-xs text-slate-400 font-medium">Total Test Cases</div>
-          <div className="text-2xl font-bold text-white font-mono">{totalCases}</div>
-          <div className="text-[10px] text-slate-500">11 ERP Modules Covered</div>
+        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl space-y-1">
+          <div className="text-xs text-[#70665F] font-medium">Total Test Cases</div>
+          <div className="text-2xl font-bold text-[#211B17] font-mono">{totalCases}</div>
+          <div className="text-[10px] text-[#70665F]">11 ERP Modules Covered</div>
         </div>
 
-        <div className="bg-slate-900 border border-emerald-500/20 p-4 rounded-xl space-y-1">
+        <div className="bg-white border border-emerald-500/20 p-4 rounded-xl space-y-1">
           <div className="text-xs text-emerald-400 font-medium flex items-center justify-between">
             <span>Passed</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
@@ -181,7 +181,7 @@ export default function UATHubPage() {
           <div className="text-[10px] text-emerald-500/80 font-semibold">{passPercentage}% Pass Rate</div>
         </div>
 
-        <div className="bg-slate-900 border border-red-500/20 p-4 rounded-xl space-y-1">
+        <div className="bg-white border border-red-500/20 p-4 rounded-xl space-y-1">
           <div className="text-xs text-red-400 font-medium flex items-center justify-between">
             <span>Failed</span>
             <XCircle className="w-4 h-4 text-red-400" />
@@ -190,7 +190,7 @@ export default function UATHubPage() {
           <div className="text-[10px] text-red-500/80">Action Required</div>
         </div>
 
-        <div className="bg-slate-900 border border-amber-500/20 p-4 rounded-xl space-y-1">
+        <div className="bg-white border border-amber-500/20 p-4 rounded-xl space-y-1">
           <div className="text-xs text-amber-400 font-medium flex items-center justify-between">
             <span>Blocked</span>
             <AlertTriangle className="w-4 h-4 text-amber-400" />
@@ -199,84 +199,84 @@ export default function UATHubPage() {
           <div className="text-[10px] text-amber-500/80">Dependency On hold</div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-1">
-          <div className="text-xs text-slate-400 font-medium flex items-center justify-between">
+        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl space-y-1">
+          <div className="text-xs text-[#70665F] font-medium flex items-center justify-between">
             <span>Pending</span>
-            <Clock className="w-4 h-4 text-slate-400" />
+            <Clock className="w-4 h-4 text-[#70665F]" />
           </div>
-          <div className="text-2xl font-bold text-slate-300 font-mono">{pendingCases}</div>
-          <div className="text-[10px] text-slate-500">Scheduled Execution</div>
+          <div className="text-2xl font-bold text-[#544B45] font-mono">{pendingCases}</div>
+          <div className="text-[10px] text-[#70665F]">Scheduled Execution</div>
         </div>
       </div>
 
       {/* Filters & Search */}
-      <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white border border-[#EBE3DB] p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-xs text-slate-300 font-semibold">Module:</span>
+          <div className="flex items-center gap-2 bg-[#FAF7F2] px-3 py-1.5 rounded-xl border border-[#EBE3DB]">
+            <Filter className="w-3.5 h-3.5 text-[#70665F]" />
+            <span className="text-xs text-[#544B45] font-semibold">Module:</span>
             <select
               value={selectedModule}
               onChange={(e) => setSelectedModule(e.target.value)}
-              className="bg-transparent text-xs text-white focus:outline-none cursor-pointer"
+              className="bg-transparent text-xs text-[#211B17] focus:outline-none cursor-pointer"
             >
-              <option value="All" className="bg-slate-900">All Modules (11)</option>
-              <option value="Foundation" className="bg-slate-900">Foundation</option>
-              <option value="CRM" className="bg-slate-900">CRM</option>
-              <option value="Project" className="bg-slate-900">Project & Job</option>
-              <option value="Design" className="bg-slate-900">Design & BOM</option>
-              <option value="Purchase" className="bg-slate-900">Purchase</option>
-              <option value="Store" className="bg-slate-900">Store & Warehouse</option>
-              <option value="Production" className="bg-slate-900">Production / MRP</option>
-              <option value="Accounting" className="bg-slate-900">Accounting & Finance</option>
-              <option value="HR" className="bg-slate-900">HR & Payroll</option>
-              <option value="Maintenance" className="bg-slate-900">Maintenance</option>
-              <option value="Integration" className="bg-slate-900">360° Integration</option>
+              <option value="All" className="bg-white">All Modules (11)</option>
+              <option value="Foundation" className="bg-white">Foundation</option>
+              <option value="CRM" className="bg-white">CRM</option>
+              <option value="Project" className="bg-white">Project & Job</option>
+              <option value="Design" className="bg-white">Design & BOM</option>
+              <option value="Purchase" className="bg-white">Purchase</option>
+              <option value="Store" className="bg-white">Store & Warehouse</option>
+              <option value="Production" className="bg-white">Production / MRP</option>
+              <option value="Accounting" className="bg-white">Accounting & Finance</option>
+              <option value="HR" className="bg-white">HR & Payroll</option>
+              <option value="Maintenance" className="bg-white">Maintenance</option>
+              <option value="Integration" className="bg-white">360° Integration</option>
             </select>
           </div>
 
-          <div className="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
-            <span className="text-xs text-slate-300 font-semibold">Status:</span>
+          <div className="flex items-center gap-2 bg-[#FAF7F2] px-3 py-1.5 rounded-xl border border-[#EBE3DB]">
+            <span className="text-xs text-[#544B45] font-semibold">Status:</span>
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="bg-transparent text-xs text-white focus:outline-none cursor-pointer"
+              className="bg-transparent text-xs text-[#211B17] focus:outline-none cursor-pointer"
             >
-              <option value="All" className="bg-slate-900">All Statuses</option>
-              <option value="Pass" className="bg-slate-900">Pass</option>
-              <option value="Fail" className="bg-slate-900">Fail</option>
-              <option value="Blocked" className="bg-slate-900">Blocked</option>
-              <option value="Pending" className="bg-slate-900">Pending</option>
+              <option value="All" className="bg-white">All Statuses</option>
+              <option value="Pass" className="bg-white">Pass</option>
+              <option value="Fail" className="bg-white">Fail</option>
+              <option value="Blocked" className="bg-white">Blocked</option>
+              <option value="Pending" className="bg-white">Pending</option>
             </select>
           </div>
         </div>
 
         <div className="relative min-w-[240px]">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#70665F] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search test title, category..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-800 text-xs text-white pl-9 pr-4 py-2 rounded-xl border border-slate-700 focus:outline-none focus:border-blue-500"
+            className="w-full bg-[#FAF7F2] text-xs text-[#211B17] pl-9 pr-4 py-2 rounded-xl border border-[#EBE3DB] focus:outline-none focus:border-crm-brand-600"
           />
         </div>
       </div>
 
       {/* Test Matrix Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-bold text-white">
-            <Layers className="w-4 h-4 text-blue-400" />
+      <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xl">
+        <div className="p-4 border-b border-[#EBE3DB] flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm font-bold text-[#211B17]">
+            <Layers className="w-4 h-4 text-crm-brand-500" />
             UAT Execution Matrix ({filteredCases.length} Test Scenarios)
           </div>
-          <span className="text-xs text-slate-400">Click any row status to update test outcome</span>
+          <span className="text-xs text-[#70665F]">Click any row status to update test outcome</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-950 text-[11px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+              <tr className="bg-[#FAF7F2] text-[11px] font-semibold text-[#70665F] uppercase tracking-wider border-b border-[#EBE3DB]">
                 <th className="py-3 px-4">Test ID</th>
                 <th className="py-3 px-4">Module</th>
                 <th className="py-3 px-4">Category</th>
@@ -287,24 +287,24 @@ export default function UATHubPage() {
                 <th className="py-3 px-4 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 text-xs text-slate-300">
+            <tbody className="divide-y divide-[#EBE3DB] text-xs text-[#544B45]">
               {filteredCases.map((tc) => (
-                <tr key={tc.id} className="hover:bg-slate-800/40 transition">
-                  <td className="py-3 px-4 font-mono text-blue-400 font-bold">{tc.id}</td>
+                <tr key={tc.id} className="hover:bg-[#FAF7F2]/40 transition">
+                  <td className="py-3 px-4 font-mono text-crm-brand-500 font-bold">{tc.id}</td>
                   <td className="py-3 px-4">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FAF7F2] text-[#544B45] border border-[#EBE3DB]">
                       {tc.module}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-slate-400 font-medium">{tc.category}</td>
+                  <td className="py-3 px-4 text-[#70665F] font-medium">{tc.category}</td>
                   <td className="py-3 px-4 space-y-0.5">
-                    <div className="font-semibold text-white">{tc.title}</div>
-                    <div className="text-[11px] text-slate-400 leading-tight">{tc.description}</div>
+                    <div className="font-semibold text-[#211B17]">{tc.title}</div>
+                    <div className="text-[11px] text-[#70665F] leading-tight">{tc.description}</div>
                   </td>
-                  <td className="py-3 px-4 text-slate-300 text-[11px] max-w-xs">{tc.expectedResult}</td>
-                  <td className="py-3 px-4 text-slate-400">
+                  <td className="py-3 px-4 text-[#544B45] text-[11px] max-w-xs">{tc.expectedResult}</td>
+                  <td className="py-3 px-4 text-[#70665F]">
                     <div>{tc.executedBy || '—'}</div>
-                    <div className="text-[10px] text-slate-500 font-mono">{tc.executedDate || ''}</div>
+                    <div className="text-[10px] text-[#70665F] font-mono">{tc.executedDate || ''}</div>
                   </td>
                   <td className="py-3 px-4">
                     <span
@@ -318,7 +318,7 @@ export default function UATHubPage() {
                         tc.status === 'Pass' && 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20',
                         tc.status === 'Fail' && 'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20',
                         tc.status === 'Blocked' && 'bg-amber-500/10 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20',
-                        tc.status === 'Pending' && 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700'
+                        tc.status === 'Pending' && 'bg-[#FAF7F2] text-[#70665F] border border-[#EBE3DB] hover:bg-[#FAF7F2]'
                       )}
                     >
                       {tc.status === 'Pass' && <CheckCircle2 className="w-3 h-3" />}
@@ -335,7 +335,7 @@ export default function UATHubPage() {
                         setEditStatus(tc.status);
                         setEditRemarks(tc.remarks || '');
                       }}
-                      className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-[11px] font-semibold transition border border-slate-700"
+                      className="px-2.5 py-1 bg-[#FAF7F2] hover:bg-[#FAF7F2] text-[#544B45] rounded-lg text-[11px] font-semibold transition border border-[#EBE3DB]"
                     >
                       Update
                     </button>
@@ -350,15 +350,15 @@ export default function UATHubPage() {
       {/* Edit Test Status Modal */}
       {editingTestCase && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="font-bold text-white text-sm flex items-center gap-2">
-                <FileCheck className="w-4 h-4 text-blue-400" />
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+              <div className="font-bold text-[#211B17] text-sm flex items-center gap-2">
+                <FileCheck className="w-4 h-4 text-crm-brand-500" />
                 Update Test Outcome: {editingTestCase.id}
               </div>
               <button
                 onClick={() => setEditingTestCase(null)}
-                className="text-slate-400 hover:text-white text-xs"
+                className="text-[#70665F] hover:text-[#211B17] text-xs"
               >
                 ✕
               </button>
@@ -366,12 +366,12 @@ export default function UATHubPage() {
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="text-slate-400 font-semibold">Test Title:</label>
-                <div className="text-white font-semibold mt-0.5">{editingTestCase.title}</div>
+                <label className="text-[#70665F] font-semibold">Test Title:</label>
+                <div className="text-[#211B17] font-semibold mt-0.5">{editingTestCase.title}</div>
               </div>
 
               <div>
-                <label className="text-slate-400 font-semibold">Execution Status:</label>
+                <label className="text-[#70665F] font-semibold">Execution Status:</label>
                 <div className="grid grid-cols-4 gap-2 mt-1">
                   {(['Pass', 'Fail', 'Blocked', 'Pending'] as const).map((st) => (
                     <button
@@ -381,8 +381,8 @@ export default function UATHubPage() {
                       className={cn(
                         'py-2 rounded-xl font-bold text-xs border transition',
                         editStatus === st
-                          ? 'bg-blue-600 text-white border-blue-500 shadow-md'
-                          : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'
+                          ? 'bg-crm-brand-700 text-white border-crm-brand-600 shadow-md'
+                          : 'bg-[#FAF7F2] text-[#70665F] border-[#EBE3DB] hover:bg-[#FAF7F2]'
                       )}
                     >
                       {st}
@@ -392,27 +392,27 @@ export default function UATHubPage() {
               </div>
 
               <div>
-                <label className="text-slate-400 font-semibold">Remarks / Bug Linkage:</label>
+                <label className="text-[#70665F] font-semibold">Remarks / Bug Linkage:</label>
                 <textarea
                   rows={3}
                   value={editRemarks}
                   onChange={(e) => setEditRemarks(e.target.value)}
                   placeholder="Enter remarks, log output or bug ticket ID..."
-                  className="w-full bg-slate-950 text-white p-3 rounded-xl border border-slate-800 focus:outline-none focus:border-blue-500 mt-1"
+                  className="w-full bg-[#FAF7F2] text-[#211B17] p-3 rounded-xl border border-[#EBE3DB] focus:outline-none focus:border-crm-brand-600 mt-1"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 border-t border-slate-800 pt-4">
+            <div className="flex items-center justify-end gap-3 border-t border-[#EBE3DB] pt-4">
               <button
                 onClick={() => setEditingTestCase(null)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold"
+                className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#FAF7F2] text-[#544B45] rounded-xl text-xs font-semibold"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveStatus}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-blue-600/20"
+                className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-white rounded-xl text-xs font-semibold shadow-lg shadow-crm-brand-700/20"
               >
                 Save Outcome
               </button>

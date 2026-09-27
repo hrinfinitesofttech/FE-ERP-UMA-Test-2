@@ -36,6 +36,7 @@ export default function QuotationsListPage() {
     {
       header: 'QUOTATION #',
       accessorKey: 'quotationNumber',
+      exportValue: (q) => q.quotationNumber,
       cell: (q) => (
         <span className="font-mono font-bold text-[#0E91B2] bg-[#E0F2FE] px-2.5 py-1 rounded-lg border border-[#BAE6FD] text-xs whitespace-nowrap inline-block">
           {q.quotationNumber}
@@ -44,6 +45,7 @@ export default function QuotationsListPage() {
     },
     {
       header: 'ACTIVE REVISION',
+      exportValue: (q) => `${q.currentRevision || 'Rev-00'} (${(q.revisions || []).length} Revs)`,
       cell: (q) => (
         <span className="px-2.5 py-1 rounded-lg bg-[#FAF0E6] text-[#75401F] font-mono text-[10px] font-bold border border-[#E7DED5] whitespace-nowrap inline-block">
           {q.currentRevision || 'Rev-00'} ({(q.revisions || []).length} Revs)
@@ -52,6 +54,7 @@ export default function QuotationsListPage() {
     },
     {
       header: 'CUSTOMER & CONTACT',
+      exportValue: (q) => `${q.customerName || 'N/A'} (${q.contactPerson || 'No Contact'})`,
       cell: (q) => (
         <div className="min-w-[180px]">
           <span className="font-bold text-[#211B17] block">{q.customerName || 'N/A'}</span>
@@ -61,6 +64,7 @@ export default function QuotationsListPage() {
     },
     {
       header: 'EQUIPMENT SCOPE',
+      exportValue: (q) => getSummary(q).machineProduct,
       cell: (q) => {
         const summary = getSummary(q);
         return (
@@ -72,6 +76,7 @@ export default function QuotationsListPage() {
     },
     {
       header: 'GRAND TOTAL (INR)',
+      exportValue: (q) => getSummary(q).grandTotal,
       cell: (q) => {
         const summary = getSummary(q);
         return (
@@ -83,10 +88,12 @@ export default function QuotationsListPage() {
     },
     {
       header: 'DATE',
+      exportValue: (q) => q.date,
       cell: (q) => <span className="text-[#70665F] font-mono text-[11px] whitespace-nowrap inline-block">{formatDate(q.date)}</span>,
     },
     {
       header: 'STATUS',
+      exportValue: (q) => getSummary(q).status?.toUpperCase(),
       cell: (q) => {
         const summary = getSummary(q);
         return <div className="whitespace-nowrap"><StatusBadge status={summary.status as any} /></div>;
@@ -94,6 +101,7 @@ export default function QuotationsListPage() {
     },
     {
       header: 'ACTIONS',
+      exportValue: () => '',
       cell: (q) => (
         <Link
           href={`/crm/quotations/${q.id}`}
@@ -139,7 +147,7 @@ export default function QuotationsListPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none"
+            className="px-3 py-2 bg-white dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB]/80 rounded-xl text-xs font-bold text-slate-700 dark:text-[#544B45] focus:outline-none"
           >
             <option value="all">All Quotation Statuses</option>
             <option value="draft">Draft</option>

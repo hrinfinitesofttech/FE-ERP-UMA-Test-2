@@ -52,13 +52,13 @@ export default function PermissionsPage() {
   return (
     <div className="space-y-4 text-xs">
       {/* Header */}
-      <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+      <div className="bg-white dark:bg-white p-5 rounded-2xl border border-slate-200 dark:border-[#EBE3DB] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
         <div>
-          <h1 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Lock className="w-5 h-5 text-blue-600" />
+          <h1 className="text-lg font-bold text-slate-900 dark:text-[#211B17] flex items-center gap-2">
+            <Lock className="w-5 h-5 text-crm-brand-700" />
             Centralized RBAC Permission Matrix
           </h1>
-          <p className="text-slate-500 mt-0.5">
+          <p className="text-[#70665F] mt-0.5">
             Configure granular View, Create, Edit, Delete, Approve, and Export authority by module.
           </p>
         </div>
@@ -67,18 +67,18 @@ export default function PermissionsPage() {
           <select
             value={selectedRoleId}
             onChange={(e) => setSelectedRoleId(e.target.value)}
-            className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-bold font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-xl text-slate-900 dark:text-[#211B17] font-bold font-mono focus:outline-none focus:ring-2 focus:ring-crm-brand-600"
           >
             {roles.map((r) => (
               <option key={r.id} value={r.id}>
-                ROLE: {r.name.toUpperCase()}
+                ROLE: {r.name?.toUpperCase()}
               </option>
             ))}
           </select>
 
           <button
             onClick={handleSave}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition flex items-center gap-1.5 shadow-sm"
+            className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-xl font-bold transition flex items-center gap-1.5 shadow-sm"
           >
             <Save className="w-4 h-4" />
             <span>Save Matrix</span>
@@ -93,10 +93,10 @@ export default function PermissionsPage() {
       )}
 
       {/* Permission Table */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-white rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
-            <thead className="bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800 uppercase tracking-wider text-[11px]">
+            <thead className="bg-slate-100 dark:bg-[#FAF7F2] text-slate-700 dark:text-[#544B45] font-bold border-b border-slate-200 dark:border-[#EBE3DB] uppercase tracking-wider text-[11px]">
               <tr>
                 <th className="py-3 px-4">Module / Feature Area</th>
                 <th className="py-3 px-4">Page / Resource</th>
@@ -111,20 +111,20 @@ export default function PermissionsPage() {
                 <th className="py-3 px-3 text-center">Print</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-100 dark:divide-[#EBE3DB]">
               {MODULES_LIST.map((item, idx) => {
                 const key = `${item.module}-${item.page}`;
                 const isSuper = currentRole.name === 'Super Admin';
                 const isFamily = currentRole.name.includes('Admin');
 
                 return (
-                  <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition">
-                    <td className="py-2.5 px-4 font-bold text-slate-800 dark:text-slate-200">
-                      <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 font-mono text-[10px]">
+                  <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-[#FAF7F2]/40 transition">
+                    <td className="py-2.5 px-4 font-bold text-slate-800 dark:text-[#544B45]">
+                      <span className="px-2 py-0.5 rounded bg-crm-brand- text-crm-brand-800 border border-crm-brand- font-mono text-[10px]">
                         {item.module}
                       </span>
                     </td>
-                    <td className="py-2.5 px-4 font-semibold text-slate-700 dark:text-slate-300">{item.page}</td>
+                    <td className="py-2.5 px-4 font-semibold text-slate-700 dark:text-[#544B45]">{item.page}</td>
 
                     {['view', 'create', 'edit', 'delete', 'approve', 'reject', 'assign', 'export', 'print'].map(
                       (action) => {
@@ -141,7 +141,7 @@ export default function PermissionsPage() {
                               checked={checked}
                               disabled={isSuper}
                               onChange={() => handleToggle(key, action)}
-                              className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer disabled:opacity-50"
+                              className="w-4 h-4 rounded text-crm-brand-700 focus:ring-crm-brand-600 border-slate-300 cursor-pointer disabled:opacity-50"
                             />
                           </td>
                         );

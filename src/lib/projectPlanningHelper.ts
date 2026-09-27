@@ -292,7 +292,7 @@ export function create16PlanningStagesForProject(prj: {
 
     const assignees = [...stg.defaultAssignees];
     if (stg.dept === 'project' && prj.projectManager) {
-      if (!assignees.some((a) => a.name.toLowerCase() === prj.projectManager!.toLowerCase())) {
+      if (!assignees.some((a) => a.name?.toLowerCase() === prj.projectManager!?.toLowerCase())) {
         assignees.unshift({ id: 'EMP-PM', name: prj.projectManager, role: 'Assigned PM', department: 'Project' });
       }
     }

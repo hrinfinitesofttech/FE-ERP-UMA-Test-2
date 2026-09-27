@@ -28,10 +28,10 @@ export default function CRMReportsPage() {
     { header: 'Quotation #', accessorKey: 'quotationNumber' },
     { header: 'Active Rev', accessorKey: 'currentRevision' },
     { header: 'Customer', accessorKey: 'customerName' },
-    { header: 'Equipment Scope', cell: (q) => q.latestSummary.machineProduct },
-    { header: 'Grand Total', cell: (q) => formatCurrency(q.latestSummary.grandTotal) },
+    { header: 'Equipment Scope', cell: (q) => q.latestSummary?.machineProduct || 'Process Equipment' },
+    { header: 'Grand Total', cell: (q) => formatCurrency(q.latestSummary?.grandTotal || (q.revisions && q.revisions[q.revisions.length - 1]?.grandTotal) || 0) },
     { header: 'Quotation Date', cell: (q) => formatDate(q.date) },
-    { header: 'Status', cell: (q) => q.latestSummary.status.toUpperCase() },
+    { header: 'Status', cell: (q) => (q.latestSummary?.status || 'draft')?.toUpperCase() },
   ];
 
   // Sales Orders report
@@ -75,13 +75,13 @@ export default function CRMReportsPage() {
 
   return (
     <div className="space-y-4 text-xs pb-10">
-      <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+      <div className="bg-white dark:bg-white p-5 rounded-xl border border-slate-200 dark:border-[#EBE3DB] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
         <div>
-          <h1 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-blue-600" />
+          <h1 className="text-lg font-bold text-slate-900 dark:text-[#211B17] flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-crm-brand-700" />
             CRM Commercial & Executive Reports
           </h1>
-          <p className="text-slate-500 mt-0.5">
+          <p className="text-[#70665F] mt-0.5">
             Exportable analytics for lead conversion, quotation success rates, and salesperson quarterly performance.
           </p>
         </div>
@@ -90,7 +90,7 @@ export default function CRMReportsPage() {
           <select
             value={reportType}
             onChange={(e) => setReportType(e.target.value as any)}
-            className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl font-bold text-slate-900 dark:text-white"
+            className="px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-xl font-bold text-slate-900 dark:text-[#211B17]"
           >
             <option value="leads">Lead Acquisition Report</option>
             <option value="quotations">Quotation Status Report</option>

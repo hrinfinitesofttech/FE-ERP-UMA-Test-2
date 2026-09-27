@@ -26,12 +26,12 @@ export default function ProjectIssuesPage() {
   const filteredIssues = projectIssues.filter((i) => {
     if (selectedProjectId !== 'all' && i.projectId !== selectedProjectId) return false;
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+      const q = searchQuery?.toLowerCase();
       return (
-        i.issueNo.toLowerCase().includes(q) ||
-        i.description.toLowerCase().includes(q) ||
-        i.jobNumber.toLowerCase().includes(q) ||
-        i.issueType.toLowerCase().includes(q)
+        i.issueNo?.toLowerCase().includes(q) ||
+        i.description?.toLowerCase().includes(q) ||
+        i.jobNumber?.toLowerCase().includes(q) ||
+        i.issueType?.toLowerCase().includes(q)
       );
     }
     return true;
@@ -72,18 +72,18 @@ export default function ProjectIssuesPage() {
   return (
     <div className="space-y-6 text-xs pb-12">
       {/* Header Banner */}
-      <div className="bg-white dark:bg-[#0B1120] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
+      <div className="bg-white dark:bg-[#0B1120] p-5 rounded-2xl border border-slate-200 dark:border-[#EBE3DB] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-500 font-mono text-[10px] font-bold uppercase tracking-wider border border-rose-500/20">
               Risk & Bottleneck Control
             </span>
           </div>
-          <h1 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+          <h1 className="text-lg font-black text-slate-900 dark:text-[#211B17] flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-rose-500" />
             Project Issues & Quality Ticket Management
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-[#70665F] dark:text-[#70665F] mt-0.5">
             Log and resolve design issues, material delays, quality non-conformances, and supplier bottlenecks.
           </p>
         </div>
@@ -97,22 +97,22 @@ export default function ProjectIssuesPage() {
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-white dark:bg-[#0B1120] p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-white dark:bg-[#0B1120] p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] flex flex-wrap items-center justify-between gap-3">
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-[#70665F] absolute left-3 top-2.5" />
           <input
             type="text"
             placeholder="Search issues by #, description, type, job #..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs font-semibold focus:outline-none"
+            className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-white border border-slate-200 dark:border-[#EBE3DB]/80 rounded-xl text-xs font-semibold focus:outline-none"
           />
         </div>
 
         <select
           value={selectedProjectId}
           onChange={(e) => setSelectedProjectId(e.target.value)}
-          className="px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs font-semibold focus:outline-none"
+          className="px-3 py-2 bg-slate-50 dark:bg-white border border-slate-200 dark:border-[#EBE3DB]/80 rounded-xl text-xs font-semibold focus:outline-none"
         >
           <option value="all">All Projects</option>
           {projectJobs.map((p) => (
@@ -124,7 +124,7 @@ export default function ProjectIssuesPage() {
       {/* Issues Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredIssues.map((iss) => (
-          <div key={iss.id} className="bg-white dark:bg-[#0B1120] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md space-y-3 flex flex-col justify-between">
+          <div key={iss.id} className="bg-white dark:bg-[#0B1120] p-5 rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-md space-y-3 flex flex-col justify-between">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="font-mono font-bold text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded text-[11px] border border-rose-500/20">
@@ -139,10 +139,10 @@ export default function ProjectIssuesPage() {
                 </span>
               </div>
 
-              <h3 className="font-bold text-slate-900 dark:text-white text-xs">
+              <h3 className="font-bold text-slate-900 dark:text-[#211B17] text-xs">
                 [{iss.issueType}] in {iss.department} Dept
               </h3>
-              <p className="text-slate-600 dark:text-slate-400 text-xs bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+              <p className="text-slate-600 dark:text-[#70665F] text-xs bg-slate-50 dark:bg-white p-2.5 rounded-xl border border-slate-200 dark:border-[#EBE3DB]">
                 {iss.description}
               </p>
 
@@ -153,8 +153,8 @@ export default function ProjectIssuesPage() {
               )}
             </div>
 
-            <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] font-mono">
-              <span className="text-slate-400">Assigned: {iss.assignedTo}</span>
+            <div className="pt-3 border-t border-slate-200 dark:border-[#EBE3DB] flex items-center justify-between text-[11px] font-mono">
+              <span className="text-[#70665F]">Assigned: {iss.assignedTo}</span>
               {iss.status !== 'resolved' && iss.status !== 'closed' && (
                 <button
                   onClick={() => {
@@ -173,24 +173,24 @@ export default function ProjectIssuesPage() {
 
       {/* REPORT ISSUE MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-            <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FAF7F2] backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="p-4 border-b border-slate-200 dark:border-[#EBE3DB] bg-slate-50 dark:bg-white flex justify-between items-center">
+              <h3 className="font-bold text-slate-900 dark:text-[#211B17] text-sm flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-rose-500" /> Report Project Issue
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-1 rounded text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <button onClick={() => setIsModalOpen(false)} className="p-1 rounded text-[#70665F] hover:bg-slate-100 dark:hover:bg-[#FAF7F2]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleCreateIssue} className="p-5 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Target Project *</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Target Project *</label>
                 <select
                   value={projectId}
                   onChange={(e) => setProjectId(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold"
                 >
                   {projectJobs.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -202,11 +202,11 @@ export default function ProjectIssuesPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Issue Category</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Issue Category</label>
                   <select
                     value={issueType}
                     onChange={(e) => setIssueType(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold"
                   >
                     <option value="Design Issue">Design Issue</option>
                     <option value="Material Issue">Material Issue</option>
@@ -222,11 +222,11 @@ export default function ProjectIssuesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Department</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Department</label>
                   <select
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold"
                   >
                     <option value="designer">Design</option>
                     <option value="purchase">Purchase</option>
@@ -238,33 +238,33 @@ export default function ProjectIssuesPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Issue Description *</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Issue Description *</label>
                 <textarea
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Detail the issue, impact on manufacturing, and immediate action needed..."
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Assigned Person</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Assigned Person</label>
                   <input
                     type="text"
                     value={assignedTo}
                     onChange={(e) => setAssignedTo(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Priority</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Priority</label>
                   <select
                     value={priority}
                     onChange={(e) => setPriority(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold"
                   >
                     <option value="urgent">Urgent</option>
                     <option value="high">High</option>
@@ -274,11 +274,11 @@ export default function ProjectIssuesPage() {
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2">
+              <div className="pt-3 border-t border-slate-200 dark:border-[#EBE3DB] flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl"
+                  className="px-4 py-2 bg-slate-200 dark:bg-[#FAF7F2] text-slate-700 dark:text-[#544B45] font-bold rounded-xl"
                 >
                   Cancel
                 </button>
@@ -296,23 +296,23 @@ export default function ProjectIssuesPage() {
 
       {/* RESOLVE ISSUE MODAL */}
       {resolveModalId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-5 space-y-4">
-            <h3 className="font-bold text-slate-900 dark:text-white text-sm">Resolve Issue</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FAF7F2] backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl shadow-2xl w-full max-w-md p-5 space-y-4">
+            <h3 className="font-bold text-slate-900 dark:text-[#211B17] text-sm">Resolve Issue</h3>
             <form onSubmit={handleResolve} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Corrective Resolution Notes *</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Corrective Resolution Notes *</label>
                 <textarea
                   rows={3}
                   value={resolutionText}
                   onChange={(e) => setResolutionText(e.target.value)}
                   placeholder="Describe resolution action taken..."
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-xs"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-xl text-xs"
                   required
                 />
               </div>
               <div className="flex justify-end gap-2">
-                <button type="button" onClick={() => setResolveModalId(null)} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl">Cancel</button>
+                <button type="button" onClick={() => setResolveModalId(null)} className="px-4 py-2 bg-slate-200 dark:bg-[#FAF7F2] text-slate-700 dark:text-[#544B45] font-bold rounded-xl">Cancel</button>
                 <button type="submit" className="px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl">Confirm Resolution</button>
               </div>
             </form>

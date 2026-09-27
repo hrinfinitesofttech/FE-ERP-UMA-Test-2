@@ -153,27 +153,27 @@ export default function ProductionDashboardPage() {
         <div className="flex flex-wrap items-center gap-2.5">
           <Link
             href="/production/work-orders"
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 text-white font-medium text-xs hover:brightness-110 shadow-lg shadow-orange-600/20 transition"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 text-[#211B17] font-medium text-xs hover:brightness-110 shadow-lg shadow-orange-600/20 transition"
           >
             <Plus className="w-4 h-4" /> Create Work Order
           </Link>
           <Link
             href="/production/entry"
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-700 text-slate-200 font-medium text-xs border border-slate-700 transition"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-[#FAF7F2] text-[#544B45] font-medium text-xs border border-[#EBE3DB] transition"
           >
             <Activity className="w-4 h-4 text-emerald-400" /> Operator Entry
           </Link>
           <button
             onClick={() => openJobModal('JOB-2026-001')}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-blue-600/20 text-blue-300 font-medium text-xs border border-blue-500/30 hover:bg-blue-600/30 transition"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-crm-brand-700/20 text-crm-brand- font-medium text-xs border border-crm-brand-600/30 hover:bg-crm-brand-700/30 transition"
           >
-            <Search className="w-4 h-4 text-blue-400" /> Job 360° Traceability
+            <Search className="w-4 h-4 text-crm-brand-500" /> Job 360° Traceability
           </button>
         </div>
       </div>
 
       {/* Filter Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl bg-slate-900/60 border border-[#E7DED5] text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl bg-[#FAF7F2] border border-[#E7DED5] text-xs">
         <div className="flex items-center gap-2 text-[#70665F] font-medium">
           <Filter className="w-4 h-4 text-orange-400" /> Dashboard Filters:
         </div>
@@ -181,7 +181,7 @@ export default function ProductionDashboardPage() {
           <select
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="bg-white border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 focus:outline-none focus:border-orange-500"
+            className="bg-white border border-[#EBE3DB] rounded-lg px-3 py-1.5 text-[#544B45] focus:outline-none focus:border-orange-500"
           >
             <option value="All">Date Range: All Time</option>
             <option value="Today">Today</option>
@@ -191,7 +191,7 @@ export default function ProductionDashboardPage() {
           <select
             value={jobFilter}
             onChange={(e) => setJobFilter(e.target.value)}
-            className="bg-white border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 focus:outline-none focus:border-orange-500"
+            className="bg-white border border-[#EBE3DB] rounded-lg px-3 py-1.5 text-[#544B45] focus:outline-none focus:border-orange-500"
           >
             <option value="All">Filter Job: All Jobs</option>
             {manufacturingJobs.map((j) => (
@@ -203,7 +203,7 @@ export default function ProductionDashboardPage() {
           <select
             value={wcFilter}
             onChange={(e) => setWcFilter(e.target.value)}
-            className="bg-white border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 focus:outline-none focus:border-orange-500"
+            className="bg-white border border-[#EBE3DB] rounded-lg px-3 py-1.5 text-[#544B45] focus:outline-none focus:border-orange-500"
           >
             <option value="All">Work Center: All Bays</option>
             {workCenters.map((wc) => (
@@ -217,7 +217,7 @@ export default function ProductionDashboardPage() {
 
       {/* 13 KPI Cards Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-[#E7DED5] shadow-md">
+        <div className="p-4 rounded-xl bg-white border border-[#E7DED5] shadow-md">
           <div className="flex justify-between items-center text-[#70665F] text-[11px]">
             <span>Total Jobs</span>
             <Briefcase className="w-4 h-4 text-sky-400" />
@@ -228,7 +228,7 @@ export default function ProductionDashboardPage() {
           </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-[#E7DED5] shadow-md">
+        <div className="p-4 rounded-xl bg-white border border-[#E7DED5] shadow-md">
           <div className="flex justify-between items-center text-[#70665F] text-[11px]">
             <span>Active Work Orders</span>
             <ClipboardList className="w-4 h-4 text-indigo-400" />
@@ -237,7 +237,7 @@ export default function ProductionDashboardPage() {
           <div className="text-[10px] text-indigo-400 mt-1">Shop Floor Released</div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-[#E7DED5] shadow-md">
+        <div className="p-4 rounded-xl bg-white border border-[#E7DED5] shadow-md">
           <div className="flex justify-between items-center text-[#70665F] text-[11px]">
             <span>Prod Orders Running</span>
             <FileText className="w-4 h-4 text-emerald-400" />
@@ -246,18 +246,18 @@ export default function ProductionDashboardPage() {
           <div className="text-[10px] text-emerald-400 mt-1">In Production</div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-[#E7DED5] shadow-md">
+        <div className="p-4 rounded-xl bg-white border border-[#E7DED5] shadow-md">
           <div className="flex justify-between items-center text-[#70665F] text-[11px]">
             <span>Active Work Centers</span>
-            <Wrench className="w-4 h-4 text-purple-400" />
+            <Wrench className="w-4 h-4 text-crm-brand-500" />
           </div>
           <div className="text-xl font-bold text-[#211B17] mt-1">
             {activeWorkCenters} / {workCenters.length}
           </div>
-          <div className="text-[10px] text-purple-400 mt-1">Bays Operational</div>
+          <div className="text-[10px] text-crm-brand-500 mt-1">Bays Operational</div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-[#E7DED5] shadow-md">
+        <div className="p-4 rounded-xl bg-white border border-[#E7DED5] shadow-md">
           <div className="flex justify-between items-center text-[#70665F] text-[11px]">
             <span>Overall OEE %</span>
             <Activity className="w-4 h-4 text-amber-400" />
@@ -266,25 +266,25 @@ export default function ProductionDashboardPage() {
           <div className="text-[10px] text-[#70665F] mt-1">Efficiency Metric</div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-[#E7DED5] shadow-md">
+        <div className="p-4 rounded-xl bg-white border border-[#E7DED5] shadow-md">
           <div className="flex justify-between items-center text-[#70665F] text-[11px]">
             <span>On-Time Rate</span>
-            <Clock className="w-4 h-4 text-cyan-400" />
+            <Clock className="w-4 h-4 text-crm-brand-500" />
           </div>
-          <div className="text-xl font-bold text-cyan-400 mt-1">94%</div>
-          <div className="text-[10px] text-cyan-400 mt-1">Schedule Compliance</div>
+          <div className="text-xl font-bold text-crm-brand-500 mt-1">94%</div>
+          <div className="text-[10px] text-crm-brand-500 mt-1">Schedule Compliance</div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-[#E7DED5] shadow-md">
+        <div className="p-4 rounded-xl bg-white border border-[#E7DED5] shadow-md">
           <div className="flex justify-between items-center text-[#70665F] text-[11px]">
             <span>WIP Jobs</span>
-            <Layers className="w-4 h-4 text-blue-400" />
+            <Layers className="w-4 h-4 text-crm-brand-500" />
           </div>
           <div className="text-xl font-bold text-[#211B17] mt-1">{wipRecords.length}</div>
-          <div className="text-[10px] text-blue-400 mt-1">Under Manufacturing</div>
+          <div className="text-[10px] text-crm-brand-500 mt-1">Under Manufacturing</div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-[#E7DED5] shadow-md">
+        <div className="p-4 rounded-xl bg-white border border-[#E7DED5] shadow-md">
           <div className="flex justify-between items-center text-[#70665F] text-[11px]">
             <span>Good Qty Produced</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
@@ -293,7 +293,7 @@ export default function ProductionDashboardPage() {
           <div className="text-[10px] text-emerald-400 mt-1">Passed QC</div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-[#E7DED5] shadow-md">
+        <div className="p-4 rounded-xl bg-white border border-[#E7DED5] shadow-md">
           <div className="flex justify-between items-center text-[#70665F] text-[11px]">
             <span>Rejected Qty</span>
             <AlertTriangle className="w-4 h-4 text-rose-400" />
@@ -302,7 +302,7 @@ export default function ProductionDashboardPage() {
           <div className="text-[10px] text-rose-400 mt-1">Defect Qty</div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-[#E7DED5] shadow-md">
+        <div className="p-4 rounded-xl bg-white border border-[#E7DED5] shadow-md">
           <div className="flex justify-between items-center text-[#70665F] text-[11px]">
             <span>Active Holds</span>
             <PauseCircle className="w-4 h-4 text-red-400" />
@@ -311,7 +311,7 @@ export default function ProductionDashboardPage() {
           <div className="text-[10px] text-red-400 mt-1">Production Stopped</div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-[#E7DED5] shadow-md">
+        <div className="p-4 rounded-xl bg-white border border-[#E7DED5] shadow-md">
           <div className="flex justify-between items-center text-[#70665F] text-[11px]">
             <span>Rework Orders</span>
             <RotateCcw className="w-4 h-4 text-amber-500" />
@@ -320,16 +320,16 @@ export default function ProductionDashboardPage() {
           <div className="text-[10px] text-amber-400 mt-1">Action Required</div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-[#E7DED5] shadow-md">
+        <div className="p-4 rounded-xl bg-white border border-[#E7DED5] shadow-md">
           <div className="flex justify-between items-center text-[#70665F] text-[11px]">
             <span>Total Scrap Value</span>
             <DollarSign className="w-4 h-4 text-rose-400" />
           </div>
-          <div className="text-lg font-bold text-rose-400 mt-1">₹{totalScrapValue.toLocaleString('en-IN')}</div>
+          <div className="text-lg font-bold text-rose-400 mt-1">₹{totalScrapValue?.toLocaleString('en-IN')}</div>
           <div className="text-[10px] text-rose-400 mt-1">Material Scrap</div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-[#E7DED5] shadow-md">
+        <div className="p-4 rounded-xl bg-white border border-[#E7DED5] shadow-md">
           <div className="flex justify-between items-center text-[#70665F] text-[11px]">
             <span>Finished Goods</span>
             <ShieldCheck className="w-4 h-4 text-sky-400" />
@@ -338,7 +338,7 @@ export default function ProductionDashboardPage() {
           <div className="text-[10px] text-sky-400 mt-1">Ready for Dispatch</div>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900/80 border border-[#E7DED5] shadow-md">
+        <div className="p-4 rounded-xl bg-white border border-[#E7DED5] shadow-md">
           <div className="flex justify-between items-center text-[#70665F] text-[11px]">
             <span>Cost Variance</span>
             <TrendingUp className="w-4 h-4 text-emerald-400" />
@@ -351,7 +351,7 @@ export default function ProductionDashboardPage() {
       {/* 8 Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Chart 1: Job Status Breakdown */}
-        <div className="p-5 rounded-2xl bg-slate-900/80 border border-[#E7DED5] shadow-xl space-y-4">
+        <div className="p-5 rounded-2xl bg-white border border-[#E7DED5] shadow-xl space-y-4">
           <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
             <Briefcase className="w-4 h-4 text-sky-400" /> 1. Manufacturing Job Status Breakdown
           </h3>
@@ -371,9 +371,9 @@ export default function ProductionDashboardPage() {
         </div>
 
         {/* Chart 2: Work Center Utilization */}
-        <div className="p-5 rounded-2xl bg-slate-900/80 border border-[#E7DED5] shadow-xl space-y-4">
+        <div className="p-5 rounded-2xl bg-white border border-[#E7DED5] shadow-xl space-y-4">
           <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
-            <Wrench className="w-4 h-4 text-purple-400" /> 2. Work Center Capacity & Hours Available
+            <Wrench className="w-4 h-4 text-crm-brand-500" /> 2. Work Center Capacity & Hours Available
           </h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -391,7 +391,7 @@ export default function ProductionDashboardPage() {
         </div>
 
         {/* Chart 3: Daily Output Trend */}
-        <div className="p-5 rounded-2xl bg-slate-900/80 border border-[#E7DED5] shadow-xl space-y-4">
+        <div className="p-5 rounded-2xl bg-white border border-[#E7DED5] shadow-xl space-y-4">
           <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
             <Activity className="w-4 h-4 text-emerald-400" /> 3. Daily Production Output (Good Qty vs Scrap)
           </h3>
@@ -410,9 +410,9 @@ export default function ProductionDashboardPage() {
         </div>
 
         {/* Chart 4: WIP Stage-wise Distribution */}
-        <div className="p-5 rounded-2xl bg-slate-900/80 border border-[#E7DED5] shadow-xl space-y-4">
+        <div className="p-5 rounded-2xl bg-white border border-[#E7DED5] shadow-xl space-y-4">
           <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
-            <Layers className="w-4 h-4 text-blue-400" /> 4. Work in Progress (WIP) Operations Tracking
+            <Layers className="w-4 h-4 text-crm-brand-500" /> 4. Work in Progress (WIP) Operations Tracking
           </h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -429,7 +429,7 @@ export default function ProductionDashboardPage() {
         </div>
 
         {/* Chart 5: Job-wise Actual vs Estimated Cost */}
-        <div className="p-5 rounded-2xl bg-slate-900/80 border border-[#E7DED5] shadow-xl space-y-4">
+        <div className="p-5 rounded-2xl bg-white border border-[#E7DED5] shadow-xl space-y-4">
           <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
             <DollarSign className="w-4 h-4 text-emerald-400" /> 5. Job Production Costing (Estimated vs Actual in ₹ Lacs)
           </h3>
@@ -449,7 +449,7 @@ export default function ProductionDashboardPage() {
         </div>
 
         {/* Chart 6: Downtime Reason Analytics */}
-        <div className="p-5 rounded-2xl bg-slate-900/80 border border-[#E7DED5] shadow-xl space-y-4">
+        <div className="p-5 rounded-2xl bg-white border border-[#E7DED5] shadow-xl space-y-4">
           <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
             <PauseCircle className="w-4 h-4 text-rose-400" /> 6. Shop Floor Downtime Reason Distribution (%)
           </h3>
@@ -469,9 +469,9 @@ export default function ProductionDashboardPage() {
       </div>
 
       {/* Active Work Orders Overview Table */}
-      <div className="p-5 rounded-2xl bg-slate-900/80 border border-[#E7DED5] shadow-xl space-y-4">
+      <div className="p-5 rounded-2xl bg-white border border-[#E7DED5] shadow-xl space-y-4">
         <div className="flex justify-between items-center">
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
+          <h3 className="text-base font-bold text-[#211B17] flex items-center gap-2">
             <ClipboardList className="w-5 h-5 text-orange-400" /> Active Work Orders & Progress Status
           </h3>
           <Link href="/production/work-orders" className="text-xs text-orange-400 hover:underline flex items-center gap-1">
@@ -481,7 +481,7 @@ export default function ProductionDashboardPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-[#544B45]">
-            <thead className="bg-[#FAF7F2] text-[#70665F] font-semibold uppercase text-[10px] tracking-wider border-b border-slate-700">
+            <thead className="bg-[#FAF7F2] text-[#70665F] font-semibold uppercase text-[10px] tracking-wider border-b border-[#EBE3DB]">
               <tr>
                 <th className="p-3">Work Order #</th>
                 <th className="p-3">Job Number</th>
@@ -493,12 +493,12 @@ export default function ProductionDashboardPage() {
                 <th className="p-3 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800">
+            <tbody className="divide-y divide-[#EBE3DB]">
               {workOrders.map((wo) => (
                 <tr key={wo.id} className="hover:bg-white/40 transition">
                   <td className="p-3 font-mono font-bold text-orange-400">{wo.workOrderNumber}</td>
                   <td className="p-3 font-mono text-sky-300">{wo.jobNumber}</td>
-                  <td className="p-3 font-medium text-white max-w-xs truncate">{wo.productName}</td>
+                  <td className="p-3 font-medium text-[#211B17] max-w-xs truncate">{wo.productName}</td>
                   <td className="p-3 text-[#70665F]">
                     {wo.designRevision} / {wo.bomRevision}
                   </td>
@@ -508,7 +508,7 @@ export default function ProductionDashboardPage() {
                       className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                         wo.priority === 'High' || wo.priority === 'Urgent'
                           ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                          : 'bg-slate-700 text-[#544B45]'
+                          : 'bg-[#FAF7F2] text-[#544B45]'
                       }`}
                     >
                       {wo.priority}
@@ -522,7 +522,7 @@ export default function ProductionDashboardPage() {
                   <td className="p-3 text-right">
                     <button
                       onClick={() => openJobModal(wo.jobNumber)}
-                      className="px-2.5 py-1 rounded bg-blue-600/20 text-blue-300 hover:bg-blue-600/30 border border-blue-500/30 transition text-[11px]"
+                      className="px-2.5 py-1 rounded bg-crm-brand-700/20 text-crm-brand- hover:bg-crm-brand-700/30 border border-crm-brand-600/30 transition text-[11px]"
                     >
                       360° Trace
                     </button>

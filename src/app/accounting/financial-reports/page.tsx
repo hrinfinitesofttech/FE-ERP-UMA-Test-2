@@ -60,7 +60,7 @@ export default function FinancialReportsPage() {
   ];
 
   const filteredReports = reportsList.filter((r) => {
-    const matchesSearch = r.name.toLowerCase().includes(searchTerm.toLowerCase()) || r.code.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = r.name?.toLowerCase().includes(searchTerm?.toLowerCase()) || r.code?.toLowerCase().includes(searchTerm?.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || r.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -68,47 +68,49 @@ export default function FinancialReportsPage() {
   const categories = ['All', 'Financial Statements', 'GST & Taxes', 'Receivables & Payables', 'Job & Project Costing', 'Banking & Assets'];
 
   const handleExportCSV = (reportName: string) => {
-    const csvContent = `data:text/csv;charset=utf-8,Uma Techno Fab ERP - Financial Report: ${reportName}\nDate: ${new Date().toISOString()}\nCode,Field,Value\n01,Sample Record,100000\n`;
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = `Uma Techno Fab ERP - Financial Report: ${reportName}\nDate: ${new Date().toISOString()}\nCode,Field,Value\n01,Sample Record,100000\n`;
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `${reportName.replace(/[^a-zA-Z0-9]/g, '_')}.csv`);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${reportName?.replace(/[^a-zA-Z0-9]/g, '_')}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="p-6 space-y-6 bg-slate-950 min-h-screen text-slate-100">
-      <div className="flex items-center justify-between bg-slate-900 p-6 rounded-2xl border border-slate-800">
+    <div className="p-6 space-y-6 bg-[#FAF7F2]  text-[#211B17]">
+      <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-[#EBE3DB] print:hidden">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-amber-500/20 rounded-xl text-amber-400">
             <FileBarChart className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">Financial & Statutory Reports Hub (35 Reports)</h1>
-            <p className="text-xs text-slate-400 mt-0.5">Full Suite of Balance Sheet, P&L, GST, TDS, AR/AP, Job Costing & Asset Reports</p>
+            <h1 className="text-xl font-bold text-[#211B17]">Financial & Statutory Reports Hub (35 Reports)</h1>
+            <p className="text-xs text-[#70665F] mt-0.5">Full Suite of Balance Sheet, P&L, GST, TDS, AR/AP, Job Costing & Asset Reports</p>
           </div>
         </div>
 
         <button
           onClick={() => handleExportCSV(previewReport || 'Financial_Report')}
-          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition"
+          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] text-xs font-semibold px-4 py-2.5 rounded-xl transition"
         >
           <Download className="w-4 h-4" />
           <span>Export Selected Report CSV</span>
         </button>
       </div>
 
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-900 p-4 rounded-xl border border-slate-800">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl border border-[#EBE3DB] print:hidden">
         <div className="relative w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
           <input
             type="text"
             placeholder="Search 35 reports..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-200"
+            className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-4 py-2 text-xs text-[#3E2723]"
           />
         </div>
 
@@ -118,7 +120,7 @@ export default function FinancialReportsPage() {
               key={c}
               onClick={() => setSelectedCategory(c)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                selectedCategory === c ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-slate-950 text-slate-400 border border-slate-800'
+                selectedCategory === c ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-[#FAF7F2] text-[#70665F] border border-[#EBE3DB]'
               }`}
             >
               {c}
@@ -129,37 +131,37 @@ export default function FinancialReportsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Reports Index */}
-        <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 space-y-2 max-h-[70vh] overflow-y-auto">
-          <div className="text-xs font-bold text-white uppercase tracking-wider px-2 py-1">Available Reports ({filteredReports.length})</div>
+        <div className="bg-white p-4 rounded-2xl border border-[#EBE3DB] space-y-2 max-h-[70vh] overflow-y-auto print:hidden">
+          <div className="text-xs font-bold text-[#211B17] uppercase tracking-wider px-2 py-1">Available Reports ({filteredReports.length})</div>
           {filteredReports.map((r) => (
             <div
               key={r.id}
               onClick={() => setPreviewReport(r.name)}
               className={`p-3 rounded-xl border transition cursor-pointer flex items-center justify-between ${
-                previewReport === r.name ? 'bg-amber-500/20 border-amber-500/40 text-amber-300' : 'bg-slate-950/70 border-slate-800 hover:border-slate-700 text-slate-300'
+                previewReport === r.name ? 'bg-amber-500/20 border-amber-500/40 text-amber-300' : 'bg-[#FAF7F2] border-[#EBE3DB] hover:border-[#EBE3DB] text-[#544B45]'
               }`}
             >
               <div>
                 <div className="text-xs font-bold font-mono">{r.code}: {r.name}</div>
-                <div className="text-[10px] text-slate-400 mt-0.5">{r.category}</div>
+                <div className="text-[10px] text-[#70665F] mt-0.5">{r.category}</div>
               </div>
-              <Download className="w-3.5 h-3.5 text-slate-400 hover:text-white" onClick={(e) => { e.stopPropagation(); handleExportCSV(r.name); }} />
+              <Download className="w-3.5 h-3.5 text-[#70665F] hover:text-[#211B17]" onClick={(e) => { e.stopPropagation(); handleExportCSV(r.name); }} />
             </div>
           ))}
         </div>
 
         {/* Live Preview Screen */}
-        <div className="lg:col-span-2 bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-[#EBE3DB] space-y-4">
+          <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3 print:hidden">
             <div>
               <span className="text-xs font-mono font-bold text-amber-400">REPORT PREVIEW</span>
-              <h3 className="text-base font-bold text-white">{previewReport}</h3>
+              <h3 className="text-base font-bold text-[#211B17]">{previewReport}</h3>
             </div>
 
             <div className="flex items-center gap-2">
               <button
                 onClick={() => handleExportCSV(previewReport || 'Report')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-[#211B17] text-xs font-semibold transition"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>CSV</span>
@@ -167,7 +169,7 @@ export default function FinancialReportsPage() {
 
               <button
                 onClick={() => window.print()}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-[#FAF7F2] text-[#3E2723] text-xs font-semibold transition"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>Print</span>
@@ -175,61 +177,61 @@ export default function FinancialReportsPage() {
             </div>
           </div>
 
-          <div className="bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-4 text-xs">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3 font-mono">
+          <div className="bg-[#FAF7F2] p-6 rounded-xl border border-[#EBE3DB] space-y-4 text-xs">
+            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3 font-mono">
               <div>
-                <div className="text-sm font-bold text-white">UMA TECHNO FAB MANUFACTURING ERP</div>
-                <div className="text-slate-400">Plot 124, GIDC Makarpura, Vadodara, Gujarat - 390010</div>
-                <div className="text-slate-400">GSTIN: 24AAACX0000X1Z1 | PAN: AAACX0000X</div>
+                <div className="text-sm font-bold text-[#211B17]">UMA TECHNO FAB MANUFACTURING ERP</div>
+                <div className="text-[#70665F]">Plot 124, GIDC Makarpura, Vadodara, Gujarat - 390010</div>
+                <div className="text-[#70665F]">GSTIN: 24AAACX0000X1Z1 | PAN: AAACX0000X</div>
               </div>
               <div className="text-right">
-                <div className="text-slate-400">Period: FY 2025-26 (01-Apr-2025 to 31-Mar-2026)</div>
+                <div className="text-[#70665F]">Period: FY 2025-26 (01-Apr-2025 to 31-Mar-2026)</div>
                 <div className="text-emerald-400 font-bold">Currency: INR (₹)</div>
               </div>
             </div>
 
             {/* Mock Report Table Data */}
-            <table className="w-full text-left text-xs text-slate-300">
-              <thead className="bg-slate-900 text-slate-400 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-800">
+            <table className="w-full text-left text-xs text-[#544B45]">
+              <thead className="bg-white text-[#70665F] uppercase font-semibold text-[10px] tracking-wider border-b border-[#EBE3DB]">
                 <tr>
                   <th className="py-2.5 px-3">Particulars / Account Head</th>
                   <th className="py-2.5 px-3 text-right">Debit (Dr) ₹</th>
                   <th className="py-2.5 px-3 text-right">Credit (Cr) ₹</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 font-mono">
+              <tbody className="divide-y divide-[#EBE3DB] font-mono">
                 <tr>
-                  <td className="py-2.5 px-3 font-semibold text-white">I. EQUITY & LIABILITIES</td>
-                  <td className="py-2.5 px-3 text-right text-slate-500">-</td>
-                  <td className="py-2.5 px-3 text-right text-slate-500">-</td>
+                  <td className="py-2.5 px-3 font-semibold text-[#211B17]">I. EQUITY & LIABILITIES</td>
+                  <td className="py-2.5 px-3 text-right text-[#70665F]">-</td>
+                  <td className="py-2.5 px-3 text-right text-[#70665F]">-</td>
                 </tr>
                 <tr>
-                  <td className="py-2.5 px-3 pl-6 text-slate-300">1. Share Capital & Reserves</td>
-                  <td className="py-2.5 px-3 text-right text-slate-500">-</td>
+                  <td className="py-2.5 px-3 pl-6 text-[#544B45]">1. Share Capital & Reserves</td>
+                  <td className="py-2.5 px-3 text-right text-[#70665F]">-</td>
                   <td className="py-2.5 px-3 text-right text-emerald-400">₹25,000,000</td>
                 </tr>
                 <tr>
-                  <td className="py-2.5 px-3 pl-6 text-slate-300">2. Trade Payables (Sundry Creditors)</td>
-                  <td className="py-2.5 px-3 text-right text-slate-500">-</td>
+                  <td className="py-2.5 px-3 pl-6 text-[#544B45]">2. Trade Payables (Sundry Creditors)</td>
+                  <td className="py-2.5 px-3 text-right text-[#70665F]">-</td>
                   <td className="py-2.5 px-3 text-right text-indigo-400">₹17,900,000</td>
                 </tr>
                 <tr>
-                  <td className="py-2.5 px-3 font-semibold text-white">II. ASSETS</td>
-                  <td className="py-2.5 px-3 text-right text-slate-500">-</td>
-                  <td className="py-2.5 px-3 text-right text-slate-500">-</td>
+                  <td className="py-2.5 px-3 font-semibold text-[#211B17]">II. ASSETS</td>
+                  <td className="py-2.5 px-3 text-right text-[#70665F]">-</td>
+                  <td className="py-2.5 px-3 text-right text-[#70665F]">-</td>
                 </tr>
                 <tr>
-                  <td className="py-2.5 px-3 pl-6 text-slate-300">1. Property, Plant & Equipment (Fixed Assets)</td>
+                  <td className="py-2.5 px-3 pl-6 text-[#544B45]">1. Property, Plant & Equipment (Fixed Assets)</td>
                   <td className="py-2.5 px-3 text-right text-teal-400">₹27,500,000</td>
-                  <td className="py-2.5 px-3 text-right text-slate-500">-</td>
+                  <td className="py-2.5 px-3 text-right text-[#70665F]">-</td>
                 </tr>
                 <tr>
-                  <td className="py-2.5 px-3 pl-6 text-slate-300">2. Trade Receivables (Sundry Debtors)</td>
+                  <td className="py-2.5 px-3 pl-6 text-[#544B45]">2. Trade Receivables (Sundry Debtors)</td>
                   <td className="py-2.5 px-3 text-right text-amber-400">₹29,600,000</td>
-                  <td className="py-2.5 px-3 text-right text-slate-500">-</td>
+                  <td className="py-2.5 px-3 text-right text-[#70665F]">-</td>
                 </tr>
-                <tr className="bg-slate-900 font-bold border-t border-slate-700">
-                  <td className="py-3 px-3 text-white">TOTAL BALANCE</td>
+                <tr className="bg-white font-bold border-t border-[#EBE3DB]">
+                  <td className="py-3 px-3 text-[#211B17]">TOTAL BALANCE</td>
                   <td className="py-3 px-3 text-right text-emerald-400">₹57,100,000</td>
                   <td className="py-3 px-3 text-right text-emerald-400">₹57,100,000</td>
                 </tr>

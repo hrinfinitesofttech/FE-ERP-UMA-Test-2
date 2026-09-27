@@ -13,15 +13,15 @@ export default function GSTManagementPage() {
   const netCashPayable = Math.max(0, totalSalesTax - totalITC);
 
   return (
-    <div className="p-6 space-y-6 bg-slate-950 min-h-screen text-slate-100">
-      <div className="flex items-center justify-between bg-slate-900 p-6 rounded-2xl border border-slate-800">
+    <div className="p-6 space-y-6 bg-[#FAF7F2]  text-[#211B17]">
+      <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-[#EBE3DB]">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-yellow-500/20 rounded-xl text-yellow-400">
             <Scale className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">Indian GST Filing & Tax Compliance Portal</h1>
-            <p className="text-xs text-slate-400 mt-0.5">GSTIN: 24AAACX0000X1Z1 • GSTR-1, GSTR-2B ITC Matching & GSTR-3B Auto Summary</p>
+            <h1 className="text-xl font-bold text-[#211B17]">Indian GST Filing & Tax Compliance Portal</h1>
+            <p className="text-xs text-[#70665F] mt-0.5">GSTIN: 24AAACX0000X1Z1 • GSTR-1, GSTR-2B ITC Matching & GSTR-3B Auto Summary</p>
           </div>
         </div>
 
@@ -32,11 +32,11 @@ export default function GSTManagementPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
+      <div className="flex items-center gap-3 border-b border-[#EBE3DB] pb-3">
         <button
           onClick={() => setActiveTab('GSTR3B')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
-            activeTab === 'GSTR3B' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'bg-slate-900 text-slate-400 hover:text-white'
+            activeTab === 'GSTR3B' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'bg-white text-[#70665F] hover:text-[#211B17]'
           }`}
         >
           GSTR-3B Net Computation
@@ -44,7 +44,7 @@ export default function GSTManagementPage() {
         <button
           onClick={() => setActiveTab('GSTR1')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
-            activeTab === 'GSTR1' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'bg-slate-900 text-slate-400 hover:text-white'
+            activeTab === 'GSTR1' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'bg-white text-[#70665F] hover:text-[#211B17]'
           }`}
         >
           GSTR-1 Outward Supplies ({salesInvoices.length})
@@ -52,7 +52,7 @@ export default function GSTManagementPage() {
         <button
           onClick={() => setActiveTab('GSTR2B')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
-            activeTab === 'GSTR2B' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'bg-slate-900 text-slate-400 hover:text-white'
+            activeTab === 'GSTR2B' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'bg-white text-[#70665F] hover:text-[#211B17]'
           }`}
         >
           GSTR-2B Input Credit ({purchaseInvoices.length})
@@ -62,31 +62,31 @@ export default function GSTManagementPage() {
       {activeTab === 'GSTR3B' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-2">
-              <span className="text-xs text-slate-400 uppercase font-semibold">Total Output GST Liability (GSTR-1)</span>
-              <div className="text-2xl font-bold text-yellow-400 font-mono">₹{totalSalesTax.toLocaleString()}</div>
-              <div className="text-[11px] text-slate-400">CGST + SGST + IGST Collected</div>
+            <div className="bg-white p-5 rounded-2xl border border-[#EBE3DB] space-y-2">
+              <span className="text-xs text-[#70665F] uppercase font-semibold">Total Output GST Liability (GSTR-1)</span>
+              <div className="text-2xl font-bold text-yellow-400 font-mono">₹{totalSalesTax?.toLocaleString()}</div>
+              <div className="text-[11px] text-[#70665F]">CGST + SGST + IGST Collected</div>
             </div>
 
-            <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-2">
-              <span className="text-xs text-slate-400 uppercase font-semibold">Eligible Input Tax Credit (GSTR-2B)</span>
-              <div className="text-2xl font-bold text-cyan-400 font-mono">₹{totalITC.toLocaleString()}</div>
+            <div className="bg-white p-5 rounded-2xl border border-[#EBE3DB] space-y-2">
+              <span className="text-xs text-[#70665F] uppercase font-semibold">Eligible Input Tax Credit (GSTR-2B)</span>
+              <div className="text-2xl font-bold text-crm-brand-500 font-mono">₹{totalITC?.toLocaleString()}</div>
               <div className="text-[11px] text-emerald-400 font-semibold">100% Reconciled</div>
             </div>
 
-            <div className="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-2">
-              <span className="text-xs text-slate-400 uppercase font-semibold">Net Cash Liability to Pay</span>
-              <div className="text-2xl font-bold text-amber-400 font-mono">₹{netCashPayable.toLocaleString()}</div>
-              <div className="text-[11px] text-slate-400">Electronic Cash Ledger</div>
+            <div className="bg-white p-5 rounded-2xl border border-[#EBE3DB] space-y-2">
+              <span className="text-xs text-[#70665F] uppercase font-semibold">Net Cash Liability to Pay</span>
+              <div className="text-2xl font-bold text-amber-400 font-mono">₹{netCashPayable?.toLocaleString()}</div>
+              <div className="text-[11px] text-[#70665F]">Electronic Cash Ledger</div>
             </div>
           </div>
 
-          <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
-            <h3 className="text-base font-bold text-white">GSTR-3B Table 3.1 & 4 Summary Computation</h3>
+          <div className="bg-white p-6 rounded-2xl border border-[#EBE3DB] space-y-4">
+            <h3 className="text-base font-bold text-[#211B17]">GSTR-3B Table 3.1 & 4 Summary Computation</h3>
 
-            <div className="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
-              <table className="w-full text-left text-xs text-slate-300">
-                <thead className="bg-slate-900 text-slate-400 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-800">
+            <div className="bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] overflow-hidden">
+              <table className="w-full text-left text-xs text-[#544B45]">
+                <thead className="bg-white text-[#70665F] uppercase font-semibold text-[10px] tracking-wider border-b border-[#EBE3DB]">
                   <tr>
                     <th className="py-3 px-4">Details of Supplies</th>
                     <th className="py-3 px-4 text-right">Taxable Value ₹</th>
@@ -95,31 +95,31 @@ export default function GSTManagementPage() {
                     <th className="py-3 px-4 text-right">State Tax (SGST) ₹</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 font-mono">
+                <tbody className="divide-y divide-[#EBE3DB] font-mono">
                   <tr>
-                    <td className="py-3 px-4 font-sans font-semibold text-slate-200">(a) Outward Taxable Supplies</td>
-                    <td className="py-3 px-4 text-right text-slate-200">
-                      ₹{salesInvoices.reduce((a, b) => a + (b.subTotal ?? b.subtotal ?? b.taxableAmount ?? 0), 0).toLocaleString()}
+                    <td className="py-3 px-4 font-sans font-semibold text-[#3E2723]">(a) Outward Taxable Supplies</td>
+                    <td className="py-3 px-4 text-right text-[#3E2723]">
+                      ₹{salesInvoices.reduce((a, b) => a + (b.subTotal ?? b.subtotal ?? b.taxableAmount ?? 0), 0)?.toLocaleString()}
                     </td>
-                    <td className="py-3 px-4 text-right text-slate-400">₹0</td>
-                    <td className="py-3 px-4 text-right text-yellow-400">₹{(totalSalesTax / 2).toLocaleString()}</td>
-                    <td className="py-3 px-4 text-right text-yellow-400">₹{(totalSalesTax / 2).toLocaleString()}</td>
+                    <td className="py-3 px-4 text-right text-[#70665F]">₹0</td>
+                    <td className="py-3 px-4 text-right text-yellow-400">₹{(totalSalesTax / 2)?.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-right text-yellow-400">₹{(totalSalesTax / 2)?.toLocaleString()}</td>
                   </tr>
                   <tr>
-                    <td className="py-3 px-4 font-sans font-semibold text-slate-200">4. Eligible ITC - All other ITC</td>
-                    <td className="py-3 px-4 text-right text-slate-200">
-                      ₹{purchaseInvoices.reduce((a, b) => a + (b.subTotal ?? b.subtotal ?? b.taxableAmount ?? 0), 0).toLocaleString()}
+                    <td className="py-3 px-4 font-sans font-semibold text-[#3E2723]">4. Eligible ITC - All other ITC</td>
+                    <td className="py-3 px-4 text-right text-[#3E2723]">
+                      ₹{purchaseInvoices.reduce((a, b) => a + (b.subTotal ?? b.subtotal ?? b.taxableAmount ?? 0), 0)?.toLocaleString()}
                     </td>
-                    <td className="py-3 px-4 text-right text-slate-400">₹0</td>
-                    <td className="py-3 px-4 text-right text-cyan-400">₹{(totalITC / 2).toLocaleString()}</td>
-                    <td className="py-3 px-4 text-right text-cyan-400">₹{(totalITC / 2).toLocaleString()}</td>
+                    <td className="py-3 px-4 text-right text-[#70665F]">₹0</td>
+                    <td className="py-3 px-4 text-right text-crm-brand-500">₹{(totalITC / 2)?.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-right text-crm-brand-500">₹{(totalITC / 2)?.toLocaleString()}</td>
                   </tr>
-                  <tr className="bg-slate-900/80 font-bold">
+                  <tr className="bg-white/80 font-bold">
                     <td className="py-3 px-4 font-sans text-amber-400">Net Tax Payable (3.1 - 4)</td>
-                    <td className="py-3 px-4 text-right text-slate-400">-</td>
-                    <td className="py-3 px-4 text-right text-slate-400">₹0</td>
-                    <td className="py-3 px-4 text-right text-amber-400">₹{(netCashPayable / 2).toLocaleString()}</td>
-                    <td className="py-3 px-4 text-right text-amber-400">₹{(netCashPayable / 2).toLocaleString()}</td>
+                    <td className="py-3 px-4 text-right text-[#70665F]">-</td>
+                    <td className="py-3 px-4 text-right text-[#70665F]">₹0</td>
+                    <td className="py-3 px-4 text-right text-amber-400">₹{(netCashPayable / 2)?.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-right text-amber-400">₹{(netCashPayable / 2)?.toLocaleString()}</td>
                   </tr>
                 </tbody>
               </table>
@@ -129,9 +129,9 @@ export default function GSTManagementPage() {
       )}
 
       {activeTab === 'GSTR1' && (
-        <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-950/80 text-slate-400 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-800">
+        <div className="bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden">
+          <table className="w-full text-left text-xs text-[#544B45]">
+            <thead className="bg-[#FAF7F2]/80 text-[#70665F] uppercase font-semibold text-[10px] tracking-wider border-b border-[#EBE3DB]">
               <tr>
                 <th className="py-3.5 px-4">Invoice No</th>
                 <th className="py-3.5 px-4">Customer GSTIN</th>
@@ -143,17 +143,17 @@ export default function GSTManagementPage() {
                 <th className="py-3.5 px-4 text-right">Total Invoice</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-mono">
+            <tbody className="divide-y divide-[#EBE3DB] font-mono">
               {salesInvoices.map((inv) => (
                 <tr key={inv.id}>
                   <td className="py-3 px-4 text-emerald-400 font-bold">{inv.invoiceNumber}</td>
-                  <td className="py-3 px-4 text-slate-400">{inv.customerGstin}</td>
-                  <td className="py-3 px-4 font-sans font-semibold text-slate-200">{inv.customerName}</td>
-                  <td className="py-3 px-4 font-sans text-slate-400">{inv.placeOfSupply}</td>
-                  <td className="py-3 px-4 text-right text-slate-300">₹{(inv.subTotal ?? inv.subtotal ?? inv.taxableAmount ?? 0).toLocaleString()}</td>
-                  <td className="py-3 px-4 text-right text-yellow-400">₹{(inv.cgstAmount ?? inv.cgstTotal ?? 0).toLocaleString()}</td>
-                  <td className="py-3 px-4 text-right text-yellow-400">₹{(inv.sgstAmount ?? inv.sgstTotal ?? 0).toLocaleString()}</td>
-                  <td className="py-3 px-4 text-right font-bold text-white">₹{inv.grandTotal.toLocaleString()}</td>
+                  <td className="py-3 px-4 text-[#70665F]">{inv.customerGstin}</td>
+                  <td className="py-3 px-4 font-sans font-semibold text-[#3E2723]">{inv.customerName}</td>
+                  <td className="py-3 px-4 font-sans text-[#70665F]">{inv.placeOfSupply}</td>
+                  <td className="py-3 px-4 text-right text-[#544B45]">₹{(inv.subTotal ?? inv.subtotal ?? inv.taxableAmount ?? 0)?.toLocaleString()}</td>
+                  <td className="py-3 px-4 text-right text-yellow-400">₹{(inv.cgstAmount ?? inv.cgstTotal ?? 0)?.toLocaleString()}</td>
+                  <td className="py-3 px-4 text-right text-yellow-400">₹{(inv.sgstAmount ?? inv.sgstTotal ?? 0)?.toLocaleString()}</td>
+                  <td className="py-3 px-4 text-right font-bold text-[#211B17]">₹{inv.grandTotal?.toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -162,9 +162,9 @@ export default function GSTManagementPage() {
       )}
 
       {activeTab === 'GSTR2B' && (
-        <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-950/80 text-slate-400 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-800">
+        <div className="bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden">
+          <table className="w-full text-left text-xs text-[#544B45]">
+            <thead className="bg-[#FAF7F2]/80 text-[#70665F] uppercase font-semibold text-[10px] tracking-wider border-b border-[#EBE3DB]">
               <tr>
                 <th className="py-3.5 px-4">Supplier Bill No</th>
                 <th className="py-3.5 px-4">Supplier GSTIN</th>
@@ -175,15 +175,15 @@ export default function GSTManagementPage() {
                 <th className="py-3.5 px-4 text-center">GSTR-2B Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-mono">
+            <tbody className="divide-y divide-[#EBE3DB] font-mono">
               {purchaseInvoices.map((inv) => (
                 <tr key={inv.id}>
-                  <td className="py-3 px-4 text-purple-400 font-bold">{inv.vendorInvoiceNumber}</td>
-                  <td className="py-3 px-4 text-slate-400">{inv.supplierGstin}</td>
-                  <td className="py-3 px-4 font-sans font-semibold text-slate-200">{inv.supplierName}</td>
-                  <td className="py-3 px-4 text-right text-slate-300">₹{(inv.subTotal ?? inv.subtotal ?? inv.taxableAmount ?? 0).toLocaleString()}</td>
-                  <td className="py-3 px-4 text-right text-cyan-400">₹{(inv.cgstAmount ?? inv.cgstTotal ?? 0).toLocaleString()}</td>
-                  <td className="py-3 px-4 text-right text-cyan-400">₹{(inv.sgstAmount ?? inv.sgstTotal ?? 0).toLocaleString()}</td>
+                  <td className="py-3 px-4 text-crm-brand-500 font-bold">{inv.vendorInvoiceNumber}</td>
+                  <td className="py-3 px-4 text-[#70665F]">{inv.supplierGstin}</td>
+                  <td className="py-3 px-4 font-sans font-semibold text-[#3E2723]">{inv.supplierName}</td>
+                  <td className="py-3 px-4 text-right text-[#544B45]">₹{(inv.subTotal ?? inv.subtotal ?? inv.taxableAmount ?? 0)?.toLocaleString()}</td>
+                  <td className="py-3 px-4 text-right text-crm-brand-500">₹{(inv.cgstAmount ?? inv.cgstTotal ?? 0)?.toLocaleString()}</td>
+                  <td className="py-3 px-4 text-right text-crm-brand-500">₹{(inv.sgstAmount ?? inv.sgstTotal ?? 0)?.toLocaleString()}</td>
                   <td className="py-3 px-4 text-center font-sans">
                     <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-400 font-semibold">Matched in 2B</span>
                   </td>

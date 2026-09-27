@@ -40,21 +40,21 @@ export default function JobPositionsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-slate-900 text-slate-100 min-h-screen">
+    <div className="p-6 space-y-6 bg-white text-[#211B17] ">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
-            <Briefcase className="w-7 h-7 text-cyan-400" />
+          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2">
+            <Briefcase className="w-7 h-7 text-crm-brand-500" />
             Job Positions & Open Vacancies Master
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-[#70665F] mt-1">
             Plant Requisitions, Experience Criteria, Job Descriptions & Budgeted Salary Ranges
           </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-sm rounded-lg shadow-md transition"
+          className="flex items-center gap-2 px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-[#211B17] font-semibold text-sm rounded-lg shadow-md transition"
         >
           <Plus className="w-4 h-4" /> Create Job Opening
         </button>
@@ -63,10 +63,10 @@ export default function JobPositionsPage() {
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {jobPositions.map((pos) => (
-          <div key={pos.id} className="bg-slate-800/80 border border-slate-700/60 rounded-xl p-5 space-y-4 shadow-lg hover:border-cyan-500/40 transition flex flex-col justify-between">
+          <div key={pos.id} className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl p-5 space-y-4 shadow-lg hover:border-crm-brand-600/40 transition flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-xs font-bold text-cyan-400">{pos.positionCode}</span>
+                <span className="font-mono text-xs font-bold text-crm-brand-500">{pos.positionCode}</span>
                 <span
                   className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                     pos.status === 'Open'
@@ -79,22 +79,22 @@ export default function JobPositionsPage() {
               </div>
 
               <div>
-                <h3 className="text-base font-bold text-white">{pos.title}</h3>
-                <div className="text-xs text-slate-400 mt-0.5">Dept: <strong className="text-slate-200">{pos.department}</strong></div>
+                <h3 className="text-base font-bold text-[#211B17]">{pos.title}</h3>
+                <div className="text-xs text-[#70665F] mt-0.5">Dept: <strong className="text-[#3E2723]">{pos.department}</strong></div>
               </div>
 
-              <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50 space-y-1.5 text-xs text-slate-300">
-                <div><strong className="text-slate-400">Experience:</strong> {pos.experienceRequired}</div>
-                <div><strong className="text-slate-400">Budgeted Salary:</strong> <span className="text-emerald-400 font-bold">₹{pos.salaryMin.toLocaleString()} - ₹{pos.salaryMax.toLocaleString()} / mo</span></div>
-                <div className="text-slate-300 pt-1 italic line-clamp-2">&quot;{pos.jobDescription}&quot;</div>
+              <div className="bg-white/60 p-3 rounded-lg border border-[#EBE3DB]/50 space-y-1.5 text-xs text-[#544B45]">
+                <div><strong className="text-[#70665F]">Experience:</strong> {pos.experienceRequired}</div>
+                <div><strong className="text-[#70665F]">Budgeted Salary:</strong> <span className="text-emerald-400 font-bold">₹{pos.salaryMin?.toLocaleString()} - ₹{pos.salaryMax?.toLocaleString()} / mo</span></div>
+                <div className="text-[#544B45] pt-1 italic line-clamp-2">&quot;{pos.jobDescription}&quot;</div>
               </div>
             </div>
 
             {pos.status === 'Open' && (
-              <div className="pt-2 border-t border-slate-700/50 text-right">
+              <div className="pt-2 border-t border-[#EBE3DB]/50 text-right">
                 <button
                   onClick={() => updateJobPositionStatus(pos.id, 'Closed')}
-                  className="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded transition"
+                  className="px-3 py-1 bg-[#FAF7F2] hover:bg-slate-600 text-[#211B17] text-xs font-semibold rounded transition"
                 >
                   Close Position
                 </button>
@@ -107,36 +107,36 @@ export default function JobPositionsPage() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <Briefcase className="w-5 h-5 text-cyan-400" /> Create Job Opening Requisition
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+              <h2 className="text-lg font-bold text-[#211B17] flex items-center gap-2">
+                <Briefcase className="w-5 h-5 text-crm-brand-500" /> Create Job Opening Requisition
               </h2>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setShowModal(false)} className="text-[#70665F] hover:text-[#211B17]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-400 mb-1">Position Title *</label>
+                <label className="block text-[#70665F] mb-1">Position Title *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Senior Hydraulic Assembly Technician"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">Department</label>
+                  <label className="block text-[#70665F] mb-1">Department</label>
                   <select
                     value={formData.department}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
                   >
                     {departments.map((d) => (
                       <option key={d.id} value={d.departmentName}>
@@ -146,52 +146,52 @@ export default function JobPositionsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">No. of Vacancies</label>
+                  <label className="block text-[#70665F] mb-1">No. of Vacancies</label>
                   <input
                     type="number"
                     value={formData.vacancies}
                     onChange={(e) => setFormData({ ...formData, vacancies: Number(e.target.value) })}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">Min Salary (₹)</label>
+                  <label className="block text-[#70665F] mb-1">Min Salary (₹)</label>
                   <input
                     type="number"
                     value={formData.salaryMin}
                     onChange={(e) => setFormData({ ...formData, salaryMin: Number(e.target.value) })}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Max Salary (₹)</label>
+                  <label className="block text-[#70665F] mb-1">Max Salary (₹)</label>
                   <input
                     type="number"
                     value={formData.salaryMax}
                     onChange={(e) => setFormData({ ...formData, salaryMax: Number(e.target.value) })}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1">Job Description</label>
+                <label className="block text-[#70665F] mb-1">Job Description</label>
                 <textarea
                   rows={2}
                   value={formData.jobDescription}
                   onChange={(e) => setFormData({ ...formData, jobDescription: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
                 ></textarea>
               </div>
 
-              <div className="pt-3 border-t border-slate-800 flex justify-end gap-3">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-slate-800 text-slate-300 font-semibold rounded-lg">
+              <div className="pt-3 border-t border-[#EBE3DB] flex justify-end gap-3">
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-white text-[#544B45] font-semibold rounded-lg">
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-lg">
+                <button type="submit" className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-[#211B17] font-semibold rounded-lg">
                   Publish Position
                 </button>
               </div>

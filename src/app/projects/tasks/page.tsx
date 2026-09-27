@@ -33,12 +33,12 @@ export default function TasksPage() {
     if (statusFilter !== 'all' && t.status !== statusFilter) return false;
     if (priorityFilter !== 'all' && t.priority !== priorityFilter) return false;
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+      const q = searchQuery?.toLowerCase();
       return (
-        t.taskNumber.toLowerCase().includes(q) ||
-        t.taskName.toLowerCase().includes(q) ||
-        t.jobNumber.toLowerCase().includes(q) ||
-        t.assignedTo.toLowerCase().includes(q)
+        t.taskNumber?.toLowerCase().includes(q) ||
+        t.taskName?.toLowerCase().includes(q) ||
+        t.jobNumber?.toLowerCase().includes(q) ||
+        t.assignedTo?.toLowerCase().includes(q)
       );
     }
     return true;
@@ -86,25 +86,25 @@ export default function TasksPage() {
   return (
     <div className="space-y-6 text-xs pb-12">
       {/* Header Banner */}
-      <div className="bg-white dark:bg-[#0B1120] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
+      <div className="bg-white dark:bg-[#0B1120] p-5 rounded-2xl border border-slate-200 dark:border-[#EBE3DB] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 font-mono text-[10px] font-bold uppercase tracking-wider border border-emerald-500/20">
               Task Dependency Engine
             </span>
           </div>
-          <h1 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+          <h1 className="text-lg font-black text-slate-900 dark:text-[#211B17] flex items-center gap-2">
             <CheckSquare className="w-5 h-5 text-emerald-600" />
             Project Task Management & Dependency Rules
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-[#70665F] dark:text-[#70665F] mt-0.5">
             Tasks follow explicit dependency sequences (Design Approval → BOM → Material → Purchase → Production).
           </p>
         </div>
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-600/30 transition cursor-pointer"
+          className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-[#211B17] font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-600/30 transition cursor-pointer"
         >
           <Plus className="w-4 h-4" /> Add Task
         </button>
@@ -118,15 +118,15 @@ export default function TasksPage() {
       )}
 
       {/* Filter Bar */}
-      <div className="bg-white dark:bg-[#0B1120] p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-white dark:bg-[#0B1120] p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] flex flex-wrap items-center justify-between gap-3">
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-[#70665F] absolute left-3 top-2.5" />
           <input
             type="text"
             placeholder="Search by Task #, Name, Job #, Assignee..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs font-semibold focus:outline-none"
+            className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-white border border-slate-200 dark:border-[#EBE3DB]/80 rounded-xl text-xs font-semibold focus:outline-none"
           />
         </div>
 
@@ -134,7 +134,7 @@ export default function TasksPage() {
           <select
             value={selectedProjectId}
             onChange={(e) => setSelectedProjectId(e.target.value)}
-            className="px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs font-semibold focus:outline-none"
+            className="px-3 py-2 bg-slate-50 dark:bg-white border border-slate-200 dark:border-[#EBE3DB]/80 rounded-xl text-xs font-semibold focus:outline-none"
           >
             <option value="all">All Projects</option>
             {projectJobs.map((p) => (
@@ -145,7 +145,7 @@ export default function TasksPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs font-semibold focus:outline-none"
+            className="px-3 py-2 bg-slate-50 dark:bg-white border border-slate-200 dark:border-[#EBE3DB]/80 rounded-xl text-xs font-semibold focus:outline-none"
           >
             <option value="all">All Task Statuses</option>
             <option value="pending">Pending</option>
@@ -162,10 +162,10 @@ export default function TasksPage() {
         {filteredTasks.map((t) => {
           const depTask = projectTasks.find((pt) => pt.id === t.dependentTaskId);
           return (
-            <div key={t.id} className="bg-white dark:bg-[#0B1120] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md space-y-3 flex flex-col justify-between">
+            <div key={t.id} className="bg-white dark:bg-[#0B1120] p-5 rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-md space-y-3 flex flex-col justify-between">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded text-[11px] border border-blue-500/20">
+                  <span className="font-mono font-bold text-crm-brand-700 dark:text-crm-brand-500 bg-crm-brand-600/10 px-2 py-0.5 rounded text-[11px] border border-crm-brand-600/20">
                     {t.taskNumber} • {t.jobNumber}
                   </span>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border ${
@@ -175,10 +175,10 @@ export default function TasksPage() {
                   </span>
                 </div>
 
-                <h3 className="font-bold text-slate-900 dark:text-white text-sm">
+                <h3 className="font-bold text-slate-900 dark:text-[#211B17] text-sm">
                   {t.taskName}
                 </h3>
-                <p className="text-slate-500 text-xs">{t.description}</p>
+                <p className="text-[#70665F] text-xs">{t.description}</p>
 
                 {depTask && (
                   <div className="p-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 rounded-xl text-[11px] text-amber-700 dark:text-amber-400 font-semibold flex items-center gap-1.5">
@@ -188,13 +188,13 @@ export default function TasksPage() {
                 )}
               </div>
 
-              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
-                <div className="flex justify-between items-center text-[11px] text-slate-500 font-mono">
-                  <span>Assignee: <strong className="text-slate-800 dark:text-slate-200">{t.assignedTo}</strong></span>
+              <div className="pt-3 border-t border-slate-200 dark:border-[#EBE3DB] space-y-2">
+                <div className="flex justify-between items-center text-[11px] text-[#70665F] font-mono">
+                  <span>Assignee: <strong className="text-slate-800 dark:text-[#544B45]">{t.assignedTo}</strong></span>
                   <span>Hours: {t.actualHours}/{t.estimatedHours}h</span>
                 </div>
 
-                <div className="flex justify-between items-center text-[11px] text-slate-500 font-mono">
+                <div className="flex justify-between items-center text-[11px] text-[#70665F] font-mono">
                   <span>Due: {formatDate(t.dueDate)}</span>
                   <span className="uppercase font-bold text-emerald-500">{t.department}</span>
                 </div>
@@ -203,7 +203,7 @@ export default function TasksPage() {
                   <select
                     value={t.status}
                     onChange={(e) => handleStatusChange(t, e.target.value as any)}
-                    className="flex-1 px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none"
+                    className="flex-1 px-2.5 py-1.5 bg-slate-100 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-lg text-xs font-bold text-slate-800 dark:text-[#544B45] focus:outline-none"
                   >
                     <option value="pending">Pending</option>
                     <option value="assigned">Assigned</option>
@@ -229,24 +229,24 @@ export default function TasksPage() {
 
       {/* ADD TASK MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
-            <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FAF7F2] backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+            <div className="p-4 border-b border-slate-200 dark:border-[#EBE3DB] bg-slate-50 dark:bg-white flex justify-between items-center">
+              <h3 className="font-bold text-slate-900 dark:text-[#211B17] text-sm flex items-center gap-2">
                 <CheckSquare className="w-4 h-4 text-emerald-500" /> Create Project Task
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-1 rounded text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <button onClick={() => setIsModalOpen(false)} className="p-1 rounded text-[#70665F] hover:bg-slate-100 dark:hover:bg-[#FAF7F2]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleCreateTask} className="p-5 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Target Project *</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Target Project *</label>
                 <select
                   value={projectId}
                   onChange={(e) => setProjectId(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold"
                 >
                   {projectJobs.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -257,35 +257,35 @@ export default function TasksPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Task Name *</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Task Name *</label>
                 <input
                   type="text"
                   value={taskName}
                   onChange={(e) => setTaskName(e.target.value)}
                   placeholder="e.g. Shell Rolling & Hydrostatic Test"
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Description</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Description</label>
                 <textarea
                   rows={2}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Specific scope, technical instructions or guidelines..."
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Department</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Department</label>
                   <select
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold"
                   >
                     <option value="designer">Design & CAD</option>
                     <option value="purchase">Purchase</option>
@@ -296,23 +296,23 @@ export default function TasksPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Assigned To</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Assigned To</label>
                   <input
                     type="text"
                     value={assignedTo}
                     onChange={(e) => setAssignedTo(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Prerequisite Task (Dependency)</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Prerequisite Task (Dependency)</label>
                   <select
                     value={dependentTaskId}
                     onChange={(e) => setDependentTaskId(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold"
                   >
                     <option value="">-- No Dependency --</option>
                     {projectTasks.map((pt) => (
@@ -322,11 +322,11 @@ export default function TasksPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Priority</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Priority</label>
                   <select
                     value={priority}
                     onChange={(e) => setPriority(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold"
                   >
                     <option value="urgent">Urgent</option>
                     <option value="high">High</option>
@@ -338,30 +338,30 @@ export default function TasksPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Due Date</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Due Date</label>
                   <input
                     type="date"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Estimated Hours</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Estimated Hours</label>
                   <input
                     type="number"
                     value={estimatedHours}
                     onChange={(e) => setEstimatedHours(Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold"
                   />
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2">
+              <div className="pt-3 border-t border-slate-200 dark:border-[#EBE3DB] flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl"
+                  className="px-4 py-2 bg-slate-200 dark:bg-[#FAF7F2] text-slate-700 dark:text-[#544B45] font-bold rounded-xl"
                 >
                   Cancel
                 </button>

@@ -114,7 +114,7 @@ export default function StoreDashboardPage() {
           <select
             value={selectedWarehouse}
             onChange={(e) => setSelectedWarehouse(e.target.value)}
-            className="bg-white text-slate-200 border border-slate-700 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-sky-500"
+            className="bg-white text-[#544B45] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-sky-500"
           >
             <option value="all">All Warehouses (5 Yards)</option>
             {warehouses.map((w) => (
@@ -126,7 +126,7 @@ export default function StoreDashboardPage() {
 
           <Link
             href="/store/grn"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 text-white text-xs font-bold shadow-lg shadow-sky-600/30 hover:brightness-110 transition"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-sky-600 to-crm-brand-700 text-[#211B17] text-xs font-bold shadow-lg shadow-sky-600/30 hover:brightness-110 transition"
           >
             <Plus className="w-4 h-4" />
             New GRN
@@ -134,7 +134,7 @@ export default function StoreDashboardPage() {
 
           <Link
             href="/store/material-issue"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-bold shadow-lg shadow-emerald-600/30 hover:brightness-110 transition"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-[#211B17] text-xs font-bold shadow-lg shadow-emerald-600/30 hover:brightness-110 transition"
           >
             <Truck className="w-4 h-4" />
             Issue Material
@@ -145,17 +145,17 @@ export default function StoreDashboardPage() {
       {/* 12 KPI Cards Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5">
         {/* Card 1 */}
-        <div className="bg-slate-900/90 border border-[#E7DED5] p-4 rounded-xl shadow-md">
+        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
           <div className="flex items-center justify-between text-[#70665F] text-xs">
             <span>Total Items</span>
-            <Package className="w-4 h-4 text-blue-400" />
+            <Package className="w-4 h-4 text-crm-brand-500" />
           </div>
-          <div className="text-xl font-black text-white mt-1.5">{totalItems}</div>
+          <div className="text-xl font-black text-[#211B17] mt-1.5">{totalItems}</div>
           <div className="text-[10px] text-[#8D827A] mt-1">Master catalog items</div>
         </div>
 
         {/* Card 2 */}
-        <div className="bg-slate-900/90 border border-[#E7DED5] p-4 rounded-xl shadow-md">
+        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
           <div className="flex items-center justify-between text-[#70665F] text-xs">
             <span>Total Stock Value</span>
             <TrendingUp className="w-4 h-4 text-emerald-400" />
@@ -167,27 +167,27 @@ export default function StoreDashboardPage() {
         </div>
 
         {/* Card 3 */}
-        <div className="bg-slate-900/90 border border-[#E7DED5] p-4 rounded-xl shadow-md">
+        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
           <div className="flex items-center justify-between text-[#70665F] text-xs">
             <span>Warehouses</span>
             <Building className="w-4 h-4 text-indigo-400" />
           </div>
-          <div className="text-xl font-black text-white mt-1.5">{totalWarehousesCount}</div>
+          <div className="text-xl font-black text-[#211B17] mt-1.5">{totalWarehousesCount}</div>
           <div className="text-[10px] text-[#8D827A] mt-1">Active storage yards</div>
         </div>
 
         {/* Card 4 */}
-        <div className="bg-slate-900/90 border border-[#E7DED5] p-4 rounded-xl shadow-md">
+        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
           <div className="flex items-center justify-between text-[#70665F] text-xs">
             <span>Active Bins</span>
             <MapPin className="w-4 h-4 text-teal-400" />
           </div>
-          <div className="text-xl font-black text-white mt-1.5">{totalBinsCount}</div>
+          <div className="text-xl font-black text-[#211B17] mt-1.5">{totalBinsCount}</div>
           <div className="text-[10px] text-[#8D827A] mt-1">Rack & shelf locations</div>
         </div>
 
         {/* Card 5 */}
-        <div className="bg-slate-900/90 border border-[#E7DED5] p-4 rounded-xl shadow-md">
+        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
           <div className="flex items-center justify-between text-[#70665F] text-xs">
             <span>Pending QC GRNs</span>
             <Clock className="w-4 h-4 text-amber-400" />
@@ -197,17 +197,17 @@ export default function StoreDashboardPage() {
         </div>
 
         {/* Card 6 */}
-        <div className="bg-slate-900/90 border border-[#E7DED5] p-4 rounded-xl shadow-md">
+        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
           <div className="flex items-center justify-between text-[#70665F] text-xs">
             <span>Issues Today</span>
-            <Truck className="w-4 h-4 text-cyan-400" />
+            <Truck className="w-4 h-4 text-crm-brand-500" />
           </div>
-          <div className="text-xl font-black text-white mt-1.5">{todayIssuesCount}</div>
+          <div className="text-xl font-black text-[#211B17] mt-1.5">{todayIssuesCount}</div>
           <div className="text-[10px] text-[#8D827A] mt-1">Material issue slips</div>
         </div>
 
         {/* Card 7 */}
-        <div className="bg-slate-900/90 border border-[#E7DED5] p-4 rounded-xl shadow-md">
+        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
           <div className="flex items-center justify-between text-[#70665F] text-xs">
             <span>Reserved Stock</span>
             <Lock className="w-4 h-4 text-rose-400" />
@@ -219,7 +219,7 @@ export default function StoreDashboardPage() {
         </div>
 
         {/* Card 8 */}
-        <div className="bg-slate-900/90 border border-[#E7DED5] p-4 rounded-xl shadow-md">
+        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
           <div className="flex items-center justify-between text-[#70665F] text-xs">
             <span>Usable Stock</span>
             <Box className="w-4 h-4 text-sky-400" />
@@ -231,7 +231,7 @@ export default function StoreDashboardPage() {
         </div>
 
         {/* Card 9 */}
-        <div className="bg-slate-900/90 border border-[#E7DED5] p-4 rounded-xl shadow-md">
+        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
           <div className="flex items-center justify-between text-[#70665F] text-xs">
             <span>Low Stock Alerts</span>
             <AlertTriangle className="w-4 h-4 text-red-500" />
@@ -241,19 +241,19 @@ export default function StoreDashboardPage() {
         </div>
 
         {/* Card 10 */}
-        <div className="bg-slate-900/90 border border-[#E7DED5] p-4 rounded-xl shadow-md">
+        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
           <div className="flex items-center justify-between text-[#70665F] text-xs">
             <span>Adjustments</span>
-            <RotateCcw className="w-4 h-4 text-purple-400" />
+            <RotateCcw className="w-4 h-4 text-crm-brand-500" />
           </div>
-          <div className="text-xl font-black text-white mt-1.5">
+          <div className="text-xl font-black text-[#211B17] mt-1.5">
             ₹{(monthAdjustmentsValue / 1000).toFixed(1)} K
           </div>
           <div className="text-[10px] text-[#8D827A] mt-1">Month variance value</div>
         </div>
 
         {/* Card 11 */}
-        <div className="bg-slate-900/90 border border-[#E7DED5] p-4 rounded-xl shadow-md">
+        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
           <div className="flex items-center justify-between text-[#70665F] text-xs">
             <span>Scrap Value</span>
             <Trash2 className="w-4 h-4 text-yellow-500" />
@@ -265,7 +265,7 @@ export default function StoreDashboardPage() {
         </div>
 
         {/* Card 12 */}
-        <div className="bg-slate-900/90 border border-[#E7DED5] p-4 rounded-xl shadow-md">
+        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
           <div className="flex items-center justify-between text-[#70665F] text-xs">
             <span>Stock Accuracy</span>
             <CheckCircle className="w-4 h-4 text-emerald-400" />
@@ -278,7 +278,7 @@ export default function StoreDashboardPage() {
       {/* Recharts Analytics Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Chart 1: Warehouse Stock Valuation */}
-        <div className="bg-slate-900/80 p-5 rounded-2xl border border-[#E7DED5] shadow-md">
+        <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-md">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
               <Building className="w-4 h-4 text-indigo-400" />
@@ -300,7 +300,7 @@ export default function StoreDashboardPage() {
         </div>
 
         {/* Chart 2: Category Distribution */}
-        <div className="bg-slate-900/80 p-5 rounded-2xl border border-[#E7DED5] shadow-md">
+        <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-md">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
               <Box className="w-4 h-4 text-sky-400" />
@@ -332,7 +332,7 @@ export default function StoreDashboardPage() {
         </div>
 
         {/* Chart 3: Daily Inward vs Issue Movement */}
-        <div className="bg-slate-900/80 p-5 rounded-2xl border border-[#E7DED5] shadow-md">
+        <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-md">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
               <Truck className="w-4 h-4 text-emerald-400" />
@@ -355,7 +355,7 @@ export default function StoreDashboardPage() {
         </div>
 
         {/* Chart 4: Fast-Moving Materials */}
-        <div className="bg-slate-900/80 p-5 rounded-2xl border border-[#E7DED5] shadow-md">
+        <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-md">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-amber-400" />
@@ -377,7 +377,7 @@ export default function StoreDashboardPage() {
         </div>
 
         {/* Chart 5: Job-wise Reservation vs Consumption */}
-        <div className="bg-slate-900/80 p-5 rounded-2xl border border-[#E7DED5] shadow-md">
+        <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-md">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
               <Lock className="w-4 h-4 text-rose-400" />
@@ -400,10 +400,10 @@ export default function StoreDashboardPage() {
         </div>
 
         {/* Chart 6: Valuation Trend */}
-        <div className="bg-slate-900/80 p-5 rounded-2xl border border-[#E7DED5] shadow-md">
+        <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-md">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
-              <LineChart className="w-4 h-4 text-cyan-400" />
+              <LineChart className="w-4 h-4 text-crm-brand-500" />
               Monthly Total Stock Valuation Trend (₹ Lakhs)
             </h3>
             <span className="text-[10px] text-[#70665F]">5-Month Trend</span>
@@ -423,60 +423,60 @@ export default function StoreDashboardPage() {
       </div>
 
       {/* Quick Access Matrix Links */}
-      <div className="bg-slate-900/80 p-5 rounded-2xl border border-[#E7DED5] shadow-md">
+      <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-md">
         <h3 className="text-sm font-bold text-[#211B17] mb-3">Store Quick Operations</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
           <Link
             href="/store/items"
-            className="p-3 bg-white/60 rounded-xl border border-slate-700/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
+            className="p-3 bg-white/60 rounded-xl border border-[#EBE3DB]/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
           >
-            <Package className="w-5 h-5 text-blue-400 mb-1.5 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-slate-200">Item Master</span>
+            <Package className="w-5 h-5 text-crm-brand-500 mb-1.5 group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-bold text-[#544B45]">Item Master</span>
             <span className="text-[10px] text-[#70665F] mt-0.5">Catalog & Rates</span>
           </Link>
 
           <Link
             href="/store/stock"
-            className="p-3 bg-white/60 rounded-xl border border-slate-700/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
+            className="p-3 bg-white/60 rounded-xl border border-[#EBE3DB]/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
           >
             <Box className="w-5 h-5 text-sky-400 mb-1.5 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-slate-200">Stock Matrix</span>
+            <span className="text-xs font-bold text-[#544B45]">Stock Matrix</span>
             <span className="text-[10px] text-[#70665F] mt-0.5">Usable Quantities</span>
           </Link>
 
           <Link
             href="/store/reservations"
-            className="p-3 bg-white/60 rounded-xl border border-slate-700/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
+            className="p-3 bg-white/60 rounded-xl border border-[#EBE3DB]/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
           >
             <Lock className="w-5 h-5 text-rose-400 mb-1.5 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-slate-200">Stock Reservation</span>
+            <span className="text-xs font-bold text-[#544B45]">Stock Reservation</span>
             <span className="text-[10px] text-[#70665F] mt-0.5">Job-wise Locking</span>
           </Link>
 
           <Link
             href="/store/ledger"
-            className="p-3 bg-white/60 rounded-xl border border-slate-700/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
+            className="p-3 bg-white/60 rounded-xl border border-[#EBE3DB]/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
           >
             <RotateCcw className="w-5 h-5 text-indigo-400 mb-1.5 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-slate-200">Stock Ledger</span>
+            <span className="text-xs font-bold text-[#544B45]">Stock Ledger</span>
             <span className="text-[10px] text-[#70665F] mt-0.5">Audit History</span>
           </Link>
 
           <Link
             href="/store/reorder"
-            className="p-3 bg-white/60 rounded-xl border border-slate-700/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
+            className="p-3 bg-white/60 rounded-xl border border-[#EBE3DB]/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
           >
             <AlertTriangle className="w-5 h-5 text-red-400 mb-1.5 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-slate-200">Low Stock Reorder</span>
+            <span className="text-xs font-bold text-[#544B45]">Low Stock Reorder</span>
             <span className="text-[10px] text-[#70665F] mt-0.5">1-Click PR</span>
           </Link>
 
           <Link
             href="/store/reports"
-            className="p-3 bg-white/60 rounded-xl border border-slate-700/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
+            className="p-3 bg-white/60 rounded-xl border border-[#EBE3DB]/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
           >
             <FileSpreadsheet className="w-5 h-5 text-teal-400 mb-1.5 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-slate-200">Store Reports</span>
+            <span className="text-xs font-bold text-[#544B45]">Store Reports</span>
             <span className="text-[10px] text-[#70665F] mt-0.5">21 Export Formats</span>
           </Link>
         </div>

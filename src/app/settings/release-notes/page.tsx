@@ -47,22 +47,22 @@ export default function ReleaseNotesPage() {
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white border border-[#EBE3DB] p-6 rounded-2xl shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-400">
+            <div className="p-2.5 bg-crm-brand-600/10 border border-crm-brand-600/20 rounded-xl text-crm-brand-500">
               <BookOpen className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-white tracking-wide">
+                <h1 className="text-xl font-bold text-[#211B17] tracking-wide">
                   Release Management & Production Go-Live
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
                   v1.0.0-GOLD-PROD
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-[#70665F]">
                 Uma Techno Fab Manufacturing ERP — Full System Release Verification & Acceptability Matrix
               </p>
             </div>
@@ -71,7 +71,7 @@ export default function ReleaseNotesPage() {
 
         <button
           onClick={() => setGoLiveModalOpen(true)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-blue-600/20"
+          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-crm-brand-700 to-crm-brand-700 hover:from-crm-brand-600 hover:to-crm-brand-600 text-[#211B17] rounded-xl text-xs font-bold transition shadow-lg shadow-crm-brand-700/20"
         >
           <Rocket className="w-4 h-4" />
           Production Go-Live Gatekeeper Sign-Off ({passedCount}/{totalCount})
@@ -87,23 +87,23 @@ export default function ReleaseNotesPage() {
           <h2 className="text-xl font-extrabold text-emerald-400 tracking-wider">
             🎉 UMA TECHNO FAB MANUFACTURING ERP IS LIVE IN PRODUCTION! 🎉
           </h2>
-          <p className="text-xs text-slate-300 max-w-2xl mx-auto">
+          <p className="text-xs text-[#544B45] max-w-2xl mx-auto">
             All 11 Core Modules have been audited, validated, verified and approved. The system is 100% operational for daily business transactions, job tracking, and financial ledgers.
           </p>
         </div>
       ) : (
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex items-center justify-between gap-4">
+        <div className="bg-white border border-[#EBE3DB] p-5 rounded-2xl flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <ShieldCheck className="w-6 h-6 text-emerald-400 flex-shrink-0" />
             <div>
-              <div className="text-xs font-bold text-white">Go-Live Acceptance Criteria Readiness</div>
-              <div className="text-[11px] text-slate-400">
+              <div className="text-xs font-bold text-[#211B17]">Go-Live Acceptance Criteria Readiness</div>
+              <div className="text-[11px] text-[#70665F]">
                 {passedCount} of {totalCount} verification gates approved. {isReadyForGoLive ? 'System is 100% ready for Go-Live!' : 'Complete remaining checks below.'}
               </div>
             </div>
           </div>
 
-          <div className="w-48 bg-slate-800 rounded-full h-2.5 overflow-hidden">
+          <div className="w-48 bg-[#FAF7F2] rounded-full h-2.5 overflow-hidden">
             <div
               className="bg-emerald-500 h-2.5 transition-all duration-300 rounded-full"
               style={{ width: `${(passedCount / totalCount) * 100}%` }}
@@ -113,22 +113,22 @@ export default function ReleaseNotesPage() {
       )}
 
       {/* Release Notes Documentation for all 11 Modules */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6 shadow-xl">
-        <div className="flex items-center gap-2 text-sm font-bold text-white border-b border-slate-800 pb-3">
-          <Sparkles className="w-4 h-4 text-blue-400" />
+      <div className="bg-white border border-[#EBE3DB] rounded-2xl p-6 space-y-6 shadow-xl">
+        <div className="flex items-center gap-2 text-sm font-bold text-[#211B17] border-b border-[#EBE3DB] pb-3">
+          <Sparkles className="w-4 h-4 text-crm-brand-500" />
           Complete ERP Version Release Specifications (Modules 1 to 11)
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {moduleReleases.map((rel, idx) => (
-            <div key={idx} className="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-2">
+            <div key={idx} className="bg-[#FAF7F2] border border-[#EBE3DB] p-4 rounded-xl space-y-2">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-xs text-white">{rel.module}</span>
-                <span className="text-[10px] font-mono text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+                <span className="font-bold text-xs text-[#211B17]">{rel.module}</span>
+                <span className="text-[10px] font-mono text-crm-brand-500 bg-crm-brand-600/10 px-2 py-0.5 rounded border border-crm-brand-600/20">
                   {rel.version}
                 </span>
               </div>
-              <ul className="space-y-1 text-[11px] text-slate-400">
+              <ul className="space-y-1 text-[11px] text-[#70665F]">
                 {rel.items.map((it, i) => (
                   <li key={i} className="flex items-start gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 mt-0.5" />
@@ -144,13 +144,13 @@ export default function ReleaseNotesPage() {
       {/* Go Live Gatekeeper Modal */}
       {goLiveModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="font-bold text-white text-sm flex items-center gap-2">
-                <Rocket className="w-4 h-4 text-blue-400" />
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+              <div className="font-bold text-[#211B17] text-sm flex items-center gap-2">
+                <Rocket className="w-4 h-4 text-crm-brand-500" />
                 Production Go-Live Gatekeeper Sign-Off Checklist
               </div>
-              <button onClick={() => setGoLiveModalOpen(false)} className="text-slate-400 hover:text-white text-xs">
+              <button onClick={() => setGoLiveModalOpen(false)} className="text-[#70665F] hover:text-[#211B17] text-xs">
                 ✕
               </button>
             </div>
@@ -160,7 +160,7 @@ export default function ReleaseNotesPage() {
                 <div
                   key={item.id}
                   onClick={() => toggleGoLiveItem(item.id)}
-                  className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 cursor-pointer transition"
+                  className="flex items-center justify-between p-3 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] hover:border-[#EBE3DB] cursor-pointer transition"
                 >
                   <div className="flex items-center gap-3">
                     <CheckCircle2
@@ -170,15 +170,15 @@ export default function ReleaseNotesPage() {
                       )}
                     />
                     <div>
-                      <div className="text-xs font-semibold text-white">{item.criteria}</div>
-                      <div className="text-[10px] text-slate-400">Module: {item.module} | Verified By: {item.verifiedBy}</div>
+                      <div className="text-xs font-semibold text-[#211B17]">{item.criteria}</div>
+                      <div className="text-[10px] text-[#70665F]">Module: {item.module} | Verified By: {item.verifiedBy}</div>
                     </div>
                   </div>
 
                   <span
                     className={cn(
                       'px-2.5 py-0.5 rounded text-[10px] font-bold',
-                      item.status === 'Pass' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-slate-400'
+                      item.status === 'Pass' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-[#FAF7F2] text-[#70665F]'
                     )}
                   >
                     {item.status}
@@ -187,14 +187,14 @@ export default function ReleaseNotesPage() {
               ))}
             </div>
 
-            <div className="flex items-center justify-between border-t border-slate-800 pt-4">
-              <div className="text-xs text-slate-400">
+            <div className="flex items-center justify-between border-t border-[#EBE3DB] pt-4">
+              <div className="text-xs text-[#70665F]">
                 {passedCount} / {totalCount} Criteria Approved
               </div>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setGoLiveModalOpen(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold"
+                  className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#FAF7F2] text-[#544B45] rounded-xl text-xs font-semibold"
                 >
                   Close
                 </button>

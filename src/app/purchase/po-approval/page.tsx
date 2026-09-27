@@ -28,27 +28,27 @@ export default function POApprovalPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-slate-950 text-slate-100 min-h-screen">
+    <div className="p-6 space-y-6 bg-[#FAF7F2] text-[#544B45] ">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#EBE3DB]">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-400 text-xs font-mono font-bold border border-purple-500/30">
+            <span className="px-2.5 py-0.5 rounded-full bg-crm-brand-600/20 text-crm-brand-500 text-xs font-mono font-bold border border-crm-brand-600/30">
               APPROVAL & REVISIONS
             </span>
-            <h1 className="text-2xl font-black text-white tracking-tight">PO Approval Workflow & Immutable Revision History</h1>
+            <h1 className="text-2xl font-black text-[#211B17] tracking-tight">PO Approval Workflow & Immutable Revision History</h1>
           </div>
-          <p className="text-slate-400 text-xs mt-1">
-            3-Tier Approval Control Matrix (<code className="text-purple-300 font-mono">Executive → Manager → Super Admin</code>) & Version Log.
+          <p className="text-[#70665F] text-xs mt-1">
+            3-Tier Approval Control Matrix (<code className="text-crm-brand- font-mono">Executive → Manager → Super Admin</code>) & Version Log.
           </p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center gap-2 bg-slate-900 p-1 border border-slate-800 rounded-xl text-xs">
+        <div className="flex items-center gap-2 bg-white p-1 border border-[#EBE3DB] rounded-xl text-xs">
           <button
             onClick={() => setActiveTab('pending')}
             className={`px-3 py-1.5 rounded-lg font-bold transition ${
-              activeTab === 'pending' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+              activeTab === 'pending' ? 'bg-crm-brand-700 text-white shadow-md' : 'text-[#70665F] hover:text-white'
             }`}
           >
             Pending Approvals ({pendingPOs.length})
@@ -56,7 +56,7 @@ export default function POApprovalPage() {
           <button
             onClick={() => setActiveTab('revisions')}
             className={`px-3 py-1.5 rounded-lg font-bold transition ${
-              activeTab === 'revisions' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+              activeTab === 'revisions' ? 'bg-crm-brand-700 text-white shadow-md' : 'text-[#70665F] hover:text-white'
             }`}
           >
             Revision Audit Logs ({poRevisions.length})
@@ -66,7 +66,7 @@ export default function POApprovalPage() {
 
       {activeTab === 'pending' ? (
         <div className="space-y-4">
-          <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+          <h2 className="text-sm font-bold text-[#211B17] uppercase tracking-wider flex items-center gap-2">
             <Clock className="w-4 h-4 text-amber-400" />
             Purchase Orders Awaiting Approval
           </h2>
@@ -74,13 +74,13 @@ export default function POApprovalPage() {
           {pendingPOs.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {pendingPOs.map(po => (
-                <div key={po.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
+                <div key={po.id} className="bg-white border border-[#EBE3DB] rounded-2xl p-5 space-y-4 shadow-xl">
                   <div className="flex items-start justify-between">
                     <div>
                       <span className="font-mono text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                         {po.poNumber} (Rev-{po.revisionNumber})
                       </span>
-                      <h3 className="text-base font-bold text-white mt-1.5">{po.supplierName}</h3>
+                      <h3 className="text-base font-bold text-[#211B17] mt-1.5">{po.supplierName}</h3>
                       <p className="text-xs text-amber-400 font-mono font-semibold">Job Reference: {po.jobId}</p>
                     </div>
 
@@ -88,24 +88,24 @@ export default function POApprovalPage() {
                       <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/30">
                         {po.approvalTier || 'Tier 2 - Manager'}
                       </span>
-                      <div className="text-lg font-extrabold text-white mt-2 font-mono">
-                        ₹{po.grandTotal.toLocaleString('en-IN')}
+                      <div className="text-lg font-extrabold text-[#211B17] mt-2 font-mono">
+                        ₹{po.grandTotal?.toLocaleString('en-IN')}
                       </div>
                     </div>
                   </div>
 
-                  <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1 text-xs text-slate-300">
+                  <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] space-y-1 text-xs text-[#544B45]">
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Created By:</span>
-                      <span className="font-semibold text-white">{po.createdBy}</span>
+                      <span className="text-[#70665F]">Created By:</span>
+                      <span className="font-semibold text-[#211B17]">{po.createdBy}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Expected Delivery:</span>
+                      <span className="text-[#70665F]">Expected Delivery:</span>
                       <span className="font-mono text-amber-300">{po.expectedDeliveryDate}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Total Line Items:</span>
-                      <span className="font-mono text-white">{po.items.length} items</span>
+                      <span className="text-[#70665F]">Total Line Items:</span>
+                      <span className="font-mono text-[#211B17]">{po.items.length} items</span>
                     </div>
                   </div>
 
@@ -122,25 +122,25 @@ export default function POApprovalPage() {
               ))}
             </div>
           ) : (
-            <div className="p-12 text-center bg-slate-900 border border-slate-800 rounded-2xl text-slate-500 text-xs">
+            <div className="p-12 text-center bg-white border border-[#EBE3DB] rounded-2xl text-[#70665F] text-xs">
               No purchase orders currently pending approval. All POs are up to date!
             </div>
           )}
         </div>
       ) : (
         /* Revisions History Log */
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-          <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <History className="w-4 h-4 text-purple-400" />
+        <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xl">
+          <div className="p-4 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between">
+            <h3 className="text-xs font-bold text-[#211B17] uppercase tracking-wider flex items-center gap-2">
+              <History className="w-4 h-4 text-crm-brand-500" />
               Immutable PO Revision Audit Trail
             </h3>
-            <span className="text-xs text-slate-400">Total Revision Logs: {poRevisions.length}</span>
+            <span className="text-xs text-[#70665F]">Total Revision Logs: {poRevisions.length}</span>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left text-slate-300">
-              <thead className="bg-slate-950 text-slate-400 font-semibold border-b border-slate-800">
+            <table className="w-full text-xs text-left text-[#544B45]">
+              <thead className="bg-[#FAF7F2] text-[#70665F] font-semibold border-b border-[#EBE3DB]">
                 <tr>
                   <th className="p-3">PO Number</th>
                   <th className="p-3">Revision</th>
@@ -150,20 +150,20 @@ export default function POApprovalPage() {
                   <th className="p-3 text-right">Revised Amount</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-[#EBE3DB]">
                 {poRevisions.map(rev => (
-                  <tr key={rev.id} className="hover:bg-slate-800/40 transition">
+                  <tr key={rev.id} className="hover:bg-[#FAF7F2]/40 transition">
                     <td className="p-3 font-mono font-bold text-emerald-400">{rev.poNumber}</td>
                     <td className="p-3">
-                      <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono text-[10px] font-bold border border-purple-500/30">
+                      <span className="px-2 py-0.5 rounded bg-crm-brand-600/20 text-crm-brand- font-mono text-[10px] font-bold border border-crm-brand-600/30">
                         Rev-{rev.revisionNumber}
                       </span>
                     </td>
-                    <td className="p-3 font-mono text-slate-300 text-[11px]">{rev.revisionDate}</td>
-                    <td className="p-3 text-slate-300">{rev.reasonForRevision}</td>
-                    <td className="p-3 font-semibold text-white">{rev.revisedBy}</td>
+                    <td className="p-3 font-mono text-[#544B45] text-[11px]">{rev.revisionDate}</td>
+                    <td className="p-3 text-[#544B45]">{rev.reasonForRevision}</td>
+                    <td className="p-3 font-semibold text-[#211B17]">{rev.revisedBy}</td>
                     <td className="p-3 text-right font-mono font-bold text-emerald-400">
-                      ₹{rev.revisedGrandTotal.toLocaleString('en-IN')}
+                      ₹{rev.revisedGrandTotal?.toLocaleString('en-IN')}
                     </td>
                   </tr>
                 ))}

@@ -62,17 +62,17 @@ export default function BackupRestorePage() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white border border-[#EBE3DB] p-6 rounded-2xl shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-cyan-500/10 border border-cyan-500/20 rounded-xl text-cyan-400">
+            <div className="p-2.5 bg-crm-brand-600/10 border border-crm-brand-600/20 rounded-xl text-crm-brand-500">
               <Database className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white tracking-wide">
+              <h1 className="text-xl font-bold text-[#211B17] tracking-wide">
                 Disaster Recovery & Backup Management
               </h1>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-[#70665F]">
                 Uma Techno Fab Manufacturing ERP — High Availability Offsite Cloud Backups & Instant Restore Snapshots
               </p>
             </div>
@@ -83,7 +83,7 @@ export default function BackupRestorePage() {
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value as any)}
-            className="bg-slate-800 text-xs text-white px-3 py-2.5 rounded-xl border border-slate-700 focus:outline-none cursor-pointer"
+            className="bg-[#FAF7F2] text-xs text-[#211B17] px-3 py-2.5 rounded-xl border border-[#EBE3DB] focus:outline-none cursor-pointer"
           >
             <option value="Full_System">Full ERP System & Files</option>
             <option value="Database_Only">Database Only (SQL Dump)</option>
@@ -93,7 +93,7 @@ export default function BackupRestorePage() {
           <button
             onClick={handleCreateSnapshot}
             disabled={isBackupInProgress}
-            className="flex items-center gap-2 px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold transition shadow-lg shadow-cyan-600/20 disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 bg-crm-brand-700 hover:bg-crm-brand-600 text-white rounded-xl text-xs font-semibold transition shadow-lg shadow-crm-brand-700/20 disabled:opacity-50"
           >
             <Plus className={cn('w-4 h-4', isBackupInProgress && 'animate-spin')} />
             {isBackupInProgress ? 'Creating Backup...' : 'Create Instant Snapshot'}
@@ -103,39 +103,39 @@ export default function BackupRestorePage() {
 
       {/* Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-2">
-          <div className="flex items-center gap-2 text-cyan-400 font-bold text-xs">
+        <div className="bg-white border border-[#EBE3DB] p-5 rounded-2xl space-y-2">
+          <div className="flex items-center gap-2 text-crm-brand-500 font-bold text-xs">
             <Server className="w-4 h-4" />
             Active Cloud Storage Target
           </div>
-          <div className="text-sm font-semibold text-white">AWS S3 Encrypted Volume</div>
-          <div className="text-[11px] text-slate-400">Region: ap-south-1 (Mumbai, India) | AES-256 Encryption</div>
+          <div className="text-sm font-semibold text-[#211B17]">AWS S3 Encrypted Volume</div>
+          <div className="text-[11px] text-[#70665F]">Region: ap-south-1 (Mumbai, India) | AES-256 Encryption</div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-2">
+        <div className="bg-white border border-[#EBE3DB] p-5 rounded-2xl space-y-2">
           <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs">
             <Clock className="w-4 h-4" />
             Automated Cron Schedule
           </div>
-          <div className="text-sm font-semibold text-white">Daily Midnight (00:00 IST)</div>
-          <div className="text-[11px] text-slate-400">Retention Policy: 30 Daily / 12 Monthly Point-in-time Snapshots</div>
+          <div className="text-sm font-semibold text-[#211B17]">Daily Midnight (00:00 IST)</div>
+          <div className="text-[11px] text-[#70665F]">Retention Policy: 30 Daily / 12 Monthly Point-in-time Snapshots</div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-2">
+        <div className="bg-white border border-[#EBE3DB] p-5 rounded-2xl space-y-2">
           <div className="flex items-center gap-2 text-indigo-400 font-bold text-xs">
             <ShieldCheck className="w-4 h-4" />
             Recovery Point Objective (RPO)
           </div>
-          <div className="text-sm font-semibold text-white font-mono">&lt; 5 Minutes RPO</div>
-          <div className="text-[11px] text-slate-400">Continuous Write-Ahead Log (WAL) Database Replication</div>
+          <div className="text-sm font-semibold text-[#211B17] font-mono">&lt; 5 Minutes RPO</div>
+          <div className="text-[11px] text-[#70665F]">Continuous Write-Ahead Log (WAL) Database Replication</div>
         </div>
       </div>
 
       {/* Backup Log Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-bold text-white">
-            <HardDrive className="w-4 h-4 text-cyan-400" />
+      <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xl">
+        <div className="p-4 border-b border-[#EBE3DB] flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm font-bold text-[#211B17]">
+            <HardDrive className="w-4 h-4 text-crm-brand-500" />
             System Backup Snapshots Registry ({backupRecords.length} Snapshots)
           </div>
         </div>
@@ -143,7 +143,7 @@ export default function BackupRestorePage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-slate-950 text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+              <tr className="bg-[#FAF7F2] text-[10px] font-semibold text-[#70665F] uppercase tracking-wider border-b border-[#EBE3DB]">
                 <th className="py-3 px-4">Backup ID</th>
                 <th className="py-3 px-4">Type</th>
                 <th className="py-3 px-4">File Name & Location</th>
@@ -154,35 +154,35 @@ export default function BackupRestorePage() {
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 text-slate-300">
+            <tbody className="divide-y divide-[#EBE3DB] text-[#544B45]">
               {backupRecords.map((bk) => (
-                <tr key={bk.id} className="hover:bg-slate-800/40 transition">
-                  <td className="py-3 px-4 font-mono font-bold text-cyan-400">{bk.backupNo}</td>
+                <tr key={bk.id} className="hover:bg-[#FAF7F2]/40 transition">
+                  <td className="py-3 px-4 font-mono font-bold text-crm-brand-500">{bk.backupNo}</td>
                   <td className="py-3 px-4">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
-                      {bk.type.replace('_', ' ')}
+                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#FAF7F2] text-[#544B45] border border-[#EBE3DB]">
+                      {bk.type?.replace('_', ' ')}
                     </span>
                   </td>
                   <td className="py-3 px-4 space-y-0.5">
-                    <div className="font-mono text-white text-[11px]">{bk.fileName}</div>
-                    <div className="text-[10px] text-slate-400">{bk.location}</div>
+                    <div className="font-mono text-[#211B17] text-[11px]">{bk.fileName}</div>
+                    <div className="text-[10px] text-[#70665F]">{bk.location}</div>
                   </td>
-                  <td className="py-3 px-4 font-mono text-slate-300">{bk.fileSize}</td>
-                  <td className="py-3 px-4 font-mono text-slate-300">{bk.recordCount.toLocaleString()}</td>
-                  <td className="py-3 px-4 text-slate-400">
+                  <td className="py-3 px-4 font-mono text-[#544B45]">{bk.fileSize}</td>
+                  <td className="py-3 px-4 font-mono text-[#544B45]">{bk.recordCount?.toLocaleString()}</td>
+                  <td className="py-3 px-4 text-[#70665F]">
                     <div>{bk.createdDate}</div>
-                    <div className="text-[10px] text-slate-500">{bk.createdBy}</div>
+                    <div className="text-[10px] text-[#70665F]">{bk.createdBy}</div>
                   </td>
                   <td className="py-3 px-4">
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1 w-fit">
                       <CheckCircle2 className="w-3 h-3" />
-                      {bk.status.replace('_', ' ')}
+                      {bk.status?.replace('_', ' ')}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-right space-x-2">
                     <button
                       onClick={() => alert(`Downloading snapshot ${bk.fileName} to local system...`)}
-                      className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-[11px] font-semibold transition border border-slate-700 inline-flex items-center gap-1"
+                      className="px-2.5 py-1 bg-[#FAF7F2] hover:bg-[#FAF7F2] text-[#544B45] rounded-lg text-[11px] font-semibold transition border border-[#EBE3DB] inline-flex items-center gap-1"
                     >
                       <Download className="w-3 h-3" />
                       Download
@@ -190,7 +190,7 @@ export default function BackupRestorePage() {
                     <button
                       onClick={() => handleRestore(bk.id, bk.backupNo)}
                       disabled={restoringId === bk.id}
-                      className="px-2.5 py-1 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 rounded-lg text-[11px] font-semibold transition border border-cyan-500/30 inline-flex items-center gap-1"
+                      className="px-2.5 py-1 bg-crm-brand-700/20 hover:bg-crm-brand-700/30 text-crm-brand- rounded-lg text-[11px] font-semibold transition border border-crm-brand-600/30 inline-flex items-center gap-1"
                     >
                       <RotateCcw className={cn('w-3 h-3', restoringId === bk.id && 'animate-spin')} />
                       {restoringId === bk.id ? 'Restoring...' : 'Restore'}

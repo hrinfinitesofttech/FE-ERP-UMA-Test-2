@@ -55,11 +55,11 @@ export default function PurchaseRequisitionPage() {
     if (statusFilter !== 'ALL' && pr.status !== statusFilter) return false;
     if (projectFilter !== 'ALL' && pr.projectId !== projectFilter) return false;
     if (searchQuery) {
-      const q = searchQuery.toLowerCase();
+      const q = searchQuery?.toLowerCase();
       return (
-        pr.prNumber.toLowerCase().includes(q) ||
-        pr.jobId.toLowerCase().includes(q) ||
-        pr.requestedBy.toLowerCase().includes(q)
+        pr.prNumber?.toLowerCase().includes(q) ||
+        pr.jobId?.toLowerCase().includes(q) ||
+        pr.requestedBy?.toLowerCase().includes(q)
       );
     }
     return true;
@@ -146,24 +146,24 @@ export default function PurchaseRequisitionPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-slate-950 text-slate-100 min-h-screen">
+    <div className="p-6 space-y-6 bg-[#FAF7F2] text-[#544B45] ">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#EBE3DB]">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 text-xs font-mono font-bold border border-blue-500/30">
+            <span className="px-2.5 py-0.5 rounded-full bg-crm-brand-600/20 text-crm-brand-500 text-xs font-mono font-bold border border-crm-brand-600/30">
               REQUISITIONS
             </span>
-            <h1 className="text-2xl font-black text-white tracking-tight">Purchase Requisition (PR) Register</h1>
+            <h1 className="text-2xl font-black text-[#211B17] tracking-tight">Purchase Requisition (PR) Register</h1>
           </div>
-          <p className="text-slate-400 text-xs mt-1">
+          <p className="text-[#70665F] text-xs mt-1">
             Internal material requests mapped to <code className="text-amber-300 font-mono">Project ID + Job Number</code> before RFQ issuance.
           </p>
         </div>
 
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 transition"
+          className="flex items-center gap-2 px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-crm-brand-700/30 transition"
         >
           <Plus className="w-4 h-4" />
           Create Manual PR
@@ -171,25 +171,25 @@ export default function PurchaseRequisitionPage() {
       </div>
 
       {/* Filter Controls */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white border border-[#EBE3DB] rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#70665F]" />
             <input
               type="text"
               placeholder="Search PR No, Job ID, User..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 w-60"
+              className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-4 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-crm-brand-600 w-60"
             />
           </div>
 
           <div className="flex items-center gap-2 text-xs">
-            <span className="text-slate-400">Status:</span>
+            <span className="text-[#70665F]">Status:</span>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none cursor-pointer"
+              className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-1.5 text-xs text-[#211B17] focus:outline-none cursor-pointer"
             >
               <option value="ALL">All Statuses</option>
               <option value="Draft">Draft</option>
@@ -201,16 +201,16 @@ export default function PurchaseRequisitionPage() {
           </div>
         </div>
 
-        <div className="text-xs text-slate-400">
-          Showing <span className="text-white font-bold">{filteredPRs.length}</span> Purchase Requisitions
+        <div className="text-xs text-[#70665F]">
+          Showing <span className="text-[#211B17] font-bold">{filteredPRs.length}</span> Purchase Requisitions
         </div>
       </div>
 
       {/* PR Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left text-slate-300">
-            <thead className="bg-slate-950 text-slate-400 font-semibold border-b border-slate-800">
+          <table className="w-full text-xs text-left text-[#544B45]">
+            <thead className="bg-[#FAF7F2] text-[#70665F] font-semibold border-b border-[#EBE3DB]">
               <tr>
                 <th className="p-3">PR Number</th>
                 <th className="p-3">Project & Job Reference</th>
@@ -223,36 +223,36 @@ export default function PurchaseRequisitionPage() {
                 <th className="p-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-[#EBE3DB]">
               {filteredPRs.map(pr => (
-                <tr key={pr.id} className="hover:bg-slate-800/40 transition">
-                  <td className="p-3 font-mono font-bold text-blue-400">{pr.prNumber}</td>
+                <tr key={pr.id} className="hover:bg-[#FAF7F2]/40 transition">
+                  <td className="p-3 font-mono font-bold text-crm-brand-500">{pr.prNumber}</td>
                   <td className="p-3">
                     <div className="font-bold text-amber-400">{pr.jobId}</div>
-                    <div className="text-[10px] text-slate-400">{pr.projectId}</div>
+                    <div className="text-[10px] text-[#70665F]">{pr.projectId}</div>
                   </td>
-                  <td className="p-3 text-slate-300 font-mono text-[11px]">{pr.requisitionDate}</td>
+                  <td className="p-3 text-[#544B45] font-mono text-[11px]">{pr.requisitionDate}</td>
                   <td className="p-3">
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                       pr.priority === 'Urgent' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
-                      pr.priority === 'High' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-slate-800 text-slate-300'
+                      pr.priority === 'High' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-[#FAF7F2] text-[#544B45]'
                     }`}>
                       {pr.priority}
                     </span>
                   </td>
                   <td className="p-3">
-                    <div className="font-semibold text-white">{pr.requestedBy}</div>
-                    <div className="text-[10px] text-slate-400">{pr.department}</div>
+                    <div className="font-semibold text-[#211B17]">{pr.requestedBy}</div>
+                    <div className="text-[10px] text-[#70665F]">{pr.department}</div>
                   </td>
-                  <td className="p-3 text-center font-mono font-bold text-white">{pr.totalItems}</td>
+                  <td className="p-3 text-center font-mono font-bold text-[#211B17]">{pr.totalItems}</td>
                   <td className="p-3 text-right font-mono font-bold text-emerald-400">
-                    ₹{pr.estimatedCost.toLocaleString('en-IN')}
+                    ₹{pr.estimatedCost?.toLocaleString('en-IN')}
                   </td>
                   <td className="p-3">
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
                       pr.status === 'Approved' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' :
                       pr.status === 'Submitted' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' :
-                      pr.status === 'Converted to RFQ' ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' : 'bg-slate-800 text-slate-400 border-slate-700'
+                      pr.status === 'Converted to RFQ' ? 'bg-crm-brand-600/20 text-crm-brand- border-crm-brand-600/30' : 'bg-[#FAF7F2] text-[#70665F] border-[#EBE3DB]'
                     }`}>
                       {pr.status}
                     </span>
@@ -261,7 +261,7 @@ export default function PurchaseRequisitionPage() {
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => setViewPR(pr)}
-                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition"
+                        className="p-1.5 rounded-lg bg-[#FAF7F2] hover:bg-[#FAF7F2] text-[#544B45] hover:text-[#211B17] transition"
                         title="View PR Details"
                       >
                         <Eye className="w-3.5 h-3.5" />
@@ -286,47 +286,47 @@ export default function PurchaseRequisitionPage() {
       {/* VIEW PR DETAIL MODAL */}
       {viewPR && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl">
-            <div className="p-5 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl">
+            <div className="p-5 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-mono bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded border border-blue-500/30 font-bold">
+                <span className="text-[10px] font-mono bg-crm-brand-600/20 text-crm-brand- px-2 py-0.5 rounded border border-crm-brand-600/30 font-bold">
                   PURCHASE REQUISITION DETAILS
                 </span>
-                <h2 className="text-xl font-black text-white mt-1">{viewPR.prNumber}</h2>
+                <h2 className="text-xl font-black text-[#211B17] mt-1">{viewPR.prNumber}</h2>
               </div>
               <button
                 onClick={() => setViewPR(null)}
-                className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition"
+                className="p-2 rounded-xl bg-[#FAF7F2] hover:bg-[#FAF7F2] text-[#70665F] hover:text-[#211B17] transition"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-slate-950/60 rounded-xl border border-slate-800 text-xs">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] text-xs">
                 <div>
-                  <div className="text-slate-500">Project / Job Reference:</div>
+                  <div className="text-[#70665F]">Project / Job Reference:</div>
                   <div className="font-bold text-amber-400">{viewPR.jobId} ({viewPR.projectId})</div>
                 </div>
                 <div>
-                  <div className="text-slate-500">Requisition Date:</div>
-                  <div className="font-semibold text-white">{viewPR.requisitionDate}</div>
+                  <div className="text-[#70665F]">Requisition Date:</div>
+                  <div className="font-semibold text-[#211B17]">{viewPR.requisitionDate}</div>
                 </div>
                 <div>
-                  <div className="text-slate-500">Required By:</div>
-                  <div className="font-semibold text-white">{viewPR.requiredByDate}</div>
+                  <div className="text-[#70665F]">Required By:</div>
+                  <div className="font-semibold text-[#211B17]">{viewPR.requiredByDate}</div>
                 </div>
                 <div>
-                  <div className="text-slate-500">Requested By:</div>
-                  <div className="font-semibold text-white">{viewPR.requestedBy}</div>
+                  <div className="text-[#70665F]">Requested By:</div>
+                  <div className="font-semibold text-[#211B17]">{viewPR.requestedBy}</div>
                 </div>
               </div>
 
               <div>
-                <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-2">Requisitioned Line Items</h4>
-                <div className="border border-slate-800 rounded-xl overflow-hidden">
-                  <table className="w-full text-xs text-left text-slate-300">
-                    <thead className="bg-slate-950 text-slate-400">
+                <h4 className="text-xs font-bold text-[#211B17] uppercase tracking-wider mb-2">Requisitioned Line Items</h4>
+                <div className="border border-[#EBE3DB] rounded-xl overflow-hidden">
+                  <table className="w-full text-xs text-left text-[#544B45]">
+                    <thead className="bg-[#FAF7F2] text-[#70665F]">
                       <tr>
                         <th className="p-2.5">Item Code</th>
                         <th className="p-2.5">Item Name & Spec</th>
@@ -336,18 +336,18 @@ export default function PurchaseRequisitionPage() {
                         <th className="p-2.5 text-right">Total Est</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800">
+                    <tbody className="divide-y divide-[#EBE3DB]">
                       {viewPR.items.map((item) => (
                         <tr key={item.id}>
-                          <td className="p-2.5 font-mono text-blue-400">{item.itemCode}</td>
+                          <td className="p-2.5 font-mono text-crm-brand-500">{item.itemCode}</td>
                           <td className="p-2.5">
-                            <div className="font-bold text-white">{item.itemName}</div>
-                            <div className="text-[10px] text-slate-400">{item.specification}</div>
+                            <div className="font-bold text-[#211B17]">{item.itemName}</div>
+                            <div className="text-[10px] text-[#70665F]">{item.specification}</div>
                           </td>
                           <td className="p-2.5">{item.category}</td>
-                          <td className="p-2.5 text-right font-mono text-white">{item.requiredQuantity} {item.unitOfMeasure}</td>
-                          <td className="p-2.5 text-right font-mono text-slate-300">₹{item.estimatedUnitPrice}</td>
-                          <td className="p-2.5 text-right font-mono text-emerald-400 font-bold">₹{item.estimatedTotalPrice.toLocaleString('en-IN')}</td>
+                          <td className="p-2.5 text-right font-mono text-[#211B17]">{item.requiredQuantity} {item.unitOfMeasure}</td>
+                          <td className="p-2.5 text-right font-mono text-[#544B45]">₹{item.estimatedUnitPrice}</td>
+                          <td className="p-2.5 text-right font-mono text-emerald-400 font-bold">₹{item.estimatedTotalPrice?.toLocaleString('en-IN')}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -356,10 +356,10 @@ export default function PurchaseRequisitionPage() {
               </div>
             </div>
 
-            <div className="p-4 bg-slate-950 border-t border-slate-800 flex justify-end gap-2">
+            <div className="p-4 bg-[#FAF7F2] border-t border-[#EBE3DB] flex justify-end gap-2">
               <button
                 onClick={() => setViewPR(null)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition"
+                className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#FAF7F2] text-[#211B17] font-bold text-xs rounded-xl transition"
               >
                 Close
               </button>
@@ -371,10 +371,10 @@ export default function PurchaseRequisitionPage() {
       {/* CREATE MANUAL PR MODAL */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl">
-            <div className="p-5 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
-              <h2 className="text-lg font-black text-white">Create Manual Purchase Requisition</h2>
-              <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-white">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl">
+            <div className="p-5 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between">
+              <h2 className="text-lg font-black text-[#211B17]">Create Manual Purchase Requisition</h2>
+              <button onClick={() => setShowCreateModal(false)} className="text-[#70665F] hover:text-[#211B17]">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -382,11 +382,11 @@ export default function PurchaseRequisitionPage() {
             <form onSubmit={handleCreateSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto text-xs">
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-slate-400 mb-1">Select Job</label>
+                  <label className="block text-[#70665F] mb-1">Select Job</label>
                   <select
                     value={newJobId}
                     onChange={(e) => setNewJobId(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-white"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl p-2 text-[#211B17]"
                   >
                     {projectJobs.map(job => (
                       <option key={job.id} value={job.id}>{job.jobNumber} - {job.productName}</option>
@@ -394,11 +394,11 @@ export default function PurchaseRequisitionPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Priority</label>
+                  <label className="block text-[#70665F] mb-1">Priority</label>
                   <select
                     value={newPriority}
                     onChange={(e) => setNewPriority(e.target.value as any)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-white"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl p-2 text-[#211B17]"
                   >
                     <option value="Low">Low</option>
                     <option value="Medium">Medium</option>
@@ -407,23 +407,23 @@ export default function PurchaseRequisitionPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Required By Date</label>
+                  <label className="block text-[#70665F] mb-1">Required By Date</label>
                   <input
                     type="date"
                     value={newRequiredDate}
                     onChange={(e) => setNewRequiredDate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-white"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl p-2 text-[#211B17]"
                   />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="font-bold text-white">Line Items</span>
+                  <span className="font-bold text-[#211B17]">Line Items</span>
                   <button
                     type="button"
                     onClick={handleAddItemRow}
-                    className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-blue-400 rounded-lg text-xs"
+                    className="px-2.5 py-1 bg-[#FAF7F2] hover:bg-[#FAF7F2] text-crm-brand-500 rounded-lg text-xs"
                   >
                     + Add Item
                   </button>
@@ -431,28 +431,28 @@ export default function PurchaseRequisitionPage() {
 
                 <div className="space-y-3">
                   {itemsList.map((it, idx) => (
-                    <div key={idx} className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+                    <div key={idx} className="p-3 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl space-y-2">
                       <div className="grid grid-cols-3 gap-2">
                         <input
                           type="text"
                           placeholder="Item Code"
                           value={it.itemCode}
                           onChange={(e) => handleItemChange(idx, 'itemCode', e.target.value)}
-                          className="bg-slate-900 border border-slate-800 p-1.5 rounded text-white"
+                          className="bg-white border border-[#EBE3DB] p-1.5 rounded text-[#211B17]"
                         />
                         <input
                           type="text"
                           placeholder="Item Name"
                           value={it.itemName}
                           onChange={(e) => handleItemChange(idx, 'itemName', e.target.value)}
-                          className="bg-slate-900 border border-slate-800 p-1.5 rounded text-white"
+                          className="bg-white border border-[#EBE3DB] p-1.5 rounded text-[#211B17]"
                         />
                         <input
                           type="text"
                           placeholder="Specification"
                           value={it.specification}
                           onChange={(e) => handleItemChange(idx, 'specification', e.target.value)}
-                          className="bg-slate-900 border border-slate-800 p-1.5 rounded text-white"
+                          className="bg-white border border-[#EBE3DB] p-1.5 rounded text-[#211B17]"
                         />
                       </div>
                       <div className="grid grid-cols-4 gap-2">
@@ -461,25 +461,25 @@ export default function PurchaseRequisitionPage() {
                           placeholder="Quantity"
                           value={it.requiredQuantity}
                           onChange={(e) => handleItemChange(idx, 'requiredQuantity', Number(e.target.value))}
-                          className="bg-slate-900 border border-slate-800 p-1.5 rounded text-white font-mono"
+                          className="bg-white border border-[#EBE3DB] p-1.5 rounded text-[#211B17] font-mono"
                         />
                         <input
                           type="text"
                           placeholder="UOM (e.g. KG, NOS)"
                           value={it.unitOfMeasure}
                           onChange={(e) => handleItemChange(idx, 'unitOfMeasure', e.target.value)}
-                          className="bg-slate-900 border border-slate-800 p-1.5 rounded text-white"
+                          className="bg-white border border-[#EBE3DB] p-1.5 rounded text-[#211B17]"
                         />
                         <input
                           type="number"
                           placeholder="Est Unit Price"
                           value={it.estimatedUnitPrice}
                           onChange={(e) => handleItemChange(idx, 'estimatedUnitPrice', Number(e.target.value))}
-                          className="bg-slate-900 border border-slate-800 p-1.5 rounded text-white font-mono"
+                          className="bg-white border border-[#EBE3DB] p-1.5 rounded text-[#211B17] font-mono"
                         />
                         <div className="flex items-center justify-between">
                           <span className="font-mono text-emerald-400 font-bold">
-                            ₹{((it.requiredQuantity || 0) * (it.estimatedUnitPrice || 0)).toLocaleString('en-IN')}
+                            ₹{((it.requiredQuantity || 0) * (it.estimatedUnitPrice || 0))?.toLocaleString('en-IN')}
                           </span>
                           {itemsList.length > 1 && (
                             <button
@@ -498,26 +498,26 @@ export default function PurchaseRequisitionPage() {
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1">Remarks</label>
+                <label className="block text-[#70665F] mb-1">Remarks</label>
                 <textarea
                   value={newRemarks}
                   onChange={(e) => setNewRemarks(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-white h-16"
+                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl p-2 text-[#211B17] h-16"
                   placeholder="Reason for requisition..."
                 />
               </div>
 
-              <div className="pt-4 flex justify-end gap-2 border-t border-slate-800">
+              <div className="pt-4 flex justify-end gap-2 border-t border-[#EBE3DB]">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 bg-slate-800 text-white rounded-xl"
+                  className="px-4 py-2 bg-[#FAF7F2] text-[#211B17] rounded-xl"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl"
+                  className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-white font-bold rounded-xl"
                 >
                   Save Requisition
                 </button>

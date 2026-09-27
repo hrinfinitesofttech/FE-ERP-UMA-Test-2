@@ -115,19 +115,19 @@ export default function ProjectPlanningPage() {
   const filteredStages = useMemo(() => {
     return activeStages.filter((stage) => {
       if (statusFilter !== 'all' && stage.status !== statusFilter) return false;
-      if (deptFilter !== 'all' && stage.responsibleDepartment.toLowerCase() !== deptFilter.toLowerCase()) return false;
+      if (deptFilter !== 'all' && stage.responsibleDepartment?.toLowerCase() !== deptFilter?.toLowerCase()) return false;
       if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
+        const q = searchQuery?.toLowerCase();
         const hasEmpMatch =
-          stage.assignedEmployees?.some((e) => e.name.toLowerCase().includes(q)) ||
+          stage.assignedEmployees?.some((e) => e.name?.toLowerCase().includes(q)) ||
           stage.responsibleEmployee?.toLowerCase().includes(q);
 
         return (
-          stage.stageName.toLowerCase().includes(q) ||
-          stage.responsibleDepartment.toLowerCase().includes(q) ||
+          stage.stageName?.toLowerCase().includes(q) ||
+          stage.responsibleDepartment?.toLowerCase().includes(q) ||
           hasEmpMatch ||
-          (stage.remarks && stage.remarks.toLowerCase().includes(q)) ||
-          (stage.deliverables && stage.deliverables.toLowerCase().includes(q))
+          (stage.remarks && stage.remarks?.toLowerCase().includes(q)) ||
+          (stage.deliverables && stage.deliverables?.toLowerCase().includes(q))
         );
       }
       return true;
@@ -315,12 +315,12 @@ export default function ProjectPlanningPage() {
   const toggleAssignee = (emp: { id: string; firstName: string; lastName: string; designation?: string; departmentName?: string }) => {
     const fullName = `${emp.firstName} ${emp.lastName}`.trim();
     const isAlreadySelected = selectedAssignees.some(
-      (a) => a.id === emp.id || a.name.toLowerCase() === fullName.toLowerCase()
+      (a) => a.id === emp.id || a.name?.toLowerCase() === fullName?.toLowerCase()
     );
 
     if (isAlreadySelected) {
       setSelectedAssignees((prev) =>
-        prev.filter((a) => a.id !== emp.id && a.name.toLowerCase() !== fullName.toLowerCase())
+        prev.filter((a) => a.id !== emp.id && a.name?.toLowerCase() !== fullName?.toLowerCase())
       );
     } else {
       setSelectedAssignees((prev) => [
@@ -341,7 +341,7 @@ export default function ProjectPlanningPage() {
 
   // Department Badges
   const getDeptBadge = (dept: string) => {
-    const d = (dept || '').toUpperCase();
+    const d = (dept || '')?.toUpperCase();
     if (d.includes('CRM') || d.includes('SALES')) return 'bg-sky-50 text-sky-700 border-sky-200';
     if (d.includes('PROJECT')) return 'bg-amber-50 text-amber-800 border-amber-200';
     if (d.includes('DESIGN') || d.includes('ENG')) return 'bg-indigo-50 text-indigo-700 border-indigo-200';
@@ -349,7 +349,7 @@ export default function ProjectPlanningPage() {
     if (d.includes('STORE')) return 'bg-orange-50 text-orange-800 border-orange-200';
     if (d.includes('PRODUCTION')) return 'bg-rose-50 text-rose-800 border-rose-200';
     if (d.includes('QC') || d.includes('QUALITY')) return 'bg-teal-50 text-teal-800 border-teal-200';
-    if (d.includes('MAINT') || d.includes('SITE')) return 'bg-purple-50 text-purple-800 border-purple-200';
+    if (d.includes('MAINT') || d.includes('SITE')) return 'bg-crm-brand- text-crm-brand- border-crm-brand-';
     return 'bg-[#FAF7F2] text-[#70665F] border-[#E7DED5]';
   };
 
@@ -377,16 +377,16 @@ export default function ProjectPlanningPage() {
   const filteredEmployeesList = useMemo(() => {
     return availableEmployees.filter((emp) => {
       if (employeeDeptFilter !== 'all') {
-        const d = (emp.departmentName || '').toLowerCase();
-        if (!d.includes(employeeDeptFilter.toLowerCase())) return false;
+        const d = (emp.departmentName || '')?.toLowerCase();
+        if (!d.includes(employeeDeptFilter?.toLowerCase())) return false;
       }
       if (employeeSearch.trim()) {
-        const q = employeeSearch.toLowerCase();
-        const fullName = `${emp.firstName} ${emp.lastName}`.toLowerCase();
+        const q = employeeSearch?.toLowerCase();
+        const fullName = `${emp.firstName} ${emp.lastName}`?.toLowerCase();
         return (
           fullName.includes(q) ||
-          (emp.designation && emp.designation.toLowerCase().includes(q)) ||
-          (emp.departmentName && emp.departmentName.toLowerCase().includes(q))
+          (emp.designation && emp.designation?.toLowerCase().includes(q)) ||
+          (emp.departmentName && emp.departmentName?.toLowerCase().includes(q))
         );
       }
       return true;
@@ -442,7 +442,7 @@ export default function ProjectPlanningPage() {
 
           <button
             onClick={handleOpenAddModal}
-            className="px-3.5 py-2 bg-[#75401F] hover:bg-[#5C3318] text-white rounded-xl font-bold flex items-center gap-1.5 shadow-xs transition cursor-pointer"
+            className="px-3.5 py-2 bg-[#75401F] hover:bg-[#5C3318] text-[#211B17] rounded-xl font-bold flex items-center gap-1.5 shadow-xs transition cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Add Custom Stage</span>
@@ -452,7 +452,7 @@ export default function ProjectPlanningPage() {
 
       {/* Project Summary Banner - High Contrast Luxury Espresso Hero Card */}
       {activeProject && (
-        <div className="bg-[#2D1810] text-white p-5 sm:p-6 rounded-2xl border border-[#4E2B1E] shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-5 relative overflow-hidden">
+        <div className="bg-[#2D1810] text-[#211B17] p-5 sm:p-6 rounded-2xl border border-[#4E2B1E] shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-5 relative overflow-hidden">
           {/* Ambient warm gradient glow */}
           <div className="absolute right-0 top-0 w-96 h-full bg-gradient-to-l from-[#75401F]/30 via-transparent to-transparent pointer-events-none" />
 
@@ -462,14 +462,14 @@ export default function ProjectPlanningPage() {
               <span>{activeProject.customerName}</span>
             </div>
 
-            <h2 className="text-lg sm:text-xl font-extrabold text-white tracking-tight">
+            <h2 className="text-lg sm:text-xl font-extrabold text-[#211B17] tracking-tight">
               {activeProject.productName}
             </h2>
 
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-[#D7CCC8] font-mono pt-1">
               <span className="inline-flex items-center gap-1.5 bg-[#23120B] px-3 py-1 rounded-lg border border-[#4E2B1E]">
                 <span className="text-[#A1887F]">Job:</span>
-                <span className="font-bold text-white">{activeProject.jobNumber}</span>
+                <span className="font-bold text-[#211B17]">{activeProject.jobNumber}</span>
               </span>
               <span className="inline-flex items-center gap-1.5 bg-[#23120B] px-3 py-1 rounded-lg border border-[#4E2B1E]">
                 <User className="w-3.5 h-3.5 text-[#FFE0B2]" />
@@ -540,7 +540,7 @@ export default function ProjectPlanningPage() {
                 onClick={() => setDeptFilter(tab.id)}
                 className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition cursor-pointer text-xs ${
                   isActive
-                    ? 'bg-[#75401F] text-white shadow-xs'
+                    ? 'bg-[#75401F] text-[#211B17] shadow-xs'
                     : 'bg-white hover:bg-[#FAF7F2] text-[#70665F] border border-[#E7DED5]'
                 }`}
               >
@@ -579,7 +579,7 @@ export default function ProjectPlanningPage() {
               <span className="text-[10px] font-bold text-[#70665F] uppercase tracking-wider block">Pending</span>
               <span className="text-lg font-black text-[#70665F] font-mono">{pendingStagesCount}</span>
             </div>
-            <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-500 flex items-center justify-center border border-slate-200">
+            <div className="w-8 h-8 rounded-lg bg-slate-50 text-[#70665F] flex items-center justify-center border border-slate-200">
               <Layers className="w-4 h-4" />
             </div>
           </div>
@@ -656,7 +656,7 @@ export default function ProjectPlanningPage() {
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <button
                 onClick={() => handleGenerateStages(activeProject?.id)}
-                className="px-5 py-2.5 bg-[#75401F] hover:bg-[#5C3318] text-white rounded-xl font-bold flex items-center gap-2 shadow-md shadow-[#75401F]/20 transition cursor-pointer text-xs active:scale-95"
+                className="px-5 py-2.5 bg-[#75401F] hover:bg-[#5C3318] text-[#211B17] rounded-xl font-bold flex items-center gap-2 shadow-md shadow-[#75401F]/20 transition cursor-pointer text-xs active:scale-95"
               >
                 <Sparkles className="w-4 h-4 text-[#F3C49F]" />
                 ⚡ Load 16-Stage Standard MTO Template
@@ -764,8 +764,8 @@ export default function ProjectPlanningPage() {
                                   className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#FAF7F2] text-[#4A3E39] border border-[#E7DED5] text-[10px] font-semibold"
                                   title={`${a.name} (${a.role || a.department || 'Team'})`}
                                 >
-                                  <div className="w-3.5 h-3.5 rounded-full bg-[#75401F] text-white text-[8px] font-black flex items-center justify-center">
-                                    {a.name.slice(0, 1).toUpperCase()}
+                                  <div className="w-3.5 h-3.5 rounded-full bg-[#75401F] text-[#211B17] text-[8px] font-black flex items-center justify-center">
+                                    {a.name.slice(0, 1)?.toUpperCase()}
                                   </div>
                                   <span className="truncate max-w-[120px]">{a.name}</span>
                                 </span>
@@ -1121,7 +1121,7 @@ export default function ProjectPlanningPage() {
                   {filteredEmployeesList.map((emp) => {
                     const fullName = `${emp.firstName} ${emp.lastName}`.trim();
                     const isChecked = selectedAssignees.some(
-                      (a) => a.id === emp.id || a.name.toLowerCase() === fullName.toLowerCase()
+                      (a) => a.id === emp.id || a.name?.toLowerCase() === fullName?.toLowerCase()
                     );
 
                     return (
@@ -1136,7 +1136,7 @@ export default function ProjectPlanningPage() {
                       >
                         <div className="flex items-center gap-2">
                           <div className={`w-4 h-4 rounded flex items-center justify-center border ${
-                            isChecked ? 'bg-[#75401F] border-[#75401F] text-white' : 'border-[#E7DED5] bg-white'
+                            isChecked ? 'bg-[#75401F] border-[#75401F] text-[#211B17]' : 'border-[#E7DED5] bg-white'
                           }`}>
                             {isChecked && <Check className="w-3 h-3 stroke-[3]" />}
                           </div>
@@ -1271,7 +1271,7 @@ export default function ProjectPlanningPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#75401F] hover:bg-[#5C3318] text-white rounded-xl font-bold cursor-pointer flex items-center gap-1.5 shadow-xs"
+                  className="px-5 py-2 bg-[#75401F] hover:bg-[#5C3318] text-[#211B17] rounded-xl font-bold cursor-pointer flex items-center gap-1.5 shadow-xs"
                 >
                   <Save className="w-3.5 h-3.5" />
                   <span>{editingStage ? 'Save Changes' : 'Create Stage'}</span>

@@ -953,12 +953,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const createBackupRecord = (type: BackupRecord['type']) => {
     const newBk: BackupRecord = {
       id: `BK-${String(backupRecords.length + 1).padStart(2, '0')}`,
-      backupNo: `BK-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(backupRecords.length + 1).padStart(3, '0')}`,
+      backupNo: `BK-${new Date().toISOString().slice(0, 10)?.replace(/-/g, '')}-${String(backupRecords.length + 1).padStart(3, '0')}`,
       type,
-      fileName: `UMA_ERP_${type}_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.bak`,
+      fileName: `UMA_ERP_${type}_${new Date().toISOString().slice(0, 10)?.replace(/-/g, '')}.bak`,
       fileSize: '52.4 MB',
       recordCount: 15120,
-      createdDate: new Date().toISOString().replace('T', ' ').slice(0, 16),
+      createdDate: new Date().toISOString()?.replace('T', ' ').slice(0, 16),
       createdBy: 'Rajesh Patel (Super Admin)',
       status: 'Verified_Valid',
       location: 'Encrypted AWS Cloud S3 Storage / Mumbai',
@@ -1158,7 +1158,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   // Keyboard shortcut for Global Search (Ctrl+K or Cmd+K)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      if ((e.ctrlKey || e.metaKey) && e.key?.toLowerCase() === 'k') {
         e.preventDefault();
         setIsSearchOpen((prev) => !prev);
       }
@@ -1711,7 +1711,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const getNextDocNumber = (docType: NumberingSetting['docType']): string => {
     const numConfig = numbering.find((n) => n.docType === docType);
     if (!numConfig) {
-      return `${docType.toUpperCase()}-${Date.now().toString().slice(-4)}`;
+      return `${docType?.toUpperCase()}-${Date.now().toString().slice(-4)}`;
     }
     const nextNum = numConfig.currentNumber + 1;
     setNumbering((prev) =>
@@ -1736,8 +1736,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       timestamp: new Date().toISOString(),
       userId: currentUser.id,
       userName: `${currentUser.firstName} ${currentUser.lastName}`,
-      role: (currentUser.roleName.toLowerCase().replace(/[^a-z]/g, '_') as any) || 'super_admin',
-      department: (currentUser.departmentName.toLowerCase().includes('crm') ? 'crm' : 'project') as any,
+      role: (currentUser.roleName?.toLowerCase()?.replace(/[^a-z]/g, '_') as any) || 'super_admin',
+      department: (currentUser.departmentName?.toLowerCase().includes('crm') ? 'crm' : 'project') as any,
       action,
       module,
       page,
@@ -1765,7 +1765,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const login = (username: string, pass: string): boolean => {
     const found = employees.find(
       (e) =>
-        (e.username.toLowerCase() === username.toLowerCase() || e.email.toLowerCase() === username.toLowerCase()) &&
+        (e.username?.toLowerCase() === username?.toLowerCase() || e.email?.toLowerCase() === username?.toLowerCase()) &&
         e.status === 'active'
     );
     if (found) {
@@ -1807,7 +1807,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
     // Check module or page level permission
     const perm = userRole.permissions.find(
-      (p) => p.module.toLowerCase() === module.toLowerCase() && (p.page === 'All' || p.page.toLowerCase() === page.toLowerCase())
+      (p) => p.module?.toLowerCase() === module?.toLowerCase() && (p.page === 'All' || p.page?.toLowerCase() === page?.toLowerCase())
     );
     if (!perm) return false;
     return Boolean(perm[action]);
@@ -1816,7 +1816,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const hasDepartmentAccess = (deptCode: string): boolean => {
     if (currentUser.roleName === 'Super Admin') return true;
     if (currentUser.isFamilyMember) return true; // Family admins have broader access
-    return currentUser.departmentName.toLowerCase().includes(deptCode.toLowerCase());
+    return currentUser.departmentName?.toLowerCase().includes(deptCode?.toLowerCase());
   };
 
   // Company & Numbering Updates
@@ -1834,7 +1834,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addDepartment = (dept: Omit<Department, 'id' | 'employeeCount'>) => {
     const newDept: Department = {
       ...dept,
-      id: `dept-${dept.code.toLowerCase()}`,
+      id: `dept-${dept.code?.toLowerCase()}`,
       employeeCount: 0,
     };
     setDepartments((prev) => [...prev, newDept]);
@@ -3108,7 +3108,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
     sendNotification({
       title: `🛍️ PO Approved & Ready for Supplier: ${targetPo.poNumber}`,
-      message: `Purchase Order ${targetPo.poNumber} (₹${targetPo.grandTotal.toLocaleString('en-IN')}) approved for ${targetPo.supplierName}. Expediting & follow-up initiated.`,
+      message: `Purchase Order ${targetPo.poNumber} (₹${targetPo.grandTotal?.toLocaleString('en-IN')}) approved for ${targetPo.supplierName}. Expediting & follow-up initiated.`,
       type: 'success',
       department: 'project',
       priority: 'high',
@@ -3527,7 +3527,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
   // Traceability Modal Helpers
   const openJobModal = (jobNumber: string) => {
-    const job = jobs.find((j) => j.jobNumber.toLowerCase() === jobNumber.toLowerCase());
+    const job = jobs.find((j) => j.jobNumber?.toLowerCase() === jobNumber?.toLowerCase());
     if (job) {
       setSelectedJobForModal(job);
     }
@@ -3610,7 +3610,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString().split('T')[0],
     };
     setSalesInvoices((prev) => [newInv, ...prev]);
-    logAction('CREATE', 'Accounting', 'Sales Invoices', newInv.id, `Generated Sales Invoice ${newInv.invoiceNumber} for ₹${newInv.grandTotal.toLocaleString()}`);
+    logAction('CREATE', 'Accounting', 'Sales Invoices', newInv.id, `Generated Sales Invoice ${newInv.invoiceNumber} for ₹${newInv.grandTotal?.toLocaleString()}`);
   };
 
   const approveSalesInvoice = (id: string) => {
@@ -3627,7 +3627,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString().split('T')[0],
     };
     setPurchaseInvoices((prev) => [newInv, ...prev]);
-    logAction('CREATE', 'Accounting', 'Purchase Invoices', newInv.id, `Created Purchase Invoice ${newInv.invoiceNumber} for ₹${newInv.grandTotal.toLocaleString()}`);
+    logAction('CREATE', 'Accounting', 'Purchase Invoices', newInv.id, `Created Purchase Invoice ${newInv.invoiceNumber} for ₹${newInv.grandTotal?.toLocaleString()}`);
   };
 
   const postPurchaseInvoice = (id: string) => {
@@ -3639,49 +3639,49 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const creditNoteNumber = `CN-2026-${String(creditNotes.length + 1).padStart(3, '0')}`;
     const newCN: CreditNote = { ...cn, id: creditNoteNumber, creditNoteNumber };
     setCreditNotes((prev) => [newCN, ...prev]);
-    logAction('CREATE', 'Accounting', 'Credit Notes', newCN.id, `Issued Credit Note ${newCN.creditNoteNumber} for ₹${newCN.totalAmount.toLocaleString()}`);
+    logAction('CREATE', 'Accounting', 'Credit Notes', newCN.id, `Issued Credit Note ${newCN.creditNoteNumber} for ₹${newCN.totalAmount?.toLocaleString()}`);
   };
 
   const addDebitNote = (dn: Omit<DebitNote, 'id' | 'debitNoteNumber'>) => {
     const debitNoteNumber = `DN-2026-${String(debitNotes.length + 1).padStart(3, '0')}`;
     const newDN: DebitNote = { ...dn, id: debitNoteNumber, debitNoteNumber };
     setDebitNotes((prev) => [newDN, ...prev]);
-    logAction('CREATE', 'Accounting', 'Debit Notes', newDN.id, `Issued Debit Note ${newDN.debitNoteNumber} for ₹${newDN.totalAmount.toLocaleString()}`);
+    logAction('CREATE', 'Accounting', 'Debit Notes', newDN.id, `Issued Debit Note ${newDN.debitNoteNumber} for ₹${newDN.totalAmount?.toLocaleString()}`);
   };
 
   const addCustomerReceipt = (rec: Omit<CustomerReceipt, 'id' | 'receiptNumber'>) => {
     const receiptNumber = `RCT-2026-${String(customerReceipts.length + 1).padStart(4, '0')}`;
     const newRec: CustomerReceipt = { ...rec, id: receiptNumber, receiptNumber };
     setCustomerReceipts((prev) => [newRec, ...prev]);
-    logAction('CREATE', 'Accounting', 'Customer Receipts', newRec.id, `Recorded Receipt ${newRec.receiptNumber} from ${newRec.customerName} (₹${(newRec.amountPaid ?? 0).toLocaleString()})`);
+    logAction('CREATE', 'Accounting', 'Customer Receipts', newRec.id, `Recorded Receipt ${newRec.receiptNumber} from ${newRec.customerName} (₹${(newRec.amountPaid ?? 0)?.toLocaleString()})`);
   };
 
   const addSupplierPayment = (pay: Omit<SupplierPayment, 'id' | 'paymentNumber'>) => {
     const paymentNumber = `PAY-2026-${String(supplierPayments.length + 1).padStart(4, '0')}`;
     const newPay: SupplierPayment = { ...pay, id: paymentNumber, paymentNumber };
     setSupplierPayments((prev) => [newPay, ...prev]);
-    logAction('CREATE', 'Accounting', 'Supplier Payments', newPay.id, `Recorded Payment ${newPay.paymentNumber} to ${newPay.supplierName} (₹${(newPay.amountPaid ?? 0).toLocaleString()})`);
+    logAction('CREATE', 'Accounting', 'Supplier Payments', newPay.id, `Recorded Payment ${newPay.paymentNumber} to ${newPay.supplierName} (₹${(newPay.amountPaid ?? 0)?.toLocaleString()})`);
   };
 
   const addJournalEntry = (jv: Omit<JournalEntry, 'id' | 'journalNumber'>) => {
     const journalNumber = `JV-2026-${String(journalEntries.length + 1).padStart(4, '0')}`;
     const newJV: JournalEntry = { ...jv, id: journalNumber, journalNumber };
     setJournalEntries((prev) => [newJV, ...prev]);
-    logAction('CREATE', 'Accounting', 'Journal Entries', newJV.id, `Created JV ${newJV.journalNumber}: Debit ₹${newJV.totalDebit.toLocaleString()} = Credit ₹${newJV.totalCredit.toLocaleString()}`);
+    logAction('CREATE', 'Accounting', 'Journal Entries', newJV.id, `Created JV ${newJV.journalNumber}: Debit ₹${newJV.totalDebit?.toLocaleString()} = Credit ₹${newJV.totalCredit?.toLocaleString()}`);
   };
 
   const addContraEntry = (contra: Omit<ContraEntry, 'id' | 'contraNumber'>) => {
     const contraNumber = `CNT-2026-${String(contraEntries.length + 1).padStart(3, '0')}`;
     const newContra: ContraEntry = { ...contra, id: contraNumber, contraNumber };
     setContraEntries((prev) => [newContra, ...prev]);
-    logAction('CREATE', 'Accounting', 'Contra Entries', newContra.id, `Created Contra ${newContra.contraNumber} for ₹${newContra.amount.toLocaleString()}`);
+    logAction('CREATE', 'Accounting', 'Contra Entries', newContra.id, `Created Contra ${newContra.contraNumber} for ₹${newContra.amount?.toLocaleString()}`);
   };
 
   const addExpenseEntry = (exp: Omit<ExpenseEntry, 'id' | 'expenseNumber'>) => {
     const expenseNumber = `EXP-2026-${String(expenseEntries.length + 1).padStart(4, '0')}`;
     const newExp: ExpenseEntry = { ...exp, id: expenseNumber, expenseNumber };
     setExpenseEntries((prev) => [newExp, ...prev]);
-    logAction('CREATE', 'Accounting', 'Expense Entries', newExp.id, `Logged Expense ${newExp.expenseNumber} for ₹${(newExp.grandTotal || newExp.totalAmount || newExp.amount || 0).toLocaleString()}`);
+    logAction('CREATE', 'Accounting', 'Expense Entries', newExp.id, `Logged Expense ${newExp.expenseNumber} for ₹${(newExp.grandTotal || newExp.totalAmount || newExp.amount || 0)?.toLocaleString()}`);
   };
 
   const approveExpenseEntry = (id: string, approvedBy: string) => {
@@ -3731,7 +3731,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           : a
       )
     );
-    logAction('CREATE', 'Accounting', 'Depreciation', assetId, `Ran Depreciation of ₹${amount.toLocaleString()} for ${period}`);
+    logAction('CREATE', 'Accounting', 'Depreciation', assetId, `Ran Depreciation of ₹${amount?.toLocaleString()} for ${period}`);
   };
 
   // Module 8 Maintenance & Services State
@@ -4194,7 +4194,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
   const generateMonthlyPayroll = (monthYear: string, financialYear: string) => {
     const newRecords: PayrollRecord[] = salaryStructures.map((struct, idx) => {
-      const pNo = `PAY-2026-${monthYear.substring(0, 3).toUpperCase()}-0${idx + 1}`;
+      const pNo = `PAY-2026-${monthYear.substring(0, 3)?.toUpperCase()}-0${idx + 1}`;
       return {
         id: pNo,
         payrollNumber: pNo,

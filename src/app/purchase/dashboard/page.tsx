@@ -160,17 +160,17 @@ export default function PurchaseDashboardPage() {
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Project Selector Filter */}
-          <div className="flex items-center gap-2 bg-slate-900 border border-[#E7DED5] rounded-xl px-3 py-1.5 text-xs">
+          <div className="flex items-center gap-2 bg-white border border-[#E7DED5] rounded-xl px-3 py-1.5 text-xs">
             <Filter className="w-3.5 h-3.5 text-[#70665F]" />
             <span className="text-[#70665F]">Filter Project:</span>
             <select
               value={selectedProjectFilter}
               onChange={(e) => setSelectedProjectFilter(e.target.value)}
-              className="bg-transparent text-white font-semibold focus:outline-none cursor-pointer"
+              className="bg-transparent text-[#211B17] font-semibold focus:outline-none cursor-pointer"
             >
-              <option value="ALL" className="bg-slate-900">All Projects & Jobs</option>
+              <option value="ALL" className="bg-white">All Projects & Jobs</option>
               {projectJobs.map(job => (
-                <option key={job.id} value={job.id} className="bg-slate-900">
+                <option key={job.id} value={job.id} className="bg-white">
                   {job.jobNumber} ({job.productName})
                 </option>
               ))}
@@ -186,7 +186,7 @@ export default function PurchaseDashboardPage() {
           </Link>
           <Link
             href="/purchase/requisition"
-            className="flex items-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/20 transition"
+            className="flex items-center gap-2 px-3.5 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-crm-brand-700/20 transition"
           >
             <Plus className="w-3.5 h-3.5" />
             New PR
@@ -203,10 +203,10 @@ export default function PurchaseDashboardPage() {
 
       {/* 10 KPI Cards Grid */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5">
-        <div className="bg-white border border-[#E7DED5] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group hover:border-slate-700 transition">
+        <div className="bg-white border border-[#E7DED5] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group hover:border-[#EBE3DB] transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-medium uppercase tracking-wider">Total PRs</span>
-            <FileText className="w-4 h-4 text-blue-400" />
+            <FileText className="w-4 h-4 text-crm-brand-500" />
           </div>
           <div className="text-2xl font-bold font-mono text-[#211B17]">{totalPRCount}</div>
           <div className="text-[10px] text-[#8D827A] mt-1 flex items-center gap-1">
@@ -214,7 +214,7 @@ export default function PurchaseDashboardPage() {
           </div>
         </div>
 
-        <div className="bg-white border border-[#E7DED5] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group hover:border-slate-700 transition">
+        <div className="bg-white border border-[#E7DED5] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group hover:border-[#EBE3DB] transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-medium uppercase tracking-wider">Pending PR</span>
             <Clock className="w-4 h-4 text-amber-400" />
@@ -223,25 +223,25 @@ export default function PurchaseDashboardPage() {
           <div className="text-[10px] text-[#8D827A] mt-1">Awaiting approval / RFQ</div>
         </div>
 
-        <div className="bg-white border border-[#E7DED5] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group hover:border-slate-700 transition">
+        <div className="bg-white border border-[#E7DED5] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group hover:border-[#EBE3DB] transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-medium uppercase tracking-wider">Pending RFQs</span>
-            <FileCheck2 className="w-4 h-4 text-cyan-400" />
+            <FileCheck2 className="w-4 h-4 text-crm-brand-500" />
           </div>
-          <div className="text-2xl font-extrabold text-cyan-400">{pendingRFQCount}</div>
+          <div className="text-2xl font-extrabold text-crm-brand-500">{pendingRFQCount}</div>
           <div className="text-[10px] text-[#8D827A] mt-1">Awaiting vendor quotes</div>
         </div>
 
-        <div className="bg-white border border-[#E7DED5] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group hover:border-slate-700 transition">
+        <div className="bg-white border border-[#E7DED5] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group hover:border-[#EBE3DB] transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-medium uppercase tracking-wider">Quotes Recv</span>
-            <DollarSign className="w-4 h-4 text-purple-400" />
+            <DollarSign className="w-4 h-4 text-crm-brand-500" />
           </div>
-          <div className="text-2xl font-extrabold text-purple-400">{supplierQuotesReceived}</div>
+          <div className="text-2xl font-extrabold text-crm-brand-500">{supplierQuotesReceived}</div>
           <div className="text-[10px] text-[#8D827A] mt-1">Ready for comparison</div>
         </div>
 
-        <div className="bg-white border border-[#E7DED5] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group hover:border-slate-700 transition">
+        <div className="bg-white border border-[#E7DED5] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group hover:border-[#EBE3DB] transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-medium uppercase tracking-wider">Pending PO Approval</span>
             <AlertTriangle className="w-4 h-4 text-rose-400" />
@@ -250,7 +250,7 @@ export default function PurchaseDashboardPage() {
           <div className="text-[10px] text-[#8D827A] mt-1">Tier-2/3 Management review</div>
         </div>
 
-        <div className="bg-white border border-[#E7DED5] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group hover:border-slate-700 transition">
+        <div className="bg-white border border-[#E7DED5] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group hover:border-[#EBE3DB] transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-medium uppercase tracking-wider">Open POs</span>
             <ShoppingCart className="w-4 h-4 text-emerald-400" />
@@ -259,7 +259,7 @@ export default function PurchaseDashboardPage() {
           <div className="text-[10px] text-[#8D827A] mt-1">Active vendor orders</div>
         </div>
 
-        <div className="bg-white border border-[#E7DED5] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group hover:border-slate-700 transition">
+        <div className="bg-white border border-[#E7DED5] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group hover:border-[#EBE3DB] transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-medium uppercase tracking-wider">Partial GRN</span>
             <Truck className="w-4 h-4 text-sky-400" />
@@ -268,7 +268,7 @@ export default function PurchaseDashboardPage() {
           <div className="text-[10px] text-[#8D827A] mt-1">Store balance pending</div>
         </div>
 
-        <div className="bg-white border border-[#E7DED5] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group hover:border-slate-700 transition">
+        <div className="bg-white border border-[#E7DED5] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group hover:border-[#EBE3DB] transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-medium uppercase tracking-wider">Overdue Delivery</span>
             <AlertTriangle className="w-4 h-4 text-red-500 animate-pulse" />
@@ -277,7 +277,7 @@ export default function PurchaseDashboardPage() {
           <div className="text-[10px] text-red-300/80 mt-1 font-semibold">Immediate expediting</div>
         </div>
 
-        <div className="bg-white border border-[#E7DED5] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group hover:border-slate-700 transition">
+        <div className="bg-white border border-[#E7DED5] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group hover:border-[#EBE3DB] transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-medium uppercase tracking-wider">Month Purchase</span>
             <DollarSign className="w-4 h-4 text-teal-400" />
@@ -288,7 +288,7 @@ export default function PurchaseDashboardPage() {
           <div className="text-[10px] text-[#8D827A] mt-1">Total approved committed</div>
         </div>
 
-        <div className="bg-white border border-[#E7DED5] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group hover:border-slate-700 transition">
+        <div className="bg-white border border-[#E7DED5] rounded-2xl p-4 sm:p-5 shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group hover:border-[#EBE3DB] transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-medium uppercase tracking-wider">MRP Shortages</span>
             <Layers className="w-4 h-4 text-amber-400" />
@@ -301,7 +301,7 @@ export default function PurchaseDashboardPage() {
       {/* Recharts Row 1: Purchase Value Trend & PO Status Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Chart 1: Spending Trend */}
-        <div className="lg:col-span-2 bg-slate-900/90 border border-[#E7DED5] rounded-2xl p-5">
+        <div className="lg:col-span-2 bg-white border border-[#E7DED5] rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
@@ -327,7 +327,7 @@ export default function PurchaseDashboardPage() {
                 <YAxis stroke="#64748B" fontSize={11} tickLine={false} tickFormatter={(v) => `₹${v / 1000}k`} />
                 <Tooltip
                   contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', borderRadius: '12px', fontSize: '12px' }}
-                  formatter={(val: any) => [`₹${Number(val).toLocaleString('en-IN')}`, 'Purchase Value']}
+                  formatter={(val: any) => [`₹${Number(val)?.toLocaleString('en-IN')}`, 'Purchase Value']}
                 />
                 <Area type="monotone" dataKey="spend" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorSpend)" />
               </AreaChart>
@@ -336,10 +336,10 @@ export default function PurchaseDashboardPage() {
         </div>
 
         {/* Chart 2: PO Status Pie */}
-        <div className="bg-slate-900/90 border border-[#E7DED5] rounded-2xl p-5">
+        <div className="bg-white border border-[#E7DED5] rounded-2xl p-5">
           <div className="mb-4">
             <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
-              <ShoppingCart className="w-4 h-4 text-blue-400" />
+              <ShoppingCart className="w-4 h-4 text-crm-brand-500" />
               PO Status Distribution
             </h3>
             <p className="text-xs text-[#70665F]">Active vs Pending vs Completed POs</p>
@@ -377,7 +377,7 @@ export default function PurchaseDashboardPage() {
       {/* Recharts Row 2: Supplier Performance Ratings & Job-wise Purchase Cost */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Chart 3: Supplier Rating Breakdown */}
-        <div className="bg-slate-900/90 border border-[#E7DED5] rounded-2xl p-5">
+        <div className="bg-white border border-[#E7DED5] rounded-2xl p-5">
           <div className="mb-4 flex justify-between items-center">
             <div>
               <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
@@ -405,7 +405,7 @@ export default function PurchaseDashboardPage() {
         </div>
 
         {/* Chart 4: Job-wise Purchase Spend */}
-        <div className="bg-slate-900/90 border border-[#E7DED5] rounded-2xl p-5">
+        <div className="bg-white border border-[#E7DED5] rounded-2xl p-5">
           <div className="mb-4 flex justify-between items-center">
             <div>
               <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
@@ -437,19 +437,19 @@ export default function PurchaseDashboardPage() {
       {/* Recent Activity Tables Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Table 1: Recent Purchase Requisitions */}
-        <div className="bg-slate-900/90 border border-[#E7DED5] rounded-2xl p-5">
+        <div className="bg-white border border-[#E7DED5] rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
-              <FileText className="w-4 h-4 text-blue-400" />
+              <FileText className="w-4 h-4 text-crm-brand-500" />
               Recent Purchase Requisitions (PR)
             </h3>
-            <Link href="/purchase/requisition" className="text-xs text-blue-400 hover:underline flex items-center gap-1">
+            <Link href="/purchase/requisition" className="text-xs text-crm-brand-500 hover:underline flex items-center gap-1">
               View All PRs <ChevronRight className="w-3 h-3" />
             </Link>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left text-[#544B45]">
-              <thead className="bg-slate-950 text-[#70665F] font-semibold border-b border-[#E7DED5]">
+              <thead className="bg-[#FAF7F2] text-[#70665F] font-semibold border-b border-[#E7DED5]">
                 <tr>
                   <th className="p-2.5">PR Number</th>
                   <th className="p-2.5">Project / Job</th>
@@ -458,12 +458,12 @@ export default function PurchaseDashboardPage() {
                   <th className="p-2.5">Total Est.</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-[#EBE3DB]">
                 {purchaseRequisitions.slice(0, 5).map(pr => (
                   <tr key={pr.id} className="hover:bg-white/40 transition">
-                    <td className="p-2.5 font-mono font-bold text-blue-400">{pr.prNumber}</td>
+                    <td className="p-2.5 font-mono font-bold text-crm-brand-500">{pr.prNumber}</td>
                     <td className="p-2.5">
-                      <div className="font-semibold text-white">{pr.jobId}</div>
+                      <div className="font-semibold text-[#211B17]">{pr.jobId}</div>
                       <div className="text-[10px] text-[#70665F]">{pr.projectId}</div>
                     </td>
                     <td className="p-2.5">
@@ -482,7 +482,7 @@ export default function PurchaseDashboardPage() {
                         {pr.status}
                       </span>
                     </td>
-                    <td className="p-2.5 font-mono text-white">₹{pr.estimatedCost.toLocaleString('en-IN')}</td>
+                    <td className="p-2.5 font-mono text-[#211B17]">₹{pr.estimatedCost?.toLocaleString('en-IN')}</td>
                   </tr>
                 ))}
               </tbody>
@@ -491,7 +491,7 @@ export default function PurchaseDashboardPage() {
         </div>
 
         {/* Table 2: Active Purchase Orders */}
-        <div className="bg-slate-900/90 border border-[#E7DED5] rounded-2xl p-5">
+        <div className="bg-white border border-[#E7DED5] rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
               <ShoppingCart className="w-4 h-4 text-emerald-400" />
@@ -503,7 +503,7 @@ export default function PurchaseDashboardPage() {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left text-[#544B45]">
-              <thead className="bg-slate-950 text-[#70665F] font-semibold border-b border-[#E7DED5]">
+              <thead className="bg-[#FAF7F2] text-[#70665F] font-semibold border-b border-[#E7DED5]">
                 <tr>
                   <th className="p-2.5">PO Number</th>
                   <th className="p-2.5">Supplier Name</th>
@@ -512,13 +512,13 @@ export default function PurchaseDashboardPage() {
                   <th className="p-2.5">Grand Total</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-[#EBE3DB]">
                 {purchaseOrders.slice(0, 5).map(po => (
                   <tr key={po.id} className="hover:bg-white/40 transition">
                     <td className="p-2.5 font-mono font-bold text-emerald-400">
                       {po.poNumber} <span className="text-[10px] text-[#8D827A]">R{po.revisionNumber}</span>
                     </td>
-                    <td className="p-2.5 font-semibold text-white truncate max-w-[140px]">{po.supplierName}</td>
+                    <td className="p-2.5 font-semibold text-[#211B17] truncate max-w-[140px]">{po.supplierName}</td>
                     <td className="p-2.5 text-[#70665F]">{po.expectedDeliveryDate}</td>
                     <td className="p-2.5">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
@@ -529,7 +529,7 @@ export default function PurchaseDashboardPage() {
                         {po.status}
                       </span>
                     </td>
-                    <td className="p-2.5 font-mono text-white">₹{po.grandTotal.toLocaleString('en-IN')}</td>
+                    <td className="p-2.5 font-mono text-[#211B17]">₹{po.grandTotal?.toLocaleString('en-IN')}</td>
                   </tr>
                 ))}
               </tbody>

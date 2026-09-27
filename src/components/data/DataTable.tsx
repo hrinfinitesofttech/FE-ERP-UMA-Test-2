@@ -8,6 +8,7 @@ export interface Column<T> {
   header: string;
   accessorKey?: keyof T;
   cell?: (item: T) => React.ReactNode;
+  exportValue?: (item: T) => string | number;
   className?: string;
 }
 
@@ -32,7 +33,7 @@ export function DataTable<T extends Record<string, any>>({
   searchPlaceholder = 'Search records...',
   filterComponent,
   actions,
-  pageSizeDefault = 10,
+  pageSizeDefault = 15,
 }: DataTableProps<T>) {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -41,10 +42,10 @@ export function DataTable<T extends Record<string, any>>({
   // Filter rows based on search query
   const filteredData = data.filter((row) => {
     if (!searchQuery.trim()) return true;
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery?.toLowerCase();
     return Object.values(row).some((val) => {
       if (val === null || val === undefined) return false;
-      return String(val).toLowerCase().includes(query);
+      return String(val)?.toLowerCase().includes(query);
     });
   });
 
@@ -58,19 +59,27 @@ export function DataTable<T extends Record<string, any>>({
     const rows = filteredData.map((row) =>
       columns
         .map((c) => {
-          const val = c.accessorKey ? row[c.accessorKey] : '';
-          return `"${String(val ?? '').replace(/"/g, '""')}"`;
+          let val: any = '';
+          if (c.exportValue) {
+            val = c.exportValue(row);
+          } else if (c.accessorKey) {
+            val = row[c.accessorKey];
+          }
+          return `"${String(val ?? '')?.replace(/"/g, '""')}"`;
         })
         .join(',')
     );
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers, ...rows].join('\n');
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = [headers, ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `${(title || 'export').toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${(title || 'export')?.toLowerCase()?.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const handlePrint = () => {
@@ -86,7 +95,7 @@ export function DataTable<T extends Record<string, any>>({
           {subtitle && <p className="text-xs text-[#70665F] mt-0.5">{subtitle}</p>}
         </div>
 
-        <div className="flex items-center flex-wrap gap-2.5 w-full sm:w-auto">
+        <div className="flex items-center flex-wrap gap-2.5 w-full sm:w-auto print:hidden">
           {/* Search Box */}
           <div className="relative flex-1 sm:w-64">
             <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8D827A]" />
@@ -171,7 +180,7 @@ export function DataTable<T extends Record<string, any>>({
       </div>
 
       {/* Pagination Footer */}
-      <div className="p-3.5 border-t border-[#E7DED5] flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#70665F] bg-[#FAF7F2]">
+      <div className="p-3.5 border-t border-[#E7DED5] flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#70665F] bg-[#FAF7F2] print:hidden">
         <div>
           Showing <span className="font-bold text-[#211B17]">{filteredData.length > 0 ? startIndex + 1 : 0}</span> to{' '}
           <span className="font-bold text-[#211B17]">{Math.min(startIndex + pageSize, filteredData.length)}</span> of{' '}

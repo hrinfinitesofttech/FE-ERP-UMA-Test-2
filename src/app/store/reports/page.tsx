@@ -34,9 +34,9 @@ export default function StoreReportsPage() {
 
   const filtered = STORE_REPORTS_LIST.filter(
     (r) =>
-      r.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.category.toLowerCase().includes(searchTerm.toLowerCase())
+      r.id?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      r.name?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      r.category?.toLowerCase().includes(searchTerm?.toLowerCase())
   );
 
   const handleExport = (reportId: string, name: string) => {
@@ -48,60 +48,60 @@ export default function StoreReportsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-slate-950 text-slate-100 min-h-screen">
+    <div className="p-6 space-y-6 bg-[#FAF7F2] text-[#544B45] ">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/80 p-5 rounded-2xl border border-slate-800 shadow-xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-xl">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-md bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs font-mono font-semibold">
+            <span className="px-2.5 py-0.5 rounded-md bg-crm-brand-600/20 text-crm-brand-500 border border-crm-brand-600/30 text-xs font-mono font-semibold">
               EXECUTIVE ANALYTICS
             </span>
-            <h1 className="text-2xl font-black text-white tracking-tight">Store & Warehouse Reports (21 Pre-configured)</h1>
+            <h1 className="text-2xl font-black text-[#211B17] tracking-tight">Store & Warehouse Reports (21 Pre-configured)</h1>
           </div>
-          <p className="text-slate-400 text-xs mt-1">
+          <p className="text-[#70665F] text-xs mt-1">
             Download comprehensive inventory registers, ABC analysis, GRN inward ledgers, and job material consumption sheets.
           </p>
         </div>
       </div>
 
       {/* Filter */}
-      <div className="flex items-center justify-between bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+      <div className="flex items-center justify-between bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB]">
         <div className="relative w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
           <input
             type="text"
             placeholder="Search report name, category..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+            className="w-full pl-9 pr-4 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] placeholder-slate-400 focus:outline-none focus:border-crm-brand-600"
           />
         </div>
-        <div className="text-xs text-slate-400 font-mono">
-          Available Reports: <span className="text-white font-bold">{filtered.length}</span>
+        <div className="text-xs text-[#70665F] font-mono">
+          Available Reports: <span className="text-[#211B17] font-bold">{filtered.length}</span>
         </div>
       </div>
 
       {/* Reports Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((rpt) => (
-          <div key={rpt.id} className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl shadow-xl flex flex-col justify-between hover:border-blue-500/50 transition">
+          <div key={rpt.id} className="bg-white border border-[#EBE3DB] p-5 rounded-2xl shadow-xl flex flex-col justify-between hover:border-crm-brand-600/50 transition">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-mono font-bold text-blue-400">{rpt.id}</span>
-                <span className="px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-300 font-mono">
+                <span className="text-xs font-mono font-bold text-crm-brand-500">{rpt.id}</span>
+                <span className="px-2 py-0.5 rounded bg-[#FAF7F2] text-[10px] text-[#544B45] font-mono">
                   {rpt.format}
                 </span>
               </div>
-              <h3 className="text-sm font-bold text-white leading-snug">{rpt.name}</h3>
-              <div className="text-[11px] text-slate-400 mt-1 font-semibold">{rpt.category}</div>
+              <h3 className="text-sm font-bold text-[#211B17] leading-snug">{rpt.name}</h3>
+              <div className="text-[11px] text-[#70665F] mt-1 font-semibold">{rpt.category}</div>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
-              <span className="text-[10px] text-slate-500 font-mono">Formatted Data Sheet</span>
+            <div className="mt-4 pt-3 border-t border-[#EBE3DB] flex items-center justify-between">
+              <span className="text-[10px] text-[#70665F] font-mono">Formatted Data Sheet</span>
               <button
                 onClick={() => handleExport(rpt.id, rpt.name)}
                 disabled={downloadingId === rpt.id}
-                className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-500 transition flex items-center gap-1.5 shadow-md shadow-blue-600/30"
+                className="px-3 py-1.5 rounded-lg bg-crm-brand-700 text-white text-xs font-bold hover:bg-crm-brand-600 transition flex items-center gap-1.5 shadow-md shadow-crm-brand-700/30"
               >
                 <Download className="w-3.5 h-3.5" />
                 {downloadingId === rpt.id ? 'Exporting...' : 'Export Sheet'}

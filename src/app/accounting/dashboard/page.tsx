@@ -74,31 +74,31 @@ export default function AccountingDashboardPage() {
 
   if (!hasMounted) {
     return (
-      <div className="p-6 bg-slate-950 min-h-screen text-slate-100 flex items-center justify-center">
+      <div className="p-6 bg-[#FAF7F2]  text-[#211B17] flex items-center justify-center">
         <div className="flex items-center gap-3 text-[#70665F]">
-          <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-5 h-5 border-2 border-[#75401F] border-t-transparent rounded-full animate-spin" />
           <span className="text-sm font-medium">Loading Accounting Dashboard...</span>
         </div>
       </div>
     );
   }
 
-  // Calculate 14 KPIs
-  const totalSalesValue = salesInvoices.reduce((acc, inv) => acc + (inv.grandTotal || 0), 0);
-  const totalPurchaseValue = purchaseInvoices.reduce((acc, inv) => acc + (inv.grandTotal || 0), 0);
-  const totalReceiptsValue = customerReceipts.reduce((acc, r) => acc + (r.amountPaid ?? r.amount ?? 0), 0);
-  const totalPaymentsValue = supplierPayments.reduce((acc, p) => acc + (p.amountPaid ?? p.amount ?? 0), 0);
-  const totalBankBalance = bankAccounts.reduce((acc, b) => acc + (b.currentBalance || 0), 0);
-  const totalAR = receivableAging.reduce((acc, r) => acc + (r.totalOutstanding || 0), 0);
-  const totalAP = payableAging.reduce((acc, p) => acc + (p.totalOutstanding || 0), 0);
-  const overdueAR = receivableAging.reduce((acc, r) => acc + (r.days90Plus || 0), 0);
-  const overdueAP = payableAging.reduce((acc, p) => acc + (p.days90Plus || 0), 0);
+  // Calculate 14 KPIs (Safe against undefined)
+  const totalSalesValue = (salesInvoices || []).reduce((acc, inv) => acc + (inv.grandTotal || 0), 0);
+  const totalPurchaseValue = (purchaseInvoices || []).reduce((acc, inv) => acc + (inv.grandTotal || 0), 0);
+  const totalReceiptsValue = (customerReceipts || []).reduce((acc, r) => acc + (r.amountPaid ?? r.amount ?? 0), 0);
+  const totalPaymentsValue = (supplierPayments || []).reduce((acc, p) => acc + (p.amountPaid ?? p.amount ?? 0), 0);
+  const totalBankBalance = (bankAccounts || []).reduce((acc, b) => acc + (b.currentBalance || 0), 0);
+  const totalAR = (receivableAging || []).reduce((acc, r) => acc + (r.totalOutstanding || 0), 0);
+  const totalAP = (payableAging || []).reduce((acc, p) => acc + (p.totalOutstanding || 0), 0);
+  const overdueAR = (receivableAging || []).reduce((acc, r) => acc + (r.days90Plus || 0), 0);
+  const overdueAP = (payableAging || []).reduce((acc, p) => acc + (p.days90Plus || 0), 0);
   const grossProfit = totalSalesValue - totalPurchaseValue;
   const grossMarginPercent = totalSalesValue > 0 ? ((grossProfit / totalSalesValue) * 100).toFixed(1) : '0';
-  const totalExpenses = expenseEntries.reduce((acc, e) => acc + (e.grandTotal ?? e.amount ?? 0), 0);
+  const totalExpenses = (expenseEntries || []).reduce((acc, e) => acc + (e.grandTotal ?? e.amount ?? 0), 0);
   const netProfit = grossProfit - totalExpenses;
-  const totalGSTLiability = salesInvoices.reduce((acc, inv) => acc + (inv.cgstAmount ?? inv.cgstTotal ?? 0) + (inv.sgstAmount ?? inv.sgstTotal ?? 0) + (inv.igstAmount ?? inv.igstTotal ?? 0), 0);
-  const inputTaxCredit = purchaseInvoices.reduce((acc, inv) => acc + (inv.cgstAmount ?? inv.cgstTotal ?? 0) + (inv.sgstAmount ?? inv.sgstTotal ?? 0) + (inv.igstAmount ?? inv.igstTotal ?? 0), 0);
+  const totalGSTLiability = (salesInvoices || []).reduce((acc, inv) => acc + (inv.cgstAmount ?? inv.cgstTotal ?? 0) + (inv.sgstAmount ?? inv.sgstTotal ?? 0) + (inv.igstAmount ?? inv.igstTotal ?? 0), 0);
+  const inputTaxCredit = (purchaseInvoices || []).reduce((acc, inv) => acc + (inv.cgstAmount ?? inv.cgstTotal ?? 0) + (inv.sgstAmount ?? inv.sgstTotal ?? 0) + (inv.igstAmount ?? inv.igstTotal ?? 0), 0);
   const netGSTPayable = Math.max(0, totalGSTLiability - inputTaxCredit);
 
   // Recharts Mock Data
@@ -172,7 +172,7 @@ export default function AccountingDashboardPage() {
           <select
             value={selectedFY}
             onChange={(e) => setSelectedFY(e.target.value)}
-            className="bg-[#FAF7F2] border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2 font-mono font-medium focus:ring-2 focus:ring-emerald-500"
+            className="bg-[#FAF7F2] border border-[#EBE3DB] text-[#3E2723] text-xs rounded-xl px-3 py-2 font-mono font-medium focus:ring-2 focus:ring-emerald-500"
           >
             <option value="FY 2025-26">FY 2025-26 (Active)</option>
             <option value="FY 2024-25">FY 2024-25 (Closed)</option>
@@ -181,7 +181,7 @@ export default function AccountingDashboardPage() {
 
           <Link
             href="/accounting/sales-invoices"
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-lg shadow-emerald-600/20"
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-lg shadow-emerald-600/20"
           >
             <Plus className="w-4 h-4" />
             <span>Create Sales Invoice</span>
@@ -189,7 +189,7 @@ export default function AccountingDashboardPage() {
 
           <Link
             href="/accounting/journal-entries"
-            className="flex items-center gap-2 bg-white hover:bg-slate-700 text-slate-200 text-xs font-semibold px-4 py-2.5 rounded-xl border border-slate-700 transition"
+            className="flex items-center gap-2 bg-white hover:bg-[#FAF7F2] text-[#3E2723] text-xs font-semibold px-4 py-2.5 rounded-xl border border-[#EBE3DB] transition"
           >
             <FileSpreadsheet className="w-4 h-4 text-amber-400" />
             <span>New Journal Voucher</span>
@@ -200,12 +200,12 @@ export default function AccountingDashboardPage() {
       {/* 14 KPI Cards Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
         {/* KPI 1: Total Sales Invoiced */}
-        <div className="bg-slate-900/90 p-4 rounded-xl border border-[#E7DED5] hover:border-emerald-500/40 transition">
+        <div className="bg-white p-4 rounded-xl border border-[#E7DED5] hover:border-emerald-500/40 transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Sales Invoiced</span>
             <Receipt className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="text-lg font-bold text-white font-mono">₹{(totalSalesValue / 100000).toFixed(2)}L</div>
+          <div className="text-lg font-bold text-[#211B17] font-mono">₹{(totalSalesValue / 100000).toFixed(2)}L</div>
           <div className="flex items-center gap-1 text-[10px] text-emerald-400 mt-1">
             <ArrowUpRight className="w-3 h-3" />
             <span>+14.2% vs last month</span>
@@ -213,20 +213,20 @@ export default function AccountingDashboardPage() {
         </div>
 
         {/* KPI 2: Total Purchase Invoiced */}
-        <div className="bg-slate-900/90 p-4 rounded-xl border border-[#E7DED5] hover:border-purple-500/40 transition">
+        <div className="bg-white p-4 rounded-xl border border-[#E7DED5] hover:border-crm-brand-600/40 transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Purchase Invoiced</span>
-            <FileText className="w-4 h-4 text-purple-400" />
+            <FileText className="w-4 h-4 text-crm-brand-500" />
           </div>
-          <div className="text-lg font-bold text-white font-mono">₹{(totalPurchaseValue / 100000).toFixed(2)}L</div>
-          <div className="flex items-center gap-1 text-[10px] text-purple-400 mt-1">
+          <div className="text-lg font-bold text-[#211B17] font-mono">₹{(totalPurchaseValue / 100000).toFixed(2)}L</div>
+          <div className="flex items-center gap-1 text-[10px] text-crm-brand-500 mt-1">
             <ArrowUpRight className="w-3 h-3" />
             <span>Materials & Subcontract</span>
           </div>
         </div>
 
         {/* KPI 3: Customer Receipts */}
-        <div className="bg-slate-900/90 p-4 rounded-xl border border-[#E7DED5] hover:border-emerald-500/40 transition">
+        <div className="bg-white p-4 rounded-xl border border-[#E7DED5] hover:border-emerald-500/40 transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Collected Receipts</span>
             <Coins className="w-4 h-4 text-emerald-400" />
@@ -236,7 +236,7 @@ export default function AccountingDashboardPage() {
         </div>
 
         {/* KPI 4: Supplier Payments */}
-        <div className="bg-slate-900/90 p-4 rounded-xl border border-[#E7DED5] hover:border-rose-500/40 transition">
+        <div className="bg-white p-4 rounded-xl border border-[#E7DED5] hover:border-rose-500/40 transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Vendor Payments</span>
             <CreditCard className="w-4 h-4 text-rose-400" />
@@ -246,17 +246,17 @@ export default function AccountingDashboardPage() {
         </div>
 
         {/* KPI 5: Bank & Cash Balance */}
-        <div className="bg-slate-900/90 p-4 rounded-xl border border-[#E7DED5] hover:border-blue-500/40 transition">
+        <div className="bg-white p-4 rounded-xl border border-[#E7DED5] hover:border-crm-brand-600/40 transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Bank Balance</span>
-            <Landmark className="w-4 h-4 text-blue-400" />
+            <Landmark className="w-4 h-4 text-crm-brand-500" />
           </div>
-          <div className="text-lg font-bold text-blue-400 font-mono">₹{(totalBankBalance / 100000).toFixed(2)}L</div>
+          <div className="text-lg font-bold text-crm-brand-500 font-mono">₹{(totalBankBalance / 100000).toFixed(2)}L</div>
           <div className="text-[10px] text-[#70665F] mt-1">Across 3 Accounts</div>
         </div>
 
         {/* KPI 6: Accounts Receivable (AR) */}
-        <div className="bg-slate-900/90 p-4 rounded-xl border border-[#E7DED5] hover:border-amber-500/40 transition">
+        <div className="bg-white p-4 rounded-xl border border-[#E7DED5] hover:border-amber-500/40 transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">Total AR</span>
             <TrendingUp className="w-4 h-4 text-amber-400" />
@@ -266,7 +266,7 @@ export default function AccountingDashboardPage() {
         </div>
 
         {/* KPI 7: Accounts Payable (AP) */}
-        <div className="bg-slate-900/90 p-4 rounded-xl border border-[#E7DED5] hover:border-indigo-500/40 transition">
+        <div className="bg-white p-4 rounded-xl border border-[#E7DED5] hover:border-crm-brand-600/40 transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">Total AP</span>
             <TrendingDown className="w-4 h-4 text-indigo-400" />
@@ -276,7 +276,7 @@ export default function AccountingDashboardPage() {
         </div>
 
         {/* KPI 8: Gross Profit */}
-        <div className="bg-slate-900/90 p-4 rounded-xl border border-[#E7DED5] hover:border-emerald-500/40 transition">
+        <div className="bg-white p-4 rounded-xl border border-[#E7DED5] hover:border-emerald-500/40 transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Gross Profit</span>
             <DollarSign className="w-4 h-4 text-emerald-400" />
@@ -286,7 +286,7 @@ export default function AccountingDashboardPage() {
         </div>
 
         {/* KPI 9: Net Operating Profit */}
-        <div className="bg-slate-900/90 p-4 rounded-xl border border-[#E7DED5] hover:border-teal-500/40 transition">
+        <div className="bg-white p-4 rounded-xl border border-[#E7DED5] hover:border-teal-500/40 transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Net Profit</span>
             <Sparkles className="w-4 h-4 text-teal-400" />
@@ -296,7 +296,7 @@ export default function AccountingDashboardPage() {
         </div>
 
         {/* KPI 10: GST Tax Liability */}
-        <div className="bg-slate-900/90 p-4 rounded-xl border border-[#E7DED5] hover:border-yellow-500/40 transition">
+        <div className="bg-white p-4 rounded-xl border border-[#E7DED5] hover:border-yellow-500/40 transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider">GST Output Tax</span>
             <Scale className="w-4 h-4 text-yellow-400" />
@@ -306,17 +306,17 @@ export default function AccountingDashboardPage() {
         </div>
 
         {/* KPI 11: Input Tax Credit (ITC) */}
-        <div className="bg-slate-900/90 p-4 rounded-xl border border-[#E7DED5] hover:border-cyan-500/40 transition">
+        <div className="bg-white p-4 rounded-xl border border-[#E7DED5] hover:border-crm-brand-600/40 transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Input Tax Credit</span>
-            <CheckCircle2 className="w-4 h-4 text-cyan-400" />
+            <CheckCircle2 className="w-4 h-4 text-crm-brand-500" />
           </div>
-          <div className="text-lg font-bold text-cyan-400 font-mono">₹{(inputTaxCredit / 100000).toFixed(2)}L</div>
+          <div className="text-lg font-bold text-crm-brand-500 font-mono">₹{(inputTaxCredit / 100000).toFixed(2)}L</div>
           <div className="text-[10px] text-[#70665F] mt-1">GSTR-2B Matched</div>
         </div>
 
         {/* KPI 12: Net GST Cash Payable */}
-        <div className="bg-slate-900/90 p-4 rounded-xl border border-[#E7DED5] hover:border-amber-500/40 transition">
+        <div className="bg-white p-4 rounded-xl border border-[#E7DED5] hover:border-amber-500/40 transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Net GST Cash</span>
             <Coins className="w-4 h-4 text-amber-400" />
@@ -326,7 +326,7 @@ export default function AccountingDashboardPage() {
         </div>
 
         {/* KPI 13: Total TDS Deducted */}
-        <div className="bg-slate-900/90 p-4 rounded-xl border border-[#E7DED5] hover:border-violet-500/40 transition">
+        <div className="bg-white p-4 rounded-xl border border-[#E7DED5] hover:border-violet-500/40 transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider">TDS Deducted</span>
             <Calculator className="w-4 h-4 text-violet-400" />
@@ -336,7 +336,7 @@ export default function AccountingDashboardPage() {
         </div>
 
         {/* KPI 14: Job Margin Average */}
-        <div className="bg-slate-900/90 p-4 rounded-xl border border-[#E7DED5] hover:border-emerald-500/40 transition">
+        <div className="bg-white p-4 rounded-xl border border-[#E7DED5] hover:border-emerald-500/40 transition">
           <div className="flex items-center justify-between text-[#70665F] mb-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Job Margin Avg</span>
             <Briefcase className="w-4 h-4 text-emerald-400" />
@@ -379,7 +379,7 @@ export default function AccountingDashboardPage() {
         <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-blue-400" />
+              <TrendingUp className="w-4 h-4 text-crm-brand-500" />
               Cash Inflow vs Outflow Trend (₹ Lacs)
             </h3>
             <span className="text-[11px] text-[#70665F] font-mono">Net Liquidity Surge</span>
@@ -433,7 +433,7 @@ export default function AccountingDashboardPage() {
         <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
-              <PieIcon className="w-4 h-4 text-purple-400" />
+              <PieIcon className="w-4 h-4 text-crm-brand-500" />
               Manufacturing Expense Category Breakdown
             </h3>
             <span className="text-[11px] text-[#70665F] font-mono font-bold">Cost Center View</span>
@@ -514,7 +514,7 @@ export default function AccountingDashboardPage() {
         <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-[#E7DED5] pb-3">
             <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
-              <Landmark className="w-4 h-4 text-blue-400" />
+              <Landmark className="w-4 h-4 text-crm-brand-500" />
               Bank & Cash Account Live Status
             </h3>
             <Link href="/accounting/cash-bank" className="text-xs text-emerald-400 hover:underline">
@@ -524,16 +524,16 @@ export default function AccountingDashboardPage() {
 
           <div className="space-y-3">
             {bankAccounts.map((b) => (
-              <div key={b.id} className="p-3.5 bg-slate-950/70 rounded-xl border border-[#E7DED5] flex items-center justify-between">
+              <div key={b.id} className="p-3.5 bg-[#FAF7F2] rounded-xl border border-[#E7DED5] flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <div className="text-xs font-bold text-white flex items-center gap-2">
+                  <div className="text-xs font-bold text-[#211B17] flex items-center gap-2">
                     <span>{b.bankName}</span>
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-white text-[#544B45] font-mono font-medium">{b.accountType}</span>
                   </div>
                   <div className="text-[11px] text-[#70665F] font-mono">Acc: {b.accountNumber} • IFSC: {b.ifscCode}</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-bold text-emerald-400 font-mono">₹{b.currentBalance.toLocaleString()}</div>
+                  <div className="text-sm font-bold text-emerald-400 font-mono">₹{b.currentBalance?.toLocaleString()}</div>
                   <div className="text-[10px] text-[#8D827A] font-mono">Reconciled</div>
                 </div>
               </div>
@@ -554,28 +554,28 @@ export default function AccountingDashboardPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-xs">
-            <div className="p-3 bg-slate-950/70 rounded-xl border border-[#E7DED5]">
+            <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#E7DED5]">
               <div className="text-[#70665F] text-[10px] uppercase font-semibold">GSTR-1 Sales Output</div>
-              <div className="text-base font-bold text-white font-mono mt-1">₹{totalGSTLiability.toLocaleString()}</div>
+              <div className="text-base font-bold text-[#211B17] font-mono mt-1">₹{totalGSTLiability?.toLocaleString()}</div>
               <div className="text-[10px] text-emerald-400 mt-1 font-mono">Ready to File</div>
             </div>
 
-            <div className="p-3 bg-slate-950/70 rounded-xl border border-[#E7DED5]">
+            <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#E7DED5]">
               <div className="text-[#70665F] text-[10px] uppercase font-semibold">GSTR-2B Input Credit</div>
-              <div className="text-base font-bold text-cyan-400 font-mono mt-1">₹{inputTaxCredit.toLocaleString()}</div>
-              <div className="text-[10px] text-cyan-400 mt-1 font-mono">100% Matched</div>
+              <div className="text-base font-bold text-crm-brand-500 font-mono mt-1">₹{inputTaxCredit?.toLocaleString()}</div>
+              <div className="text-[10px] text-crm-brand-500 mt-1 font-mono">100% Matched</div>
             </div>
 
-            <div className="p-3 bg-slate-950/70 rounded-xl border border-[#E7DED5]">
+            <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#E7DED5]">
               <div className="text-[#70665F] text-[10px] uppercase font-semibold">Net Cash Liability</div>
-              <div className="text-base font-bold text-amber-400 font-mono mt-1">₹{netGSTPayable.toLocaleString()}</div>
+              <div className="text-base font-bold text-amber-400 font-mono mt-1">₹{netGSTPayable?.toLocaleString()}</div>
               <div className="text-[10px] text-[#70665F] mt-1">Due by 20th</div>
             </div>
 
-            <div className="p-3 bg-slate-950/70 rounded-xl border border-[#E7DED5]">
+            <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#E7DED5]">
               <div className="text-[#70665F] text-[10px] uppercase font-semibold">TDS Deducted</div>
               <div className="text-base font-bold text-violet-400 font-mono mt-1">
-                ₹{purchaseInvoices.reduce((a, b) => a + (b.tdsAmount ?? b.tdsDeducted ?? 0), 0).toLocaleString()}
+                ₹{purchaseInvoices.reduce((a, b) => a + (b.tdsAmount ?? b.tdsDeducted ?? 0), 0)?.toLocaleString()}
               </div>
               <div className="text-[10px] text-[#70665F] mt-1">Form 26Q Ready</div>
             </div>
@@ -596,13 +596,13 @@ export default function AccountingDashboardPage() {
 
           <div className="space-y-3">
             {salesInvoices.slice(0, 3).map((inv) => (
-              <div key={inv.id} className="p-3 bg-slate-950/70 rounded-xl border border-[#E7DED5] flex items-center justify-between">
+              <div key={inv.id} className="p-3 bg-[#FAF7F2] rounded-xl border border-[#E7DED5] flex items-center justify-between">
                 <div>
-                  <div className="text-xs font-bold text-white font-mono">{inv.invoiceNumber}</div>
+                  <div className="text-xs font-bold text-[#211B17] font-mono">{inv.invoiceNumber}</div>
                   <div className="text-[11px] text-[#70665F]">{inv.customerName}</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs font-bold text-emerald-400 font-mono">₹{inv.grandTotal.toLocaleString()}</div>
+                  <div className="text-xs font-bold text-emerald-400 font-mono">₹{inv.grandTotal?.toLocaleString()}</div>
                   <span className="inline-block text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-semibold uppercase">
                     {inv.status}
                   </span>

@@ -30,10 +30,10 @@ export default function DowntimeTrackingPage() {
   });
 
   const filteredDowntime = downtimeRecords.filter((d) =>
-    d.downtimeNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    d.machineName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    d.reason.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (d.jobNumber && d.jobNumber.toLowerCase().includes(searchTerm.toLowerCase()))
+    d.downtimeNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+    d.machineName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+    d.reason?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+    (d.jobNumber && d.jobNumber?.toLowerCase().includes(searchTerm?.toLowerCase()))
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -43,21 +43,21 @@ export default function DowntimeTrackingPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen">
+    <div className="p-4 sm:p-6 space-y-6 bg-slate-50 dark:bg-[#FAF7F2] ">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-white p-5 rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 rounded bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 font-mono text-xs font-bold">
               PRODUCTION & WORK CENTER IMPACT
             </span>
-            <span className="text-xs text-slate-400">Integrated with Module 6 Production</span>
+            <span className="text-xs text-[#70665F]">Integrated with Module 6 Production</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-1 flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-[#211B17] mt-1 flex items-center gap-2">
             <Clock className="w-6 h-6 text-red-500" />
             Machine Downtime Tracking
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[#70665F]">
             Log and analyze machine stoppage duration, work center impact, breakdown linkages, and production delays.
           </p>
         </div>
@@ -72,25 +72,25 @@ export default function DowntimeTrackingPage() {
       </div>
 
       {/* Search */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="bg-white dark:bg-white p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm">
         <div className="relative w-full md:w-96">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-3 text-[#70665F]" />
           <input
             type="text"
             placeholder="Search downtime no, machine, job or reason..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none"
+            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg focus:outline-none"
           />
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-white rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-slate-100/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-200 dark:border-slate-800">
+              <tr className="bg-slate-100/80 dark:bg-[#FAF7F2] text-slate-600 dark:text-[#70665F] uppercase tracking-wider font-semibold border-b border-slate-200 dark:border-[#EBE3DB]">
                 <th className="py-3.5 px-4">Downtime Ref</th>
                 <th className="py-3.5 px-4">Machine & Work Center</th>
                 <th className="py-3.5 px-4">Job & Prod Order</th>
@@ -100,21 +100,21 @@ export default function DowntimeTrackingPage() {
                 <th className="py-3.5 px-4">Technician</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-200 dark:divide-[#EBE3DB]">
               {filteredDowntime.map((d) => (
-                <tr key={d.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                <tr key={d.id} className="hover:bg-slate-50 dark:hover:bg-[#FAF7F2]/40 transition">
                   <td className="py-3.5 px-4 font-mono font-bold text-red-600 dark:text-red-400">
                     {d.downtimeNumber}
                   </td>
                   <td className="py-3.5 px-4">
-                    <div className="font-bold text-slate-900 dark:text-white">{d.machineName}</div>
-                    <div className="text-[10px] text-slate-400 font-mono">WC: {d.workCenter}</div>
+                    <div className="font-bold text-slate-900 dark:text-[#211B17]">{d.machineName}</div>
+                    <div className="text-[10px] text-[#70665F] font-mono">WC: {d.workCenter}</div>
                   </td>
                   <td className="py-3.5 px-4 font-mono">
-                    <div className="text-blue-600 font-bold">{d.jobNumber || 'N/A'}</div>
-                    <div className="text-[10px] text-slate-400">PO: {d.productionOrderNumber || 'N/A'}</div>
+                    <div className="text-crm-brand-700 font-bold">{d.jobNumber || 'N/A'}</div>
+                    <div className="text-[10px] text-[#70665F]">PO: {d.productionOrderNumber || 'N/A'}</div>
                   </td>
-                  <td className="py-3.5 px-4 font-mono text-slate-600 dark:text-slate-300">
+                  <td className="py-3.5 px-4 font-mono text-slate-600 dark:text-[#544B45]">
                     {d.startTime} - {d.endTime}
                   </td>
                   <td className="py-3.5 px-4 font-bold text-red-600 font-mono text-sm">
@@ -125,7 +125,7 @@ export default function DowntimeTrackingPage() {
                       {d.reason}
                     </span>
                   </td>
-                  <td className="py-3.5 px-4 font-medium text-slate-700 dark:text-slate-300">
+                  <td className="py-3.5 px-4 font-medium text-slate-700 dark:text-[#544B45]">
                     {d.technicianName || 'N/A'}
                   </td>
                 </tr>
@@ -137,8 +137,8 @@ export default function DowntimeTrackingPage() {
 
       {/* Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl overflow-hidden text-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FAF7F2] backdrop-blur-sm">
+          <div className="bg-white dark:bg-white rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-2xl w-full max-w-xl overflow-hidden text-xs">
             <div className="p-4 border-b flex items-center justify-between">
               <h3 className="font-bold text-base flex items-center gap-2">
                 <Clock className="w-5 h-5 text-red-500" /> Log Machine Stoppage Downtime

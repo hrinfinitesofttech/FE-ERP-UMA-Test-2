@@ -61,7 +61,7 @@ export default function CRMDashboardPage() {
     sourceCounts[l.source] = (sourceCounts[l.source] || 0) + 1;
   });
   const sourcePieData = Object.entries(sourceCounts).map(([key, value]) => ({
-    name: key.replace('_', ' ').toUpperCase(),
+    name: key?.replace('_', ' ')?.toUpperCase(),
     value,
   }));
   const PIE_COLORS = ['#A96B34', '#0E91B2', '#169B62', '#75401F', '#A43D8F', '#D68A22'];
@@ -180,6 +180,8 @@ export default function CRMDashboardPage() {
                 <Tooltip
                   formatter={(val: any) => [`₹ ${val} Lakhs`, 'Pipeline Value']}
                   contentStyle={{ backgroundColor: '#211B17', borderColor: '#3E2723', color: '#fff', borderRadius: '12px', fontSize: '11px' }}
+                  itemStyle={{ color: '#F8EDE0' }}
+                  cursor={{ fill: '#F6F0E7' }}
                 />
                 <Bar dataKey="value" fill="#75401F" radius={[6, 6, 0, 0]} />
               </BarChart>
@@ -201,7 +203,10 @@ export default function CRMDashboardPage() {
                     <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ backgroundColor: '#211B17', borderRadius: '12px', fontSize: '11px', color: '#fff' }} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#211B17', borderColor: '#3E2723', borderRadius: '12px', fontSize: '11px', color: '#fff' }}
+                  itemStyle={{ color: '#F8EDE0' }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -260,7 +265,9 @@ export default function CRMDashboardPage() {
                   <span className="font-mono font-bold text-[#75401F] block">{q.quotationNumber} ({q.currentRevision})</span>
                   <span className="text-[10px] text-[#70665F] block truncate">{q.customerName}</span>
                 </div>
-                <span className="font-bold text-[#169B62] text-[11px] font-mono">{formatCurrency(q.latestSummary.grandTotal)}</span>
+                <span className="font-bold text-[#169B62] text-[11px] font-mono">
+                  {formatCurrency(q.latestSummary?.grandTotal || (q.revisions && q.revisions[q.revisions.length - 1]?.grandTotal) || 0)}
+                </span>
               </div>
             ))}
           </div>

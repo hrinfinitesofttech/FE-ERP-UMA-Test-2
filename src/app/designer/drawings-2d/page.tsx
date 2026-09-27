@@ -37,9 +37,9 @@ export default function Drawings2DPage() {
 
   const filteredDrawings = drawings2D.filter((d) => {
     const matchSearch =
-      d.drawingNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      d.drawingTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      d.jobNumber.toLowerCase().includes(searchQuery.toLowerCase());
+      d.drawingNumber?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
+      d.drawingTitle?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
+      d.jobNumber?.toLowerCase().includes(searchQuery?.toLowerCase());
     const matchCat = categoryFilter === 'all' || d.category === categoryFilter;
     return matchSearch && matchCat;
   });
@@ -73,27 +73,27 @@ export default function Drawings2DPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-[#070A14] text-slate-100 min-h-screen">
+    <div className="p-6 space-y-6  text-[#211B17] ">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs font-mono font-bold">
+            <span className="px-2.5 py-0.5 rounded-full bg-crm-brand-600/20 text-crm-brand-500 border border-crm-brand-600/30 text-xs font-mono font-bold">
               MODULE 3.4
             </span>
-            <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-              <FileCheck className="w-7 h-7 text-blue-400" />
+            <h1 className="text-2xl font-black text-[#211B17] tracking-tight flex items-center gap-2">
+              <FileCheck className="w-7 h-7 text-crm-brand-500" />
               2D CAD Drawings Vault (DWG / DXF / PDF)
             </h1>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-[#70665F] mt-1">
             General Arrangement (GA), Fabrication Layouts, Nozzle Orientation & Electrical Schematics
           </p>
         </div>
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-lg shadow-blue-600/30 transition"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-600 text-[#211B17] text-xs font-bold shadow-lg shadow-crm-brand-700/30 transition"
         >
           <Plus className="w-4 h-4" />
           Upload 2D Drawing
@@ -101,22 +101,22 @@ export default function Drawings2DPage() {
       </div>
 
       {/* Control Bar */}
-      <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="p-4 rounded-2xl bg-white border border-[#EBE3DB] flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
           <input
             type="text"
             placeholder="Search Drawing #, Title, Job #..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+            className="w-full pl-9 pr-3 py-2 rounded-xl bg-white/80 border border-[#EBE3DB] text-xs text-[#211B17] placeholder-slate-500 focus:outline-none focus:border-crm-brand-600"
           />
         </div>
 
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+          className="bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] focus:outline-none focus:border-crm-brand-600"
         >
           <option value="all">All Drawing Types</option>
           <option value="GA">General Arrangement (GA)</option>
@@ -132,36 +132,36 @@ export default function Drawings2DPage() {
         {filteredDrawings.map((drw) => (
           <div
             key={drw.id}
-            className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-blue-500/40 transition space-y-3 shadow-xl relative group"
+            className="p-5 rounded-2xl bg-white border border-[#EBE3DB] hover:border-crm-brand-600/40 transition space-y-3 shadow-xl relative group"
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono font-black text-sm text-blue-400">{drw.drawingNumber}</span>
-              <span className="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono text-[10px] font-bold">
+              <span className="font-mono font-black text-sm text-crm-brand-500">{drw.drawingNumber}</span>
+              <span className="px-2 py-0.5 rounded bg-crm-brand-600/20 text-crm-brand- font-mono text-[10px] font-bold">
                 {drw.revisionNumber}
               </span>
             </div>
 
-            <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
-              <div className="flex items-center justify-between text-[10px] font-mono text-slate-400">
+            <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] space-y-1">
+              <div className="flex items-center justify-between text-[10px] font-mono text-[#70665F]">
                 <span>JOB REF: <strong className="text-amber-400">{drw.jobNumber}</strong></span>
-                <span>FMT: <strong className="text-cyan-300">{drw.fileFormat}</strong></span>
+                <span>FMT: <strong className="text-crm-brand-">{drw.fileFormat}</strong></span>
               </div>
-              <h4 className="font-extrabold text-white text-sm">{drw.drawingTitle}</h4>
-              <p className="text-[11px] text-slate-400">Category: {drw.category} | Scale: {drw.scale}</p>
+              <h4 className="font-extrabold text-[#211B17] text-sm">{drw.drawingTitle}</h4>
+              <p className="text-[11px] text-[#70665F]">Category: {drw.category} | Scale: {drw.scale}</p>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
-              <span>Drawn By: <strong className="text-slate-200">{drw.drawnBy}</strong></span>
+            <div className="flex items-center justify-between text-xs text-[#70665F] pt-1">
+              <span>Drawn By: <strong className="text-[#3E2723]">{drw.drawnBy}</strong></span>
               <span className="font-mono text-emerald-400 font-bold">Size: {drw.fileSize}</span>
             </div>
 
             {/* Action buttons */}
-            <div className="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
+            <div className="pt-2 border-t border-[#EBE3DB] flex items-center justify-between gap-2">
               <button
                 onClick={() => setSelectedDrawing(drw)}
-                className="w-full px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition"
+                className="w-full px-3 py-1.5 rounded-xl bg-white hover:bg-[#FAF7F2] text-[#3E2723] text-xs font-semibold flex items-center justify-center gap-1.5 transition"
               >
-                <Eye className="w-4 h-4 text-blue-400" />
+                <Eye className="w-4 h-4 text-crm-brand-500" />
                 CAD Blueprint Viewer
               </button>
             </div>
@@ -172,42 +172,42 @@ export default function Drawings2DPage() {
       {/* CAD Viewer Simulation Modal */}
       {selectedDrawing && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl space-y-4 p-6 text-xs">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl space-y-4 p-6 text-xs">
+            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
               <div>
-                <span className="font-mono font-bold text-blue-400 text-sm">{selectedDrawing.drawingNumber} ({selectedDrawing.revisionNumber})</span>
-                <h3 className="text-base font-extrabold text-white mt-0.5">{selectedDrawing.drawingTitle}</h3>
+                <span className="font-mono font-bold text-crm-brand-500 text-sm">{selectedDrawing.drawingNumber} ({selectedDrawing.revisionNumber})</span>
+                <h3 className="text-base font-extrabold text-[#211B17] mt-0.5">{selectedDrawing.drawingTitle}</h3>
               </div>
-              <button onClick={() => setSelectedDrawing(null)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setSelectedDrawing(null)} className="text-[#70665F] hover:text-[#211B17]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Simulated Technical CAD Viewer Canvas */}
-            <div className="w-full h-80 bg-[#060A14] border-2 border-blue-500/30 rounded-xl relative flex flex-col items-center justify-center p-6 text-center overflow-hidden">
+            <div className="w-full h-80 bg-[#060A14] border-2 border-crm-brand-600/30 rounded-xl relative flex flex-col items-center justify-center p-6 text-center overflow-hidden">
               <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:24px_24px] opacity-30" />
-              <FileCode className="w-16 h-16 text-blue-400/60 mb-3 animate-pulse" />
+              <FileCode className="w-16 h-16 text-crm-brand-500/60 mb-3 animate-pulse" />
               <div className="relative z-10 space-y-1">
-                <h4 className="font-mono font-bold text-white text-sm">AUTOCAD 2D VECTOR BLUEPRINT PREVIEW</h4>
-                <p className="text-slate-400 text-xs font-mono">Drawing No: {selectedDrawing.drawingNumber} | Format: {selectedDrawing.fileFormat} | Sheet: {selectedDrawing.sheetSize}</p>
-                <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 font-mono text-[10px]">
+                <h4 className="font-mono font-bold text-[#211B17] text-sm">AUTOCAD 2D VECTOR BLUEPRINT PREVIEW</h4>
+                <p className="text-[#70665F] text-xs font-mono">Drawing No: {selectedDrawing.drawingNumber} | Format: {selectedDrawing.fileFormat} | Sheet: {selectedDrawing.sheetSize}</p>
+                <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-crm-brand-600/20 text-crm-brand- border border-crm-brand-600/30 font-mono text-[10px]">
                   <span>Checked & Verified for ASME Sec VIII Compliance</span>
                 </div>
               </div>
 
               {/* Title Block Box Bottom Right */}
-              <div className="absolute bottom-2 right-2 bg-slate-950/90 border border-slate-700 p-2 rounded text-left font-mono text-[9px] text-slate-300">
+              <div className="absolute bottom-2 right-2 bg-[#FAF7F2]/90 border border-[#EBE3DB] p-2 rounded text-left font-mono text-[9px] text-[#544B45]">
                 <div>UMA TECHNO FAB MFG ERP</div>
-                <div className="text-cyan-400 font-bold">DRW: {selectedDrawing.drawingNumber}</div>
+                <div className="text-crm-brand-500 font-bold">DRW: {selectedDrawing.drawingNumber}</div>
                 <div>SCALE: {selectedDrawing.scale} | REV: {selectedDrawing.revisionNumber}</div>
               </div>
             </div>
 
             <div className="flex items-center justify-between pt-2">
-              <span className="text-slate-400 font-mono">Job Ref: {selectedDrawing.jobNumber}</span>
+              <span className="text-[#70665F] font-mono">Job Ref: {selectedDrawing.jobNumber}</span>
               <button
-                onClick={() => alert(`Downloading CAD Vector Blueprint ${selectedDrawing.drawingNumber}.${selectedDrawing.fileFormat.toLowerCase()}...`)}
-                className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold flex items-center gap-2"
+                onClick={() => alert(`Downloading CAD Vector Blueprint ${selectedDrawing.drawingNumber}.${selectedDrawing.fileFormat?.toLowerCase()}...`)}
+                className="px-4 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-600 text-[#211B17] font-bold flex items-center gap-2"
               >
                 <Download className="w-4 h-4" />
                 Download {selectedDrawing.fileFormat} File ({selectedDrawing.fileSize})
@@ -220,25 +220,25 @@ export default function Drawings2DPage() {
       {/* Modal: Upload 2D Drawing */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl space-y-4 p-6 text-xs">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-base font-extrabold text-white flex items-center gap-2">
-                <FileCheck className="w-5 h-5 text-blue-400" />
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl space-y-4 p-6 text-xs">
+            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+              <h3 className="text-base font-extrabold text-[#211B17] flex items-center gap-2">
+                <FileCheck className="w-5 h-5 text-crm-brand-500" />
                 Upload 2D CAD Blueprint
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setIsModalOpen(false)} className="text-[#70665F] hover:text-[#211B17]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleCreate} className="space-y-3">
               <div>
-                <label className="text-slate-300 font-bold block mb-1">Select Design Job *</label>
+                <label className="text-[#544B45] font-bold block mb-1">Select Design Job *</label>
                 <select
                   required
                   value={selectedDesignJobId}
                   onChange={(e) => setSelectedDesignJobId(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                 >
                   <option value="">-- Select Job --</option>
                   {designJobs.map((j) => (
@@ -250,24 +250,24 @@ export default function Drawings2DPage() {
               </div>
 
               <div>
-                <label className="text-slate-300 font-bold block mb-1">Drawing Title *</label>
+                <label className="text-[#544B45] font-bold block mb-1">Drawing Title *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. GA Drawing - 10,000L Reaction Vessel"
                   value={drawingTitle}
                   onChange={(e) => setDrawingTitle(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-slate-300 font-bold block mb-1">Category</label>
+                  <label className="text-[#544B45] font-bold block mb-1">Category</label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value as any)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                   >
                     <option value="GA">GA Drawing</option>
                     <option value="Fabrication">Fabrication</option>
@@ -277,11 +277,11 @@ export default function Drawings2DPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-slate-300 font-bold block mb-1">File Format</label>
+                  <label className="text-[#544B45] font-bold block mb-1">File Format</label>
                   <select
                     value={fileFormat}
                     onChange={(e) => setFileFormat(e.target.value as any)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500 font-mono"
+                    className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600 font-mono"
                   >
                     <option value="DWG">DWG (AutoCAD)</option>
                     <option value="DXF">DXF Vector</option>
@@ -290,17 +290,17 @@ export default function Drawings2DPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#EBE3DB]">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold"
+                  className="px-4 py-2 rounded-xl bg-white text-[#544B45] font-bold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold"
+                  className="px-5 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-600 text-[#211B17] font-bold"
                 >
                   Upload Drawing
                 </button>

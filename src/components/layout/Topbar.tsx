@@ -60,7 +60,7 @@ export function Topbar() {
         {/* Global Search Button Trigger (Ctrl+K) */}
         <button
           onClick={() => setIsSearchOpen(true)}
-          className="flex items-center gap-2.5 px-4 py-2 w-full bg-[#FAF7F2] hover:bg-white border border-[#E5DDD0] rounded-full text-xs text-[#8C7D72] transition-all text-left group shadow-xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#75401F]"
+          className="flex items-center gap-2.5 px-4 py-2 w-full bg-[#FAF7F2] hover:bg-white border border-[#E5DDD0] rounded-full text-xs text-[#8C7D72] transition-all text-left group shadow-xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-crm-brand-600"
         >
           <Search className="w-3.5 h-3.5 text-[#8C7D72] group-hover:text-[#3E2723] transition-colors" />
           <span className="flex-1 truncate text-xs">Search jobs, customers, products...</span>
@@ -75,7 +75,7 @@ export function Topbar() {
         {/* Quick Action: + New Lead */}
         <Link
           href="/crm/leads/new"
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#3E2723] hover:bg-[#2C1810] text-white text-xs font-bold transition shadow-xs"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-600 text-white text-xs font-bold transition shadow-xs"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>New Lead</span>
@@ -155,14 +155,14 @@ export function Topbar() {
             }}
             className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-[#F3EDE4] transition cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-full bg-[#182B49] text-white font-bold text-xs flex items-center justify-center shadow-xs uppercase">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-crm-brand-700 to-crm-brand-500 text-white font-bold text-xs flex items-center justify-center shadow-xs uppercase">
               {((currentUser.firstName?.[0] || currentUser.username?.[0] || 'U') + (currentUser.lastName?.[0] || ''))}
             </div>
             <div className="text-left hidden md:block">
               <div className="font-bold text-[#211B17] text-xs leading-tight">
                 {currentUser.name || `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.username || 'Admin User'}
               </div>
-              <div className="text-[10px] text-[#70665F] leading-tight font-medium">
+              <div className="text-[10px] text-crm-brand-600 leading-tight font-bold">
                 {currentUser.roleName || currentUser.role || 'Admin'}
               </div>
             </div>

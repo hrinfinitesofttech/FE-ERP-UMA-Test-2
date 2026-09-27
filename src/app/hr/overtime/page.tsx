@@ -40,32 +40,32 @@ export default function OvertimeManagementPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-slate-900 text-slate-100 min-h-screen">
+    <div className="p-6 space-y-6 bg-white text-[#211B17] ">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2">
             <Zap className="w-7 h-7 text-red-400" />
             Overtime (OT) Management & Payroll Integration
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-[#70665F] mt-1">
             Shop Floor Extra Work Hours Logging, Hourly Rate Multipliers (1.5x / 2.0x) & Automated Payroll Flow
           </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-semibold text-sm rounded-lg shadow-md transition"
+          className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-[#211B17] font-semibold text-sm rounded-lg shadow-md transition"
         >
           <Plus className="w-4 h-4" /> Log Overtime Record
         </button>
       </div>
 
       {/* Overtime Records Table */}
-      <div className="bg-slate-800/80 border border-slate-700/60 rounded-xl overflow-hidden shadow-xl">
+      <div className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="bg-slate-900/80 border-b border-slate-700 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              <tr className="bg-white/80 border-b border-[#EBE3DB] text-xs font-semibold text-[#70665F] uppercase tracking-wider">
                 <th className="p-4">OT Ref</th>
                 <th className="p-4">Employee</th>
                 <th className="p-4">Date & Dept</th>
@@ -75,25 +75,25 @@ export default function OvertimeManagementPage() {
                 <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700/60 text-slate-200">
+            <tbody className="divide-y divide-[#EBE3DB] text-[#3E2723]">
               {overtimeRecords.map((ot) => (
-                <tr key={ot.id} className="hover:bg-slate-700/40 transition">
+                <tr key={ot.id} className="hover:bg-[#FAF7F2]/40 transition">
                   <td className="p-4 font-mono text-xs text-red-400 font-bold">{ot.overtimeNo}</td>
                   <td className="p-4">
-                    <div className="font-bold text-white">{ot.employeeName}</div>
-                    <div className="text-xs text-slate-400">ID: {ot.employeeId}</div>
+                    <div className="font-bold text-[#211B17]">{ot.employeeName}</div>
+                    <div className="text-xs text-[#70665F]">ID: {ot.employeeId}</div>
                   </td>
                   <td className="p-4 text-xs">
-                    <div className="font-bold text-slate-200">{ot.date}</div>
-                    <div className="text-slate-400">{ot.department}</div>
+                    <div className="font-bold text-[#3E2723]">{ot.date}</div>
+                    <div className="text-[#70665F]">{ot.department}</div>
                   </td>
                   <td className="p-4 text-xs font-semibold text-amber-400">
                     <div>Regular: {ot.regularHours} Hrs</div>
                     <div className="text-red-400 font-bold">OT: +{ot.overtimeHours} Hrs</div>
                   </td>
                   <td className="p-4 text-xs font-mono">
-                    <div className="text-slate-300">Multiplier: {ot.overtimeRateMultiplier}x</div>
-                    <div className="text-emerald-400 font-extrabold text-sm">₹{ot.overtimeAmount.toLocaleString()}</div>
+                    <div className="text-[#544B45]">Multiplier: {ot.overtimeRateMultiplier}x</div>
+                    <div className="text-emerald-400 font-extrabold text-sm">₹{ot.overtimeAmount?.toLocaleString()}</div>
                   </td>
                   <td className="p-4">
                     <span
@@ -110,7 +110,7 @@ export default function OvertimeManagementPage() {
                     {ot.status === 'Pending' && (
                       <button
                         onClick={() => updateOvertimeStatus(ot.id, 'Approved')}
-                        className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded shadow transition"
+                        className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] text-xs font-semibold rounded shadow transition"
                       >
                         Approve OT
                       </button>
@@ -126,23 +126,23 @@ export default function OvertimeManagementPage() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+              <h2 className="text-lg font-bold text-[#211B17] flex items-center gap-2">
                 <Zap className="w-5 h-5 text-red-400" /> Log Overtime Entry
               </h2>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setShowModal(false)} className="text-[#70665F] hover:text-[#211B17]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-400 mb-1">Select Employee</label>
+                <label className="block text-[#70665F] mb-1">Select Employee</label>
                 <select
                   value={formData.employeeId}
                   onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
                 >
                   {availableEmployees.map((e) => (
                     <option key={e.id} value={e.id}>
@@ -154,59 +154,59 @@ export default function OvertimeManagementPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">Date</label>
+                  <label className="block text-[#70665F] mb-1">Date</label>
                   <input
                     type="date"
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">OT Hours Logged</label>
+                  <label className="block text-[#70665F] mb-1">OT Hours Logged</label>
                   <input
                     type="number"
                     step="0.5"
                     value={formData.overtimeHours}
                     onChange={(e) => setFormData({ ...formData, overtimeHours: Number(e.target.value) })}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">Rate Multiplier</label>
+                  <label className="block text-[#70665F] mb-1">Rate Multiplier</label>
                   <select
                     value={formData.overtimeRateMultiplier}
                     onChange={(e) => setFormData({ ...formData, overtimeRateMultiplier: Number(e.target.value) })}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
                   >
                     <option value={1.5}>1.5x (Weekday Overtime)</option>
                     <option value={2.0}>2.0x (Holiday / Night Overtime)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Calculated Amount</label>
-                  <div className="text-base font-bold text-emerald-400 pt-1">₹{overtimeAmount.toLocaleString()}</div>
+                  <label className="block text-[#70665F] mb-1">Calculated Amount</label>
+                  <div className="text-base font-bold text-emerald-400 pt-1">₹{overtimeAmount?.toLocaleString()}</div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1">Overtime Justification</label>
+                <label className="block text-[#70665F] mb-1">Overtime Justification</label>
                 <textarea
                   rows={2}
                   value={formData.reason}
                   onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
                 ></textarea>
               </div>
 
-              <div className="pt-3 border-t border-slate-800 flex justify-end gap-3">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-slate-800 text-slate-300 font-semibold rounded-lg">
+              <div className="pt-3 border-t border-[#EBE3DB] flex justify-end gap-3">
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-white text-[#544B45] font-semibold rounded-lg">
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg">
+                <button type="submit" className="px-4 py-2 bg-red-600 hover:bg-red-500 text-[#211B17] font-semibold rounded-lg">
                   Save & Flow to Payroll
                 </button>
               </div>

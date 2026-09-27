@@ -23,12 +23,12 @@ export function GlobalSearchModal() {
 
   const filteredJobs = jobs.filter(
     (j) =>
-      j.jobNumber.toLowerCase().includes(query.toLowerCase()) ||
-      j.customerName.toLowerCase().includes(query.toLowerCase()) ||
-      j.productName.toLowerCase().includes(query.toLowerCase()) ||
-      j.quotationId.toLowerCase().includes(query.toLowerCase()) ||
-      j.customerPoNumber.toLowerCase().includes(query.toLowerCase()) ||
-      j.salesOrderId.toLowerCase().includes(query.toLowerCase())
+      j.jobNumber?.toLowerCase().includes(query?.toLowerCase()) ||
+      j.customerName?.toLowerCase().includes(query?.toLowerCase()) ||
+      j.productName?.toLowerCase().includes(query?.toLowerCase()) ||
+      j.quotationId?.toLowerCase().includes(query?.toLowerCase()) ||
+      j.customerPoNumber?.toLowerCase().includes(query?.toLowerCase()) ||
+      j.salesOrderId?.toLowerCase().includes(query?.toLowerCase())
   );
 
   return (

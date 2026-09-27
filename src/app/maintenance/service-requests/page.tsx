@@ -56,11 +56,11 @@ export default function ServiceRequestsPage() {
 
   const filteredRequests = serviceRequests.filter((sr) => {
     const matchesSearch =
-      sr.requestNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sr.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sr.machineName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sr.serialNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sr.complaintType.toLowerCase().includes(searchTerm.toLowerCase());
+      sr.requestNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      sr.customerName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      sr.machineName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      sr.serialNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      sr.complaintType?.toLowerCase().includes(searchTerm?.toLowerCase());
     const matchesStatus = statusFilter === 'all' || sr.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || sr.priority === priorityFilter;
     return matchesSearch && matchesStatus && matchesPriority;
@@ -73,21 +73,21 @@ export default function ServiceRequestsPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen">
+    <div className="p-4 sm:p-6 space-y-6 bg-slate-50 dark:bg-[#FAF7F2] ">
       {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-white p-5 rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-mono text-xs font-bold">
               SERVICE DESK
             </span>
-            <span className="text-xs text-slate-400">Omnichannel Customer Complaint Logging</span>
+            <span className="text-xs text-[#70665F]">Omnichannel Customer Complaint Logging</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-1 flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-[#211B17] mt-1 flex items-center gap-2">
             <PhoneCall className="w-6 h-6 text-emerald-500" />
             Service Requests Management
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[#70665F]">
             Log, track, and assign customer service calls originated from Customer, CRM, Phone, Email, WhatsApp, PM or Breakdown Alerts.
           </p>
         </div>
@@ -102,24 +102,24 @@ export default function ServiceRequestsPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
+      <div className="bg-white dark:bg-white p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
         <div className="relative w-full md:w-96">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-3 text-[#70665F]" />
           <input
             type="text"
             placeholder="Search SR no, customer, machine, serial or complaint..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto">
-          <Filter className="w-3.5 h-3.5 text-slate-400" />
+          <Filter className="w-3.5 h-3.5 text-[#70665F]" />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none"
+            className="px-3 py-1.5 text-xs bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg focus:outline-none"
           >
             <option value="all">All Statuses</option>
             <option value="New">New</option>
@@ -134,7 +134,7 @@ export default function ServiceRequestsPage() {
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none"
+            className="px-3 py-1.5 text-xs bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg focus:outline-none"
           >
             <option value="all">All Priorities</option>
             <option value="Critical">Critical</option>
@@ -150,15 +150,15 @@ export default function ServiceRequestsPage() {
         {filteredRequests.map((sr) => (
           <div
             key={sr.id}
-            className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4 hover:shadow-md transition"
+            className="bg-white dark:bg-white rounded-2xl border border-slate-200 dark:border-[#EBE3DB] p-5 shadow-sm space-y-4 hover:shadow-md transition"
           >
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-mono font-bold text-xs">
+                  <span className="px-2.5 py-0.5 rounded bg-crm-brand- dark:bg-crm-brand- text-crm-brand-800 dark:text-crm-brand- font-mono font-bold text-xs">
                     {sr.requestNumber}
                   </span>
-                  <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-semibold">
+                  <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-[#FAF7F2] text-slate-600 dark:text-[#544B45] text-[10px] font-semibold">
                     Origin: {sr.origin}
                   </span>
                   <span
@@ -167,54 +167,54 @@ export default function ServiceRequestsPage() {
                         ? 'bg-red-500/10 text-red-600'
                         : sr.priority === 'High'
                         ? 'bg-amber-500/10 text-amber-600'
-                        : 'bg-blue-500/10 text-blue-600'
+                        : 'bg-crm-brand-600/10 text-crm-brand-700'
                     }`}
                   >
                     {sr.priority} Priority
                   </span>
                 </div>
-                <h3 className="font-bold text-sm text-slate-900 dark:text-white mt-2">{sr.customerName}</h3>
-                <p className="text-xs text-slate-500">{sr.machineName} (SN: {sr.serialNumber})</p>
+                <h3 className="font-bold text-sm text-slate-900 dark:text-[#211B17] mt-2">{sr.customerName}</h3>
+                <p className="text-xs text-[#70665F]">{sr.machineName} (SN: {sr.serialNumber})</p>
               </div>
 
-              <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+              <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-slate-100 dark:bg-[#FAF7F2] text-slate-800 dark:text-[#544B45] border border-slate-200 dark:border-[#EBE3DB]">
                 {sr.status}
               </span>
             </div>
 
-            <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl space-y-1">
-              <div className="font-semibold text-slate-800 dark:text-slate-200 text-xs">{sr.complaintType}</div>
-              <p className="text-xs text-slate-600 dark:text-slate-400">{sr.description}</p>
+            <div className="p-3 bg-slate-50 dark:bg-[#FAF7F2]/40 rounded-xl space-y-1">
+              <div className="font-semibold text-slate-800 dark:text-[#544B45] text-xs">{sr.complaintType}</div>
+              <p className="text-xs text-slate-600 dark:text-[#70665F]">{sr.description}</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-xs text-slate-500">
+            <div className="grid grid-cols-2 gap-2 text-xs text-[#70665F]">
               <div>
-                <span className="text-[10px] text-slate-400 block">Contact Person</span>
-                <span className="font-medium text-slate-800 dark:text-slate-200">{sr.contactPerson} ({sr.mobile})</span>
+                <span className="text-[10px] text-[#70665F] block">Contact Person</span>
+                <span className="font-medium text-slate-800 dark:text-[#544B45]">{sr.contactPerson} ({sr.mobile})</span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block">Assigned Engineer</span>
-                <span className="font-semibold text-blue-600 dark:text-blue-400">
+                <span className="text-[10px] text-[#70665F] block">Assigned Engineer</span>
+                <span className="font-semibold text-crm-brand-700 dark:text-crm-brand-500">
                   {sr.assignedTechnicianName || 'Not Assigned'}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block">Warranty / AMC</span>
-                <span className="font-medium text-slate-800 dark:text-slate-200">{sr.warrantyStatus} • {sr.amcStatus}</span>
+                <span className="text-[10px] text-[#70665F] block">Warranty / AMC</span>
+                <span className="font-medium text-slate-800 dark:text-[#544B45]">{sr.warrantyStatus} • {sr.amcStatus}</span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block">Preferred Visit Date</span>
-                <span className="font-medium text-slate-800 dark:text-slate-200">{formatDate(sr.preferredVisitDate)}</span>
+                <span className="text-[10px] text-[#70665F] block">Preferred Visit Date</span>
+                <span className="font-medium text-slate-800 dark:text-[#544B45]">{formatDate(sr.preferredVisitDate)}</span>
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
-              <span className="text-[10px] text-slate-400 font-mono">Logged: {formatDate(sr.createdAt)}</span>
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-[#EBE3DB]">
+              <span className="text-[10px] text-[#70665F] font-mono">Logged: {formatDate(sr.createdAt)}</span>
               <div className="flex items-center gap-2">
                 <select
                   value={sr.status}
                   onChange={(e) => updateServiceRequestStatus(sr.id, e.target.value as ServiceRequestStatus)}
-                  className="px-2 py-1 text-xs bg-slate-100 dark:bg-slate-800 border rounded"
+                  className="px-2 py-1 text-xs bg-slate-100 dark:bg-[#FAF7F2] border rounded"
                 >
                   <option value="New">New</option>
                   <option value="Assigned">Assigned</option>
@@ -232,14 +232,14 @@ export default function ServiceRequestsPage() {
 
       {/* Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-              <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FAF7F2] backdrop-blur-sm">
+          <div className="bg-white dark:bg-white rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="p-4 border-b border-slate-200 dark:border-[#EBE3DB] flex items-center justify-between">
+              <h3 className="font-bold text-base text-slate-900 dark:text-[#211B17] flex items-center gap-2">
                 <PhoneCall className="w-5 h-5 text-emerald-500" />
                 Log New Customer Service Request
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowAddModal(false)} className="text-[#70665F] hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -251,7 +251,7 @@ export default function ServiceRequestsPage() {
                   <select
                     value={formData.origin}
                     onChange={(e) => setFormData({ ...formData, origin: e.target.value as ServiceRequestOrigin })}
-                    className="w-full p-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                   >
                     <option value="Customer">Customer Direct</option>
                     <option value="CRM">CRM Lead / Support</option>
@@ -268,7 +268,7 @@ export default function ServiceRequestsPage() {
                   <select
                     value={formData.priority}
                     onChange={(e) => setFormData({ ...formData, priority: e.target.value as CriticalityLevel })}
-                    className="w-full p-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                   >
                     <option value="Low">Low</option>
                     <option value="Medium">Medium</option>
@@ -283,7 +283,7 @@ export default function ServiceRequestsPage() {
                     required
                     value={formData.customerName}
                     onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                    className="w-full p-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                   />
                 </div>
                 <div>
@@ -293,7 +293,7 @@ export default function ServiceRequestsPage() {
                     required
                     value={formData.serialNumber}
                     onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
-                    className="w-full p-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                   />
                 </div>
                 <div>
@@ -304,7 +304,7 @@ export default function ServiceRequestsPage() {
                     placeholder="e.g. Pressure Drop / Vibration"
                     value={formData.complaintType}
                     onChange={(e) => setFormData({ ...formData, complaintType: e.target.value })}
-                    className="w-full p-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                   />
                 </div>
                 <div>
@@ -313,7 +313,7 @@ export default function ServiceRequestsPage() {
                     type="date"
                     value={formData.preferredVisitDate}
                     onChange={(e) => setFormData({ ...formData, preferredVisitDate: e.target.value })}
-                    className="w-full p-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                   />
                 </div>
               </div>
@@ -324,7 +324,7 @@ export default function ServiceRequestsPage() {
                   rows={3}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full p-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                  className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                 />
               </div>
 

@@ -57,7 +57,7 @@ export function JobTraceabilityModal() {
             </h2>
           </div>
 
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2 flex-shrink-0 print:hidden">
             <button
               onClick={handlePrintJobCard}
               title="Print Job Traveler"
@@ -96,7 +96,7 @@ export function JobTraceabilityModal() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-[#E7DED5] bg-white px-4 sm:px-6 overflow-x-auto scrollbar-none text-xs font-medium">
+        <div className="flex border-b border-[#E7DED5] bg-white px-4 sm:px-6 overflow-x-auto scrollbar-none text-xs font-medium print:hidden">
           {[
             { id: 'overview', label: '360° Summary', icon: Layers },
             { id: 'crm', label: 'CRM & Order', icon: FileText },
@@ -133,78 +133,78 @@ export function JobTraceabilityModal() {
           {activeTab === 'overview' && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Card 1: Key Metadata */}
-              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-2.5">
-                <h4 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 text-xs uppercase tracking-wider">
-                  <FileText className="w-4 h-4 text-blue-500" /> Commercial Reference
+              <div className="p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] bg-slate-50/50 dark:bg-[#FAF7F2]/30 space-y-2.5">
+                <h4 className="font-semibold text-slate-800 dark:text-[#544B45] flex items-center gap-1.5 text-xs uppercase tracking-wider">
+                  <FileText className="w-4 h-4 text-crm-brand-600" /> Commercial Reference
                 </h4>
                 <div className="space-y-1.5 pt-1">
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Sales Order ID:</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">{job.salesOrderId}</span>
+                    <span className="text-[#70665F]">Sales Order ID:</span>
+                    <span className="font-semibold text-slate-800 dark:text-[#544B45]">{job.salesOrderId}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Quotation ID:</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">{job.quotationId}</span>
+                    <span className="text-[#70665F]">Quotation ID:</span>
+                    <span className="font-semibold text-slate-800 dark:text-[#544B45]">{job.quotationId}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Customer PO #:</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">{job.customerPoNumber}</span>
+                    <span className="text-[#70665F]">Customer PO #:</span>
+                    <span className="font-semibold text-slate-800 dark:text-[#544B45]">{job.customerPoNumber}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Total Order Value:</span>
+                    <span className="text-[#70665F]">Total Order Value:</span>
                     <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(job.orderValue)}</span>
                   </div>
                 </div>
               </div>
 
               {/* Card 2: Technical Specifications */}
-              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-2.5">
-                <h4 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 text-xs uppercase tracking-wider">
+              <div className="p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] bg-slate-50/50 dark:bg-[#FAF7F2]/30 space-y-2.5">
+                <h4 className="font-semibold text-slate-800 dark:text-[#544B45] flex items-center gap-1.5 text-xs uppercase tracking-wider">
                   <Wrench className="w-4 h-4 text-amber-500" /> Technical Specification
                 </h4>
                 <div className="space-y-1.5 pt-1">
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Product Code:</span>
-                    <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">{job.productCode}</span>
+                    <span className="text-[#70665F]">Product Code:</span>
+                    <span className="font-mono font-semibold text-slate-800 dark:text-[#544B45]">{job.productCode}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Batch / Quantity:</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">{job.quantity} {job.unit}</span>
+                    <span className="text-[#70665F]">Batch / Quantity:</span>
+                    <span className="font-semibold text-slate-800 dark:text-[#544B45]">{job.quantity} {job.unit}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Project Lead:</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">{job.projectManager}</span>
+                    <span className="text-[#70665F]">Project Lead:</span>
+                    <span className="font-semibold text-slate-800 dark:text-[#544B45]">{job.projectManager}</span>
                   </div>
-                  <div className="mt-2 text-[11px] text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 p-2 rounded border border-slate-200 dark:border-slate-800">
+                  <div className="mt-2 text-[11px] text-slate-600 dark:text-[#70665F] bg-white dark:bg-white p-2 rounded border border-slate-200 dark:border-[#EBE3DB]">
                     {job.specification}
                   </div>
                 </div>
               </div>
 
               {/* Card 3: Traceable Linked Records */}
-              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-2.5">
-                <h4 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 text-xs uppercase tracking-wider">
-                  <Layers className="w-4 h-4 text-purple-500" /> Connected Cross-Module Chain
+              <div className="p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] bg-slate-50/50 dark:bg-[#FAF7F2]/30 space-y-2.5">
+                <h4 className="font-semibold text-slate-800 dark:text-[#544B45] flex items-center gap-1.5 text-xs uppercase tracking-wider">
+                  <Layers className="w-4 h-4 text-crm-brand-600" /> Connected Cross-Module Chain
                 </h4>
                 <div className="space-y-1 pt-1 text-[11px]">
-                  <div className="flex justify-between py-0.5 border-b border-slate-100 dark:border-slate-800">
-                    <span className="text-slate-500">Design Revision:</span>
-                    <span className="font-mono font-semibold text-purple-600 dark:text-purple-400">{job.linkedRecords.designRev || 'REV-00'}</span>
+                  <div className="flex justify-between py-0.5 border-b border-slate-100 dark:border-[#EBE3DB]">
+                    <span className="text-[#70665F]">Design Revision:</span>
+                    <span className="font-mono font-semibold text-crm-brand-700 dark:text-crm-brand-500">{job.linkedRecords.designRev || 'REV-00'}</span>
                   </div>
-                  <div className="flex justify-between py-0.5 border-b border-slate-100 dark:border-slate-800">
-                    <span className="text-slate-500">Approved BOM ID:</span>
+                  <div className="flex justify-between py-0.5 border-b border-slate-100 dark:border-[#EBE3DB]">
+                    <span className="text-[#70665F]">Approved BOM ID:</span>
                     <span className="font-mono font-semibold">{job.linkedRecords.bomId || 'Pending'}</span>
                   </div>
-                  <div className="flex justify-between py-0.5 border-b border-slate-100 dark:border-slate-800">
-                    <span className="text-slate-500">Supplier POs:</span>
+                  <div className="flex justify-between py-0.5 border-b border-slate-100 dark:border-[#EBE3DB]">
+                    <span className="text-[#70665F]">Supplier POs:</span>
                     <span className="font-mono font-semibold">{job.linkedRecords.purchaseOrders?.join(', ') || 'None'}</span>
                   </div>
-                  <div className="flex justify-between py-0.5 border-b border-slate-100 dark:border-slate-800">
-                    <span className="text-slate-500">Shop Work Orders:</span>
+                  <div className="flex justify-between py-0.5 border-b border-slate-100 dark:border-[#EBE3DB]">
+                    <span className="text-[#70665F]">Shop Work Orders:</span>
                     <span className="font-mono font-semibold">{job.linkedRecords.workOrderIds?.join(', ') || 'None'}</span>
                   </div>
                   <div className="flex justify-between py-0.5">
-                    <span className="text-slate-500">Tax Invoices:</span>
+                    <span className="text-[#70665F]">Tax Invoices:</span>
                     <span className="font-mono font-semibold">{job.linkedRecords.invoiceNumbers?.join(', ') || 'None'}</span>
                   </div>
                 </div>
@@ -214,23 +214,23 @@ export function JobTraceabilityModal() {
 
           {activeTab === 'crm' && (
             <div className="space-y-4">
-              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-3">
-                <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100">Customer Contract & Quotation Details</h4>
+              <div className="p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] bg-white dark:bg-white space-y-3">
+                <h4 className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Customer Contract & Quotation Details</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                   <div>
-                    <span className="text-slate-500 block">Customer Name</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">{job.customerName}</span>
+                    <span className="text-[#70665F] block">Customer Name</span>
+                    <span className="font-semibold text-slate-800 dark:text-[#544B45]">{job.customerName}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block">Quotation No.</span>
-                    <span className="font-mono font-semibold text-blue-600">{job.quotationId}</span>
+                    <span className="text-[#70665F] block">Quotation No.</span>
+                    <span className="font-mono font-semibold text-crm-brand-700">{job.quotationId}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block">PO Date</span>
+                    <span className="text-[#70665F] block">PO Date</span>
                     <span className="font-semibold">{formatDate(job.startDate)}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block">Payment Terms</span>
+                    <span className="text-[#70665F] block">Payment Terms</span>
                     <span className="font-semibold">30% Adv, 60% ag. Proforma, 10% ag. Handover</span>
                   </div>
                 </div>
@@ -240,35 +240,35 @@ export function JobTraceabilityModal() {
 
           {activeTab === 'design' && (
             <div className="space-y-3">
-              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+              <div className="p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] bg-white dark:bg-white">
                 <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100">Approved Drawings & Engineering BOM</h4>
-                  <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-800 font-mono font-bold text-xs">
+                  <h4 className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Approved Drawings & Engineering BOM</h4>
+                  <span className="px-2 py-0.5 rounded bg-crm-brand- text-crm-brand- font-mono font-bold text-xs">
                     {job.linkedRecords.designRev || 'REV-01'}
                   </span>
                 </div>
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40">
+                  <div className="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-[#EBE3DB] bg-slate-50/60 dark:bg-[#FAF7F2]/40">
                     <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-purple-600" />
+                      <FileText className="w-4 h-4 text-crm-brand-700" />
                       <div>
-                        <span className="font-medium text-slate-900 dark:text-slate-100">Fabrication General Assembly (GA) Drawing.dwg</span>
-                        <span className="block text-[10px] text-slate-400">Approved by Dharmesh Joshi on 2026-08-18</span>
+                        <span className="font-medium text-slate-900 dark:text-[#544B45]">Fabrication General Assembly (GA) Drawing.dwg</span>
+                        <span className="block text-[10px] text-[#70665F]">Approved by Dharmesh Joshi on 2026-08-18</span>
                       </div>
                     </div>
-                    <button className="px-2.5 py-1 rounded bg-slate-200 dark:bg-slate-700 text-xs hover:bg-slate-300 font-medium">
+                    <button className="px-2.5 py-1 rounded bg-slate-200 dark:bg-[#FAF7F2] text-xs hover:bg-slate-300 font-medium">
                       Download PDF
                     </button>
                   </div>
-                  <div className="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40">
+                  <div className="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-[#EBE3DB] bg-slate-50/60 dark:bg-[#FAF7F2]/40">
                     <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-blue-600" />
+                      <FileText className="w-4 h-4 text-crm-brand-700" />
                       <div>
-                        <span className="font-medium text-slate-900 dark:text-slate-100">Bill of Materials (BOM-CRV-10K-R2) - 48 Line Items</span>
-                        <span className="block text-[10px] text-slate-400">Plates, Dish Ends, Nozzles, Baffles, Agitator Shaft</span>
+                        <span className="font-medium text-slate-900 dark:text-[#544B45]">Bill of Materials (BOM-CRV-10K-R2) - 48 Line Items</span>
+                        <span className="block text-[10px] text-[#70665F]">Plates, Dish Ends, Nozzles, Baffles, Agitator Shaft</span>
                       </div>
                     </div>
-                    <button className="px-2.5 py-1 rounded bg-slate-200 dark:bg-slate-700 text-xs hover:bg-slate-300 font-medium">
+                    <button className="px-2.5 py-1 rounded bg-slate-200 dark:bg-[#FAF7F2] text-xs hover:bg-slate-300 font-medium">
                       View BOM Items
                     </button>
                   </div>
@@ -279,15 +279,15 @@ export function JobTraceabilityModal() {
 
           {activeTab === 'purchase' && (
             <div className="space-y-3">
-              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-                <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100 mb-2">Material Procurement & GRN Inward</h4>
+              <div className="p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] bg-white dark:bg-white">
+                <h4 className="font-bold text-sm text-slate-800 dark:text-[#544B45] mb-2">Material Procurement & GRN Inward</h4>
                 <div className="space-y-2">
                   {job.linkedRecords.purchaseOrders && job.linkedRecords.purchaseOrders.length > 0 ? (
                     job.linkedRecords.purchaseOrders.map((po, idx) => (
-                      <div key={idx} className="flex justify-between items-center p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/50">
+                      <div key={idx} className="flex justify-between items-center p-2.5 rounded-lg border border-slate-100 dark:border-[#EBE3DB] bg-slate-50/50">
                         <div>
-                          <span className="font-mono font-bold text-blue-600">{po}</span>
-                          <span className="block text-slate-500 text-[11px]">Jindal Stainless Steel Ltd. • Material: SS 316L Plates (8mm & 12mm)</span>
+                          <span className="font-mono font-bold text-crm-brand-700">{po}</span>
+                          <span className="block text-[#70665F] text-[11px]">Jindal Stainless Steel Ltd. • Material: SS 316L Plates (8mm & 12mm)</span>
                         </div>
                         <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-medium text-[10px]">
                           GRN Received ({job.linkedRecords.grnNumbers?.[idx] || 'GRN-2026-088'})
@@ -295,7 +295,7 @@ export function JobTraceabilityModal() {
                       </div>
                     ))
                   ) : (
-                    <p className="text-slate-400 text-center py-4">No Purchase Orders raised yet.</p>
+                    <p className="text-[#70665F] text-center py-4">No Purchase Orders raised yet.</p>
                   )}
                 </div>
               </div>
@@ -304,22 +304,22 @@ export function JobTraceabilityModal() {
 
           {activeTab === 'store' && (
             <div className="space-y-4">
-              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-3">
-                <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100 flex items-center justify-between">
+              <div className="p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] bg-white dark:bg-white space-y-3">
+                <h4 className="font-bold text-sm text-slate-800 dark:text-[#544B45] flex items-center justify-between">
                   <span>Job-wise Stock Reservations & Material Slips</span>
                   <span className="text-xs text-sky-600 font-mono font-bold">{job.jobNumber}</span>
                 </h4>
 
                 <div className="space-y-2">
-                  <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Reserved Raw Materials & Bought-Outs:</div>
+                  <div className="text-xs font-bold text-slate-700 dark:text-[#544B45]">Reserved Raw Materials & Bought-Outs:</div>
                   {stockReservations.filter((r) => r.jobId === job.jobNumber).length > 0 ? (
                     stockReservations
                       .filter((r) => r.jobId === job.jobNumber)
                       .map((res) => (
-                        <div key={res.id} className="flex justify-between items-center p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
+                        <div key={res.id} className="flex justify-between items-center p-2.5 rounded-lg border border-slate-100 dark:border-[#EBE3DB] bg-slate-50 dark:bg-[#FAF7F2]/40">
                           <div>
-                            <span className="font-bold text-slate-900 dark:text-white">{res.itemCode} - {res.itemName}</span>
-                            <span className="block text-[10px] text-slate-400">Warehouse: {res.warehouseName} ({res.locationCode})</span>
+                            <span className="font-bold text-slate-900 dark:text-[#211B17]">{res.itemCode} - {res.itemName}</span>
+                            <span className="block text-[10px] text-[#70665F]">Warehouse: {res.warehouseName} ({res.locationCode})</span>
                           </div>
                           <div className="text-right">
                             <span className="font-mono font-bold text-rose-500 block text-xs">{res.reservedQuantity} Locked</span>
@@ -328,29 +328,29 @@ export function JobTraceabilityModal() {
                         </div>
                       ))
                   ) : (
-                    <div className="p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-slate-400">
+                    <div className="p-2.5 rounded-lg border border-slate-100 dark:border-[#EBE3DB] bg-slate-50 dark:bg-[#FAF7F2]/40 text-[#70665F]">
                       Material reserved: 3200 Kg SS 316L 10mm Plate (Heat # HEAT-98421)
                     </div>
                   )}
 
-                  <div className="text-xs font-bold text-slate-700 dark:text-slate-300 pt-2">Material Issue Slips Issued to Shop Floor:</div>
+                  <div className="text-xs font-bold text-slate-700 dark:text-[#544B45] pt-2">Material Issue Slips Issued to Shop Floor:</div>
                   {materialIssues.filter((i) => i.jobId === job.jobNumber).length > 0 ? (
                     materialIssues
                       .filter((i) => i.jobId === job.jobNumber)
                       .map((iss) => (
-                        <div key={iss.id} className="flex justify-between items-center p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 bg-emerald-50/50 dark:bg-emerald-950/20">
+                        <div key={iss.id} className="flex justify-between items-center p-2.5 rounded-lg border border-slate-100 dark:border-[#EBE3DB] bg-emerald-50/50 dark:bg-emerald-950/20">
                           <div>
                             <span className="font-mono font-bold text-emerald-600">{iss.issueNumber}</span>
-                            <span className="block text-[10px] text-slate-400">Stage: {iss.productionStage} • Requested By: {iss.requestedBy}</span>
+                            <span className="block text-[10px] text-[#70665F]">Stage: {iss.productionStage} • Requested By: {iss.requestedBy}</span>
                           </div>
                           <div className="text-right font-mono">
-                            <span className="font-bold text-emerald-600 block text-xs">₹{iss.totalIssueValue.toLocaleString('en-IN')}</span>
-                            <span className="text-[10px] text-slate-400">{iss.status}</span>
+                            <span className="font-bold text-emerald-600 block text-xs">₹{iss.totalIssueValue?.toLocaleString('en-IN')}</span>
+                            <span className="text-[10px] text-[#70665F]">{iss.status}</span>
                           </div>
                         </div>
                       ))
                   ) : (
-                    <div className="p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-slate-400">
+                    <div className="p-2.5 rounded-lg border border-slate-100 dark:border-[#EBE3DB] bg-slate-50 dark:bg-[#FAF7F2]/40 text-[#70665F]">
                       Issue Slip ISS-2026-0041: 3200 Kg SS 316L Plates issued to Cutting Bay
                     </div>
                   )}
@@ -361,23 +361,23 @@ export function JobTraceabilityModal() {
 
           {activeTab === 'production' && (
             <div className="space-y-3">
-              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-                <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100 mb-2">Shop Floor Work Orders & Routing</h4>
+              <div className="p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] bg-white dark:bg-white">
+                <h4 className="font-bold text-sm text-slate-800 dark:text-[#544B45] mb-2">Shop Floor Work Orders & Routing</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="p-3 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50/30">
-                    <span className="font-bold text-blue-700 dark:text-blue-300">Bay 1: Shell Rolling & Longitudinal Welding</span>
-                    <p className="text-slate-500 mt-1">Operator: Jayesh Parmar • Machine: 4-Roll Hydraulic Plate Bending M/C</p>
+                  <div className="p-3 rounded-lg border border-crm-brand- dark:border-crm-brand- bg-crm-brand-/30">
+                    <span className="font-bold text-crm-brand-800 dark:text-crm-brand-">Bay 1: Shell Rolling & Longitudinal Welding</span>
+                    <p className="text-[#70665F] mt-1">Operator: Jayesh Parmar • Machine: 4-Roll Hydraulic Plate Bending M/C</p>
                     <div className="mt-2 flex justify-between items-center text-[10px] font-semibold">
                       <span className="text-emerald-600">Status: Completed 100%</span>
-                      <span className="text-slate-400">WO-2026-064</span>
+                      <span className="text-[#70665F]">WO-2026-064</span>
                     </div>
                   </div>
                   <div className="p-3 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/30">
                     <span className="font-bold text-amber-700 dark:text-amber-300">Bay 3: Nozzle Fitment & Agitator Assembly</span>
-                    <p className="text-slate-500 mt-1">Operator: Ramesh V. • Machine: Radial Drilling & TIG Welding Unit</p>
+                    <p className="text-[#70665F] mt-1">Operator: Ramesh V. • Machine: Radial Drilling & TIG Welding Unit</p>
                     <div className="mt-2 flex justify-between items-center text-[10px] font-semibold">
-                      <span className="text-blue-600">Status: In Progress (65%)</span>
-                      <span className="text-slate-400">WO-2026-065</span>
+                      <span className="text-crm-brand-700">Status: In Progress (65%)</span>
+                      <span className="text-[#70665F]">WO-2026-065</span>
                     </div>
                   </div>
                 </div>
@@ -386,14 +386,14 @@ export function JobTraceabilityModal() {
           )}
 
           {activeTab === 'qc' && (
-            <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-3">
-              <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100">Quality Inspection & Pressure Tests</h4>
+            <div className="p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] bg-white dark:bg-white space-y-3">
+              <h4 className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Quality Inspection & Pressure Tests</h4>
               <div className="space-y-2">
-                <div className="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50">
+                <div className="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-[#EBE3DB] bg-slate-50">
                   <span className="font-medium">100% Radiography (RT) / DP Test on Weld Joints</span>
                   <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">PASSED</span>
                 </div>
-                <div className="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50">
+                <div className="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-[#EBE3DB] bg-slate-50">
                   <span className="font-medium">Hydrostatic Pressure Test @ 12.5 Bar (Held for 4 Hours)</span>
                   <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[10px]">SCHEDULED FOR TOMORROW</span>
                 </div>
@@ -402,23 +402,23 @@ export function JobTraceabilityModal() {
           )}
 
           {activeTab === 'dispatch' && (
-            <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-2">
-              <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100">Dispatch, Transport & Site Commissioning</h4>
-              <p className="text-slate-500">Destination: Dahej Plant 2, Gujarat. Heavy trailer transport with wooden crating.</p>
+            <div className="p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] bg-white dark:bg-white space-y-2">
+              <h4 className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Dispatch, Transport & Site Commissioning</h4>
+              <p className="text-[#70665F]">Destination: Dahej Plant 2, Gujarat. Heavy trailer transport with wooden crating.</p>
             </div>
           )}
 
           {activeTab === 'accounts' && (
-            <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-4">
-              <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100 flex items-center justify-between">
+            <div className="p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] bg-white dark:bg-white space-y-4">
+              <h4 className="font-bold text-sm text-slate-800 dark:text-[#544B45] flex items-center justify-between">
                 <span>Job 360° Financial Control & Billing Summary</span>
                 <span className="font-mono text-xs text-emerald-600 font-bold">{job.jobNumber}</span>
               </h4>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                <div className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 font-mono">
-                  <span className="text-slate-500 font-sans block text-[10px]">Sales Contract Value</span>
-                  <span className="text-sm font-bold text-slate-900 dark:text-white">{formatCurrency(job.orderValue)}</span>
+                <div className="p-3 rounded-lg border border-slate-200 dark:border-[#EBE3DB] bg-slate-50/50 dark:bg-[#FAF7F2]/40 font-mono">
+                  <span className="text-[#70665F] font-sans block text-[10px]">Sales Contract Value</span>
+                  <span className="text-sm font-bold text-slate-900 dark:text-[#211B17]">{formatCurrency(job.orderValue)}</span>
                 </div>
                 <div className="p-3 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50/40 dark:bg-emerald-950/20 font-mono">
                   <span className="text-emerald-700 dark:text-emerald-400 font-sans block text-[10px]">Total Receipts Collected</span>
@@ -428,25 +428,25 @@ export function JobTraceabilityModal() {
                   <span className="text-amber-700 dark:text-amber-400 font-sans block text-[10px]">Actual Cost Incurred</span>
                   <span className="text-sm font-bold text-amber-600">{formatCurrency(job.orderValue * 0.65)}</span>
                 </div>
-                <div className="p-3 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50/40 dark:bg-blue-950/20 font-mono">
-                  <span className="text-blue-700 dark:text-blue-400 font-sans block text-[10px]">Project Net Margin</span>
-                  <span className="text-sm font-bold text-blue-600">{formatCurrency(job.orderValue * 0.35)} (35%)</span>
+                <div className="p-3 rounded-lg border border-crm-brand- dark:border-crm-brand- bg-crm-brand-/40 dark:bg-crm-brand-/20 font-mono">
+                  <span className="text-crm-brand-800 dark:text-crm-brand-500 font-sans block text-[10px]">Project Net Margin</span>
+                  <span className="text-sm font-bold text-crm-brand-700">{formatCurrency(job.orderValue * 0.35)} (35%)</span>
                 </div>
               </div>
 
               {/* Linked Invoices & Receipts */}
-              <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
-                <div className="font-bold text-slate-800 dark:text-slate-200">Linked Sales & Purchase Invoices</div>
+              <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-[#EBE3DB] text-xs">
+                <div className="font-bold text-slate-800 dark:text-[#544B45]">Linked Sales & Purchase Invoices</div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <div className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
+                  <div className="p-2.5 rounded-lg border border-slate-200 dark:border-[#EBE3DB] bg-slate-50 dark:bg-[#FAF7F2]/40">
                     <span className="font-mono font-bold text-emerald-600">SINV-2026-0001</span>
-                    <span className="block text-slate-500 text-[10px]">Sales GST Invoice • Grand Total: {formatCurrency(job.orderValue)}</span>
+                    <span className="block text-[#70665F] text-[10px]">Sales GST Invoice • Grand Total: {formatCurrency(job.orderValue)}</span>
                     <span className="text-[10px] text-emerald-600 font-bold font-mono mt-0.5 inline-block">Approved & Posted</span>
                   </div>
-                  <div className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
-                    <span className="font-mono font-bold text-purple-600">PINV-2026-0001</span>
-                    <span className="block text-slate-500 text-[10px]">Jindal Steel Plate Purchase • Grand Total: ₹1,711,000</span>
-                    <span className="text-[10px] text-purple-600 font-bold font-mono mt-0.5 inline-block">Posted to General Ledger</span>
+                  <div className="p-2.5 rounded-lg border border-slate-200 dark:border-[#EBE3DB] bg-slate-50 dark:bg-[#FAF7F2]/40">
+                    <span className="font-mono font-bold text-crm-brand-700">PINV-2026-0001</span>
+                    <span className="block text-[#70665F] text-[10px]">Jindal Steel Plate Purchase • Grand Total: ₹1,711,000</span>
+                    <span className="text-[10px] text-crm-brand-700 font-bold font-mono mt-0.5 inline-block">Posted to General Ledger</span>
                   </div>
                 </div>
               </div>
@@ -454,24 +454,24 @@ export function JobTraceabilityModal() {
           )}
 
           {activeTab === 'service' && (
-            <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-4">
-              <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100 flex items-center justify-between">
+            <div className="p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] bg-white dark:bg-white space-y-4">
+              <h4 className="font-bold text-sm text-slate-800 dark:text-[#544B45] flex items-center justify-between">
                 <span>Job 360° Maintenance & Service History</span>
                 <span className="font-mono text-xs text-amber-600 font-bold">{job.jobNumber}</span>
               </h4>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                <div className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 font-mono">
-                  <span className="text-slate-500 font-sans block text-[10px]">Registered Machine Serial</span>
-                  <span className="text-sm font-bold text-indigo-600">UTF-CR-2026-0019</span>
+                <div className="p-3 rounded-lg border border-slate-200 dark:border-[#EBE3DB] bg-slate-50/50 dark:bg-[#FAF7F2]/40 font-mono">
+                  <span className="text-[#70665F] font-sans block text-[10px]">Registered Machine Serial</span>
+                  <span className="text-sm font-bold text-crm-brand-700">UTF-CR-2026-0019</span>
                 </div>
                 <div className="p-3 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/40 dark:bg-amber-950/20 font-mono">
                   <span className="text-amber-700 dark:text-amber-400 font-sans block text-[10px]">Warranty Status</span>
                   <span className="text-sm font-bold text-amber-600">Active (In Warranty)</span>
                 </div>
-                <div className="p-3 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50/40 dark:bg-blue-950/20 font-mono">
-                  <span className="text-blue-700 dark:text-blue-400 font-sans block text-[10px]">AMC Status</span>
-                  <span className="text-sm font-bold text-blue-600">Active AMC Contract</span>
+                <div className="p-3 rounded-lg border border-crm-brand- dark:border-crm-brand- bg-crm-brand-/40 dark:bg-crm-brand-/20 font-mono">
+                  <span className="text-crm-brand-800 dark:text-crm-brand-500 font-sans block text-[10px]">AMC Status</span>
+                  <span className="text-sm font-bold text-crm-brand-700">Active AMC Contract</span>
                 </div>
                 <div className="p-3 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50/40 dark:bg-emerald-950/20 font-mono">
                   <span className="text-emerald-700 dark:text-emerald-400 font-sans block text-[10px]">Service Requests / Visits</span>
@@ -479,17 +479,17 @@ export function JobTraceabilityModal() {
                 </div>
               </div>
 
-              <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
-                <div className="font-bold text-slate-800 dark:text-slate-200">Connected Field Service Records</div>
+              <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-[#EBE3DB] text-xs">
+                <div className="font-bold text-slate-800 dark:text-[#544B45]">Connected Field Service Records</div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <div className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
-                    <span className="font-mono font-bold text-blue-600">SR-2026-001</span>
-                    <span className="block text-slate-500 text-[10px]">Hydraulic Agitation Pressure Checkup • Reliance Hazira</span>
-                    <span className="text-[10px] text-blue-600 font-bold font-mono mt-0.5 inline-block">Scheduled Visit</span>
+                  <div className="p-2.5 rounded-lg border border-slate-200 dark:border-[#EBE3DB] bg-slate-50 dark:bg-[#FAF7F2]/40">
+                    <span className="font-mono font-bold text-crm-brand-700">SR-2026-001</span>
+                    <span className="block text-[#70665F] text-[10px]">Hydraulic Agitation Pressure Checkup • Reliance Hazira</span>
+                    <span className="text-[10px] text-crm-brand-700 font-bold font-mono mt-0.5 inline-block">Scheduled Visit</span>
                   </div>
-                  <div className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
+                  <div className="p-2.5 rounded-lg border border-slate-200 dark:border-[#EBE3DB] bg-slate-50 dark:bg-[#FAF7F2]/40">
                     <span className="font-mono font-bold text-green-600">SREP-2026-001</span>
-                    <span className="block text-slate-500 text-[10px]">Signed Service Report • Viton Seal Kit Issued</span>
+                    <span className="block text-[#70665F] text-[10px]">Signed Service Report • Viton Seal Kit Issued</span>
                     <span className="text-[10px] text-green-600 font-bold font-mono mt-0.5 inline-block">Customer Signed & Approved</span>
                   </div>
                 </div>
@@ -499,13 +499,13 @@ export function JobTraceabilityModal() {
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 flex items-center justify-between text-xs">
-          <span className="text-slate-500">
+        <div className="p-4 border-t border-slate-200 dark:border-[#EBE3DB] bg-slate-50 dark:bg-[#FAF7F2] flex items-center justify-between text-xs print:hidden">
+          <span className="text-[#70665F]">
             Tip: Click on any step in the MTO workflow banner above to toggle completion.
           </span>
           <button
             onClick={closeJobModal}
-            className="px-4 py-2 bg-slate-800 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-900 transition font-medium"
+            className="px-4 py-2 bg-[#FAF7F2] dark:bg-[#FAF7F2] text-[#211B17] rounded-lg hover:bg-white transition font-medium"
           >
             Close 360° View
           </button>

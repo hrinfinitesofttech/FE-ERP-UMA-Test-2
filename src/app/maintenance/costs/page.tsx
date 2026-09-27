@@ -29,9 +29,9 @@ export default function MaintenanceCostsPage() {
   });
 
   const filteredCosts = maintenanceCosts.filter((c) =>
-    c.costReference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.machineName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.serialNumber.toLowerCase().includes(searchTerm.toLowerCase())
+    c.costReference?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+    c.machineName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+    c.serialNumber?.toLowerCase().includes(searchTerm?.toLowerCase())
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -41,21 +41,21 @@ export default function MaintenanceCostsPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen">
+    <div className="p-4 sm:p-6 space-y-6 bg-slate-50 dark:bg-[#FAF7F2] ">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-white p-5 rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-mono text-xs font-bold">
               MAINTENANCE COST CONTROL & BILLING LINK
             </span>
-            <span className="text-xs text-slate-400">Parts, Labour, External Vendor & Logistics Costs</span>
+            <span className="text-xs text-[#70665F]">Parts, Labour, External Vendor & Logistics Costs</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-1 flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-[#211B17] mt-1 flex items-center gap-2">
             <DollarSign className="w-6 h-6 text-emerald-500" />
             Maintenance & Service Costing
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[#70665F]">
             Track spare parts cost, technician labour hours, vendor outsourcing, travel expense &amp; links to Module 7 Accounting for chargeable invoicing.
           </p>
         </div>
@@ -70,25 +70,25 @@ export default function MaintenanceCostsPage() {
       </div>
 
       {/* Search */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="bg-white dark:bg-white p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm">
         <div className="relative w-full md:w-96">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-3 text-[#70665F]" />
           <input
             type="text"
             placeholder="Search reference no, machine or serial..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none"
+            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg focus:outline-none"
           />
         </div>
       </div>
 
       {/* Costs Table */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-white rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-slate-100/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-200 dark:border-slate-800">
+              <tr className="bg-slate-100/80 dark:bg-[#FAF7F2] text-slate-600 dark:text-[#70665F] uppercase tracking-wider font-semibold border-b border-slate-200 dark:border-[#EBE3DB]">
                 <th className="py-3.5 px-4">Cost Ref & Type</th>
                 <th className="py-3.5 px-4">Machine & Serial</th>
                 <th className="py-3.5 px-4 font-mono text-right">Parts Cost</th>
@@ -99,36 +99,36 @@ export default function MaintenanceCostsPage() {
                 <th className="py-3.5 px-4">Accounting Link</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-200 dark:divide-[#EBE3DB]">
               {filteredCosts.map((c) => (
-                <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-[#FAF7F2]/40 transition">
                   <td className="py-3.5 px-4">
                     <div className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{c.costReference}</div>
-                    <div className="text-[10px] text-slate-400">{c.referenceType}</div>
+                    <div className="text-[10px] text-[#70665F]">{c.referenceType}</div>
                   </td>
                   <td className="py-3.5 px-4">
-                    <div className="font-bold text-slate-900 dark:text-white">{c.machineName}</div>
-                    <div className="text-[10px] text-slate-400 font-mono">SN: {c.serialNumber}</div>
+                    <div className="font-bold text-slate-900 dark:text-[#211B17]">{c.machineName}</div>
+                    <div className="text-[10px] text-[#70665F] font-mono">SN: {c.serialNumber}</div>
                   </td>
                   <td className="py-3.5 px-4 font-mono text-right">{formatCurrency(c.partsCost)}</td>
                   <td className="py-3.5 px-4 font-mono text-right">{formatCurrency(c.labourCost)}</td>
                   <td className="py-3.5 px-4 font-mono text-right">{formatCurrency(c.travelTransportCost)}</td>
-                  <td className="py-3.5 px-4 font-mono font-bold text-right text-slate-900 dark:text-slate-100">
+                  <td className="py-3.5 px-4 font-mono font-bold text-right text-slate-900 dark:text-[#544B45]">
                     {formatCurrency(c.totalCost)}
                   </td>
                   <td className="py-3.5 px-4 font-mono text-right">
-                    <div className="font-bold text-slate-700 dark:text-slate-300">Est: {formatCurrency(c.estimatedCost)}</div>
+                    <div className="font-bold text-slate-700 dark:text-[#544B45]">Est: {formatCurrency(c.estimatedCost)}</div>
                     <div className={`text-[10px] ${c.variance <= 0 ? 'text-emerald-500 font-bold' : 'text-red-500 font-bold'}`}>
                       Var: {formatCurrency(c.variance)}
                     </div>
                   </td>
                   <td className="py-3.5 px-4">
                     {c.isChargeable ? (
-                      <span className="px-2.5 py-1 rounded bg-blue-500/10 text-blue-600 font-mono text-[10px] font-bold">
+                      <span className="px-2.5 py-1 rounded bg-crm-brand-600/10 text-crm-brand-700 font-mono text-[10px] font-bold">
                         Billed: {c.billingInvoiceNumber || 'INV-SRV-089'}
                       </span>
                     ) : (
-                      <span className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px]">
+                      <span className="px-2.5 py-1 rounded bg-slate-100 dark:bg-[#FAF7F2] text-[#70665F] text-[10px]">
                         Internal Overhead
                       </span>
                     )}
@@ -142,8 +142,8 @@ export default function MaintenanceCostsPage() {
 
       {/* Add Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl overflow-hidden text-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FAF7F2] backdrop-blur-sm">
+          <div className="bg-white dark:bg-white rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-2xl w-full max-w-xl overflow-hidden text-xs">
             <div className="p-4 border-b flex items-center justify-between">
               <h3 className="font-bold text-base flex items-center gap-2">
                 <DollarSign className="w-5 h-5 text-emerald-500" /> Record Maintenance Cost Entry

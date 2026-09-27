@@ -56,9 +56,9 @@ export default function ItemMasterPage() {
 
   const filteredItems = itemMasters.filter((item) => {
     const matchesSearch =
-      item.itemCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.specification.toLowerCase().includes(searchTerm.toLowerCase());
+      item.itemCode?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      item.itemName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      item.specification?.toLowerCase().includes(searchTerm?.toLowerCase());
     const matchesType = selectedType === 'all' || item.itemType === selectedType;
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
     return matchesSearch && matchesType && matchesCategory;
@@ -98,24 +98,24 @@ export default function ItemMasterPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-slate-950 text-slate-100 min-h-screen">
+    <div className="p-6 space-y-6 bg-[#FAF7F2] text-[#544B45] ">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/80 p-5 rounded-2xl border border-slate-800 shadow-xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-xl">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-md bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs font-mono font-semibold">
+            <span className="px-2.5 py-0.5 rounded-md bg-crm-brand-600/20 text-crm-brand-500 border border-crm-brand-600/30 text-xs font-mono font-semibold">
               STORE CATALOG
             </span>
-            <h1 className="text-2xl font-black text-white tracking-tight">Item & Material Master</h1>
+            <h1 className="text-2xl font-black text-[#211B17] tracking-tight">Item & Material Master</h1>
           </div>
-          <p className="text-slate-400 text-xs mt-1">
+          <p className="text-[#70665F] text-xs mt-1">
             Centralized master repository for raw materials, bought-out items, consumables, hardware, and finished goods.
           </p>
         </div>
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition"
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-crm-brand-700 text-white text-xs font-bold shadow-lg shadow-crm-brand-700/30 hover:bg-crm-brand-600 transition"
         >
           <Plus className="w-4 h-4" />
           Add New Item
@@ -123,23 +123,23 @@ export default function ItemMasterPage() {
       </div>
 
       {/* Filter Bar */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-3 bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB]">
         <div className="flex items-center gap-3 w-full md:w-auto flex-1">
           <div className="relative w-full md:w-80">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
             <input
               type="text"
               placeholder="Search by code, name, specification..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+              className="w-full pl-9 pr-4 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] placeholder-slate-400 focus:outline-none focus:border-crm-brand-600"
             />
           </div>
 
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
-            className="bg-slate-800 text-slate-200 border border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-blue-500"
+            className="bg-[#FAF7F2] text-[#544B45] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-crm-brand-600"
           >
             <option value="all">All Item Types</option>
             <option value="Plate">Plate / Sheet</option>
@@ -153,7 +153,7 @@ export default function ItemMasterPage() {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-slate-800 text-slate-200 border border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-blue-500"
+            className="bg-[#FAF7F2] text-[#544B45] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-crm-brand-600"
           >
             <option value="all">All Categories</option>
             {itemCategories.map((c) => (
@@ -164,16 +164,16 @@ export default function ItemMasterPage() {
           </select>
         </div>
 
-        <div className="text-xs text-slate-400 font-mono">
-          Showing <span className="text-white font-bold">{filteredItems.length}</span> of {itemMasters.length} items
+        <div className="text-xs text-[#70665F] font-mono">
+          Showing <span className="text-[#211B17] font-bold">{filteredItems.length}</span> of {itemMasters.length} items
         </div>
       </div>
 
       {/* Item Master Table */}
-      <div className="bg-slate-900/80 rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+      <div className="bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-800/90 text-slate-400 font-mono text-[11px] uppercase tracking-wider border-b border-slate-700">
+          <table className="w-full text-left text-xs text-[#544B45]">
+            <thead className="bg-[#FAF7F2]/90 text-[#70665F] font-mono text-[11px] uppercase tracking-wider border-b border-[#EBE3DB]">
               <tr>
                 <th className="p-3.5">Item Code & Name</th>
                 <th className="p-3.5">Type & Category</th>
@@ -186,33 +186,33 @@ export default function ItemMasterPage() {
                 <th className="p-3.5 text-center">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800">
+            <tbody className="divide-y divide-[#EBE3DB]">
               {filteredItems.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-800/40 transition">
+                <tr key={item.id} className="hover:bg-[#FAF7F2]/40 transition">
                   <td className="p-3.5 font-medium">
-                    <div className="font-bold text-white text-xs">{item.itemCode}</div>
-                    <div className="text-[11px] text-slate-400 mt-0.5">{item.itemName}</div>
+                    <div className="font-bold text-[#211B17] text-xs">{item.itemCode}</div>
+                    <div className="text-[11px] text-[#70665F] mt-0.5">{item.itemName}</div>
                   </td>
                   <td className="p-3.5">
-                    <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[10px] font-semibold border border-blue-500/30">
+                    <span className="px-2 py-0.5 rounded bg-crm-brand-600/20 text-crm-brand- text-[10px] font-semibold border border-crm-brand-600/30">
                       {item.itemType}
                     </span>
-                    <div className="text-[10px] text-slate-400 mt-1">{item.category}</div>
+                    <div className="text-[10px] text-[#70665F] mt-1">{item.category}</div>
                   </td>
                   <td className="p-3.5">
-                    <div className="text-slate-300 text-xs font-mono">{item.specification}</div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">HSN: {item.hsnSac} | GST: {item.gstRate}%</div>
+                    <div className="text-[#544B45] text-xs font-mono">{item.specification}</div>
+                    <div className="text-[10px] text-[#70665F] mt-0.5">HSN: {item.hsnSac} | GST: {item.gstRate}%</div>
                   </td>
-                  <td className="p-3.5 font-bold text-slate-200">{item.uom}</td>
+                  <td className="p-3.5 font-bold text-[#544B45]">{item.uom}</td>
                   <td className="p-3.5 text-right font-mono">
                     <div className="text-emerald-400 font-bold">{item.minimumStock}</div>
-                    <div className="text-[10px] text-slate-400">Max: {item.maximumStock}</div>
+                    <div className="text-[10px] text-[#70665F]">Max: {item.maximumStock}</div>
                   </td>
                   <td className="p-3.5 text-right font-mono text-amber-400 font-bold">{item.reorderLevel}</td>
-                  <td className="p-3.5 text-right font-mono font-bold text-white">₹{item.standardCost.toLocaleString('en-IN')}</td>
+                  <td className="p-3.5 text-right font-mono font-bold text-[#211B17]">₹{item.standardCost?.toLocaleString('en-IN')}</td>
                   <td className="p-3.5 text-center">
                     <div className="flex items-center justify-center gap-1.5 text-[10px] font-mono">
-                      {item.batchTracking && <span className="px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">Batch</span>}
+                      {item.batchTracking && <span className="px-1.5 py-0.2 rounded bg-crm-brand-600/20 text-crm-brand- border border-crm-brand-600/30">Batch</span>}
                       {item.serialTracking && <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Serial</span>}
                     </div>
                   </td>
@@ -230,14 +230,14 @@ export default function ItemMasterPage() {
 
       {/* Add New Item Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <Package className="w-5 h-5 text-blue-400" />
+        <div className="fixed inset-0 z-50 bg-[#FAF7F2] backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+              <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+                <Package className="w-5 h-5 text-crm-brand-500" />
                 Add New Item to Master Catalog
               </h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white text-xs">
+              <button onClick={() => setIsModalOpen(false)} className="text-[#70665F] hover:text-[#211B17] text-xs">
                 ✕
               </button>
             </div>
@@ -245,36 +245,36 @@ export default function ItemMasterPage() {
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">Item Code *</label>
+                  <label className="block text-[#70665F] mb-1">Item Code *</label>
                   <input
                     type="text"
                     required
                     value={formData.itemCode}
                     onChange={(e) => setFormData({ ...formData, itemCode: e.target.value })}
                     placeholder="e.g. RM-SS316-12MM"
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Item Name *</label>
+                  <label className="block text-[#70665F] mb-1">Item Name *</label>
                   <input
                     type="text"
                     required
                     value={formData.itemName}
                     onChange={(e) => setFormData({ ...formData, itemName: e.target.value })}
                     placeholder="e.g. SS 316L Plate 12mm"
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">Item Type</label>
+                  <label className="block text-[#70665F] mb-1">Item Type</label>
                   <select
                     value={formData.itemType}
                     onChange={(e) => setFormData({ ...formData, itemType: e.target.value as ItemType })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                   >
                     <option value="Plate">Plate</option>
                     <option value="Pipe">Pipe</option>
@@ -284,11 +284,11 @@ export default function ItemMasterPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Category</label>
+                  <label className="block text-[#70665F] mb-1">Category</label>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                   >
                     {itemCategories.map((c) => (
                       <option key={c.id} value={c.categoryName}>
@@ -298,11 +298,11 @@ export default function ItemMasterPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">UOM</label>
+                  <label className="block text-[#70665F] mb-1">UOM</label>
                   <select
                     value={formData.uom}
                     onChange={(e) => setFormData({ ...formData, uom: e.target.value })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                   >
                     {uoms.map((u) => (
                       <option key={u.id} value={u.uomCode}>
@@ -314,66 +314,66 @@ export default function ItemMasterPage() {
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1">Technical Specification</label>
+                <label className="block text-[#70665F] mb-1">Technical Specification</label>
                 <input
                   type="text"
                   value={formData.specification}
                   onChange={(e) => setFormData({ ...formData, specification: e.target.value })}
                   placeholder="e.g. ASME SA 240 SS 316L Prime Grade"
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                 />
               </div>
 
               <div className="grid grid-cols-4 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">Min Stock</label>
+                  <label className="block text-[#70665F] mb-1">Min Stock</label>
                   <input
                     type="number"
                     value={formData.minimumStock}
                     onChange={(e) => setFormData({ ...formData, minimumStock: Number(e.target.value) })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Reorder Level</label>
+                  <label className="block text-[#70665F] mb-1">Reorder Level</label>
                   <input
                     type="number"
                     value={formData.reorderLevel}
                     onChange={(e) => setFormData({ ...formData, reorderLevel: Number(e.target.value) })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Standard Cost (₹)</label>
+                  <label className="block text-[#70665F] mb-1">Standard Cost (₹)</label>
                   <input
                     type="number"
                     value={formData.standardCost}
                     onChange={(e) => setFormData({ ...formData, standardCost: Number(e.target.value) })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">HSN Code</label>
+                  <label className="block text-[#70665F] mb-1">HSN Code</label>
                   <input
                     type="text"
                     value={formData.hsnSac}
                     onChange={(e) => setFormData({ ...formData, hsnSac: e.target.value })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-semibold"
+                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] hover:bg-[#FAF7F2] text-xs font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-500 text-xs font-semibold shadow-lg shadow-blue-600/30"
+                  className="px-4 py-2 rounded-xl bg-crm-brand-700 text-white hover:bg-crm-brand-600 text-xs font-semibold shadow-lg shadow-crm-brand-700/30"
                 >
                   Save Item Master
                 </button>

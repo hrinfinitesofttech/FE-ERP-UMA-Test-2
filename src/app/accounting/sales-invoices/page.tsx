@@ -24,9 +24,9 @@ export default function SalesInvoicesPage() {
 
   const filteredInvoices = salesInvoices.filter((inv) => {
     const matchesSearch =
-      inv.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      inv.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      inv.salesOrderNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+      inv.invoiceNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      inv.customerName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      inv.salesOrderNumber?.toLowerCase().includes(searchTerm?.toLowerCase());
     const matchesStatus = selectedStatus === 'All' || inv.status === selectedStatus;
     return matchesSearch && matchesStatus;
   });
@@ -96,21 +96,21 @@ export default function SalesInvoicesPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-slate-950 min-h-screen text-slate-100">
-      <div className="flex items-center justify-between bg-slate-900 p-6 rounded-2xl border border-slate-800">
+    <div className="p-6 space-y-6 bg-[#FAF7F2]  text-[#211B17]">
+      <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-[#EBE3DB]">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-emerald-500/20 rounded-xl text-emerald-400">
             <Receipt className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">Sales Invoices & GST Output Register</h1>
-            <p className="text-xs text-slate-400 mt-0.5">Automated GST Invoicing • Linked to Sales Order & Job Traceability</p>
+            <h1 className="text-xl font-bold text-[#211B17]">Sales Invoices & GST Output Register</h1>
+            <p className="text-xs text-[#70665F] mt-0.5">Automated GST Invoicing • Linked to Sales Order & Job Traceability</p>
           </div>
         </div>
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition"
+          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] text-xs font-semibold px-4 py-2.5 rounded-xl transition"
         >
           <Plus className="w-4 h-4" />
           <span>New Sales Invoice</span>
@@ -118,15 +118,15 @@ export default function SalesInvoicesPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-900 p-4 rounded-xl border border-slate-800">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl border border-[#EBE3DB]">
         <div className="relative w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
           <input
             type="text"
             placeholder="Search invoice no, customer..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-200"
+            className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-4 py-2 text-xs text-[#3E2723]"
           />
         </div>
 
@@ -136,7 +136,7 @@ export default function SalesInvoicesPage() {
               key={st}
               onClick={() => setSelectedStatus(st)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                selectedStatus === st ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-950 text-slate-400 border border-slate-800'
+                selectedStatus === st ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-[#FAF7F2] text-[#70665F] border border-[#EBE3DB]'
               }`}
             >
               {st}
@@ -146,9 +146,9 @@ export default function SalesInvoicesPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
-        <table className="w-full text-left text-xs text-slate-300">
-          <thead className="bg-slate-950/80 text-slate-400 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-800">
+      <div className="bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden">
+        <table className="w-full text-left text-xs text-[#544B45]">
+          <thead className="bg-[#FAF7F2]/80 text-[#70665F] uppercase font-semibold text-[10px] tracking-wider border-b border-[#EBE3DB]">
             <tr>
               <th className="py-3.5 px-4">Invoice No</th>
               <th className="py-3.5 px-4">Date</th>
@@ -161,18 +161,18 @@ export default function SalesInvoicesPage() {
               <th className="py-3.5 px-4 text-center">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60 font-mono">
+          <tbody className="divide-y divide-[#EBE3DB] font-mono">
             {filteredInvoices.map((inv) => (
-              <tr key={inv.id} className="hover:bg-slate-800/40 transition">
+              <tr key={inv.id} className="hover:bg-white/40 transition">
                 <td className="py-3 px-4 font-bold text-emerald-400">{inv.invoiceNumber}</td>
-                <td className="py-3 px-4 text-slate-400 font-sans">{inv.invoiceDate}</td>
-                <td className="py-3 px-4 font-sans font-semibold text-slate-200">{inv.customerName}</td>
-                <td className="py-3 px-4 font-sans text-slate-400">
+                <td className="py-3 px-4 text-[#70665F] font-sans">{inv.invoiceDate}</td>
+                <td className="py-3 px-4 font-sans font-semibold text-[#3E2723]">{inv.customerName}</td>
+                <td className="py-3 px-4 font-sans text-[#70665F]">
                   {inv.salesOrderNumber} {inv.jobNumber && `(${inv.jobNumber})`}
                 </td>
-                <td className="py-3 px-4 text-right text-slate-300">₹{(inv.subTotal ?? inv.subtotal ?? 0).toLocaleString()}</td>
-                <td className="py-3 px-4 text-right text-yellow-400">₹{(inv.taxTotal ?? 0).toLocaleString()}</td>
-                <td className="py-3 px-4 text-right font-bold text-white">₹{(inv.grandTotal ?? 0).toLocaleString()}</td>
+                <td className="py-3 px-4 text-right text-[#544B45]">₹{(inv.subTotal ?? inv.subtotal ?? 0)?.toLocaleString()}</td>
+                <td className="py-3 px-4 text-right text-yellow-400">₹{(inv.taxTotal ?? 0)?.toLocaleString()}</td>
+                <td className="py-3 px-4 text-right font-bold text-[#211B17]">₹{(inv.grandTotal ?? 0)?.toLocaleString()}</td>
                 <td className="py-3 px-4 text-center font-sans">
                   <span
                     className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
@@ -186,12 +186,12 @@ export default function SalesInvoicesPage() {
                   {inv.status === 'Draft' ? (
                     <button
                       onClick={() => approveSalesInvoice(inv.id)}
-                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-semibold rounded-lg transition"
+                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] text-[10px] font-semibold rounded-lg transition"
                     >
                       Approve Invoice
                     </button>
                   ) : (
-                    <span className="text-slate-500 text-[10px]">Posted</span>
+                    <span className="text-[#70665F] text-[10px]">Posted</span>
                   )}
                 </td>
               </tr>
@@ -203,16 +203,16 @@ export default function SalesInvoicesPage() {
       {/* New Invoice Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
-            <h3 className="text-base font-bold text-white border-b border-slate-800 pb-3">Generate GST Sales Invoice</h3>
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
+            <h3 className="text-base font-bold text-[#211B17] border-b border-[#EBE3DB] pb-3">Generate GST Sales Invoice</h3>
             <form onSubmit={handleCreateInvoice} className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">Customer</label>
+                  <label className="block text-[#70665F] mb-1">Customer</label>
                   <select
                     value={customerId}
                     onChange={(e) => setCustomerId(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723]"
                   >
                     {customers.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -223,11 +223,11 @@ export default function SalesInvoicesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-slate-400 mb-1">Place of Supply</label>
+                  <label className="block text-[#70665F] mb-1">Place of Supply</label>
                   <select
                     value={placeOfSupply}
                     onChange={(e) => setPlaceOfSupply(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723]"
                   >
                     <option value="Gujarat (24)">Gujarat (Intrastate CGST+SGST)</option>
                     <option value="Maharashtra (27)">Maharashtra (Interstate IGST)</option>
@@ -238,39 +238,39 @@ export default function SalesInvoicesPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">Sales Order Reference</label>
+                  <label className="block text-[#70665F] mb-1">Sales Order Reference</label>
                   <input
                     type="text"
                     value={salesOrderNumber}
                     onChange={(e) => setSalesOrderNumber(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-400 mb-1">Payment Due Date</label>
+                  <label className="block text-[#70665F] mb-1">Payment Due Date</label>
                   <input
                     type="date"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 font-mono"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
                   />
                 </div>
               </div>
 
               {/* Items Section */}
-              <div className="space-y-2 pt-2 border-t border-slate-800">
+              <div className="space-y-2 pt-2 border-t border-[#EBE3DB]">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-white">Invoice Line Items</span>
+                  <span className="font-bold text-[#211B17]">Invoice Line Items</span>
                   <button type="button" onClick={handleAddItem} className="text-emerald-400 hover:underline text-[11px]">
                     + Add Line Item
                   </button>
                 </div>
 
                 {items.map((it, idx) => (
-                  <div key={idx} className="grid grid-cols-5 gap-2 p-3 bg-slate-950 rounded-xl border border-slate-800">
+                  <div key={idx} className="grid grid-cols-5 gap-2 p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
                     <div className="col-span-2">
-                      <label className="block text-slate-500 text-[10px]">Description</label>
+                      <label className="block text-[#70665F] text-[10px]">Description</label>
                       <input
                         type="text"
                         value={it.description}
@@ -278,11 +278,11 @@ export default function SalesInvoicesPage() {
                           const val = e.target.value;
                           setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, description: val } : item)));
                         }}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-slate-200 text-xs"
+                        className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1 text-[#3E2723] text-xs"
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-500 text-[10px]">HSN/SAC</label>
+                      <label className="block text-[#70665F] text-[10px]">HSN/SAC</label>
                       <input
                         type="text"
                         value={it.hsnSac}
@@ -290,11 +290,11 @@ export default function SalesInvoicesPage() {
                           const val = e.target.value;
                           setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, hsnSac: val } : item)));
                         }}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-slate-200 text-xs"
+                        className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1 text-[#3E2723] text-xs"
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-500 text-[10px]">Qty</label>
+                      <label className="block text-[#70665F] text-[10px]">Qty</label>
                       <input
                         type="number"
                         value={it.qty}
@@ -302,11 +302,11 @@ export default function SalesInvoicesPage() {
                           const val = Number(e.target.value);
                           setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, qty: val } : item)));
                         }}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-slate-200 text-xs"
+                        className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1 text-[#3E2723] text-xs"
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-500 text-[10px]">Unit Rate (₹)</label>
+                      <label className="block text-[#70665F] text-[10px]">Unit Rate (₹)</label>
                       <input
                         type="number"
                         value={it.unitPrice}
@@ -314,18 +314,18 @@ export default function SalesInvoicesPage() {
                           const val = Number(e.target.value);
                           setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, unitPrice: val } : item)));
                         }}
-                        className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-slate-200 text-xs"
+                        className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1 text-[#3E2723] text-xs"
                       />
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl bg-white text-[#544B45]">
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-semibold">
+                <button type="submit" className="px-4 py-2 rounded-xl bg-emerald-600 text-[#211B17] font-semibold">
                   Generate Invoice
                 </button>
               </div>

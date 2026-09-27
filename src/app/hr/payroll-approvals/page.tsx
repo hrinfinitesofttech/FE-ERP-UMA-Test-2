@@ -16,15 +16,15 @@ export default function PayrollApprovalPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-slate-900 text-slate-100 min-h-screen">
+    <div className="p-6 space-y-6 bg-white text-[#211B17] ">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
-            <CheckCircle2 className="w-7 h-7 text-blue-400" />
+          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2">
+            <CheckCircle2 className="w-7 h-7 text-crm-brand-500" />
             Payroll Approval & Freeze/Lock Governance
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-[#70665F] mt-1">
             3-Tier Governance: Payroll Executive -&gt; HR Manager -&gt; Super Admin Approval & Freeze Lock
           </p>
         </div>
@@ -41,15 +41,15 @@ export default function PayrollApprovalPage() {
       {/* Approval List */}
       <div className="grid grid-cols-1 gap-6">
         {payrollRecords.map((pay) => (
-          <div key={pay.id} className="bg-slate-800/80 border border-slate-700/60 rounded-xl p-6 space-y-4 shadow-xl">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-700/60 pb-3">
+          <div key={pay.id} className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl p-6 space-y-4 shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EBE3DB]/60 pb-3">
               <div>
                 <div className="flex items-center gap-3">
                   <span className="font-mono text-xs font-bold text-emerald-400">{pay.payrollNumber}</span>
-                  <h3 className="text-base font-bold text-white">{pay.employeeName}</h3>
+                  <h3 className="text-base font-bold text-[#211B17]">{pay.employeeName}</h3>
                 </div>
-                <div className="text-xs text-slate-400 mt-0.5">
-                  Period: <span className="text-slate-200 font-semibold">{pay.monthYear}</span> ({pay.financialYear})
+                <div className="text-xs text-[#70665F] mt-0.5">
+                  Period: <span className="text-[#3E2723] font-semibold">{pay.monthYear}</span> ({pay.financialYear})
                 </div>
               </div>
 
@@ -69,7 +69,7 @@ export default function PayrollApprovalPage() {
                 {pay.status !== 'Locked' && pay.status !== 'Posted to Accounting' && (
                   <button
                     onClick={() => handleLockPayroll(pay.id)}
-                    className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg shadow transition flex items-center gap-1.5"
+                    className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-[#211B17] text-xs font-bold rounded-lg shadow transition flex items-center gap-1.5"
                   >
                     <Lock className="w-3.5 h-3.5" /> Approve & Lock Payroll
                   </button>
@@ -78,7 +78,7 @@ export default function PayrollApprovalPage() {
                 {pay.status === 'Locked' && (
                   <button
                     onClick={() => handlePostToAccounting(pay.id)}
-                    className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg shadow transition"
+                    className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] text-xs font-bold rounded-lg shadow transition"
                   >
                     Post Voucher to Accounting
                   </button>
@@ -86,11 +86,11 @@ export default function PayrollApprovalPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-900/60 p-4 rounded-lg border border-slate-700/50 text-xs">
-              <div><span className="text-slate-400 block">Gross Earnings</span><span className="text-white font-bold">₹{pay.grossEarnings.toLocaleString()}</span></div>
-              <div><span className="text-slate-400 block">Total Deductions</span><span className="text-rose-400 font-bold">₹{pay.totalDeductions.toLocaleString()}</span></div>
-              <div><span className="text-slate-400 block">Net Take-Home Pay</span><span className="text-emerald-400 font-extrabold text-sm">₹{pay.netSalary.toLocaleString()}</span></div>
-              <div><span className="text-slate-400 block">Employer PF & ESI</span><span className="text-purple-400 font-bold">₹{(pay.employerPF + pay.employerESI).toLocaleString()}</span></div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white/60 p-4 rounded-lg border border-[#EBE3DB]/50 text-xs">
+              <div><span className="text-[#70665F] block">Gross Earnings</span><span className="text-[#211B17] font-bold">₹{pay.grossEarnings?.toLocaleString()}</span></div>
+              <div><span className="text-[#70665F] block">Total Deductions</span><span className="text-rose-400 font-bold">₹{pay.totalDeductions?.toLocaleString()}</span></div>
+              <div><span className="text-[#70665F] block">Net Take-Home Pay</span><span className="text-emerald-400 font-extrabold text-sm">₹{pay.netSalary?.toLocaleString()}</span></div>
+              <div><span className="text-[#70665F] block">Employer PF & ESI</span><span className="text-crm-brand-500 font-bold">₹{(pay.employerPF + pay.employerESI)?.toLocaleString()}</span></div>
             </div>
           </div>
         ))}

@@ -33,7 +33,7 @@ export default function UsersPage() {
   const handleToggleStatus = (emp: Employee) => {
     const nextStatus = emp.status === 'active' ? 'inactive' : 'active';
     updateEmployee(emp.id, { status: nextStatus });
-    setActionSuccess(`Employee ${emp.firstName} marked as ${nextStatus.toUpperCase()}`);
+    setActionSuccess(`Employee ${emp.firstName} marked as ${nextStatus?.toUpperCase()}`);
     setTimeout(() => setActionSuccess(''), 3000);
   };
 
@@ -47,18 +47,18 @@ export default function UsersPage() {
     {
       header: 'Employee ID',
       accessorKey: 'id',
-      cell: (emp) => <span className="font-mono font-bold text-blue-600">{emp.id}</span>,
+      cell: (emp) => <span className="font-mono font-bold text-crm-brand-700">{emp.id}</span>,
     },
     {
       header: 'Employee Name & Photo',
       cell: (emp) => (
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-slate-800 text-white font-bold text-xs flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full bg-[#FAF7F2] text-[#211B17] font-bold text-xs flex items-center justify-center">
             {emp.firstName.slice(0, 1)}{emp.lastName.slice(0, 1)}
           </div>
           <div>
-            <span className="font-bold text-slate-900 dark:text-white block">{emp.firstName} {emp.lastName}</span>
-            <span className="text-[10px] text-slate-400 font-mono">@{emp.username}</span>
+            <span className="font-bold text-slate-900 dark:text-[#211B17] block">{emp.firstName} {emp.lastName}</span>
+            <span className="text-[10px] text-[#70665F] font-mono">@{emp.username}</span>
           </div>
         </div>
       ),
@@ -67,8 +67,8 @@ export default function UsersPage() {
       header: 'Department & Designation',
       cell: (emp) => (
         <div>
-          <span className="font-semibold text-slate-800 dark:text-slate-200 block">{emp.designation}</span>
-          <span className="text-[11px] text-slate-500">{emp.departmentName}</span>
+          <span className="font-semibold text-slate-800 dark:text-[#544B45] block">{emp.designation}</span>
+          <span className="text-[11px] text-[#70665F]">{emp.departmentName}</span>
         </div>
       ),
     },
@@ -76,11 +76,11 @@ export default function UsersPage() {
       header: 'Role & Hierarchy',
       cell: (emp) => (
         <div>
-          <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-mono text-[10px] font-bold border border-blue-200 dark:border-blue-800 block w-max">
+          <span className="px-2 py-0.5 rounded bg-crm-brand- dark:bg-crm-brand-/60 text-crm-brand-800 dark:text-crm-brand- font-mono text-[10px] font-bold border border-crm-brand- dark:border-crm-brand- block w-max">
             {emp.roleName}
           </span>
           {emp.reportingManagerName && (
-            <span className="text-[10px] text-slate-400 block mt-0.5">Mgr: {emp.reportingManagerName}</span>
+            <span className="text-[10px] text-[#70665F] block mt-0.5">Mgr: {emp.reportingManagerName}</span>
           )}
         </div>
       ),
@@ -89,11 +89,11 @@ export default function UsersPage() {
       header: 'Contact Info',
       cell: (emp) => (
         <div className="space-y-0.5 text-[11px]">
-          <span className="text-slate-600 dark:text-slate-400 block flex items-center gap-1">
-            <Mail className="w-3 h-3 text-slate-400" /> {emp.email}
+          <span className="text-slate-600 dark:text-[#70665F] block flex items-center gap-1">
+            <Mail className="w-3 h-3 text-[#70665F]" /> {emp.email}
           </span>
-          <span className="text-slate-600 dark:text-slate-400 block flex items-center gap-1">
-            <Phone className="w-3 h-3 text-slate-400" /> {emp.mobile}
+          <span className="text-slate-600 dark:text-[#70665F] block flex items-center gap-1">
+            <Phone className="w-3 h-3 text-[#70665F]" /> {emp.mobile}
           </span>
         </div>
       ),
@@ -115,7 +115,7 @@ export default function UsersPage() {
     },
     {
       header: 'Last Login',
-      cell: (emp) => <span className="text-[11px] text-slate-500">{emp.lastLogin || 'Never'}</span>,
+      cell: (emp) => <span className="text-[11px] text-[#70665F]">{emp.lastLogin || 'Never'}</span>,
     },
     {
       header: 'Actions',
@@ -124,14 +124,14 @@ export default function UsersPage() {
           <button
             onClick={() => handleToggleStatus(emp)}
             title={emp.status === 'active' ? 'Deactivate Employee' : 'Activate Employee'}
-            className="p-1 rounded border border-slate-200 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
+            className="p-1 rounded border border-slate-200 hover:bg-slate-100 dark:border-[#EBE3DB] dark:hover:bg-[#FAF7F2] text-slate-600 dark:text-[#544B45]"
           >
             {emp.status === 'active' ? <XCircle className="w-3.5 h-3.5 text-rose-500" /> : <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />}
           </button>
           <button
             onClick={() => handleResetPassword(emp)}
             title="Reset Password to default"
-            className="p-1 rounded border border-slate-200 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
+            className="p-1 rounded border border-slate-200 hover:bg-slate-100 dark:border-[#EBE3DB] dark:hover:bg-[#FAF7F2] text-slate-600 dark:text-[#544B45]"
           >
             <KeyRound className="w-3.5 h-3.5 text-amber-500" />
           </button>
@@ -143,10 +143,10 @@ export default function UsersPage() {
   return (
     <div className="space-y-4">
       {/* Top Action Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white dark:bg-white p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB]">
         <div>
-          <h1 className="text-lg font-bold text-slate-900 dark:text-white">Users & Employee Master</h1>
-          <p className="text-xs text-slate-500">
+          <h1 className="text-lg font-bold text-slate-900 dark:text-[#211B17]">Users & Employee Master</h1>
+          <p className="text-xs text-[#70665F]">
             Manage organizational staff, roles, reporting managers, and credentials.
           </p>
         </div>
@@ -178,7 +178,7 @@ export default function UsersPage() {
             <select
               value={selectedDept}
               onChange={(e) => setSelectedDept(e.target.value)}
-              className="text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-slate-300"
+              className="text-xs bg-white dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-[#544B45]"
             >
               <option value="all">All Departments</option>
               {departments.map((d) => (
@@ -188,7 +188,7 @@ export default function UsersPage() {
             <select
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
-              className="text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-slate-300"
+              className="text-xs bg-white dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-[#544B45]"
             >
               <option value="all">All Roles</option>
               {roles.map((r) => (

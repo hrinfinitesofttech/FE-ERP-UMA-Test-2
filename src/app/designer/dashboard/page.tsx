@@ -81,11 +81,11 @@ export default function DesignerDashboardPage() {
   const filteredJobs = useMemo(() => {
     return designJobs.filter((j) => {
       const matchSearch =
-        j.designJobNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        j.projectId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        j.jobNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        j.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        j.productName.toLowerCase().includes(searchQuery.toLowerCase());
+        j.designJobNumber?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
+        j.projectId?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
+        j.jobNumber?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
+        j.customerName?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
+        j.productName?.toLowerCase().includes(searchQuery?.toLowerCase());
       const matchStatus = statusFilter === 'all' || j.status === statusFilter;
       const matchPriority = priorityFilter === 'all' || j.priority === priorityFilter;
       const matchDesigner = designerFilter === 'all' || j.assignedDesigner === designerFilter;
@@ -98,7 +98,7 @@ export default function DesignerDashboardPage() {
   const statusPieData = useMemo(() => {
     const counts: Record<string, number> = {};
     designJobs.forEach((j) => {
-      const label = j.status.replace(/_/g, ' ').toUpperCase();
+      const label = j.status?.replace(/_/g, ' ')?.toUpperCase();
       counts[label] = (counts[label] || 0) + 1;
     });
     return Object.keys(counts).map((name) => ({ name, value: counts[name] }));
@@ -166,14 +166,14 @@ export default function DesignerDashboardPage() {
   return (
     <div className="space-y-5 text-xs pb-12 text-[#211B17]">
       {/* Top Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800/80 pb-5">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-mono font-bold">
+            <span className="px-2.5 py-0.5 rounded-full bg-crm-brand-600/20 text-crm-brand-500 border border-crm-brand-600/30 text-xs font-mono font-bold">
               MODULE 3
             </span>
             <h1 className="text-2xl font-black text-[#211B17] tracking-tight flex items-center gap-2">
-              <Palette className="w-7 h-7 text-cyan-400" />
+              <Palette className="w-7 h-7 text-crm-brand-500" />
               Designer & Engineering Management
             </h1>
           </div>
@@ -186,14 +186,14 @@ export default function DesignerDashboardPage() {
         <div className="flex items-center gap-2 flex-wrap">
           <Link
             href="/designer/jobs"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-[#211B17] text-xs font-bold shadow-lg shadow-cyan-600/30 transition"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-600 text-[#211B17] text-xs font-bold shadow-lg shadow-crm-brand-700/30 transition"
           >
             <Plus className="w-4 h-4" />
             New Design Job
           </Link>
           <Link
             href="/designer/bom"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-700 text-amber-400 border border-slate-700 text-xs font-bold transition"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-[#FAF7F2] text-amber-400 border border-[#EBE3DB] text-xs font-bold transition"
           >
             <FileSpreadsheet className="w-4 h-4" />
             Master BOM
@@ -214,20 +214,20 @@ export default function DesignerDashboardPage() {
         <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E7DED5] shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group">
           <div className="flex items-center justify-between text-[#70665F] text-xs font-semibold">
             <span>Total Design Jobs</span>
-            <Palette className="w-4 h-4 text-cyan-400" />
+            <Palette className="w-4 h-4 text-crm-brand-500" />
           </div>
           <div className="text-2xl font-bold text-[#211B17] mt-1.5 font-mono">{totalJobs}</div>
-          <div className="text-[10px] text-cyan-400/80 mt-1">Active Machine Designs</div>
-          <div className="absolute -right-2 -bottom-2 w-12 h-12 bg-cyan-500/10 rounded-full blur-lg group-hover:scale-150 transition" />
+          <div className="text-[10px] text-crm-brand-500/80 mt-1">Active Machine Designs</div>
+          <div className="absolute -right-2 -bottom-2 w-12 h-12 bg-crm-brand-600/10 rounded-full blur-lg group-hover:scale-150 transition" />
         </div>
 
         {/* KPI 2 */}
         <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E7DED5] shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group">
           <div className="flex items-center justify-between text-[#70665F] text-xs font-semibold">
             <span>New Requests</span>
-            <Clock className="w-4 h-4 text-blue-400" />
+            <Clock className="w-4 h-4 text-crm-brand-500" />
           </div>
-          <div className="text-2xl font-black text-blue-400 mt-2 font-mono">{newRequests}</div>
+          <div className="text-2xl font-black text-crm-brand-500 mt-2 font-mono">{newRequests}</div>
           <div className="text-[10px] text-[#70665F] mt-1">Awaiting Assignment</div>
         </div>
 
@@ -245,9 +245,9 @@ export default function DesignerDashboardPage() {
         <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E7DED5] shadow-xs hover:border-[#D5CAC0] transition-colors relative overflow-hidden group">
           <div className="flex items-center justify-between text-[#70665F] text-xs font-semibold">
             <span>Engineering Review</span>
-            <ShieldCheck className="w-4 h-4 text-purple-400" />
+            <ShieldCheck className="w-4 h-4 text-crm-brand-500" />
           </div>
-          <div className="text-2xl font-black text-purple-400 mt-2 font-mono">{inReview}</div>
+          <div className="text-2xl font-black text-crm-brand-500 mt-2 font-mono">{inReview}</div>
           <div className="text-[10px] text-[#70665F] mt-1">Tech Checklists</div>
         </div>
 
@@ -316,7 +316,7 @@ export default function DesignerDashboardPage() {
       <div className="p-5 rounded-2xl bg-white border border-[#E7DED5] shadow-xs space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
-            <Cpu className="w-4 h-4 text-cyan-400" />
+            <Cpu className="w-4 h-4 text-crm-brand-500" />
             Engineering & Design End-to-End Workflow Pipeline
           </h3>
           <span className="text-xs text-[#70665F] font-mono">Reference: Project ID + Job Number</span>
@@ -324,9 +324,9 @@ export default function DesignerDashboardPage() {
 
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 pt-2">
           {[
-            { step: '1. Req Sheet', desc: 'Tech Spec', color: 'border-blue-500/40 bg-blue-500/10 text-blue-300' },
-            { step: '2. Planning', desc: 'Timeline & Task', color: 'border-indigo-500/40 bg-indigo-500/10 text-indigo-300' },
-            { step: '3. 3D & 2D CAD', desc: 'Solid Modeling', color: 'border-purple-500/40 bg-purple-500/10 text-purple-300' },
+            { step: '1. Req Sheet', desc: 'Tech Spec', color: 'border-crm-brand-600/40 bg-crm-brand-600/10 text-crm-brand-' },
+            { step: '2. Planning', desc: 'Timeline & Task', color: 'border-crm-brand-600/40 bg-crm-brand-600/10 text-indigo-300' },
+            { step: '3. 3D & 2D CAD', desc: 'Solid Modeling', color: 'border-crm-brand-600/40 bg-crm-brand-600/10 text-crm-brand-' },
             { step: '4. Assembly/Part', desc: 'Manufacturing', color: 'border-pink-500/40 bg-pink-500/10 text-pink-300' },
             { step: '5. Multi-BOM', desc: 'Item Hierarchy', color: 'border-amber-500/40 bg-amber-500/10 text-amber-300' },
             { step: '6. Review', desc: 'ASME & Safety', color: 'border-teal-500/40 bg-teal-500/10 text-teal-300' },
@@ -346,7 +346,7 @@ export default function DesignerDashboardPage() {
         <div className="p-5 rounded-2xl bg-white border border-[#E7DED5] shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-bold text-[#211B17] uppercase tracking-wider flex items-center gap-2">
-              <PieChart className="w-4 h-4 text-cyan-400" />
+              <PieChart className="w-4 h-4 text-crm-brand-500" />
               Design Job Status Distribution
             </h4>
           </div>
@@ -460,7 +460,7 @@ export default function DesignerDashboardPage() {
         <div className="p-5 rounded-2xl bg-white border border-[#E7DED5] shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-bold text-[#211B17] uppercase tracking-wider flex items-center gap-2">
-              <Clock className="w-4 h-4 text-cyan-400" />
+              <Clock className="w-4 h-4 text-crm-brand-500" />
               Avg Engineering Lead Days by Stage
             </h4>
           </div>
@@ -481,19 +481,19 @@ export default function DesignerDashboardPage() {
       <div className="p-5 rounded-2xl bg-white border border-[#E7DED5] shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <h3 className="text-sm font-extrabold text-[#211B17] flex items-center gap-2">
-            <Filter className="w-4 h-4 text-cyan-400" />
+            <Filter className="w-4 h-4 text-crm-brand-500" />
             Active Design Jobs Registry ({filteredJobs.length})
           </h3>
 
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
               <input
                 type="text"
                 placeholder="Search job, project, customer..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-3 py-1.5 rounded-xl bg-white/80 border border-slate-700 text-xs text-[#211B17] placeholder-slate-500 focus:outline-none focus:border-cyan-500 w-64"
+                className="pl-9 pr-3 py-1.5 rounded-xl bg-white/80 border border-[#EBE3DB] text-xs text-[#211B17] placeholder-slate-500 focus:outline-none focus:border-crm-brand-600 w-64"
               />
             </div>
           </div>
@@ -507,7 +507,7 @@ export default function DesignerDashboardPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full bg-white border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-cyan-500"
+              className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-crm-brand-600"
             >
               <option value="all">All Statuses</option>
               <option value="pending">Pending</option>
@@ -527,7 +527,7 @@ export default function DesignerDashboardPage() {
             <select
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
-              className="w-full bg-white border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-cyan-500"
+              className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-crm-brand-600"
             >
               <option value="all">All Priorities</option>
               <option value="urgent">Urgent</option>
@@ -543,7 +543,7 @@ export default function DesignerDashboardPage() {
             <select
               value={designerFilter}
               onChange={(e) => setDesignerFilter(e.target.value)}
-              className="w-full bg-white border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-cyan-500"
+              className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-crm-brand-600"
             >
               <option value="all">All Designers</option>
               <option value="Dharmesh Joshi">Dharmesh Joshi</option>
@@ -557,7 +557,7 @@ export default function DesignerDashboardPage() {
             <select
               value={machineFilter}
               onChange={(e) => setMachineFilter(e.target.value)}
-              className="w-full bg-white border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-cyan-500"
+              className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-crm-brand-600"
             >
               <option value="all">All Machine Types</option>
               <option value="Reaction Vessel">Reaction Vessel</option>
@@ -576,7 +576,7 @@ export default function DesignerDashboardPage() {
                 setDesignerFilter('all');
                 setMachineFilter('all');
               }}
-              className="w-full px-3 py-1.5 rounded-lg bg-white hover:bg-slate-700 text-[#544B45] text-xs font-medium flex items-center justify-center gap-1.5 transition"
+              className="w-full px-3 py-1.5 rounded-lg bg-white hover:bg-[#FAF7F2] text-[#544B45] text-xs font-medium flex items-center justify-center gap-1.5 transition"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Reset Filters
@@ -604,14 +604,14 @@ export default function DesignerDashboardPage() {
             <tbody className="divide-y divide-[#EFE8DE] bg-white text-[#211B17]">
               {filteredJobs.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="p-6 text-center text-slate-500">
+                  <td colSpan={10} className="p-6 text-center text-[#70665F]">
                     No design jobs match the selected filter criteria.
                   </td>
                 </tr>
               ) : (
                 filteredJobs.map((j) => (
                   <tr key={j.id} className="hover:bg-white/40 transition group">
-                    <td className="p-3 font-mono font-bold text-cyan-400">{j.designJobNumber}</td>
+                    <td className="p-3 font-mono font-bold text-crm-brand-500">{j.designJobNumber}</td>
                     <td className="p-3">
                       <div className="font-mono font-bold text-[#211B17]">{j.projectId}</div>
                       <div className="font-mono text-[10px] text-amber-400">{j.jobNumber}</div>
@@ -622,7 +622,7 @@ export default function DesignerDashboardPage() {
                     </td>
                     <td className="p-3 font-mono text-[#544B45]">{j.quantity}</td>
                     <td className="p-3 text-[#544B45]">{j.assignedDesigner}</td>
-                    <td className="p-3 font-mono text-cyan-300 font-bold">{j.activeRevision}</td>
+                    <td className="p-3 font-mono text-crm-brand- font-bold">{j.activeRevision}</td>
                     <td className="p-3">
                       <span
                         className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -630,10 +630,10 @@ export default function DesignerDashboardPage() {
                             ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
                             : j.priority === 'high'
                             ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                            : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                            : 'bg-crm-brand-600/20 text-crm-brand-500 border border-crm-brand-600/30'
                         }`}
                       >
-                        {j.priority.toUpperCase()}
+                        {j.priority?.toUpperCase()}
                       </span>
                     </td>
                     <td className="p-3 font-mono text-[#70665F]">{j.requiredDate}</td>
@@ -643,19 +643,19 @@ export default function DesignerDashboardPage() {
                           j.status === 'released_to_production'
                             ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                             : j.status === 'bom_approved' || j.status === 'approved'
-                            ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                            ? 'bg-crm-brand-600/20 text-crm-brand-500 border border-crm-brand-600/30'
                             : j.status === 'review'
-                            ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                            ? 'bg-crm-brand-600/20 text-crm-brand-500 border border-crm-brand-600/30'
                             : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                         }`}
                       >
-                        {j.status.replace(/_/g, ' ').toUpperCase()}
+                        {j.status?.replace(/_/g, ' ')?.toUpperCase()}
                       </span>
                     </td>
                     <td className="p-3 text-right">
                       <Link
                         href={`/designer/jobs?id=${j.id}`}
-                        className="px-2.5 py-1 rounded-lg bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-[#211B17] text-[11px] font-semibold transition"
+                        className="px-2.5 py-1 rounded-lg bg-crm-brand-700/20 hover:bg-crm-brand-700 text-crm-brand- hover:text-[#211B17] text-[11px] font-semibold transition"
                       >
                         Manage
                       </Link>

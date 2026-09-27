@@ -41,9 +41,9 @@ export default function ServicePartsReturnPage() {
   });
 
   const filteredReturns = servicePartReturns.filter((r) =>
-    r.returnNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.workOrderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.returnedBy.toLowerCase().includes(searchTerm.toLowerCase())
+    r.returnNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+    r.workOrderNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+    r.returnedBy?.toLowerCase().includes(searchTerm?.toLowerCase())
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -53,21 +53,21 @@ export default function ServicePartsReturnPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen">
+    <div className="p-4 sm:p-6 space-y-6 bg-slate-50 dark:bg-[#FAF7F2] ">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-white p-5 rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 rounded bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 font-mono text-xs font-bold">
               UNUSED SPARE PARTS RETURN
             </span>
-            <span className="text-xs text-slate-400">Inventory Return to Store Master</span>
+            <span className="text-xs text-[#70665F]">Inventory Return to Store Master</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-1 flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-[#211B17] mt-1 flex items-center gap-2">
             <CornerUpLeft className="w-6 h-6 text-rose-500" />
             Service Parts Return
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[#70665F]">
             Return unconsumed or replaced spare parts from service trip back into Store inventory.
           </p>
         </div>
@@ -82,15 +82,15 @@ export default function ServicePartsReturnPage() {
       </div>
 
       {/* Search */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="bg-white dark:bg-white p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm">
         <div className="relative w-full md:w-96">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-3 text-[#70665F]" />
           <input
             type="text"
             placeholder="Search return no, work order or returned by..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none"
+            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg focus:outline-none"
           />
         </div>
       </div>
@@ -100,16 +100,16 @@ export default function ServicePartsReturnPage() {
         {filteredReturns.map((ret) => (
           <div
             key={ret.id}
-            className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4 hover:border-rose-300 transition"
+            className="bg-white dark:bg-white rounded-2xl border border-slate-200 dark:border-[#EBE3DB] p-5 shadow-sm space-y-4 hover:border-rose-300 transition"
           >
-            <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div className="flex justify-between items-center border-b border-slate-100 dark:border-[#EBE3DB] pb-3">
               <div className="flex items-center gap-3">
                 <span className="px-2.5 py-1 rounded bg-rose-600 text-white font-mono font-bold text-xs">
                   {ret.returnNumber}
                 </span>
                 <div>
-                  <h3 className="font-bold text-sm text-slate-900 dark:text-white">Ref WO: {ret.workOrderNumber}</h3>
-                  <p className="text-xs text-slate-400">Original Issue Ref: {ret.originalIssueNumber}</p>
+                  <h3 className="font-bold text-sm text-slate-900 dark:text-[#211B17]">Ref WO: {ret.workOrderNumber}</h3>
+                  <p className="text-xs text-[#70665F]">Original Issue Ref: {ret.originalIssueNumber}</p>
                 </div>
               </div>
 
@@ -119,19 +119,19 @@ export default function ServicePartsReturnPage() {
             </div>
 
             <div className="space-y-2">
-              <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">Returned Items</span>
+              <span className="text-[11px] font-bold text-slate-600 dark:text-[#70665F] uppercase tracking-wider block">Returned Items</span>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {ret.items.map((item, idx) => (
-                  <div key={idx} className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl space-y-1 text-xs border border-slate-100 dark:border-slate-800">
+                  <div key={idx} className="p-3 bg-slate-50 dark:bg-[#FAF7F2]/40 rounded-xl space-y-1 text-xs border border-slate-100 dark:border-[#EBE3DB]">
                     <div className="flex justify-between font-bold">
-                      <span className="text-slate-900 dark:text-slate-100">{item.itemName}</span>
+                      <span className="text-slate-900 dark:text-[#544B45]">{item.itemName}</span>
                       <span className="font-mono text-rose-600">{item.itemCode}</span>
                     </div>
-                    <div className="flex justify-between text-[11px] text-slate-500">
+                    <div className="flex justify-between text-[11px] text-[#70665F]">
                       <span>Issued: {item.issuedQty} • Used: {item.usedQty} • Returned: <strong>{item.returnQty}</strong></span>
                       <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 font-bold text-[10px]">{item.condition}</span>
                     </div>
-                    <div className="text-[10px] text-slate-400 font-mono">
+                    <div className="text-[10px] text-[#70665F] font-mono">
                       Warehouse Stock Restored To: {item.warehouse} ({item.location})
                     </div>
                   </div>
@@ -139,9 +139,9 @@ export default function ServicePartsReturnPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
-              <span className="text-slate-600 dark:text-slate-400">Returned By: <strong>{ret.returnedBy}</strong> • Store Receiver: <strong>{ret.receivedBy}</strong></span>
-              <span className="text-[10px] text-slate-400 font-mono">Date: {formatDate(ret.returnDate)}</span>
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-[#EBE3DB] text-xs">
+              <span className="text-slate-600 dark:text-[#70665F]">Returned By: <strong>{ret.returnedBy}</strong> • Store Receiver: <strong>{ret.receivedBy}</strong></span>
+              <span className="text-[10px] text-[#70665F] font-mono">Date: {formatDate(ret.returnDate)}</span>
             </div>
           </div>
         ))}
@@ -149,8 +149,8 @@ export default function ServicePartsReturnPage() {
 
       {/* Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl overflow-hidden text-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FAF7F2] backdrop-blur-sm">
+          <div className="bg-white dark:bg-white rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-2xl w-full max-w-xl overflow-hidden text-xs">
             <div className="p-4 border-b flex items-center justify-between">
               <h3 className="font-bold text-base flex items-center gap-2">
                 <CornerUpLeft className="w-5 h-5 text-rose-500" /> Log Unused Parts Return to Store

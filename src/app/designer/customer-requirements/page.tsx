@@ -48,10 +48,10 @@ export default function CustomerRequirementsPage() {
 
   const filteredReqs = customerRequirements.filter((r) => {
     return (
-      r.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.jobNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.machineName.toLowerCase().includes(searchQuery.toLowerCase())
+      r.id?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
+      r.jobNumber?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
+      r.customerName?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
+      r.machineName?.toLowerCase().includes(searchQuery?.toLowerCase())
     );
   });
 
@@ -90,27 +90,27 @@ export default function CustomerRequirementsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-[#070A14] text-slate-100 min-h-screen">
+    <div className="p-6 space-y-6  text-[#211B17] ">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-5">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-mono font-bold">
               MODULE 3.2
             </span>
-            <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl font-black text-[#211B17] tracking-tight flex items-center gap-2">
               <FileText className="w-7 h-7 text-amber-400" />
               Customer Technical Requirement Specifications
             </h1>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-[#70665F] mt-1">
             Machine Technical Parameters, Dimensions, Materials, Electrical Specs & Customer Approval
           </p>
         </div>
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-lg shadow-amber-600/30 transition"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-[#211B17] text-xs font-bold shadow-lg shadow-amber-600/30 transition"
         >
           <Plus className="w-4 h-4" />
           Add Requirement Sheet
@@ -118,15 +118,15 @@ export default function CustomerRequirementsPage() {
       </div>
 
       {/* Control Bar */}
-      <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center justify-between gap-4">
+      <div className="p-4 rounded-2xl bg-white border border-[#EBE3DB] flex items-center justify-between gap-4">
         <div className="relative w-full max-w-md">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
           <input
             type="text"
             placeholder="Search Job #, Customer, Machine Name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+            className="w-full pl-9 pr-3 py-2 rounded-xl bg-white/80 border border-[#EBE3DB] text-xs text-[#211B17] placeholder-slate-500 focus:outline-none focus:border-amber-500"
           />
         </div>
       </div>
@@ -136,12 +136,12 @@ export default function CustomerRequirementsPage() {
         {filteredReqs.map((req) => (
           <div
             key={req.id}
-            className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-amber-500/40 transition space-y-4 shadow-xl relative"
+            className="p-5 rounded-2xl bg-white border border-[#EBE3DB] hover:border-amber-500/40 transition space-y-4 shadow-xl relative"
           >
             <div className="flex items-center justify-between">
               <div>
                 <span className="font-mono font-bold text-xs text-amber-400">{req.id}</span>
-                <span className="font-mono text-xs text-slate-400 ml-2">[{req.jobNumber}]</span>
+                <span className="font-mono text-xs text-[#70665F] ml-2">[{req.jobNumber}]</span>
               </div>
               <span
                 className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
@@ -150,40 +150,40 @@ export default function CustomerRequirementsPage() {
                     : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                 }`}
               >
-                {req.status.replace(/_/g, ' ').toUpperCase()}
+                {req.status?.replace(/_/g, ' ')?.toUpperCase()}
               </span>
             </div>
 
             <div>
-              <h3 className="font-extrabold text-white text-sm">{req.machineName}</h3>
-              <p className="text-xs text-slate-400">{req.customerName} ({req.contactPerson})</p>
+              <h3 className="font-extrabold text-[#211B17] text-sm">{req.machineName}</h3>
+              <p className="text-xs text-[#70665F]">{req.customerName} ({req.contactPerson})</p>
             </div>
 
             {/* Technical Parameters Quick Summary */}
-            <div className="grid grid-cols-2 gap-2 text-xs bg-slate-950 p-3 rounded-xl border border-slate-800/80 font-mono">
+            <div className="grid grid-cols-2 gap-2 text-xs bg-[#FAF7F2] p-3 rounded-xl border border-[#EBE3DB] font-mono">
               <div>
-                <span className="text-[10px] text-slate-500 block">CAPACITY</span>
-                <span className="text-slate-200">{req.capacity}</span>
+                <span className="text-[10px] text-[#70665F] block">CAPACITY</span>
+                <span className="text-[#3E2723]">{req.capacity}</span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-500 block">CONTACT MATERIAL</span>
+                <span className="text-[10px] text-[#70665F] block">CONTACT MATERIAL</span>
                 <span className="text-amber-300 font-bold">{req.material}</span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-500 block">DIMENSIONS</span>
-                <span className="text-slate-200">{req.dimensions}</span>
+                <span className="text-[10px] text-[#70665F] block">DIMENSIONS</span>
+                <span className="text-[#3E2723]">{req.dimensions}</span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-500 block">CONTROL SYSTEM</span>
-                <span className="text-slate-200">{req.controlSystem}</span>
+                <span className="text-[10px] text-[#70665F] block">CONTROL SYSTEM</span>
+                <span className="text-[#3E2723]">{req.controlSystem}</span>
               </div>
             </div>
 
             {/* Action Bar */}
-            <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-xs">
+            <div className="flex items-center justify-between pt-2 border-t border-[#EBE3DB] text-xs">
               <button
                 onClick={() => setSelectedReq(req)}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold transition"
+                className="px-3 py-1.5 rounded-xl bg-white hover:bg-[#FAF7F2] text-[#544B45] font-semibold transition"
               >
                 Full Spec Sheet
               </button>
@@ -191,7 +191,7 @@ export default function CustomerRequirementsPage() {
               {req.status !== 'approved' && (
                 <button
                   onClick={() => approveCustomerRequirement(req.id, `${currentUser.firstName} ${currentUser.lastName}`)}
-                  className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition flex items-center gap-1.5"
+                  className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-[#211B17] font-bold transition flex items-center gap-1.5"
                 >
                   <ShieldCheck className="w-4 h-4" />
                   Approve Requirement
@@ -205,25 +205,25 @@ export default function CustomerRequirementsPage() {
       {/* Modal: Add Requirement Sheet */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl space-y-4 p-6">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl space-y-4 p-6">
+            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+              <h3 className="text-base font-extrabold text-[#211B17] flex items-center gap-2">
                 <FileText className="w-5 h-5 text-amber-400" />
                 Add Customer Technical Requirement Sheet
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setIsModalOpen(false)} className="text-[#70665F] hover:text-[#211B17]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleCreate} className="space-y-4 text-xs max-h-[75vh] overflow-y-auto pr-2">
               <div>
-                <label className="text-slate-300 font-bold block mb-1">Select Design Job *</label>
+                <label className="text-[#544B45] font-bold block mb-1">Select Design Job *</label>
                 <select
                   required
                   value={selectedDesignJobId}
                   onChange={(e) => setSelectedDesignJobId(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+                  className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500"
                 >
                   <option value="">-- Select Design Job --</option>
                   {designJobs.map((j) => (
@@ -236,34 +236,34 @@ export default function CustomerRequirementsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-slate-300 font-bold block mb-1">Contact Person Name</label>
+                  <label className="text-[#544B45] font-bold block mb-1">Contact Person Name</label>
                   <input
                     type="text"
                     value={contactPerson}
                     onChange={(e) => setContactPerson(e.target.value)}
                     placeholder="e.g. Dr. A. K. Sharma"
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+                    className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500"
                   />
                 </div>
                 <div>
-                  <label className="text-slate-300 font-bold block mb-1">Capacity / Output</label>
+                  <label className="text-[#544B45] font-bold block mb-1">Capacity / Output</label>
                   <input
                     type="text"
                     value={capacity}
                     onChange={(e) => setCapacity(e.target.value)}
                     placeholder="e.g. 10,000 Liters / Batch"
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+                    className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-slate-300 font-bold block mb-1">Contact Parts Material *</label>
+                  <label className="text-[#544B45] font-bold block mb-1">Contact Parts Material *</label>
                   <select
                     value={material}
                     onChange={(e) => setMaterial(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+                    className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500"
                   >
                     <option value="SS 316L Contact Parts">SS 316L Solid / Clad</option>
                     <option value="SS 304 Contact Parts">SS 304 Grade</option>
@@ -272,59 +272,59 @@ export default function CustomerRequirementsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-slate-300 font-bold block mb-1">Dimensions (L x W x H)</label>
+                  <label className="text-[#544B45] font-bold block mb-1">Dimensions (L x W x H)</label>
                   <input
                     type="text"
                     value={dimensions}
                     onChange={(e) => setDimensions(e.target.value)}
                     placeholder="e.g. 2400mm Dia x 3200mm Height"
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+                    className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-slate-300 font-bold block mb-1">Automation Level</label>
+                  <label className="text-[#544B45] font-bold block mb-1">Automation Level</label>
                   <input
                     type="text"
                     value={automationLevel}
                     onChange={(e) => setAutomationLevel(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+                    className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500"
                   />
                 </div>
                 <div>
-                  <label className="text-slate-300 font-bold block mb-1">Control System Spec</label>
+                  <label className="text-[#544B45] font-bold block mb-1">Control System Spec</label>
                   <input
                     type="text"
                     value={controlSystem}
                     onChange={(e) => setControlSystem(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+                    className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-slate-300 font-bold block mb-1">Safety & Compliance Notes</label>
+                <label className="text-[#544B45] font-bold block mb-1">Safety & Compliance Notes</label>
                 <textarea
                   rows={2}
                   value={safetyRequirements}
                   onChange={(e) => setSafetyRequirements(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+                  className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#EBE3DB]">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold"
+                  className="px-4 py-2 rounded-xl bg-white text-[#544B45] font-bold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold"
+                  className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-[#211B17] font-bold"
                 >
                   Save Spec Sheet
                 </button>
@@ -337,58 +337,58 @@ export default function CustomerRequirementsPage() {
       {/* View Full Spec Modal */}
       {selectedReq && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl space-y-4 p-6 text-xs max-h-[85vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl space-y-4 p-6 text-xs max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
               <div>
                 <span className="font-mono font-bold text-amber-400 text-sm">{selectedReq.id}</span>
-                <h3 className="text-base font-extrabold text-white mt-0.5">{selectedReq.machineName}</h3>
+                <h3 className="text-base font-extrabold text-[#211B17] mt-0.5">{selectedReq.machineName}</h3>
               </div>
-              <button onClick={() => setSelectedReq(null)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setSelectedReq(null)} className="text-[#70665F] hover:text-[#211B17]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono">
+            <div className="grid grid-cols-2 gap-4 bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB] font-mono">
               <div>
-                <span className="text-slate-500 block">Job Number:</span>
-                <span className="font-bold text-cyan-400">{selectedReq.jobNumber}</span>
+                <span className="text-[#70665F] block">Job Number:</span>
+                <span className="font-bold text-crm-brand-500">{selectedReq.jobNumber}</span>
               </div>
               <div>
-                <span className="text-slate-500 block">Customer Name:</span>
-                <span className="font-bold text-white">{selectedReq.customerName}</span>
+                <span className="text-[#70665F] block">Customer Name:</span>
+                <span className="font-bold text-[#211B17]">{selectedReq.customerName}</span>
               </div>
               <div>
-                <span className="text-slate-500 block">Contact Person:</span>
-                <span className="text-slate-300">{selectedReq.contactPerson} ({selectedReq.contactMobile})</span>
+                <span className="text-[#70665F] block">Contact Person:</span>
+                <span className="text-[#544B45]">{selectedReq.contactPerson} ({selectedReq.contactMobile})</span>
               </div>
               <div>
-                <span className="text-slate-500 block">Capacity / Application:</span>
-                <span className="text-slate-300">{selectedReq.capacity} ({selectedReq.application})</span>
+                <span className="text-[#70665F] block">Capacity / Application:</span>
+                <span className="text-[#544B45]">{selectedReq.capacity} ({selectedReq.application})</span>
               </div>
             </div>
 
             <div className="space-y-3">
-              <h4 className="font-bold text-white uppercase tracking-wider text-xs border-b border-slate-800 pb-1">
+              <h4 className="font-bold text-[#211B17] uppercase tracking-wider text-xs border-b border-[#EBE3DB] pb-1">
                 Detailed Technical Specifications
               </h4>
-              <div className="grid grid-cols-2 gap-3 text-slate-300">
-                <div><span className="text-slate-500 font-bold">Dimensions:</span> {selectedReq.dimensions}</div>
-                <div><span className="text-slate-500 font-bold font-mono">Material:</span> {selectedReq.material}</div>
-                <div><span className="text-slate-500 font-bold">Power Spec:</span> {selectedReq.powerRequirement}</div>
-                <div><span className="text-slate-500 font-bold">Speed / RPM:</span> {selectedReq.speed}</div>
-                <div><span className="text-slate-500 font-bold">Automation:</span> {selectedReq.automationLevel}</div>
-                <div><span className="text-slate-500 font-bold">Control System:</span> {selectedReq.controlSystem}</div>
+              <div className="grid grid-cols-2 gap-3 text-[#544B45]">
+                <div><span className="text-[#70665F] font-bold">Dimensions:</span> {selectedReq.dimensions}</div>
+                <div><span className="text-[#70665F] font-bold font-mono">Material:</span> {selectedReq.material}</div>
+                <div><span className="text-[#70665F] font-bold">Power Spec:</span> {selectedReq.powerRequirement}</div>
+                <div><span className="text-[#70665F] font-bold">Speed / RPM:</span> {selectedReq.speed}</div>
+                <div><span className="text-[#70665F] font-bold">Automation:</span> {selectedReq.automationLevel}</div>
+                <div><span className="text-[#70665F] font-bold">Control System:</span> {selectedReq.controlSystem}</div>
               </div>
-              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
-                <span className="text-slate-400 font-bold block">Safety & Compliance:</span>
-                <p className="text-slate-300 mt-1">{selectedReq.safetyRequirements}</p>
+              <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
+                <span className="text-[#70665F] font-bold block">Safety & Compliance:</span>
+                <p className="text-[#544B45] mt-1">{selectedReq.safetyRequirements}</p>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#EBE3DB]">
               <button
                 onClick={() => setSelectedReq(null)}
-                className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold"
+                className="px-4 py-2 rounded-xl bg-white text-[#544B45] font-bold"
               >
                 Close
               </button>

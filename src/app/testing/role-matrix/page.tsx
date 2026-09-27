@@ -78,23 +78,23 @@ export default function RoleMatrixPage() {
       return;
     }
 
-    setSimulationResult({ allowed: true, reason: `Access Granted: Role '${selectedRole}' holds valid permission scope for ${testRoute} [Action: ${testAction.toUpperCase()}].` });
+    setSimulationResult({ allowed: true, reason: `Access Granted: Role '${selectedRole}' holds valid permission scope for ${testRoute} [Action: ${testAction?.toUpperCase()}].` });
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white border border-[#EBE3DB] p-6 rounded-2xl shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-indigo-400">
+            <div className="p-2.5 bg-crm-brand-600/10 border border-crm-brand-600/20 rounded-xl text-indigo-400">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white tracking-wide">
+              <h1 className="text-xl font-bold text-[#211B17] tracking-wide">
                 Role & Data Scope Permission Matrix
               </h1>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-[#70665F]">
                 Verify Role-Based Access Control (RBAC), Department Segregation & Action Scopes across 12 Roles
               </p>
             </div>
@@ -103,58 +103,58 @@ export default function RoleMatrixPage() {
       </div>
 
       {/* Simulator Section */}
-      <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 shadow-xl">
-        <div className="flex items-center gap-2 text-sm font-bold text-white border-b border-slate-800 pb-3">
+      <div className="bg-white border border-[#EBE3DB] p-6 rounded-2xl space-y-4 shadow-xl">
+        <div className="flex items-center gap-2 text-sm font-bold text-[#211B17] border-b border-[#EBE3DB] pb-3">
           <UserCheck className="w-4 h-4 text-indigo-400" />
           Interactive RBAC Permission Test Simulator
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label className="text-xs font-semibold text-slate-400">Select Role to Test:</label>
+            <label className="text-xs font-semibold text-[#70665F]">Select Role to Test:</label>
             <select
               value={selectedRole}
               onChange={(e) => {
                 setSelectedRole(e.target.value);
                 setSimulationResult(null);
               }}
-              className="w-full bg-slate-950 text-xs text-white p-2.5 rounded-xl border border-slate-800 focus:outline-none focus:border-indigo-500 mt-1 cursor-pointer"
+              className="w-full bg-[#FAF7F2] text-xs text-[#211B17] p-2.5 rounded-xl border border-[#EBE3DB] focus:outline-none focus:border-crm-brand-600 mt-1 cursor-pointer"
             >
               {erpRoles.map((r) => (
-                <option key={r} value={r} className="bg-slate-900">{r}</option>
+                <option key={r} value={r} className="bg-white">{r}</option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-400">Target Module Route:</label>
+            <label className="text-xs font-semibold text-[#70665F]">Target Module Route:</label>
             <select
               value={testRoute}
               onChange={(e) => {
                 setTestRoute(e.target.value);
                 setSimulationResult(null);
               }}
-              className="w-full bg-slate-950 text-xs text-white p-2.5 rounded-xl border border-slate-800 focus:outline-none focus:border-indigo-500 mt-1 cursor-pointer"
+              className="w-full bg-[#FAF7F2] text-xs text-[#211B17] p-2.5 rounded-xl border border-[#EBE3DB] focus:outline-none focus:border-crm-brand-600 mt-1 cursor-pointer"
             >
-              <option value="/hr/monthly-payroll" className="bg-slate-900">/hr/monthly-payroll (HR)</option>
-              <option value="/accounting/invoices" className="bg-slate-900">/accounting/invoices (Accounting)</option>
-              <option value="/purchase/pos" className="bg-slate-900">/purchase/pos (Purchase)</option>
-              <option value="/designer/boms" className="bg-slate-900">/designer/boms (Design)</option>
-              <option value="/store/issue" className="bg-slate-900">/store/issue (Store)</option>
-              <option value="/production/work-orders" className="bg-slate-900">/production/work-orders (Production)</option>
-              <option value="/users" className="bg-slate-900">/users (Admin)</option>
+              <option value="/hr/monthly-payroll" className="bg-white">/hr/monthly-payroll (HR)</option>
+              <option value="/accounting/invoices" className="bg-white">/accounting/invoices (Accounting)</option>
+              <option value="/purchase/pos" className="bg-white">/purchase/pos (Purchase)</option>
+              <option value="/designer/boms" className="bg-white">/designer/boms (Design)</option>
+              <option value="/store/issue" className="bg-white">/store/issue (Store)</option>
+              <option value="/production/work-orders" className="bg-white">/production/work-orders (Production)</option>
+              <option value="/users" className="bg-white">/users (Admin)</option>
             </select>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-400">Target Action Scope:</label>
+            <label className="text-xs font-semibold text-[#70665F]">Target Action Scope:</label>
             <select
               value={testAction}
               onChange={(e) => {
                 setTestAction(e.target.value as any);
                 setSimulationResult(null);
               }}
-              className="w-full bg-slate-950 text-xs text-white p-2.5 rounded-xl border border-slate-800 focus:outline-none focus:border-indigo-500 mt-1 cursor-pointer"
+              className="w-full bg-[#FAF7F2] text-xs text-[#211B17] p-2.5 rounded-xl border border-[#EBE3DB] focus:outline-none focus:border-crm-brand-600 mt-1 cursor-pointer"
             >
               <option value="read">READ (View Page)</option>
               <option value="create">CREATE (Add Record)</option>
@@ -167,7 +167,7 @@ export default function RoleMatrixPage() {
           <div className="flex items-end">
             <button
               onClick={handleRunPermissionSimulation}
-              className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl shadow-lg shadow-indigo-600/20 transition flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-crm-brand-700 hover:bg-crm-brand-600 text-white font-semibold text-xs rounded-xl shadow-lg shadow-crm-brand-700/20 transition flex items-center justify-center gap-2"
             >
               <Lock className="w-4 h-4" />
               Test Access Authorization
@@ -197,7 +197,7 @@ export default function RoleMatrixPage() {
               </div>
             </div>
 
-            <span className="text-[10px] px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-400">
+            <span className="text-[10px] px-2 py-0.5 rounded bg-white border border-[#EBE3DB] text-[#70665F]">
               Evaluated Server Middleware
             </span>
           </div>
@@ -205,19 +205,19 @@ export default function RoleMatrixPage() {
       </div>
 
       {/* Role Permission Matrix Grid */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-bold text-white">
+      <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xl">
+        <div className="p-4 border-b border-[#EBE3DB] flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm font-bold text-[#211B17]">
             <Building className="w-4 h-4 text-indigo-400" />
             11 ERP Modules Module Access Scope Matrix
           </div>
-          <span className="text-xs text-slate-400">Green check = Authorized | Red cross = Restricted</span>
+          <span className="text-xs text-[#70665F]">Green check = Authorized | Red cross = Restricted</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-slate-950 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+              <tr className="bg-[#FAF7F2] text-[10px] font-bold text-[#70665F] uppercase tracking-wider border-b border-[#EBE3DB]">
                 <th className="py-3 px-4">ERP Module</th>
                 <th className="py-3 px-4 text-center">Super Admin</th>
                 <th className="py-3 px-4 text-center">Plant Dir</th>
@@ -231,12 +231,12 @@ export default function RoleMatrixPage() {
                 <th className="py-3 px-4 text-center">Service Mgr</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 text-slate-300">
+            <tbody className="divide-y divide-[#EBE3DB] text-[#544B45]">
               {erpModulesAccess.map((mod, idx) => (
-                <tr key={idx} className="hover:bg-slate-800/40 transition">
-                  <td className="py-3 px-4 font-semibold text-white">
+                <tr key={idx} className="hover:bg-[#FAF7F2]/40 transition">
+                  <td className="py-3 px-4 font-semibold text-[#211B17]">
                     <div>{mod.name}</div>
-                    <div className="text-[10px] font-mono text-slate-500">{mod.route}</div>
+                    <div className="text-[10px] font-mono text-[#70665F]">{mod.route}</div>
                   </td>
                   <td className="py-3 px-4 text-center">{mod.superAdmin ? <CheckCircle2 className="w-4 h-4 text-emerald-400 mx-auto" /> : <XCircle className="w-4 h-4 text-slate-600 mx-auto" />}</td>
                   <td className="py-3 px-4 text-center">{mod.plantDir ? <CheckCircle2 className="w-4 h-4 text-emerald-400 mx-auto" /> : <XCircle className="w-4 h-4 text-slate-600 mx-auto" />}</td>

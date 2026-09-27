@@ -40,21 +40,21 @@ export default function LeaveManagementPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-slate-900 text-slate-100 min-h-screen">
+    <div className="p-6 space-y-6 bg-white text-[#211B17] ">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2">
             <FileCheck2 className="w-7 h-7 text-emerald-400" />
             Leave Type Master & Application Portal
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-[#70665F] mt-1">
             Configurable Leave Rules (Casual, Sick, Earned, Comp-Off), Monthly Accrual & Leave Balance Tracking
           </p>
         </div>
         <button
           onClick={() => setShowApplyModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm rounded-lg shadow-md transition"
+          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] font-semibold text-sm rounded-lg shadow-md transition"
         >
           <Plus className="w-4 h-4" /> Apply for Leave
         </button>
@@ -63,14 +63,14 @@ export default function LeaveManagementPage() {
       {/* Leave Type Quota Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {leaveTypes.map((lt) => (
-          <div key={lt.id} className="bg-slate-800/80 border border-slate-700/60 rounded-xl p-4 space-y-2 shadow-lg">
+          <div key={lt.id} className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl p-4 space-y-2 shadow-lg">
             <div className="flex items-center justify-between text-xs">
               <span className="font-mono font-bold text-emerald-400">{lt.leaveCode}</span>
-              <span className="px-2 py-0.5 rounded bg-slate-700 text-slate-300 text-[10px]">Quota: {lt.annualQuota} Days/Yr</span>
+              <span className="px-2 py-0.5 rounded bg-[#FAF7F2] text-[#544B45] text-[10px]">Quota: {lt.annualQuota} Days/Yr</span>
             </div>
-            <h3 className="text-sm font-bold text-white">{lt.leaveName}</h3>
-            <div className="text-xs text-slate-400 space-y-1 pt-1 border-t border-slate-700/50">
-              <div>Accrual: <strong className="text-slate-200">{lt.monthlyAccrual} / month</strong></div>
+            <h3 className="text-sm font-bold text-[#211B17]">{lt.leaveName}</h3>
+            <div className="text-xs text-[#70665F] space-y-1 pt-1 border-t border-[#EBE3DB]/50">
+              <div>Accrual: <strong className="text-[#3E2723]">{lt.monthlyAccrual} / month</strong></div>
               <div>Carry Forward: {lt.carryForwardAllowed ? <span className="text-emerald-400 font-semibold">Allowed</span> : 'No'}</div>
             </div>
           </div>
@@ -78,15 +78,15 @@ export default function LeaveManagementPage() {
       </div>
 
       {/* Leave Requests Log */}
-      <div className="bg-slate-800/80 border border-slate-700/60 rounded-xl overflow-hidden shadow-xl">
-        <div className="p-4 border-b border-slate-700 font-bold text-sm text-white flex items-center justify-between">
+      <div className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl overflow-hidden shadow-xl">
+        <div className="p-4 border-b border-[#EBE3DB] font-bold text-sm text-[#211B17] flex items-center justify-between">
           <span>Employee Leave Applications</span>
-          <span className="text-xs text-slate-400">Total Requests: {leaveRequests.length}</span>
+          <span className="text-xs text-[#70665F]">Total Requests: {leaveRequests.length}</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="bg-slate-900/80 border-b border-slate-700 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              <tr className="bg-white/80 border-b border-[#EBE3DB] text-xs font-semibold text-[#70665F] uppercase tracking-wider">
                 <th className="p-4">Leave No.</th>
                 <th className="p-4">Employee</th>
                 <th className="p-4">Leave Type</th>
@@ -95,20 +95,20 @@ export default function LeaveManagementPage() {
                 <th className="p-4">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700/60 text-slate-200">
+            <tbody className="divide-y divide-[#EBE3DB] text-[#3E2723]">
               {leaveRequests.map((req) => (
-                <tr key={req.id} className="hover:bg-slate-700/40 transition">
+                <tr key={req.id} className="hover:bg-[#FAF7F2]/40 transition">
                   <td className="p-4 font-mono text-xs text-emerald-400 font-bold">{req.leaveNumber}</td>
                   <td className="p-4">
-                    <div className="font-bold text-white">{req.employeeName}</div>
-                    <div className="text-xs text-slate-400">{req.department}</div>
+                    <div className="font-bold text-[#211B17]">{req.employeeName}</div>
+                    <div className="text-xs text-[#70665F]">{req.department}</div>
                   </td>
-                  <td className="p-4 font-semibold text-slate-200">{req.leaveName}</td>
+                  <td className="p-4 font-semibold text-[#3E2723]">{req.leaveName}</td>
                   <td className="p-4 text-xs">
-                    <div className="text-slate-300 font-mono">{req.fromDate} to {req.toDate}</div>
+                    <div className="text-[#544B45] font-mono">{req.fromDate} to {req.toDate}</div>
                     <div className="text-emerald-400 font-bold">{req.numberOfDays} Day(s) {req.isHalfDay && '(Half Day)'}</div>
                   </td>
-                  <td className="p-4 text-xs text-slate-400 max-w-xs truncate">&quot;{req.reason}&quot;</td>
+                  <td className="p-4 text-xs text-[#70665F] max-w-xs truncate">&quot;{req.reason}&quot;</td>
                   <td className="p-4">
                     <span
                       className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
@@ -132,23 +132,23 @@ export default function LeaveManagementPage() {
       {/* Apply Modal */}
       {showApplyModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+              <h2 className="text-lg font-bold text-[#211B17] flex items-center gap-2">
                 <FileCheck2 className="w-5 h-5 text-emerald-400" /> Apply for Leave
               </h2>
-              <button onClick={() => setShowApplyModal(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setShowApplyModal(false)} className="text-[#70665F] hover:text-[#211B17]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleApplySubmit} className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-400 mb-1">Select Employee</label>
+                <label className="block text-[#70665F] mb-1">Select Employee</label>
                 <select
                   value={formData.employeeId}
                   onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
                 >
                   {availableEmployees.map((e) => (
                     <option key={e.id} value={e.id}>
@@ -159,11 +159,11 @@ export default function LeaveManagementPage() {
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1">Leave Type</label>
+                <label className="block text-[#70665F] mb-1">Leave Type</label>
                 <select
                   value={formData.leaveTypeId}
                   onChange={(e) => setFormData({ ...formData, leaveTypeId: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
                 >
                   {leaveTypes.map((l) => (
                     <option key={l.id} value={l.id}>
@@ -175,40 +175,40 @@ export default function LeaveManagementPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1">From Date</label>
+                  <label className="block text-[#70665F] mb-1">From Date</label>
                   <input
                     type="date"
                     value={formData.fromDate}
                     onChange={(e) => setFormData({ ...formData, fromDate: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">To Date</label>
+                  <label className="block text-[#70665F] mb-1">To Date</label>
                   <input
                     type="date"
                     value={formData.toDate}
                     onChange={(e) => setFormData({ ...formData, toDate: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1">Reason</label>
+                <label className="block text-[#70665F] mb-1">Reason</label>
                 <textarea
                   rows={2}
                   value={formData.reason}
                   onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
+                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
                 ></textarea>
               </div>
 
-              <div className="pt-3 border-t border-slate-800 flex justify-end gap-3">
-                <button type="button" onClick={() => setShowApplyModal(false)} className="px-4 py-2 bg-slate-800 text-slate-300 font-semibold rounded-lg">
+              <div className="pt-3 border-t border-[#EBE3DB] flex justify-end gap-3">
+                <button type="button" onClick={() => setShowApplyModal(false)} className="px-4 py-2 bg-white text-[#544B45] font-semibold rounded-lg">
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg">
+                <button type="submit" className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] font-semibold rounded-lg">
                   Submit Leave Request
                 </button>
               </div>

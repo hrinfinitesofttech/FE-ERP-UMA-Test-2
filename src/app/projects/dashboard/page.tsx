@@ -339,11 +339,11 @@ export default function ProjectDashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Chart 1: Projects by Status */}
         <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-xs">
-          <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
-            <PieChart className="w-4 h-4 text-blue-500" />
+          <h2 className="text-sm font-bold text-slate-900 dark:text-[#211B17] mb-1 flex items-center gap-2">
+            <PieChart className="w-4 h-4 text-crm-brand-600" />
             Projects Breakdown by Status
           </h2>
-          <p className="text-[11px] text-slate-400 mb-4">Distribution of active MTO orders across manufacturing stages</p>
+          <p className="text-[11px] text-[#70665F] mb-4">Distribution of active MTO orders across manufacturing stages</p>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -361,11 +361,11 @@ export default function ProjectDashboardPage() {
 
         {/* Chart 2: Department Workload */}
         <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-xs">
-          <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+          <h2 className="text-sm font-bold text-slate-900 dark:text-[#211B17] mb-1 flex items-center gap-2">
             <BarChart className="w-4 h-4 text-emerald-500" />
             Department Workload & Active Tasks
           </h2>
-          <p className="text-[11px] text-slate-400 mb-4">Task volume and estimated engineering hours per department</p>
+          <p className="text-[11px] text-[#70665F] mb-4">Task volume and estimated engineering hours per department</p>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={departmentChartData}>
@@ -383,11 +383,11 @@ export default function ProjectDashboardPage() {
 
         {/* Chart 3: Projects by Priority */}
         <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-xs">
-          <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+          <h2 className="text-sm font-bold text-slate-900 dark:text-[#211B17] mb-1 flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-500" />
             Projects by Priority Level
           </h2>
-          <p className="text-[11px] text-slate-400 mb-4">Urgency levels assigned to active manufacturing jobs</p>
+          <p className="text-[11px] text-[#70665F] mb-4">Urgency levels assigned to active manufacturing jobs</p>
           <div className="h-60">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={priorityChartData}>
@@ -403,11 +403,11 @@ export default function ProjectDashboardPage() {
 
         {/* Chart 4: Monthly Project Creation */}
         <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-xs">
-          <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-purple-500" />
+          <h2 className="text-sm font-bold text-slate-900 dark:text-[#211B17] mb-1 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-crm-brand-600" />
             Monthly MTO Project Inflow Trend
           </h2>
-          <p className="text-[11px] text-slate-400 mb-4">Project creation volume & order value in Lakhs (₹)</p>
+          <p className="text-[11px] text-[#70665F] mb-4">Project creation volume & order value in Lakhs (₹)</p>
           <div className="h-60">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={monthlyCreationData}>
@@ -423,11 +423,11 @@ export default function ProjectDashboardPage() {
 
         {/* Chart 5: Project Delivery Performance */}
         <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-xs">
-          <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+          <h2 className="text-sm font-bold text-slate-900 dark:text-[#211B17] mb-1 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
             Project Delivery Performance (Planned vs Actual)
           </h2>
-          <p className="text-[11px] text-slate-400 mb-4">On-time delivery comparison rate</p>
+          <p className="text-[11px] text-[#70665F] mb-4">On-time delivery comparison rate</p>
           <div className="h-60">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={completionTrendData}>
@@ -445,11 +445,11 @@ export default function ProjectDashboardPage() {
 
         {/* Chart 6: Delayed Projects Analysis */}
         <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-xs">
-          <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+          <h2 className="text-sm font-bold text-slate-900 dark:text-[#211B17] mb-1 flex items-center gap-2">
             <Clock className="w-4 h-4 text-rose-500" />
             Delay Impact Analysis by Reason
           </h2>
-          <p className="text-[11px] text-slate-400 mb-4">Average impact days lost across delay categories</p>
+          <p className="text-[11px] text-[#70665F] mb-4">Average impact days lost across delay categories</p>
           <div className="h-60">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={delayBreakdownData} layout="vertical">

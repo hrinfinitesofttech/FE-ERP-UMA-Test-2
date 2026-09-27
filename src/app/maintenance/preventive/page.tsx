@@ -49,9 +49,9 @@ export default function PreventiveMaintenancePage() {
 
   const filteredPlans = preventivePlans.filter((plan) => {
     const matchesSearch =
-      plan.planNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      plan.assetName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      plan.maintenanceType.toLowerCase().includes(searchTerm.toLowerCase());
+      plan.planNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      plan.assetName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      plan.maintenanceType?.toLowerCase().includes(searchTerm?.toLowerCase());
     const matchesFreq = frequencyFilter === 'all' || plan.frequency === frequencyFilter;
     return matchesSearch && matchesFreq;
   });
@@ -68,21 +68,21 @@ export default function PreventiveMaintenancePage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen">
+    <div className="p-4 sm:p-6 space-y-6 bg-slate-50 dark:bg-[#FAF7F2] ">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-white p-5 rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 rounded bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 font-mono text-xs font-bold">
               PREVENTIVE MAINTENANCE (PM)
             </span>
-            <span className="text-xs text-slate-400">Scheduled Asset Reliability & Longevity</span>
+            <span className="text-xs text-[#70665F]">Scheduled Asset Reliability & Longevity</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-1 flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-[#211B17] mt-1 flex items-center gap-2">
             <RotateCcw className="w-6 h-6 text-teal-500" />
             Preventive Maintenance Plans
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[#70665F]">
             Define recurring PM schedules, inspection checklists, required parts, and automated PM work task generation.
           </p>
         </div>
@@ -97,7 +97,7 @@ export default function PreventiveMaintenancePage() {
           </button>
           <button
             onClick={() => setShowAddModal(true)}
-            className="px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold text-xs transition flex items-center gap-2 shadow-md shadow-teal-600/30"
+            className="px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-[#211B17] font-semibold text-xs transition flex items-center gap-2 shadow-md shadow-teal-600/30"
           >
             <Plus className="w-4 h-4" />
             Create PM Plan
@@ -113,15 +113,15 @@ export default function PreventiveMaintenancePage() {
       )}
 
       {/* Filter Bar */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
+      <div className="bg-white dark:bg-white p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
         <div className="relative w-full md:w-96">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-3 text-[#70665F]" />
           <input
             type="text"
             placeholder="Search plan no, asset name or maintenance type..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none"
+            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg focus:outline-none"
           />
         </div>
 
@@ -129,7 +129,7 @@ export default function PreventiveMaintenancePage() {
           <select
             value={frequencyFilter}
             onChange={(e) => setFrequencyFilter(e.target.value)}
-            className="px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none"
+            className="px-3 py-1.5 text-xs bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg focus:outline-none"
           >
             <option value="all">All PM Frequencies</option>
             <option value="Daily">Daily</option>
@@ -147,7 +147,7 @@ export default function PreventiveMaintenancePage() {
         {filteredPlans.map((plan) => (
           <div
             key={plan.id}
-            className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4 hover:border-teal-300 transition"
+            className="bg-white dark:bg-white rounded-2xl border border-slate-200 dark:border-[#EBE3DB] p-5 shadow-sm space-y-4 hover:border-teal-300 transition"
           >
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -155,12 +155,12 @@ export default function PreventiveMaintenancePage() {
                   <span className="px-2.5 py-0.5 rounded bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300 font-mono font-bold text-xs">
                     {plan.planNumber}
                   </span>
-                  <span className="px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 text-[10px] font-bold">
+                  <span className="px-2 py-0.5 rounded bg-crm-brand- dark:bg-crm-brand- text-crm-brand-800 dark:text-crm-brand- text-[10px] font-bold">
                     {plan.frequency}
                   </span>
                 </div>
-                <h3 className="font-bold text-sm text-slate-900 dark:text-white mt-1.5">{plan.assetName}</h3>
-                <p className="text-xs text-slate-500">{plan.maintenanceType}</p>
+                <h3 className="font-bold text-sm text-slate-900 dark:text-[#211B17] mt-1.5">{plan.assetName}</h3>
+                <p className="text-xs text-[#70665F]">{plan.maintenanceType}</p>
               </div>
 
               <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
@@ -169,44 +169,44 @@ export default function PreventiveMaintenancePage() {
             </div>
 
             {/* Checklist items */}
-            <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl space-y-2">
-              <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1">
+            <div className="p-3 bg-slate-50 dark:bg-[#FAF7F2]/40 rounded-xl space-y-2">
+              <span className="text-[11px] font-bold text-slate-700 dark:text-[#544B45] uppercase tracking-wider flex items-center gap-1">
                 <CheckSquare className="w-3.5 h-3.5 text-teal-500" />
                 Inspection Checklist ({plan.checklist.length} Parameters)
               </span>
               <div className="space-y-1 text-xs">
                 {plan.checklist.map((chk, idx) => (
                   <div key={idx} className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-600 dark:text-slate-300">• {chk.parameter}</span>
-                    <span className="font-mono text-slate-400">Target: {chk.expectedValue}</span>
+                    <span className="text-slate-600 dark:text-[#544B45]">• {chk.parameter}</span>
+                    <span className="font-mono text-[#70665F]">Target: {chk.expectedValue}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-xs text-slate-500">
+            <div className="grid grid-cols-2 gap-2 text-xs text-[#70665F]">
               <div>
-                <span className="text-[10px] text-slate-400 block">Next Due Date</span>
+                <span className="text-[10px] text-[#70665F] block">Next Due Date</span>
                 <span className="font-bold text-teal-600 dark:text-teal-400 font-mono">{formatDate(plan.nextDueDate)}</span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block">Estimated Duration</span>
-                <span className="font-medium text-slate-800 dark:text-slate-200">{plan.estimatedDurationHours} Hours</span>
+                <span className="text-[10px] text-[#70665F] block">Estimated Duration</span>
+                <span className="font-medium text-slate-800 dark:text-[#544B45]">{plan.estimatedDurationHours} Hours</span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block">Responsible Technician</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">{plan.responsibleTechnicianName}</span>
+                <span className="text-[10px] text-[#70665F] block">Responsible Technician</span>
+                <span className="font-semibold text-slate-800 dark:text-[#544B45]">{plan.responsibleTechnicianName}</span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block">Required Spare Parts</span>
-                <span className="font-medium text-slate-800 dark:text-slate-200">
+                <span className="text-[10px] text-[#70665F] block">Required Spare Parts</span>
+                <span className="font-medium text-slate-800 dark:text-[#544B45]">
                   {plan.requiredSpareParts.map((p) => p.itemName).join(', ') || 'None'}
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
-              <span className="text-[10px] text-slate-400">Instructions: {plan.instructions}</span>
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-[#EBE3DB]">
+              <span className="text-[10px] text-[#70665F]">Instructions: {plan.instructions}</span>
               <button className="px-3 py-1 rounded bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 text-xs font-semibold hover:underline">
                 View Schedule
               </button>
@@ -217,14 +217,14 @@ export default function PreventiveMaintenancePage() {
 
       {/* Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-              <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FAF7F2] backdrop-blur-sm">
+          <div className="bg-white dark:bg-white rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="p-4 border-b border-slate-200 dark:border-[#EBE3DB] flex items-center justify-between">
+              <h3 className="font-bold text-base text-slate-900 dark:text-[#211B17] flex items-center gap-2">
                 <RotateCcw className="w-5 h-5 text-teal-500" />
                 Create Preventive Maintenance Plan
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowAddModal(false)} className="text-[#70665F] hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -238,7 +238,7 @@ export default function PreventiveMaintenancePage() {
                     required
                     value={formData.assetName}
                     onChange={(e) => setFormData({ ...formData, assetName: e.target.value })}
-                    className="w-full p-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                   />
                 </div>
                 <div>
@@ -248,7 +248,7 @@ export default function PreventiveMaintenancePage() {
                     required
                     value={formData.maintenanceType}
                     onChange={(e) => setFormData({ ...formData, maintenanceType: e.target.value })}
-                    className="w-full p-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                   />
                 </div>
                 <div>
@@ -256,7 +256,7 @@ export default function PreventiveMaintenancePage() {
                   <select
                     value={formData.frequency}
                     onChange={(e) => setFormData({ ...formData, frequency: e.target.value as PMFrequency })}
-                    className="w-full p-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                   >
                     <option value="Daily">Daily</option>
                     <option value="Weekly">Weekly</option>
@@ -274,7 +274,7 @@ export default function PreventiveMaintenancePage() {
                     type="date"
                     value={formData.nextDueDate}
                     onChange={(e) => setFormData({ ...formData, nextDueDate: e.target.value })}
-                    className="w-full p-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                   />
                 </div>
               </div>
@@ -285,7 +285,7 @@ export default function PreventiveMaintenancePage() {
                   rows={2}
                   value={formData.instructions}
                   onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
-                  className="w-full p-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                  className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                 />
               </div>
 
@@ -297,7 +297,7 @@ export default function PreventiveMaintenancePage() {
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 rounded-lg bg-teal-600 text-white font-semibold">
+                <button type="submit" className="px-4 py-2 rounded-lg bg-teal-600 text-[#211B17] font-semibold">
                   Save PM Plan
                 </button>
               </div>

@@ -89,7 +89,7 @@ export default function LeadsListPage() {
       header: 'LEAD SOURCE',
       cell: (lead) => (
         <span className="px-2 py-0.5 rounded-md bg-[#FAF0E6] text-[#75401F] font-mono text-[10px] font-bold uppercase border border-[#E7DED5] whitespace-nowrap">
-          {lead.source.replace('_', ' ')}
+          {lead.source?.replace('_', ' ')}
         </span>
       ),
     },
@@ -175,7 +175,7 @@ export default function LeadsListPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none"
+              className="px-3 py-2 bg-white dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB]/80 rounded-xl text-xs font-bold text-slate-700 dark:text-[#544B45] focus:outline-none"
             >
               <option value="all">All Lead Statuses</option>
               <option value="new">New</option>
@@ -190,7 +190,7 @@ export default function LeadsListPage() {
             <select
               value={sourceFilter}
               onChange={(e) => setSourceFilter(e.target.value)}
-              className="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none"
+              className="px-3 py-2 bg-white dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB]/80 rounded-xl text-xs font-bold text-slate-700 dark:text-[#544B45] focus:outline-none"
             >
               <option value="all">All Sources</option>
               <option value="website">Website</option>

@@ -8,20 +8,16 @@ import {
   Lock,
   User,
   ArrowRight,
-  CheckCircle2,
   AlertCircle,
-  Factory,
-  Layers,
   FileSpreadsheet,
   Cpu,
   Sparkles,
-  Award,
-  Zap,
 } from 'lucide-react';
+import { cn } from '../../lib/utils'; // Included just in case
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, availableEmployees } = useERP();
+  const { login } = useERP();
   const [username, setUsername] = useState('rajesh.admin');
   const [password, setPassword] = useState('admin123');
   const [rememberMe, setRememberMe] = useState(true);
@@ -50,198 +46,204 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 lg:p-10 relative overflow-hidden bg-[#070B14]">
-      {/* Dynamic Ambient Background Glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[130px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/15 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute inset-0 bg-grid-pattern opacity-40 pointer-events-none" />
+    <div className="w-full flex flex-col p-4 py-8 sm:p-6 lg:p-10 relative overflow-x-hidden overflow-y-auto bg-[#FAF7F2]">
+      {/* Dynamic Ambient Background Glows - Warm light theme */}
+      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#F1DFC9]/40 rounded-full blur-[130px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-[#E7DED5]/40 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute inset-0 opacity-30 pointer-events-none"
+           style={{ backgroundImage: 'radial-gradient(#d5cac0 1px, transparent 1px)', backgroundSize: '24px 24px' }}
+      />
 
       {/* Main Container Card: Split-Screen Architecture */}
-      <div className="relative z-10 w-full max-w-5xl rounded-3xl overflow-hidden border border-slate-800/80 bg-slate-900/70 backdrop-blur-2xl shadow-2xl shadow-black/80 grid grid-cols-1 lg:grid-cols-12 min-h-[620px]">
+      <div className="my-auto mx-auto relative z-10 w-full max-w-5xl rounded-3xl overflow-hidden border border-[#E7DED5] bg-white shadow-2xl shadow-[#75401F]/5 grid grid-cols-1 lg:grid-cols-12 lg:min-h-[620px]">
+        
         {/* LEFT COLUMN: Industrial Brand & Capabilities Showcase */}
-        <div className="lg:col-span-6 p-8 sm:p-10 lg:p-12 flex flex-col justify-between bg-gradient-to-br from-slate-900/90 via-blue-950/40 to-slate-950 border-b lg:border-b-0 lg:border-r border-slate-800/80 relative">
-          <div className="absolute inset-0 bg-grid-pattern opacity-25 pointer-events-none" />
+        <div className="lg:col-span-6 p-6 sm:p-8 lg:p-12 flex flex-col justify-between bg-gradient-to-br from-[#FAF3EA] via-[#F8EDE0] to-[#EFE8DE] border-b lg:border-b-0 lg:border-r border-[#E7DED5] relative">
+          
+          <div className="absolute inset-0 opacity-20 pointer-events-none"
+               style={{ backgroundImage: 'linear-gradient(to right, #e7ded5 1px, transparent 1px), linear-gradient(to bottom, #e7ded5 1px, transparent 1px)', backgroundSize: '32px 32px' }}
+          />
 
           {/* Top Lockup */}
           <div className="relative z-10 space-y-6">
             <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-blue-500/30 border border-white/20">
+              <div className="w-12 h-12 rounded-2xl bg-white border border-[#E7DED5] flex items-center justify-center text-[#211B17] font-black text-2xl shadow-sm">
                 U
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-lg font-black tracking-wider text-white">UMA TECHNO FAB</span>
-                  <span className="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[10px] font-mono font-bold uppercase">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-lg font-black tracking-wider text-[#211B17]">UMA TECHNO FAB</span>
+                  <span className="px-2 py-0.5 rounded-full bg-[#FAF0E6] text-[#9C6538] border border-[#E7DED5] text-[10px] font-mono font-bold uppercase mt-1 sm:mt-0">
                     MTO ERP
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 font-medium">Make-to-Order Manufacturing & Traceability</p>
+                <p className="text-xs text-[#70665F] font-medium">Make-to-Order Manufacturing</p>
               </div>
             </div>
 
             <div className="space-y-2 pt-2">
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-snug">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#211B17] tracking-tight leading-snug">
                 Precision Manufacturing <br />
-                <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-amber-300 bg-clip-text text-transparent">
-                  Enterprise Management System
+                <span className="text-[#9C6538]">
+                  Enterprise System
                 </span>
               </h1>
-              <p className="text-xs sm:text-sm text-slate-300/80 leading-relaxed max-w-md">
-                End-to-end commercial CRM, Multi-Revision Engineering Quotations, Customer PO processing, and 360° Job Order Shop Floor Traceability.
+              <p className="text-xs sm:text-sm text-[#6F6156] leading-relaxed max-w-md">
+                End-to-end CRM, Multi-Revision Engg Quotations, PO processing, & 360° Traceability.
               </p>
             </div>
 
             {/* Value Proposition Showcase Cards */}
             <div className="space-y-3 pt-2">
-              <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm">
-                <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 flex-shrink-0">
+              <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-white/60 border border-[#E7DED5] shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-[#E0F2FE] border border-[#BAE6FD] flex items-center justify-center text-[#0369A1] flex-shrink-0">
                   <Cpu className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-white">360° MTO Job Order Traceability</h4>
-                  <p className="text-[11px] text-slate-400">Real-time status from Lead → Quotation → PO → Shop Floor Job.</p>
+                  <h4 className="text-xs font-bold text-[#211B17]">360° MTO Job Traceability</h4>
+                  <p className="text-[11px] text-[#70665F]">Real-time status Lead → PO → Job.</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm">
-                <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 flex-shrink-0">
+              <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-white/60 border border-[#E7DED5] shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-[#FEF3C7] border border-[#FDE68A] flex items-center justify-center text-[#B45309] flex-shrink-0">
                   <FileSpreadsheet className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-white">Multi-Revision Commercial Quotations</h4>
-                  <p className="text-[11px] text-slate-400">Complete version history (Rev-00, Rev-01) with itemized BOM pricing.</p>
+                  <h4 className="text-xs font-bold text-[#211B17]">Multi-Revision Quotes</h4>
+                  <p className="text-[11px] text-[#70665F]">Complete version history & BOM pricing.</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm">
-                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
+              <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-white/60 border border-[#E7DED5] shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-[#E0F5EB] border border-[#A7F3D0] flex items-center justify-center text-[#169B62] flex-shrink-0">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-white">Granular Role-Based Access Control</h4>
-                  <p className="text-[11px] text-slate-400">Strict department privilege separation & comprehensive audit logging.</p>
+                  <h4 className="text-xs font-bold text-[#211B17]">Granular Role-Based Logic</h4>
+                  <p className="text-[11px] text-[#70665F]">Strict privilege separation & logging.</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Footer Security Note */}
-          <div className="relative z-10 pt-6 mt-6 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-500">
-            <span className="flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5 text-blue-400" /> 256-Bit Encrypted Secure Session
+          <div className="relative z-10 pt-6 mt-6 border-t border-[#E7DED5] flex items-center justify-between text-[11px] text-[#8D827A] flex-wrap gap-2">
+            <span className="flex items-center gap-1.5 font-medium">
+              <Lock className="w-3.5 h-3.5 text-[#169B62]" /> 256-Bit Encrypted Session
             </span>
-            <span className="font-mono text-slate-400">v1.0.0 Enterprise</span>
+            <span className="font-mono">v1.0.0 Enterprise</span>
           </div>
         </div>
 
         {/* RIGHT COLUMN: Authentication & Persona Switcher */}
-        <div className="lg:col-span-6 p-8 sm:p-10 lg:p-12 flex flex-col justify-between bg-slate-900/60">
+        <div className="lg:col-span-6 p-6 sm:p-8 lg:p-12 flex flex-col justify-between bg-white">
           <div>
             {/* Header */}
             <div className="space-y-1 mb-6">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-blue-400 font-mono flex items-center gap-1.5">
-                <Sparkles className="w-3 h-3" /> Secure Workspace Portal
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#9C6538] font-mono flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3" /> Secure Workspace
               </span>
-              <h2 className="text-2xl font-black text-white tracking-tight">Sign In to ERP</h2>
-              <p className="text-xs text-slate-400">Enter your employee credentials or select a test role below.</p>
+              <h2 className="text-2xl font-black text-[#211B17] tracking-tight">Sign In to ERP</h2>
+              <p className="text-xs text-[#70665F]">Enter employee credentials or select a test role.</p>
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="mb-5 p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-rose-300 text-xs flex items-start gap-2.5 animate-in fade-in duration-200">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-rose-400" />
-                <span>{error}</span>
+              <div className="mb-5 p-3.5 bg-[#FCE8E8] border border-[#F8B4B4] rounded-2xl text-[#D9383A] text-xs flex items-start gap-2.5 animate-in fade-in duration-200">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <span className="font-medium">{error}</span>
               </div>
             )}
 
             {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-bold text-[#211B17] mb-1.5">
                   Username or Employee Email
                 </label>
                 <div className="relative">
-                  <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8D827A]" />
                   <input
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="e.g. rajesh.admin"
                     required
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-800/80 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition shadow-inner"
+                    className="w-full pl-10 pr-4 py-2.5 bg-[#FAF7F2] border border-[#E7DED5] rounded-xl text-xs text-[#211B17] placeholder:text-[#8D827A] focus:outline-none focus:ring-2 focus:ring-[#9C6538]/20 focus:border-[#75401F] transition shadow-xs"
                   />
                 </div>
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-semibold text-slate-300">Password</label>
-                  <a href="/forgot-password" className="text-blue-400 hover:text-blue-300 hover:underline text-[11px] font-medium transition">
+                  <label className="block text-xs font-bold text-[#211B17]">Password</label>
+                  <a href="/forgot-password" className="text-[#9C6538] hover:text-[#75401F] hover:underline text-[11px] font-bold transition">
                     Forgot Password?
                   </a>
                 </div>
                 <div className="relative">
-                  <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8D827A]" />
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-800/80 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition shadow-inner font-mono"
+                    className="w-full pl-10 pr-4 py-2.5 bg-[#FAF7F2] border border-[#E7DED5] rounded-xl text-xs text-[#211B17] placeholder:text-[#8D827A] focus:outline-none focus:ring-2 focus:ring-[#9C6538]/20 focus:border-[#75401F] transition shadow-xs font-mono"
                   />
                 </div>
               </div>
 
               <div className="flex items-center justify-between pt-1">
-                <label className="flex items-center gap-2 cursor-pointer text-slate-300 text-xs select-none">
+                <label className="flex items-center gap-2 cursor-pointer text-[#70665F] font-medium text-xs select-none">
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="rounded border-slate-700 bg-slate-800 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                    className="rounded border-[#E7DED5] text-[#9C6538] focus:ring-[#9C6538] w-3.5 h-3.5 cursor-pointer"
                   />
-                  <span>Remember my session on this terminal</span>
+                  <span>Remember my session</span>
                 </label>
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold text-xs transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 disabled:opacity-50 active:scale-[0.99] cursor-pointer"
+                className="w-full py-3 px-4 bg-[#211B17] hover:bg-[#3E2723] text-white rounded-xl font-bold text-xs transition-all duration-200 flex items-center justify-center gap-2 shadow-md shadow-[#211B17]/20 disabled:opacity-50 active:scale-[0.99] cursor-pointer"
               >
-                <span>{loading ? 'Authenticating Operator...' : 'Sign In to Manufacturing Workspace'}</span>
+                <span>{loading ? 'Authenticating...' : 'Sign In to Workspace'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
           </div>
 
           {/* Quick RBAC Persona Switcher */}
-          <div className="pt-6 mt-6 border-t border-slate-800/80 space-y-2.5">
+          <div className="pt-6 mt-6 border-t border-[#E7DED5] space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
-                ⚡ Quick 1-Click Test Personas (RBAC Demo)
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#8D827A] font-mono whitespace-nowrap">
+                ⚡ Quick Personas
               </span>
-              <span className="text-[10px] text-blue-400 font-medium">Auto-fill credentials</span>
+              <span className="text-[10px] text-[#169B62] font-bold whitespace-nowrap">Auto-fills roles</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {/* Persona 1: Super Admin */}
               <button
                 type="button"
                 onClick={() => handleQuickSelect('rajesh.admin')}
-                className={`p-2.5 rounded-xl border text-left transition flex items-center gap-2.5 cursor-pointer ${
+                className={`p-2.5 rounded-xl border text-left transition flex items-center gap-2.5 cursor-pointer w-full ${
                   username === 'rajesh.admin'
-                    ? 'bg-blue-600/15 border-blue-500/60 ring-1 ring-blue-500/30'
-                    : 'bg-slate-800/40 border-slate-700/60 hover:bg-slate-800/80 hover:border-slate-600'
+                    ? 'bg-[#FAF0E6] border-[#D5CAC0] ring-1 ring-[#D5CAC0]'
+                    : 'bg-white border-[#E7DED5] hover:bg-[#FAF7F2] hover:border-[#D5CAC0]'
                 }`}
               >
-                <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-400 font-bold text-xs flex items-center justify-center flex-shrink-0 font-mono">
+                <div className="w-8 h-8 rounded-lg bg-[#FDE68A]/50 border border-[#FDE68A] text-[#B45309] font-bold text-xs flex items-center justify-center flex-shrink-0 font-mono">
                   RP
                 </div>
                 <div className="min-w-0">
-                  <span className="font-bold text-white text-xs block truncate">Rajesh Patel</span>
-                  <span className="text-[9px] font-mono text-amber-400 font-bold block uppercase truncate">Super Admin</span>
+                  <span className="font-bold text-[#211B17] text-xs block truncate">Rajesh Patel</span>
+                  <span className="text-[9px] font-mono text-[#B45309] font-bold block uppercase truncate">Super Admin</span>
                 </div>
               </button>
 
@@ -249,18 +251,18 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => handleQuickSelect('pravin.crm')}
-                className={`p-2.5 rounded-xl border text-left transition flex items-center gap-2.5 cursor-pointer ${
+                className={`p-2.5 rounded-xl border text-left transition flex items-center gap-2.5 cursor-pointer w-full ${
                   username === 'pravin.crm'
-                    ? 'bg-blue-600/15 border-blue-500/60 ring-1 ring-blue-500/30'
-                    : 'bg-slate-800/40 border-slate-700/60 hover:bg-slate-800/80 hover:border-slate-600'
+                    ? 'bg-[#FAF0E6] border-[#D5CAC0] ring-1 ring-[#D5CAC0]'
+                    : 'bg-white border-[#E7DED5] hover:bg-[#FAF7F2] hover:border-[#D5CAC0]'
                 }`}
               >
-                <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-500/30 text-blue-400 font-bold text-xs flex items-center justify-center flex-shrink-0 font-mono">
+                <div className="w-8 h-8 rounded-lg bg-[#E0F2FE] border border-[#BAE6FD] text-[#0369A1] font-bold text-xs flex items-center justify-center flex-shrink-0 font-mono">
                   PP
                 </div>
                 <div className="min-w-0">
-                  <span className="font-bold text-white text-xs block truncate">Pravin Patel</span>
-                  <span className="text-[9px] font-mono text-blue-400 font-bold block uppercase truncate">CRM Manager</span>
+                  <span className="font-bold text-[#211B17] text-xs block truncate">Pravin Patel</span>
+                  <span className="text-[9px] font-mono text-[#0369A1] font-bold block uppercase truncate">CRM Manager</span>
                 </div>
               </button>
 
@@ -268,18 +270,18 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => handleQuickSelect('ketan.admin')}
-                className={`p-2.5 rounded-xl border text-left transition flex items-center gap-2.5 cursor-pointer ${
+                className={`p-2.5 rounded-xl border text-left transition flex items-center gap-2.5 cursor-pointer w-full ${
                   username === 'ketan.admin'
-                    ? 'bg-blue-600/15 border-blue-500/60 ring-1 ring-blue-500/30'
-                    : 'bg-slate-800/40 border-slate-700/60 hover:bg-slate-800/80 hover:border-slate-600'
+                    ? 'bg-[#FAF0E6] border-[#D5CAC0] ring-1 ring-[#D5CAC0]'
+                    : 'bg-white border-[#E7DED5] hover:bg-[#FAF7F2] hover:border-[#D5CAC0]'
                 }`}
               >
-                <div className="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/30 text-purple-400 font-bold text-xs flex items-center justify-center flex-shrink-0 font-mono">
+                <div className="w-8 h-8 rounded-lg bg-[#F3E8FF] border border-[#E9D5FF] text-[#7E22CE] font-bold text-xs flex items-center justify-center flex-shrink-0 font-mono">
                   KP
                 </div>
                 <div className="min-w-0">
-                  <span className="font-bold text-white text-xs block truncate">Ketan Patel</span>
-                  <span className="text-[9px] font-mono text-purple-400 font-bold block uppercase truncate">Admin (Family)</span>
+                  <span className="font-bold text-[#211B17] text-xs block truncate">Ketan Patel</span>
+                  <span className="text-[9px] font-mono text-[#7E22CE] font-bold block uppercase truncate">Admin (Family)</span>
                 </div>
               </button>
 
@@ -287,18 +289,18 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => handleQuickSelect('amit.sales')}
-                className={`p-2.5 rounded-xl border text-left transition flex items-center gap-2.5 cursor-pointer ${
+                className={`p-2.5 rounded-xl border text-left transition flex items-center gap-2.5 cursor-pointer w-full ${
                   username === 'amit.sales'
-                    ? 'bg-blue-600/15 border-blue-500/60 ring-1 ring-blue-500/30'
-                    : 'bg-slate-800/40 border-slate-700/60 hover:bg-slate-800/80 hover:border-slate-600'
+                    ? 'bg-[#FAF0E6] border-[#D5CAC0] ring-1 ring-[#D5CAC0]'
+                    : 'bg-white border-[#E7DED5] hover:bg-[#FAF7F2] hover:border-[#D5CAC0]'
                 }`}
               >
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold text-xs flex items-center justify-center flex-shrink-0 font-mono">
+                <div className="w-8 h-8 rounded-lg bg-[#DCFCE7] border border-[#BBF7D0] text-[#15803D] font-bold text-xs flex items-center justify-center flex-shrink-0 font-mono">
                   AS
                 </div>
                 <div className="min-w-0">
-                  <span className="font-bold text-white text-xs block truncate">Amit Sharma</span>
-                  <span className="text-[9px] font-mono text-emerald-400 font-bold block uppercase truncate">Sales Engineer</span>
+                  <span className="font-bold text-[#211B17] text-xs block truncate">Amit Sharma</span>
+                  <span className="text-[9px] font-mono text-[#15803D] font-bold block uppercase truncate">Sales Engineer</span>
                 </div>
               </button>
             </div>

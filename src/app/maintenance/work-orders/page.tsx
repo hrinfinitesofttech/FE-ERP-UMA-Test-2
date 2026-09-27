@@ -42,10 +42,10 @@ export default function WorkOrdersPage() {
   });
 
   const filteredOrders = serviceWorkOrders.filter((swo) =>
-    swo.workOrderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    swo.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    swo.machineName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    swo.technicianName.toLowerCase().includes(searchTerm.toLowerCase())
+    swo.workOrderNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+    swo.customerName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+    swo.machineName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+    swo.technicianName?.toLowerCase().includes(searchTerm?.toLowerCase())
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -55,28 +55,28 @@ export default function WorkOrdersPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen">
+    <div className="p-4 sm:p-6 space-y-6 bg-slate-50 dark:bg-[#FAF7F2] ">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-white p-5 rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-mono text-xs font-bold">
+            <span className="px-2 py-0.5 rounded bg-crm-brand- dark:bg-crm-brand-/40 text-crm-brand-800 dark:text-crm-brand- font-mono text-xs font-bold">
               SERVICE WORK ORDERS
             </span>
-            <span className="text-xs text-slate-400">Formal Job Scope & Cost Estimate Approvals</span>
+            <span className="text-xs text-[#70665F]">Formal Job Scope & Cost Estimate Approvals</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-1 flex items-center gap-2">
-            <ClipboardList className="w-6 h-6 text-blue-500" />
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-[#211B17] mt-1 flex items-center gap-2">
+            <ClipboardList className="w-6 h-6 text-crm-brand-600" />
             Service Work Orders
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[#70665F]">
             Define scope of work, required store spare parts, estimated vs actual labour costs, and manager authorization.
           </p>
         </div>
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition flex items-center gap-2 shadow-md shadow-blue-600/30"
+          className="px-4 py-2.5 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-600 text-white font-semibold text-xs transition flex items-center gap-2 shadow-md shadow-crm-brand-700/30"
         >
           <Plus className="w-4 h-4" />
           Create Service Work Order
@@ -84,15 +84,15 @@ export default function WorkOrdersPage() {
       </div>
 
       {/* Search */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="bg-white dark:bg-white p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm">
         <div className="relative w-full md:w-96">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-3 text-[#70665F]" />
           <input
             type="text"
             placeholder="Search work order no, customer, machine or technician..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none"
+            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg focus:outline-none"
           />
         </div>
       </div>
@@ -102,50 +102,50 @@ export default function WorkOrdersPage() {
         {filteredOrders.map((swo) => (
           <div
             key={swo.id}
-            className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4 hover:border-blue-300 transition"
+            className="bg-white dark:bg-white rounded-2xl border border-slate-200 dark:border-[#EBE3DB] p-5 shadow-sm space-y-4 hover:border-crm-brand- transition"
           >
-            <div className="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div className="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-[#EBE3DB] pb-3">
               <div>
-                <span className="px-2.5 py-0.5 rounded bg-blue-600 text-white font-mono font-bold text-xs">
+                <span className="px-2.5 py-0.5 rounded bg-crm-brand-700 text-white font-mono font-bold text-xs">
                   {swo.workOrderNumber}
                 </span>
-                <h3 className="font-bold text-sm text-slate-900 dark:text-white mt-1.5">{swo.customerName}</h3>
-                <p className="text-xs text-slate-400">{swo.machineName} • SR: {swo.requestNumber}</p>
+                <h3 className="font-bold text-sm text-slate-900 dark:text-[#211B17] mt-1.5">{swo.customerName}</h3>
+                <p className="text-xs text-[#70665F]">{swo.machineName} • SR: {swo.requestNumber}</p>
               </div>
 
-              <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-blue-500/10 text-blue-600 border border-blue-500/20">
+              <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-crm-brand-600/10 text-crm-brand-700 border border-crm-brand-600/20">
                 {swo.status}
               </span>
             </div>
 
-            <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl space-y-1">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Scope of Work</span>
-              <p className="text-xs text-slate-700 dark:text-slate-300 font-medium">{swo.scopeOfWork}</p>
+            <div className="p-3 bg-slate-50 dark:bg-[#FAF7F2]/40 rounded-xl space-y-1">
+              <span className="text-[10px] font-bold text-[#70665F] uppercase tracking-wider block">Scope of Work</span>
+              <p className="text-xs text-slate-700 dark:text-[#544B45] font-medium">{swo.scopeOfWork}</p>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 text-xs text-slate-500 bg-slate-50 dark:bg-slate-800/30 p-2.5 rounded-xl">
+            <div className="grid grid-cols-3 gap-2 text-xs text-[#70665F] bg-slate-50 dark:bg-[#FAF7F2]/30 p-2.5 rounded-xl">
               <div>
-                <span className="text-[10px] text-slate-400 block">Est. Cost</span>
-                <span className="font-mono font-bold text-slate-900 dark:text-slate-100">{formatCurrency(swo.estimatedCost)}</span>
+                <span className="text-[10px] text-[#70665F] block">Est. Cost</span>
+                <span className="font-mono font-bold text-slate-900 dark:text-[#544B45]">{formatCurrency(swo.estimatedCost)}</span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block">Actual Cost</span>
+                <span className="text-[10px] text-[#70665F] block">Actual Cost</span>
                 <span className="font-mono font-bold text-emerald-600">{formatCurrency(swo.actualCost)}</span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block">Labour Hours</span>
-                <span className="font-bold text-slate-900 dark:text-slate-100">{swo.labourHours} Hrs</span>
+                <span className="text-[10px] text-[#70665F] block">Labour Hours</span>
+                <span className="font-bold text-slate-900 dark:text-[#544B45]">{swo.labourHours} Hrs</span>
               </div>
             </div>
 
             <div className="flex items-center justify-between pt-2">
-              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <span className="text-xs font-semibold text-slate-700 dark:text-[#544B45]">
                 Technician: {swo.technicianName}
               </span>
               <select
                 value={swo.status}
                 onChange={(e) => updateWorkOrderStatus(swo.id, e.target.value as WorkOrderStatus)}
-                className="px-2 py-1 text-xs bg-slate-100 dark:bg-slate-800 border rounded"
+                className="px-2 py-1 text-xs bg-slate-100 dark:bg-[#FAF7F2] border rounded"
               >
                 <option value="Draft">Draft</option>
                 <option value="Approved">Approved</option>
@@ -162,14 +162,14 @@ export default function WorkOrdersPage() {
 
       {/* Add Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-              <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
-                <ClipboardList className="w-5 h-5 text-blue-500" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FAF7F2] backdrop-blur-sm">
+          <div className="bg-white dark:bg-white rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="p-4 border-b border-slate-200 dark:border-[#EBE3DB] flex items-center justify-between">
+              <h3 className="font-bold text-base text-slate-900 dark:text-[#211B17] flex items-center gap-2">
+                <ClipboardList className="w-5 h-5 text-crm-brand-600" />
                 Create Service Work Order
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowAddModal(false)} className="text-[#70665F] hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -183,7 +183,7 @@ export default function WorkOrdersPage() {
                     required
                     value={formData.customerName}
                     onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                    className="w-full p-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                   />
                 </div>
                 <div>
@@ -193,7 +193,7 @@ export default function WorkOrdersPage() {
                     required
                     value={formData.machineName}
                     onChange={(e) => setFormData({ ...formData, machineName: e.target.value })}
-                    className="w-full p-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                   />
                 </div>
                 <div>
@@ -202,7 +202,7 @@ export default function WorkOrdersPage() {
                     type="number"
                     value={formData.estimatedCost}
                     onChange={(e) => setFormData({ ...formData, estimatedCost: Number(e.target.value) })}
-                    className="w-full p-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                   />
                 </div>
                 <div>
@@ -211,7 +211,7 @@ export default function WorkOrdersPage() {
                     type="number"
                     value={formData.labourHours}
                     onChange={(e) => setFormData({ ...formData, labourHours: Number(e.target.value) })}
-                    className="w-full p-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                   />
                 </div>
               </div>
@@ -223,7 +223,7 @@ export default function WorkOrdersPage() {
                   required
                   value={formData.scopeOfWork}
                   onChange={(e) => setFormData({ ...formData, scopeOfWork: e.target.value })}
-                  className="w-full p-2 bg-slate-50 dark:bg-slate-800 border rounded-lg"
+                  className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                 />
               </div>
 
@@ -235,7 +235,7 @@ export default function WorkOrdersPage() {
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold">
+                <button type="submit" className="px-4 py-2 rounded-lg bg-crm-brand-700 text-white font-semibold">
                   Generate Work Order
                 </button>
               </div>

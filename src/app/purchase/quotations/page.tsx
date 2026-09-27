@@ -55,11 +55,11 @@ export default function SupplierQuotationsPage() {
   const filteredQuotes = supplierQuotations.filter(q => {
     if (rfqFilter !== 'ALL' && q.rfqId !== rfqFilter) return false;
     if (searchQuery) {
-      const queryStr = searchQuery.toLowerCase();
+      const queryStr = searchQuery?.toLowerCase();
       return (
-        q.quotationNumber.toLowerCase().includes(queryStr) ||
-        q.supplierName.toLowerCase().includes(queryStr) ||
-        q.supplierQuotationRef.toLowerCase().includes(queryStr)
+        q.quotationNumber?.toLowerCase().includes(queryStr) ||
+        q.supplierName?.toLowerCase().includes(queryStr) ||
+        q.supplierQuotationRef?.toLowerCase().includes(queryStr)
       );
     }
     return true;
@@ -125,17 +125,17 @@ export default function SupplierQuotationsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-slate-950 text-slate-100 min-h-screen">
+    <div className="p-6 space-y-6 bg-[#FAF7F2] text-[#544B45] ">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#EBE3DB]">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-xs font-mono font-bold border border-amber-500/30">
               SUPPLIER QUOTATIONS
             </span>
-            <h1 className="text-2xl font-black text-white tracking-tight">Supplier Quotations Register</h1>
+            <h1 className="text-2xl font-black text-[#211B17] tracking-tight">Supplier Quotations Register</h1>
           </div>
-          <p className="text-slate-400 text-xs mt-1">
+          <p className="text-[#70665F] text-xs mt-1">
             Recorded vendor price bids, lead times & technical compliance for evaluation.
           </p>
         </div>
@@ -150,25 +150,25 @@ export default function SupplierQuotationsPage() {
       </div>
 
       {/* Filter Toolbar */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white border border-[#EBE3DB] rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#70665F]" />
             <input
               type="text"
               placeholder="Search Quotation No, Supplier, Ref..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500 w-64"
+              className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-4 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-amber-500 w-64"
             />
           </div>
 
           <div className="flex items-center gap-2 text-xs">
-            <span className="text-slate-400">RFQ:</span>
+            <span className="text-[#70665F]">RFQ:</span>
             <select
               value={rfqFilter}
               onChange={(e) => setRfqFilter(e.target.value)}
-              className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none cursor-pointer"
+              className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-1.5 text-xs text-[#211B17] focus:outline-none cursor-pointer"
             >
               <option value="ALL">All RFQs</option>
               {rfqs.map(r => (
@@ -178,16 +178,16 @@ export default function SupplierQuotationsPage() {
           </div>
         </div>
 
-        <div className="text-xs text-slate-400">
-          Showing <span className="text-white font-bold">{filteredQuotes.length}</span> received quotations
+        <div className="text-xs text-[#70665F]">
+          Showing <span className="text-[#211B17] font-bold">{filteredQuotes.length}</span> received quotations
         </div>
       </div>
 
       {/* Quotations List Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left text-slate-300">
-            <thead className="bg-slate-950 text-slate-400 font-semibold border-b border-slate-800">
+          <table className="w-full text-xs text-left text-[#544B45]">
+            <thead className="bg-[#FAF7F2] text-[#70665F] font-semibold border-b border-[#EBE3DB]">
               <tr>
                 <th className="p-3">Quotation ID & Ref</th>
                 <th className="p-3">Supplier Name</th>
@@ -199,19 +199,19 @@ export default function SupplierQuotationsPage() {
                 <th className="p-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-[#EBE3DB]">
               {filteredQuotes.map(q => (
-                <tr key={q.id} className="hover:bg-slate-800/40 transition">
+                <tr key={q.id} className="hover:bg-[#FAF7F2]/40 transition">
                   <td className="p-3 font-mono font-bold text-amber-400">
                     {q.quotationNumber}
-                    <div className="text-[10px] text-slate-500">{q.supplierQuotationRef}</div>
+                    <div className="text-[10px] text-[#70665F]">{q.supplierQuotationRef}</div>
                   </td>
-                  <td className="p-3 font-semibold text-white">{q.supplierName}</td>
-                  <td className="p-3 font-mono text-cyan-400">{q.rfqNumber}</td>
-                  <td className="p-3 font-mono text-slate-300 text-[11px]">{q.quotationDate}</td>
-                  <td className="p-3 font-mono text-slate-300">{q.leadTimeDays} Days</td>
+                  <td className="p-3 font-semibold text-[#211B17]">{q.supplierName}</td>
+                  <td className="p-3 font-mono text-crm-brand-500">{q.rfqNumber}</td>
+                  <td className="p-3 font-mono text-[#544B45] text-[11px]">{q.quotationDate}</td>
+                  <td className="p-3 font-mono text-[#544B45]">{q.leadTimeDays} Days</td>
                   <td className="p-3 text-right font-mono font-extrabold text-emerald-400">
-                    ₹{q.grandTotal.toLocaleString('en-IN')}
+                    ₹{q.grandTotal?.toLocaleString('en-IN')}
                   </td>
                   <td className="p-3">
                     <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-semibold border border-emerald-500/30 flex items-center gap-1 w-fit">
@@ -221,7 +221,7 @@ export default function SupplierQuotationsPage() {
                   <td className="p-3 text-right">
                     <button
                       onClick={() => setViewQuote(q)}
-                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition"
+                      className="p-1.5 rounded-lg bg-[#FAF7F2] hover:bg-[#FAF7F2] text-[#544B45] hover:text-[#211B17] transition"
                     >
                       <Eye className="w-3.5 h-3.5" />
                     </button>
@@ -236,44 +236,44 @@ export default function SupplierQuotationsPage() {
       {/* VIEW QUOTE MODAL */}
       {viewQuote && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl">
-            <div className="p-5 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl">
+            <div className="p-5 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-mono bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-bold">
                   SUPPLIER QUOTATION
                 </span>
-                <h2 className="text-xl font-black text-white mt-1">{viewQuote.quotationNumber}</h2>
+                <h2 className="text-xl font-black text-[#211B17] mt-1">{viewQuote.quotationNumber}</h2>
               </div>
-              <button onClick={() => setViewQuote(null)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setViewQuote(null)} className="text-[#70665F] hover:text-[#211B17]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="p-6 space-y-4 text-xs">
-              <div className="grid grid-cols-4 gap-4 p-4 bg-slate-950 rounded-xl border border-slate-800">
+              <div className="grid grid-cols-4 gap-4 p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
                 <div>
-                  <div className="text-slate-500">Supplier:</div>
-                  <div className="font-bold text-white">{viewQuote.supplierName}</div>
+                  <div className="text-[#70665F]">Supplier:</div>
+                  <div className="font-bold text-[#211B17]">{viewQuote.supplierName}</div>
                 </div>
                 <div>
-                  <div className="text-slate-500">Subtotal:</div>
-                  <div className="font-mono text-slate-300">₹{viewQuote.subTotal.toLocaleString('en-IN')}</div>
+                  <div className="text-[#70665F]">Subtotal:</div>
+                  <div className="font-mono text-[#544B45]">₹{viewQuote.subTotal?.toLocaleString('en-IN')}</div>
                 </div>
                 <div>
-                  <div className="text-slate-500">Tax (GST):</div>
-                  <div className="font-mono text-slate-300">₹{viewQuote.taxTotal.toLocaleString('en-IN')}</div>
+                  <div className="text-[#70665F]">Tax (GST):</div>
+                  <div className="font-mono text-[#544B45]">₹{viewQuote.taxTotal?.toLocaleString('en-IN')}</div>
                 </div>
                 <div>
-                  <div className="text-slate-500">Grand Total:</div>
-                  <div className="font-mono font-extrabold text-emerald-400">₹{viewQuote.grandTotal.toLocaleString('en-IN')}</div>
+                  <div className="text-[#70665F]">Grand Total:</div>
+                  <div className="font-mono font-extrabold text-emerald-400">₹{viewQuote.grandTotal?.toLocaleString('en-IN')}</div>
                 </div>
               </div>
 
               <div>
-                <h4 className="font-bold text-white mb-2">Quoted Line Items</h4>
-                <div className="border border-slate-800 rounded-xl overflow-hidden">
+                <h4 className="font-bold text-[#211B17] mb-2">Quoted Line Items</h4>
+                <div className="border border-[#EBE3DB] rounded-xl overflow-hidden">
                   <table className="w-full text-xs text-left">
-                    <thead className="bg-slate-950 text-slate-400">
+                    <thead className="bg-[#FAF7F2] text-[#70665F]">
                       <tr>
                         <th className="p-2.5">Item Name</th>
                         <th className="p-2.5 text-right">Quoted Qty</th>
@@ -281,13 +281,13 @@ export default function SupplierQuotationsPage() {
                         <th className="p-2.5 text-right">Total Price</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800">
+                    <tbody className="divide-y divide-[#EBE3DB]">
                       {viewQuote.items.map(it => (
                         <tr key={it.id}>
-                          <td className="p-2.5 font-semibold text-white">{it.itemName}</td>
+                          <td className="p-2.5 font-semibold text-[#211B17]">{it.itemName}</td>
                           <td className="p-2.5 text-right font-mono">{it.quotedQuantity} {it.unitOfMeasure}</td>
                           <td className="p-2.5 text-right font-mono">₹{it.unitPrice}</td>
-                          <td className="p-2.5 text-right font-mono font-bold text-emerald-400">₹{it.totalPrice.toLocaleString('en-IN')}</td>
+                          <td className="p-2.5 text-right font-mono font-bold text-emerald-400">₹{it.totalPrice?.toLocaleString('en-IN')}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -296,8 +296,8 @@ export default function SupplierQuotationsPage() {
               </div>
             </div>
 
-            <div className="p-4 bg-slate-950 border-t border-slate-800 flex justify-end">
-              <button onClick={() => setViewQuote(null)} className="px-4 py-2 bg-slate-800 text-white font-bold rounded-xl">
+            <div className="p-4 bg-[#FAF7F2] border-t border-[#EBE3DB] flex justify-end">
+              <button onClick={() => setViewQuote(null)} className="px-4 py-2 bg-[#FAF7F2] text-[#211B17] font-bold rounded-xl">
                 Close
               </button>
             </div>
@@ -308,10 +308,10 @@ export default function SupplierQuotationsPage() {
       {/* RECORD QUOTATION MODAL */}
       {showRecordModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl">
-            <div className="p-5 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
-              <h2 className="text-lg font-black text-white">Record Received Supplier Quotation</h2>
-              <button onClick={() => setShowRecordModal(false)} className="text-slate-400 hover:text-white">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl">
+            <div className="p-5 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between">
+              <h2 className="text-lg font-black text-[#211B17]">Record Received Supplier Quotation</h2>
+              <button onClick={() => setShowRecordModal(false)} className="text-[#70665F] hover:text-[#211B17]">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -319,11 +319,11 @@ export default function SupplierQuotationsPage() {
             <form onSubmit={handleRecordQuoteSubmit} className="p-6 space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-400 mb-1">Select RFQ</label>
+                  <label className="block text-[#70665F] mb-1">Select RFQ</label>
                   <select
                     value={newRfqId}
                     onChange={(e) => setNewRfqId(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 p-2 rounded-xl text-white"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
                   >
                     {rfqs.map(r => (
                       <option key={r.id} value={r.id}>{r.rfqNumber} ({r.jobId})</option>
@@ -331,11 +331,11 @@ export default function SupplierQuotationsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Select Bidding Supplier</label>
+                  <label className="block text-[#70665F] mb-1">Select Bidding Supplier</label>
                   <select
                     value={newSupplierId}
                     onChange={(e) => setNewSupplierId(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 p-2 rounded-xl text-white"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
                   >
                     {suppliers.map(s => (
                       <option key={s.id} value={s.id}>{s.name}</option>
@@ -346,37 +346,37 @@ export default function SupplierQuotationsPage() {
 
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-slate-400 mb-1">Vendor Quotation Ref No</label>
+                  <label className="block text-[#70665F] mb-1">Vendor Quotation Ref No</label>
                   <input
                     type="text"
                     value={newRefNumber}
                     onChange={(e) => setNewRefNumber(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 p-2 rounded-xl text-white font-mono"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Quotation Date</label>
+                  <label className="block text-[#70665F] mb-1">Quotation Date</label>
                   <input
                     type="date"
                     value={newQuoteDate}
                     onChange={(e) => setNewQuoteDate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 p-2 rounded-xl text-white font-mono"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1">Validity Date</label>
+                  <label className="block text-[#70665F] mb-1">Validity Date</label>
                   <input
                     type="date"
                     value={newValidUntil}
                     onChange={(e) => setNewValidUntil(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 p-2 rounded-xl text-white font-mono"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono"
                   />
                 </div>
               </div>
 
-              <div className="pt-4 flex justify-end gap-2 border-t border-slate-800">
-                <button type="button" onClick={() => setShowRecordModal(false)} className="px-4 py-2 bg-slate-800 text-white rounded-xl">
+              <div className="pt-4 flex justify-end gap-2 border-t border-[#EBE3DB]">
+                <button type="button" onClick={() => setShowRecordModal(false)} className="px-4 py-2 bg-[#FAF7F2] text-[#211B17] rounded-xl">
                   Cancel
                 </button>
                 <button type="submit" className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl">
