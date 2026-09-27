@@ -36,6 +36,16 @@ export default function Job360Page() {
   const [activeTab, setActiveTab] = useState<string>('overview');
 
   const currentJob = job360List.find((j) => j.header.jobNumber === selectedJobId) || job360List[0];
+
+  if (!currentJob) {
+    return (
+      <div className="p-8 text-center bg-slate-950 min-h-screen text-slate-400">
+        <h2 className="text-xl font-bold text-white mb-2">Job 360° Life-Cycle Console</h2>
+        <p>No job records available or loading live data from API...</p>
+      </div>
+    );
+  }
+
   const { header, crm, project, design, purchase, store, production, quality, dispatch, accounts, service, documents, timeline } = currentJob;
 
   const tabs = [

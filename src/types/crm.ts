@@ -24,27 +24,42 @@ export type LeadSource =
 export type PriorityLevel = 'low' | 'medium' | 'high' | 'urgent';
 
 export interface CompanySetting {
+  id?: string;
   companyName: string;
   tagline: string;
-  logoUrl: string;
-  address: string;
-  city: string;
-  state: string;
-  country: string;
-  pincode: string;
-  phone: string;
-  email: string;
-  website: string;
-  gstin: string;
-  pan: string;
-  cin: string;
-  financialYear: string;
-  currency: string;
-  timezone: string;
-  bankName: string;
-  bankAccountNo: string;
-  bankIfsc: string;
-  bankBranch: string;
+  logoUrl?: string;
+  address?: string;
+  registeredAddress?: string;
+  registrationNumber?: string;
+  tan?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  pincode?: string;
+  phone?: string;
+  contactPerson?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  accountsEmail?: string;
+  email?: string;
+  website?: string;
+  gstin?: string;
+  pan?: string;
+  cin?: string;
+  financialYear?: string;
+  fiscalYearStart?: string;
+  fiscalYearEnd?: string;
+  currency?: string;
+  currencySymbol?: string;
+  timezone?: string;
+  bankName?: string;
+  bankAccountNo?: string;
+  bankAccountNumber?: string;
+  bankIfsc?: string;
+  bankIfscCode?: string;
+  bankBranch?: string;
+  lutNumber?: string;
+  isLUTActive?: boolean;
 }
 
 export interface NumberingSetting {

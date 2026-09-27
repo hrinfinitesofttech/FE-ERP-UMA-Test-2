@@ -10,6 +10,15 @@ export default function Item360Page() {
 
   const item = item360List.find((i) => i.itemId === selectedItemId) || item360List[0];
 
+  if (!item) {
+    return (
+      <div className="p-8 text-center bg-slate-950 min-h-screen text-slate-400">
+        <h2 className="text-xl font-bold text-white mb-2">Item 360° Profile</h2>
+        <p>No item records available or loading live data from API...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6 bg-slate-950 min-h-screen text-slate-100 font-sans">
       {/* Top Header */}

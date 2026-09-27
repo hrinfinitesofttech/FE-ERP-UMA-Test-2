@@ -10,6 +10,15 @@ export default function Employee360Page() {
 
   const emp = employee360List.find((e) => e.employeeId === selectedEmpId) || employee360List[0];
 
+  if (!emp) {
+    return (
+      <div className="p-8 text-center bg-slate-950 min-h-screen text-slate-400">
+        <h2 className="text-xl font-bold text-white mb-2">Employee 360° Profile</h2>
+        <p>No employee records available or loading live data from API...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6 bg-slate-950 min-h-screen text-slate-100 font-sans">
       {/* Top Header */}

@@ -998,20 +998,35 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     );
   };
   
-  const mappedInitialEmployees: Employee[] = INITIAL_EMPLOYEES.map((e) => ({
-    ...e,
-    name: e.name || `${e.firstName} ${e.lastName}`,
-    department: e.department || e.departmentName,
-    phone: e.phone || e.mobile,
-    role: e.role || e.roleName || e.designation,
-    joinedDate: e.joinedDate || e.joiningDate,
-    status: e.status === 'active' ? 'Active' : e.status,
-  }));
+  const defaultAdminUser: Employee = {
+    id: 'EMP-001',
+    firstName: 'Admin',
+    lastName: 'User',
+    name: 'Admin User',
+    username: 'admin',
+    email: 'admin@umatechnofab.com',
+    gender: 'male',
+    dob: '1990-01-01',
+    mobile: '9825012345',
+    phone: '9825012345',
+    address: 'Plot 45, GIDC Vatva, Ahmedabad, Gujarat',
+    departmentId: 'DEPT-MGT',
+    department: 'Management',
+    departmentName: 'Management',
+    designation: 'Administrator',
+    roleId: 'ROLE-ADMIN',
+    role: 'Super Admin',
+    roleName: 'Super Admin',
+    joiningDate: '2020-01-01',
+    joinedDate: '2020-01-01',
+    employmentType: 'full_time',
+    status: 'active',
+  };
 
-  const [employees, setEmployees] = useState<Employee[]>(mappedInitialEmployees);
+  const [employees, setEmployees] = useState<Employee[]>([]);
 
   // Authentication State
-  const [currentUser, setCurrentUser] = useState<Employee>(mappedInitialEmployees[0]); // Default: Rajesh Patel (Super Admin)
+  const [currentUser, setCurrentUser] = useState<Employee>(defaultAdminUser);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
 
   // Layout State
@@ -1158,91 +1173,234 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
     async function loadLiveData() {
       try {
-        const [
-          liveLeads,
-          liveCustomers,
-          liveEmployees,
-          liveDepartments,
-          liveRoles,
-          liveProjects,
-          liveQuotations,
-          liveSalesOrders,
-          liveSuppliers,
-          liveItems,
-          liveWarehouses,
-          liveWorkOrders,
-          liveFinishedGoods,
-          liveServiceRequests,
-          liveApprovals,
-          liveAlerts,
-        ] = await Promise.allSettled([
+        const results = await Promise.allSettled([
           api.crm.leads.list(),
           api.crm.customers.list(),
+          api.crm.contacts.list(),
+          api.crm.enquiries.list(),
+          api.crm.opportunities.list(),
+          api.crm.quotations.list(),
+          api.crm.customerPos.list(),
+          api.crm.salesOrders.list(),
           api.employees.list(),
           api.departments.list(),
           api.roles.list(),
           api.projects.list(),
-          api.crm.quotations.list(),
-          api.crm.salesOrders.list(),
+          api.projects.tasks(),
+          api.projects.milestones(),
+          api.projects.planningStages(),
+          api.designer.jobs.list(),
+          api.designer.drawings2d(),
+          api.designer.models3d(),
+          api.designer.boms.list(),
           api.purchase.suppliers.list(),
+          api.purchase.requisitions.list(),
+          api.purchase.orders.list(),
           api.store.items.list(),
+          api.store.categories(),
+          api.store.uoms(),
           api.store.warehouses.list(),
+          api.store.grns.list(),
+          api.store.stock(),
+          api.store.materialIssues(),
+          api.store.materialReturns(),
+          api.production.jobs(),
+          api.production.workCenters(),
           api.production.workOrders.list(),
           api.production.finishedGoods.list(),
+          api.maintenance.internalAssets(),
+          api.maintenance.customerMachines(),
           api.maintenance.serviceRequests.list(),
+          api.maintenance.breakdowns(),
+          api.maintenance.serviceVisits(),
+          api.hr.designations(),
+          api.hr.shifts(),
+          api.hr.attendance(),
+          api.hr.leaves.list(),
+          api.hr.payroll.list(),
+          api.accounting.financialYears(),
+          api.accounting.chartOfAccounts(),
+          api.accounting.salesInvoices.list(),
+          api.accounting.purchaseInvoices.list(),
+          api.accounting.receipts(),
+          api.accounting.payments(),
           api.integration.approvals.list(),
           api.integration.alerts.list(),
+          api.auth.me(),
         ]);
 
         if (!isMounted) return;
 
-        if (liveLeads.status === 'fulfilled' && Array.isArray(liveLeads.value) && liveLeads.value.length > 0) {
-          setLeads(liveLeads.value);
+        function val<T>(res: PromiseSettledResult<any>): T | null {
+          return res.status === 'fulfilled' && res.value !== undefined ? (res.value as T) : null;
         }
-        if (liveCustomers.status === 'fulfilled' && Array.isArray(liveCustomers.value) && liveCustomers.value.length > 0) {
-          setCustomers(liveCustomers.value);
-        }
-        if (liveEmployees.status === 'fulfilled' && Array.isArray(liveEmployees.value) && liveEmployees.value.length > 0) {
-          setEmployees(liveEmployees.value);
-        }
-        if (liveDepartments.status === 'fulfilled' && Array.isArray(liveDepartments.value) && liveDepartments.value.length > 0) {
-          setDepartments(liveDepartments.value);
-        }
-        if (liveRoles.status === 'fulfilled' && Array.isArray(liveRoles.value) && liveRoles.value.length > 0) {
-          setRoles(liveRoles.value);
-        }
-        if (liveProjects.status === 'fulfilled' && Array.isArray(liveProjects.value) && liveProjects.value.length > 0) {
-          setProjectJobs(liveProjects.value);
-        }
-        if (liveQuotations.status === 'fulfilled' && Array.isArray(liveQuotations.value) && liveQuotations.value.length > 0) {
-          setQuotations(liveQuotations.value);
-        }
-        if (liveSalesOrders.status === 'fulfilled' && Array.isArray(liveSalesOrders.value) && liveSalesOrders.value.length > 0) {
-          setSalesOrders(liveSalesOrders.value);
-        }
-        if (liveSuppliers.status === 'fulfilled' && Array.isArray(liveSuppliers.value) && liveSuppliers.value.length > 0) {
-          setSuppliers(liveSuppliers.value);
-        }
-        if (liveItems.status === 'fulfilled' && Array.isArray(liveItems.value) && liveItems.value.length > 0) {
-          setItemMasters(liveItems.value);
-        }
-        if (liveWarehouses.status === 'fulfilled' && Array.isArray(liveWarehouses.value) && liveWarehouses.value.length > 0) {
-          setWarehouses(liveWarehouses.value);
-        }
-        if (liveWorkOrders.status === 'fulfilled' && Array.isArray(liveWorkOrders.value) && liveWorkOrders.value.length > 0) {
-          setWorkOrders(liveWorkOrders.value);
-        }
-        if (liveFinishedGoods.status === 'fulfilled' && Array.isArray(liveFinishedGoods.value) && liveFinishedGoods.value.length > 0) {
-          setFinishedGoods(liveFinishedGoods.value);
-        }
-        if (liveServiceRequests.status === 'fulfilled' && Array.isArray(liveServiceRequests.value) && liveServiceRequests.value.length > 0) {
-          setServiceRequests(liveServiceRequests.value);
-        }
-        if (liveApprovals.status === 'fulfilled' && Array.isArray(liveApprovals.value) && liveApprovals.value.length > 0) {
-          setCentralApprovals(liveApprovals.value);
-        }
-        if (liveAlerts.status === 'fulfilled' && Array.isArray(liveAlerts.value) && liveAlerts.value.length > 0) {
-          setCentralAlerts(liveAlerts.value);
+
+        const leadsRes = val<Lead[]>(results[0]);
+        if (leadsRes && Array.isArray(leadsRes)) setLeads(leadsRes);
+
+        const custRes = val<Customer[]>(results[1]);
+        if (custRes && Array.isArray(custRes)) setCustomers(custRes);
+
+        const contRes = val<Contact[]>(results[2]);
+        if (contRes && Array.isArray(contRes)) setContacts(contRes);
+
+        const enqRes = val<Enquiry[]>(results[3]);
+        if (enqRes && Array.isArray(enqRes)) setEnquiries(enqRes);
+
+        const oppRes = val<Opportunity[]>(results[4]);
+        if (oppRes && Array.isArray(oppRes)) setOpportunities(oppRes);
+
+        const quoRes = val<Quotation[]>(results[5]);
+        if (quoRes && Array.isArray(quoRes)) setQuotations(quoRes);
+
+        const cpoRes = val<CustomerPO[]>(results[6]);
+        if (cpoRes && Array.isArray(cpoRes)) setCustomerPOs(cpoRes);
+
+        const soRes = val<SalesOrder[]>(results[7]);
+        if (soRes && Array.isArray(soRes)) setSalesOrders(soRes);
+
+        const empRes = val<Employee[]>(results[8]);
+        if (empRes && Array.isArray(empRes)) setEmployees(empRes);
+
+        const deptRes = val<Department[]>(results[9]);
+        if (deptRes && Array.isArray(deptRes)) setDepartments(deptRes);
+
+        const rolesRes = val<Role[]>(results[10]);
+        if (rolesRes && Array.isArray(rolesRes)) setRoles(rolesRes);
+
+        const prjRes = val<ProjectJobMaster[]>(results[11]);
+        if (prjRes && Array.isArray(prjRes)) setProjectJobs(prjRes);
+
+        const tskRes = val<ProjectTask[]>(results[12]);
+        if (tskRes && Array.isArray(tskRes)) setProjectTasks(tskRes);
+
+        const mlsRes = val<ProjectMilestone[]>(results[13]);
+        if (mlsRes && Array.isArray(mlsRes)) setProjectMilestones(mlsRes);
+
+        const stgRes = val<ProjectPlanningStage[]>(results[14]);
+        if (stgRes && Array.isArray(stgRes)) setProjectPlanningStages(stgRes);
+
+        const desRes = val<DesignJob[]>(results[15]);
+        if (desRes && Array.isArray(desRes)) setDesignJobs(desRes);
+
+        const drwRes = val<Drawing2D[]>(results[16]);
+        if (drwRes && Array.isArray(drwRes)) setDrawings2D(drwRes);
+
+        const modRes = val<Design3DModel[]>(results[17]);
+        if (modRes && Array.isArray(modRes)) setDesigns3D(modRes);
+
+        const bomRes = val<BOMHeader[]>(results[18]);
+        if (bomRes && Array.isArray(bomRes)) setBoms(bomRes);
+
+        const supRes = val<Supplier[]>(results[19]);
+        if (supRes && Array.isArray(supRes)) setSuppliers(supRes);
+
+        const prReqRes = val<PurchaseRequisition[]>(results[20]);
+        if (prReqRes && Array.isArray(prReqRes)) setPurchaseRequisitions(prReqRes);
+
+        const poRes = val<PurchaseOrder[]>(results[21]);
+        if (poRes && Array.isArray(poRes)) setPurchaseOrders(poRes);
+
+        const itemRes = val<ItemMaster[]>(results[22]);
+        if (itemRes && Array.isArray(itemRes)) setItemMasters(itemRes);
+
+        const catRes = val<ItemCategory[]>(results[23]);
+        if (catRes && Array.isArray(catRes)) setItemCategories(catRes);
+
+        const uomRes = val<UOMMaster[]>(results[24]);
+        if (uomRes && Array.isArray(uomRes)) setUoms(uomRes);
+
+        const whRes = val<Warehouse[]>(results[25]);
+        if (whRes && Array.isArray(whRes)) setWarehouses(whRes);
+
+        const grnRes = val<GoodsReceiptNote[]>(results[26]);
+        if (grnRes && Array.isArray(grnRes)) setGoodsReceipts(grnRes);
+
+        const stkRes = val<StockBalance[]>(results[27]);
+        if (stkRes && Array.isArray(stkRes)) setStockBalances(stkRes);
+
+        const miRes = val<MaterialIssue[]>(results[28]);
+        if (miRes && Array.isArray(miRes)) setMaterialIssues(miRes);
+
+        const mrRes = val<MaterialReturn[]>(results[29]);
+        if (mrRes && Array.isArray(mrRes)) setMaterialReturns(mrRes);
+
+        const mfJobRes = val<ManufacturingJob[]>(results[30]);
+        if (mfJobRes && Array.isArray(mfJobRes)) setManufacturingJobs(mfJobRes);
+
+        const wcRes = val<WorkCenter[]>(results[31]);
+        if (wcRes && Array.isArray(wcRes)) setWorkCenters(wcRes);
+
+        const woRes = val<WorkOrder[]>(results[32]);
+        if (woRes && Array.isArray(woRes)) setWorkOrders(woRes);
+
+        const fgRes = val<FinishedGoodsItem[]>(results[33]);
+        if (fgRes && Array.isArray(fgRes)) setFinishedGoods(fgRes);
+
+        const assetRes = val<InternalAsset[]>(results[34]);
+        if (assetRes && Array.isArray(assetRes)) setInternalAssets(assetRes);
+
+        const cmRes = val<CustomerMachine[]>(results[35]);
+        if (cmRes && Array.isArray(cmRes)) setCustomerMachines(cmRes);
+
+        const srRes = val<ServiceRequest[]>(results[36]);
+        if (srRes && Array.isArray(srRes)) setServiceRequests(srRes);
+
+        const bdRes = val<BreakdownRecord[]>(results[37]);
+        if (bdRes && Array.isArray(bdRes)) setBreakdowns(bdRes);
+
+        const svRes = val<ServiceVisit[]>(results[38]);
+        if (svRes && Array.isArray(svRes)) setServiceVisits(svRes);
+
+        const desgRes = val<Designation[]>(results[39]);
+        if (desgRes && Array.isArray(desgRes)) setDesignations(desgRes);
+
+        const shiftRes = val<ShiftMaster[]>(results[40]);
+        if (shiftRes && Array.isArray(shiftRes)) setShiftMasters(shiftRes);
+
+        const attRes = val<AttendanceRecord[]>(results[41]);
+        if (attRes && Array.isArray(attRes)) setAttendanceRecords(attRes);
+
+        const lvRes = val<LeaveRequest[]>(results[42]);
+        if (lvRes && Array.isArray(lvRes)) setLeaveRequests(lvRes);
+
+        const payRes = val<PayrollRecord[]>(results[43]);
+        if (payRes && Array.isArray(payRes)) setPayrollRecords(payRes);
+
+        const fyRes = val<FinancialYear[]>(results[44]);
+        if (fyRes && Array.isArray(fyRes)) setFinancialYears(fyRes);
+
+        const coaRes = val<ChartOfAccount[]>(results[45]);
+        if (coaRes && Array.isArray(coaRes)) setChartOfAccounts(coaRes);
+
+        const siRes = val<SalesInvoice[]>(results[46]);
+        if (siRes && Array.isArray(siRes)) setSalesInvoices(siRes);
+
+        const piRes = val<PurchaseInvoice[]>(results[47]);
+        if (piRes && Array.isArray(piRes)) setPurchaseInvoices(piRes);
+
+        const crRes = val<CustomerReceipt[]>(results[48]);
+        if (crRes && Array.isArray(crRes)) setCustomerReceipts(crRes);
+
+        const spRes = val<SupplierPayment[]>(results[49]);
+        if (spRes && Array.isArray(spRes)) setSupplierPayments(spRes);
+
+        const apprRes = val<ApprovalItem[]>(results[50]);
+        if (apprRes && Array.isArray(apprRes)) setCentralApprovals(apprRes);
+
+        const altRes = val<ERPAlertItem[]>(results[51]);
+        if (altRes && Array.isArray(altRes)) setCentralAlerts(altRes);
+
+        const meRes = val<any>(results[52]);
+        if (meRes && meRes.username) {
+          setCurrentUser((prev) => ({
+            ...prev,
+            ...meRes,
+            name: meRes.name || `${meRes.firstName || ''} ${meRes.lastName || ''}`.trim() || meRes.username,
+            role: meRes.role || meRes.roleName || 'Super Admin',
+            roleName: meRes.roleName || meRes.role || 'Super Admin',
+            department: meRes.department || meRes.departmentName || 'Management',
+          }));
         }
       } catch (err) {
         console.warn('Initial live data load warning:', err);

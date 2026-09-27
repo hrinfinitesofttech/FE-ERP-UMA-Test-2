@@ -4,6 +4,8 @@ import { ERPProvider } from '@/context/ERPContext';
 import { ClientThemeProvider } from '@/components/theme/ClientThemeProvider';
 import { AppShell } from '@/components/layout/AppShell';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Uma Techno Fab - Enterprise Make-to-Order ERP',
   description: 'Integrated MTO Manufacturing & Job Traceability ERP System',
