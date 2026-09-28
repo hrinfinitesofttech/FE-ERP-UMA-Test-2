@@ -4407,6 +4407,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newRecord = { ...record, id: newId };
     setAttendanceRecords((prev) => [newRecord, ...prev]);
     logAction('CREATE', 'hr', 'attendance', newId, `Marked attendance ${record.status} for ${record.employeeName}`);
+    api.post('/attendance-records/', newRecord).catch((err) => console.warn('Failed to mark attendance via API:', err));
   };
   const updateAttendanceRecord = (id: string, record: Partial<AttendanceRecord>) => {
     setAttendanceRecords((prev) => prev.map((a) => (a.id === id ? { ...a, ...record } : a)));
