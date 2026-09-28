@@ -30,7 +30,6 @@ export const INITIAL_FINANCIAL_YEARS: FinancialYear[] = [
     startDate: '2026-04-01',
     endDate: '2027-03-31',
     status: 'Active',
-    isCurrent: true,
   },
 ];
 
@@ -335,3 +334,5 @@ export const INITIAL_FIXED_ASSETS: FixedAsset[] = [];
 export const INITIAL_JOB_COSTINGS: JobCostingSummary[] = [];
 export const INITIAL_RECEIVABLES_AGING: ReceivableAging[] = [];
 export const INITIAL_PAYABLES_AGING: PayableAging[] = [];
+export const INITIAL_RECEIVABLE_AGING = INITIAL_RECEIVABLES_AGING;
+export const INITIAL_PAYABLE_AGING = INITIAL_PAYABLES_AGING;
