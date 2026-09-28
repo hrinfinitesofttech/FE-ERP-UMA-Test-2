@@ -145,16 +145,26 @@ export default function CashBankPage() {
 
   // Filtered Bank Accounts
   const filteredAccounts = useMemo(() => {
-    return bankAccounts.filter((b) => {
-      const q = searchTerm.toLowerCase();
+    const list = bankAccounts || [];
+    return list.filter((b) => {
+      const q = (searchTerm || '').toLowerCase();
+      const bName = (b.bankName || '').toLowerCase();
+      const aName = (b.accountName || '').toLowerCase();
+      const aNum = (b.accountNumber || '').toLowerCase();
+      const ifsc = (b.ifscCode || '').toLowerCase();
+      const gl = (b.glAccountCode || '').toLowerCase();
+      const brName = (b.branchName || '').toLowerCase();
+      const br = (b.branch || '').toLowerCase();
+
       const matchesSearch =
-        (b.bankName && b.bankName.toLowerCase().includes(q)) ||
-        (b.accountName && b.accountName.toLowerCase().includes(q)) ||
-        (b.accountNumber && b.accountNumber.toLowerCase().includes(q)) ||
-        (b.ifscCode && b.ifscCode.toLowerCase().includes(q)) ||
-        (b.glAccountCode && b.glAccountCode.toLowerCase().includes(q)) ||
-        (b.branchName && b.branchName.toLowerCase().includes(q)) ||
-        (b.branch && b.branch.toLowerCase().includes(q));
+        !q ||
+        bName.includes(q) ||
+        aName.includes(q) ||
+        aNum.includes(q) ||
+        ifsc.includes(q) ||
+        gl.includes(q) ||
+        brName.includes(q) ||
+        br.includes(q);
 
       const matchesType = typeFilter === 'all' || b.accountType === typeFilter;
       const matchesStatus =
@@ -168,17 +178,18 @@ export default function CashBankPage() {
 
   // Total Treasury Metrics
   const metrics = useMemo(() => {
-    const totalLiquidity = bankAccounts.reduce((acc, b) => acc + (Number(b.currentBalance) || 0), 0);
-    const bankTotal = bankAccounts
+    const list = bankAccounts || [];
+    const totalLiquidity = list.reduce((acc, b) => acc + (Number(b.currentBalance) || 0), 0);
+    const bankTotal = list
       .filter((b) => b.accountType !== 'Cash')
       .reduce((acc, b) => acc + (Number(b.currentBalance) || 0), 0);
-    const cashTotal = bankAccounts
+    const cashTotal = list
       .filter((b) => b.accountType === 'Cash')
       .reduce((acc, b) => acc + (Number(b.currentBalance) || 0), 0);
 
-    const totalReceiptsInflow = customerReceipts.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
-    const totalPaymentsOutflow = supplierPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-    const totalExpensesOutflow = expenseEntries.reduce((sum, e) => sum + (Number(e.grandTotal || e.subTotal) || 0), 0);
+    const totalReceiptsInflow = (customerReceipts || []).reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+    const totalPaymentsOutflow = (supplierPayments || []).reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+    const totalExpensesOutflow = (expenseEntries || []).reduce((sum, e) => sum + (Number(e.grandTotal || e.subTotal) || 0), 0);
     const totalOutflow = totalPaymentsOutflow + totalExpensesOutflow;
     const netCashflow = totalReceiptsInflow - totalOutflow;
 
@@ -191,7 +202,7 @@ export default function CashBankPage() {
       totalExpensesOutflow,
       totalOutflow,
       netCashflow,
-      accountCount: bankAccounts.length,
+      accountCount: list.length,
     };
   }, [bankAccounts, customerReceipts, supplierPayments, expenseEntries]);
 
@@ -210,7 +221,7 @@ export default function CashBankPage() {
     }> = [];
 
     // Receipts
-    customerReceipts.forEach((r) => {
+    (customerReceipts || []).forEach((r) => {
       list.push({
         id: `REC-${r.id}`,
         date: r.receiptDate || '2026-09-28',
@@ -225,7 +236,7 @@ export default function CashBankPage() {
     });
 
     // Supplier Payments
-    supplierPayments.forEach((p) => {
+    (supplierPayments || []).forEach((p) => {
       list.push({
         id: `PAY-${p.id}`,
         date: p.paymentDate || '2026-09-28',
@@ -240,7 +251,7 @@ export default function CashBankPage() {
     });
 
     // Expense Entries
-    expenseEntries.forEach((e) => {
+    (expenseEntries || []).forEach((e) => {
       list.push({
         id: `EXP-${e.id}`,
         date: e.expenseDate || '2026-09-28',
@@ -255,7 +266,7 @@ export default function CashBankPage() {
     });
 
     // Contra Entries
-    contraEntries.forEach((c) => {
+    (contraEntries || []).forEach((c) => {
       list.push({
         id: `CTR-${c.id}`,
         date: c.contraDate || '2026-09-28',

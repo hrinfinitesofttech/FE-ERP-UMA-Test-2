@@ -120,13 +120,22 @@ export default function FullAndFinalSettlementPage() {
 
   // Filtered settlement records
   const filteredSettlements = useMemo(() => {
-    return fullAndFinalSettlements.filter((item) => {
+    const list = fullAndFinalSettlements || [];
+    const q = (searchTerm || '').toLowerCase();
+    return list.filter((item) => {
+      const empName = (item.employeeName || '').toLowerCase();
+      const empId = (item.employeeId || '').toLowerCase();
+      const exitId = (item.exitId || '').toLowerCase();
+      const id = (item.id || '').toLowerCase();
+      const vNo = (item.accountingVoucherNo || '').toLowerCase();
+
       const matchesSearch =
-        item.employeeName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.employeeId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.exitId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (item.accountingVoucherNo && item.accountingVoucherNo.toLowerCase().includes(searchTerm.toLowerCase()));
+        !q ||
+        empName.includes(q) ||
+        empId.includes(q) ||
+        exitId.includes(q) ||
+        id.includes(q) ||
+        vNo.includes(q);
 
       const matchesStatus =
         statusFilter === 'all' || item.paymentStatus === statusFilter;
@@ -137,9 +146,10 @@ export default function FullAndFinalSettlementPage() {
 
   // Summary Metrics
   const metrics = useMemo(() => {
-    const total = fullAndFinalSettlements.length;
-    const pending = fullAndFinalSettlements.filter((s) => s.paymentStatus === 'Pending Accounting Clearance');
-    const paid = fullAndFinalSettlements.filter((s) => s.paymentStatus === 'Paid');
+    const list = fullAndFinalSettlements || [];
+    const total = list.length;
+    const pending = list.filter((s) => s.paymentStatus === 'Pending Accounting Clearance');
+    const paid = list.filter((s) => s.paymentStatus === 'Paid');
     const pendingAmount = pending.reduce((sum, s) => sum + (Number(s.netFinalPayable) || 0), 0);
     const paidAmount = paid.reduce((sum, s) => sum + (Number(s.netFinalPayable) || 0), 0);
 

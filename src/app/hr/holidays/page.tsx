@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 
 export default function HolidayCalendarPage() {
-  const { holidays, addHoliday, updateHoliday, deleteHoliday, departments } = useERP();
+  const { holidays = [], addHoliday, updateHoliday, deleteHoliday, departments } = useERP();
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingHoliday, setEditingHoliday] = useState<HolidayItem | null>(null);
@@ -42,7 +42,7 @@ export default function HolidayCalendarPage() {
   // Form State
   const [holidayName, setHolidayName] = useState('');
   const [holidayDate, setHolidayDate] = useState(new Date().toISOString().split('T')[0]);
-  const [holidayType, setHolidayType] = useState<HolidayItem['holidayType']>('Public Holiday');
+  const [holidayType, setHolidayType] = useState<string>('Public Holiday');
   const [financialYear, setFinancialYear] = useState('FY 2026-27');
   const [applicableDepartments, setApplicableDepartments] = useState<string[]>(['All Departments']);
   const [isOptional, setIsOptional] = useState(false);
@@ -63,11 +63,11 @@ export default function HolidayCalendarPage() {
   // Open Edit Modal
   const handleOpenEditModal = (hol: HolidayItem) => {
     setEditingHoliday(hol);
-    setHolidayName(hol.holidayName);
-    setHolidayDate(hol.holidayDate);
-    setHolidayType(hol.holidayType);
+    setHolidayName(hol.holidayName || hol.name || '');
+    setHolidayDate(hol.holidayDate || hol.date || new Date().toISOString().split('T')[0]);
+    setHolidayType(hol.holidayType || 'Public Holiday');
     setFinancialYear(hol.financialYear || 'FY 2026-27');
-    setApplicableDepartments(hol.applicableDepartments && hol.applicableDepartments.length > 0 ? hol.applicableDepartments : ['All Departments']);
+    setApplicableDepartments(hol.applicableDepartments && Array.isArray(hol.applicableDepartments) && hol.applicableDepartments.length > 0 ? hol.applicableDepartments : ['All Departments']);
     setIsOptional(Boolean(hol.isOptional));
     setDescription(hol.description || '');
   };
@@ -80,11 +80,13 @@ export default function HolidayCalendarPage() {
     addHoliday({
       holidayName: holidayName.trim(),
       holidayDate,
+      date: holidayDate,
       holidayType,
       applicableDepartments: applicableDepartments.length > 0 ? applicableDepartments : ['All Departments'],
       isOptional,
       financialYear,
       description: description.trim(),
+      status: 'Active',
     });
 
     setShowAddModal(false);
@@ -98,6 +100,7 @@ export default function HolidayCalendarPage() {
     updateHoliday(editingHoliday.id, {
       holidayName: holidayName.trim(),
       holidayDate,
+      date: holidayDate,
       holidayType,
       applicableDepartments: applicableDepartments.length > 0 ? applicableDepartments : ['All Departments'],
       isOptional,
@@ -126,37 +129,57 @@ export default function HolidayCalendarPage() {
     });
   };
 
-  // Filtered Holidays List
+  // Filtered Holidays List with total null safety
   const filteredHolidays = useMemo(() => {
-    return holidays
+    const list = holidays || [];
+    return list
       .filter((hol) => {
+        const hName = (hol.holidayName || (hol as any).name || '').toLowerCase();
+        const hDesc = (hol.description || '').toLowerCase();
+        const hDate = (hol.holidayDate || hol.date || '');
+        const q = (searchTerm || '').toLowerCase();
+
         const matchesSearch =
-          hol.holidayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (hol.description && hol.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          hol.holidayDate.includes(searchTerm);
+          !q ||
+          hName.includes(q) ||
+          hDesc.includes(q) ||
+          hDate.includes(q);
 
-        const matchesType = typeFilter === 'all' || hol.holidayType === typeFilter;
+        const hType = hol.holidayType || 'Public Holiday';
+        const matchesType = typeFilter === 'all' || hType === typeFilter;
 
-        const holMonth = hol.holidayDate ? new Date(hol.holidayDate).getMonth() + 1 : 0;
+        let holMonth = 0;
+        if (hDate) {
+          const parsed = new Date(hDate);
+          if (!isNaN(parsed.getTime())) {
+            holMonth = parsed.getMonth() + 1;
+          }
+        }
         const matchesMonth = monthFilter === 'all' || holMonth === Number(monthFilter);
 
         return matchesSearch && matchesType && matchesMonth;
       })
-      .sort((a, b) => (a.holidayDate > b.holidayDate ? 1 : -1));
+      .sort((a, b) => {
+        const dateA = a.holidayDate || a.date || '';
+        const dateB = b.holidayDate || b.date || '';
+        return dateA > dateB ? 1 : -1;
+      });
   }, [holidays, searchTerm, typeFilter, monthFilter]);
 
   // Summary Metrics
   const metrics = useMemo(() => {
-    const total = holidays.length;
-    const publicHols = holidays.filter((h) => h.holidayType === 'Public Holiday').length;
-    const festivals = holidays.filter((h) => h.holidayType === 'Festival').length;
-    const optionalHols = holidays.filter((h) => h.isOptional || h.holidayType === 'Optional Holiday').length;
+    const list = holidays || [];
+    const total = list.length;
+    const publicHols = list.filter((h) => h.holidayType === 'Public Holiday').length;
+    const festivals = list.filter((h) => h.holidayType === 'Festival').length;
+    const optionalHols = list.filter((h) => h.isOptional || h.holidayType === 'Optional Holiday').length;
 
     return { total, publicHols, festivals, optionalHols };
   }, [holidays]);
 
   // Format Helper for Holiday Date Display
-  const formatHolidayDate = (dateStr: string) => {
+  const formatHolidayDate = (dateStr?: string) => {
+    if (!dateStr) return { day: '01', month: 'JAN', year: '2026', weekday: 'Monday' };
     try {
       const d = new Date(dateStr);
       if (isNaN(d.getTime())) return { day: '01', month: 'JAN', year: '2026', weekday: 'Monday' };
@@ -171,18 +194,24 @@ export default function HolidayCalendarPage() {
   };
 
   // Get countdown string
-  const getCountdownString = (dateStr: string) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const target = new Date(dateStr);
-    target.setHours(0, 0, 0, 0);
-    const diffTime = target.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const getCountdownString = (dateStr?: string) => {
+    if (!dateStr) return { text: '', isUpcoming: false, isToday: false };
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const target = new Date(dateStr);
+      if (isNaN(target.getTime())) return { text: '', isUpcoming: false, isToday: false };
+      target.setHours(0, 0, 0, 0);
+      const diffTime = target.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) return { text: 'Today', isUpcoming: true, isToday: true };
-    if (diffDays > 0 && diffDays <= 30) return { text: `In ${diffDays} days`, isUpcoming: true, isToday: false };
-    if (diffDays > 30) return { text: `In ${diffDays} days`, isUpcoming: true, isToday: false };
-    return { text: 'Past Holiday', isUpcoming: false, isToday: false };
+      if (diffDays === 0) return { text: 'Today', isUpcoming: true, isToday: true };
+      if (diffDays > 0 && diffDays <= 30) return { text: `In ${diffDays} days`, isUpcoming: true, isToday: false };
+      if (diffDays > 30) return { text: `In ${diffDays} days`, isUpcoming: true, isToday: false };
+      return { text: 'Past Holiday', isUpcoming: false, isToday: false };
+    } catch {
+      return { text: '', isUpcoming: false, isToday: false };
+    }
   };
 
   return (
@@ -339,8 +368,9 @@ export default function HolidayCalendarPage() {
       ) : viewMode === 'cards' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredHolidays.map((hol) => {
-            const dateObj = formatHolidayDate(hol.holidayDate);
-            const countdown = getCountdownString(hol.holidayDate);
+            const dateStr = hol.holidayDate || hol.date || '';
+            const dateObj = formatHolidayDate(dateStr);
+            const countdown = getCountdownString(dateStr);
 
             return (
               <div
@@ -365,17 +395,19 @@ export default function HolidayCalendarPage() {
                     </span>
 
                     <div className="flex items-center gap-1.5">
-                      <span
-                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                          countdown.isToday
-                            ? 'bg-rose-100 text-rose-700 font-bold'
-                            : countdown.isUpcoming
-                            ? 'bg-amber-50 text-amber-700'
-                            : 'bg-gray-100 text-gray-500'
-                        }`}
-                      >
-                        {countdown.text}
-                      </span>
+                      {countdown.text && (
+                        <span
+                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                            countdown.isToday
+                              ? 'bg-rose-100 text-rose-700 font-bold'
+                              : countdown.isUpcoming
+                              ? 'bg-amber-50 text-amber-700'
+                              : 'bg-gray-100 text-gray-500'
+                          }`}
+                        >
+                          {countdown.text}
+                        </span>
+                      )}
                       <button
                         onClick={() => handleOpenEditModal(hol)}
                         className="p-1 text-gray-400 hover:text-amber-600 rounded"
@@ -409,7 +441,7 @@ export default function HolidayCalendarPage() {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-bold text-gray-900 leading-snug">{hol.holidayName}</h3>
+                      <h3 className="text-base font-bold text-gray-900 leading-snug">{hol.holidayName || hol.name}</h3>
                       <div className="text-xs font-semibold text-amber-700 mt-1">
                         {dateObj.weekday}
                       </div>
@@ -425,7 +457,7 @@ export default function HolidayCalendarPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-gray-500">Applicable:</span>
                     <span className="font-semibold text-gray-800 truncate max-w-[200px]">
-                      {hol.applicableDepartments && hol.applicableDepartments.length > 0
+                      {hol.applicableDepartments && Array.isArray(hol.applicableDepartments) && hol.applicableDepartments.length > 0
                         ? hol.applicableDepartments.join(', ')
                         : 'All Departments'}
                     </span>
@@ -458,12 +490,13 @@ export default function HolidayCalendarPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredHolidays.map((hol) => {
-                  const dateObj = formatHolidayDate(hol.holidayDate);
+                  const dateStr = hol.holidayDate || hol.date || '';
+                  const dateObj = formatHolidayDate(dateStr);
                   return (
                     <tr key={hol.id} className="hover:bg-amber-50/20">
-                      <td className="py-3 px-4 font-mono font-bold text-gray-900">{hol.holidayDate}</td>
+                      <td className="py-3 px-4 font-mono font-bold text-gray-900">{dateStr}</td>
                       <td className="py-3 px-4 text-gray-600">{dateObj.weekday}</td>
-                      <td className="py-3 px-4 font-bold text-gray-900">{hol.holidayName}</td>
+                      <td className="py-3 px-4 font-bold text-gray-900">{hol.holidayName || hol.name}</td>
                       <td className="py-3 px-4">
                         <span
                           className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
@@ -478,7 +511,7 @@ export default function HolidayCalendarPage() {
                         </span>
                       </td>
                       <td className="py-3 px-4 text-gray-600">
-                        {hol.applicableDepartments && hol.applicableDepartments.length > 0
+                        {hol.applicableDepartments && Array.isArray(hol.applicableDepartments) && hol.applicableDepartments.length > 0
                           ? hol.applicableDepartments.join(', ')
                           : 'All Departments'}
                       </td>
@@ -552,7 +585,7 @@ export default function HolidayCalendarPage() {
                   <label className="block text-gray-700 font-bold mb-1">Holiday Type *</label>
                   <select
                     value={holidayType}
-                    onChange={(e) => setHolidayType(e.target.value as any)}
+                    onChange={(e) => setHolidayType(e.target.value)}
                     className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-amber-500 outline-none font-medium"
                   >
                     <option value="Public Holiday">Public Holiday</option>
@@ -682,7 +715,7 @@ export default function HolidayCalendarPage() {
                   <label className="block text-gray-700 font-bold mb-1">Holiday Type *</label>
                   <select
                     value={holidayType}
-                    onChange={(e) => setHolidayType(e.target.value as any)}
+                    onChange={(e) => setHolidayType(e.target.value)}
                     className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-amber-500 outline-none font-medium"
                   >
                     <option value="Public Holiday">Public Holiday</option>
