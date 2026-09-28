@@ -255,6 +255,7 @@ export const api = {
       list: () => request<any[]>('/suppliers/'),
       create: (data: any) => request<any>('/suppliers/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/suppliers/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/suppliers/${id}/`, { method: 'DELETE' }),
     },
     requisitions: {
       list: () => request<any[]>('/purchase-requisitions/'),

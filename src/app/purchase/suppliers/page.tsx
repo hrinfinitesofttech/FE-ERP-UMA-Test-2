@@ -369,7 +369,7 @@ export default function SupplierMasterPage() {
                   onClick={() => {
                     const s = selectedSupplier;
                     setSelectedSupplier(null);
-                    setEditingSupplier({ ...s, name: s.name || s.supplierName });
+                    setEditingSupplier({ ...s, name: s.name || s.supplierName || '' });
                   }}
                   className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl flex items-center gap-1.5 text-xs"
                 >
