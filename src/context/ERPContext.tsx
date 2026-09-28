@@ -838,7 +838,9 @@ interface ERPContextType {
   deleteWFHRequest: (id: string) => void;
   missedPunchRequests: MissedPunchRequest[];
   addMissedPunchRequest: (req: Omit<MissedPunchRequest, 'id' | 'requestNumber' | 'status'>) => void;
-  updateMissedPunchStatus: (id: string, status: LeaveApprovalStatus) => void;
+  updateMissedPunchStatus: (id: string, status: LeaveApprovalStatus, remarks?: string) => void;
+  updateMissedPunchRequest: (id: string, req: Partial<MissedPunchRequest>) => void;
+  deleteMissedPunchRequest: (id: string) => void;
   attendanceRegularizations: AttendanceRegularization[];
   addAttendanceRegularization: (reg: Omit<AttendanceRegularization, 'id' | 'regularizationNo' | 'status'>) => void;
   updateAttendanceRegularizationStatus: (id: string, status: LeaveApprovalStatus) => void;
@@ -1280,6 +1282,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ['holidays', setHolidays],
         ['wfhRequests', setWFHRequests],
         ['fixedAssets', setFixedAssets],
+        ['missedPunchRequests', setMissedPunchRequests],
       ];
 
       let hasCached = false;
@@ -4991,13 +4994,49 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addMissedPunchRequest = (req: Omit<MissedPunchRequest, 'id' | 'requestNumber' | 'status'>) => {
     const rNo = `MP-2026-0${missedPunchRequests.length + 1}`;
     const newReq: MissedPunchRequest = { ...req, id: rNo, requestNumber: rNo, status: 'Pending' };
-    setMissedPunchRequests((prev) => [newReq, ...prev]);
+    setMissedPunchRequests((prev) => {
+      const updated = [newReq, ...prev];
+      try { localStorage.setItem('UMA_ERP_missedPunchRequests', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
     logAction('CREATE', 'hr', 'missed-punch', rNo, `Submitted Missed Punch request for ${req.employeeName}`);
-    api.post('/missed-punches/', newReq).catch((err) => console.warn('Failed to add missed punch:', err));
+    api.post('/missed-punches/', newReq).catch((err) => console.warn('Failed to add missed punch to backend:', err));
   };
-  const updateMissedPunchStatus = (id: string, status: LeaveApprovalStatus) => {
-    setMissedPunchRequests((prev) => prev.map((m) => (m.id === id || m.requestNumber === id ? { ...m, status } : m)));
+
+  const updateMissedPunchStatus = (id: string, status: LeaveApprovalStatus, remarks?: string) => {
+    setMissedPunchRequests((prev) => {
+      const updated = prev.map((m) =>
+        m.id === id || m.requestNumber === id ? { ...m, status, remarks: remarks || (m as any).remarks } : m
+      );
+      try { localStorage.setItem('UMA_ERP_missedPunchRequests', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
     logAction('UPDATE', 'hr', 'missed-punch', id, `Missed punch status updated to ${status}`);
+    api.patch(`/missed-punches/${id}/`, { status, remarks }).catch(() => {
+      api.post(`/missed-punches/${id}/${status === 'Approved' ? 'approve' : 'reject'}/`).catch((err) =>
+        console.warn('Failed to update missed punch status:', err)
+      );
+    });
+  };
+
+  const updateMissedPunchRequest = (id: string, req: Partial<MissedPunchRequest>) => {
+    setMissedPunchRequests((prev) => {
+      const updated = prev.map((m) => (m.id === id || m.requestNumber === id ? { ...m, ...req } : m));
+      try { localStorage.setItem('UMA_ERP_missedPunchRequests', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
+    logAction('UPDATE', 'hr', 'missed-punch', id, `Updated Missed Punch details for ${id}`);
+    api.patch(`/missed-punches/${id}/`, req).catch((err) => console.warn('Failed to update missed punch in backend:', err));
+  };
+
+  const deleteMissedPunchRequest = (id: string) => {
+    setMissedPunchRequests((prev) => {
+      const updated = prev.filter((m) => m.id !== id && m.requestNumber !== id);
+      try { localStorage.setItem('UMA_ERP_missedPunchRequests', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
+    logAction('DELETE', 'hr', 'missed-punch', id, `Deleted Missed Punch request ${id}`);
+    api.delete(`/missed-punches/${id}/`).catch((err) => console.warn('Failed to delete missed punch from backend:', err));
   };
 
   const addAttendanceRegularization = (reg: Omit<AttendanceRegularization, 'id' | 'regularizationNo' | 'status'>) => {
@@ -5597,6 +5636,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         missedPunchRequests,
         addMissedPunchRequest,
         updateMissedPunchStatus,
+        updateMissedPunchRequest,
+        deleteMissedPunchRequest,
         attendanceRegularizations,
         addAttendanceRegularization,
         updateAttendanceRegularizationStatus,

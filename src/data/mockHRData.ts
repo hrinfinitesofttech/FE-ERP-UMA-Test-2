@@ -509,7 +509,32 @@ export const mockWFHRequests: WFHRequest[] = [
     approvedDate: '2026-09-28',
   },
 ];
-export const mockMissedPunchRequests: MissedPunchRequest[] = [];
+export const mockMissedPunchRequests: MissedPunchRequest[] = [
+  {
+    id: 'MP-2026-01',
+    requestNumber: 'MP-2026-01',
+    employeeId: 'EMP-2026-001',
+    employeeName: 'Rajesh Patel',
+    date: '2026-09-28',
+    missingPunchType: 'Check-Out',
+    requestedTime: '18:05',
+    reason: 'Biometric terminal network failure at main gate during evening shift exit.',
+    reportingManager: 'Sunil Mehta',
+    status: 'Pending',
+  },
+  {
+    id: 'MP-2026-02',
+    requestNumber: 'MP-2026-02',
+    employeeId: 'EMP-2026-002',
+    employeeName: 'Priya Sharma',
+    date: '2026-09-27',
+    missingPunchType: 'Check-In',
+    requestedTime: '09:02',
+    reason: 'Heavy rain traffic delay and card reader sensor calibration issue at gate 2.',
+    reportingManager: 'Rajesh Patel',
+    status: 'Approved',
+  },
+];
 export const mockRegularizationRequests: AttendanceRegularization[] = [];
 export const mockOvertimeRecords: OvertimeRecord[] = [];
 export const mockEarlyCheckoutRequests: EarlyCheckoutRequest[] = [];

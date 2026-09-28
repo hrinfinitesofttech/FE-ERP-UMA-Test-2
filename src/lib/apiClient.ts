@@ -412,6 +412,22 @@ export const api = {
       update: (id: string, data: any) => request<any>(`/holidays/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: string) => request<any>(`/holidays/${id}/`, { method: 'DELETE' }),
     },
+    wfhRequests: {
+      list: () => request<any[]>('/wfh-requests/'),
+      create: (data: any) => request<any>('/wfh-requests/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/wfh-requests/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/wfh-requests/${id}/`, { method: 'DELETE' }),
+      approve: (id: string) => request<any>(`/wfh-requests/${id}/approve/`, { method: 'POST' }),
+      reject: (id: string) => request<any>(`/wfh-requests/${id}/reject/`, { method: 'POST' }),
+    },
+    missedPunches: {
+      list: () => request<any[]>('/missed-punches/'),
+      create: (data: any) => request<any>('/missed-punches/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/missed-punches/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/missed-punches/${id}/`, { method: 'DELETE' }),
+      approve: (id: string) => request<any>(`/missed-punches/${id}/approve/`, { method: 'POST' }),
+      reject: (id: string) => request<any>(`/missed-punches/${id}/reject/`, { method: 'POST' }),
+    },
   },
 
   // Accounting & Finance
