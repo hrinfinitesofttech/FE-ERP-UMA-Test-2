@@ -333,6 +333,29 @@ export const api = {
     pmPlans: () => request<any[]>('/pm-plans/'),
     serviceVisits: () => request<any[]>('/service-visits/'),
     amcContracts: () => request<any[]>('/amc-contracts/'),
+    serviceWorkOrders: {
+      list: () => request<any[]>('/service-work-orders/'),
+      create: (data: any) => request<any>('/service-work-orders/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/service-work-orders/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+    },
+    servicePartIssues: {
+      list: () => request<any[]>('/service-part-issues/'),
+      create: (data: any) => request<any>('/service-part-issues/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/service-part-issues/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+    },
+    servicePartReturns: {
+      list: () => request<any[]>('/service-part-returns/'),
+      create: (data: any) => request<any>('/service-part-returns/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/service-part-returns/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+    },
+    serviceReports: {
+      list: () => request<any[]>('/service-reports/'),
+      create: (data: any) => request<any>('/service-reports/', { method: 'POST', body: JSON.stringify(data) }),
+      get: (id: string) => request<any>(`/service-reports/${id}/`),
+    },
+    warrantyRecords: () => request<any[]>('/warranty-records/'),
+    serviceContracts: () => request<any[]>('/service-contracts/'),
+    downtimeRecords: () => request<any[]>('/downtime-records/'),
   },
 
   // HR & Payroll

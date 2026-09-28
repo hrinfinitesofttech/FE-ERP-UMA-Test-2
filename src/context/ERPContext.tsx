@@ -1293,6 +1293,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           api.maintenance.serviceRequests.list(),
           api.maintenance.breakdowns(),
           api.maintenance.serviceVisits(),
+          api.maintenance.servicePartIssues.list(),
+          api.maintenance.servicePartReturns.list(),
+          api.maintenance.serviceReports.list(),
           api.hr.designations(),
           api.hr.shifts(),
           api.hr.attendance(),
@@ -1383,14 +1386,17 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         applyLive<ServiceRequest>(val(results[36]), setServiceRequests, 'serviceRequests');
         applyLive<BreakdownRecord>(val(results[37]), setBreakdowns, 'breakdowns');
         applyLive<ServiceVisit>(val(results[38]), setServiceVisits, 'serviceVisits');
-        applyLive<Designation>(val(results[39]), setDesignations, 'designations');
-        applyLive<ShiftMaster>(val(results[40]), setShiftMasters, 'shifts');
-        applyLive<AttendanceRecord>(val(results[41]), setAttendanceRecords, 'attendance');
-        applyLive<LeaveRequest>(val(results[42]), setLeaveRequests, 'leaves');
-        applyLive<PayrollRecord>(val(results[43]), setPayrollRecords, 'payroll');
-        applyLive<FinancialYear>(val(results[44]), setFinancialYears, 'financialYears');
-        applyLive<ChartOfAccount>(val(results[45]), setChartOfAccounts, 'chartOfAccounts');
-        const siRes = val<any[]>(results[46]);
+        applyLive<ServicePartIssue>(val(results[39]), setServicePartIssues, 'servicePartIssues');
+        applyLive<ServicePartReturn>(val(results[40]), setServicePartReturns, 'servicePartReturns');
+        applyLive<ServiceReport>(val(results[41]), setServiceReports, 'serviceReports');
+        applyLive<Designation>(val(results[42]), setDesignations, 'designations');
+        applyLive<ShiftMaster>(val(results[43]), setShiftMasters, 'shifts');
+        applyLive<AttendanceRecord>(val(results[44]), setAttendanceRecords, 'attendance');
+        applyLive<LeaveRequest>(val(results[45]), setLeaveRequests, 'leaves');
+        applyLive<PayrollRecord>(val(results[46]), setPayrollRecords, 'payroll');
+        applyLive<FinancialYear>(val(results[47]), setFinancialYears, 'financialYears');
+        applyLive<ChartOfAccount>(val(results[48]), setChartOfAccounts, 'chartOfAccounts');
+        const siRes = val<any[]>(results[49]);
         if (siRes && Array.isArray(siRes) && siRes.length > 0) {
           const normalizedSI: SalesInvoice[] = siRes.map((inv: any) => {
             const grandTotal = Number(inv.grandTotal ?? inv.grand_total ?? 0);
@@ -1431,7 +1437,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        const piRes = val<any[]>(results[47]);
+        const piRes = val<any[]>(results[50]);
         if (piRes && Array.isArray(piRes) && piRes.length > 0) {
           const normalizedPI: PurchaseInvoice[] = piRes.map((inv: any) => ({
             ...inv,
@@ -1451,12 +1457,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             try { localStorage.setItem('UMA_ERP_purchaseInvoices', JSON.stringify(normalizedPI)); } catch (_) {}
           }
         }
-        applyLive<CustomerReceipt>(val(results[48]), setCustomerReceipts, 'customerReceipts');
-        applyLive<SupplierPayment>(val(results[49]), setSupplierPayments, 'supplierPayments');
-        applyLive<ApprovalItem>(val(results[50]), setCentralApprovals, 'approvals');
-        applyLive<ERPAlertItem>(val(results[51]), setCentralAlerts, 'alerts');
+        applyLive<CustomerReceipt>(val(results[51]), setCustomerReceipts, 'customerReceipts');
+        applyLive<SupplierPayment>(val(results[52]), setSupplierPayments, 'supplierPayments');
+        applyLive<ApprovalItem>(val(results[53]), setCentralApprovals, 'approvals');
+        applyLive<ERPAlertItem>(val(results[54]), setCentralAlerts, 'alerts');
 
-        const meRes = val<any>(results[52]);
+        const meRes = val<any>(results[55]);
         if (meRes && meRes.username) {
           setCurrentUser((prev) => ({
             ...prev,
@@ -4204,6 +4210,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setServicePartIssues((prev) => [newIssue, ...prev]);
     logAction('CREATE', 'maintenance', 'parts-issue', issueNo, `Created service part issue ${issueNo}`);
+    api.maintenance.servicePartIssues.create(newIssue).catch((err) => console.warn('Failed to add service part issue:', err));
   };
 
   const addServicePartReturn = (ret: Omit<ServicePartReturn, 'id' | 'returnNumber'>) => {
@@ -4211,6 +4218,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newRet: ServicePartReturn = { ...ret, id: retNo, returnNumber: retNo };
     setServicePartReturns((prev) => [newRet, ...prev]);
     logAction('CREATE', 'maintenance', 'parts-return', retNo, `Created service part return ${retNo}`);
+    api.maintenance.servicePartReturns.create(newRet).catch((err) => console.warn('Failed to add service part return:', err));
   };
 
   const addServiceReport = (rep: Omit<ServiceReport, 'id' | 'reportNumber'>) => {
@@ -4218,6 +4226,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newRep: ServiceReport = { ...rep, id: repNo, reportNumber: repNo };
     setServiceReports((prev) => [newRep, ...prev]);
     logAction('CREATE', 'maintenance', 'service-reports', repNo, `Created service report ${repNo}`);
+    api.maintenance.serviceReports.create(newRep).catch((err) => console.warn('Failed to add service report:', err));
   };
 
   const addAMCContract = (amc: Omit<AMCContract, 'id' | 'amcNumber'>) => {
