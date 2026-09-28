@@ -719,6 +719,7 @@ interface ERPContextType {
   deleteJournalEntry: (id: string) => void;
   contraEntries: ContraEntry[];
   addContraEntry: (contra: Omit<ContraEntry, 'id' | 'contraNumber'>) => void;
+  deleteContraEntry: (id: string) => void;
   expenseEntries: ExpenseEntry[];
   addExpenseEntry: (exp: Omit<ExpenseEntry, 'id' | 'expenseNumber'>) => void;
   approveExpenseEntry: (id: string, approvedBy: string) => void;
@@ -1232,8 +1233,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ['chartOfAccounts', setChartOfAccounts],
         ['salesInvoices', setSalesInvoices],
         ['purchaseInvoices', setPurchaseInvoices],
+        ['creditNotes', setCreditNotes],
+        ['debitNotes', setDebitNotes],
         ['customerReceipts', setCustomerReceipts],
         ['supplierPayments', setSupplierPayments],
+        ['journalEntries', setJournalEntries],
+        ['contraEntries', setContraEntries],
+        ['bankAccounts', setBankAccounts],
       ];
 
       let hasCached = false;
@@ -1317,6 +1323,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           api.accounting.purchaseInvoices.list(),
           api.accounting.receipts(),
           api.accounting.payments(),
+          api.accounting.journalEntries.list(),
+          api.accounting.creditNotes.list(),
+          api.accounting.debitNotes.list(),
+          api.accounting.contraEntries.list(),
+          api.accounting.bankAccounts.list(),
           api.integration.approvals.list(),
           api.integration.alerts.list(),
           api.auth.me(),
@@ -1492,10 +1503,15 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
         applyLive<CustomerReceipt>(val(results[51]), setCustomerReceipts, 'customerReceipts');
         applyLive<SupplierPayment>(val(results[52]), setSupplierPayments, 'supplierPayments');
-        applyLive<ApprovalItem>(val(results[53]), setCentralApprovals, 'approvals');
-        applyLive<ERPAlertItem>(val(results[54]), setCentralAlerts, 'alerts');
+        applyLive<JournalEntry>(val(results[53]), setJournalEntries, 'journalEntries');
+        applyLive<CreditNote>(val(results[54]), setCreditNotes, 'creditNotes');
+        applyLive<DebitNote>(val(results[55]), setDebitNotes, 'debitNotes');
+        applyLive<ContraEntry>(val(results[56]), setContraEntries, 'contraEntries');
+        applyLive<BankAccount>(val(results[57]), setBankAccounts, 'bankAccounts');
+        applyLive<ApprovalItem>(val(results[58]), setCentralApprovals, 'approvals');
+        applyLive<ERPAlertItem>(val(results[59]), setCentralAlerts, 'alerts');
 
-        const meRes = val<any>(results[55]);
+        const meRes = val<any>(results[60]);
         if (meRes && meRes.username) {
           setCurrentUser((prev) => ({
             ...prev,
@@ -4122,8 +4138,28 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addContraEntry = (contra: Omit<ContraEntry, 'id' | 'contraNumber'>) => {
     const contraNumber = `CNT-2026-${String(contraEntries.length + 1).padStart(3, '0')}`;
     const newContra: ContraEntry = { ...contra, id: contraNumber, contraNumber };
-    setContraEntries((prev) => [newContra, ...prev]);
+    setContraEntries((prev) => {
+      const updated = [newContra, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_contraEntries', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Accounting', 'Contra Entries', newContra.id, `Created Contra ${newContra.contraNumber} for ₹${newContra.amount?.toLocaleString()}`);
+    // Sync to PythonAnywhere backend
+    api.accounting.contraEntries.create(newContra).catch((err) => console.warn('Failed to sync contra entry to backend:', err));
+  };
+
+  const deleteContraEntry = (id: string) => {
+    setContraEntries((prev) => {
+      const updated = prev.filter((c) => c.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_contraEntries', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'Accounting', 'Contra Entries', id, `Deleted Contra Entry ${id}`);
+    api.accounting.contraEntries.delete(id).catch((err) => console.warn('Failed to delete contra entry on backend:', err));
   };
 
   const addExpenseEntry = (exp: Omit<ExpenseEntry, 'id' | 'expenseNumber'>) => {
@@ -5107,6 +5143,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         deleteJournalEntry,
         contraEntries,
         addContraEntry,
+        deleteContraEntry,
         expenseEntries,
         addExpenseEntry,
         approveExpenseEntry,

@@ -263,7 +263,45 @@ export const INITIAL_JOURNAL_ENTRIES: JournalEntry[] = [
   },
 ];
 
-export const INITIAL_CONTRA_ENTRIES: ContraEntry[] = [];
+export const INITIAL_CONTRA_ENTRIES: ContraEntry[] = [
+  {
+    id: 'CNT-2026-001',
+    contraNumber: 'CNT-2026-001',
+    contraDate: '2026-04-05',
+    date: '2026-04-05',
+    contraType: 'Bank_to_Cash',
+    fromAccountId: 'BANK-01',
+    fromAccountName: 'HDFC Bank (Current)',
+    fromAccountCode: '1010',
+    toAccountId: 'BANK-04',
+    toAccountName: 'Main Factory Cash Vault',
+    toAccountCode: '1000',
+    amount: 50000,
+    referenceNumber: 'CHQ-889102',
+    narration: 'Cash withdrawal for factory petty cash imprest replenishment',
+    status: 'Posted',
+    createdBy: 'Rajesh Patel',
+  },
+  {
+    id: 'CNT-2026-002',
+    contraNumber: 'CNT-2026-002',
+    contraDate: '2026-04-12',
+    date: '2026-04-12',
+    contraType: 'Bank_to_Bank',
+    fromAccountId: 'BANK-01',
+    fromAccountName: 'HDFC Bank (Current)',
+    fromAccountCode: '1010',
+    toAccountId: 'BANK-02',
+    toAccountName: 'State Bank of India (Cash Credit)',
+    toAccountCode: '1020',
+    amount: 500000,
+    referenceNumber: 'TRF-994102',
+    narration: 'Inter-bank liquidity transfer from HDFC to SBI CC account',
+    status: 'Posted',
+    createdBy: 'Rajesh Patel',
+  },
+];
+
 export const INITIAL_EXPENSE_ENTRIES: ExpenseEntry[] = [];
 
 export const INITIAL_BANK_ACCOUNTS: BankAccount[] = [
