@@ -2197,6 +2197,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       })
     );
     logAction('APPROVE', 'CRM', 'Quotations', quotationId, `Updated ${revisionNumber} status to ${status}`);
+    api.crm.quotations.updateStatus(quotationId, { revisionNumber, status }).catch((err) =>
+      console.warn('Failed to update quotation status on backend:', err)
+    );
   };
 
   // Customer PO & Sales Order
@@ -2216,7 +2219,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       linkUrl: '/crm/customer-po',
       priority: 'high',
     });
-    api.crm.customerPos.create(newPO).then((res) => {
+    const poPayload = {
+      ...newPO,
+      receivedDate: (newPO as any).receivedDate || newPO.poDate || new Date().toISOString().split('T')[0],
+      poValue: Number(newPO.poAmount || (newPO as any).poValue || 0),
+      scopeOfWork: (newPO as any).scopeOfWork || (newPO as any).remarks || '',
+    };
+    api.crm.customerPos.create(poPayload).then((res) => {
       if (res && res.id) {
         setCustomerPOs((prev) => prev.map((p) => (p.id === poId ? { ...p, ...res } : p)));
       }
@@ -2268,11 +2277,20 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       linkUrl: '/crm/sales-orders',
       priority: 'high',
     });
-    api.crm.salesOrders.create(newSO).then((res) => {
+    const soPayload = {
+      ...newSO,
+      targetDeliveryDate: newSO.deliveryDate || '2026-12-31',
+      grandTotal: Number(newSO.orderValue || 0),
+      totalAmount: Number(newSO.orderValue || 0),
+    };
+    api.crm.salesOrders.create(soPayload).then((res) => {
       if (res && res.id) {
         setSalesOrders((prev) => prev.map((s) => (s.id === soNo ? { ...s, ...res } : s)));
       }
     }).catch((err) => console.warn('Failed to sync sales order to backend:', err));
+    api.crm.customerPos.update(poId, { status: 'converted_to_so', convertedSoId: soNo }).catch((err) =>
+      console.warn('Failed to update customer PO on backend:', err)
+    );
     return newSO;
   };
 
@@ -2285,7 +2303,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setSalesOrders((prev) => [newSO, ...prev]);
     logAction('CREATE', 'CRM', 'Sales Orders', soNo, `Created Sales Order ${soNo}`);
-    api.crm.salesOrders.create(newSO).then((res) => {
+    const soPayload = {
+      ...newSO,
+      targetDeliveryDate: newSO.deliveryDate || '2026-12-31',
+      grandTotal: Number(newSO.orderValue || 0),
+      totalAmount: Number(newSO.orderValue || 0),
+    };
+    api.crm.salesOrders.create(soPayload).then((res) => {
       if (res && res.id) {
         setSalesOrders((prev) => prev.map((s) => (s.id === soNo ? { ...s, ...res } : s)));
       }
@@ -2346,11 +2370,20 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       prev.map((s) => (s.id === salesOrderId ? { ...s, status: 'project_created', projectId: prjNo, jobNumber: jobNo } : s))
     );
 
-    api.projects.create(newProject).then((res) => {
+    const prjPayload = {
+      ...newProject,
+      targetDeliveryDate: newProject.deliveryDate || '2026-12-31',
+      projectManagerName: newProject.projectManager || 'Bhavin Shah',
+      currentStatus: newProject.status || 'planning',
+    };
+    api.projects.create(prjPayload).then((res) => {
       if (res && res.id) {
         setProjectJobs((prev) => prev.map((p) => (p.id === prjNo ? { ...p, ...res } : p)));
       }
     }).catch((err) => console.warn('Failed to sync project to backend:', err));
+    api.crm.salesOrders.update(so.id, { status: 'project_created', projectId: prjNo }).catch((err) =>
+      console.warn('Failed to update sales order status on backend:', err)
+    );
 
     // Also inject into Master Job Traceability
     const newTraceableJob: JobTraceabilityRecord = {
@@ -2817,11 +2850,22 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setDesignJobs((prev) => [newJob, ...prev]);
     logAction('CREATE', 'Designer', 'Design Jobs', id, `Created design job ${newJob.designJobNumber} for project ${data.projectId}`);
+    const jobPayload = {
+      ...newJob,
+      designJobNumber: newJob.designJobNumber || id,
+      targetCompletionDate: (newJob as any).targetCompletionDate || (newJob as any).deliveryDate || '2026-12-31',
+    };
+    api.designer.jobs.create(jobPayload).then((res) => {
+      if (res && res.id) {
+        setDesignJobs((prev) => prev.map((j) => (j.id === id ? { ...j, ...res } : j)));
+      }
+    }).catch((err) => console.warn('Failed to sync design job to backend:', err));
   };
 
   const updateDesignJob = (id: string, updates: Partial<DesignJob>) => {
     setDesignJobs((prev) => prev.map((j) => (j.id === id ? { ...j, ...updates } : j)));
     logAction('UPDATE', 'Designer', 'Design Jobs', id, `Updated design job ${id}`);
+    api.designer.jobs.update(id, updates).catch((err) => console.warn('Failed to update design job on backend:', err));
   };
 
   const addCustomerRequirement = (data: Omit<CustomerRequirement, 'id'>) => {
@@ -2891,6 +2935,20 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newBom: BOMHeader = { ...data, id };
     setBoms((prev) => [newBom, ...prev]);
     logAction('CREATE', 'Designer', 'BOM Management', id, `Created Master BOM for ${data.jobNumber}`);
+    const bomPayload = {
+      ...newBom,
+      bomNumber: (newBom as any).bomNumber || id,
+      jobNumber: newBom.jobNumber || 'JOB-2026-0042',
+      designJobId: (newBom as any).designJobId || newBom.jobNumber || 'DJOB-DEFAULT',
+      preparedBy: (newBom as any).preparedBy || `${currentUser.firstName} ${currentUser.lastName}`.trim() || 'Design Engineer',
+      items: newBom.items || [],
+      status: newBom.status || 'draft',
+    };
+    api.designer.boms.create(bomPayload).then((res) => {
+      if (res && res.id) {
+        setBoms((prev) => prev.map((b) => (b.id === id ? { ...b, ...res } : b)));
+      }
+    }).catch((err) => console.warn('Failed to sync BOM to backend:', err));
   };
 
   const updateBOM = (id: string, updates: Partial<BOMHeader>) => {
@@ -3004,6 +3062,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setPurchaseRequisitions((prev) => [newPr, ...prev]);
     logAction('CREATE', 'Purchase', 'Purchase Requisition', newPr.id, `Created PR ${newPr.prNumber} for job ${data.jobNumber}`);
+    const prPayload = {
+      ...newPr,
+      prNumber: newPr.prNumber || prNumber,
+      requiredByDate: (newPr as any).requiredByDate || (newPr as any).requiredDate || '2026-12-31',
+      items: newPr.items || [],
+      status: newPr.status || 'pending_approval',
+    };
+    api.purchase.requisitions.create(prPayload).then((res) => {
+      if (res && res.id) {
+        setPurchaseRequisitions((prev) => prev.map((p) => (p.id === prNumber ? { ...p, ...res } : p)));
+      }
+    }).catch((err) => console.warn('Failed to sync PR to backend:', err));
   };
 
   const approvePurchaseRequisition = (id: string, approvedBy: string) => {
@@ -3084,6 +3154,20 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     });
 
     logAction('CREATE', 'Purchase', 'Purchase Orders', newPo.id, `Created PO ${newPo.poNumber} for supplier ${data.supplierName}`);
+    const poPayload = {
+      ...newPo,
+      poNumber: newPo.poNumber || poNumber,
+      expectedDeliveryDate: (newPo as any).expectedDeliveryDate || (newPo as any).deliveryDate || '2026-12-31',
+      items: newPo.items || [],
+      totalAmount: Number((newPo as any).totalAmount || (newPo as any).grandTotal || 0),
+      grandTotal: Number((newPo as any).grandTotal || (newPo as any).totalAmount || 0),
+      status: newPo.status || 'draft',
+    };
+    api.purchase.orders.create(poPayload).then((res) => {
+      if (res && res.id) {
+        setPurchaseOrders((prev) => prev.map((p) => (p.id === poNumber ? { ...p, ...res } : p)));
+      }
+    }).catch((err) => console.warn('Failed to sync PO to backend:', err));
   };
 
   const approvePurchaseOrder = (id: string, approvedBy: string) => {
@@ -3246,6 +3330,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       priority: 'normal',
       linkUrl: '/store/grn',
     });
+    const grnPayload = {
+      ...newGrn,
+      grnNumber: newGrn.grnNumber || grnNumber,
+      receiptDate: (newGrn as any).receiptDate || newGrn.createdAt || new Date().toISOString().split('T')[0],
+      items: newGrn.items || [],
+      status: (newGrn as any).status || 'received',
+    };
+    api.store.grns.create(grnPayload).then((res) => {
+      if (res && res.id) {
+        setGoodsReceipts((prev) => prev.map((g) => (g.id === grnNumber ? { ...g, ...res } : g)));
+      }
+    }).catch((err) => console.warn('Failed to sync GRN to backend:', err));
   };
 
   const addQCInspection = (data: Omit<QCInspection, 'id' | 'inspectionNumber'>) => {

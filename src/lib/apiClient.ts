@@ -197,6 +197,8 @@ export const api = {
       create: (data: any) => request<any>('/quotations/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/quotations/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       addRevision: (id: string, data: any) => request<any>(`/quotations/${id}/add-revision/`, { method: 'POST', body: JSON.stringify(data) }),
+      updateStatus: (id: string, data: { revisionNumber: string; status: string }) =>
+        request<any>(`/quotations/${id}/update-status/`, { method: 'POST', body: JSON.stringify(data) }),
     },
     customerPos: {
       list: () => request<any[]>('/customer-pos/'),
