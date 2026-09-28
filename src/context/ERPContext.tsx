@@ -788,6 +788,7 @@ interface ERPContextType {
   updateDesignation: (id: string, desg: Partial<Designation>) => void;
   employeeDocuments: EmployeeDocumentItem[];
   addEmployeeDocument: (doc: Omit<EmployeeDocumentItem, 'id'>) => void;
+  deleteEmployeeDocument: (id: string) => void;
   updateEmployeeDocumentStatus: (id: string, status: 'Verified' | 'Pending' | 'Rejected', verifiedBy?: string, remarks?: string) => void;
   employeeOnboardings: EmployeeOnboardingItem[];
   addEmployeeOnboarding: (onb: Omit<EmployeeOnboardingItem, 'id'>) => void;
@@ -1229,6 +1230,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ['employees', setEmployees],
         ['departments', setDepartments],
         ['roles', setRoles],
+        ['employeeDocuments', setEmployeeDocuments],
         ['financialYears', setFinancialYears],
         ['chartOfAccounts', setChartOfAccounts],
         ['salesInvoices', setSalesInvoices],
@@ -4480,9 +4482,27 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addEmployeeDocument = (doc: Omit<EmployeeDocumentItem, 'id'>) => {
     const newId = `DOC-${100 + employeeDocuments.length + 1}`;
     const newDoc = { ...doc, id: newId };
-    setEmployeeDocuments((prev) => [newDoc, ...prev]);
-    logAction('CREATE', 'hr', 'employee-documents', newId, `Uploaded document for ${doc.employeeName}`);
+    setEmployeeDocuments((prev) => {
+      const updated = [newDoc, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employeeDocuments', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('CREATE', 'hr', 'employee-documents', newId, `Uploaded document ${newDoc.documentType} for ${doc.employeeName}`);
     api.post('/employee-documents/', newDoc).catch((err) => console.warn('Failed to add document:', err));
+  };
+
+  const deleteEmployeeDocument = (id: string) => {
+    setEmployeeDocuments((prev) => {
+      const updated = prev.filter((d) => d.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employeeDocuments', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'hr', 'employee-documents', id, `Deleted document ${id}`);
+    api.delete(`/employee-documents/${id}/`).catch((err) => console.warn('Failed to delete document:', err));
   };
   const updateEmployeeDocumentStatus = (id: string, status: 'Verified' | 'Pending' | 'Rejected', verifiedBy?: string, remarks?: string) => {
     setEmployeeDocuments((prev) =>
@@ -5205,6 +5225,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         updateDesignation,
         employeeDocuments,
         addEmployeeDocument,
+        deleteEmployeeDocument,
         updateEmployeeDocumentStatus,
         employeeOnboardings,
         addEmployeeOnboarding,
