@@ -13,8 +13,8 @@ export default function SupplierPaymentsPage() {
   const [invoiceNumber, setInvoiceNumber] = useState(purchaseInvoices[0]?.invoiceNumber || 'PINV-2026-0001');
   const [paymentMode, setPaymentMode] = useState<any>('RTGS');
   const [bankAccountId, setBankAccountId] = useState(bankAccounts[0]?.id || '');
-  const [amountPaid, setAmountPaid] = useState(850000);
-  const [referenceNo, setReferenceNo] = useState('RTGS-8849102');
+  const [amountPaid, setAmountPaid] = useState<number | string>('');
+  const [referenceNo, setReferenceNo] = useState('');
 
   const filtered = supplierPayments.filter((p) => {
     const pNo = p.paymentNumber || '';
@@ -40,7 +40,7 @@ export default function SupplierPaymentsPage() {
       paymentMode,
       bankAccountId: bank.id,
       bankName: bank.bankName,
-      amountPaid,
+      amountPaid: Number(amountPaid) || 0,
       referenceNumber: referenceNo,
       status: 'Paid',
       remarks: 'Vendor bill payment via RTGS',
@@ -192,8 +192,9 @@ export default function SupplierPaymentsPage() {
                   <input
                     type="number"
                     required
+                    placeholder="0"
                     value={amountPaid}
-                    onChange={(e) => setAmountPaid(Number(e.target.value))}
+                    onChange={(e) => setAmountPaid(e.target.value === '' ? '' : Number(e.target.value))}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
                   />
                 </div>

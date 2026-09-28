@@ -111,7 +111,7 @@ function QuotationFormContent() {
           revisionNumber: 'Rev-00',
           date,
           preparedBy: `${currentUser.firstName} ${currentUser.lastName}`,
-          items,
+          items: items.map(it => ({ ...it, quantity: Number(it.quantity) || 1, rate: Number(it.rate) || 0, discountPercent: Number(it.discountPercent) || 0 })),
           subTotal: Math.round(subTotal),
           discountAmount: 0,
           taxAmount: Math.round(totalTax),
@@ -255,8 +255,9 @@ function QuotationFormContent() {
                       <input
                         type="number"
                         min={1}
+                        placeholder="1"
                         value={item.quantity}
-                        onChange={(e) => handleItemChange(idx, 'quantity', Number(e.target.value))}
+                        onChange={(e) => handleItemChange(idx, 'quantity', e.target.value === '' ? '' : Number(e.target.value))}
                         className="w-full px-2 py-1 bg-white dark:bg-white border rounded font-mono font-bold"
                       />
                     </div>
@@ -264,8 +265,9 @@ function QuotationFormContent() {
                       <label className="block text-[#70665F] mb-0.5">Unit Rate (₹)</label>
                       <input
                         type="number"
+                        placeholder="0"
                         value={item.rate}
-                        onChange={(e) => handleItemChange(idx, 'rate', Number(e.target.value))}
+                        onChange={(e) => handleItemChange(idx, 'rate', e.target.value === '' ? '' : Number(e.target.value))}
                         className="w-full px-2 py-1 bg-white dark:bg-white border rounded font-mono font-bold text-slate-800 dark:text-[#544B45]"
                       />
                     </div>
@@ -273,8 +275,9 @@ function QuotationFormContent() {
                       <label className="block text-[#70665F] mb-0.5">Discount %</label>
                       <input
                         type="number"
+                        placeholder="0"
                         value={item.discountPercent}
-                        onChange={(e) => handleItemChange(idx, 'discountPercent', Number(e.target.value))}
+                        onChange={(e) => handleItemChange(idx, 'discountPercent', e.target.value === '' ? '' : Number(e.target.value))}
                         className="w-full px-2 py-1 bg-white dark:bg-white border rounded font-mono"
                       />
                     </div>

@@ -36,12 +36,12 @@ export default function NewLeadPage() {
     // 3. Requirement
     productName: '',
     machineType: 'Chemical Pressure Vessel / Reactor',
-    quantity: 1,
+    quantity: 1 as number | string,
     capacity: '',
     application: '',
     requirementDescription: '',
     expectedDelivery: '2026-11-30',
-    budget: 4500000,
+    budget: '' as number | string,
     priority: 'high' as PriorityLevel,
 
     // 4. CRM
@@ -49,7 +49,7 @@ export default function NewLeadPage() {
     assignedSalesPersonId: salesEngineers[0]?.id || 'EMP-003',
     status: 'new' as LeadStatus,
     nextFollowUpDate: '2026-09-26',
-    remarks: 'Customer met at engineering expo stall.',
+    remarks: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -58,6 +58,8 @@ export default function NewLeadPage() {
 
     const created = addLead({
       ...formData,
+      quantity: Number(formData.quantity) || 1,
+      budget: Number(formData.budget) || 0,
       assignedSalesPersonName: assignedPerson ? `${assignedPerson.firstName} ${assignedPerson.lastName}` : 'Pravin Patel',
     });
 
@@ -235,8 +237,9 @@ export default function NewLeadPage() {
                 <input
                   type="number"
                   min={1}
+                  placeholder="1"
                   value={formData.quantity}
-                  onChange={(e) => setFormData({ ...formData, quantity: Number(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, quantity: e.target.value === '' ? '' : Number(e.target.value) })}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-mono text-slate-900 dark:text-[#211B17]"
                 />
               </div>
@@ -266,8 +269,9 @@ export default function NewLeadPage() {
                 <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Estimated Budget (₹)</label>
                 <input
                   type="number"
+                  placeholder="0"
                   value={formData.budget}
-                  onChange={(e) => setFormData({ ...formData, budget: Number(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, budget: e.target.value === '' ? '' : Number(e.target.value) })}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-bold text-emerald-600"
                 />
               </div>

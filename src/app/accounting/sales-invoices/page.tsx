@@ -18,7 +18,7 @@ export default function SalesInvoicesPage() {
   const [placeOfSupply, setPlaceOfSupply] = useState('Gujarat (24)');
 
   // Form line items
-  const [items, setItems] = useState<Array<{ description: string; hsnSac: string; qty: number; unitPrice: number; taxRate: number }>>([
+  const [items, setItems] = useState<Array<{ description: string; hsnSac: string; qty: number | string; unitPrice: number | string; taxRate: number | string }>>([
     { description: 'Automated Hydraulic Scrap Baling Press 100-Ton', hsnSac: '8462', qty: 1, unitPrice: 3800000, taxRate: 18 },
   ]);
 
@@ -45,9 +45,12 @@ export default function SalesInvoicesPage() {
     let igstAmount = 0;
 
     const formattedItems = items.map((item, idx) => {
-      const lineTotal = item.qty * item.unitPrice;
+      const q = Number(item.qty) || 0;
+      const rate = Number(item.unitPrice) || 0;
+      const tRate = Number(item.taxRate) || 0;
+      const lineTotal = q * rate;
       subTotal += lineTotal;
-      const taxVal = (lineTotal * item.taxRate) / 100;
+      const taxVal = (lineTotal * tRate) / 100;
       if (placeOfSupply.includes('Gujarat')) {
         cgstAmount += taxVal / 2;
         sgstAmount += taxVal / 2;
@@ -58,9 +61,9 @@ export default function SalesInvoicesPage() {
         id: `SITEM-${idx + 1}`,
         description: item.description,
         hsnSac: item.hsnSac,
-        quantity: item.qty,
-        unitPrice: item.unitPrice,
-        taxRate: item.taxRate,
+        quantity: q,
+        unitPrice: rate,
+        taxRate: tRate,
         taxAmount: taxVal,
         totalAmount: lineTotal + taxVal,
       };
@@ -297,9 +300,10 @@ export default function SalesInvoicesPage() {
                       <label className="block text-[#70665F] text-[10px]">Qty</label>
                       <input
                         type="number"
+                        placeholder="0"
                         value={it.qty}
                         onChange={(e) => {
-                          const val = Number(e.target.value);
+                          const val = e.target.value === '' ? '' : Number(e.target.value);
                           setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, qty: val } : item)));
                         }}
                         className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1 text-[#3E2723] text-xs"
@@ -309,9 +313,10 @@ export default function SalesInvoicesPage() {
                       <label className="block text-[#70665F] text-[10px]">Unit Rate (₹)</label>
                       <input
                         type="number"
+                        placeholder="0"
                         value={it.unitPrice}
                         onChange={(e) => {
-                          const val = Number(e.target.value);
+                          const val = e.target.value === '' ? '' : Number(e.target.value);
                           setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, unitPrice: val } : item)));
                         }}
                         className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1 text-[#3E2723] text-xs"

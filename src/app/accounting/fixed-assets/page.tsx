@@ -9,13 +9,13 @@ export default function FixedAssetsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [assetCode, setAssetCode] = useState('AST-MCH-005');
-  const [assetName, setAssetName] = useState('5-Axis CNC Milling Center');
+  const [assetCode, setAssetCode] = useState('');
+  const [assetName, setAssetName] = useState('');
   const [category, setCategory] = useState('Plant & Machinery');
-  const [purchaseCost, setPurchaseCost] = useState(6500000);
+  const [purchaseCost, setPurchaseCost] = useState<number | string>('');
   const [depreciationMethod, setDepreciationMethod] = useState<'SLM' | 'WDV'>('WDV');
-  const [depreciationRate, setDepreciationRate] = useState(15);
-  const [usefulLifeYears, setUsefulLifeYears] = useState(10);
+  const [depreciationRate, setDepreciationRate] = useState<number | string>(15);
+  const [usefulLifeYears, setUsefulLifeYears] = useState<number | string>(10);
   const [location, setLocation] = useState('Bay-3 Heavy Machine Shop');
 
   const filtered = fixedAssets.filter(
@@ -27,17 +27,20 @@ export default function FixedAssetsPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const cost = Number(purchaseCost) || 0;
+    const rate = Number(depreciationRate) || 0;
+    const life = Number(usefulLifeYears) || 0;
     addFixedAsset({
       assetCode,
       assetName,
       category,
       purchaseDate: new Date().toISOString().split('T')[0],
-      purchaseCost,
+      purchaseCost: cost,
       depreciationMethod,
-      depreciationRate,
-      usefulLifeYears,
+      depreciationRate: rate,
+      usefulLifeYears: life,
       accumulatedDepreciation: 0,
-      currentBookValue: purchaseCost,
+      currentBookValue: cost,
       location,
       status: 'Active',
     });
@@ -159,8 +162,9 @@ export default function FixedAssetsPage() {
                   <input
                     type="number"
                     required
+                    placeholder="0"
                     value={purchaseCost}
-                    onChange={(e) => setPurchaseCost(Number(e.target.value))}
+                    onChange={(e) => setPurchaseCost(e.target.value === '' ? '' : Number(e.target.value))}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
                   />
                 </div>
@@ -183,8 +187,9 @@ export default function FixedAssetsPage() {
                   <label className="block text-[#70665F] mb-1">Depreciation Rate (%)</label>
                   <input
                     type="number"
+                    placeholder="0"
                     value={depreciationRate}
-                    onChange={(e) => setDepreciationRate(Number(e.target.value))}
+                    onChange={(e) => setDepreciationRate(e.target.value === '' ? '' : Number(e.target.value))}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
                   />
                 </div>

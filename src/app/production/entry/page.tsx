@@ -12,14 +12,14 @@ export default function ProductionEntryPage() {
   const [opName, setOpName] = useState('SAW Welding Main Longitudinal Shell');
   const [wcName, setWcName] = useState('Heavy Welding Bay (WC-WELD)');
   const [operator, setOperator] = useState('Mahesh Bariya');
-  const [produced, setProduced] = useState(1);
-  const [rejected, setRejected] = useState(0);
-  const [rework, setRework] = useState(0);
-  const [scrap, setScrap] = useState(0);
-  const [downtime, setDowntime] = useState(0);
+  const [produced, setProduced] = useState<number | string>(1);
+  const [rejected, setRejected] = useState<number | string>(0);
+  const [rework, setRework] = useState<number | string>(0);
+  const [scrap, setScrap] = useState<number | string>(0);
+  const [downtime, setDowntime] = useState<number | string>(0);
   const [downtimeReason, setDowntimeReason] = useState('');
 
-  const computedGood = Math.max(0, produced - rejected - scrap);
+  const computedGood = Math.max(0, (Number(produced) || 0) - (Number(rejected) || 0) - (Number(scrap) || 0));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,11 +38,11 @@ export default function ProductionEntryPage() {
       startTime: '08:00 AM',
       endTime: '05:00 PM',
       plannedQuantity: 1,
-      producedQuantity: produced,
-      rejectedQuantity: rejected,
-      reworkQuantity: rework,
-      scrapQuantity: scrap,
-      downtimeMinutes: downtime,
+      producedQuantity: Number(produced) || 0,
+      rejectedQuantity: Number(rejected) || 0,
+      reworkQuantity: Number(rework) || 0,
+      scrapQuantity: Number(scrap) || 0,
+      downtimeMinutes: Number(downtime) || 0,
       downtimeReason: downtimeReason || undefined,
       remarks: 'Recorded on shift completion.',
       createdBy: operator,
@@ -204,8 +204,9 @@ export default function ProductionEntryPage() {
                     <label className="block text-[10px] text-[#70665F] mb-1">Produced</label>
                     <input
                       type="number"
+                      placeholder="0"
                       value={produced}
-                      onChange={(e) => setProduced(Number(e.target.value))}
+                      onChange={(e) => setProduced(e.target.value === '' ? '' : Number(e.target.value))}
                       className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1 text-[#544B45] text-center font-bold"
                     />
                   </div>
@@ -213,8 +214,9 @@ export default function ProductionEntryPage() {
                     <label className="block text-[10px] text-rose-400 mb-1">Rejected</label>
                     <input
                       type="number"
+                      placeholder="0"
                       value={rejected}
-                      onChange={(e) => setRejected(Number(e.target.value))}
+                      onChange={(e) => setRejected(e.target.value === '' ? '' : Number(e.target.value))}
                       className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1 text-rose-300 text-center font-bold"
                     />
                   </div>
@@ -222,8 +224,9 @@ export default function ProductionEntryPage() {
                     <label className="block text-[10px] text-amber-400 mb-1">Scrap</label>
                     <input
                       type="number"
+                      placeholder="0"
                       value={scrap}
-                      onChange={(e) => setScrap(Number(e.target.value))}
+                      onChange={(e) => setScrap(e.target.value === '' ? '' : Number(e.target.value))}
                       className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1 text-amber-300 text-center font-bold"
                     />
                   </div>
@@ -241,8 +244,9 @@ export default function ProductionEntryPage() {
                   <label className="block font-semibold text-[#544B45] mb-1">Downtime Minutes</label>
                   <input
                     type="number"
+                    placeholder="0"
                     value={downtime}
-                    onChange={(e) => setDowntime(Number(e.target.value))}
+                    onChange={(e) => setDowntime(e.target.value === '' ? '' : Number(e.target.value))}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#544B45] focus:outline-none focus:border-lime-500"
                   />
                 </div>

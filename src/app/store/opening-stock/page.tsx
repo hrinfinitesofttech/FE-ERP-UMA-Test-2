@@ -14,10 +14,10 @@ export default function OpeningStockPage() {
   const [warehouseId, setWarehouseId] = useState(warehouses[0]?.id || 'WH-001');
   const [locationCode, setLocationCode] = useState('W1-ZA-R1-S1-B01');
   const [batchLot, setBatchLot] = useState('HEAT-98421');
-  const [quantity, setQuantity] = useState(1000);
-  const [rate, setRate] = useState(340);
-  const [reference, setReference] = useState('FY26-27 Opening Inventory Audit');
-  const [remarks, setRemarks] = useState('Verified physical stock count during annual opening balance audit');
+  const [quantity, setQuantity] = useState<number | string>('');
+  const [rate, setRate] = useState<number | string>('');
+  const [reference, setReference] = useState('');
+  const [remarks, setRemarks] = useState('');
 
   const selectedItem = itemMasters.find((i) => i.id === itemId) || itemMasters[0];
   const selectedWh = warehouses.find((w) => w.id === warehouseId) || warehouses[0];
@@ -33,6 +33,9 @@ export default function OpeningStockPage() {
     e.preventDefault();
     if (!selectedItem || !selectedWh) return;
 
+    const numQty = Number(quantity) || 0;
+    const numRate = Number(rate) || 0;
+
     addOpeningStock({
       entryDate: new Date().toISOString().split('T')[0],
       warehouseId: selectedWh.id,
@@ -42,10 +45,10 @@ export default function OpeningStockPage() {
       itemCode: selectedItem.itemCode,
       itemName: selectedItem.itemName,
       batchLot,
-      quantity,
+      quantity: numQty,
       uom: selectedItem.uom,
-      rate,
-      totalValue: quantity * rate,
+      rate: numRate,
+      totalValue: numQty * numRate,
       reference,
       remarks,
       createdBy: 'Hitesh Rawal (Store Head)',
@@ -215,18 +218,20 @@ export default function OpeningStockPage() {
                   <label className="block text-[#70665F] mb-1">Quantity ({selectedItem?.uom})</label>
                   <input
                     type="number"
+                    placeholder="0"
                     value={quantity}
-                    onChange={(e) => setQuantity(Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-bold"
+                    onChange={(e) => setQuantity(e.target.value === '' ? '' : Number(e.target.value))}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-bold font-mono"
                   />
                 </div>
                 <div>
                   <label className="block text-[#70665F] mb-1">Unit Purchase Rate (₹)</label>
                   <input
                     type="number"
+                    placeholder="0"
                     value={rate}
-                    onChange={(e) => setRate(Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-bold"
+                    onChange={(e) => setRate(e.target.value === '' ? '' : Number(e.target.value))}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-bold font-mono"
                   />
                 </div>
               </div>

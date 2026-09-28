@@ -13,8 +13,8 @@ export default function CustomerReceiptsPage() {
   const [invoiceNumber, setInvoiceNumber] = useState(salesInvoices[0]?.invoiceNumber || 'SINV-2026-0001');
   const [paymentMode, setPaymentMode] = useState<any>('NEFT');
   const [bankAccountId, setBankAccountId] = useState(bankAccounts[0]?.id || '');
-  const [amountPaid, setAmountPaid] = useState(1500000);
-  const [referenceNo, setReferenceNo] = useState('UTR99882211');
+  const [amountPaid, setAmountPaid] = useState<number | string>('');
+  const [referenceNo, setReferenceNo] = useState('');
 
   const filtered = customerReceipts.filter((r) => {
     const rNo = r.receiptNumber || '';
@@ -40,7 +40,7 @@ export default function CustomerReceiptsPage() {
       paymentMode,
       bankAccountId: bank.id,
       bankName: bank.bankName,
-      amountPaid,
+      amountPaid: Number(amountPaid) || 0,
       referenceNumber: referenceNo,
       status: 'Received',
       remarks: 'Advance against machinery supply order',
@@ -193,8 +193,9 @@ export default function CustomerReceiptsPage() {
                   <input
                     type="number"
                     required
+                    placeholder="0"
                     value={amountPaid}
-                    onChange={(e) => setAmountPaid(Number(e.target.value))}
+                    onChange={(e) => setAmountPaid(e.target.value === '' ? '' : Number(e.target.value))}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
                   />
                 </div>

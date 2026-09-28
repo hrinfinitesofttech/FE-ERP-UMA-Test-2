@@ -460,7 +460,7 @@ export default function PurchaseRequisitionPage() {
                           type="number"
                           placeholder="Quantity"
                           value={it.requiredQuantity}
-                          onChange={(e) => handleItemChange(idx, 'requiredQuantity', Number(e.target.value))}
+                          onChange={(e) => handleItemChange(idx, 'requiredQuantity', e.target.value === '' ? '' : Number(e.target.value))}
                           className="bg-white border border-[#EBE3DB] p-1.5 rounded text-[#211B17] font-mono"
                         />
                         <input
@@ -474,7 +474,7 @@ export default function PurchaseRequisitionPage() {
                           type="number"
                           placeholder="Est Unit Price"
                           value={it.estimatedUnitPrice}
-                          onChange={(e) => handleItemChange(idx, 'estimatedUnitPrice', Number(e.target.value))}
+                          onChange={(e) => handleItemChange(idx, 'estimatedUnitPrice', e.target.value === '' ? '' : Number(e.target.value))}
                           className="bg-white border border-[#EBE3DB] p-1.5 rounded text-[#211B17] font-mono"
                         />
                         <div className="flex items-center justify-between">

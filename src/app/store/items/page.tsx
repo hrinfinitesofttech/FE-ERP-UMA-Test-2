@@ -67,7 +67,12 @@ export default function ItemMasterPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.itemCode || !formData.itemName) return;
-    addItemMaster(formData);
+    addItemMaster({
+      ...formData,
+      minimumStock: Number(formData.minimumStock) || 0,
+      reorderLevel: Number(formData.reorderLevel) || 0,
+      standardCost: Number(formData.standardCost) || 0,
+    });
     setIsModalOpen(false);
     setFormData({
       itemCode: '',
@@ -329,27 +334,30 @@ export default function ItemMasterPage() {
                   <label className="block text-[#70665F] mb-1">Min Stock</label>
                   <input
                     type="number"
+                    placeholder="0"
                     value={formData.minimumStock}
-                    onChange={(e) => setFormData({ ...formData, minimumStock: Number(e.target.value) })}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
+                    onChange={(e) => setFormData({ ...formData, minimumStock: e.target.value === '' ? ('' as any) : Number(e.target.value) })}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600 font-mono"
                   />
                 </div>
                 <div>
                   <label className="block text-[#70665F] mb-1">Reorder Level</label>
                   <input
                     type="number"
+                    placeholder="0"
                     value={formData.reorderLevel}
-                    onChange={(e) => setFormData({ ...formData, reorderLevel: Number(e.target.value) })}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
+                    onChange={(e) => setFormData({ ...formData, reorderLevel: e.target.value === '' ? ('' as any) : Number(e.target.value) })}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600 font-mono"
                   />
                 </div>
                 <div>
                   <label className="block text-[#70665F] mb-1">Standard Cost (₹)</label>
                   <input
                     type="number"
+                    placeholder="0"
                     value={formData.standardCost}
-                    onChange={(e) => setFormData({ ...formData, standardCost: Number(e.target.value) })}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
+                    onChange={(e) => setFormData({ ...formData, standardCost: e.target.value === '' ? ('' as any) : Number(e.target.value) })}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600 font-mono"
                   />
                 </div>
                 <div>

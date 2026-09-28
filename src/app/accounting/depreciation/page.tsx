@@ -8,13 +8,13 @@ export default function DepreciationSchedulePage() {
   const { fixedAssets, depreciationEntries, runDepreciation } = useERP();
   const [selectedAssetId, setSelectedAssetId] = useState(fixedAssets[0]?.id || '');
   const [period, setPeriod] = useState('FY 2025-26 Q2');
-  const [depAmount, setDepAmount] = useState(162500);
+  const [depAmount, setDepAmount] = useState<number | string>('');
 
   const handleRunDepreciation = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedAssetId) return;
 
-    runDepreciation(selectedAssetId, period, depAmount);
+    runDepreciation(selectedAssetId, period, Number(depAmount) || 0);
   };
 
   return (
@@ -69,8 +69,9 @@ export default function DepreciationSchedulePage() {
               <label className="block text-[#70665F] mb-1">Depreciation Amount (₹)</label>
               <input
                 type="number"
+                placeholder="0"
                 value={depAmount}
-                onChange={(e) => setDepAmount(Number(e.target.value))}
+                onChange={(e) => setDepAmount(e.target.value === '' ? '' : Number(e.target.value))}
                 className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
               />
             </div>

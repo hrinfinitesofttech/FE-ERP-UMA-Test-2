@@ -10,9 +10,9 @@ export default function ExpensesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [category, setCategory] = useState('Power & Electricity');
-  const [amount, setAmount] = useState(145000);
+  const [amount, setAmount] = useState<number | string>('');
   const [claimedBy, setClaimedBy] = useState('Rajesh Patel');
-  const [description, setDescription] = useState('MGVCL Plant 1 Industrial Power Bill - Sep 2026');
+  const [description, setDescription] = useState('');
 
   const filtered = expenseEntries.filter(
     (e) =>
@@ -23,12 +23,13 @@ export default function ExpensesPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const numAmount = Number(amount) || 0;
     addExpenseEntry({
       expenseDate: new Date().toISOString().split('T')[0],
       category,
-      subTotal: amount,
-      taxAmount: (amount * 18) / 100,
-      grandTotal: amount * 1.18,
+      subTotal: numAmount,
+      taxAmount: (numAmount * 18) / 100,
+      grandTotal: numAmount * 1.18,
       claimedBy,
       paymentMode: 'Bank_Transfer',
       status: 'Pending_Approval',
@@ -149,8 +150,9 @@ export default function ExpensesPage() {
                 <input
                   type="number"
                   required
+                  placeholder="0"
                   value={amount}
-                  onChange={(e) => setAmount(Number(e.target.value))}
+                  onChange={(e) => setAmount(e.target.value === '' ? '' : Number(e.target.value))}
                   className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
                 />
               </div>

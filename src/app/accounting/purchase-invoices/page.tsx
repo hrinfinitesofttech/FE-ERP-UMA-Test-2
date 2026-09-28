@@ -15,10 +15,10 @@ export default function PurchaseInvoicesPage() {
   const [vendorInvoiceNumber, setVendorInvoiceNumber] = useState('');
   const [poNumber, setPoNumber] = useState(purchaseOrders[0]?.poNumber || '');
   const [grnNumber, setGrnNumber] = useState(goodsReceipts[0]?.grnNumber || '');
-  const [subTotal, setSubTotal] = useState(0);
-  const [taxRate, setTaxRate] = useState(18);
+  const [subTotal, setSubTotal] = useState<number | string>('');
+  const [taxRate, setTaxRate] = useState<number | string>(18);
   const [tdsSection, setTdsSection] = useState('194C');
-  const [tdsRate, setTdsRate] = useState(2);
+  const [tdsRate, setTdsRate] = useState<number | string>(2);
 
   const filteredInvoices = (purchaseInvoices || []).filter((inv) => {
     const matchesSearch =
@@ -33,13 +33,17 @@ export default function PurchaseInvoicesPage() {
     e.preventDefault();
     const supp = suppliers.find((s) => s.id === supplierId) || suppliers[0];
 
-    const taxAmount = (subTotal * taxRate) / 100;
+    const numSubTotal = Number(subTotal) || 0;
+    const numTaxRate = Number(taxRate) || 0;
+    const numTdsRate = Number(tdsRate) || 0;
+
+    const taxAmount = (numSubTotal * numTaxRate) / 100;
     const cgstAmount = taxAmount / 2;
     const sgstAmount = taxAmount / 2;
     const igstAmount = 0;
 
-    const tdsAmount = (subTotal * tdsRate) / 100;
-    const grandTotal = subTotal + taxAmount - tdsAmount;
+    const tdsAmount = (numSubTotal * numTdsRate) / 100;
+    const grandTotal = numSubTotal + taxAmount - tdsAmount;
 
     addPurchaseInvoice({
       invoiceDate: new Date().toISOString().split('T')[0],
@@ -59,18 +63,18 @@ export default function PurchaseInvoicesPage() {
           hsnSac: '7208',
           quantity: 25,
           unitPrice: 58000,
-          taxRate,
+          taxRate: numTaxRate,
           taxAmount,
-          totalAmount: subTotal + taxAmount,
+          totalAmount: numSubTotal + taxAmount,
         },
       ],
-      subTotal,
+      subTotal: numSubTotal,
       cgstAmount,
       sgstAmount,
       igstAmount,
       taxTotal: taxAmount,
       tdsSection,
-      tdsRate,
+      tdsRate: numTdsRate,
       tdsAmount,
       grandTotal,
       status: 'Pending_Posting',
@@ -79,6 +83,7 @@ export default function PurchaseInvoicesPage() {
     });
 
     setIsModalOpen(false);
+    setSubTotal('');
   };
 
   return (
@@ -235,8 +240,9 @@ export default function PurchaseInvoicesPage() {
                   <label className="block text-[#70665F] mb-1">Taxable Amount (₹)</label>
                   <input
                     type="number"
+                    placeholder="0"
                     value={subTotal}
-                    onChange={(e) => setSubTotal(Number(e.target.value))}
+                    onChange={(e) => setSubTotal(e.target.value === '' ? '' : Number(e.target.value))}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
                   />
                 </div>
@@ -244,8 +250,9 @@ export default function PurchaseInvoicesPage() {
                   <label className="block text-[#70665F] mb-1">GST Rate (%)</label>
                   <input
                     type="number"
+                    placeholder="18"
                     value={taxRate}
-                    onChange={(e) => setTaxRate(Number(e.target.value))}
+                    onChange={(e) => setTaxRate(e.target.value === '' ? '' : Number(e.target.value))}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
                   />
                 </div>
@@ -268,8 +275,9 @@ export default function PurchaseInvoicesPage() {
                   <label className="block text-[#70665F] mb-1">TDS Rate (%)</label>
                   <input
                     type="number"
+                    placeholder="2"
                     value={tdsRate}
-                    onChange={(e) => setTdsRate(Number(e.target.value))}
+                    onChange={(e) => setTdsRate(e.target.value === '' ? '' : Number(e.target.value))}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
                   />
                 </div>

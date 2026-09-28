@@ -12,8 +12,8 @@ export default function DebitNotesPage() {
   const [supplierId, setSupplierId] = useState(suppliers[0]?.id || '');
   const [invoiceNumber, setInvoiceNumber] = useState(purchaseInvoices[0]?.invoiceNumber || 'PINV-2026-0001');
   const [reason, setReason] = useState('Material Rejection / Return');
-  const [taxableAmount, setTaxableAmount] = useState(120000);
-  const [taxAmount, setTaxAmount] = useState(21600);
+  const [taxableAmount, setTaxableAmount] = useState<number | string>('');
+  const [taxAmount, setTaxAmount] = useState<number | string>('');
 
   const filtered = debitNotes.filter(
     (d) =>
@@ -25,6 +25,8 @@ export default function DebitNotesPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const supp = suppliers.find((s) => s.id === supplierId) || suppliers[0];
+    const numTaxable = Number(taxableAmount) || 0;
+    const numTax = Number(taxAmount) || 0;
 
     addDebitNote({
       debitNoteDate: new Date().toISOString().split('T')[0],
@@ -32,9 +34,9 @@ export default function DebitNotesPage() {
       supplierName: supp.supplierName || (supp as any).name || 'Unknown Supplier',
       originalInvoiceNumber: invoiceNumber,
       reason,
-      taxableAmount,
-      taxAmount,
-      totalAmount: taxableAmount + taxAmount,
+      taxableAmount: numTaxable,
+      taxAmount: numTax,
+      totalAmount: numTaxable + numTax,
       status: 'Approved',
       createdBy: 'Rajesh Patel',
     });
@@ -156,8 +158,9 @@ export default function DebitNotesPage() {
                   <label className="block text-[#70665F] mb-1">Taxable Amount (₹)</label>
                   <input
                     type="number"
+                    placeholder="0"
                     value={taxableAmount}
-                    onChange={(e) => setTaxableAmount(Number(e.target.value))}
+                    onChange={(e) => setTaxableAmount(e.target.value === '' ? '' : Number(e.target.value))}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
                   />
                 </div>
@@ -165,8 +168,9 @@ export default function DebitNotesPage() {
                   <label className="block text-[#70665F] mb-1">GST Tax (₹)</label>
                   <input
                     type="number"
+                    placeholder="0"
                     value={taxAmount}
-                    onChange={(e) => setTaxAmount(Number(e.target.value))}
+                    onChange={(e) => setTaxAmount(e.target.value === '' ? '' : Number(e.target.value))}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
                   />
                 </div>

@@ -14,7 +14,7 @@ export default function EnquiriesPage() {
   const [showModal, setShowModal] = useState(false);
   const [customerId, setCustomerId] = useState(customers[0]?.id || '');
   const [machineProduct, setMachineProduct] = useState('');
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState<number | string>(1);
   const [specification, setSpecification] = useState('');
   const [expectedDelivery, setExpectedDelivery] = useState('2026-11-15');
   const [assignedPersonId, setAssignedPersonId] = useState(employees[0]?.id || '');
@@ -29,7 +29,7 @@ export default function EnquiriesPage() {
       customerName: cust?.companyName || 'Valued Customer',
       requirement: specification,
       machineProduct,
-      quantity,
+      quantity: Number(quantity) || 1,
       specification,
       expectedDelivery,
       assignedPersonId,
@@ -168,8 +168,9 @@ export default function EnquiriesPage() {
                   <input
                     type="number"
                     min={1}
+                    placeholder="1"
                     value={quantity}
-                    onChange={(e) => setQuantity(Number(e.target.value))}
+                    onChange={(e) => setQuantity(e.target.value === '' ? '' : Number(e.target.value))}
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-mono"
                   />
                 </div>

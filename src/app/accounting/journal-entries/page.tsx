@@ -9,14 +9,14 @@ export default function JournalEntriesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [narration, setNarration] = useState('Adjustment JV for Month End Accruals');
-  const [lines, setLines] = useState([
-    { accountId: chartOfAccounts[0]?.id || 'ACC-001', debitAmount: 25000, creditAmount: 0 },
-    { accountId: chartOfAccounts[1]?.id || 'ACC-002', debitAmount: 0, creditAmount: 25000 },
+  const [narration, setNarration] = useState('');
+  const [lines, setLines] = useState<{ accountId: string; debitAmount: number | string; creditAmount: number | string }[]>([
+    { accountId: chartOfAccounts[0]?.id || 'ACC-001', debitAmount: '', creditAmount: '' },
+    { accountId: chartOfAccounts[1]?.id || 'ACC-002', debitAmount: '', creditAmount: '' },
   ]);
 
-  const totalDebit = lines.reduce((acc, l) => acc + l.debitAmount, 0);
-  const totalCredit = lines.reduce((acc, l) => acc + l.creditAmount, 0);
+  const totalDebit = lines.reduce((acc, l) => acc + (Number(l.debitAmount) || 0), 0);
+  const totalCredit = lines.reduce((acc, l) => acc + (Number(l.creditAmount) || 0), 0);
   const isBalanced = totalDebit > 0 && totalDebit === totalCredit;
 
   const filtered = journalEntries.filter(
@@ -27,7 +27,7 @@ export default function JournalEntriesPage() {
   );
 
   const handleAddLine = () => {
-    setLines((prev) => [...prev, { accountId: chartOfAccounts[0]?.id || 'ACC-001', debitAmount: 0, creditAmount: 0 }]);
+    setLines((prev) => [...prev, { accountId: chartOfAccounts[0]?.id || 'ACC-001', debitAmount: '', creditAmount: '' }]);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -41,8 +41,8 @@ export default function JournalEntriesPage() {
         accountId: acc.id,
         accountCode: acc.accountCode,
         accountName: acc.accountName,
-        debitAmount: l.debitAmount,
-        creditAmount: l.creditAmount,
+        debitAmount: Number(l.debitAmount) || 0,
+        creditAmount: Number(l.creditAmount) || 0,
       };
     });
 
@@ -186,10 +186,12 @@ export default function JournalEntriesPage() {
                       <label className="block text-[#70665F] text-[9px]">Debit (Dr) ₹</label>
                       <input
                         type="number"
+                        placeholder="0"
                         value={l.debitAmount}
                         onChange={(e) => {
-                          const val = Number(e.target.value);
-                          setLines((prev) => prev.map((line, i) => (i === idx ? { ...line, debitAmount: val, creditAmount: val > 0 ? 0 : line.creditAmount } : line)));
+                          const val = e.target.value === '' ? '' : Number(e.target.value);
+                          const numVal = Number(val) || 0;
+                          setLines((prev) => prev.map((line, i) => (i === idx ? { ...line, debitAmount: val, creditAmount: numVal > 0 ? '' : line.creditAmount } : line)));
                         }}
                         className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1 text-[#3E2723] text-xs font-mono"
                       />
@@ -199,10 +201,12 @@ export default function JournalEntriesPage() {
                       <label className="block text-[#70665F] text-[9px]">Credit (Cr) ₹</label>
                       <input
                         type="number"
+                        placeholder="0"
                         value={l.creditAmount}
                         onChange={(e) => {
-                          const val = Number(e.target.value);
-                          setLines((prev) => prev.map((line, i) => (i === idx ? { ...line, creditAmount: val, debitAmount: val > 0 ? 0 : line.debitAmount } : line)));
+                          const val = e.target.value === '' ? '' : Number(e.target.value);
+                          const numVal = Number(val) || 0;
+                          setLines((prev) => prev.map((line, i) => (i === idx ? { ...line, creditAmount: val, debitAmount: numVal > 0 ? '' : line.debitAmount } : line)));
                         }}
                         className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1 text-[#3E2723] text-xs font-mono"
                       />
