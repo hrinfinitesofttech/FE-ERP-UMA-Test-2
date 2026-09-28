@@ -407,6 +407,18 @@ export const api = {
     payments: () => request<any[]>('/supplier-payments/'),
     journalEntries: () => request<any[]>('/journal-entries/'),
     jobCostings: () => request<any[]>('/job-costings/'),
+    creditNotes: {
+      list: () => request<any[]>('/credit-notes/'),
+      create: (data: any) => request<any>('/credit-notes/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/credit-notes/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/credit-notes/${id}/`, { method: 'DELETE' }),
+    },
+    debitNotes: {
+      list: () => request<any[]>('/debit-notes/'),
+      create: (data: any) => request<any>('/debit-notes/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/debit-notes/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/debit-notes/${id}/`, { method: 'DELETE' }),
+    },
   },
 
   // 360° Traceability & Central Approvals

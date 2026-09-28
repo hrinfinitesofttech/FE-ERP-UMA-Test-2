@@ -704,8 +704,12 @@ interface ERPContextType {
   postPurchaseInvoice: (id: string) => void;
   creditNotes: CreditNote[];
   addCreditNote: (cn: Omit<CreditNote, 'id' | 'creditNoteNumber'>) => void;
+  updateCreditNote: (id: string, cn: Partial<CreditNote>) => void;
+  deleteCreditNote: (id: string) => void;
   debitNotes: DebitNote[];
   addDebitNote: (dn: Omit<DebitNote, 'id' | 'debitNoteNumber'>) => void;
+  updateDebitNote: (id: string, dn: Partial<DebitNote>) => void;
+  deleteDebitNote: (id: string) => void;
   customerReceipts: CustomerReceipt[];
   addCustomerReceipt: (rec: Omit<CustomerReceipt, 'id' | 'receiptNumber'>) => void;
   supplierPayments: SupplierPayment[];
@@ -3998,15 +4002,77 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addCreditNote = (cn: Omit<CreditNote, 'id' | 'creditNoteNumber'>) => {
     const creditNoteNumber = `CN-2026-${String(creditNotes.length + 1).padStart(3, '0')}`;
     const newCN: CreditNote = { ...cn, id: creditNoteNumber, creditNoteNumber };
-    setCreditNotes((prev) => [newCN, ...prev]);
+    setCreditNotes((prev) => {
+      const updated = [newCN, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_creditNotes', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Accounting', 'Credit Notes', newCN.id, `Issued Credit Note ${newCN.creditNoteNumber} for ₹${newCN.totalAmount?.toLocaleString()}`);
+    // Sync to PythonAnywhere backend
+    api.accounting.creditNotes.create(newCN).catch((err) => console.warn('Failed to sync credit note to backend:', err));
+  };
+
+  const updateCreditNote = (id: string, cn: Partial<CreditNote>) => {
+    setCreditNotes((prev) => {
+      const updated = prev.map((c) => (c.id === id ? { ...c, ...cn } : c));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_creditNotes', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    api.accounting.creditNotes.update(id, cn).catch((err) => console.warn('Failed to update credit note on backend:', err));
+  };
+
+  const deleteCreditNote = (id: string) => {
+    setCreditNotes((prev) => {
+      const updated = prev.filter((c) => c.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_creditNotes', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'Accounting', 'Credit Notes', id, `Deleted Credit Note ${id}`);
+    api.accounting.creditNotes.delete(id).catch((err) => console.warn('Failed to delete credit note on backend:', err));
   };
 
   const addDebitNote = (dn: Omit<DebitNote, 'id' | 'debitNoteNumber'>) => {
     const debitNoteNumber = `DN-2026-${String(debitNotes.length + 1).padStart(3, '0')}`;
     const newDN: DebitNote = { ...dn, id: debitNoteNumber, debitNoteNumber };
-    setDebitNotes((prev) => [newDN, ...prev]);
+    setDebitNotes((prev) => {
+      const updated = [newDN, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_debitNotes', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Accounting', 'Debit Notes', newDN.id, `Issued Debit Note ${newDN.debitNoteNumber} for ₹${newDN.totalAmount?.toLocaleString()}`);
+    // Sync to PythonAnywhere backend
+    api.accounting.debitNotes.create(newDN).catch((err) => console.warn('Failed to sync debit note to backend:', err));
+  };
+
+  const updateDebitNote = (id: string, dn: Partial<DebitNote>) => {
+    setDebitNotes((prev) => {
+      const updated = prev.map((d) => (d.id === id ? { ...d, ...dn } : d));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_debitNotes', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    api.accounting.debitNotes.update(id, dn).catch((err) => console.warn('Failed to update debit note on backend:', err));
+  };
+
+  const deleteDebitNote = (id: string) => {
+    setDebitNotes((prev) => {
+      const updated = prev.filter((d) => d.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_debitNotes', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'Accounting', 'Debit Notes', id, `Deleted Debit Note ${id}`);
+    api.accounting.debitNotes.delete(id).catch((err) => console.warn('Failed to delete debit note on backend:', err));
   };
 
   const addCustomerReceipt = (rec: Omit<CustomerReceipt, 'id' | 'receiptNumber'>) => {
@@ -5006,8 +5072,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         postPurchaseInvoice,
         creditNotes,
         addCreditNote,
+        updateCreditNote,
+        deleteCreditNote,
         debitNotes,
         addDebitNote,
+        updateDebitNote,
+        deleteDebitNote,
         customerReceipts,
         addCustomerReceipt,
         supplierPayments,
