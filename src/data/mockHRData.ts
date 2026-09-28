@@ -34,7 +34,51 @@ import {
 
 export const mockDesignations: Designation[] = [];
 export const mockEmployeeDocuments: EmployeeDocumentItem[] = [];
-export const mockEmployeeOnboardings: EmployeeOnboardingItem[] = [];
+export const mockEmployeeOnboardings: EmployeeOnboardingItem[] = [
+  {
+    id: 'ONB-2026-01',
+    candidateName: 'Pankaj Mehta',
+    email: 'pankaj.mehta@example.com',
+    mobile: '9825112233',
+    joiningDate: '2026-10-01',
+    department: 'Production',
+    designation: 'Senior CNC Machine Operator',
+    reportingManager: 'Rajesh Patel',
+    shift: 'General Day Shift (09:00 - 18:00)',
+    salaryStructureId: 'SAL-STR-01',
+    offeredCTC: 480000,
+    onboardingChecklist: [
+      { task: 'Appointment Letter Signed', completed: true, assignedTo: 'HR Manager' },
+      { task: 'Aadhaar & PAN Verification', completed: true, assignedTo: 'HR Admin' },
+      { task: 'Bank Account Passbook Uploaded', completed: true, assignedTo: 'Employee' },
+      { task: 'PPE & Shop Floor Safety Induction', completed: false, assignedTo: 'Safety Officer' },
+      { task: 'ERP Account & Role Assigned', completed: true, assignedTo: 'IT Admin' },
+    ],
+    status: 'In Progress',
+  },
+  {
+    id: 'ONB-2026-02',
+    candidateName: 'Rohan Deshmukh',
+    email: 'rohan.deshmukh@example.com',
+    mobile: '9898001122',
+    joiningDate: '2026-10-05',
+    department: 'Designer & Engineering',
+    designation: 'SolidWorks 3D Modeling Engineer',
+    reportingManager: 'Vikram Solanki',
+    shift: 'General Office Shift (09:00 - 18:00)',
+    salaryStructureId: 'SAL-STR-02',
+    offeredCTC: 650000,
+    onboardingChecklist: [
+      { task: 'Appointment Letter Signed', completed: true, assignedTo: 'HR Manager' },
+      { task: 'Aadhaar & PAN Verification', completed: true, assignedTo: 'HR Admin' },
+      { task: 'Bank Account Passbook Uploaded', completed: false, assignedTo: 'Employee' },
+      { task: 'PPE & Shop Floor Safety Induction', completed: false, assignedTo: 'Safety Officer' },
+      { task: 'ERP Account & Role Assigned', completed: false, assignedTo: 'IT Admin' },
+    ],
+    status: 'In Progress',
+  },
+];
+
 export const mockEmployeeTransfers: EmployeeTransferItem[] = [];
 export const mockEmployeePromotions: EmployeePromotionItem[] = [];
 export const mockEmployeeExits: EmployeeExitItem[] = [];

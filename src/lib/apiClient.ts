@@ -379,6 +379,31 @@ export const api = {
           body: JSON.stringify({ monthYear, financialYear }),
         }),
     },
+    onboardings: {
+      list: () => request<any[]>('/employee-onboardings/'),
+      create: (data: any) => request<any>('/employee-onboardings/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/employee-onboardings/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/employee-onboardings/${id}/`, { method: 'DELETE' }),
+      complete: (id: string) => request<any>(`/employee-onboardings/${id}/complete_onboarding/`, { method: 'POST' }),
+    },
+    transfers: {
+      list: () => request<any[]>('/employee-transfers/'),
+      create: (data: any) => request<any>('/employee-transfers/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/employee-transfers/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/employee-transfers/${id}/`, { method: 'DELETE' }),
+    },
+    promotions: {
+      list: () => request<any[]>('/employee-promotions/'),
+      create: (data: any) => request<any>('/employee-promotions/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/employee-promotions/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/employee-promotions/${id}/`, { method: 'DELETE' }),
+    },
+    exits: {
+      list: () => request<any[]>('/employee-exits/'),
+      create: (data: any) => request<any>('/employee-exits/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/employee-exits/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/employee-exits/${id}/`, { method: 'DELETE' }),
+    },
   },
 
   // Accounting & Finance

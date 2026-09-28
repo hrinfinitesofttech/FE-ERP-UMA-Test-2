@@ -793,6 +793,8 @@ interface ERPContextType {
   employeeOnboardings: EmployeeOnboardingItem[];
   addEmployeeOnboarding: (onb: Omit<EmployeeOnboardingItem, 'id'>) => void;
   updateEmployeeOnboardingStatus: (id: string, status: EmployeeOnboardingItem['status']) => void;
+  deleteEmployeeOnboarding: (id: string) => void;
+  toggleOnboardingChecklistTask: (onboardingId: string, taskIndex: number) => void;
   employeeTransfers: EmployeeTransferItem[];
   addEmployeeTransfer: (trn: Omit<EmployeeTransferItem, 'id'>) => void;
   employeePromotions: EmployeePromotionItem[];
@@ -1231,6 +1233,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ['departments', setDepartments],
         ['roles', setRoles],
         ['employeeDocuments', setEmployeeDocuments],
+        ['employeeOnboardings', setEmployeeOnboardings],
         ['financialYears', setFinancialYears],
         ['chartOfAccounts', setChartOfAccounts],
         ['salesInvoices', setSalesInvoices],
@@ -1319,6 +1322,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           api.hr.attendance(),
           api.hr.leaves.list(),
           api.hr.payroll.list(),
+          api.hr.onboardings.list(),
           api.accounting.financialYears(),
           api.accounting.chartOfAccounts(),
           api.accounting.salesInvoices.list(),
@@ -1440,9 +1444,10 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         applyLive<AttendanceRecord>(val(results[44]), setAttendanceRecords, 'attendance');
         applyLive<LeaveRequest>(val(results[45]), setLeaveRequests, 'leaves');
         applyLive<PayrollRecord>(val(results[46]), setPayrollRecords, 'payroll');
-        applyLive<FinancialYear>(val(results[47]), setFinancialYears, 'financialYears');
-        applyLive<ChartOfAccount>(val(results[48]), setChartOfAccounts, 'chartOfAccounts');
-        const siRes = val<any[]>(results[49]);
+        applyLive<EmployeeOnboardingItem>(val(results[47]), setEmployeeOnboardings, 'employeeOnboardings');
+        applyLive<FinancialYear>(val(results[48]), setFinancialYears, 'financialYears');
+        applyLive<ChartOfAccount>(val(results[49]), setChartOfAccounts, 'chartOfAccounts');
+        const siRes = val<any[]>(results[50]);
         if (siRes && Array.isArray(siRes) && siRes.length > 0) {
           const normalizedSI: SalesInvoice[] = siRes.map((inv: any) => {
             const grandTotal = Number(inv.grandTotal ?? inv.grand_total ?? 0);
@@ -1483,7 +1488,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        const piRes = val<any[]>(results[50]);
+        const piRes = val<any[]>(results[51]);
         if (piRes && Array.isArray(piRes) && piRes.length > 0) {
           const normalizedPI: PurchaseInvoice[] = piRes.map((inv: any) => ({
             ...inv,
@@ -1503,17 +1508,17 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             try { localStorage.setItem('UMA_ERP_purchaseInvoices', JSON.stringify(normalizedPI)); } catch (_) {}
           }
         }
-        applyLive<CustomerReceipt>(val(results[51]), setCustomerReceipts, 'customerReceipts');
-        applyLive<SupplierPayment>(val(results[52]), setSupplierPayments, 'supplierPayments');
-        applyLive<JournalEntry>(val(results[53]), setJournalEntries, 'journalEntries');
-        applyLive<CreditNote>(val(results[54]), setCreditNotes, 'creditNotes');
-        applyLive<DebitNote>(val(results[55]), setDebitNotes, 'debitNotes');
-        applyLive<ContraEntry>(val(results[56]), setContraEntries, 'contraEntries');
-        applyLive<BankAccount>(val(results[57]), setBankAccounts, 'bankAccounts');
-        applyLive<ApprovalItem>(val(results[58]), setCentralApprovals, 'approvals');
-        applyLive<ERPAlertItem>(val(results[59]), setCentralAlerts, 'alerts');
+        applyLive<CustomerReceipt>(val(results[52]), setCustomerReceipts, 'customerReceipts');
+        applyLive<SupplierPayment>(val(results[53]), setSupplierPayments, 'supplierPayments');
+        applyLive<JournalEntry>(val(results[54]), setJournalEntries, 'journalEntries');
+        applyLive<CreditNote>(val(results[55]), setCreditNotes, 'creditNotes');
+        applyLive<DebitNote>(val(results[56]), setDebitNotes, 'debitNotes');
+        applyLive<ContraEntry>(val(results[57]), setContraEntries, 'contraEntries');
+        applyLive<BankAccount>(val(results[58]), setBankAccounts, 'bankAccounts');
+        applyLive<ApprovalItem>(val(results[59]), setCentralApprovals, 'approvals');
+        applyLive<ERPAlertItem>(val(results[60]), setCentralAlerts, 'alerts');
 
-        const meRes = val<any>(results[60]);
+        const meRes = val<any>(results[61]);
         if (meRes && meRes.username) {
           setCurrentUser((prev) => ({
             ...prev,
@@ -4523,13 +4528,74 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
   const addEmployeeOnboarding = (onb: Omit<EmployeeOnboardingItem, 'id'>) => {
     const newId = `ONB-2026-0${employeeOnboardings.length + 1}`;
-    const newOnb = { ...onb, id: newId };
-    setEmployeeOnboardings((prev) => [newOnb, ...prev]);
+    const newOnb: EmployeeOnboardingItem = { ...onb, id: newId };
+    setEmployeeOnboardings((prev) => {
+      const updated = [newOnb, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employeeOnboardings', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'hr', 'employee-onboarding', newId, `Created onboarding for ${onb.candidateName}`);
+    api.hr.onboardings.create(newOnb).then((res) => {
+      if (res && res.id) {
+        setEmployeeOnboardings((prev) => prev.map((o) => (o.id === newId ? { ...o, ...res } : o)));
+      }
+    }).catch((err) => console.warn('Failed to sync onboarding to backend:', err));
   };
+
   const updateEmployeeOnboardingStatus = (id: string, status: EmployeeOnboardingItem['status']) => {
-    setEmployeeOnboardings((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
+    setEmployeeOnboardings((prev) => {
+      const updated = prev.map((o) => (o.id === id ? { ...o, status } : o));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employeeOnboardings', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'hr', 'employee-onboarding', id, `Updated onboarding status to ${status}`);
+    if (status === 'Completed') {
+      api.hr.onboardings.complete(id).catch((err) => console.warn('Failed to complete onboarding on backend:', err));
+    } else {
+      api.hr.onboardings.update(id, { status }).catch((err) => console.warn('Failed to update onboarding status on backend:', err));
+    }
+  };
+
+  const deleteEmployeeOnboarding = (id: string) => {
+    setEmployeeOnboardings((prev) => {
+      const updated = prev.filter((o) => o.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employeeOnboardings', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'hr', 'employee-onboarding', id, `Deleted onboarding ${id}`);
+    api.hr.onboardings.delete(id).catch((err) => console.warn('Failed to delete onboarding on backend:', err));
+  };
+
+  const toggleOnboardingChecklistTask = (onboardingId: string, taskIndex: number) => {
+    setEmployeeOnboardings((prev) => {
+      const updated = prev.map((o) => {
+        if (o.id !== onboardingId) return o;
+        const newChecklist = [...o.onboardingChecklist];
+        if (newChecklist[taskIndex]) {
+          newChecklist[taskIndex] = {
+            ...newChecklist[taskIndex],
+            completed: !newChecklist[taskIndex].completed,
+          };
+        }
+        return { ...o, onboardingChecklist: newChecklist };
+      });
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employeeOnboardings', JSON.stringify(updated)); } catch (_) {}
+      }
+      const target = updated.find((o) => o.id === onboardingId);
+      if (target) {
+        api.hr.onboardings.update(onboardingId, { onboardingChecklist: target.onboardingChecklist }).catch((err) =>
+          console.warn('Failed to update onboarding checklist:', err)
+        );
+      }
+      return updated;
+    });
   };
 
   const addEmployeeTransfer = (trn: Omit<EmployeeTransferItem, 'id'>) => {
@@ -5230,6 +5296,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         employeeOnboardings,
         addEmployeeOnboarding,
         updateEmployeeOnboardingStatus,
+        deleteEmployeeOnboarding,
+        toggleOnboardingChecklistTask,
         employeeTransfers,
         addEmployeeTransfer,
         employeePromotions,
