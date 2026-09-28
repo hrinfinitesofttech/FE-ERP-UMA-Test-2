@@ -194,12 +194,15 @@ export interface ShiftRosterItem {
 export interface HolidayItem {
   id: string;
   holidayName: string;
-  date: string;
-  holidayType: 'Public Holiday' | 'Company Holiday' | 'Festival' | 'Optional Holiday';
-  location: string;
+  date?: string;
+  holidayDate?: string;
+  holidayType: 'Public Holiday' | 'Company Holiday' | 'Festival' | 'Optional Holiday' | string;
+  location?: string;
   applicableDepartments: string[];
   isOptional: boolean;
-  status: 'Active' | 'Inactive';
+  financialYear?: string;
+  description?: string;
+  status?: 'Active' | 'Inactive' | string;
 }
 
 export interface AttendanceRecord {
