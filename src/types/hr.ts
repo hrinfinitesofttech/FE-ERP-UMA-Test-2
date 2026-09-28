@@ -328,7 +328,7 @@ export interface OvertimeRecord {
   overtimeRateMultiplier: number; // e.g. 1.5 or 2.0
   overtimeAmount: number;
   approvedBy: string;
-  status: 'Approved' | 'Pending' | 'Processed in Payroll';
+  status: 'Approved' | 'Pending' | 'Rejected' | 'Processed in Payroll';
 }
 
 export interface EarlyCheckoutRequest {

@@ -63,7 +63,7 @@ export default function HolidayCalendarPage() {
   // Open Edit Modal
   const handleOpenEditModal = (hol: HolidayItem) => {
     setEditingHoliday(hol);
-    setHolidayName(hol.holidayName || hol.name || '');
+    setHolidayName(hol.holidayName || (hol as any).name || '');
     setHolidayDate(hol.holidayDate || hol.date || new Date().toISOString().split('T')[0]);
     setHolidayType(hol.holidayType || 'Public Holiday');
     setFinancialYear(hol.financialYear || 'FY 2026-27');
@@ -441,7 +441,7 @@ export default function HolidayCalendarPage() {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-bold text-gray-900 leading-snug">{hol.holidayName || hol.name}</h3>
+                      <h3 className="text-base font-bold text-gray-900 leading-snug">{hol.holidayName || (hol as any).name}</h3>
                       <div className="text-xs font-semibold text-amber-700 mt-1">
                         {dateObj.weekday}
                       </div>
@@ -496,7 +496,7 @@ export default function HolidayCalendarPage() {
                     <tr key={hol.id} className="hover:bg-amber-50/20">
                       <td className="py-3 px-4 font-mono font-bold text-gray-900">{dateStr}</td>
                       <td className="py-3 px-4 text-gray-600">{dateObj.weekday}</td>
-                      <td className="py-3 px-4 font-bold text-gray-900">{hol.holidayName || hol.name}</td>
+                      <td className="py-3 px-4 font-bold text-gray-900">{hol.holidayName || (hol as any).name}</td>
                       <td className="py-3 px-4">
                         <span
                           className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${

@@ -394,7 +394,6 @@ import {
   INITIAL_CONTRA_ENTRIES,
   INITIAL_EXPENSE_ENTRIES,
   INITIAL_BANK_ACCOUNTS,
-  INITIAL_BANK_TRANSACTIONS,
   INITIAL_FIXED_ASSETS,
   INITIAL_JOB_COSTINGS,
   INITIAL_RECEIVABLE_AGING,
@@ -846,7 +845,9 @@ interface ERPContextType {
   updateAttendanceRegularizationStatus: (id: string, status: LeaveApprovalStatus) => void;
   overtimeRecords: OvertimeRecord[];
   addOvertimeRecord: (ot: Omit<OvertimeRecord, 'id' | 'overtimeNo' | 'status'>) => void;
-  updateOvertimeStatus: (id: string, status: OvertimeRecord['status']) => void;
+  updateOvertimeStatus: (id: string, status: OvertimeRecord['status'], approvedBy?: string) => void;
+  updateOvertimeRecord: (id: string, ot: Partial<OvertimeRecord>) => void;
+  deleteOvertimeRecord: (id: string) => void;
   earlyCheckoutRequests: EarlyCheckoutRequest[];
   addEarlyCheckoutRequest: (req: Omit<EarlyCheckoutRequest, 'id' | 'requestNumber' | 'status'>) => void;
   updateEarlyCheckoutStatus: (id: string, status: LeaveApprovalStatus) => void;
@@ -1192,7 +1193,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const [contraEntries, setContraEntries] = useState<ContraEntry[]>(INITIAL_CONTRA_ENTRIES);
   const [expenseEntries, setExpenseEntries] = useState<ExpenseEntry[]>(INITIAL_EXPENSE_ENTRIES);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>(INITIAL_BANK_ACCOUNTS);
-  const [bankTransactions, setBankTransactions] = useState<BankTransaction[]>(INITIAL_BANK_TRANSACTIONS);
+  const [bankTransactions, setBankTransactions] = useState<BankTransaction[]>([]);
   const [bankReconciliations, setBankReconciliations] = useState<BankReconciliation[]>([]);
   const [fixedAssets, setFixedAssets] = useState<FixedAsset[]>(INITIAL_FIXED_ASSETS);
   const [depreciationEntries, setDepreciationEntries] = useState<DepreciationEntry[]>([]);
@@ -1283,6 +1284,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ['wfhRequests', setWFHRequests],
         ['fixedAssets', setFixedAssets],
         ['missedPunchRequests', setMissedPunchRequests],
+        ['overtimeRecords', setOvertimeRecords],
       ];
 
       let hasCached = false;
@@ -1375,6 +1377,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           api.accounting.expenses.list(),
           api.accounting.fixedAssets.list(),
           api.hr.holidays.list(),
+          api.hr.overtimeRecords.list(),
           api.integration.approvals.list(),
           api.integration.alerts.list(),
           api.auth.me(),
@@ -1559,10 +1562,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         applyLive<ExpenseEntry>(val(results[59]), setExpenseEntries, 'expenseEntries');
         applyLive<FixedAsset>(val(results[60]), setFixedAssets, 'fixedAssets');
         applyLive<HolidayItem>(val(results[61]), setHolidays, 'holidays');
-        applyLive<ApprovalItem>(val(results[62]), setCentralApprovals, 'approvals');
-        applyLive<ERPAlertItem>(val(results[63]), setCentralAlerts, 'alerts');
+        applyLive<OvertimeRecord>(val(results[62]), setOvertimeRecords, 'overtimeRecords');
+        applyLive<ApprovalItem>(val(results[63]), setCentralApprovals, 'approvals');
+        applyLive<ERPAlertItem>(val(results[64]), setCentralAlerts, 'alerts');
 
-        const meRes = val<any>(results[64]);
+        const meRes = val<any>(results[65]);
         if (meRes && meRes.username) {
           setCurrentUser((prev) => ({
             ...prev,
@@ -5054,13 +5058,65 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addOvertimeRecord = (ot: Omit<OvertimeRecord, 'id' | 'overtimeNo' | 'status'>) => {
     const otNo = `OT-2026-0${overtimeRecords.length + 1}`;
     const newOt: OvertimeRecord = { ...ot, id: otNo, overtimeNo: otNo, status: 'Pending' };
-    setOvertimeRecords((prev) => [newOt, ...prev]);
+    setOvertimeRecords((prev) => {
+      const updated = [newOt, ...prev];
+      try { localStorage.setItem('UMA_ERP_overtimeRecords', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
     logAction('CREATE', 'hr', 'overtime', otNo, `Logged overtime ${ot.overtimeHours} hrs for ${ot.employeeName}`);
-    api.post('/overtime-records/', newOt).catch((err) => console.warn('Failed to add overtime record:', err));
+    api.hr.overtimeRecords.create(newOt).catch((err) => console.warn('Failed to add overtime record:', err));
   };
-  const updateOvertimeStatus = (id: string, status: OvertimeRecord['status']) => {
-    setOvertimeRecords((prev) => prev.map((o) => (o.id === id || o.overtimeNo === id ? { ...o, status } : o)));
+
+  const updateOvertimeStatus = (id: string, status: OvertimeRecord['status'], approvedBy?: string) => {
+    setOvertimeRecords((prev) => {
+      const updated = prev.map((o) =>
+        o.id === id || o.overtimeNo === id
+          ? {
+              ...o,
+              status,
+              approvedBy: approvedBy || (status === 'Approved' ? 'HR Manager' : status === 'Rejected' ? 'HR Manager' : o.approvedBy),
+            }
+          : o
+      );
+      try { localStorage.setItem('UMA_ERP_overtimeRecords', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
     logAction('UPDATE', 'hr', 'overtime', id, `Updated overtime status to ${status}`);
+    if (status === 'Approved') {
+      api.hr.overtimeRecords.approve(id).catch(() => {
+        api.hr.overtimeRecords.update(id, { status, approvedBy: approvedBy || 'HR Manager' }).catch((err) =>
+          console.warn('Failed to approve overtime:', err)
+        );
+      });
+    } else if (status === 'Rejected') {
+      api.hr.overtimeRecords.reject(id).catch(() => {
+        api.hr.overtimeRecords.update(id, { status, approvedBy: approvedBy || 'HR Manager' }).catch((err) =>
+          console.warn('Failed to reject overtime:', err)
+        );
+      });
+    } else {
+      api.hr.overtimeRecords.update(id, { status }).catch((err) => console.warn('Failed to update overtime status:', err));
+    }
+  };
+
+  const updateOvertimeRecord = (id: string, ot: Partial<OvertimeRecord>) => {
+    setOvertimeRecords((prev) => {
+      const updated = prev.map((o) => (o.id === id || o.overtimeNo === id ? { ...o, ...ot } : o));
+      try { localStorage.setItem('UMA_ERP_overtimeRecords', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
+    logAction('UPDATE', 'hr', 'overtime', id, `Updated overtime details for ${id}`);
+    api.hr.overtimeRecords.update(id, ot).catch((err) => console.warn('Failed to update overtime record:', err));
+  };
+
+  const deleteOvertimeRecord = (id: string) => {
+    setOvertimeRecords((prev) => {
+      const updated = prev.filter((o) => o.id !== id && o.overtimeNo !== id);
+      try { localStorage.setItem('UMA_ERP_overtimeRecords', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
+    logAction('DELETE', 'hr', 'overtime', id, `Deleted overtime record ${id}`);
+    api.hr.overtimeRecords.delete(id).catch((err) => console.warn('Failed to delete overtime record:', err));
   };
 
   const addEarlyCheckoutRequest = (req: Omit<EarlyCheckoutRequest, 'id' | 'requestNumber' | 'status'>) => {
@@ -5258,7 +5314,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       value={{
         currentUser,
         setCurrentUser,
-        availableEmployees: employees,
+        availableEmployees: employees && employees.length > 0 ? employees : INITIAL_EMPLOYEES,
         isAuthenticated,
         login,
         logout,
@@ -5644,6 +5700,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         overtimeRecords,
         addOvertimeRecord,
         updateOvertimeStatus,
+        updateOvertimeRecord,
+        deleteOvertimeRecord,
         earlyCheckoutRequests,
         addEarlyCheckoutRequest,
         updateEarlyCheckoutStatus,
