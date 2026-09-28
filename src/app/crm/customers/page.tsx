@@ -7,12 +7,13 @@ import { useERP } from '../../../context/ERPContext';
 import { DataTable, Column } from '../../../components/data/DataTable';
 import { Customer } from '../../../types/crm';
 import { formatCurrency } from '../../../lib/utils';
-import { Building, Plus, ArrowUpRight, Mail, Phone } from 'lucide-react';
+import { Building, Plus, ArrowUpRight, Mail, Phone, Edit2, Trash2, X } from 'lucide-react';
 
 export default function CustomersListPage() {
   const router = useRouter();
-  const { customers, addCustomer } = useERP();
+  const { customers, addCustomer, updateCustomer, deleteCustomer } = useERP();
   const [showModal, setShowModal] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 
   const [companyName, setCompanyName] = useState('');
   const [industry, setIndustry] = useState('Speciality Chemicals');
@@ -54,7 +55,21 @@ export default function CustomersListPage() {
     setContactPerson('');
     setMobile('');
     setEmail('');
+    setGstin('');
     setShowModal(false);
+  };
+
+  const handleUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCustomer) return;
+    updateCustomer(editingCustomer.id, editingCustomer);
+    setEditingCustomer(null);
+  };
+
+  const handleDelete = (id: string, name: string) => {
+    if (confirm(`Are you sure you want to delete customer account "${name}"?`)) {
+      deleteCustomer(id);
+    }
   };
 
   const columns: Column<Customer>[] = [
@@ -68,7 +83,7 @@ export default function CustomersListPage() {
       cell: (c) => (
         <div>
           <span className="font-bold text-slate-900 dark:text-[#211B17] block">{c.companyName}</span>
-          <span className="text-[10px] text-[#70665F] font-mono">GST: {c.gstin}</span>
+          <span className="text-[10px] text-[#70665F] font-mono">GST: {c.gstin || 'N/A'}</span>
         </div>
       ),
     },
@@ -81,7 +96,7 @@ export default function CustomersListPage() {
       cell: (c) => (
         <div>
           <span className="font-semibold text-slate-800 dark:text-[#544B45] block">{c.contactPerson}</span>
-          <span className="text-[11px] text-[#70665F]">{c.mobile}</span>
+          <span className="text-[11px] text-[#70665F]">{c.mobile || c.email}</span>
         </div>
       ),
     },
@@ -104,13 +119,30 @@ export default function CustomersListPage() {
     {
       header: 'Actions',
       cell: (c) => (
-        <Link
-          href={`/crm/customers/${c.id}`}
-          className="px-2.5 py-1 bg-crm-brand- hover:bg-crm-brand- text-crm-brand-800 rounded font-bold text-[11px] flex items-center gap-1"
-        >
-          <span>360° Profile</span>
-          <ArrowUpRight className="w-3 h-3" />
-        </Link>
+        <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+          <Link
+            href={`/crm/customers/${c.id}`}
+            className="px-2 py-1 bg-crm-brand-50 hover:bg-crm-brand-100 text-crm-brand-800 rounded font-bold text-[11px] flex items-center gap-0.5"
+            title="360° Profile"
+          >
+            <span>Profile</span>
+            <ArrowUpRight className="w-3 h-3" />
+          </Link>
+          <button
+            onClick={() => setEditingCustomer(c)}
+            className="p-1 text-amber-600 hover:bg-amber-50 rounded"
+            title="Edit Customer"
+          >
+            <Edit2 className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => handleDelete(c.id, c.companyName)}
+            className="p-1 text-rose-500 hover:bg-rose-50 rounded"
+            title="Delete Customer"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
       ),
     },
   ];
@@ -144,10 +176,16 @@ export default function CustomersListPage() {
         onRowClick={(c) => router.push(`/crm/customers/${c.id}`)}
       />
 
+      {/* ADD MODAL */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FAF7F2] backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl shadow-xl w-full max-w-md p-6 text-xs space-y-4">
-            <h3 className="text-base font-bold text-slate-900 dark:text-[#211B17]">Add New Customer Account</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-slate-900 dark:text-[#211B17]">Add New Customer Account</h3>
+              <button onClick={() => setShowModal(false)} className="text-[#70665F] hover:text-[#211B17]">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
             <form onSubmit={handleCreate} className="space-y-3">
               <div>
                 <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Company Name *</label>
@@ -220,6 +258,27 @@ export default function CustomersListPage() {
                 />
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">City</label>
+                  <input
+                    type="text"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Credit Limit (₹)</label>
+                  <input
+                    type="number"
+                    value={creditLimit}
+                    onChange={(e) => setCreditLimit(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-mono"
+                  />
+                </div>
+              </div>
+
               <div className="flex justify-end gap-2 pt-3">
                 <button
                   type="button"
@@ -233,6 +292,127 @@ export default function CustomersListPage() {
                   className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-lg font-bold"
                 >
                   Save Customer
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT MODAL */}
+      {editingCustomer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl shadow-xl w-full max-w-md p-6 text-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-slate-900 dark:text-[#211B17] flex items-center gap-2">
+                <Edit2 className="w-4 h-4 text-amber-500" />
+                Edit Customer Account: {editingCustomer.customerCode}
+              </h3>
+              <button onClick={() => setEditingCustomer(null)} className="text-[#70665F] hover:text-[#211B17]">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <form onSubmit={handleUpdate} className="space-y-3">
+              <div>
+                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Company Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={editingCustomer.companyName}
+                  onChange={(e) => setEditingCustomer({ ...editingCustomer, companyName: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-bold"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">GSTIN Number</label>
+                  <input
+                    type="text"
+                    value={editingCustomer.gstin || ''}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, gstin: e.target.value?.toUpperCase() })}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-mono uppercase font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Industry</label>
+                  <input
+                    type="text"
+                    value={editingCustomer.industry || ''}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, industry: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Contact Person *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingCustomer.contactPerson || ''}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, contactPerson: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Mobile *</label>
+                  <input
+                    type="tel"
+                    required
+                    value={editingCustomer.mobile || ''}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, mobile: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Email *</label>
+                <input
+                  type="email"
+                  required
+                  value={editingCustomer.email || ''}
+                  onChange={(e) => setEditingCustomer({ ...editingCustomer, email: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">City</label>
+                  <input
+                    type="text"
+                    value={editingCustomer.city || ''}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, city: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Credit Limit (₹)</label>
+                  <input
+                    type="number"
+                    value={editingCustomer.creditLimit || 0}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, creditLimit: Number(e.target.value) })}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setEditingCustomer(null)}
+                  className="px-4 py-2 border rounded-lg font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold"
+                >
+                  Update Customer
                 </button>
               </div>
             </form>

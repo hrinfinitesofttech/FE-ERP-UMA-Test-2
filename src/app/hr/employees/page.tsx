@@ -22,15 +22,18 @@ import {
   CheckCircle2,
   AlertCircle,
   X,
+  Edit2,
+  Trash2,
 } from 'lucide-react';
 import { Employee } from '../../../types/crm';
 
 export default function EmployeeMasterPage() {
-  const { availableEmployees, currentUser, departments, designations, salaryStructures, addEmployee, roles } = useERP();
+  const { availableEmployees, currentUser, departments, designations, salaryStructures, addEmployee, updateEmployee, deleteEmployee, roles } = useERP();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('ALL');
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [activeTab, setActiveTab] = useState<'Overview' | 'Employment' | 'Attendance' | 'Leave' | 'Payroll' | 'Documents' | 'Performance' | 'Training' | 'Advances' | 'Expenses' | 'Activity'>('Overview');
   const [showAddModal, setShowAddModal] = useState(false);
   const [addSaving, setAddSaving] = useState(false);
@@ -212,15 +215,37 @@ export default function EmployeeMasterPage() {
                       </span>
                     </td>
                     <td className="p-4 text-right">
-                      <button
-                        onClick={() => {
-                          setSelectedEmployee(emp);
-                          setActiveTab('Overview');
-                        }}
-                        className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-slate-600 text-[#3E2723] text-xs font-semibold rounded-md border border-[#EBE3DB] transition flex items-center gap-1.5 ml-auto"
-                      >
-                        <Eye className="w-3.5 h-3.5 text-pink-400" /> View Profile
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => {
+                            setSelectedEmployee(emp);
+                            setActiveTab('Overview');
+                          }}
+                          className="px-2.5 py-1.5 bg-[#FAF7F2] hover:bg-slate-200 text-[#3E2723] text-xs font-semibold rounded-md border border-[#EBE3DB] transition flex items-center gap-1"
+                          title="View Profile"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-pink-500" /> View
+                        </button>
+                        <button
+                          onClick={() => setEditingEmployee(emp)}
+                          className="p-1.5 bg-[#FAF7F2] hover:bg-amber-100 text-amber-700 text-xs rounded-md border border-[#EBE3DB] transition"
+                          title="Edit Employee"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Are you sure you want to delete employee "${empName}"?`)) {
+                              deleteEmployee(emp.id);
+                              if (selectedEmployee?.id === emp.id) setSelectedEmployee(null);
+                            }
+                          }}
+                          className="p-1.5 bg-[#FAF7F2] hover:bg-rose-100 text-rose-600 text-xs rounded-md border border-[#EBE3DB] transition"
+                          title="Delete Employee"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -625,6 +650,150 @@ export default function EmployeeMasterPage() {
                   className="px-5 py-2 rounded-lg bg-pink-600 hover:bg-pink-500 text-white font-bold text-sm shadow-md transition disabled:opacity-60"
                 >
                   {addSaving ? 'Saving…' : 'Create Employee Profile'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Employee Modal */}
+      {editingEmployee && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-[#EBE3DB]">
+              <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+                <Edit2 className="w-5 h-5 text-amber-500" />
+                Edit Employee: {getEmpName(editingEmployee)} ({editingEmployee.id})
+              </h2>
+              <button onClick={() => setEditingEmployee(null)} className="text-[#70665F] hover:text-[#211B17]">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                updateEmployee(editingEmployee.id, {
+                  ...editingEmployee,
+                  name: `${editingEmployee.firstName || ''} ${editingEmployee.lastName || ''}`.trim() || editingEmployee.name,
+                });
+                if (selectedEmployee?.id === editingEmployee.id) {
+                  setSelectedEmployee({ ...editingEmployee });
+                }
+                setEditingEmployee(null);
+                alert('Employee updated successfully!');
+              }}
+              className="space-y-4 text-xs"
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-semibold text-[#544B45] mb-1">First Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingEmployee.firstName || ''}
+                    onChange={(e) => setEditingEmployee({ ...editingEmployee, firstName: e.target.value })}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17]"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#544B45] mb-1">Last Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingEmployee.lastName || ''}
+                    onChange={(e) => setEditingEmployee({ ...editingEmployee, lastName: e.target.value })}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-semibold text-[#544B45] mb-1">Email *</label>
+                  <input
+                    type="email"
+                    required
+                    value={editingEmployee.email || ''}
+                    onChange={(e) => setEditingEmployee({ ...editingEmployee, email: e.target.value })}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17]"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#544B45] mb-1">Mobile *</label>
+                  <input
+                    type="tel"
+                    required
+                    value={editingEmployee.mobile || editingEmployee.phone || ''}
+                    onChange={(e) => setEditingEmployee({ ...editingEmployee, mobile: e.target.value, phone: e.target.value })}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-semibold text-[#544B45] mb-1">Department</label>
+                  <select
+                    value={editingEmployee.department || editingEmployee.departmentName || ''}
+                    onChange={(e) => setEditingEmployee({ ...editingEmployee, department: e.target.value, departmentName: e.target.value })}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17]"
+                  >
+                    {departments.map((d) => (
+                      <option key={d.id} value={d.departmentName}>{d.departmentName}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#544B45] mb-1">Designation / Role</label>
+                  <input
+                    type="text"
+                    value={editingEmployee.designation || editingEmployee.role || editingEmployee.roleName || ''}
+                    onChange={(e) => setEditingEmployee({ ...editingEmployee, designation: e.target.value, role: e.target.value, roleName: e.target.value })}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-semibold text-[#544B45] mb-1">Status</label>
+                  <select
+                    value={editingEmployee.status || 'Active'}
+                    onChange={(e) => setEditingEmployee({ ...editingEmployee, status: e.target.value as any })}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17]"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                    <option value="On Leave">On Leave</option>
+                    <option value="Terminated">Terminated</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#544B45] mb-1">Joining Date</label>
+                  <input
+                    type="date"
+                    value={editingEmployee.joiningDate || editingEmployee.joinedDate || ''}
+                    onChange={(e) => setEditingEmployee({ ...editingEmployee, joiningDate: e.target.value, joinedDate: e.target.value })}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-[#EBE3DB]">
+                <button
+                  type="button"
+                  onClick={() => setEditingEmployee(null)}
+                  className="px-4 py-2 rounded-lg bg-[#FAF7F2] border border-[#EBE3DB] text-[#544B45]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold"
+                >
+                  Update Profile
                 </button>
               </div>
             </form>

@@ -165,7 +165,7 @@ export default function SupplierPaymentsPage() {
                 >
                   {suppliers.map((s) => (
                     <option key={s.id} value={s.id}>
-                      {s.supplierName}
+                      {s.supplierName || s.name || (s as any).companyName || 'Supplier'} ({s.vendorCode || s.supplierCode || s.id})
                     </option>
                   ))}
                 </select>

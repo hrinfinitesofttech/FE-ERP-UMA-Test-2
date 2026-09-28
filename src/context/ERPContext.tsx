@@ -448,6 +448,7 @@ interface ERPContextType {
   employees: Employee[];
   addEmployee: (emp: Omit<Employee, 'id'>) => void;
   updateEmployee: (id: string, emp: Partial<Employee>) => void;
+  deleteEmployee: (id: string) => void;
 
   // CRM Entities
   leads: Lead[];
@@ -459,6 +460,7 @@ interface ERPContextType {
   customers: Customer[];
   addCustomer: (custData: Omit<Customer, 'id' | 'customerCode' | 'createdDate'>) => Customer;
   updateCustomer: (id: string, custData: Partial<Customer>) => void;
+  deleteCustomer: (id: string) => void;
 
   contacts: Contact[];
   addContact: (contact: Omit<Contact, 'id'>) => void;
@@ -579,6 +581,7 @@ interface ERPContextType {
   suppliers: Supplier[];
   addSupplier: (supplier: Omit<Supplier, 'id'>) => void;
   updateSupplier: (id: string, updates: Partial<Supplier>) => void;
+  deleteSupplier: (id: string) => void;
   supplierContacts: SupplierContact[];
   addSupplierContact: (contact: Omit<SupplierContact, 'id'>) => void;
   materialRequirements: MaterialRequirement[];
@@ -607,6 +610,7 @@ interface ERPContextType {
   itemMasters: ItemMaster[];
   addItemMaster: (item: Omit<ItemMaster, 'id' | 'createdAt'>) => void;
   updateItemMaster: (id: string, updates: Partial<ItemMaster>) => void;
+  deleteItemMaster: (id: string) => void;
   itemCategories: ItemCategory[];
   addItemCategory: (cat: Omit<ItemCategory, 'id'>) => void;
   uoms: UOMMaster[];
@@ -1348,7 +1352,30 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         applyLive<Drawing2D>(val(results[16]), setDrawings2D, 'drawings2D');
         applyLive<Design3DModel>(val(results[17]), setDesigns3D, 'designs3D');
         applyLive<BOMHeader>(val(results[18]), setBoms, 'boms');
-        applyLive<Supplier>(val(results[19]), setSuppliers, 'suppliers');
+        const rawSuppliers = val<any[]>(results[19]);
+        if (rawSuppliers && Array.isArray(rawSuppliers) && rawSuppliers.length > 0) {
+          const normalizedSuppliers: Supplier[] = rawSuppliers.map((s: any) => {
+            const sName = s.name || s.supplierName || s.supplier_name || (s as any).companyName || 'Supplier';
+            const vCode = s.vendorCode || s.vendor_code || s.supplierCode || s.supplier_code || s.id;
+            return {
+              ...s,
+              id: String(s.id),
+              name: sName,
+              supplierName: sName,
+              vendorCode: vCode,
+              supplierCode: vCode,
+              contactPerson: s.contactPerson || s.contact_person || '',
+              phone: s.phone || s.mobile || '',
+              email: s.email || '',
+              gstin: s.gstin || '',
+              paymentTerms: s.paymentTerms || s.payment_terms || '30 Days Credit',
+            };
+          });
+          setSuppliers(normalizedSuppliers);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_suppliers', JSON.stringify(normalizedSuppliers)); } catch (_) {}
+          }
+        }
         applyLive<PurchaseRequisition>(val(results[20]), setPurchaseRequisitions, 'purchaseRequisitions');
         applyLive<PurchaseOrder>(val(results[21]), setPurchaseOrders, 'purchaseOrders');
         applyLive<ItemMaster>(val(results[22]), setItemMasters, 'itemMasters');
@@ -1960,6 +1987,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     api.employees.update(id, emp).catch((err) => console.warn('Failed to update employee:', err));
   };
 
+  const deleteEmployee = (id: string) => {
+    setEmployees((prev) => prev.filter((e) => e.id !== id));
+    logAction('DELETE', 'User Management', 'Delete Employee', id, `Deleted employee ${id}`);
+    api.employees.delete(id).catch((err) => console.warn('Failed to delete employee:', err));
+  };
+
   // CRM: Leads
   const addLead = (leadData: Omit<Lead, 'id' | 'leadNo' | 'createdDate'>): Lead => {
     const leadNo = getNextDocNumber('lead');
@@ -2113,6 +2146,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     setCustomers((prev) => prev.map((c) => (c.id === id ? { ...c, ...custData } : c)));
     logAction('UPDATE', 'CRM', 'Customers', id, `Updated Customer ${id}`);
     api.crm.customers.update(id, custData).catch((err) => console.warn('Failed to update customer on backend:', err));
+  };
+
+  const deleteCustomer = (id: string) => {
+    setCustomers((prev) => prev.filter((c) => c.id !== id));
+    logAction('DELETE', 'CRM', 'Customers', id, `Deleted Customer ${id}`);
+    api.crm.customers.delete(id).catch((err) => console.warn('Failed to delete customer on backend:', err));
   };
 
   const addContact = (contact: Omit<Contact, 'id'>) => {
@@ -3157,6 +3196,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     api.purchase.suppliers.update(id, updates).catch((err) => console.warn('Failed to update supplier on backend:', err));
   };
 
+  const deleteSupplier = (id: string) => {
+    setSuppliers((prev) => prev.filter((s) => s.id !== id));
+    logAction('DELETE', 'Purchase', 'Supplier Master', id, `Deleted supplier ${id}`);
+    api.purchase.suppliers.delete(id).catch((err) => console.warn('Failed to delete supplier on backend:', err));
+  };
+
   const addSupplierContact = (data: Omit<SupplierContact, 'id'>) => {
     const id = `SCON-${Date.now().toString().slice(-5)}`;
     const newCon: SupplierContact = { ...data, id };
@@ -3372,6 +3417,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     logAction('UPDATE', 'Store', 'Item Master', id, `Updated item ${id}`);
     // Sync to PythonAnywhere backend
     api.store.items.update(id, updates).catch((err) => console.warn('Failed to update item on backend:', err));
+  };
+
+  const deleteItemMaster = (id: string) => {
+    setItemMasters((prev) => prev.filter((item) => item.id !== id));
+    logAction('DELETE', 'Store', 'Item Master', id, `Deleted Item Master ${id}`);
+    api.store.items.delete(id).catch((err) => console.warn('Failed to delete item master on backend:', err));
   };
 
   const addItemCategory = (data: Omit<ItemCategory, 'id'>) => {
@@ -4726,6 +4777,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         employees,
         addEmployee,
         updateEmployee,
+        deleteEmployee,
         leads,
         addLead,
         updateLead,
@@ -4734,6 +4786,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         customers,
         addCustomer,
         updateCustomer,
+        deleteCustomer,
         contacts,
         addContact,
         enquiries,
@@ -4827,6 +4880,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         suppliers,
         addSupplier,
         updateSupplier,
+        deleteSupplier,
         supplierContacts,
         addSupplierContact,
         materialRequirements,
@@ -4853,6 +4907,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         itemMasters,
         addItemMaster,
         updateItemMaster,
+        deleteItemMaster,
         itemCategories,
         addItemCategory,
         uoms,

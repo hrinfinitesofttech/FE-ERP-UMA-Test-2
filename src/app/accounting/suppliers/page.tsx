@@ -8,7 +8,7 @@ import Link from 'next/link';
 export default function SupplierLedgersPage() {
   const { suppliers, purchaseInvoices, supplierPayments } = useERP();
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterMode, setFilterMode] = useState<'with_activity' | 'all'>('with_activity');
+  const [filterMode, setFilterMode] = useState<'with_activity' | 'all'>('all');
 
   const supplierStats = suppliers.map((supp) => {
     const suppInvoices = purchaseInvoices.filter((i) => i.supplierId === supp.id || i.supplierName === supp.supplierName);

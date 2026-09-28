@@ -17,11 +17,13 @@ import {
   ShieldCheck,
   FileText,
   X,
+  Edit2,
+  Trash2,
 } from 'lucide-react';
 import { Supplier } from '../../../types/purchase';
 
 export default function SupplierMasterPage() {
-  const { suppliers, addSupplier } = useERP();
+  const { suppliers, addSupplier, updateSupplier, deleteSupplier } = useERP();
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -29,6 +31,7 @@ export default function SupplierMasterPage() {
   // Modals
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
 
   // New Supplier Form State
   const [newVendorCode, setNewVendorCode] = useState(`VEN-2026-${Math.floor(100 + Math.random() * 900)}`);
@@ -43,16 +46,16 @@ export default function SupplierMasterPage() {
   const [newState, setNewState] = useState('Gujarat');
   const [newPaymentTerms, setNewPaymentTerms] = useState('30 Days Credit');
 
-  const filteredSuppliers = suppliers.filter(s => {
+  const filteredSuppliers = suppliers.filter((s) => {
     if (categoryFilter !== 'ALL' && s.category !== categoryFilter) return false;
     if (statusFilter !== 'ALL' && s.status !== statusFilter) return false;
-    if (searchQuery) {
-      const q = searchQuery?.toLowerCase();
+    const q = (searchQuery || '').trim().toLowerCase();
+    if (q) {
       return (
-        s.name?.toLowerCase().includes(q) ||
-        s.vendorCode?.toLowerCase().includes(q) ||
-        s.gstin?.toLowerCase().includes(q) ||
-        s.city?.toLowerCase().includes(q)
+        (s.name || s.supplierName || '')?.toLowerCase().includes(q) ||
+        (s.vendorCode || s.supplierCode || s.id || '')?.toLowerCase().includes(q) ||
+        (s.gstin || '')?.toLowerCase().includes(q) ||
+        (s.city || '')?.toLowerCase().includes(q)
       );
     }
     return true;
@@ -64,6 +67,7 @@ export default function SupplierMasterPage() {
       id: `SUP-${Date.now()}`,
       vendorCode: newVendorCode,
       name: newName,
+      supplierName: newName,
       category: newCategory,
       gstin: newGstin,
       panNumber: newPan,
@@ -95,6 +99,31 @@ export default function SupplierMasterPage() {
     setShowAddModal(false);
     setNewName('');
     setNewGstin('');
+    setNewContactPerson('');
+    setNewPhone('');
+    setNewEmail('');
+  };
+
+  const handleUpdateSupplier = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSupplier) return;
+    updateSupplier(editingSupplier.id, {
+      ...editingSupplier,
+      supplierName: editingSupplier.name || editingSupplier.supplierName,
+      updatedAt: new Date().toISOString(),
+    });
+    if (selectedSupplier && selectedSupplier.id === editingSupplier.id) {
+      setSelectedSupplier({ ...editingSupplier });
+    }
+    setEditingSupplier(null);
+  };
+
+  const handleDelete = (id: string, name: string) => {
+    if (confirm(`Are you sure you want to delete supplier "${name}"? This action cannot be undone.`)) {
+      deleteSupplier(id);
+      if (selectedSupplier?.id === id) setSelectedSupplier(null);
+      if (editingSupplier?.id === id) setEditingSupplier(null);
+    }
   };
 
   return (
@@ -114,8 +143,11 @@ export default function SupplierMasterPage() {
         </div>
 
         <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-crm-brand-700/30 transition"
+          onClick={() => {
+            setNewVendorCode(`VEN-2026-${Math.floor(100 + Math.random() * 900)}`);
+            setShowAddModal(true);
+          }}
+          className="flex items-center gap-2 px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-crm-brand-700/30 transition cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Add Supplier Master
@@ -148,6 +180,7 @@ export default function SupplierMasterPage() {
               <option value="Bought-out Items">Bought-out Items</option>
               <option value="Standard Components">Standard Components</option>
               <option value="Subcontractor">Subcontractor</option>
+              <option value="Services">Services</option>
             </select>
           </div>
 
@@ -173,68 +206,99 @@ export default function SupplierMasterPage() {
 
       {/* Grid of Supplier Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredSuppliers.map(supplier => (
-          <div
-            key={supplier.id}
-            className="bg-white border border-[#EBE3DB] hover:border-crm-brand-600/50 rounded-2xl p-5 space-y-3 transition flex flex-col justify-between shadow-lg"
-          >
-            <div>
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <span className="font-mono text-[10px] text-indigo-400 font-bold bg-crm-brand-600/10 px-2 py-0.5 rounded border border-crm-brand-600/20">
-                    {supplier.vendorCode}
+        {filteredSuppliers.map((supplier) => {
+          const suppName = supplier.name || supplier.supplierName || 'Unnamed Supplier';
+          const suppCode = supplier.vendorCode || supplier.supplierCode || supplier.id;
+          return (
+            <div
+              key={supplier.id}
+              className="bg-white border border-[#EBE3DB] hover:border-crm-brand-600/50 rounded-2xl p-5 space-y-3 transition flex flex-col justify-between shadow-lg"
+            >
+              <div>
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="font-mono text-[10px] text-indigo-400 font-bold bg-crm-brand-600/10 px-2 py-0.5 rounded border border-crm-brand-600/20">
+                      {suppCode}
+                    </span>
+                    <h3 className="text-sm font-bold text-[#211B17] mt-1.5 leading-snug">{suppName}</h3>
+                  </div>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                      supplier.status === 'Approved'
+                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                        : supplier.status === 'Pending Verification'
+                        ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                        : 'bg-red-500/20 text-red-400 border-red-500/30'
+                    }`}
+                  >
+                    {supplier.status || 'Approved'}
                   </span>
-                  <h3 className="text-sm font-bold text-[#211B17] mt-1.5 leading-snug">{supplier.name}</h3>
                 </div>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
-                  supplier.status === 'Approved' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
-                  supplier.status === 'Pending Verification' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-red-500/20 text-red-400 border-red-500/30'
-                }`}>
-                  {supplier.status}
-                </span>
+
+                <div className="mt-3 space-y-1.5 text-xs text-[#544B45]">
+                  <div className="flex items-center gap-2">
+                    <Building className="w-3.5 h-3.5 text-[#70665F]" />
+                    <span className="text-[#70665F]">Category:</span>
+                    <span className="font-semibold text-[#211B17]">{supplier.category || 'Raw Material'}</span>
+                  </div>
+                  {supplier.gstin && (
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#70665F]" />
+                      <span className="text-[#70665F]">GSTIN:</span>
+                      <span className="font-mono text-emerald-400">{supplier.gstin}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-3.5 h-3.5 text-[#70665F]" />
+                    <span className="text-[#70665F]">Location:</span>
+                    <span className="text-[#544B45]">
+                      {supplier.city || 'Gujarat'}, {supplier.state || 'India'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-3.5 h-3.5 text-[#70665F]" />
+                    <span className="text-[#70665F]">Contact:</span>
+                    <span className="text-[#544B45]">
+                      {supplier.contactPerson || 'Sales Desk'} ({supplier.phone || supplier.email || 'N/A'})
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              <div className="mt-3 space-y-1.5 text-xs text-[#544B45]">
-                <div className="flex items-center gap-2">
-                  <Building className="w-3.5 h-3.5 text-[#70665F]" />
-                  <span className="text-[#70665F]">Category:</span>
-                  <span className="font-semibold text-[#211B17]">{supplier.category}</span>
+              <div className="pt-3 border-t border-[#EBE3DB] flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                  <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                  <span className="font-mono text-xs font-bold text-amber-400">{supplier.performanceRating || 90}%</span>
+                  <span className="text-[10px] text-[#70665F]">Rating</span>
                 </div>
+
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#70665F]" />
-                  <span className="text-[#70665F]">GSTIN:</span>
-                  <span className="font-mono text-emerald-400">{supplier.gstin}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-3.5 h-3.5 text-[#70665F]" />
-                  <span className="text-[#70665F]">Location:</span>
-                  <span className="text-[#544B45]">{supplier.city}, {supplier.state}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="w-3.5 h-3.5 text-[#70665F]" />
-                  <span className="text-[#70665F]">Contact:</span>
-                  <span className="text-[#544B45]">{supplier.contactPerson} ({supplier.phone})</span>
+                  <button
+                    onClick={() => setSelectedSupplier(supplier)}
+                    className="p-1.5 text-indigo-500 hover:bg-indigo-50 rounded-lg transition"
+                    title="View Profile"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setEditingSupplier({ ...supplier, name: suppName })}
+                    className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition"
+                    title="Edit Supplier"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(supplier.id, suppName)}
+                    className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition"
+                    title="Delete Supplier"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
             </div>
-
-            <div className="pt-3 border-t border-[#EBE3DB] flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                <span className="font-mono text-xs font-bold text-amber-400">{supplier.performanceRating}%</span>
-                <span className="text-[10px] text-[#70665F]">Rating</span>
-              </div>
-
-              <button
-                onClick={() => setSelectedSupplier(supplier)}
-                className="flex items-center gap-1 text-xs font-bold text-indigo-400 hover:text-indigo-300 hover:underline"
-              >
-                <Eye className="w-3.5 h-3.5" />
-                View Profile
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* VIEW SUPPLIER MODAL */}
@@ -244,9 +308,11 @@ export default function SupplierMasterPage() {
             <div className="p-5 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between">
               <div>
                 <span className="font-mono text-[10px] bg-crm-brand-600/20 text-indigo-400 px-2 py-0.5 rounded font-bold">
-                  {selectedSupplier.vendorCode}
+                  {selectedSupplier.vendorCode || selectedSupplier.id}
                 </span>
-                <h2 className="text-lg font-black text-[#211B17] mt-1">{selectedSupplier.name}</h2>
+                <h2 className="text-lg font-black text-[#211B17] mt-1">
+                  {selectedSupplier.name || selectedSupplier.supplierName}
+                </h2>
               </div>
               <button onClick={() => setSelectedSupplier(null)} className="text-[#70665F] hover:text-[#211B17]">
                 <X className="w-5 h-5" />
@@ -257,40 +323,223 @@ export default function SupplierMasterPage() {
               <div className="grid grid-cols-2 gap-4 p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
                 <div>
                   <div className="text-[#70665F]">GSTIN Number:</div>
-                  <div className="font-mono font-bold text-emerald-400">{selectedSupplier.gstin}</div>
+                  <div className="font-mono font-bold text-emerald-400">{selectedSupplier.gstin || 'N/A'}</div>
                 </div>
                 <div>
                   <div className="text-[#70665F]">PAN Number:</div>
-                  <div className="font-mono font-bold text-[#211B17]">{selectedSupplier.panNumber}</div>
+                  <div className="font-mono font-bold text-[#211B17]">{selectedSupplier.panNumber || 'N/A'}</div>
                 </div>
                 <div>
                   <div className="text-[#70665F]">Payment Terms:</div>
-                  <div className="font-semibold text-[#211B17]">{selectedSupplier.paymentTerms}</div>
+                  <div className="font-semibold text-[#211B17]">{selectedSupplier.paymentTerms || '30 Days'}</div>
                 </div>
                 <div>
                   <div className="text-[#70665F]">MSME Registered:</div>
-                  <div className="font-semibold text-crm-brand-500">{selectedSupplier.msmeRegistered ? `Yes (${selectedSupplier.msmeNumber})` : 'No'}</div>
+                  <div className="font-semibold text-crm-brand-500">
+                    {selectedSupplier.msmeRegistered ? `Yes (${selectedSupplier.msmeNumber || 'Verified'})` : 'No'}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[#70665F]">Contact Person:</div>
+                  <div className="font-semibold text-[#211B17]">
+                    {selectedSupplier.contactPerson || 'N/A'} ({selectedSupplier.phone || selectedSupplier.email || 'N/A'})
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[#70665F]">Location:</div>
+                  <div className="font-semibold text-[#211B17]">
+                    {selectedSupplier.city}, {selectedSupplier.state} - {selectedSupplier.pinCode}
+                  </div>
                 </div>
               </div>
 
               <div>
                 <h4 className="font-bold text-[#211B17] mb-1">Banking Information</h4>
                 <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] flex justify-between font-mono">
-                  <span>Bank: {selectedSupplier.bankName}</span>
-                  <span>A/C: {selectedSupplier.bankAccountNumber}</span>
-                  <span>IFSC: {selectedSupplier.ifscCode}</span>
+                  <span>Bank: {selectedSupplier.bankName || 'HDFC Bank'}</span>
+                  <span>A/C: {selectedSupplier.bankAccountNumber || '502000XXXXXX'}</span>
+                  <span>IFSC: {selectedSupplier.ifscCode || 'HDFC0000123'}</span>
                 </div>
               </div>
             </div>
 
-            <div className="p-4 bg-[#FAF7F2] border-t border-[#EBE3DB] flex justify-end">
+            <div className="p-4 bg-[#FAF7F2] border-t border-[#EBE3DB] flex justify-between items-center">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    const s = selectedSupplier;
+                    setSelectedSupplier(null);
+                    setEditingSupplier({ ...s, name: s.name || s.supplierName });
+                  }}
+                  className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl flex items-center gap-1.5 text-xs"
+                >
+                  <Edit2 className="w-3.5 h-3.5" /> Edit Supplier
+                </button>
+                <button
+                  onClick={() => {
+                    const s = selectedSupplier;
+                    handleDelete(s.id, s.name || s.supplierName || 'Supplier');
+                  }}
+                  className="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl flex items-center gap-1.5 text-xs"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Delete
+                </button>
+              </div>
               <button
                 onClick={() => setSelectedSupplier(null)}
-                className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#FAF7F2] text-[#211B17] font-bold rounded-xl"
+                className="px-4 py-2 bg-[#FAF7F2] hover:bg-slate-200 text-[#211B17] font-bold rounded-xl"
               >
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT SUPPLIER MODAL */}
+      {editingSupplier && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl">
+            <div className="p-5 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between">
+              <h2 className="text-lg font-black text-[#211B17] flex items-center gap-2">
+                <Edit2 className="w-5 h-5 text-amber-500" />
+                Edit Supplier: {editingSupplier.name || editingSupplier.supplierName}
+              </h2>
+              <button onClick={() => setEditingSupplier(null)} className="text-[#70665F] hover:text-[#211B17]">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateSupplier} className="p-6 space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[#70665F] mb-1">Vendor Code</label>
+                  <input
+                    type="text"
+                    value={editingSupplier.vendorCode || editingSupplier.id}
+                    onChange={(e) => setEditingSupplier({ ...editingSupplier, vendorCode: e.target.value })}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#70665F] mb-1">Category</label>
+                  <select
+                    value={editingSupplier.category}
+                    onChange={(e) => setEditingSupplier({ ...editingSupplier, category: e.target.value as any })}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
+                  >
+                    <option value="Raw Material">Raw Material</option>
+                    <option value="Bought-out Items">Bought-out Items</option>
+                    <option value="Standard Components">Standard Components</option>
+                    <option value="Subcontractor">Subcontractor</option>
+                    <option value="Services">Services</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[#70665F] mb-1">Supplier Company Name</label>
+                <input
+                  type="text"
+                  value={editingSupplier.name || editingSupplier.supplierName || ''}
+                  onChange={(e) =>
+                    setEditingSupplier({ ...editingSupplier, name: e.target.value, supplierName: e.target.value })
+                  }
+                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-bold"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[#70665F] mb-1">GSTIN Number</label>
+                  <input
+                    type="text"
+                    value={editingSupplier.gstin || ''}
+                    onChange={(e) => setEditingSupplier({ ...editingSupplier, gstin: e.target.value })}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#70665F] mb-1">PAN Number</label>
+                  <input
+                    type="text"
+                    value={editingSupplier.panNumber || ''}
+                    onChange={(e) => setEditingSupplier({ ...editingSupplier, panNumber: e.target.value })}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-[#70665F] mb-1">Contact Person</label>
+                  <input
+                    type="text"
+                    value={editingSupplier.contactPerson || ''}
+                    onChange={(e) => setEditingSupplier({ ...editingSupplier, contactPerson: e.target.value })}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#70665F] mb-1">Phone</label>
+                  <input
+                    type="text"
+                    value={editingSupplier.phone || ''}
+                    onChange={(e) => setEditingSupplier({ ...editingSupplier, phone: e.target.value })}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#70665F] mb-1">Email</label>
+                  <input
+                    type="email"
+                    value={editingSupplier.email || ''}
+                    onChange={(e) => setEditingSupplier({ ...editingSupplier, email: e.target.value })}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[#70665F] mb-1">City</label>
+                  <input
+                    type="text"
+                    value={editingSupplier.city || ''}
+                    onChange={(e) => setEditingSupplier({ ...editingSupplier, city: e.target.value })}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#70665F] mb-1">Payment Terms</label>
+                  <input
+                    type="text"
+                    value={editingSupplier.paymentTerms || ''}
+                    onChange={(e) => setEditingSupplier({ ...editingSupplier, paymentTerms: e.target.value })}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 flex justify-end gap-2 border-t border-[#EBE3DB]">
+                <button
+                  type="button"
+                  onClick={() => setEditingSupplier(null)}
+                  className="px-4 py-2 bg-[#FAF7F2] text-[#211B17] rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl"
+                >
+                  Update Supplier
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -400,11 +649,40 @@ export default function SupplierMasterPage() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[#70665F] mb-1">City</label>
+                  <input
+                    type="text"
+                    placeholder="Ahmedabad"
+                    value={newCity}
+                    onChange={(e) => setNewCity(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#70665F] mb-1">Payment Terms</label>
+                  <input
+                    type="text"
+                    value={newPaymentTerms}
+                    onChange={(e) => setNewPaymentTerms(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
+                  />
+                </div>
+              </div>
+
               <div className="pt-4 flex justify-end gap-2 border-t border-[#EBE3DB]">
-                <button type="button" onClick={() => setShowAddModal(false)} className="px-4 py-2 bg-[#FAF7F2] text-[#211B17] rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 bg-[#FAF7F2] text-[#211B17] rounded-xl"
+                >
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-white font-bold rounded-xl">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-white font-bold rounded-xl"
+                >
                   Save Supplier Profile
                 </button>
               </div>
