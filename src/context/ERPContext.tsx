@@ -716,6 +716,7 @@ interface ERPContextType {
   addSupplierPayment: (pay: Omit<SupplierPayment, 'id' | 'paymentNumber'>) => void;
   journalEntries: JournalEntry[];
   addJournalEntry: (jv: Omit<JournalEntry, 'id' | 'journalNumber'>) => void;
+  deleteJournalEntry: (id: string) => void;
   contraEntries: ContraEntry[];
   addContraEntry: (contra: Omit<ContraEntry, 'id' | 'contraNumber'>) => void;
   expenseEntries: ExpenseEntry[];
@@ -4094,9 +4095,28 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addJournalEntry = (jv: Omit<JournalEntry, 'id' | 'journalNumber'>) => {
     const journalNumber = `JV-2026-${String(journalEntries.length + 1).padStart(4, '0')}`;
     const newJV: JournalEntry = { ...jv, id: journalNumber, journalNumber };
-    setJournalEntries((prev) => [newJV, ...prev]);
+    setJournalEntries((prev) => {
+      const updated = [newJV, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_journalEntries', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Accounting', 'Journal Entries', newJV.id, `Created JV ${newJV.journalNumber}: Debit ₹${newJV.totalDebit?.toLocaleString()} = Credit ₹${newJV.totalCredit?.toLocaleString()}`);
-    api.post('/journal-entries/', newJV).catch((err) => console.warn('Failed to add journal entry:', err));
+    // Sync to PythonAnywhere backend
+    api.accounting.journalEntries.create(newJV).catch((err) => console.warn('Failed to sync journal entry to backend:', err));
+  };
+
+  const deleteJournalEntry = (id: string) => {
+    setJournalEntries((prev) => {
+      const updated = prev.filter((j) => j.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_journalEntries', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'Accounting', 'Journal Entries', id, `Deleted JV ${id}`);
+    api.accounting.journalEntries.delete(id).catch((err) => console.warn('Failed to delete journal entry on backend:', err));
   };
 
   const addContraEntry = (contra: Omit<ContraEntry, 'id' | 'contraNumber'>) => {
@@ -5084,6 +5104,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         addSupplierPayment,
         journalEntries,
         addJournalEntry,
+        deleteJournalEntry,
         contraEntries,
         addContraEntry,
         expenseEntries,

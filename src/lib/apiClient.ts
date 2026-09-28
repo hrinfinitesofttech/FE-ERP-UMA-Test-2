@@ -405,7 +405,12 @@ export const api = {
     },
     receipts: () => request<any[]>('/customer-receipts/'),
     payments: () => request<any[]>('/supplier-payments/'),
-    journalEntries: () => request<any[]>('/journal-entries/'),
+    journalEntries: {
+      list: () => request<any[]>('/journal-entries/'),
+      create: (data: any) => request<any>('/journal-entries/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/journal-entries/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/journal-entries/${id}/`, { method: 'DELETE' }),
+    },
     jobCostings: () => request<any[]>('/job-costings/'),
     creditNotes: {
       list: () => request<any[]>('/credit-notes/'),

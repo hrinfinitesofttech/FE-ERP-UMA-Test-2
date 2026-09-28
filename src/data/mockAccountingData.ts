@@ -22,9 +22,173 @@ import {
   PayableAging,
 } from '../types/accounting';
 
-export const INITIAL_FINANCIAL_YEARS: FinancialYear[] = [];
+export const INITIAL_FINANCIAL_YEARS: FinancialYear[] = [
+  {
+    id: 'FY-2026-27',
+    name: 'FY 2026-2027',
+    fyCode: 'FY-2026-27',
+    startDate: '2026-04-01',
+    endDate: '2027-03-31',
+    status: 'Active',
+    isCurrent: true,
+  },
+];
+
 export const INITIAL_ACCOUNT_GROUPS: AccountGroup[] = [];
-export const INITIAL_CHART_OF_ACCOUNTS: ChartOfAccount[] = [];
+
+export const INITIAL_CHART_OF_ACCOUNTS: ChartOfAccount[] = [
+  {
+    id: 'ACC-1010',
+    accountCode: '1010',
+    accountName: 'Cash & Bank Balances',
+    category: 'Assets',
+    accountType: 'Bank',
+    openingBalance: 14500000,
+    currentBalance: 14500000,
+    status: 'Active',
+  },
+  {
+    id: 'ACC-1020',
+    accountCode: '1020',
+    accountName: 'Trade Accounts Receivable (Sundry Debtors)',
+    category: 'Assets',
+    accountType: 'Accounts_Receivable',
+    openingBalance: 8200000,
+    currentBalance: 8200000,
+    status: 'Active',
+  },
+  {
+    id: 'ACC-1030',
+    accountCode: '1030',
+    accountName: 'Raw Material Inventory - Steel & Plates',
+    category: 'Assets',
+    accountType: 'Inventory',
+    openingBalance: 24500000,
+    currentBalance: 24500000,
+    status: 'Active',
+  },
+  {
+    id: 'ACC-1040',
+    accountCode: '1040',
+    accountName: 'Work In Progress (WIP) - Fabrication Jobs',
+    category: 'Assets',
+    accountType: 'Inventory',
+    openingBalance: 18000000,
+    currentBalance: 18000000,
+    status: 'Active',
+  },
+  {
+    id: 'ACC-1050',
+    accountCode: '1050',
+    accountName: 'Plant & Heavy Fabrication Machinery',
+    category: 'Assets',
+    accountType: 'Fixed_Asset',
+    openingBalance: 45000000,
+    currentBalance: 45000000,
+    status: 'Active',
+  },
+  {
+    id: 'ACC-2010',
+    accountCode: '2010',
+    accountName: 'Trade Accounts Payable (Sundry Creditors)',
+    category: 'Liabilities',
+    accountType: 'Accounts_Payable',
+    openingBalance: 6500000,
+    currentBalance: 6500000,
+    status: 'Active',
+  },
+  {
+    id: 'ACC-2020',
+    accountCode: '2020',
+    accountName: 'GST Output Tax Payable (CGST/SGST/IGST)',
+    category: 'Liabilities',
+    accountType: 'Current_Liability',
+    openingBalance: 1200000,
+    currentBalance: 1200000,
+    status: 'Active',
+  },
+  {
+    id: 'ACC-2030',
+    accountCode: '2030',
+    accountName: 'GST Input Tax Credit (ITC Receivable)',
+    category: 'Assets',
+    accountType: 'Current_Asset',
+    openingBalance: 980000,
+    currentBalance: 980000,
+    status: 'Active',
+  },
+  {
+    id: 'ACC-3010',
+    accountCode: '3010',
+    accountName: 'Share Capital & Reserves',
+    category: 'Equity',
+    accountType: 'Equity',
+    openingBalance: 50000000,
+    currentBalance: 50000000,
+    status: 'Active',
+  },
+  {
+    id: 'ACC-4010',
+    accountCode: '4010',
+    accountName: 'Manufacturing Sales Revenue',
+    category: 'Income',
+    accountType: 'Revenue',
+    openingBalance: 0,
+    currentBalance: 32000000,
+    status: 'Active',
+  },
+  {
+    id: 'ACC-5010',
+    accountCode: '5010',
+    accountName: 'Raw Material Consumption',
+    category: 'Expenses',
+    accountType: 'Cost_of_Sales',
+    openingBalance: 0,
+    currentBalance: 14200000,
+    status: 'Active',
+  },
+  {
+    id: 'ACC-5020',
+    accountCode: '5020',
+    accountName: 'Factory Direct Labour & Wages',
+    category: 'Expenses',
+    accountType: 'Expense',
+    openingBalance: 0,
+    currentBalance: 3800000,
+    status: 'Active',
+  },
+  {
+    id: 'ACC-5030',
+    accountCode: '5030',
+    accountName: 'Factory Electricity & High Tension Power',
+    category: 'Expenses',
+    accountType: 'Expense',
+    openingBalance: 0,
+    currentBalance: 850000,
+    status: 'Active',
+  },
+  {
+    id: 'ACC-5040',
+    accountCode: '5040',
+    accountName: 'Plant Maintenance & Machine Repairs',
+    category: 'Expenses',
+    accountType: 'Expense',
+    openingBalance: 0,
+    currentBalance: 420000,
+    status: 'Active',
+  },
+  {
+    id: 'ACC-5050',
+    accountCode: '5050',
+    accountName: 'Administrative & General Operational Expenses',
+    category: 'Expenses',
+    accountType: 'Expense',
+    openingBalance: 0,
+    currentBalance: 610000,
+    status: 'Active',
+  },
+];
+
 export const INITIAL_TAX_MASTERS: TaxMaster[] = [];
 export const INITIAL_TDS_MASTERS: TDSMaster[] = [];
 export const INITIAL_COST_CENTERS: CostCenter[] = [];
@@ -34,9 +198,75 @@ export const INITIAL_CREDIT_NOTES: CreditNote[] = [];
 export const INITIAL_DEBIT_NOTES: DebitNote[] = [];
 export const INITIAL_CUSTOMER_RECEIPTS: CustomerReceipt[] = [];
 export const INITIAL_SUPPLIER_PAYMENTS: SupplierPayment[] = [];
-export const INITIAL_JOURNAL_ENTRIES: JournalEntry[] = [];
+
+export const INITIAL_JOURNAL_ENTRIES: JournalEntry[] = [
+  {
+    id: 'JV-2026-0001',
+    journalNumber: 'JV-2026-0001',
+    journalDate: '2026-04-01',
+    voucherType: 'Journal',
+    vouchertype: 'Journal',
+    narration: 'Opening balance adjustments and provision for monthly factory power expenses',
+    lines: [
+      {
+        id: 'JLINE-1',
+        accountId: 'ACC-5030',
+        accountCode: '5030',
+        accountName: 'Factory Electricity & High Tension Power',
+        debitAmount: 185000,
+        creditAmount: 0,
+      },
+      {
+        id: 'JLINE-2',
+        accountId: 'ACC-2010',
+        accountCode: '2010',
+        accountName: 'Trade Accounts Payable (Sundry Creditors)',
+        debitAmount: 0,
+        creditAmount: 185000,
+      },
+    ],
+    totalDebit: 185000,
+    totalCredit: 185000,
+    isBalanced: true,
+    status: 'Posted',
+    createdBy: 'Accounts Team',
+  },
+  {
+    id: 'JV-2026-0002',
+    journalNumber: 'JV-2026-0002',
+    journalDate: '2026-04-10',
+    voucherType: 'Journal',
+    vouchertype: 'Journal',
+    narration: 'Depreciation charge on heavy CNC Plasma cutting machinery for Q1',
+    lines: [
+      {
+        id: 'JLINE-1',
+        accountId: 'ACC-5040',
+        accountCode: '5040',
+        accountName: 'Plant Maintenance & Machine Repairs',
+        debitAmount: 75000,
+        creditAmount: 0,
+      },
+      {
+        id: 'JLINE-2',
+        accountId: 'ACC-1050',
+        accountCode: '1050',
+        accountName: 'Plant & Heavy Fabrication Machinery',
+        debitAmount: 0,
+        creditAmount: 75000,
+      },
+    ],
+    totalDebit: 75000,
+    totalCredit: 75000,
+    isBalanced: true,
+    status: 'Posted',
+    createdBy: 'Accounts Team',
+  },
+];
+
 export const INITIAL_CONTRA_ENTRIES: ContraEntry[] = [];
 export const INITIAL_EXPENSE_ENTRIES: ExpenseEntry[] = [];
+
 export const INITIAL_BANK_ACCOUNTS: BankAccount[] = [
   {
     id: 'BANK-01',
@@ -99,9 +329,9 @@ export const INITIAL_BANK_ACCOUNTS: BankAccount[] = [
     isActive: true,
   },
 ];
+
 export const INITIAL_BANK_TRANSACTIONS: BankTransaction[] = [];
 export const INITIAL_FIXED_ASSETS: FixedAsset[] = [];
 export const INITIAL_JOB_COSTINGS: JobCostingSummary[] = [];
-export const INITIAL_RECEIVABLE_AGING: ReceivableAging[] = [];
-export const INITIAL_PAYABLE_AGING: PayableAging[] = [];
-
+export const INITIAL_RECEIVABLES_AGING: ReceivableAging[] = [];
+export const INITIAL_PAYABLES_AGING: PayableAging[] = [];
