@@ -30,9 +30,14 @@ export default function SupplierLedgersPage() {
 
   const filteredSuppliers = supplierStats.filter((s) => {
     const matchesSearch =
+
+      !searchTerm?.trim() || (
+
       (s.supplierName || (s as any).name || '')?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       (s.supplierCode || (s as any).code || '')?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      s.gstin?.toLowerCase().includes(searchTerm?.toLowerCase());
+      s.gstin?.toLowerCase().includes(searchTerm?.toLowerCase())
+
+    );
     const matchesFilter = filterMode === 'all' || s.hasActivity;
     return matchesSearch && matchesFilter;
   });

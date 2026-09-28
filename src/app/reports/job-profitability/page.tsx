@@ -10,6 +10,9 @@ export default function JobProfitabilityReportPage() {
 
   const filtered = jobProfitabilityList.filter(
     (j) =>
+
+      !searchTerm?.trim() ||
+
       j.jobNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       j.customerName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       j.machineModel?.toLowerCase().includes(searchTerm?.toLowerCase())

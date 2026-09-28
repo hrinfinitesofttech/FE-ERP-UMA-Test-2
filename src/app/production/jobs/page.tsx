@@ -24,6 +24,7 @@ export default function ManufacturingJobsPage() {
 
   const filteredJobs = manufacturingJobs.filter((job) => {
     const matchesSearch =
+      !searchTerm?.trim() ||
       job.jobNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       job.customerName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       job.productName?.toLowerCase().includes(searchTerm?.toLowerCase());

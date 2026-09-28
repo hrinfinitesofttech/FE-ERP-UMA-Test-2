@@ -11,6 +11,9 @@ export default function InternalMaintenancePage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredAssets = internalAssets.filter((a) =>
+
+    !searchTerm?.trim() ||
+
     a.assetName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     a.assetCode?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     a.department?.toLowerCase().includes(searchTerm?.toLowerCase())

@@ -51,10 +51,15 @@ export default function BreakdownManagementPage() {
 
   const filteredBreakdowns = breakdowns.filter((bd) => {
     const matchesSearch =
+
+      !searchTerm?.trim() || (
+
       bd.breakdownNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       bd.assetName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       bd.serialNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      bd.problem?.toLowerCase().includes(searchTerm?.toLowerCase());
+      bd.problem?.toLowerCase().includes(searchTerm?.toLowerCase())
+
+    );
     const matchesSeverity = severityFilter === 'all' || bd.severity === severityFilter;
     return matchesSearch && matchesSeverity;
   });

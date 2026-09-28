@@ -79,9 +79,14 @@ export default function DashboardPage() {
   const filteredJobs = jobsData.filter((job) => {
     const matchesStage = stageFilter === 'All' || job.stage.includes(stageFilter?.toUpperCase());
     const matchesSearch =
+
+      !searchQuery?.trim() || (
+
       job.id?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
       job.customer?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
-      job.equipment?.toLowerCase().includes(searchQuery?.toLowerCase());
+      job.equipment?.toLowerCase().includes(searchQuery?.toLowerCase())
+
+    );
     return matchesStage && matchesSearch;
   });
 

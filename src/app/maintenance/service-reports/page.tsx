@@ -27,6 +27,9 @@ export default function ServiceReportsPage() {
   const [selectedReportModal, setSelectedReportModal] = useState<ServiceReport | null>(null);
 
   const filteredReports = serviceReports.filter((rep) =>
+
+    !searchTerm?.trim() ||
+
     rep.reportNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     rep.customerName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     rep.machineName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||

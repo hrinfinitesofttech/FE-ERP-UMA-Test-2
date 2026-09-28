@@ -14,6 +14,9 @@ export default function OutstandingRemindersPage() {
 
   const filtered = overdueInvoices.filter(
     (inv) =>
+
+      !searchTerm?.trim() ||
+
       inv.invoiceNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       inv.customerName?.toLowerCase().includes(searchTerm?.toLowerCase())
   );

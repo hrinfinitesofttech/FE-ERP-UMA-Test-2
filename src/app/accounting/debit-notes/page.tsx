@@ -17,6 +17,9 @@ export default function DebitNotesPage() {
 
   const filtered = debitNotes.filter(
     (d) =>
+
+      !searchTerm?.trim() ||
+
       d.debitNoteNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       d.supplierName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       d.originalInvoiceNumber?.toLowerCase().includes(searchTerm?.toLowerCase())

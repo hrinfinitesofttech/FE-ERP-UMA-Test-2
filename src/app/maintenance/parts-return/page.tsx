@@ -41,6 +41,9 @@ export default function ServicePartsReturnPage() {
   });
 
   const filteredReturns = servicePartReturns.filter((r) =>
+
+    !searchTerm?.trim() ||
+
     r.returnNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     r.workOrderNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     r.returnedBy?.toLowerCase().includes(searchTerm?.toLowerCase())

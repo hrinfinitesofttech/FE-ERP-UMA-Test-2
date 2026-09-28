@@ -14,6 +14,9 @@ export default function AccountGroupsPage() {
 
   const filtered = accountGroups.filter(
     (g) =>
+
+      !searchTerm?.trim() ||
+
       g.groupCode?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       g.groupName?.toLowerCase().includes(searchTerm?.toLowerCase())
   );

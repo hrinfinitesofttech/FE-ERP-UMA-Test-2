@@ -22,9 +22,14 @@ export default function PurchaseInvoicesPage() {
 
   const filteredInvoices = (purchaseInvoices || []).filter((inv) => {
     const matchesSearch =
+
+      !searchTerm?.trim() || (
+
       (inv.invoiceNumber || '')?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       (inv.supplierName || '')?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      (inv.vendorInvoiceNumber || inv.supplierInvoiceNumber || '')?.toLowerCase().includes(searchTerm?.toLowerCase());
+      (inv.vendorInvoiceNumber || inv.supplierInvoiceNumber || '')?.toLowerCase().includes(searchTerm?.toLowerCase())
+
+    );
     const matchesStatus = selectedStatus === 'All' || inv.status === selectedStatus;
     return matchesSearch && matchesStatus;
   });

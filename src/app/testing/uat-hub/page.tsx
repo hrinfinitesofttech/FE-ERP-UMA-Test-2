@@ -47,10 +47,15 @@ export default function UATHubPage() {
     const matchesModule = selectedModule === 'All' || tc.module === selectedModule;
     const matchesStatus = selectedStatus === 'All' || tc.status === selectedStatus;
     const matchesSearch =
+
+      !searchQuery?.trim() || (
+
       tc.title?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
       tc.id?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
       tc.category?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
-      tc.description?.toLowerCase().includes(searchQuery?.toLowerCase());
+      tc.description?.toLowerCase().includes(searchQuery?.toLowerCase())
+
+    );
     return matchesModule && matchesStatus && matchesSearch;
   });
 

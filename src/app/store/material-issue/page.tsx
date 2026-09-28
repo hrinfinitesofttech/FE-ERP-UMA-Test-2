@@ -27,6 +27,9 @@ export default function MaterialIssuePage() {
 
   const filtered = materialIssues.filter(
     (i) =>
+
+      !searchTerm?.trim() ||
+
       i.issueNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       i.jobId?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       i.requestedBy?.toLowerCase().includes(searchTerm?.toLowerCase())

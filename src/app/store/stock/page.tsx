@@ -11,9 +11,14 @@ export default function StockMatrixPage() {
 
   const filtered = stockBalances.filter((s) => {
     const matchesSearch =
+
+      !searchTerm?.trim() || (
+
       s.itemCode?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       s.itemName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      s.locationCode?.toLowerCase().includes(searchTerm?.toLowerCase());
+      s.locationCode?.toLowerCase().includes(searchTerm?.toLowerCase())
+
+    );
     const matchesWh = selectedWarehouse === 'all' || s.warehouseId === selectedWarehouse;
     return matchesSearch && matchesWh;
   });

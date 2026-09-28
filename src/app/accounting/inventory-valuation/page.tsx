@@ -11,6 +11,9 @@ export default function InventoryValuationPage() {
 
   const filtered = stockBalances.filter(
     (s) =>
+
+      !searchTerm?.trim() ||
+
       s.itemCode?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       s.itemName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       (s.categoryName || (s as any).category || '')?.toLowerCase().includes(searchTerm?.toLowerCase())

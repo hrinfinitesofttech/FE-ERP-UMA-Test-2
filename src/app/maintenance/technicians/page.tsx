@@ -24,9 +24,14 @@ export default function TechnicianAssignmentPage() {
 
   const filteredTechnicians = technicians.filter((t) => {
     const matchesSearch =
+
+      !searchTerm?.trim() || (
+
       t.employeeName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       t.designation?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      t.location?.toLowerCase().includes(searchTerm?.toLowerCase());
+      t.location?.toLowerCase().includes(searchTerm?.toLowerCase())
+
+    );
     const matchesSkill = skillFilter === 'all' || t.skills.includes(skillFilter);
     return matchesSearch && matchesSkill;
   });

@@ -18,6 +18,9 @@ export default function ContraEntriesPage() {
 
   const filtered = contraEntries.filter(
     (c) =>
+
+      !searchTerm?.trim() ||
+
       c.contraNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       c.fromAccountName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       c.toAccountName?.toLowerCase().includes(searchTerm?.toLowerCase())

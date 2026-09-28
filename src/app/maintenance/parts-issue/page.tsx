@@ -42,6 +42,9 @@ export default function ServicePartsIssuePage() {
   });
 
   const filteredIssues = servicePartIssues.filter((spi) =>
+
+    !searchTerm?.trim() ||
+
     spi.issueNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     spi.customerName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     spi.workOrderNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||

@@ -17,6 +17,9 @@ export default function CreditNotesPage() {
 
   const filtered = creditNotes.filter(
     (c) =>
+
+      !searchTerm?.trim() ||
+
       c.creditNoteNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       c.customerName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       c.originalInvoiceNumber?.toLowerCase().includes(searchTerm?.toLowerCase())

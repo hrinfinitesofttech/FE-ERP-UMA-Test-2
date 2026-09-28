@@ -42,6 +42,9 @@ export default function WorkOrdersPage() {
   });
 
   const filteredOrders = serviceWorkOrders.filter((swo) =>
+
+    !searchTerm?.trim() ||
+
     swo.workOrderNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     swo.customerName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     swo.machineName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||

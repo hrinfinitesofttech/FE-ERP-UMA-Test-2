@@ -30,6 +30,9 @@ export default function DowntimeTrackingPage() {
   });
 
   const filteredDowntime = downtimeRecords.filter((d) =>
+
+    !searchTerm?.trim() ||
+
     d.downtimeNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     d.machineName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     d.reason?.toLowerCase().includes(searchTerm?.toLowerCase()) ||

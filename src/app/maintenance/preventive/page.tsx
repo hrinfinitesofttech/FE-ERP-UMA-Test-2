@@ -49,9 +49,14 @@ export default function PreventiveMaintenancePage() {
 
   const filteredPlans = preventivePlans.filter((plan) => {
     const matchesSearch =
+
+      !searchTerm?.trim() || (
+
       plan.planNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       plan.assetName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      plan.maintenanceType?.toLowerCase().includes(searchTerm?.toLowerCase());
+      plan.maintenanceType?.toLowerCase().includes(searchTerm?.toLowerCase())
+
+    );
     const matchesFreq = frequencyFilter === 'all' || plan.frequency === frequencyFilter;
     return matchesSearch && matchesFreq;
   });

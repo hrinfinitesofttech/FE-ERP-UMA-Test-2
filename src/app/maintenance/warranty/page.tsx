@@ -11,6 +11,9 @@ export default function WarrantyManagementPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredWarranties = warranties.filter((w) =>
+
+    !searchTerm?.trim() ||
+
     w.serialNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     w.customerName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     w.machineName?.toLowerCase().includes(searchTerm?.toLowerCase())

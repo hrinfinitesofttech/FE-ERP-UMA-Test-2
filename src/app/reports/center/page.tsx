@@ -50,7 +50,13 @@ export default function ReportsCenterPage() {
 
   const filteredReports = reportsList.filter((r) => {
     const matchesCategory = selectedCategory === 'all' || r.category === selectedCategory;
-    const matchesSearch = r.title?.toLowerCase().includes(searchTerm?.toLowerCase()) || r.desc?.toLowerCase().includes(searchTerm?.toLowerCase());
+    const matchesSearch =
+
+      !searchTerm?.trim() || (
+
+      r.title?.toLowerCase().includes(searchTerm?.toLowerCase()) || r.desc?.toLowerCase().includes(searchTerm?.toLowerCase())
+
+    );
     return matchesCategory && matchesSearch;
   });
 

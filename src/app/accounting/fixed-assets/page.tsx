@@ -20,6 +20,9 @@ export default function FixedAssetsPage() {
 
   const filtered = fixedAssets.filter(
     (a) =>
+
+      !searchTerm?.trim() ||
+
       a.assetCode?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       a.assetName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       a.category?.toLowerCase().includes(searchTerm?.toLowerCase())

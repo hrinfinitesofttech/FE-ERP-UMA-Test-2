@@ -11,6 +11,9 @@ export default function ServiceContractsPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredContracts = serviceContracts.filter((c) =>
+
+    !searchTerm?.trim() ||
+
     c.contractNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     c.customerName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     c.contractType?.toLowerCase().includes(searchTerm?.toLowerCase())

@@ -35,9 +35,14 @@ export default function EmployeeDocumentsPage() {
 
   const filteredDocs = employeeDocuments.filter((doc) => {
     const matchesSearch =
+
+      !searchTerm?.trim() || (
+
       doc.employeeName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       doc.documentNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      doc.documentType?.toLowerCase().includes(searchTerm?.toLowerCase());
+      doc.documentType?.toLowerCase().includes(searchTerm?.toLowerCase())
+
+    );
     const matchesStatus = statusFilter === 'ALL' || doc.verificationStatus === statusFilter;
     return matchesSearch && matchesStatus;
   });

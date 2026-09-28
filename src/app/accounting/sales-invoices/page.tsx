@@ -81,9 +81,14 @@ export default function SalesInvoicesPage() {
 
   const filteredInvoices = salesInvoices.filter((inv) => {
     const matchesSearch =
+
+      !searchTerm?.trim() || (
+
       inv.invoiceNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       inv.customerName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      inv.salesOrderNumber?.toLowerCase().includes(searchTerm?.toLowerCase());
+      inv.salesOrderNumber?.toLowerCase().includes(searchTerm?.toLowerCase())
+
+    );
     const matchesStatus = selectedStatus === 'All' || inv.status === selectedStatus;
     return matchesSearch && matchesStatus;
   });

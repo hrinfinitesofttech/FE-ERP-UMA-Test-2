@@ -24,6 +24,9 @@ export default function StockAdjustmentsPage() {
 
   const filtered = stockAdjustments.filter(
     (a) =>
+
+      !searchTerm?.trim() ||
+
       a.adjustmentNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       a.itemName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       a.reason?.toLowerCase().includes(searchTerm?.toLowerCase())

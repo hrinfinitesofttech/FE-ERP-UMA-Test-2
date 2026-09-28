@@ -14,8 +14,13 @@ export default function ReorderPage() {
     const bal = stockBalances.find((s) => s.itemId === item.id);
     const usableQty = bal ? bal.usableQty : 0;
     const matchesSearch =
+
+      !searchTerm?.trim() || (
+
       item.itemCode?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      item.itemName?.toLowerCase().includes(searchTerm?.toLowerCase());
+      item.itemName?.toLowerCase().includes(searchTerm?.toLowerCase())
+
+    );
     return usableQty <= item.reorderLevel && matchesSearch;
   });
 

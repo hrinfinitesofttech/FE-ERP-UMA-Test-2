@@ -29,6 +29,9 @@ export default function MaintenanceCostsPage() {
   });
 
   const filteredCosts = maintenanceCosts.filter((c) =>
+
+    !searchTerm?.trim() ||
+
     c.costReference?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     c.machineName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     c.serialNumber?.toLowerCase().includes(searchTerm?.toLowerCase())

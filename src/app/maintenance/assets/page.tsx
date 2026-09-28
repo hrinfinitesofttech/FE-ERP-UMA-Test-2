@@ -55,10 +55,15 @@ export default function AssetMasterPage() {
 
   const filteredAssets = internalAssets.filter((asset) => {
     const matchesSearch =
+
+      !searchTerm?.trim() || (
+
       asset.assetName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       asset.assetCode?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       asset.serialNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      asset.manufacturer?.toLowerCase().includes(searchTerm?.toLowerCase());
+      asset.manufacturer?.toLowerCase().includes(searchTerm?.toLowerCase())
+
+    );
     const matchesStatus = statusFilter === 'all' || asset.status === statusFilter;
     const matchesCriticality = criticalityFilter === 'all' || asset.criticality === criticalityFilter;
     return matchesSearch && matchesStatus && matchesCriticality;

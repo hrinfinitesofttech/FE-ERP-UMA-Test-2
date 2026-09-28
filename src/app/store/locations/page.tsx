@@ -18,6 +18,9 @@ export default function StoreLocationsPage() {
 
   const filtered = warehouseLocations.filter(
     (loc) =>
+
+      !searchTerm?.trim() ||
+
       loc.locationCode?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       loc.zone?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       loc.bin?.toLowerCase().includes(searchTerm?.toLowerCase())

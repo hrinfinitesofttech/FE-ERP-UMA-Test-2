@@ -51,8 +51,8 @@ export function DataTable<T extends Record<string, any>>({
 
   // Filter rows based on search query
   const filteredData = data.filter((row) => {
-    if (!searchQuery.trim()) return true;
-    const query = searchQuery?.toLowerCase();
+    const query = (searchQuery || '').trim().toLowerCase();
+    if (!query) return true;
     return Object.values(row).some((val) => {
       if (val === null || val === undefined) return false;
       return String(val)?.toLowerCase().includes(query);

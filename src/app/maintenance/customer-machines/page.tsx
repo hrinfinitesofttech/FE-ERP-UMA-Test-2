@@ -56,10 +56,15 @@ export default function CustomerMachinesPage() {
 
   const filteredMachines = customerMachines.filter((cm) => {
     const matchesSearch =
+
+      !searchTerm?.trim() || (
+
       cm.machineName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       cm.serialNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       cm.customerName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      (cm.jobNumber && cm.jobNumber?.toLowerCase().includes(searchTerm?.toLowerCase()));
+      (cm.jobNumber && cm.jobNumber?.toLowerCase().includes(searchTerm?.toLowerCase()))
+
+    );
     const matchesStatus = statusFilter === 'all' || cm.status === statusFilter;
     return matchesSearch && matchesStatus;
   });

@@ -23,6 +23,9 @@ export default function ScrapPage() {
 
   const filtered = scrapEntries.filter(
     (s) =>
+
+      !searchTerm?.trim() ||
+
       s.scrapNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       s.itemName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       s.reason?.toLowerCase().includes(searchTerm?.toLowerCase())

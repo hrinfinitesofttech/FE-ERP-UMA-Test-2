@@ -30,9 +30,14 @@ export default function CustomerLedgersPage() {
 
   const filteredCustomers = customerStats.filter((c) => {
     const matchesSearch =
+
+      !searchTerm?.trim() || (
+
       c.companyName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       c.customerCode?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      c.gstin?.toLowerCase().includes(searchTerm?.toLowerCase());
+      c.gstin?.toLowerCase().includes(searchTerm?.toLowerCase())
+
+    );
     const matchesFilter = filterMode === 'all' || c.hasActivity;
     return matchesSearch && matchesFilter;
   });

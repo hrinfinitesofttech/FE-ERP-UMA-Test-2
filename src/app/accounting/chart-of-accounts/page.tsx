@@ -35,9 +35,14 @@ export default function ChartOfAccountsPage() {
 
   const filteredAccounts = chartOfAccounts.filter((acc) => {
     const matchesSearch =
+
+      !searchTerm?.trim() || (
+
       acc.accountCode?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       acc.accountName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      (acc.parentGroupName || '')?.toLowerCase().includes(searchTerm?.toLowerCase());
+      (acc.parentGroupName || '')?.toLowerCase().includes(searchTerm?.toLowerCase())
+
+    );
     const matchesType = selectedType === 'All' || acc.accountType === selectedType;
     return matchesSearch && matchesType;
   });

@@ -41,9 +41,14 @@ export default function MaintenanceReportsPage() {
 
   const filteredReports = reportsList.filter((r) => {
     const matchesSearch =
+
+      !searchTerm?.trim() || (
+
       r.title?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       r.id?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      r.description?.toLowerCase().includes(searchTerm?.toLowerCase());
+      r.description?.toLowerCase().includes(searchTerm?.toLowerCase())
+
+    );
     const matchesCat = selectedCategory === 'all' || r.category === selectedCategory;
     return matchesSearch && matchesCat;
   });

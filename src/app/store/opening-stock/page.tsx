@@ -24,6 +24,9 @@ export default function OpeningStockPage() {
 
   const filtered = openingStocks.filter(
     (op) =>
+
+      !searchTerm?.trim() ||
+
       op.itemCode?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       op.itemName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       op.reference?.toLowerCase().includes(searchTerm?.toLowerCase())

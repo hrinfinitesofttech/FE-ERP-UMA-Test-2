@@ -19,6 +19,9 @@ export default function PhysicalStockCountPage() {
 
   const filtered = physicalStockCounts.filter(
     (c) =>
+
+      !searchTerm?.trim() ||
+
       c.countNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       c.warehouseName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       c.counterName?.toLowerCase().includes(searchTerm?.toLowerCase())

@@ -33,9 +33,14 @@ export default function SparePartsPage() {
     };
   }).filter((item) => {
     const matchesSearch =
+
+      !searchTerm?.trim() || (
+
       item.itemCode?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       item.itemName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      (item.category && item.category?.toLowerCase().includes(searchTerm?.toLowerCase()));
+      (item.category && item.category?.toLowerCase().includes(searchTerm?.toLowerCase()))
+
+    );
     const matchesCat = categoryFilter === 'all' || item.category === categoryFilter;
     return matchesSearch && matchesCat;
   });

@@ -56,11 +56,16 @@ export default function ServiceRequestsPage() {
 
   const filteredRequests = serviceRequests.filter((sr) => {
     const matchesSearch =
+
+      !searchTerm?.trim() || (
+
       sr.requestNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       sr.customerName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       sr.machineName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       sr.serialNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      sr.complaintType?.toLowerCase().includes(searchTerm?.toLowerCase());
+      sr.complaintType?.toLowerCase().includes(searchTerm?.toLowerCase())
+
+    );
     const matchesStatus = statusFilter === 'all' || sr.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || sr.priority === priorityFilter;
     return matchesSearch && matchesStatus && matchesPriority;

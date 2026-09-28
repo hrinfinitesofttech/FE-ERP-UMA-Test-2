@@ -46,6 +46,9 @@ export default function AMCManagementPage() {
   });
 
   const filteredAmcs = amcContracts.filter((a) =>
+
+    !searchTerm?.trim() ||
+
     a.amcNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     a.customerName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     a.machineName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||

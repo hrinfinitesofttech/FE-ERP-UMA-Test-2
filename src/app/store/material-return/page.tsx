@@ -25,6 +25,9 @@ export default function MaterialReturnPage() {
 
   const filtered = materialReturns.filter(
     (r) =>
+
+      !searchTerm?.trim() ||
+
       r.returnNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       r.jobId?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       r.returnedBy?.toLowerCase().includes(searchTerm?.toLowerCase())

@@ -33,6 +33,9 @@ export default function DesignationsPage() {
 
   const filteredDesignations = designations.filter(
     (d) =>
+
+      !searchTerm?.trim() ||
+
       d.designationName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       d.designationCode?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       d.department?.toLowerCase().includes(searchTerm?.toLowerCase())

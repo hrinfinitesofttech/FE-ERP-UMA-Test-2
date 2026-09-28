@@ -26,10 +26,12 @@ export default function AttendancePage() {
     ['Half Day', 'First Half', 'Second Half', 'First Half Leave', 'Second Half Leave'].includes(s);
 
   const filteredRecords = attendanceRecords.filter((a) => {
+    const q = (searchTerm || '').trim().toLowerCase();
     const matchesSearch =
-      a.employeeName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      a.department?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      a.date.includes(searchTerm);
+      !q ||
+      a.employeeName?.toLowerCase().includes(q) ||
+      a.department?.toLowerCase().includes(q) ||
+      a.date?.toLowerCase().includes(q);
     let matchesStatus = statusFilter === 'ALL';
     if (!matchesStatus) {
       if (statusFilter === 'Half Day') {

@@ -20,6 +20,9 @@ export default function WarehousesPage() {
 
   const filtered = warehouses.filter(
     (w) =>
+
+      !searchTerm?.trim() ||
+
       w.warehouseCode?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       w.warehouseName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       w.managerName?.toLowerCase().includes(searchTerm?.toLowerCase())

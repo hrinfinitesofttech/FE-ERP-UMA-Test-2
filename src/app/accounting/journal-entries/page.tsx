@@ -21,6 +21,9 @@ export default function JournalEntriesPage() {
 
   const filtered = journalEntries.filter(
     (j) =>
+
+      !searchTerm?.trim() ||
+
       j.journalNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       j.narration?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       (j.voucherType || j.vouchertype || '')?.toLowerCase().includes(searchTerm?.toLowerCase())

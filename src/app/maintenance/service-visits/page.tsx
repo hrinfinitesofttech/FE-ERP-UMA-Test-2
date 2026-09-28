@@ -27,6 +27,9 @@ export default function ServiceVisitsPage() {
   const [mobileSimulator, setMobileSimulator] = useState(false);
 
   const filteredVisits = serviceVisits.filter((v) =>
+
+    !searchTerm?.trim() ||
+
     v.visitNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     v.customerName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
     v.machineName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||

@@ -40,9 +40,14 @@ export default function BugTrackerPage() {
   const filteredBugs = bugTickets.filter((b) => {
     const matchesStatus = selectedStatus === 'All' || b.status === selectedStatus;
     const matchesSearch =
+
+      !searchQuery?.trim() || (
+
       b.title?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
       b.bugNo?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
-      b.module?.toLowerCase().includes(searchQuery?.toLowerCase());
+      b.module?.toLowerCase().includes(searchQuery?.toLowerCase())
+
+    );
     return matchesStatus && matchesSearch;
   });
 

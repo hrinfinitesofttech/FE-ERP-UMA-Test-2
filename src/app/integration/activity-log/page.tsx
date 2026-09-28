@@ -11,10 +11,15 @@ export default function ActivityLogPage() {
 
   const filteredLogs = auditLogs.filter((log) => {
     const matchesSearch =
+
+      !searchTerm?.trim() || (
+
       log.notes?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       log.module?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       log.userName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      log.recordId?.toLowerCase().includes(searchTerm?.toLowerCase());
+      log.recordId?.toLowerCase().includes(searchTerm?.toLowerCase())
+
+    );
     const matchesModule = selectedModule === 'all' || log.module === selectedModule;
     return matchesSearch && matchesModule;
   });

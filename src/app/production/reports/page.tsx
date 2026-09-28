@@ -29,6 +29,9 @@ export default function ProductionReportsPage() {
   ];
 
   const filteredReports = reportsList.filter((r) =>
+
+    !searchTerm?.trim() ||
+
     r.title?.toLowerCase().includes(searchTerm?.toLowerCase()) || r.cat?.toLowerCase().includes(searchTerm?.toLowerCase())
   );
 

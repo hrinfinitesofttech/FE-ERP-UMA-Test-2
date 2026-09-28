@@ -24,6 +24,9 @@ export default function StockTransfersPage() {
 
   const filtered = stockTransfers.filter(
     (t) =>
+
+      !searchTerm?.trim() ||
+
       t.transferNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       t.fromWarehouseName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       t.toWarehouseName?.toLowerCase().includes(searchTerm?.toLowerCase())

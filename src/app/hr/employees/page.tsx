@@ -85,10 +85,15 @@ export default function EmployeeMasterPage() {
     const name = getEmpName(emp);
     const dept = getEmpDept(emp);
     const matchesSearch =
+
+      !searchTerm?.trim() || (
+
       name?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       emp.email?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       (emp.phone || emp.mobile || '').includes(searchTerm) ||
-      dept?.toLowerCase().includes(searchTerm?.toLowerCase());
+      dept?.toLowerCase().includes(searchTerm?.toLowerCase())
+
+    );
     const matchesDept = departmentFilter === 'ALL' || dept?.toLowerCase() === departmentFilter?.toLowerCase();
     return matchesSearch && matchesDept;
   });

@@ -11,10 +11,15 @@ export default function StockLedgerPage() {
 
   const filtered = stockLedgers.filter((l) => {
     const matchesSearch =
+
+      !searchTerm?.trim() || (
+
       l.transactionNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       l.itemCode?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       l.itemName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      (l.jobId && l.jobId?.toLowerCase().includes(searchTerm?.toLowerCase()));
+      (l.jobId && l.jobId?.toLowerCase().includes(searchTerm?.toLowerCase()))
+
+    );
     const matchesType = selectedType === 'all' || l.transactionType === selectedType;
     return matchesSearch && matchesType;
   });

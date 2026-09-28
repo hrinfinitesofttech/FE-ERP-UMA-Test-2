@@ -16,6 +16,9 @@ export default function ExpensesPage() {
 
   const filtered = expenseEntries.filter(
     (e) =>
+
+      !searchTerm?.trim() ||
+
       e.expenseNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       e.category?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       (e.claimedBy || e.vendorName || '')?.toLowerCase().includes(searchTerm?.toLowerCase())

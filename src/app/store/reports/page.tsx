@@ -34,6 +34,9 @@ export default function StoreReportsPage() {
 
   const filtered = STORE_REPORTS_LIST.filter(
     (r) =>
+
+      !searchTerm?.trim() ||
+
       r.id?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       r.name?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       r.category?.toLowerCase().includes(searchTerm?.toLowerCase())

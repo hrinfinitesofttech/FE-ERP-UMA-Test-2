@@ -56,9 +56,14 @@ export default function ItemMasterPage() {
 
   const filteredItems = itemMasters.filter((item) => {
     const matchesSearch =
+
+      !searchTerm?.trim() || (
+
       item.itemCode?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       item.itemName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      item.specification?.toLowerCase().includes(searchTerm?.toLowerCase());
+      item.specification?.toLowerCase().includes(searchTerm?.toLowerCase())
+
+    );
     const matchesType = selectedType === 'all' || item.itemType === selectedType;
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
     return matchesSearch && matchesType && matchesCategory;

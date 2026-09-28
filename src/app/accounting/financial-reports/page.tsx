@@ -60,7 +60,13 @@ export default function FinancialReportsPage() {
   ];
 
   const filteredReports = reportsList.filter((r) => {
-    const matchesSearch = r.name?.toLowerCase().includes(searchTerm?.toLowerCase()) || r.code?.toLowerCase().includes(searchTerm?.toLowerCase());
+    const matchesSearch =
+
+      !searchTerm?.trim() || (
+
+      r.name?.toLowerCase().includes(searchTerm?.toLowerCase()) || r.code?.toLowerCase().includes(searchTerm?.toLowerCase())
+
+    );
     const matchesCategory = selectedCategory === 'All' || r.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });

@@ -16,6 +16,9 @@ export default function ItemCategoriesPage() {
 
   const filtered = itemCategories.filter(
     (c) =>
+
+      !searchTerm?.trim() ||
+
       c.categoryCode?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       c.categoryName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       c.description?.toLowerCase().includes(searchTerm?.toLowerCase())

@@ -23,6 +23,9 @@ export default function UOMPage() {
 
   const filtered = uoms.filter(
     (u) =>
+
+      !searchTerm?.trim() ||
+
       u.uomCode?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       u.uomName?.toLowerCase().includes(searchTerm?.toLowerCase())
   );

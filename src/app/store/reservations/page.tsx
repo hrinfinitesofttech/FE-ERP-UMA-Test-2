@@ -22,6 +22,9 @@ export default function StockReservationsPage() {
 
   const filtered = stockReservations.filter(
     (r) =>
+
+      !searchTerm?.trim() ||
+
       r.reservationNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       r.jobId?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
       r.itemName?.toLowerCase().includes(searchTerm?.toLowerCase())
