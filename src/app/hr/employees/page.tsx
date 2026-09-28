@@ -26,13 +26,55 @@ import {
 import { Employee } from '../../../types/crm';
 
 export default function EmployeeMasterPage() {
-  const { availableEmployees, currentUser, departments, designations, salaryStructures } = useERP();
+  const { availableEmployees, currentUser, departments, designations, salaryStructures, addEmployee, roles } = useERP();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('ALL');
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [activeTab, setActiveTab] = useState<'Overview' | 'Employment' | 'Attendance' | 'Leave' | 'Payroll' | 'Documents' | 'Performance' | 'Training' | 'Advances' | 'Expenses' | 'Activity'>('Overview');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [addSaving, setAddSaving] = useState(false);
+
+  const defaultForm = {
+    firstName: '',
+    lastName: '',
+    gender: 'male' as 'male' | 'female' | 'other',
+    dob: '',
+    mobile: '',
+    email: '',
+    address: '',
+    departmentId: departments[0]?.id || '',
+    departmentName: departments[0]?.departmentName || '',
+    designation: '',
+    roleId: '',
+    roleName: '',
+    joiningDate: new Date().toISOString().split('T')[0],
+    employmentType: 'full_time' as 'full_time' | 'contract' | 'probation',
+    status: 'Active',
+    username: '',
+    password: '',
+  };
+  const [addForm, setAddForm] = useState(defaultForm);
+
+  const handleAddEmployee = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAddSaving(true);
+    const selectedDept = departments.find((d) => d.id === addForm.departmentId);
+    addEmployee({
+      ...addForm,
+      name: `${addForm.firstName} ${addForm.lastName}`.trim(),
+      departmentName: selectedDept?.departmentName || addForm.departmentId,
+      department: selectedDept?.departmentName || addForm.departmentId,
+      phone: addForm.mobile,
+      joinedDate: addForm.joiningDate,
+      roleName: addForm.roleName || addForm.designation,
+      role: addForm.roleName || addForm.designation,
+    } as Omit<Employee, 'id'>);
+    setAddForm(defaultForm);
+    setShowAddModal(false);
+    setAddSaving(false);
+    alert('Employee profile created successfully!');
+  };
 
   const canViewSensitiveData = currentUser?.role === 'Super Admin' || currentUser?.role === 'HR Manager' || currentUser?.role === 'Admin';
 
@@ -362,6 +404,225 @@ export default function EmployeeMasterPage() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Employee Profile Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-[#EBE3DB] flex items-center justify-between sticky top-0 bg-white z-10">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-pink-500/10 border border-pink-500/20">
+                  <Users className="w-5 h-5 text-pink-500" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-[#211B17]">Add New Employee Profile</h2>
+                  <p className="text-xs text-[#70665F]">Fill in employee details to create their ERP profile</p>
+                </div>
+              </div>
+              <button
+                onClick={() => { setShowAddModal(false); setAddForm(defaultForm); }}
+                className="p-2 hover:bg-[#FAF7F2] rounded-lg text-[#70665F] hover:text-[#211B17] transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddEmployee} className="p-6 space-y-5 text-sm">
+              {/* Personal Details */}
+              <div>
+                <h3 className="text-xs font-bold text-[#70665F] uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <Users className="w-4 h-4 text-pink-400" /> Personal Details
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#544B45] mb-1">First Name *</label>
+                    <input
+                      type="text" required
+                      value={addForm.firstName}
+                      onChange={(e) => setAddForm((f) => ({ ...f, firstName: e.target.value }))}
+                      placeholder="e.g. Mahesh"
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Last Name *</label>
+                    <input
+                      type="text" required
+                      value={addForm.lastName}
+                      onChange={(e) => setAddForm((f) => ({ ...f, lastName: e.target.value }))}
+                      placeholder="e.g. Bariya"
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Gender *</label>
+                    <select
+                      required
+                      value={addForm.gender}
+                      onChange={(e) => setAddForm((f) => ({ ...f, gender: e.target.value as 'male' | 'female' | 'other' }))}
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm"
+                    >
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Date of Birth *</label>
+                    <input
+                      type="date" required
+                      value={addForm.dob}
+                      onChange={(e) => setAddForm((f) => ({ ...f, dob: e.target.value }))}
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Mobile *</label>
+                    <input
+                      type="tel" required
+                      value={addForm.mobile}
+                      onChange={(e) => setAddForm((f) => ({ ...f, mobile: e.target.value }))}
+                      placeholder="+91 98250 00000"
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Email *</label>
+                    <input
+                      type="email" required
+                      value={addForm.email}
+                      onChange={(e) => setAddForm((f) => ({ ...f, email: e.target.value }))}
+                      placeholder="employee@uma.com"
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Address</label>
+                    <input
+                      type="text"
+                      value={addForm.address}
+                      onChange={(e) => setAddForm((f) => ({ ...f, address: e.target.value }))}
+                      placeholder="Residential address"
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Employment Details */}
+              <div>
+                <h3 className="text-xs font-bold text-[#70665F] uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <Briefcase className="w-4 h-4 text-crm-brand-500" /> Employment Details
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Department *</label>
+                    <select
+                      required
+                      value={addForm.departmentId}
+                      onChange={(e) => {
+                        const dept = departments.find((d) => d.id === e.target.value);
+                        setAddForm((f) => ({
+                          ...f,
+                          departmentId: e.target.value,
+                          departmentName: dept?.departmentName || e.target.value,
+                        }));
+                      }}
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm"
+                    >
+                      <option value="">Select Department</option>
+                      {departments.map((d) => (
+                        <option key={d.id} value={d.id}>{d.departmentName || d.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Designation *</label>
+                    <input
+                      type="text" required
+                      value={addForm.designation}
+                      onChange={(e) => setAddForm((f) => ({ ...f, designation: e.target.value, roleName: e.target.value }))}
+                      placeholder="e.g. Senior Welder"
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Joining Date *</label>
+                    <input
+                      type="date" required
+                      value={addForm.joiningDate}
+                      onChange={(e) => setAddForm((f) => ({ ...f, joiningDate: e.target.value }))}
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Employment Type *</label>
+                    <select
+                      required
+                      value={addForm.employmentType}
+                      onChange={(e) => setAddForm((f) => ({ ...f, employmentType: e.target.value as 'full_time' | 'contract' | 'probation' }))}
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm"
+                    >
+                      <option value="full_time">Full Time Permanent</option>
+                      <option value="contract">Contract</option>
+                      <option value="probation">Probation</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Login Credentials */}
+              <div>
+                <h3 className="text-xs font-bold text-[#70665F] uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-indigo-400" /> ERP Login Credentials
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Username *</label>
+                    <input
+                      type="text" required
+                      value={addForm.username}
+                      onChange={(e) => setAddForm((f) => ({ ...f, username: e.target.value }))}
+                      placeholder="e.g. mahesh.bariya"
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Initial Password *</label>
+                    <input
+                      type="password" required
+                      value={addForm.password}
+                      onChange={(e) => setAddForm((f) => ({ ...f, password: e.target.value }))}
+                      placeholder="Minimum 6 characters"
+                      minLength={6}
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end gap-3 pt-2 border-t border-[#EBE3DB]">
+                <button
+                  type="button"
+                  onClick={() => { setShowAddModal(false); setAddForm(defaultForm); }}
+                  className="px-5 py-2 rounded-lg bg-[#FAF7F2] border border-[#EBE3DB] text-[#544B45] font-medium text-sm hover:bg-[#EBE3DB] transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={addSaving}
+                  className="px-5 py-2 rounded-lg bg-pink-600 hover:bg-pink-500 text-white font-bold text-sm shadow-md transition disabled:opacity-60"
+                >
+                  {addSaving ? 'Saving…' : 'Create Employee Profile'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -5,13 +5,13 @@ import { useERP } from '../../../context/ERPContext';
 import { PlayCircle, Plus, CheckCircle2, AlertTriangle, Clock, Activity } from 'lucide-react';
 
 export default function ProductionEntryPage() {
-  const { productionEntries, workOrders, workCenters, recordProductionEntry } = useERP();
+  const { productionEntries, workOrders, workCenters, recordProductionEntry, availableEmployees } = useERP();
   const [showModal, setShowModal] = useState(false);
 
-  const [selectedWo, setSelectedWo] = useState('WO-2026-001-A');
-  const [opName, setOpName] = useState('SAW Welding Main Longitudinal Shell');
-  const [wcName, setWcName] = useState('Heavy Welding Bay (WC-WELD)');
-  const [operator, setOperator] = useState('Mahesh Bariya');
+  const [selectedWo, setSelectedWo] = useState(workOrders[0]?.workOrderNumber || 'WO-2026-001-A');
+  const [opName, setOpName] = useState('');
+  const [wcName, setWcName] = useState(workCenters[0]?.workCenterName || '');
+  const [operator, setOperator] = useState('');
   const [produced, setProduced] = useState<number | string>(1);
   const [rejected, setRejected] = useState<number | string>(0);
   const [rework, setRework] = useState<number | string>(0);
@@ -49,7 +49,15 @@ export default function ProductionEntryPage() {
     });
 
     setShowModal(false);
-    alert(`Production Entry logged successfully! Calculated Good Qty = ${computedGood}`);
+    // Reset all fields for the next entry
+    setOpName('');
+    setProduced(1);
+    setRejected(0);
+    setRework(0);
+    setScrap(0);
+    setDowntime(0);
+    setDowntimeReason('');
+    alert(`Production Entry logged successfully! Good Qty = ${computedGood}`);
   };
 
   return (
@@ -181,14 +189,21 @@ export default function ProductionEntryPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Operator Name</label>
-                  <input
-                    type="text"
+                  <label className="block font-semibold text-[#544B45] mb-1">Operator Name *</label>
+                  <select
                     required
                     value={operator}
                     onChange={(e) => setOperator(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#544B45] focus:outline-none focus:border-lime-500"
-                  />
+                  >
+                    <option value="">Select Operator</option>
+                    {availableEmployees.map((emp) => {
+                      const name = emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim();
+                      return (
+                        <option key={emp.id} value={name}>{name} — {emp.department || emp.departmentName || ''}</option>
+                      );
+                    })}
+                  </select>
                 </div>
               </div>
 
