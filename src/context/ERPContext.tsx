@@ -723,6 +723,8 @@ interface ERPContextType {
   deleteContraEntry: (id: string) => void;
   expenseEntries: ExpenseEntry[];
   addExpenseEntry: (exp: Omit<ExpenseEntry, 'id' | 'expenseNumber'>) => void;
+  updateExpenseEntry: (id: string, exp: Partial<ExpenseEntry>) => void;
+  deleteExpenseEntry: (id: string) => void;
   approveExpenseEntry: (id: string, approvedBy: string) => void;
   bankAccounts: BankAccount[];
   addBankAccount: (bank: Omit<BankAccount, 'id' | 'currentBalance'>) => void;
@@ -1246,6 +1248,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ['journalEntries', setJournalEntries],
         ['contraEntries', setContraEntries],
         ['bankAccounts', setBankAccounts],
+        ['expenseEntries', setExpenseEntries],
       ];
 
       let hasCached = false;
@@ -1335,6 +1338,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           api.accounting.debitNotes.list(),
           api.accounting.contraEntries.list(),
           api.accounting.bankAccounts.list(),
+          api.accounting.expenses.list(),
           api.integration.approvals.list(),
           api.integration.alerts.list(),
           api.auth.me(),
@@ -1516,10 +1520,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         applyLive<DebitNote>(val(results[56]), setDebitNotes, 'debitNotes');
         applyLive<ContraEntry>(val(results[57]), setContraEntries, 'contraEntries');
         applyLive<BankAccount>(val(results[58]), setBankAccounts, 'bankAccounts');
-        applyLive<ApprovalItem>(val(results[59]), setCentralApprovals, 'approvals');
-        applyLive<ERPAlertItem>(val(results[60]), setCentralAlerts, 'alerts');
+        applyLive<ExpenseEntry>(val(results[59]), setExpenseEntries, 'expenseEntries');
+        applyLive<ApprovalItem>(val(results[60]), setCentralApprovals, 'approvals');
+        applyLive<ERPAlertItem>(val(results[61]), setCentralAlerts, 'alerts');
 
-        const meRes = val<any>(results[61]);
+        const meRes = val<any>(results[62]);
         if (meRes && meRes.username) {
           setCurrentUser((prev) => ({
             ...prev,
@@ -4206,13 +4211,54 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addExpenseEntry = (exp: Omit<ExpenseEntry, 'id' | 'expenseNumber'>) => {
     const expenseNumber = `EXP-2026-${String(expenseEntries.length + 1).padStart(4, '0')}`;
     const newExp: ExpenseEntry = { ...exp, id: expenseNumber, expenseNumber };
-    setExpenseEntries((prev) => [newExp, ...prev]);
+    setExpenseEntries((prev) => {
+      const updated = [newExp, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_expenseEntries', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Accounting', 'Expense Entries', newExp.id, `Logged Expense ${newExp.expenseNumber} for ₹${(newExp.grandTotal || newExp.totalAmount || newExp.amount || 0)?.toLocaleString()}`);
+    api.accounting.expenses.create(newExp).then((res) => {
+      if (res && res.id) {
+        setExpenseEntries((prev) => prev.map((e) => (e.id === expenseNumber ? { ...e, ...res } : e)));
+      }
+    }).catch((err) => console.warn('Failed to sync expense entry to backend:', err));
+  };
+
+  const updateExpenseEntry = (id: string, exp: Partial<ExpenseEntry>) => {
+    setExpenseEntries((prev) => {
+      const updated = prev.map((e) => (e.id === id || e.expenseNumber === id ? { ...e, ...exp } : e));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_expenseEntries', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    api.accounting.expenses.update(id, exp).catch((err) => console.warn('Failed to update expense on backend:', err));
+  };
+
+  const deleteExpenseEntry = (id: string) => {
+    setExpenseEntries((prev) => {
+      const updated = prev.filter((e) => e.id !== id && e.expenseNumber !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_expenseEntries', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'Accounting', 'Expense Entries', id, `Deleted Expense Entry ${id}`);
+    api.accounting.expenses.delete(id).catch((err) => console.warn('Failed to delete expense entry on backend:', err));
   };
 
   const approveExpenseEntry = (id: string, approvedBy: string) => {
-    setExpenseEntries((prev) => prev.map((exp) => (exp.id === id || exp.expenseNumber === id ? { ...exp, status: 'Approved', approvedBy } : exp)));
+    setExpenseEntries((prev) => {
+      const updated = prev.map((exp) => (exp.id === id || exp.expenseNumber === id ? { ...exp, status: 'Approved', approvedBy } : exp));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_expenseEntries', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('APPROVE', 'Accounting', 'Expense Entries', id, `Approved Expense Entry ${id} by ${approvedBy}`);
+    api.accounting.expenses.approve(id, approvedBy).catch((err) => console.warn('Failed to approve expense on backend:', err));
   };
 
   const addBankAccount = (bank: Omit<BankAccount, 'id' | 'currentBalance'>) => {
@@ -5267,6 +5313,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         deleteContraEntry,
         expenseEntries,
         addExpenseEntry,
+        updateExpenseEntry,
+        deleteExpenseEntry,
         approveExpenseEntry,
         bankAccounts,
         addBankAccount,

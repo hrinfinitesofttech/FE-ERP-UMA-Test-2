@@ -463,6 +463,14 @@ export const api = {
       update: (id: string, data: any) => request<any>(`/bank-accounts/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: string) => request<any>(`/bank-accounts/${id}/`, { method: 'DELETE' }),
     },
+    expenses: {
+      list: () => request<any[]>('/expenses/'),
+      create: (data: any) => request<any>('/expenses/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/expenses/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/expenses/${id}/`, { method: 'DELETE' }),
+      approve: (id: string, approvedBy?: string) =>
+        request<any>(`/expenses/${id}/approve/`, { method: 'POST', body: JSON.stringify({ approved_by: approvedBy || 'Super Admin' }) }),
+    },
   },
 
   // 360° Traceability & Central Approvals
