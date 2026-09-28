@@ -1823,11 +1823,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const updateCompany = (data: Partial<CompanySetting>) => {
     setCompany((prev) => ({ ...prev, ...data }));
     logAction('UPDATE', 'Company Settings', 'Company Profile', 'COMP-01', 'Updated company profile information');
+    api.company.update(data).catch((err) => console.warn('Failed to update company:', err));
   };
 
   const updateNumbering = (id: string, data: Partial<NumberingSetting>) => {
     setNumbering((prev) => prev.map((n) => (n.id === id ? { ...n, ...data } : n)));
     logAction('UPDATE', 'Settings', 'Numbering Series', id, 'Updated numbering series pattern');
+    api.patch(`/numbering/${id}/`, data).catch((err) => console.warn('Failed to update numbering:', err));
   };
 
   // Department CRUD
@@ -1839,11 +1841,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setDepartments((prev) => [...prev, newDept]);
     logAction('CREATE', 'Department Management', 'Add Department', newDept.id, `Created department ${newDept.name}`);
+    api.departments.create(newDept).catch((err) => console.warn('Failed to add department:', err));
   };
 
   const updateDepartment = (id: string, dept: Partial<Department>) => {
     setDepartments((prev) => prev.map((d) => (d.id === id ? { ...d, ...dept } : d)));
     logAction('UPDATE', 'Department Management', 'Edit Department', id, `Updated department info`);
+    api.departments.update(id, dept).catch((err) => console.warn('Failed to update department:', err));
   };
 
   // Role CRUD
@@ -1854,11 +1858,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setRoles((prev) => [...prev, newRole]);
     logAction('CREATE', 'Role Management', 'Add Role', newRole.id, `Created role ${newRole.name}`);
+    api.roles.create(newRole).catch((err) => console.warn('Failed to add role:', err));
   };
 
   const updateRole = (id: string, role: Partial<Role>) => {
     setRoles((prev) => prev.map((r) => (r.id === id ? { ...r, ...role } : r)));
     logAction('UPDATE', 'Role Management', 'Edit Role', id, `Updated role permissions`);
+    api.roles.update(id, role).catch((err) => console.warn('Failed to update role:', err));
   };
 
   // Employee CRUD
@@ -1869,11 +1875,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setEmployees((prev) => [...prev, newEmp]);
     logAction('CREATE', 'User Management', 'Add Employee', newEmp.id, `Created employee ${newEmp.firstName} ${newEmp.lastName}`);
+    api.employees.create(newEmp).catch((err) => console.warn('Failed to add employee:', err));
   };
 
   const updateEmployee = (id: string, emp: Partial<Employee>) => {
     setEmployees((prev) => prev.map((e) => (e.id === id ? { ...e, ...emp } : e)));
     logAction('UPDATE', 'User Management', 'Edit Employee', id, `Updated employee ${id}`);
+    api.employees.update(id, emp).catch((err) => console.warn('Failed to update employee:', err));
   };
 
   // CRM: Leads
@@ -2090,6 +2098,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const updateOpportunity = (id: string, oppData: Partial<Opportunity>) => {
     setOpportunities((prev) => prev.map((o) => (o.id === id ? { ...o, ...oppData } : o)));
     logAction('UPDATE', 'CRM', 'Opportunities', id, `Updated Opportunity ${id}`);
+    api.crm.opportunities.update(id, oppData).catch((err) => console.warn('Failed to update opportunity on backend:', err));
   };
 
   // Follow-ups & Visits & Exhibitions
@@ -2102,6 +2111,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setFollowUps((prev) => [newFlw, ...prev]);
     logAction('CREATE', 'CRM', 'Follow-ups', flwNo, `Scheduled follow-up for ${newFlw.leadOrCustomerName}`);
+    api.post('/followups/', newFlw).then((res) => { if (res && res.id) setFollowUps((prev) => prev.map((f) => f.id === flwNo ? { ...f, ...res } : f)); }).catch((err) => console.warn('Failed to sync follow-up:', err));
     return newFlw;
   };
 
@@ -2112,6 +2122,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       )
     );
     logAction('UPDATE', 'CRM', 'Follow-ups', id, `Completed follow-up: ${notes}`);
+    api.post(`/followups/${id}/complete/`, { notes, nextDate }).catch((err) => console.warn('Failed to complete follow-up:', err));
   };
 
   const addSiteVisit = (visitData: Omit<SiteVisit, 'id' | 'visitNo'>): SiteVisit => {
@@ -2123,6 +2134,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setSiteVisits((prev) => [newVisit, ...prev]);
     logAction('CREATE', 'CRM', 'Visits', visitNo, `Logged site visit to ${newVisit.customerName}`);
+    api.post('/visits/', newVisit).then((res) => { if (res && res.id) setSiteVisits((prev) => prev.map((v) => v.id === visitNo ? { ...v, ...res } : v)); }).catch((err) => console.warn('Failed to sync visit:', err));
     return newVisit;
   };
 
@@ -2133,6 +2145,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setExhibitions((prev) => [...prev, newExpo]);
     logAction('CREATE', 'CRM', 'Exhibitions', newExpo.id, `Created exhibition entry ${newExpo.expoName}`);
+    api.post('/exhibitions/', newExpo).catch((err) => console.warn('Failed to sync exhibition:', err));
     return newExpo;
   };
 
@@ -2179,6 +2192,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       })
     );
     logAction('UPDATE', 'CRM', 'Quotation Revision', quotationId, `Created revision ${revision.revisionNumber}`);
+    api.crm.quotations.addRevision(quotationId, revision).catch((err) => console.warn('Failed to sync quotation revision:', err));
   };
 
   const updateQuotationStatus = (quotationId: string, revisionNumber: string, status: QuotationRevision['status']) => {
@@ -2566,6 +2580,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setProjectPlanningStages((prev) => [...prev, newStage]);
     logProjectActivity(stageData.projectId, stageData.jobNumber, 'Stage Added', `Added planning stage: ${stageData.stageName}`);
+    api.post('/planning-stages/', newStage).catch((err) => console.warn('Failed to add stage on backend:', err));
     return newStage;
   };
 
@@ -2687,6 +2702,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setProjectMilestones((prev) => [...prev, newMS]);
     logProjectActivity(data.projectId, data.jobNumber, 'Milestone Created', `Milestone ${data.milestoneName} added for ${data.plannedDate}`);
+    api.post('/project-milestones/', newMS).catch((err) => console.warn('Failed to add milestone on backend:', err));
     return newMS;
   };
 
@@ -2714,6 +2730,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       linkUrl: '/projects/issues',
       priority: 'high',
     });
+    api.post('/project-issues/', newIssue).catch((err) => console.warn('Failed to add project issue:', err));
     return newIssue;
   };
 
@@ -2738,6 +2755,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     );
 
     logProjectActivity(data.projectId, data.jobNumber, 'Project Delay Logged', `${data.delayReason} (+${data.delayDays} days delay)`);
+    api.post('/project-delays/', newDelay).catch((err) => console.warn('Failed to add project delay:', err));
     return newDelay;
   };
 
@@ -2873,6 +2891,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newReq: CustomerRequirement = { ...data, id };
     setCustomerRequirements((prev) => [newReq, ...prev]);
     logAction('CREATE', 'Designer', 'Customer Requirements', id, `Added technical requirement sheet for ${data.jobNumber}`);
+    api.post('/customer-requirements/', newReq).catch((err) => console.warn('Failed to add customer requirement:', err));
   };
 
   const approveCustomerRequirement = (id: string, approvedBy: string) => {
@@ -2889,6 +2908,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       )
     );
     logAction('APPROVE', 'Designer', 'Customer Requirements', id, `Approved technical requirement sheet by ${approvedBy}`);
+    api.patch(`/customer-requirements/${id}/`, { status: 'approved', approvedBy }).catch((err) => console.warn('Failed to approve requirement:', err));
   };
 
   const addDesignTask = (data: Omit<DesignTask, 'id'>) => {
@@ -2907,6 +2927,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newDrw: Drawing2D = { ...data, id, createdDate: new Date().toISOString().split('T')[0] };
     setDrawings2D((prev) => [newDrw, ...prev]);
     logAction('CREATE', 'Designer', '2D Drawings', id, `Uploaded 2D Drawing ${data.drawingNumber}`);
+    api.post('/drawings-2d/', newDrw).catch((err) => console.warn('Failed to add 2D drawing:', err));
   };
 
   const addDesign3D = (data: Omit<Design3DModel, 'id' | 'uploadedDate'>) => {
@@ -2914,6 +2935,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newMod: Design3DModel = { ...data, id, uploadedDate: new Date().toISOString().split('T')[0] };
     setDesigns3D((prev) => [newMod, ...prev]);
     logAction('CREATE', 'Designer', '3D Models', id, `Uploaded 3D Model ${data.modelName}`);
+    api.post('/models-3d/', newMod).catch((err) => console.warn('Failed to add 3D model:', err));
   };
 
   const addAssemblyDrawing = (data: Omit<AssemblyDrawing, 'id'>) => {
@@ -2959,6 +2981,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           : b
       )
     );
+    api.designer.boms.update(id, updates).catch((err) => console.warn('Failed to update BOM on backend:', err));
   };
 
   const addBOMRevision = (data: Omit<BOMRevision, 'id' | 'changedDate'>) => {
@@ -2987,6 +3010,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newDoc: TechnicalDocumentItem = { ...data, id, uploadDate: new Date().toISOString().split('T')[0] };
     setTechnicalDocuments((prev) => [newDoc, ...prev]);
     logAction('CREATE', 'Designer', 'Technical Documents', id, `Uploaded Technical Document ${data.documentName}`);
+    api.post('/technical-documents/', newDoc).catch((err) => console.warn('Failed to add tech doc:', err));
   };
 
   const releaseDesignToManufacturing = (designJobId: string, releasedBy: string) => {
@@ -3044,6 +3068,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const id = `SCON-${Date.now().toString().slice(-5)}`;
     const newCon: SupplierContact = { ...data, id };
     setSupplierContacts((prev) => [newCon, ...prev]);
+    api.post('/supplier-contacts/', newCon).catch((err) => console.warn('Failed to add supplier contact:', err));
   };
 
   const addMaterialRequirement = (data: Omit<MaterialRequirement, 'id'>) => {
@@ -3102,6 +3127,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setRfqs((prev) => [newRfq, ...prev]);
     logAction('CREATE', 'Purchase', 'RFQ', newRfq.id, `Generated RFQ ${newRfq.rfqNumber} to suppliers`);
+    api.post('/rfqs/', newRfq).catch((err) => console.warn('Failed to add RFQ:', err));
   };
 
   const addSupplierQuotation = (data: Omit<SupplierQuotation, 'id'>) => {
@@ -3109,6 +3135,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newSq: SupplierQuotation = { ...data, id };
     setSupplierQuotations((prev) => [newSq, ...prev]);
     logAction('CREATE', 'Purchase', 'Supplier Quotations', id, `Recorded Quotation ${data.supplierQuotationNumber} from ${data.supplierName}`);
+    api.post('/supplier-quotations/', newSq).catch((err) => console.warn('Failed to add supplier quotation:', err));
   };
 
   const addQuotationComparison = (data: Omit<QuotationComparison, 'id' | 'comparisonDate'>) => {
@@ -3120,6 +3147,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setQuotationComparisons((prev) => [newComp, ...prev]);
     logAction('CREATE', 'Purchase', 'Quotation Comparison', id, `Created comparison matrix for RFQ ${data.rfqNumber}`);
+    api.post('/quotation-comparisons/', newComp).catch((err) => console.warn('Failed to add quotation comparison:', err));
   };
 
   const approveQuotationComparison = (id: string, approvedBy: string) => {
@@ -3128,6 +3156,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         c.id === id ? { ...c, approvalStatus: 'approved', approvedBy } : c
       )
     );
+    api.patch(`/quotation-comparisons/${id}/`, { approvalStatus: 'approved', approvedBy }).catch((err) => console.warn('Failed to approve comparison:', err));
   };
 
   const addPurchaseOrder = (data: Omit<PurchaseOrder, 'id' | 'poDate'>) => {
@@ -3181,6 +3210,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           : p
       )
     );
+    api.purchase.orders.update(id, { status: 'approved' }).catch((err) => console.warn('Failed to approve PO on backend:', err));
 
     const jobKey = targetPo.jobNumber || targetPo.jobId || '';
     if (jobKey) {
@@ -3227,6 +3257,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setPurchaseReturns((prev) => [newRet, ...prev]);
     logAction('CREATE', 'Purchase', 'Purchase Returns', newRet.id, `Recorded return ${newRet.returnNumber} for ${data.supplierName}`);
+    api.post('/purchase-returns/', newRet).catch((err) => console.warn('Failed to add purchase return:', err));
   };
 
   // Module 5: Store Management Handlers
@@ -3255,6 +3286,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newCat: ItemCategory = { ...data, id };
     setItemCategories((prev) => [...prev, newCat]);
     logAction('CREATE', 'Store', 'Categories', id, `Added Category ${data.categoryName}`);
+    api.post('/item-categories/', newCat).catch((err) => console.warn('Failed to add category:', err));
   };
 
   const addUOM = (data: Omit<UOMMaster, 'id'>) => {
@@ -3262,6 +3294,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newUom: UOMMaster = { ...data, id };
     setUoms((prev) => [...prev, newUom]);
     logAction('CREATE', 'Store', 'UOM Master', id, `Added UOM ${data.uomCode}`);
+    api.post('/uoms/', newUom).catch((err) => console.warn('Failed to add UOM:', err));
   };
 
   const addWarehouse = (data: Omit<Warehouse, 'id'>) => {
@@ -3269,16 +3302,19 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newWh: Warehouse = { ...data, id };
     setWarehouses((prev) => [...prev, newWh]);
     logAction('CREATE', 'Store', 'Warehouse Master', id, `Added Warehouse ${data.warehouseName}`);
+    api.store.warehouses.create(newWh).catch((err) => console.warn('Failed to add warehouse:', err));
   };
 
   const updateWarehouse = (id: string, updates: Partial<Warehouse>) => {
     setWarehouses((prev) => prev.map((w) => (w.id === id ? { ...w, ...updates } : w)));
+    api.store.warehouses.update(id, updates).catch((err) => console.warn('Failed to update warehouse:', err));
   };
 
   const addWarehouseLocation = (data: Omit<WarehouseLocation, 'id'>) => {
     const id = `LOC-${String(warehouseLocations.length + 1).padStart(3, '0')}`;
     const newLoc: WarehouseLocation = { ...data, id };
     setWarehouseLocations((prev) => [...prev, newLoc]);
+    api.post('/warehouse-locations/', newLoc).catch((err) => console.warn('Failed to add warehouse location:', err));
   };
 
   const addOpeningStock = (data: Omit<OpeningStock, 'id'>) => {
@@ -3348,6 +3384,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const inspectionNumber = `QC-${new Date().getFullYear()}-${String(qcInspections.length + 1).padStart(4, '0')}`;
     const newQc: QCInspection = { ...data, id: inspectionNumber, inspectionNumber };
     setQcInspections((prev) => [newQc, ...prev]);
+    api.post('/qc-inspections/', newQc).catch((err) => console.warn('Failed to add QC inspection:', err));
   };
 
   const approveQCInspection = (id: string, inspectorName: string, qcResult: 'Pass' | 'Fail' | 'Conditional Approval', acceptedQty: number, rejectedQty: number) => {
@@ -3379,6 +3416,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setStockReservations((prev) => [newRes, ...prev]);
     logAction('CREATE', 'Store', 'Stock Reservation', newRes.id, `Reserved ${data.reservedQuantity} ${data.itemName} for ${data.jobId}`);
+    api.post('/stock-reservations/', newRes).catch((err) => console.warn('Failed to add reservation:', err));
   };
 
   const releaseStockReservation = (id: string) => {
@@ -3401,6 +3439,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
 
     logAction('CREATE', 'Store', 'Material Issue', newIssue.id, `Issued material slip ${newIssue.issueNumber} for Job ${newIssue.jobId}`);
+    api.post('/material-issues/', newIssue).catch((err) => console.warn('Failed to add material issue:', err));
   };
 
   const addMaterialReturn = (data: Omit<MaterialReturn, 'id' | 'returnNumber' | 'createdAt'>) => {
@@ -3413,6 +3452,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setMaterialReturns((prev) => [newRet, ...prev]);
     logAction('CREATE', 'Store', 'Material Return', newRet.id, `Returned material ${newRet.returnNumber} from Job ${newRet.jobId}`);
+    api.post('/material-returns/', newRet).catch((err) => console.warn('Failed to add material return:', err));
   };
 
   const addStockTransfer = (data: Omit<StockTransfer, 'id' | 'transferNumber' | 'createdAt'>) => {
@@ -3449,6 +3489,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setScrapEntries((prev) => [newScrap, ...prev]);
     logAction('CREATE', 'Store', 'Scrap Entry', newScrap.id, `Added scrap entry ${newScrap.scrapNumber}`);
+    api.post('/scrap/', newScrap).catch((err) => console.warn('Failed to add scrap entry:', err));
   };
 
   const addPhysicalStockCount = (data: Omit<PhysicalStockCount, 'id' | 'countNumber'>) => {
@@ -3473,6 +3514,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setManufacturingJobs((prev) => [newJob, ...prev]);
     logAction('CREATE', 'Production', 'Manufacturing Jobs', newJob.id, `Created manufacturing job ${newJob.jobNumber}`);
+    api.post('/manufacturing-jobs/', newJob).catch((err) => console.warn('Failed to add mfg job:', err));
   };
 
   const updateManufacturingJob = (id: string, updates: Partial<ManufacturingJob>) => {
@@ -3489,6 +3531,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setProductionPlans((prev) => [newPlan, ...prev]);
     logAction('CREATE', 'Production', 'Production Planning', newPlan.id, `Created production plan ${newPlan.planNumber} for Job ${newPlan.jobNumber}`);
+    api.post('/production-plans/', newPlan).catch((err) => console.warn('Failed to add production plan:', err));
   };
 
   const addWorkOrder = (data: Omit<WorkOrder, 'id' | 'workOrderNumber' | 'createdAt'>) => {
@@ -3529,6 +3572,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setProductionOrders((prev) => [newPo, ...prev]);
     logAction('CREATE', 'Production', 'Production Orders', newPo.id, `Created Production Order ${newPo.productionOrderNumber}`);
+    api.post('/production-orders/', newPo).catch((err) => console.warn('Failed to add production order:', err));
   };
 
   const addRoutingOperation = (op: Omit<RoutingOperation, 'id'>) => {
@@ -3542,16 +3586,19 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newWc: WorkCenter = { ...wc, id };
     setWorkCenters((prev) => [...prev, newWc]);
     logAction('CREATE', 'Production', 'Work Centers', newWc.id, `Created Work Center ${newWc.workCenterCode}`);
+    api.post('/work-centers/', newWc).catch((err) => console.warn('Failed to add work center:', err));
   };
 
   const updateWorkCenter = (id: string, updates: Partial<WorkCenter>) => {
     setWorkCenters((prev) => prev.map((w) => (w.id === id || w.workCenterCode === id ? { ...w, ...updates } : w)));
+    api.patch(`/work-centers/${id}/`, updates).catch((err) => console.warn('Failed to update work center:', err));
   };
 
   const addProductionSchedule = (sch: Omit<ProductionScheduleItem, 'id'>) => {
     const id = `SCH-${Date.now().toString().slice(-6)}`;
     const newSch: ProductionScheduleItem = { ...sch, id };
     setProductionSchedules((prev) => [newSch, ...prev]);
+    api.post('/production-schedules/', newSch).catch((err) => console.warn('Failed to add production schedule:', err));
   };
 
   const recordProductionEntry = (data: Omit<ProductionEntry, 'id' | 'productionEntryNumber' | 'goodQuantity'>) => {
@@ -3619,6 +3666,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setFinishedGoods((prev) => [newFg, ...prev]);
     logAction('CREATE', 'Production', 'Finished Goods', newFg.id, `Transferred ${newFg.productName} to Finished Goods Warehouse (${newFg.warehouseName})`);
+    api.post('/finished-goods/', newFg).catch((err) => console.warn('Failed to add finished goods:', err));
   };
 
   // Traceability Modal Helpers
@@ -3667,6 +3715,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newAcc: ChartOfAccount = { ...account, id, currentBalance: account.openingBalance };
     setChartOfAccounts((prev) => [...prev, newAcc]);
     logAction('CREATE', 'Accounting', 'Chart of Accounts', id, `Added Account ${account.accountCode} - ${account.accountName}`);
+    api.post('/chart-of-accounts/', newAcc).catch((err) => console.warn('Failed to add COA:', err));
   };
 
   const addAccountGroup = (group: Omit<AccountGroup, 'id'>) => {
@@ -3681,6 +3730,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newTax: TaxMaster = { ...tax, id };
     setTaxMasters((prev) => [...prev, newTax]);
     logAction('CREATE', 'Accounting', 'Tax Master', id, `Added Tax ${tax.taxCode} (${tax.rate}%)`);
+    api.post('/taxes/', newTax).catch((err) => console.warn('Failed to add tax:', err));
   };
 
   const addTDSMaster = (tds: Omit<TDSMaster, 'id'>) => {
@@ -3695,6 +3745,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newCC: CostCenter = { ...cc, id };
     setCostCenters((prev) => [...prev, newCC]);
     logAction('CREATE', 'Accounting', 'Cost Centers', id, `Added Cost Center ${cc.costCenterCode}`);
+    api.post('/cost-centers/', newCC).catch((err) => console.warn('Failed to add cost center:', err));
   };
 
   const addSalesInvoice = (inv: Omit<SalesInvoice, 'id' | 'invoiceNumber' | 'createdAt'>) => {
@@ -3707,6 +3758,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setSalesInvoices((prev) => [newInv, ...prev]);
     logAction('CREATE', 'Accounting', 'Sales Invoices', newInv.id, `Generated Sales Invoice ${newInv.invoiceNumber} for ₹${newInv.grandTotal?.toLocaleString()}`);
+    api.accounting.salesInvoices.create(newInv).catch((err) => console.warn('Failed to add sales invoice:', err));
   };
 
   const approveSalesInvoice = (id: string) => {
@@ -3724,6 +3776,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setPurchaseInvoices((prev) => [newInv, ...prev]);
     logAction('CREATE', 'Accounting', 'Purchase Invoices', newInv.id, `Created Purchase Invoice ${newInv.invoiceNumber} for ₹${newInv.grandTotal?.toLocaleString()}`);
+    api.accounting.purchaseInvoices.create(newInv).catch((err) => console.warn('Failed to add purchase invoice:', err));
   };
 
   const postPurchaseInvoice = (id: string) => {
@@ -3750,6 +3803,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newRec: CustomerReceipt = { ...rec, id: receiptNumber, receiptNumber };
     setCustomerReceipts((prev) => [newRec, ...prev]);
     logAction('CREATE', 'Accounting', 'Customer Receipts', newRec.id, `Recorded Receipt ${newRec.receiptNumber} from ${newRec.customerName} (₹${(newRec.amountPaid ?? 0)?.toLocaleString()})`);
+    api.post('/customer-receipts/', newRec).catch((err) => console.warn('Failed to add customer receipt:', err));
   };
 
   const addSupplierPayment = (pay: Omit<SupplierPayment, 'id' | 'paymentNumber'>) => {
@@ -3757,6 +3811,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newPay: SupplierPayment = { ...pay, id: paymentNumber, paymentNumber };
     setSupplierPayments((prev) => [newPay, ...prev]);
     logAction('CREATE', 'Accounting', 'Supplier Payments', newPay.id, `Recorded Payment ${newPay.paymentNumber} to ${newPay.supplierName} (₹${(newPay.amountPaid ?? 0)?.toLocaleString()})`);
+    api.post('/supplier-payments/', newPay).catch((err) => console.warn('Failed to add supplier payment:', err));
   };
 
   const addJournalEntry = (jv: Omit<JournalEntry, 'id' | 'journalNumber'>) => {
@@ -3764,6 +3819,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newJV: JournalEntry = { ...jv, id: journalNumber, journalNumber };
     setJournalEntries((prev) => [newJV, ...prev]);
     logAction('CREATE', 'Accounting', 'Journal Entries', newJV.id, `Created JV ${newJV.journalNumber}: Debit ₹${newJV.totalDebit?.toLocaleString()} = Credit ₹${newJV.totalCredit?.toLocaleString()}`);
+    api.post('/journal-entries/', newJV).catch((err) => console.warn('Failed to add journal entry:', err));
   };
 
   const addContraEntry = (contra: Omit<ContraEntry, 'id' | 'contraNumber'>) => {
@@ -3855,11 +3911,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newAsset: InternalAsset = { ...asset, id: newId };
     setInternalAssets((prev) => [newAsset, ...prev]);
     logAction('CREATE', 'maintenance', 'assets', newId, `Created asset ${newAsset.assetName}`);
+    api.post('/internal-assets/', newAsset).catch((err) => console.warn('Failed to add internal asset:', err));
   };
 
   const updateInternalAsset = (id: string, assetData: Partial<InternalAsset>) => {
     setInternalAssets((prev) => prev.map((a) => (a.id === id ? { ...a, ...assetData } : a)));
     logAction('UPDATE', 'maintenance', 'assets', id, `Updated asset ${id}`);
+    api.patch(`/internal-assets/${id}/`, assetData).catch((err) => console.warn('Failed to update internal asset:', err));
   };
 
   const addCustomerMachine = (cm: Omit<CustomerMachine, 'id'>) => {
@@ -3867,6 +3925,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newMachine: CustomerMachine = { ...cm, id: newId };
     setCustomerMachines((prev) => [newMachine, ...prev]);
     logAction('CREATE', 'maintenance', 'customer-machines', newId, `Registered customer machine ${newMachine.machineName}`);
+    api.post('/customer-machines/', newMachine).catch((err) => console.warn('Failed to add customer machine:', err));
   };
 
   const updateCustomerMachine = (id: string, cmData: Partial<CustomerMachine>) => {
@@ -3892,6 +3951,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       department: 'maintenance',
       priority: newSr.priority === 'Critical' ? 'high' : 'normal',
     });
+    api.maintenance.serviceRequests.create(newSr).catch((err) => console.warn('Failed to add service request:', err));
     return newSr;
   };
 
@@ -3926,6 +3986,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         priority: 'high',
       });
     }
+    api.post('/breakdowns/', newBd).catch((err) => console.warn('Failed to add breakdown:', err));
   };
 
   const updateBreakdownStatus = (id: string, status: BreakdownRecord['status'], remarks?: string) => {
@@ -3940,6 +4001,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newPlan: PreventiveMaintenancePlan = { ...plan, id: planNo, planNumber: planNo };
     setPreventivePlans((prev) => [newPlan, ...prev]);
     logAction('CREATE', 'maintenance', 'preventive', planNo, `Created PM plan ${planNo}`);
+    api.post('/pm-plans/', newPlan).catch((err) => console.warn('Failed to add PM plan:', err));
   };
 
   const addServiceVisit = (visit: Omit<ServiceVisit, 'id' | 'visitNumber'>) => {
@@ -3947,6 +4009,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newVisit: ServiceVisit = { ...visit, id: vNo, visitNumber: vNo };
     setServiceVisits((prev) => [newVisit, ...prev]);
     logAction('CREATE', 'maintenance', 'service-visits', vNo, `Created service visit ${vNo}`);
+    api.post('/service-visits/', newVisit).catch((err) => console.warn('Failed to add service visit:', err));
   };
 
   const updateServiceVisitStatus = (id: string, status: ServiceVisitStatus) => {
@@ -3997,6 +4060,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newAmc: AMCContract = { ...amc, id: amcNo, amcNumber: amcNo };
     setAmcContracts((prev) => [newAmc, ...prev]);
     logAction('CREATE', 'maintenance', 'amc', amcNo, `Created AMC ${amcNo}`);
+    api.post('/amc-contracts/', newAmc).catch((err) => console.warn('Failed to add AMC contract:', err));
   };
 
   const addDowntimeRecord = (dt: Omit<DowntimeRecord, 'id' | 'downtimeNumber'>) => {
@@ -4052,6 +4116,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newDesg = { ...desg, id: newId };
     setDesignations((prev) => [...prev, newDesg]);
     logAction('CREATE', 'hr', 'designations', newId, `Created Designation ${desg.designationName}`);
+    api.post('/designations/', newDesg).catch((err) => console.warn('Failed to add designation:', err));
   };
   const updateDesignation = (id: string, desg: Partial<Designation>) => {
     setDesignations((prev) => prev.map((d) => (d.id === id ? { ...d, ...desg } : d)));
@@ -4063,6 +4128,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newDoc = { ...doc, id: newId };
     setEmployeeDocuments((prev) => [newDoc, ...prev]);
     logAction('CREATE', 'hr', 'employee-documents', newId, `Uploaded document for ${doc.employeeName}`);
+    api.post('/employee-documents/', newDoc).catch((err) => console.warn('Failed to add document:', err));
   };
   const updateEmployeeDocumentStatus = (id: string, status: 'Verified' | 'Pending' | 'Rejected', verifiedBy?: string, remarks?: string) => {
     setEmployeeDocuments((prev) =>
@@ -4150,6 +4216,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newShift = { ...shift, id: newId };
     setShiftMasters((prev) => [...prev, newShift]);
     logAction('CREATE', 'hr', 'shift-management', newId, `Created Shift ${shift.shiftName}`);
+    api.post('/shifts/', newShift).catch((err) => console.warn('Failed to add shift:', err));
   };
   const updateShiftMaster = (id: string, shift: Partial<ShiftMaster>) => {
     setShiftMasters((prev) => prev.map((s) => (s.id === id ? { ...s, ...shift } : s)));
@@ -4199,6 +4266,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setLeaveRequests((prev) => [newReq, ...prev]);
     logAction('CREATE', 'hr', 'leave-management', lNo, `Applied for leave ${req.leaveName} by ${req.employeeName}`);
+    api.hr.leaves.create(newReq).catch((err) => console.warn('Failed to add leave request:', err));
   };
   const updateLeaveRequestStatus = (id: string, status: LeaveApprovalStatus, approvedBy?: string) => {
     setLeaveRequests((prev) =>
@@ -4209,6 +4277,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       )
     );
     logAction('UPDATE', 'hr', 'leave-approvals', id, `Leave request status updated to ${status}`);
+    api.patch(`/leave-requests/${id}/`, { status, approvedBy }).catch((err) => console.warn('Failed to update leave request:', err));
   };
 
   const addWFHRequest = (req: Omit<WFHRequest, 'id' | 'wfhNumber' | 'status'>) => {
@@ -4216,6 +4285,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newReq: WFHRequest = { ...req, id: wNo, wfhNumber: wNo, status: 'Pending' };
     setWFHRequests((prev) => [newReq, ...prev]);
     logAction('CREATE', 'hr', 'wfh-remote', wNo, `Applied for WFH by ${req.employeeName}`);
+    api.post('/wfh-requests/', newReq).catch((err) => console.warn('Failed to add WFH request:', err));
   };
   const updateWFHRequestStatus = (id: string, status: LeaveApprovalStatus) => {
     setWFHRequests((prev) => prev.map((w) => (w.id === id || w.wfhNumber === id ? { ...w, status } : w)));
@@ -4227,6 +4297,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newReq: MissedPunchRequest = { ...req, id: rNo, requestNumber: rNo, status: 'Pending' };
     setMissedPunchRequests((prev) => [newReq, ...prev]);
     logAction('CREATE', 'hr', 'missed-punch', rNo, `Submitted Missed Punch request for ${req.employeeName}`);
+    api.post('/missed-punches/', newReq).catch((err) => console.warn('Failed to add missed punch:', err));
   };
   const updateMissedPunchStatus = (id: string, status: LeaveApprovalStatus) => {
     setMissedPunchRequests((prev) => prev.map((m) => (m.id === id || m.requestNumber === id ? { ...m, status } : m)));
@@ -4238,6 +4309,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newReg: AttendanceRegularization = { ...reg, id: regNo, regularizationNo: regNo, status: 'Pending' };
     setAttendanceRegularizations((prev) => [newReg, ...prev]);
     logAction('CREATE', 'hr', 'attendance-regularization', regNo, `Submitted Regularization for ${reg.employeeName}`);
+    api.post('/regularizations/', newReg).catch((err) => console.warn('Failed to add regularization:', err));
   };
   const updateAttendanceRegularizationStatus = (id: string, status: LeaveApprovalStatus) => {
     setAttendanceRegularizations((prev) => prev.map((r) => (r.id === id || r.regularizationNo === id ? { ...r, status } : r)));
@@ -4249,6 +4321,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newOt: OvertimeRecord = { ...ot, id: otNo, overtimeNo: otNo, status: 'Pending' };
     setOvertimeRecords((prev) => [newOt, ...prev]);
     logAction('CREATE', 'hr', 'overtime', otNo, `Logged overtime ${ot.overtimeHours} hrs for ${ot.employeeName}`);
+    api.post('/overtime-records/', newOt).catch((err) => console.warn('Failed to add overtime record:', err));
   };
   const updateOvertimeStatus = (id: string, status: OvertimeRecord['status']) => {
     setOvertimeRecords((prev) => prev.map((o) => (o.id === id || o.overtimeNo === id ? { ...o, status } : o)));
@@ -4271,6 +4344,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newComp = { ...comp, id: newId };
     setSalaryComponents((prev) => [...prev, newComp]);
     logAction('CREATE', 'hr', 'salary-components', newId, `Added Salary Component ${comp.componentName}`);
+    api.post('/salary-components/', newComp).catch((err) => console.warn('Failed to add salary component:', err));
   };
   const updateSalaryComponent = (id: string, comp: Partial<SalaryComponent>) => {
     setSalaryComponents((prev) => prev.map((c) => (c.id === id ? { ...c, ...comp } : c)));
@@ -4282,6 +4356,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newSal = { ...sal, id: newId };
     setSalaryStructures((prev) => [...prev, newSal]);
     logAction('CREATE', 'hr', 'salary-structure', newId, `Created Salary Structure for ${sal.employeeName}`);
+    api.post('/salary-structures/', newSal).catch((err) => console.warn('Failed to add salary structure:', err));
   };
   const updateSalaryStructure = (id: string, sal: Partial<SalaryStructure>) => {
     setSalaryStructures((prev) => prev.map((s) => (s.id === id ? { ...s, ...sal } : s)));
@@ -4340,6 +4415,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newLoan: EmployeeAdvanceLoan = { ...loan, id: lNo, loanNumber: lNo, status: 'Active' };
     setEmployeeAdvanceLoans((prev) => [newLoan, ...prev]);
     logAction('CREATE', 'hr', 'advances-loans', lNo, `Sanctioned advance/loan ${lNo} for ${loan.employeeName}`);
+    api.post('/advance-loans/', newLoan).catch((err) => console.warn('Failed to add advance loan:', err));
   };
   const updateEmployeeAdvanceLoan = (id: string, loan: Partial<EmployeeAdvanceLoan>) => {
     setEmployeeAdvanceLoans((prev) => prev.map((l) => (l.id === id || l.loanNumber === id ? { ...l, ...loan } : l)));
@@ -4351,6 +4427,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newExp: ReimbursementExpense = { ...exp, id: rNo, reimbursementNo: rNo, status: 'Pending Manager' };
     setReimbursementExpenses((prev) => [newExp, ...prev]);
     logAction('CREATE', 'hr', 'reimbursements', rNo, `Submitted expense ${rNo} by ${exp.employeeName}`);
+    api.post('/reimbursements/', newExp).catch((err) => console.warn('Failed to add reimbursement:', err));
   };
   const updateReimbursementStatus = (id: string, status: ReimbursementExpense['status'], approvedBy?: string) => {
     setReimbursementExpenses((prev) =>
