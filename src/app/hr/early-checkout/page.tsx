@@ -97,12 +97,20 @@ export default function EarlyCheckoutPage() {
                   </td>
                   <td className="p-4 text-right">
                     {req.status === 'Pending' && (
-                      <button
-                        onClick={() => updateEarlyCheckoutStatus(req.id, 'Approved')}
-                        className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] text-xs font-semibold rounded shadow transition"
-                      >
-                        Approve Gate Pass
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => updateEarlyCheckoutStatus(req.id, 'Approved')}
+                          className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded shadow transition"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => updateEarlyCheckoutStatus(req.id, 'Rejected')}
+                          className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded shadow transition"
+                        >
+                          Reject
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>

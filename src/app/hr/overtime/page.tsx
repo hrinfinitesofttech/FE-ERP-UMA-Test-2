@@ -533,27 +533,40 @@ export default function OvertimeManagementPage() {
                           <Eye className="w-4 h-4" />
                         </button>
 
-                        {/* Approve Button (if pending) */}
-                        {ot.status === 'Pending' && (
-                          <button
-                            onClick={() => handleApprove(ot.id, ot.overtimeNo)}
-                            title="Approve OT"
-                            className="flex items-center gap-1 px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded shadow-sm transition"
-                          >
-                            <Check className="w-3 h-3" /> Approve
-                          </button>
-                        )}
-
-                        {/* Reject Button (if pending) */}
-                        {ot.status === 'Pending' && (
+                        {ot.status === 'Pending' ? (
+                          <>
+                            <button
+                              onClick={() => handleApprove(ot.id, ot.overtimeNo)}
+                              title="Approve OT"
+                              className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition"
+                            >
+                              <Check className="w-3.5 h-3.5" /> Approve
+                            </button>
+                            <button
+                              onClick={() => handleOpenRejectModal(ot)}
+                              title="Reject OT"
+                              className="flex items-center gap-1 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg shadow-sm transition"
+                            >
+                              <X className="w-3.5 h-3.5" /> Reject
+                            </button>
+                          </>
+                        ) : ot.status === 'Approved' ? (
                           <button
                             onClick={() => handleOpenRejectModal(ot)}
-                            title="Reject OT"
-                            className="flex items-center gap-1 px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold rounded transition"
+                            title="Reject this approved overtime"
+                            className="flex items-center gap-1 px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold rounded-lg transition"
                           >
-                            <X className="w-3 h-3" /> Reject
+                            <X className="w-3.5 h-3.5" /> Reject
                           </button>
-                        )}
+                        ) : ot.status === 'Rejected' ? (
+                          <button
+                            onClick={() => handleApprove(ot.id, ot.overtimeNo)}
+                            title="Re-Approve overtime"
+                            className="flex items-center gap-1 px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold rounded-lg transition"
+                          >
+                            <Check className="w-3.5 h-3.5" /> Re-Approve
+                          </button>
+                        ) : null}
 
                         {/* Edit Button */}
                         <button

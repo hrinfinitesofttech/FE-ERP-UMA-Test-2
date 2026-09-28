@@ -69,7 +69,7 @@ const DEFAULT_LEAVE_TYPES: LeaveType[] = [
 ];
 
 export default function LeaveManagementPage() {
-  const { leaveTypes = [], leaveRequests = [], addLeaveRequest, addLeaveType, availableEmployees = [] } = useERP();
+  const { leaveTypes = [], leaveRequests = [], addLeaveRequest, updateLeaveRequestStatus, addLeaveType, availableEmployees = [], currentUser } = useERP();
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [showAddTypeModal, setShowAddTypeModal] = useState(false);
 
@@ -246,12 +246,13 @@ export default function LeaveManagementPage() {
                 <th className="p-3.5 px-4">Dates & Duration</th>
                 <th className="p-3.5 px-4">Reason</th>
                 <th className="p-3.5 px-4 text-center">Status</th>
+                <th className="p-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB] text-[#3E2723]">
               {leaveRequests.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-[#70665F]">
+                  <td colSpan={7} className="p-8 text-center text-[#70665F]">
                     No leave applications found. Click &quot;Apply for Leave&quot; above to submit one.
                   </td>
                 </tr>
@@ -288,6 +289,28 @@ export default function LeaveManagementPage() {
                       >
                         {req.status}
                       </span>
+                    </td>
+                    <td className="p-3.5 px-4 text-right">
+                      {req.status === 'Pending' ? (
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => updateLeaveRequestStatus(req.id, 'Approved', currentUser?.name || 'HR Admin')}
+                            title="Approve Leave"
+                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-semibold rounded-lg shadow-sm transition"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => updateLeaveRequestStatus(req.id, 'Rejected', currentUser?.name || 'HR Admin')}
+                            title="Reject Leave"
+                            className="px-2.5 py-1 bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-semibold rounded-lg shadow-sm transition"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-[11px] text-[#70665F] italic">Completed</span>
+                      )}
                     </td>
                   </tr>
                 ))

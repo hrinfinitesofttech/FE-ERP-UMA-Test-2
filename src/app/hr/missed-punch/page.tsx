@@ -330,25 +330,43 @@ export default function MissedPunchPage() {
                     </td>
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        {req.status === 'Pending' && (
+                        {req.status === 'Pending' ? (
                           <>
                             <button
                               onClick={() => updateMissedPunchStatus(req.id, 'Approved')}
                               title="Approve Punch"
-                              className="flex items-center gap-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-semibold rounded-lg shadow-sm transition cursor-pointer"
+                              className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-sm transition cursor-pointer"
                             >
-                              <CheckCircle2 className="w-3 h-3" />
+                              <CheckCircle2 className="w-3.5 h-3.5" />
                               Approve
                             </button>
                             <button
                               onClick={() => handleOpenRejectModal(req)}
                               title="Reject Request"
-                              className="flex items-center gap-1 px-2.5 py-1 bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-semibold rounded-lg shadow-sm transition cursor-pointer"
+                              className="flex items-center gap-1 px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-lg shadow-sm transition cursor-pointer"
                             >
-                              <XCircle className="w-3 h-3" />
+                              <XCircle className="w-3.5 h-3.5" />
                               Reject
                             </button>
                           </>
+                        ) : req.status === 'Approved' ? (
+                          <button
+                            onClick={() => handleOpenRejectModal(req)}
+                            title="Reject this approved punch"
+                            className="flex items-center gap-1 px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold rounded-lg transition cursor-pointer"
+                          >
+                            <XCircle className="w-3.5 h-3.5" />
+                            Reject
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => updateMissedPunchStatus(req.id, 'Approved')}
+                            title="Re-Approve punch"
+                            className="flex items-center gap-1 px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold rounded-lg transition cursor-pointer"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            Re-Approve
+                          </button>
                         )}
                         <button
                           onClick={() => handleOpenEditModal(req)}

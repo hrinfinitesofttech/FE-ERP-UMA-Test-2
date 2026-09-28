@@ -99,12 +99,20 @@ export default function ReimbursementsPage() {
                   </td>
                   <td className="p-4 text-right">
                     {exp.status === 'Pending Manager' && (
-                      <button
-                        onClick={() => updateReimbursementStatus(exp.id, 'Approved', 'Sanjay Shah (HOD)')}
-                        className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] text-xs font-semibold rounded shadow transition"
-                      >
-                        Approve Expense
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => updateReimbursementStatus(exp.id, 'Approved', 'Sanjay Shah (HOD)')}
+                          className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded shadow transition"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => updateReimbursementStatus(exp.id, 'Rejected' as any, 'Sanjay Shah (HOD)')}
+                          className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded shadow transition"
+                        >
+                          Reject
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>
