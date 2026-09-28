@@ -871,8 +871,10 @@ interface ERPContextType {
   kpiMasters: KPIMaster[];
   addKPIMaster: (kpi: Omit<KPIMaster, 'id'>) => void;
   employeeAppraisals: EmployeeAppraisal[];
-  addEmployeeAppraisal: (app: Omit<EmployeeAppraisal, 'id' | 'appraisalNumber' | 'status'>) => void;
-  updateAppraisalStatus: (id: string, status: EmployeeAppraisal['status']) => void;
+  addEmployeeAppraisal: (app: Omit<EmployeeAppraisal, 'id' | 'appraisalNumber' | 'status'> & { id?: string; appraisalNumber?: string; status?: EmployeeAppraisal['status'] }) => void;
+  updateEmployeeAppraisal: (id: string, app: Partial<EmployeeAppraisal>) => void;
+  deleteEmployeeAppraisal: (id: string) => void;
+  updateAppraisalStatus: (id: string, status: EmployeeAppraisal['status'], remarks?: string) => void;
   trainingPrograms: TrainingProgram[];
   addTrainingProgram: (tr: Omit<TrainingProgram, 'id'>) => void;
   updateTrainingStatus: (id: string, status: TrainingProgram['status']) => void;
@@ -1288,6 +1290,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ['missedPunchRequests', setMissedPunchRequests],
         ['overtimeRecords', setOvertimeRecords],
         ['earlyCheckoutRequests', setEarlyCheckoutRequests],
+        ['employeeAppraisals', setEmployeeAppraisals],
       ];
 
       let hasCached = false;
@@ -1382,6 +1385,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           api.hr.holidays.list(),
           api.hr.overtimeRecords.list(),
           api.hr.earlyCheckouts.list(),
+          api.hr.appraisals.list(),
           api.integration.approvals.list(),
           api.integration.alerts.list(),
           api.auth.me(),
@@ -1568,10 +1572,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         applyLive<HolidayItem>(val(results[61]), setHolidays, 'holidays');
         applyLive<OvertimeRecord>(val(results[62]), setOvertimeRecords, 'overtimeRecords');
         applyLive<EarlyCheckoutRequest>(val(results[63]), setEarlyCheckoutRequests, 'earlyCheckoutRequests');
-        applyLive<ApprovalItem>(val(results[64]), setCentralApprovals, 'approvals');
-        applyLive<ERPAlertItem>(val(results[65]), setCentralAlerts, 'alerts');
+        applyLive<EmployeeAppraisal>(val(results[64]), setEmployeeAppraisals, 'employeeAppraisals');
+        applyLive<ApprovalItem>(val(results[65]), setCentralApprovals, 'approvals');
+        applyLive<ERPAlertItem>(val(results[66]), setCentralAlerts, 'alerts');
 
-        const meRes = val<any>(results[66]);
+        const meRes = val<any>(results[67]);
         if (meRes && meRes.username) {
           setCurrentUser((prev) => ({
             ...prev,
@@ -5284,15 +5289,71 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     logAction('CREATE', 'hr', 'kpi-management', kNo, `Added KPI ${kpi.kpiName}`);
   };
 
-  const addEmployeeAppraisal = (app: Omit<EmployeeAppraisal, 'id' | 'appraisalNumber' | 'status'>) => {
-    const aNo = `APR-2026-0${employeeAppraisals.length + 1}`;
-    const newApp: EmployeeAppraisal = { ...app, id: aNo, appraisalNumber: aNo, status: 'Self Review Pending' };
-    setEmployeeAppraisals((prev) => [newApp, ...prev]);
+  const addEmployeeAppraisal = (app: Omit<EmployeeAppraisal, 'id' | 'appraisalNumber' | 'status'> & { id?: string; appraisalNumber?: string; status?: EmployeeAppraisal['status'] }) => {
+    const aNo = app.appraisalNumber || `APR-2026-0${employeeAppraisals.length + 1}`;
+    const newApp: EmployeeAppraisal = {
+      ...app,
+      id: app.id || aNo,
+      appraisalNumber: aNo,
+      status: app.status || 'Self Review Pending',
+    };
+    setEmployeeAppraisals((prev) => {
+      const updated = [newApp, ...prev];
+      try { localStorage.setItem('UMA_ERP_employeeAppraisals', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
     logAction('CREATE', 'hr', 'appraisals', aNo, `Initiated Appraisal ${aNo} for ${app.employeeName}`);
+    api.hr.appraisals.create(newApp).catch((err) => console.warn('Failed to add appraisal to backend:', err));
   };
-  const updateAppraisalStatus = (id: string, status: EmployeeAppraisal['status']) => {
-    setEmployeeAppraisals((prev) => prev.map((a) => (a.id === id || a.appraisalNumber === id ? { ...a, status } : a)));
+
+  const updateEmployeeAppraisal = (id: string, app: Partial<EmployeeAppraisal>) => {
+    setEmployeeAppraisals((prev) => {
+      const updated = prev.map((a) => (a.id === id || a.appraisalNumber === id ? { ...a, ...app } : a));
+      try { localStorage.setItem('UMA_ERP_employeeAppraisals', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
+    logAction('UPDATE', 'hr', 'appraisals', id, `Updated appraisal details for ${id}`);
+    api.hr.appraisals.update(id, app).catch((err) => console.warn('Failed to update appraisal in backend:', err));
+  };
+
+  const deleteEmployeeAppraisal = (id: string) => {
+    setEmployeeAppraisals((prev) => {
+      const updated = prev.filter((a) => a.id !== id && a.appraisalNumber !== id);
+      try { localStorage.setItem('UMA_ERP_employeeAppraisals', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
+    logAction('DELETE', 'hr', 'appraisals', id, `Deleted appraisal ${id}`);
+    api.hr.appraisals.delete(id).catch((err) => console.warn('Failed to delete appraisal from backend:', err));
+  };
+
+  const updateAppraisalStatus = (id: string, status: EmployeeAppraisal['status'], remarks?: string) => {
+    setEmployeeAppraisals((prev) => {
+      const updated = prev.map((a) =>
+        a.id === id || a.appraisalNumber === id
+          ? {
+              ...a,
+              status,
+              managerComments: remarks
+                ? `${a.managerComments || ''}\n[Status: ${status} - ${remarks}]`.trim()
+                : a.managerComments,
+            }
+          : a
+      );
+      try { localStorage.setItem('UMA_ERP_employeeAppraisals', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
     logAction('UPDATE', 'hr', 'appraisals', id, `Updated appraisal status to ${status}`);
+    if (status === 'Approved') {
+      api.hr.appraisals.approve(id).catch(() => {
+        api.hr.appraisals.update(id, { status }).catch((err) => console.warn('Failed to approve appraisal:', err));
+      });
+    } else if (status === 'Rejected') {
+      api.hr.appraisals.reject(id).catch(() => {
+        api.hr.appraisals.update(id, { status }).catch((err) => console.warn('Failed to reject appraisal:', err));
+      });
+    } else {
+      api.hr.appraisals.update(id, { status }).catch((err) => console.warn('Failed to update appraisal status:', err));
+    }
   };
 
   const addTrainingProgram = (tr: Omit<TrainingProgram, 'id'>) => {
@@ -5777,6 +5838,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         employeeAppraisals,
         addEmployeeAppraisal,
         updateAppraisalStatus,
+        updateEmployeeAppraisal,
+        deleteEmployeeAppraisal,
         trainingPrograms,
         addTrainingProgram,
         updateTrainingStatus,

@@ -444,6 +444,14 @@ export const api = {
       approve: (id: string) => request<any>(`/early-checkouts/${id}/approve/`, { method: 'POST' }),
       reject: (id: string) => request<any>(`/early-checkouts/${id}/reject/`, { method: 'POST' }),
     },
+    appraisals: {
+      list: () => request<any[]>('/employee-appraisals/'),
+      create: (data: any) => request<any>('/employee-appraisals/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/employee-appraisals/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/employee-appraisals/${id}/`, { method: 'DELETE' }),
+      approve: (id: string) => request<any>(`/employee-appraisals/${id}/approve/`, { method: 'POST' }),
+      reject: (id: string) => request<any>(`/employee-appraisals/${id}/reject/`, { method: 'POST' }),
+    },
   },
 
   // Accounting & Finance

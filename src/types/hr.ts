@@ -476,7 +476,7 @@ export interface EmployeeAppraisal {
   managerComments: string;
   promotionRecommended: boolean;
   recommendedIncrementPct: number;
-  status: 'Self Review Pending' | 'Manager Review Pending' | 'HR Approved' | 'Completed';
+  status: 'Self Review Pending' | 'Manager Review Pending' | 'HR Approved' | 'Approved' | 'Completed' | 'Rejected';
 }
 
 export interface TrainingProgram {
