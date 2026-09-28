@@ -57,28 +57,47 @@ export default function RoleMatrixPage() {
   ];
 
   const handleRunPermissionSimulation = () => {
-    // Logic for role evaluation
+    // Dynamic lookup against erpModulesAccess
+    const matchedModule = erpModulesAccess.find((m) => testRoute.startsWith(m.route) || m.route.startsWith(testRoute));
+
+    const roleKeyMap: Record<string, keyof typeof erpModulesAccess[0]> = {
+      'Super Admin': 'superAdmin',
+      'Plant Director': 'plantDir',
+      'Sales Manager': 'sales',
+      'Design Lead': 'design',
+      'Purchase Manager': 'purchase',
+      'Store Officer': 'store',
+      'Production Manager': 'prod',
+      'Accounts Manager': 'acc',
+      'HR Payroll Lead': 'hr',
+      'Service Manager': 'service',
+      'Quality Engineer': 'prod',
+      'Operator': 'prod',
+    };
+
+    const roleKey = roleKeyMap[selectedRole];
+    let isAllowed = false;
+
     if (selectedRole === 'Super Admin') {
-      setSimulationResult({ allowed: true, reason: 'Super Admin has full unrestricted access across all 11 modules.' });
-      return;
+      isAllowed = true;
+    } else if (matchedModule && roleKey) {
+      isAllowed = Boolean(matchedModule[roleKey]);
+    } else {
+      isAllowed = selectedRole === 'Plant Director';
     }
 
-    if (testRoute.startsWith('/hr') && selectedRole !== 'HR Payroll Lead' && selectedRole !== 'Plant Director') {
-      setSimulationResult({ allowed: false, reason: `Access Denied: Role '${selectedRole}' does not possess 'HR_PAYROLL_ADMIN' authority for ${testRoute}.` });
-      return;
+    if (isAllowed) {
+      setSimulationResult({
+        allowed: true,
+        reason: `Role '${selectedRole}' possesses authorized permission scope for ${testRoute} [Scope: ${testAction?.toUpperCase()}].`,
+      });
+    } else {
+      const requiredRole = matchedModule?.name || 'Department Admin';
+      setSimulationResult({
+        allowed: false,
+        reason: `Role '${selectedRole}' does NOT have access rights for ${testRoute}. Access restricted to authorized ${requiredRole} personnel.`,
+      });
     }
-
-    if (testRoute.startsWith('/accounting') && selectedRole !== 'Accounts Manager' && selectedRole !== 'Plant Director') {
-      setSimulationResult({ allowed: false, reason: `Access Denied: Role '${selectedRole}' is restricted from financial journals and ledgers.` });
-      return;
-    }
-
-    if (testRoute.startsWith('/designer') && selectedRole !== 'Design Lead' && selectedRole !== 'Production Manager' && selectedRole !== 'Purchase Manager' && selectedRole !== 'Plant Director') {
-      setSimulationResult({ allowed: false, reason: `Access Denied: Role '${selectedRole}' does not have engineering BOM access.` });
-      return;
-    }
-
-    setSimulationResult({ allowed: true, reason: `Access Granted: Role '${selectedRole}' holds valid permission scope for ${testRoute} [Action: ${testAction?.toUpperCase()}].` });
   };
 
   return (
@@ -87,7 +106,7 @@ export default function RoleMatrixPage() {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white border border-[#EBE3DB] p-6 rounded-2xl shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-crm-brand-600/10 border border-crm-brand-600/20 rounded-xl text-indigo-400">
+            <div className="p-2.5 bg-crm-brand-600/10 border border-crm-brand-600/20 rounded-xl text-crm-brand-600">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
@@ -105,7 +124,7 @@ export default function RoleMatrixPage() {
       {/* Simulator Section */}
       <div className="bg-white border border-[#EBE3DB] p-6 rounded-2xl space-y-4 shadow-xl">
         <div className="flex items-center gap-2 text-sm font-bold text-[#211B17] border-b border-[#EBE3DB] pb-3">
-          <UserCheck className="w-4 h-4 text-indigo-400" />
+          <UserCheck className="w-4 h-4 text-crm-brand-600" />
           Interactive RBAC Permission Test Simulator
         </div>
 
@@ -136,13 +155,16 @@ export default function RoleMatrixPage() {
               }}
               className="w-full bg-[#FAF7F2] text-xs text-[#211B17] p-2.5 rounded-xl border border-[#EBE3DB] focus:outline-none focus:border-crm-brand-600 mt-1 cursor-pointer"
             >
-              <option value="/hr/monthly-payroll" className="bg-white">/hr/monthly-payroll (HR)</option>
-              <option value="/accounting/invoices" className="bg-white">/accounting/invoices (Accounting)</option>
-              <option value="/purchase/pos" className="bg-white">/purchase/pos (Purchase)</option>
-              <option value="/designer/boms" className="bg-white">/designer/boms (Design)</option>
-              <option value="/store/issue" className="bg-white">/store/issue (Store)</option>
-              <option value="/production/work-orders" className="bg-white">/production/work-orders (Production)</option>
-              <option value="/users" className="bg-white">/users (Admin)</option>
+              <option value="/hr/monthly-payroll" className="bg-white">/hr/monthly-payroll (HR & Payroll)</option>
+              <option value="/accounting/vouchers" className="bg-white">/accounting/vouchers (Accounting & Finance)</option>
+              <option value="/purchase/pos" className="bg-white">/purchase/pos (Purchase Management)</option>
+              <option value="/designer/boms" className="bg-white">/designer/boms (Design & Engineering)</option>
+              <option value="/store/inventory" className="bg-white">/store/inventory (Store & Warehouse)</option>
+              <option value="/production/work-orders" className="bg-white">/production/work-orders (Production & Shop Floor)</option>
+              <option value="/crm/leads" className="bg-white">/crm/leads (CRM & Sales)</option>
+              <option value="/projects/jobs" className="bg-white">/projects/jobs (Project & Job 360°)</option>
+              <option value="/maintenance/service-reports" className="bg-white">/maintenance/service-reports (Maintenance)</option>
+              <option value="/users" className="bg-white">/users (ERP Foundation / System Admin)</option>
             </select>
           </div>
 
@@ -167,7 +189,7 @@ export default function RoleMatrixPage() {
           <div className="flex items-end">
             <button
               onClick={handleRunPermissionSimulation}
-              className="w-full py-2.5 bg-crm-brand-700 hover:bg-crm-brand-600 text-white font-semibold text-xs rounded-xl shadow-lg shadow-crm-brand-700/20 transition flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-crm-brand-700 hover:bg-crm-brand-600 text-white font-semibold text-xs rounded-xl shadow-lg shadow-crm-brand-700/20 transition flex items-center justify-center gap-2 cursor-pointer"
             >
               <Lock className="w-4 h-4" />
               Test Access Authorization
@@ -179,26 +201,35 @@ export default function RoleMatrixPage() {
         {simulationResult && (
           <div
             className={cn(
-              'p-4 rounded-xl border flex items-center justify-between transition-all duration-300 font-mono text-xs',
+              'p-4 rounded-xl border flex flex-col md:flex-row items-start md:items-center justify-between gap-3 transition-all duration-300 text-xs',
               simulationResult.allowed
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-                : 'bg-red-500/10 border-red-500/30 text-red-300'
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-900 shadow-sm'
+                : 'bg-red-50 border-red-300 text-red-900 shadow-sm'
             )}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-start md:items-center gap-3">
               {simulationResult.allowed ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5 md:mt-0" />
               ) : (
-                <XCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5 md:mt-0" />
               )}
               <div>
-                <span className="font-bold uppercase tracking-wider">{simulationResult.allowed ? 'ACCESS GRANTED' : 'ACCESS DENIED'} — </span>
-                {simulationResult.reason}
+                <div className="font-bold uppercase tracking-wider text-xs">
+                  {simulationResult.allowed ? '✅ ACCESS GRANTED' : '🛡️ ACCESS RESTRICTED (SECURITY RULE ENFORCED)'}
+                </div>
+                <div className="text-[11px] mt-0.5 opacity-90">
+                  {simulationResult.reason}
+                </div>
               </div>
             </div>
 
-            <span className="text-[10px] px-2 py-0.5 rounded bg-white border border-[#EBE3DB] text-[#70665F]">
-              Evaluated Server Middleware
+            <span className={cn(
+              'text-[10px] font-semibold px-2.5 py-1 rounded-full border whitespace-nowrap',
+              simulationResult.allowed
+                ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                : 'bg-red-100 text-red-800 border-red-300'
+            )}>
+              {simulationResult.allowed ? 'Permission Verified' : 'Unauthorized Access Blocked'}
             </span>
           </div>
         )}
