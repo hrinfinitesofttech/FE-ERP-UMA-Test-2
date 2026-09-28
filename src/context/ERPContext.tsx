@@ -440,6 +440,7 @@ interface ERPContextType {
   departments: Department[];
   addDepartment: (dept: Omit<Department, 'id' | 'employeeCount'>) => void;
   updateDepartment: (id: string, dept: Partial<Department>) => void;
+  deleteDepartment: (id: string) => void;
 
   roles: Role[];
   addRole: (role: Omit<Role, 'id'>) => void;
@@ -1951,6 +1952,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     setDepartments((prev) => prev.map((d) => (d.id === id ? { ...d, ...dept } : d)));
     logAction('UPDATE', 'Department Management', 'Edit Department', id, `Updated department info`);
     api.departments.update(id, dept).catch((err) => console.warn('Failed to update department:', err));
+  };
+
+  const deleteDepartment = (id: string) => {
+    setDepartments((prev) => prev.filter((d) => d.id !== id));
+    logAction('DELETE', 'Department Management', 'Delete Department', id, `Deleted department ${id}`);
+    api.departments.delete(id).catch((err) => console.warn('Failed to delete department:', err));
   };
 
   // Role CRUD
@@ -4771,6 +4778,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         departments,
         addDepartment,
         updateDepartment,
+        deleteDepartment,
         roles,
         addRole,
         updateRole,
