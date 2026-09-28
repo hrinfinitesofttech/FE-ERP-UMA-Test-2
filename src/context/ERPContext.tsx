@@ -1390,8 +1390,67 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         applyLive<PayrollRecord>(val(results[43]), setPayrollRecords, 'payroll');
         applyLive<FinancialYear>(val(results[44]), setFinancialYears, 'financialYears');
         applyLive<ChartOfAccount>(val(results[45]), setChartOfAccounts, 'chartOfAccounts');
-        applyLive<SalesInvoice>(val(results[46]), setSalesInvoices, 'salesInvoices');
-        applyLive<PurchaseInvoice>(val(results[47]), setPurchaseInvoices, 'purchaseInvoices');
+        const siRes = val<any[]>(results[46]);
+        if (siRes && Array.isArray(siRes) && siRes.length > 0) {
+          const normalizedSI: SalesInvoice[] = siRes.map((inv: any) => {
+            const grandTotal = Number(inv.grandTotal ?? inv.grand_total ?? 0);
+            const items = inv.items || [];
+            const subTotal = Number(
+              inv.subTotal ??
+              inv.subtotal ??
+              inv.taxableAmount ??
+              inv.taxable_amount ??
+              (items.length > 0 ? items.reduce((s: number, it: any) => s + (Number(it.unitPrice || it.rate || 0) * Number(it.quantity || 1)), 0) : grandTotal / 1.18)
+            );
+            const taxTotal = Number(
+              inv.taxTotal ??
+              (
+                (Number(inv.cgstAmount ?? inv.cgst_amount ?? 0) + Number(inv.sgstAmount ?? inv.sgst_amount ?? 0) + Number(inv.igstAmount ?? inv.igst_amount ?? 0)) ||
+                (grandTotal - subTotal)
+              )
+            );
+            return {
+              ...inv,
+              id: String(inv.id || inv.invoiceNumber || inv.invoice_number),
+              invoiceNumber: inv.invoiceNumber || inv.invoice_number || inv.id,
+              invoiceDate: inv.invoiceDate || inv.invoice_date || '',
+              customerId: inv.customerId || inv.customer_id || '',
+              customerName: inv.customerName || inv.customer_name || 'Customer',
+              salesOrderNumber: inv.salesOrderNumber || inv.sales_order_number || '',
+              jobNumber: inv.jobNumber || inv.job_number || '',
+              subTotal,
+              taxTotal,
+              grandTotal,
+              status: inv.status || 'Draft',
+              paymentStatus: inv.paymentStatus || inv.payment_status || 'Unpaid',
+            };
+          });
+          setSalesInvoices(normalizedSI);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_salesInvoices', JSON.stringify(normalizedSI)); } catch (_) {}
+          }
+        }
+
+        const piRes = val<any[]>(results[47]);
+        if (piRes && Array.isArray(piRes) && piRes.length > 0) {
+          const normalizedPI: PurchaseInvoice[] = piRes.map((inv: any) => ({
+            ...inv,
+            id: String(inv.id || inv.invoiceNumber || inv.invoice_number),
+            invoiceNumber: inv.invoiceNumber || inv.invoice_number || inv.id,
+            vendorInvoiceNumber: inv.vendorInvoiceNumber || inv.vendor_invoice_number || '',
+            invoiceDate: inv.invoiceDate || inv.invoice_date || '',
+            supplierId: inv.supplierId || inv.supplier_id || '',
+            supplierName: inv.supplierName || inv.supplier_name || 'Supplier',
+            subTotal: Number(inv.subTotal ?? inv.subtotal ?? inv.taxable_amount ?? 0),
+            grandTotal: Number(inv.grandTotal ?? inv.grand_total ?? 0),
+            status: inv.status || 'Draft',
+            paymentStatus: inv.paymentStatus || inv.payment_status || 'Unpaid',
+          }));
+          setPurchaseInvoices(normalizedPI);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_purchaseInvoices', JSON.stringify(normalizedPI)); } catch (_) {}
+          }
+        }
         applyLive<CustomerReceipt>(val(results[48]), setCustomerReceipts, 'customerReceipts');
         applyLive<SupplierPayment>(val(results[49]), setSupplierPayments, 'supplierPayments');
         applyLive<ApprovalItem>(val(results[50]), setCentralApprovals, 'approvals');
@@ -3800,8 +3859,34 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const approveSalesInvoice = (id: string) => {
-    setSalesInvoices((prev) => prev.map((inv) => (inv.id === id || inv.invoiceNumber === id ? { ...inv, status: 'Approved' } : inv)));
+    setSalesInvoices((prev) => {
+      const updated = prev.map((inv) =>
+        inv.id === id ||
+        inv.invoiceNumber === id ||
+        (inv as any).invoice_number === id ||
+        String(inv.id).toLowerCase() === String(id).toLowerCase() ||
+        String(inv.invoiceNumber).toLowerCase() === String(id).toLowerCase()
+          ? { ...inv, status: 'Approved' }
+          : inv
+      );
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('UMA_ERP_salesInvoices', JSON.stringify(updated));
+        } catch (_) {}
+      }
+      return updated;
+    });
+    setCentralApprovals((prev) =>
+      prev.map((a) =>
+        a.id === id || a.recordNumber === id || String(a.recordNumber).toLowerCase() === String(id).toLowerCase()
+          ? { ...a, status: 'Approved' }
+          : a
+      )
+    );
     logAction('APPROVE', 'Accounting', 'Sales Invoices', id, `Approved Sales Invoice ${id}`);
+    api.accounting.salesInvoices.approve(id).catch((err) => {
+      console.warn('Backend approve sales invoice failed:', err);
+    });
   };
 
   const addPurchaseInvoice = (inv: Omit<PurchaseInvoice, 'id' | 'invoiceNumber' | 'createdAt'>) => {
@@ -3818,8 +3903,32 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const postPurchaseInvoice = (id: string) => {
-    setPurchaseInvoices((prev) => prev.map((inv) => (inv.id === id || inv.invoiceNumber === id ? { ...inv, status: 'Posted' } : inv)));
+    setPurchaseInvoices((prev) => {
+      const updated = prev.map((inv) =>
+        inv.id === id ||
+        inv.invoiceNumber === id ||
+        (inv as any).invoice_number === id ||
+        String(inv.id).toLowerCase() === String(id).toLowerCase() ||
+        String(inv.invoiceNumber).toLowerCase() === String(id).toLowerCase()
+          ? { ...inv, status: 'Posted' }
+          : inv
+      );
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('UMA_ERP_purchaseInvoices', JSON.stringify(updated));
+        } catch (_) {}
+      }
+      return updated;
+    });
+    setCentralApprovals((prev) =>
+      prev.map((a) =>
+        a.id === id || a.recordNumber === id || String(a.recordNumber).toLowerCase() === String(id).toLowerCase()
+          ? { ...a, status: 'Approved' }
+          : a
+      )
+    );
     logAction('APPROVE', 'Accounting', 'Purchase Invoices', id, `Posted Purchase Invoice ${id} to Ledger`);
+    api.accounting.purchaseInvoices.post(id).catch((err) => console.warn('Failed to post purchase invoice:', err));
   };
 
   const addCreditNote = (cn: Omit<CreditNote, 'id' | 'creditNoteNumber'>) => {

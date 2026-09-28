@@ -161,14 +161,14 @@ export default function PurchaseInvoicesPage() {
                 <td className="py-3 px-4 font-sans text-[#70665F]">
                   {inv.poNumber} / {inv.grnNumber}
                 </td>
-                <td className="py-3 px-4 text-right text-[#544B45]">₹{(inv.subTotal ?? inv.subtotal ?? 0)?.toLocaleString()}</td>
-                <td className="py-3 px-4 text-right text-crm-brand-500">₹{(inv.taxTotal ?? 0)?.toLocaleString()}</td>
-                <td className="py-3 px-4 text-right text-violet-400">₹{(inv.tdsAmount ?? inv.tdsDeducted ?? 0)?.toLocaleString()}</td>
-                <td className="py-3 px-4 text-right font-bold text-[#211B17]">₹{(inv.grandTotal ?? 0)?.toLocaleString()}</td>
+                <td className="py-3 px-4 text-right text-[#544B45]">₹{Number(inv.subTotal ?? inv.subtotal ?? (inv as any).taxable_amount ?? 0).toLocaleString('en-IN')}</td>
+                <td className="py-3 px-4 text-right text-crm-brand-500">₹{Number(inv.taxTotal ?? 0).toLocaleString('en-IN')}</td>
+                <td className="py-3 px-4 text-right text-violet-400">₹{Number(inv.tdsAmount ?? inv.tdsDeducted ?? 0).toLocaleString('en-IN')}</td>
+                <td className="py-3 px-4 text-right font-bold text-[#211B17]">₹{Number(inv.grandTotal ?? (inv as any).grand_total ?? 0).toLocaleString('en-IN')}</td>
                 <td className="py-3 px-4 text-center font-sans">
                   <span
                     className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                      inv.status === 'Posted' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
+                      inv.status === 'Posted' ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30'
                     }`}
                   >
                     {inv.status}
@@ -177,13 +177,14 @@ export default function PurchaseInvoicesPage() {
                 <td className="py-3 px-4 text-center font-sans">
                   {inv.status !== 'Posted' ? (
                     <button
-                      onClick={() => postPurchaseInvoice(inv.id)}
-                      className="px-2.5 py-1 bg-crm-brand-700 hover:bg-crm-brand-600 text-[#211B17] text-[10px] font-semibold rounded-lg transition"
+                      type="button"
+                      onClick={() => postPurchaseInvoice(inv.id || inv.invoiceNumber || (inv as any).invoice_number)}
+                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-semibold rounded-lg transition shadow-sm cursor-pointer"
                     >
                       Post to Ledger
                     </button>
                   ) : (
-                    <span className="text-[#70665F] text-[10px]">Posted</span>
+                    <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold text-[10px]">Posted</span>
                   )}
                 </td>
               </tr>

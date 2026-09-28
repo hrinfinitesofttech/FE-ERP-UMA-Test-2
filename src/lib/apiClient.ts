@@ -366,12 +366,16 @@ export const api = {
     salesInvoices: {
       list: () => request<any[]>('/sales-invoices/'),
       create: (data: any) => request<any>('/sales-invoices/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/sales-invoices/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      approve: (id: string) => request<any>(`/sales-invoices/${id}/`, { method: 'PATCH', body: JSON.stringify({ status: 'Approved' }) }),
       recordPayment: (id: string, data: { amount: number; paymentMode?: string; referenceNumber?: string }) =>
         request<any>(`/sales-invoices/${id}/record-payment/`, { method: 'POST', body: JSON.stringify(data) }),
     },
     purchaseInvoices: {
       list: () => request<any[]>('/purchase-invoices/'),
       create: (data: any) => request<any>('/purchase-invoices/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/purchase-invoices/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      post: (id: string) => request<any>(`/purchase-invoices/${id}/`, { method: 'PATCH', body: JSON.stringify({ status: 'Posted' }) }),
       recordPayment: (id: string, data: { amount: number; paymentMode?: string; referenceNumber?: string }) =>
         request<any>(`/purchase-invoices/${id}/record-payment/`, { method: 'POST', body: JSON.stringify(data) }),
     },
