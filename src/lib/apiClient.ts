@@ -406,6 +406,12 @@ export const api = {
       update: (id: string, data: any) => request<any>(`/employee-exits/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: string) => request<any>(`/employee-exits/${id}/`, { method: 'DELETE' }),
     },
+    holidays: {
+      list: () => request<any[]>('/holidays/'),
+      create: (data: any) => request<any>('/holidays/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/holidays/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/holidays/${id}/`, { method: 'DELETE' }),
+    },
   },
 
   // Accounting & Finance

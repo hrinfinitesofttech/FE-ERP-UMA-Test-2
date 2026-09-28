@@ -818,6 +818,8 @@ interface ERPContextType {
   addShiftRoster: (roster: Omit<ShiftRosterItem, 'id'>) => void;
   holidays: HolidayItem[];
   addHoliday: (holiday: Omit<HolidayItem, 'id'>) => void;
+  updateHoliday: (id: string, holiday: Partial<HolidayItem>) => void;
+  deleteHoliday: (id: string) => void;
   attendanceRecords: AttendanceRecord[];
   markAttendance: (record: Omit<AttendanceRecord, 'id'>) => void;
   updateAttendanceRecord: (id: string, record: Partial<AttendanceRecord>) => void;
@@ -1252,6 +1254,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ['contraEntries', setContraEntries],
         ['bankAccounts', setBankAccounts],
         ['expenseEntries', setExpenseEntries],
+        ['holidays', setHolidays],
       ];
 
       let hasCached = false;
@@ -1342,6 +1345,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           api.accounting.contraEntries.list(),
           api.accounting.bankAccounts.list(),
           api.accounting.expenses.list(),
+          api.hr.holidays.list(),
           api.integration.approvals.list(),
           api.integration.alerts.list(),
           api.auth.me(),
@@ -1524,10 +1528,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         applyLive<ContraEntry>(val(results[57]), setContraEntries, 'contraEntries');
         applyLive<BankAccount>(val(results[58]), setBankAccounts, 'bankAccounts');
         applyLive<ExpenseEntry>(val(results[59]), setExpenseEntries, 'expenseEntries');
-        applyLive<ApprovalItem>(val(results[60]), setCentralApprovals, 'approvals');
-        applyLive<ERPAlertItem>(val(results[61]), setCentralAlerts, 'alerts');
+        applyLive<HolidayItem>(val(results[60]), setHolidays, 'holidays');
+        applyLive<ApprovalItem>(val(results[61]), setCentralApprovals, 'approvals');
+        applyLive<ERPAlertItem>(val(results[62]), setCentralAlerts, 'alerts');
 
-        const meRes = val<any>(results[62]);
+        const meRes = val<any>(results[63]);
         if (meRes && meRes.username) {
           setCurrentUser((prev) => ({
             ...prev,
@@ -4789,10 +4794,47 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addHoliday = (holiday: Omit<HolidayItem, 'id'>) => {
-    const newId = `HOL-2026-0${holidays.length + 1}`;
-    const newHol = { ...holiday, id: newId };
-    setHolidays((prev) => [...prev, newHol]);
+    const newId = `HOL-2026-${String(holidays.length + 1).padStart(2, '0')}`;
+    const newHol: HolidayItem = {
+      ...holiday,
+      id: newId,
+      applicableDepartments: holiday.applicableDepartments || ['All Departments'],
+      financialYear: holiday.financialYear || 'FY 2026-27',
+      isOptional: Boolean(holiday.isOptional),
+    };
+    setHolidays((prev) => {
+      const updated = [...prev, newHol];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_holidays', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'hr', 'holiday-calendar', newId, `Added Holiday ${holiday.holidayName}`);
+    api.hr.holidays.create(newHol).catch((err) => console.warn('Failed to save holiday to backend:', err));
+  };
+
+  const updateHoliday = (id: string, holidayData: Partial<HolidayItem>) => {
+    setHolidays((prev) => {
+      const updated = prev.map((h) => (h.id === id ? { ...h, ...holidayData } : h));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_holidays', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('UPDATE', 'hr', 'holiday-calendar', id, `Updated Holiday ${id}`);
+    api.hr.holidays.update(id, holidayData).catch((err) => console.warn('Failed to update holiday on backend:', err));
+  };
+
+  const deleteHoliday = (id: string) => {
+    setHolidays((prev) => {
+      const updated = prev.filter((h) => h.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_holidays', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'hr', 'holiday-calendar', id, `Deleted Holiday ${id}`);
+    api.hr.holidays.delete(id).catch((err) => console.warn('Failed to delete holiday on backend:', err));
   };
 
   const markAttendance = (record: Omit<AttendanceRecord, 'id'>) => {
@@ -5439,6 +5481,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         addShiftRoster,
         holidays,
         addHoliday,
+        updateHoliday,
+        deleteHoliday,
         attendanceRecords,
         markAttendance,
         updateAttendanceRecord,
