@@ -153,42 +153,60 @@ export default function PurchaseInvoicesPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#EBE3DB] font-mono">
-            {filteredInvoices.map((inv) => (
-              <tr key={inv.id} className="hover:bg-white/40 transition">
-                <td className="py-3 px-4 font-bold text-crm-brand-500">{inv.invoiceNumber}</td>
-                <td className="py-3 px-4 text-[#3E2723]">{inv.vendorInvoiceNumber || inv.supplierInvoiceNumber}</td>
-                <td className="py-3 px-4 font-sans font-semibold text-[#3E2723]">{inv.supplierName}</td>
-                <td className="py-3 px-4 font-sans text-[#70665F]">
-                  {inv.poNumber} / {inv.grnNumber}
-                </td>
-                <td className="py-3 px-4 text-right text-[#544B45]">₹{Number(inv.subTotal ?? inv.subtotal ?? (inv as any).taxable_amount ?? 0).toLocaleString('en-IN')}</td>
-                <td className="py-3 px-4 text-right text-crm-brand-500">₹{Number(inv.taxTotal ?? 0).toLocaleString('en-IN')}</td>
-                <td className="py-3 px-4 text-right text-violet-400">₹{Number(inv.tdsAmount ?? inv.tdsDeducted ?? 0).toLocaleString('en-IN')}</td>
-                <td className="py-3 px-4 text-right font-bold text-[#211B17]">₹{Number(inv.grandTotal ?? (inv as any).grand_total ?? 0).toLocaleString('en-IN')}</td>
-                <td className="py-3 px-4 text-center font-sans">
-                  <span
-                    className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                      inv.status === 'Posted' ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30'
-                    }`}
-                  >
-                    {inv.status}
-                  </span>
-                </td>
-                <td className="py-3 px-4 text-center font-sans">
-                  {inv.status !== 'Posted' ? (
-                    <button
-                      type="button"
-                      onClick={() => postPurchaseInvoice(inv.id || inv.invoiceNumber || (inv as any).invoice_number)}
-                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-semibold rounded-lg transition shadow-sm cursor-pointer"
+            {filteredInvoices.map((inv) => {
+              const cgst = Number((inv as any).cgst_amount || inv.cgstAmount || 0);
+              const sgst = Number((inv as any).sgst_amount || inv.sgstAmount || 0);
+              const igst = Number((inv as any).igst_amount || inv.igstAmount || 0);
+              const items = inv.items || [];
+              const itemsTax = items.reduce((s: number, it: any) => s + Number(it.taxAmount || 0), 0);
+              const taxTotal = Number(inv.taxTotal || (cgst + sgst + igst) || itemsTax || 0);
+              const grandTotal = Number(inv.grandTotal ?? (inv as any).grand_total ?? 0);
+              const rawSubTotal = Number(inv.subTotal ?? inv.subtotal ?? (inv as any).taxable_amount ?? inv.taxableAmount ?? 0);
+              const itemsTotal = items.reduce((s: number, it: any) => s + Number(it.totalAmount || 0), 0);
+              const subTotal = rawSubTotal > 0 ? rawSubTotal : (itemsTotal > 0 && taxTotal > 0 ? itemsTotal - taxTotal : (grandTotal > 0 && taxTotal > 0 ? grandTotal - taxTotal : grandTotal / 1.18));
+              const tds = Number(inv.tdsAmount ?? inv.tdsDeducted ?? (inv as any).tds_amount ?? 0);
+
+              const isPosted = inv.status === 'Posted' || (inv.status as string)?.toLowerCase() === 'posted';
+
+              return (
+                <tr key={inv.id} className="hover:bg-white/40 transition">
+                  <td className="py-3 px-4 font-bold text-crm-brand-500">{inv.invoiceNumber}</td>
+                  <td className="py-3 px-4 text-[#3E2723]">{inv.vendorInvoiceNumber || (inv as any).supplierInvoiceNumber || (inv as any).vendor_invoice_number}</td>
+                  <td className="py-3 px-4 font-sans font-semibold text-[#3E2723]">{inv.supplierName || (inv as any).supplier_name}</td>
+                  <td className="py-3 px-4 font-sans text-[#70665F]">
+                    {inv.poNumber || (inv as any).po_number || '-'} {inv.grnNumber ? `/ ${inv.grnNumber}` : ''}
+                  </td>
+                  <td className="py-3 px-4 text-right text-[#544B45]">₹{Math.round(subTotal).toLocaleString('en-IN')}</td>
+                  <td className="py-3 px-4 text-right text-crm-brand-500">₹{Math.round(taxTotal).toLocaleString('en-IN')}</td>
+                  <td className="py-3 px-4 text-right text-violet-400">₹{Math.round(tds).toLocaleString('en-IN')}</td>
+                  <td className="py-3 px-4 text-right font-bold text-[#211B17]">₹{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td className="py-3 px-4 text-center font-sans">
+                    <span
+                      className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                        isPosted ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                      }`}
                     >
-                      Post to Ledger
-                    </button>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold text-[10px]">Posted</span>
-                  )}
-                </td>
-              </tr>
-            ))}
+                      {isPosted ? 'Posted' : 'Pending_Posting'}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-center font-sans">
+                    {!isPosted ? (
+                      <button
+                        type="button"
+                        onClick={() => postPurchaseInvoice(inv.id || inv.invoiceNumber || (inv as any).invoice_number)}
+                        className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-semibold rounded-lg transition shadow-sm cursor-pointer active:scale-95"
+                      >
+                        Post to Ledger
+                      </button>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold text-[10px]">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Posted
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
