@@ -436,6 +436,14 @@ export const api = {
       approve: (id: string) => request<any>(`/overtime-records/${id}/approve_overtime/`, { method: 'POST' }),
       reject: (id: string) => request<any>(`/overtime-records/${id}/reject_overtime/`, { method: 'POST' }),
     },
+    earlyCheckouts: {
+      list: () => request<any[]>('/early-checkouts/'),
+      create: (data: any) => request<any>('/early-checkouts/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/early-checkouts/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/early-checkouts/${id}/`, { method: 'DELETE' }),
+      approve: (id: string) => request<any>(`/early-checkouts/${id}/approve/`, { method: 'POST' }),
+      reject: (id: string) => request<any>(`/early-checkouts/${id}/reject/`, { method: 'POST' }),
+    },
   },
 
   // Accounting & Finance

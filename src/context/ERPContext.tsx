@@ -850,7 +850,9 @@ interface ERPContextType {
   deleteOvertimeRecord: (id: string) => void;
   earlyCheckoutRequests: EarlyCheckoutRequest[];
   addEarlyCheckoutRequest: (req: Omit<EarlyCheckoutRequest, 'id' | 'requestNumber' | 'status'>) => void;
-  updateEarlyCheckoutStatus: (id: string, status: LeaveApprovalStatus) => void;
+  updateEarlyCheckoutStatus: (id: string, status: LeaveApprovalStatus, remarks?: string) => void;
+  updateEarlyCheckoutRequest: (id: string, req: Partial<EarlyCheckoutRequest>) => void;
+  deleteEarlyCheckoutRequest: (id: string) => void;
   salaryComponents: SalaryComponent[];
   addSalaryComponent: (comp: Omit<SalaryComponent, 'id'>) => void;
   updateSalaryComponent: (id: string, comp: Partial<SalaryComponent>) => void;
@@ -1285,6 +1287,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ['fixedAssets', setFixedAssets],
         ['missedPunchRequests', setMissedPunchRequests],
         ['overtimeRecords', setOvertimeRecords],
+        ['earlyCheckoutRequests', setEarlyCheckoutRequests],
       ];
 
       let hasCached = false;
@@ -1378,6 +1381,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           api.accounting.fixedAssets.list(),
           api.hr.holidays.list(),
           api.hr.overtimeRecords.list(),
+          api.hr.earlyCheckouts.list(),
           api.integration.approvals.list(),
           api.integration.alerts.list(),
           api.auth.me(),
@@ -1563,10 +1567,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         applyLive<FixedAsset>(val(results[60]), setFixedAssets, 'fixedAssets');
         applyLive<HolidayItem>(val(results[61]), setHolidays, 'holidays');
         applyLive<OvertimeRecord>(val(results[62]), setOvertimeRecords, 'overtimeRecords');
-        applyLive<ApprovalItem>(val(results[63]), setCentralApprovals, 'approvals');
-        applyLive<ERPAlertItem>(val(results[64]), setCentralAlerts, 'alerts');
+        applyLive<EarlyCheckoutRequest>(val(results[63]), setEarlyCheckoutRequests, 'earlyCheckoutRequests');
+        applyLive<ApprovalItem>(val(results[64]), setCentralApprovals, 'approvals');
+        applyLive<ERPAlertItem>(val(results[65]), setCentralAlerts, 'alerts');
 
-        const meRes = val<any>(results[65]);
+        const meRes = val<any>(results[66]);
         if (meRes && meRes.username) {
           setCurrentUser((prev) => ({
             ...prev,
@@ -5122,12 +5127,57 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addEarlyCheckoutRequest = (req: Omit<EarlyCheckoutRequest, 'id' | 'requestNumber' | 'status'>) => {
     const rNo = `ECO-2026-0${earlyCheckoutRequests.length + 1}`;
     const newReq: EarlyCheckoutRequest = { ...req, id: rNo, requestNumber: rNo, status: 'Pending' };
-    setEarlyCheckoutRequests((prev) => [newReq, ...prev]);
+    setEarlyCheckoutRequests((prev) => {
+      const updated = [newReq, ...prev];
+      try { localStorage.setItem('UMA_ERP_earlyCheckoutRequests', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
     logAction('CREATE', 'hr', 'early-checkout', rNo, `Early checkout request for ${req.employeeName}`);
+    api.hr.earlyCheckouts.create(newReq).catch((err) => console.warn('Failed to add early checkout to backend:', err));
   };
-  const updateEarlyCheckoutStatus = (id: string, status: LeaveApprovalStatus) => {
-    setEarlyCheckoutRequests((prev) => prev.map((e) => (e.id === id || e.requestNumber === id ? { ...e, status } : e)));
+
+  const updateEarlyCheckoutStatus = (id: string, status: LeaveApprovalStatus, remarks?: string) => {
+    setEarlyCheckoutRequests((prev) => {
+      const updated = prev.map((e) =>
+        e.id === id || e.requestNumber === id
+          ? { ...e, status, remarks: remarks || (e as any).remarks }
+          : e
+      );
+      try { localStorage.setItem('UMA_ERP_earlyCheckoutRequests', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
     logAction('UPDATE', 'hr', 'early-checkout', id, `Updated early checkout status to ${status}`);
+    if (status === 'Approved') {
+      api.hr.earlyCheckouts.approve(id).catch(() => {
+        api.hr.earlyCheckouts.update(id, { status }).catch((err) => console.warn('Failed to approve early checkout:', err));
+      });
+    } else if (status === 'Rejected') {
+      api.hr.earlyCheckouts.reject(id).catch(() => {
+        api.hr.earlyCheckouts.update(id, { status }).catch((err) => console.warn('Failed to reject early checkout:', err));
+      });
+    } else {
+      api.hr.earlyCheckouts.update(id, { status }).catch((err) => console.warn('Failed to update early checkout status:', err));
+    }
+  };
+
+  const updateEarlyCheckoutRequest = (id: string, req: Partial<EarlyCheckoutRequest>) => {
+    setEarlyCheckoutRequests((prev) => {
+      const updated = prev.map((e) => (e.id === id || e.requestNumber === id ? { ...e, ...req } : e));
+      try { localStorage.setItem('UMA_ERP_earlyCheckoutRequests', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
+    logAction('UPDATE', 'hr', 'early-checkout', id, `Updated early checkout details for ${id}`);
+    api.hr.earlyCheckouts.update(id, req).catch((err) => console.warn('Failed to update early checkout:', err));
+  };
+
+  const deleteEarlyCheckoutRequest = (id: string) => {
+    setEarlyCheckoutRequests((prev) => {
+      const updated = prev.filter((e) => e.id !== id && e.requestNumber !== id);
+      try { localStorage.setItem('UMA_ERP_earlyCheckoutRequests', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
+    logAction('DELETE', 'hr', 'early-checkout', id, `Deleted early checkout record ${id}`);
+    api.hr.earlyCheckouts.delete(id).catch((err) => console.warn('Failed to delete early checkout:', err));
   };
 
   const addSalaryComponent = (comp: Omit<SalaryComponent, 'id'>) => {
@@ -5705,6 +5755,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         earlyCheckoutRequests,
         addEarlyCheckoutRequest,
         updateEarlyCheckoutStatus,
+        updateEarlyCheckoutRequest,
+        deleteEarlyCheckoutRequest,
         salaryComponents,
         addSalaryComponent,
         updateSalaryComponent,
