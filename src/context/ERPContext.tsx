@@ -808,6 +808,7 @@ interface ERPContextType {
   fullAndFinalSettlements: FullAndFinalSettlementItem[];
   addFullAndFinalSettlement: (fnf: Omit<FullAndFinalSettlementItem, 'id'>) => void;
   updateFinalSettlementStatus: (id: string, status: FullAndFinalSettlementItem['paymentStatus'], voucherNo?: string) => void;
+  deleteFullAndFinalSettlement: (id: string) => void;
   shiftMasters: ShiftMaster[];
   addShiftMaster: (shift: Omit<ShiftMaster, 'id'>) => void;
   updateShiftMaster: (id: string, shift: Partial<ShiftMaster>) => void;
@@ -4730,6 +4731,10 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     );
     logAction('UPDATE', 'hr', 'full-final-settlement', id, `Updated F&F payment status to ${status}`);
   };
+  const deleteFullAndFinalSettlement = (id: string) => {
+    setFullAndFinalSettlements((prev) => prev.filter((f) => f.id !== id));
+    logAction('DELETE', 'hr', 'full-final-settlement', id, `Deleted F&F settlement record ${id}`);
+  };
 
   const addShiftMaster = (shift: Omit<ShiftMaster, 'id'>) => {
     const newId = `SHIFT-0${shiftMasters.length + 1}`;
@@ -5391,6 +5396,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         fullAndFinalSettlements,
         addFullAndFinalSettlement,
         updateFinalSettlementStatus,
+        deleteFullAndFinalSettlement,
         shiftMasters,
         addShiftMaster,
         updateShiftMaster,
