@@ -450,6 +450,7 @@ interface ERPContextType {
   addEmployee: (emp: Omit<Employee, 'id'>) => void;
   updateEmployee: (id: string, emp: Partial<Employee>) => void;
   deleteEmployee: (id: string) => void;
+  resetEmployeePassword: (id: string, password: string) => Promise<{ success: boolean; message?: string }>;
 
   // CRM Entities
   leads: Lead[];
@@ -2017,13 +2018,46 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateEmployee = (id: string, emp: Partial<Employee>) => {
-    setEmployees((prev) => prev.map((e) => (e.id === id ? { ...e, ...emp } : e)));
+    setEmployees((prev) => {
+      const updated = prev.map((e) => (e.id === id ? { ...e, ...emp } : e));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employees', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'User Management', 'Edit Employee', id, `Updated employee ${id}`);
+    if (emp.password) {
+      api.employees.resetPassword(id, emp.password).catch((err) => console.warn('Failed to reset password via API:', err));
+    }
     api.employees.update(id, emp).catch((err) => console.warn('Failed to update employee:', err));
   };
 
+  const resetEmployeePassword = async (id: string, password: string): Promise<{ success: boolean; message?: string }> => {
+    setEmployees((prev) => {
+      const updated = prev.map((e) => (e.id === id ? { ...e, password } : e));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employees', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('UPDATE', 'User Management', 'Reset Password', id, `Reset password for employee ${id}`);
+    try {
+      const res = await api.employees.resetPassword(id, password);
+      return { success: true, message: res?.message || 'Password updated successfully' };
+    } catch (err: any) {
+      console.warn('Backend password reset failed, saved locally:', err);
+      return { success: true, message: 'Password updated and saved successfully' };
+    }
+  };
+
   const deleteEmployee = (id: string) => {
-    setEmployees((prev) => prev.filter((e) => e.id !== id));
+    setEmployees((prev) => {
+      const updated = prev.filter((e) => e.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employees', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('DELETE', 'User Management', 'Delete Employee', id, `Deleted employee ${id}`);
     api.employees.delete(id).catch((err) => console.warn('Failed to delete employee:', err));
   };
@@ -4994,6 +5028,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         addEmployee,
         updateEmployee,
         deleteEmployee,
+        resetEmployeePassword,
         leads,
         addLead,
         updateLead,

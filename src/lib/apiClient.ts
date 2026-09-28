@@ -157,6 +157,8 @@ export const api = {
     create: (data: any) => request<any>('/employees/', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: string, data: any) => request<any>(`/employees/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: (id: string) => request<any>(`/employees/${id}/`, { method: 'DELETE' }),
+    resetPassword: (id: string, password: string) =>
+      request<any>(`/employees/${id}/reset-password/`, { method: 'POST', body: JSON.stringify({ password }) }),
   },
 
   // CRM
