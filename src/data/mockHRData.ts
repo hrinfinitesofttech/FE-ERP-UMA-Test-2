@@ -477,7 +477,38 @@ export const mockLeaveRequests: LeaveRequest[] = [
     appliedDate: '2026-09-27',
   },
 ];
-export const mockWFHRequests: WFHRequest[] = [];
+export const mockWFHRequests: WFHRequest[] = [
+  {
+    id: 'WFH-2026-01',
+    wfhNumber: 'WFH-2026-01',
+    employeeId: 'EMP-2026-001',
+    employeeName: 'Rajesh Patel',
+    department: 'Production',
+    fromDate: '2026-09-28',
+    toDate: '2026-09-28',
+    numberOfDays: 1,
+    reason: 'Client site audit and remote ERP implementation support.',
+    workDescription: 'Finalizing GSTR-1 reconciliations and vendor PR clearance.',
+    reportingManager: 'Sunil Mehta',
+    status: 'Pending',
+  },
+  {
+    id: 'WFH-2026-02',
+    wfhNumber: 'WFH-2026-02',
+    employeeId: 'EMP-2026-003',
+    employeeName: 'Amit Shah',
+    department: 'Accounts',
+    fromDate: '2026-09-29',
+    toDate: '2026-09-30',
+    numberOfDays: 2,
+    reason: 'Monthly payroll tax filings & ledger audit',
+    workDescription: 'TDS calculations, bank statement matching and vendor ledger closures.',
+    reportingManager: 'Rajesh Patel',
+    status: 'Approved',
+    approvedBy: 'HR Admin',
+    approvedDate: '2026-09-28',
+  },
+];
 export const mockMissedPunchRequests: MissedPunchRequest[] = [];
 export const mockRegularizationRequests: AttendanceRegularization[] = [];
 export const mockOvertimeRecords: OvertimeRecord[] = [];

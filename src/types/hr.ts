@@ -281,6 +281,9 @@ export interface WFHRequest {
   workDescription: string;
   reportingManager: string;
   status: LeaveApprovalStatus;
+  remarks?: string;
+  approvedBy?: string;
+  approvedDate?: string;
 }
 
 export interface MissedPunchRequest {

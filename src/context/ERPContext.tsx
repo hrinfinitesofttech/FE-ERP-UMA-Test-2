@@ -831,7 +831,9 @@ interface ERPContextType {
   updateLeaveRequestStatus: (id: string, status: LeaveApprovalStatus, approvedBy?: string) => void;
   wfhRequests: WFHRequest[];
   addWFHRequest: (req: Omit<WFHRequest, 'id' | 'wfhNumber' | 'status'>) => void;
-  updateWFHRequestStatus: (id: string, status: LeaveApprovalStatus) => void;
+  updateWFHRequestStatus: (id: string, status: LeaveApprovalStatus, remarks?: string) => void;
+  updateWFHRequest: (id: string, updatedData: Partial<WFHRequest>) => void;
+  deleteWFHRequest: (id: string) => void;
   missedPunchRequests: MissedPunchRequest[];
   addMissedPunchRequest: (req: Omit<MissedPunchRequest, 'id' | 'requestNumber' | 'status'>) => void;
   updateMissedPunchStatus: (id: string, status: LeaveApprovalStatus) => void;
@@ -1274,6 +1276,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ['bankAccounts', setBankAccounts],
         ['expenseEntries', setExpenseEntries],
         ['holidays', setHolidays],
+        ['wfhRequests', setWFHRequests],
       ];
 
       let hasCached = false;
@@ -4903,13 +4906,56 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addWFHRequest = (req: Omit<WFHRequest, 'id' | 'wfhNumber' | 'status'>) => {
     const wNo = `WFH-2026-0${wfhRequests.length + 1}`;
     const newReq: WFHRequest = { ...req, id: wNo, wfhNumber: wNo, status: 'Pending' };
-    setWFHRequests((prev) => [newReq, ...prev]);
+    setWFHRequests((prev) => {
+      const updated = [newReq, ...prev];
+      try { localStorage.setItem('UMA_ERP_wfhRequests', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
     logAction('CREATE', 'hr', 'wfh-remote', wNo, `Applied for WFH by ${req.employeeName}`);
     api.post('/wfh-requests/', newReq).catch((err) => console.warn('Failed to add WFH request:', err));
   };
-  const updateWFHRequestStatus = (id: string, status: LeaveApprovalStatus) => {
-    setWFHRequests((prev) => prev.map((w) => (w.id === id || w.wfhNumber === id ? { ...w, status } : w)));
-    logAction('UPDATE', 'hr', 'wfh-remote', id, `WFH request status updated to ${status}`);
+
+  const updateWFHRequestStatus = (id: string, status: LeaveApprovalStatus, remarks?: string) => {
+    const today = new Date().toISOString().split('T')[0];
+    setWFHRequests((prev) => {
+      const updated = prev.map((w) =>
+        w.id === id || w.wfhNumber === id
+          ? {
+              ...w,
+              status,
+              remarks: remarks !== undefined ? remarks : w.remarks,
+              approvedBy: status === 'Approved' ? 'HR Admin' : status === 'Rejected' ? 'HR Admin' : undefined,
+              approvedDate: status === 'Approved' || status === 'Rejected' ? today : undefined,
+            }
+          : w
+      );
+      try { localStorage.setItem('UMA_ERP_wfhRequests', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
+    logAction('UPDATE', 'hr', 'wfh-remote', id, `WFH request ${id} status updated to ${status}`);
+    api.patch(`/wfh-requests/${id}/`, { status, remarks }).catch(() => {
+      api.post(`/wfh-requests/${id}/${status === 'Approved' ? 'approve' : 'reject'}/`).catch((err) => console.warn('Failed to update WFH status:', err));
+    });
+  };
+
+  const updateWFHRequest = (id: string, updatedData: Partial<WFHRequest>) => {
+    setWFHRequests((prev) => {
+      const updated = prev.map((w) => (w.id === id || w.wfhNumber === id ? { ...w, ...updatedData } : w));
+      try { localStorage.setItem('UMA_ERP_wfhRequests', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
+    logAction('UPDATE', 'hr', 'wfh-remote', id, `Updated WFH request details for ${id}`);
+    api.patch(`/wfh-requests/${id}/`, updatedData).catch((err) => console.warn('Failed to update WFH request:', err));
+  };
+
+  const deleteWFHRequest = (id: string) => {
+    setWFHRequests((prev) => {
+      const updated = prev.filter((w) => w.id !== id && w.wfhNumber !== id);
+      try { localStorage.setItem('UMA_ERP_wfhRequests', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
+    logAction('DELETE', 'hr', 'wfh-remote', id, `Deleted WFH request ${id}`);
+    api.delete(`/wfh-requests/${id}/`).catch((err) => console.warn('Failed to delete WFH request:', err));
   };
 
   const addMissedPunchRequest = (req: Omit<MissedPunchRequest, 'id' | 'requestNumber' | 'status'>) => {
@@ -5514,6 +5560,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         wfhRequests,
         addWFHRequest,
         updateWFHRequestStatus,
+        updateWFHRequest,
+        deleteWFHRequest,
         missedPunchRequests,
         addMissedPunchRequest,
         updateMissedPunchStatus,
