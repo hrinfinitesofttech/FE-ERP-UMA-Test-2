@@ -728,6 +728,8 @@ interface ERPContextType {
   approveExpenseEntry: (id: string, approvedBy: string) => void;
   bankAccounts: BankAccount[];
   addBankAccount: (bank: Omit<BankAccount, 'id' | 'currentBalance'>) => void;
+  updateBankAccount: (id: string, bank: Partial<BankAccount>) => void;
+  deleteBankAccount: (id: string) => void;
   bankTransactions: BankTransaction[];
   bankReconciliations: BankReconciliation[];
   reconcileBankTransaction: (transactionId: string, matchedErpDocNumber: string) => void;
@@ -4265,8 +4267,39 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addBankAccount = (bank: Omit<BankAccount, 'id' | 'currentBalance'>) => {
     const id = `BANK-${String(bankAccounts.length + 1).padStart(2, '0')}`;
     const newBank: BankAccount = { ...bank, id, currentBalance: bank.openingBalance };
-    setBankAccounts((prev) => [...prev, newBank]);
+    setBankAccounts((prev) => {
+      const updated = [...prev, newBank];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_bankAccounts', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Accounting', 'Cash & Bank', id, `Added Bank Account ${bank.bankName} - ${bank.accountNumber}`);
+    api.accounting.bankAccounts.create(newBank).catch((err) => console.warn('Failed to add bank account on backend:', err));
+  };
+
+  const updateBankAccount = (id: string, bankData: Partial<BankAccount>) => {
+    setBankAccounts((prev) => {
+      const updated = prev.map((b) => (b.id === id ? { ...b, ...bankData } : b));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_bankAccounts', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('UPDATE', 'Accounting', 'Cash & Bank', id, `Updated Bank Account ${id}`);
+    api.accounting.bankAccounts.update(id, bankData).catch((err) => console.warn('Failed to update bank account on backend:', err));
+  };
+
+  const deleteBankAccount = (id: string) => {
+    setBankAccounts((prev) => {
+      const updated = prev.filter((b) => b.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_bankAccounts', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'Accounting', 'Cash & Bank', id, `Deleted Bank Account ${id}`);
+    api.accounting.bankAccounts.delete(id).catch((err) => console.warn('Failed to delete bank account on backend:', err));
   };
 
   const reconcileBankTransaction = (transactionId: string, matchedErpDocNumber: string) => {
@@ -5323,6 +5356,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         approveExpenseEntry,
         bankAccounts,
         addBankAccount,
+        updateBankAccount,
+        deleteBankAccount,
         bankTransactions,
         bankReconciliations,
         reconcileBankTransaction,
