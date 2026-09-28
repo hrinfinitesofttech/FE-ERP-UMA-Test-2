@@ -166,7 +166,7 @@ export default function FullAndFinalSettlementPage() {
             if (firstEmp) {
               setFormData({
                 employeeId: firstEmp.id,
-                employeeName: firstEmp.name,
+                employeeName: firstEmp.name || 'Staff Member',
                 exitId: exit?.id || `EXIT-${firstEmp.id}`,
                 lastWorkingDate: exit?.lastWorkingDate || new Date().toISOString().split('T')[0],
                 pendingSalaryDays: 15,
