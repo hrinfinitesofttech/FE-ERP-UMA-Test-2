@@ -2580,7 +2580,24 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setProjectPlanningStages((prev) => [...prev, newStage]);
     logProjectActivity(stageData.projectId, stageData.jobNumber, 'Stage Added', `Added planning stage: ${stageData.stageName}`);
-    api.post('/planning-stages/', newStage).catch((err) => console.warn('Failed to add stage on backend:', err));
+    api.post('/planning-stages/', {
+      ...newStage,
+      project_id: stageData.projectId,
+      stage_number: stageData.stageNumber,
+      name: stageData.stageName,
+      department: stageData.responsibleDepartment,
+      assigned_employee_name: stageData.responsibleEmployee || '',
+      assignees: stageData.assignedEmployees || [],
+      status: stageData.status || 'pending',
+      progress: stageData.progressPercent || 0,
+      start_date: stageData.plannedStart || '',
+      end_date: stageData.plannedEnd || '',
+      description: stageData.remarks || '',
+    }).then((res: any) => {
+      if (res && res.id) {
+        setProjectPlanningStages((prev) => prev.map((s) => (s.id === newStage.id ? { ...s, id: res.id } : s)));
+      }
+    }).catch((err) => console.warn('Failed to add stage on backend:', err));
     return newStage;
   };
 

@@ -194,7 +194,15 @@ export default function ProjectPlanningPage() {
 
   const handleSaveNewStage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeProject || !formStageName.trim()) return;
+    if (!formStageName || !formStageName.trim()) {
+      alert('Please enter a Stage Name before clicking Create Stage.');
+      return;
+    }
+
+    const prjId = activeProject?.id || selectedProjectId || projectJobs[0]?.id || 'PRJ-2026-0001';
+    const jobNo = activeProject?.jobNumber || projectJobs[0]?.jobNumber || 'JOB-2026-0001';
+    const startDate = formPlannedStart || activeProject?.startDate || new Date().toISOString().split('T')[0];
+    const endDate = formPlannedEnd || activeProject?.deliveryDate || new Date().toISOString().split('T')[0];
 
     const employeeNames = selectedAssignees.map((a) => a.name).join(', ') || 'Unassigned';
     const employeeIds = selectedAssignees.map((a) => a.id);
@@ -202,10 +210,10 @@ export default function ProjectPlanningPage() {
     addPlanningStage({
       stageNumber: activeStages.length + 1,
       stageName: formStageName.trim(),
-      projectId: activeProject.id,
-      jobNumber: activeProject.jobNumber,
-      plannedStart: formPlannedStart || activeProject.startDate,
-      plannedEnd: formPlannedEnd || activeProject.deliveryDate,
+      projectId: prjId,
+      jobNumber: jobNo,
+      plannedStart: startDate,
+      plannedEnd: endDate,
       actualStart: formActualStart || undefined,
       actualEnd: formActualEnd || undefined,
       responsibleDepartment: formDept,
@@ -999,6 +1007,30 @@ export default function ProjectPlanningPage() {
               onSubmit={editingStage ? handleSaveEditStage : handleSaveNewStage}
               className="p-5 sm:p-6 space-y-4"
             >
+              {/* Target Project Selection */}
+              <div>
+                <label className="block text-[11px] font-bold text-[#4A3E39] mb-1">
+                  Target Project <span className="text-rose-500">*</span>
+                </label>
+                {projectJobs.length > 0 ? (
+                  <select
+                    value={activeProject?.id || selectedProjectId}
+                    onChange={(e) => setSelectedProjectId(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-[#E7DED5] rounded-xl text-xs font-bold text-[#211B17] focus:outline-none focus:border-[#75401F]"
+                  >
+                    {projectJobs.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.projectNumber} ({p.jobNumber}) • {p.customerName} - {p.productName}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="px-3 py-2 bg-[#FAF3EA] border border-[#E7DED5] rounded-xl text-xs text-[#75401F] font-semibold">
+                    Default Project (PRJ-2026-0001) will be assigned.
+                  </div>
+                )}
+              </div>
+
               {/* Stage Name */}
               <div>
                 <label className="block text-[11px] font-bold text-[#4A3E39] mb-1">
@@ -1271,7 +1303,7 @@ export default function ProjectPlanningPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#75401F] hover:bg-[#5C3318] text-[#211B17] rounded-xl font-bold cursor-pointer flex items-center gap-1.5 shadow-xs"
+                  className="px-5 py-2 bg-[#75401F] hover:bg-[#5C3318] text-white rounded-xl font-bold cursor-pointer flex items-center gap-1.5 shadow-md active:scale-95 transition"
                 >
                   <Save className="w-3.5 h-3.5" />
                   <span>{editingStage ? 'Save Changes' : 'Create Stage'}</span>
