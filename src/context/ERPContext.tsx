@@ -499,6 +499,7 @@ interface ERPContextType {
 
   projectJobs: ProjectJobMaster[];
   updateProject: (id: string, prj: Partial<ProjectJobMaster>) => void;
+  deleteProject: (id: string) => void;
 
   // Module 2: Project Management & Job Management Entities
   projectTasks: ProjectTask[];
@@ -2712,8 +2713,23 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
   // PROJECT MODULE MANAGEMENT FUNCTIONS
   const updateProject = (id: string, prj: Partial<ProjectJobMaster>) => {
-    setProjectJobs((prev) => prev.map((p) => (p.id === id ? { ...p, ...prj } : p)));
+    setProjectJobs((prev) => {
+      const updated = prev.map((p) => (p.id === id || p.projectNumber === id ? { ...p, ...prj } : p));
+      try { localStorage.setItem('UMA_ERP_projectJobs', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
     logAction('UPDATE', 'Project Management', 'Projects', id, `Updated project details for ${id}`);
+    api.projects.update(id, prj).catch((err) => console.warn('Failed to update project in backend:', err));
+  };
+
+  const deleteProject = (id: string) => {
+    setProjectJobs((prev) => {
+      const updated = prev.filter((p) => p.id !== id && p.projectNumber !== id);
+      try { localStorage.setItem('UMA_ERP_projectJobs', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
+    logAction('DELETE', 'Project Management', 'Projects', id, `Deleted project ${id}`);
+    api.projects.delete(id).catch((err) => console.warn('Failed to delete project in backend:', err));
   };
 
   const logProjectActivity = (projectId: string, jobNumber: string, action: string, details: string) => {
@@ -5492,6 +5508,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         createProjectFromSalesOrder,
         projectJobs,
         updateProject,
+        deleteProject,
         projectTasks,
         addProjectTask,
         updateProjectTask,

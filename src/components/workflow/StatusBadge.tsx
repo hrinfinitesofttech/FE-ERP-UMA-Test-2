@@ -82,12 +82,14 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
       case 'draft':
       case 'planning':
       case 'pending':
-      default:
+      default: {
+        const raw = status ? String(status) : 'planning';
         return {
-          label: String(status)?.replace('_', ' ')?.toUpperCase(),
+          label: raw.replace(/_/g, ' ').toUpperCase(),
           bg: 'bg-[#F3ECE4] text-[#70665F] border-[#E7DED5]',
           dot: 'bg-[#8D827A]',
         };
+      }
     }
   };
 
