@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, Download, Printer, ChevronLeft, ChevronRight, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
+import { Search, Download, Printer, ChevronLeft, ChevronRight, SlidersHorizontal, ArrowUpDown, Loader2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { useERP } from '@/context/ERPContext';
 
 export interface Column<T> {
   header: string;
@@ -22,6 +23,7 @@ interface DataTableProps<T> {
   filterComponent?: React.ReactNode;
   actions?: React.ReactNode;
   pageSizeDefault?: number;
+  isLoading?: boolean;
 }
 
 export function DataTable<T extends Record<string, any>>({
@@ -34,7 +36,15 @@ export function DataTable<T extends Record<string, any>>({
   filterComponent,
   actions,
   pageSizeDefault = 15,
+  isLoading: propIsLoading,
 }: DataTableProps<T>) {
+  let contextLoading = false;
+  try {
+    const erp = useERP();
+    contextLoading = erp.isInitialLoading;
+  } catch (_) {}
+
+  const isLoading = propIsLoading !== undefined ? propIsLoading : contextLoading;
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(pageSizeDefault);
@@ -92,7 +102,14 @@ export function DataTable<T extends Record<string, any>>({
       <div className="p-4 sm:p-5 border-b border-[#E7DED5] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 bg-[#FAF7F2]">
         <div>
           {title && <h3 className="text-sm font-bold text-[#211B17] tracking-tight">{title}</h3>}
-          {subtitle && <p className="text-xs text-[#70665F] mt-0.5">{subtitle}</p>}
+          {isLoading && data.length === 0 ? (
+            <p className="text-xs text-amber-800 flex items-center gap-1.5 mt-0.5 font-medium">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-800" />
+              <span>Loading live ERP records from cloud database...</span>
+            </p>
+          ) : (
+            subtitle && <p className="text-xs text-[#70665F] mt-0.5">{subtitle}</p>
+          )}
         </div>
 
         <div className="flex items-center flex-wrap gap-2.5 w-full sm:w-auto print:hidden">
@@ -148,10 +165,23 @@ export function DataTable<T extends Record<string, any>>({
             </tr>
           </thead>
           <tbody className="divide-y divide-[#EFE8DE]">
-            {paginatedData.length === 0 ? (
+            {isLoading && paginatedData.length === 0 ? (
+              Array.from({ length: 6 }).map((_, rIdx) => (
+                <tr key={`skel-row-${rIdx}`} className="animate-pulse">
+                  {columns.map((col, cIdx) => (
+                    <td key={`skel-col-${cIdx}`} className="py-4 px-4">
+                      <div
+                        className="h-3.5 bg-[#EFE8DE] rounded-md"
+                        style={{ width: `${55 + ((rIdx * 19 + cIdx * 23) % 40)}%` }}
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : paginatedData.length === 0 ? (
               <tr>
                 <td colSpan={columns.length} className="text-center py-12 text-[#8D827A]">
-                  <p className="font-semibold text-xs">No matching records found.</p>
+                  <p className="font-semibold text-xs text-[#211B17]">No matching records found.</p>
                   <p className="text-[11px] mt-1 text-[#8D827A]">Try adjusting your search criteria or filters.</p>
                 </td>
               </tr>
@@ -182,9 +212,18 @@ export function DataTable<T extends Record<string, any>>({
       {/* Pagination Footer */}
       <div className="p-3.5 border-t border-[#E7DED5] flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#70665F] bg-[#FAF7F2] print:hidden">
         <div>
-          Showing <span className="font-bold text-[#211B17]">{filteredData.length > 0 ? startIndex + 1 : 0}</span> to{' '}
-          <span className="font-bold text-[#211B17]">{Math.min(startIndex + pageSize, filteredData.length)}</span> of{' '}
-          <span className="font-bold text-[#211B17]">{filteredData.length}</span> records
+          {isLoading && filteredData.length === 0 ? (
+            <span className="flex items-center gap-2 text-xs text-[#70665F]">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#75401F]" />
+              <span>Connecting to live cloud records...</span>
+            </span>
+          ) : (
+            <>
+              Showing <span className="font-bold text-[#211B17]">{filteredData.length > 0 ? startIndex + 1 : 0}</span> to{' '}
+              <span className="font-bold text-[#211B17]">{Math.min(startIndex + pageSize, filteredData.length)}</span> of{' '}
+              <span className="font-bold text-[#211B17]">{filteredData.length}</span> records
+            </>
+          )}
         </div>
 
         <div className="flex items-center gap-2">

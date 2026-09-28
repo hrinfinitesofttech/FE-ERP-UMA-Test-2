@@ -31,7 +31,7 @@ export default function ChartOfAccountsPage() {
   const [accountName, setAccountName] = useState('');
   const [accountType, setAccountType] = useState<ChartOfAccount['accountType']>('Asset');
   const [parentGroupId, setParentGroupId] = useState('AGRP-001');
-  const [openingBalance, setOpeningBalance] = useState<number>(0);
+  const [openingBalance, setOpeningBalance] = useState<string>('');
 
   const filteredAccounts = chartOfAccounts.filter((acc) => {
     const matchesSearch =
@@ -52,7 +52,7 @@ export default function ChartOfAccountsPage() {
       accountType,
       parentGroupId,
       parentGroupName: parentGroupId === 'AGRP-001' ? 'Current Assets' : 'Direct Expenses',
-      openingBalance,
+      openingBalance: openingBalance === '' ? 0 : Number(openingBalance),
       normalBalance: accountType === 'Asset' || accountType === 'Expense' ? 'Debit' : 'Credit',
       isActive: true,
     });
@@ -60,7 +60,7 @@ export default function ChartOfAccountsPage() {
     setIsAddModalOpen(false);
     setAccountCode('');
     setAccountName('');
-    setOpeningBalance(0);
+    setOpeningBalance('');
   };
 
   const accountTypes: ChartOfAccount['accountType'][] = ['Asset', 'Liability', 'Equity', 'Income', 'Expense'];
@@ -233,7 +233,7 @@ export default function ChartOfAccountsPage() {
                   type="number"
                   placeholder="0"
                   value={openingBalance}
-                  onChange={(e) => setOpeningBalance(Number(e.target.value))}
+                  onChange={(e) => setOpeningBalance(e.target.value)}
                   className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
                 />
               </div>

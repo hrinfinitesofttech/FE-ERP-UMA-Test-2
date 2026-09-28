@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 export default function ServiceRequestsPage() {
-  const { serviceRequests, addServiceRequest, updateServiceRequestStatus, customerMachines, technicians } = useERP();
+  const { serviceRequests, addServiceRequest, updateServiceRequestStatus, customerMachines, technicians, isInitialLoading } = useERP();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -146,8 +146,27 @@ export default function ServiceRequestsPage() {
       </div>
 
       {/* Service Request Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredRequests.map((sr) => (
+      {isInitialLoading && filteredRequests.length === 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Array.from({ length: 4 }).map((_, rIdx) => (
+            <div key={`sr-skel-${rIdx}`} className="bg-white rounded-2xl border border-slate-200 dark:border-[#EBE3DB] p-5 animate-pulse space-y-3">
+              <div className="h-4 bg-[#EBE3DB]/70 rounded w-1/3"></div>
+              <div className="h-5 bg-[#EBE3DB]/50 rounded w-2/3"></div>
+              <div className="h-16 bg-[#FAF7F2] rounded-xl"></div>
+            </div>
+          ))}
+        </div>
+      ) : filteredRequests.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-slate-200 dark:border-[#EBE3DB] p-12 text-center text-[#70665F]">
+          <div className="flex flex-col items-center justify-center space-y-2">
+            <Building className="w-8 h-8 text-[#8D827A] opacity-50" />
+            <p className="font-semibold text-xs text-[#544B45]">No service requests found</p>
+            <p className="text-[11px] text-[#8D827A]">Click &quot;Log New Service Request&quot; to register a customer complaint or breakdown call.</p>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredRequests.map((sr) => (
           <div
             key={sr.id}
             className="bg-white dark:bg-white rounded-2xl border border-slate-200 dark:border-[#EBE3DB] p-5 shadow-sm space-y-4 hover:shadow-md transition"
@@ -228,7 +247,8 @@ export default function ServiceRequestsPage() {
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       {/* Modal */}
       {showAddModal && (

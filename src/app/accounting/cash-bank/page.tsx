@@ -13,7 +13,7 @@ export default function CashBankPage() {
   const [accountType, setAccountType] = useState<any>('Current');
   const [ifscCode, setIfscCode] = useState('HDFC0000124');
   const [branchName, setBranchName] = useState('Makarpura GIDC, Vadodara');
-  const [openingBalance, setOpeningBalance] = useState(2500000);
+  const [openingBalance, setOpeningBalance] = useState<string | number>('2500000');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +24,7 @@ export default function CashBankPage() {
       ifscCode,
       branchName,
       glAccountCode: '1001',
-      openingBalance,
+      openingBalance: openingBalance === '' ? 0 : Number(openingBalance),
       isActive: true,
     });
     setIsModalOpen(false);
@@ -153,7 +153,7 @@ export default function CashBankPage() {
                     type="number"
                     required
                     value={openingBalance}
-                    onChange={(e) => setOpeningBalance(Number(e.target.value))}
+                    onChange={(e) => setOpeningBalance(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
                   />
                 </div>

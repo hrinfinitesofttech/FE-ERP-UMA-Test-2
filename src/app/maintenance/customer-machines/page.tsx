@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 export default function CustomerMachinesPage() {
-  const { customerMachines, addCustomerMachine, openJobModal } = useERP();
+  const { customerMachines, addCustomerMachine, openJobModal, isInitialLoading } = useERP();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -149,7 +149,26 @@ export default function CustomerMachinesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-[#EBE3DB]">
-              {filteredMachines.map((cm) => (
+              {isInitialLoading && filteredMachines.length === 0 ? (
+                Array.from({ length: 4 }).map((_, rIdx) => (
+                  <tr key={`skel-${rIdx}`} className="animate-pulse">
+                    <td colSpan={8} className="py-4 px-4">
+                      <div className="h-4 bg-[#EBE3DB]/60 rounded-md w-full"></div>
+                    </td>
+                  </tr>
+                ))
+              ) : filteredMachines.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-[#70665F]">
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <Building className="w-8 h-8 text-[#8D827A] opacity-50" />
+                      <p className="font-semibold text-xs text-[#544B45]">No customer machines registered yet</p>
+                      <p className="text-[11px] text-[#8D827A]">Click &quot;Register Customer Machine&quot; to add a dispatched equipment.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredMachines.map((cm) => (
                 <tr key={cm.id} className="hover:bg-slate-50 dark:hover:bg-[#FAF7F2]/40 transition">
                   <td className="py-3.5 px-4">
                     <div className="font-mono font-bold text-crm-brand-700 dark:text-indigo-400">{cm.serialNumber}</div>
@@ -217,7 +236,8 @@ export default function CustomerMachinesPage() {
                     </Link>
                   </td>
                 </tr>
-              ))}
+              ))
+            )}
             </tbody>
           </table>
         </div>

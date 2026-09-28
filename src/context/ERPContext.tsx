@@ -894,11 +894,15 @@ interface ERPContextType {
   securityChecks: SecurityAuditCheck[];
   goLiveChecklist: GoLiveChecklistItem[];
   toggleGoLiveItem: (id: string) => void;
+
+  isInitialLoading: boolean;
 }
 
 const ERPContext = createContext<ERPContextType | undefined>(undefined);
 
 export function ERPProvider({ children }: { children: React.ReactNode }) {
+  const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
+
   // Master state initialized with deep relational seed
   const [company, setCompany] = useState<CompanySetting>(INITIAL_COMPANY);
   const [numbering, setNumbering] = useState<NumberingSetting[]>(INITIAL_NUMBERING);
@@ -1167,6 +1171,82 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Immediate LocalStorage Hydration for 0ms load & refresh persistence
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const cacheEntries: [string, React.Dispatch<React.SetStateAction<any>>][] = [
+        ['leads', setLeads],
+        ['customers', setCustomers],
+        ['contacts', setContacts],
+        ['enquiries', setEnquiries],
+        ['opportunities', setOpportunities],
+        ['followUps', setFollowUps],
+        ['siteVisits', setSiteVisits],
+        ['exhibitions', setExhibitions],
+        ['quotations', setQuotations],
+        ['customerPOs', setCustomerPOs],
+        ['salesOrders', setSalesOrders],
+        ['projectJobs', setProjectJobs],
+        ['projectTasks', setProjectTasks],
+        ['projectMilestones', setProjectMilestones],
+        ['projectPlanningStages', setProjectPlanningStages],
+        ['designJobs', setDesignJobs],
+        ['drawings2D', setDrawings2D],
+        ['designs3D', setDesigns3D],
+        ['boms', setBoms],
+        ['suppliers', setSuppliers],
+        ['purchaseRequisitions', setPurchaseRequisitions],
+        ['purchaseOrders', setPurchaseOrders],
+        ['itemMasters', setItemMasters],
+        ['itemCategories', setItemCategories],
+        ['uoms', setUoms],
+        ['warehouses', setWarehouses],
+        ['goodsReceipts', setGoodsReceipts],
+        ['stockBalances', setStockBalances],
+        ['materialIssues', setMaterialIssues],
+        ['materialReturns', setMaterialReturns],
+        ['manufacturingJobs', setManufacturingJobs],
+        ['workCenters', setWorkCenters],
+        ['workOrders', setWorkOrders],
+        ['finishedGoods', setFinishedGoods],
+        ['internalAssets', setInternalAssets],
+        ['customerMachines', setCustomerMachines],
+        ['serviceRequests', setServiceRequests],
+        ['breakdowns', setBreakdowns],
+        ['serviceVisits', setServiceVisits],
+        ['employees', setEmployees],
+        ['departments', setDepartments],
+        ['roles', setRoles],
+        ['financialYears', setFinancialYears],
+        ['chartOfAccounts', setChartOfAccounts],
+        ['salesInvoices', setSalesInvoices],
+        ['purchaseInvoices', setPurchaseInvoices],
+        ['customerReceipts', setCustomerReceipts],
+        ['supplierPayments', setSupplierPayments],
+      ];
+
+      let hasCached = false;
+      for (const [key, setter] of cacheEntries) {
+        const item = localStorage.getItem('UMA_ERP_' + key);
+        if (item) {
+          try {
+            const data = JSON.parse(item);
+            if (Array.isArray(data) && data.length > 0) {
+              setter(data);
+              hasCached = true;
+            }
+          } catch (_) {}
+        }
+      }
+      if (hasCached) {
+        setIsInitialLoading(false);
+      }
+    } catch (err) {
+      console.warn('LocalStorage hydration error:', err);
+    }
+  }, []);
+
   // Live Backend Data Fetching from PythonAnywhere
   useEffect(() => {
     let isMounted = true;
@@ -1235,101 +1315,49 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           return res.status === 'fulfilled' && res.value !== undefined ? (res.value as T) : null;
         }
 
-        const leadsRes = val<Lead[]>(results[0]);
-        if (leadsRes && Array.isArray(leadsRes)) setLeads(leadsRes);
+        function applyLive<T>(res: T[] | null, setter: React.Dispatch<React.SetStateAction<T[]>>, cacheKey?: string) {
+          if (res && Array.isArray(res) && res.length > 0) {
+            setter(res);
+            if (cacheKey && typeof window !== 'undefined') {
+              try {
+                localStorage.setItem('UMA_ERP_' + cacheKey, JSON.stringify(res));
+              } catch (_) {}
+            }
+          }
+        }
 
-        const custRes = val<Customer[]>(results[1]);
-        if (custRes && Array.isArray(custRes)) setCustomers(custRes);
-
-        const contRes = val<Contact[]>(results[2]);
-        if (contRes && Array.isArray(contRes)) setContacts(contRes);
-
-        const enqRes = val<Enquiry[]>(results[3]);
-        if (enqRes && Array.isArray(enqRes)) setEnquiries(enqRes);
-
-        const oppRes = val<Opportunity[]>(results[4]);
-        if (oppRes && Array.isArray(oppRes)) setOpportunities(oppRes);
-
-        const quoRes = val<Quotation[]>(results[5]);
-        if (quoRes && Array.isArray(quoRes)) setQuotations(quoRes);
-
-        const cpoRes = val<CustomerPO[]>(results[6]);
-        if (cpoRes && Array.isArray(cpoRes)) setCustomerPOs(cpoRes);
-
-        const soRes = val<SalesOrder[]>(results[7]);
-        if (soRes && Array.isArray(soRes)) setSalesOrders(soRes);
-
-        const empRes = val<Employee[]>(results[8]);
-        if (empRes && Array.isArray(empRes)) setEmployees(empRes);
-
-        const deptRes = val<Department[]>(results[9]);
-        if (deptRes && Array.isArray(deptRes)) setDepartments(deptRes);
-
-        const rolesRes = val<Role[]>(results[10]);
-        if (rolesRes && Array.isArray(rolesRes)) setRoles(rolesRes);
-
-        const prjRes = val<ProjectJobMaster[]>(results[11]);
-        if (prjRes && Array.isArray(prjRes)) setProjectJobs(prjRes);
-
-        const tskRes = val<ProjectTask[]>(results[12]);
-        if (tskRes && Array.isArray(tskRes)) setProjectTasks(tskRes);
-
-        const mlsRes = val<ProjectMilestone[]>(results[13]);
-        if (mlsRes && Array.isArray(mlsRes)) setProjectMilestones(mlsRes);
-
-        const stgRes = val<ProjectPlanningStage[]>(results[14]);
-        if (stgRes && Array.isArray(stgRes)) setProjectPlanningStages(stgRes);
-
-        const desRes = val<DesignJob[]>(results[15]);
-        if (desRes && Array.isArray(desRes)) setDesignJobs(desRes);
-
-        const drwRes = val<Drawing2D[]>(results[16]);
-        if (drwRes && Array.isArray(drwRes)) setDrawings2D(drwRes);
-
-        const modRes = val<Design3DModel[]>(results[17]);
-        if (modRes && Array.isArray(modRes)) setDesigns3D(modRes);
-
-        const bomRes = val<BOMHeader[]>(results[18]);
-        if (bomRes && Array.isArray(bomRes)) setBoms(bomRes);
-
-        const supRes = val<Supplier[]>(results[19]);
-        if (supRes && Array.isArray(supRes)) setSuppliers(supRes);
-
-        const prReqRes = val<PurchaseRequisition[]>(results[20]);
-        if (prReqRes && Array.isArray(prReqRes)) setPurchaseRequisitions(prReqRes);
-
-        const poRes = val<PurchaseOrder[]>(results[21]);
-        if (poRes && Array.isArray(poRes)) setPurchaseOrders(poRes);
-
-        const itemRes = val<ItemMaster[]>(results[22]);
-        if (itemRes && Array.isArray(itemRes)) setItemMasters(itemRes);
-
-        const catRes = val<ItemCategory[]>(results[23]);
-        if (catRes && Array.isArray(catRes)) setItemCategories(catRes);
-
-        const uomRes = val<UOMMaster[]>(results[24]);
-        if (uomRes && Array.isArray(uomRes)) setUoms(uomRes);
-
-        const whRes = val<Warehouse[]>(results[25]);
-        if (whRes && Array.isArray(whRes)) setWarehouses(whRes);
-
-        const grnRes = val<GoodsReceiptNote[]>(results[26]);
-        if (grnRes && Array.isArray(grnRes)) setGoodsReceipts(grnRes);
-
-        const stkRes = val<StockBalance[]>(results[27]);
-        if (stkRes && Array.isArray(stkRes)) setStockBalances(stkRes);
-
-        const miRes = val<MaterialIssue[]>(results[28]);
-        if (miRes && Array.isArray(miRes)) setMaterialIssues(miRes);
-
-        const mrRes = val<MaterialReturn[]>(results[29]);
-        if (mrRes && Array.isArray(mrRes)) setMaterialReturns(mrRes);
-
-        const mfJobRes = val<ManufacturingJob[]>(results[30]);
-        if (mfJobRes && Array.isArray(mfJobRes)) setManufacturingJobs(mfJobRes);
-
-        const wcRes = val<WorkCenter[]>(results[31]);
-        if (wcRes && Array.isArray(wcRes)) setWorkCenters(wcRes);
+        applyLive<Lead>(val(results[0]), setLeads, 'leads');
+        applyLive<Customer>(val(results[1]), setCustomers, 'customers');
+        applyLive<Contact>(val(results[2]), setContacts, 'contacts');
+        applyLive<Enquiry>(val(results[3]), setEnquiries, 'enquiries');
+        applyLive<Opportunity>(val(results[4]), setOpportunities, 'opportunities');
+        applyLive<Quotation>(val(results[5]), setQuotations, 'quotations');
+        applyLive<CustomerPO>(val(results[6]), setCustomerPOs, 'customerPOs');
+        applyLive<SalesOrder>(val(results[7]), setSalesOrders, 'salesOrders');
+        applyLive<Employee>(val(results[8]), setEmployees, 'employees');
+        applyLive<Department>(val(results[9]), setDepartments, 'departments');
+        applyLive<Role>(val(results[10]), setRoles, 'roles');
+        applyLive<ProjectJobMaster>(val(results[11]), setProjectJobs, 'projectJobs');
+        applyLive<ProjectTask>(val(results[12]), setProjectTasks, 'projectTasks');
+        applyLive<ProjectMilestone>(val(results[13]), setProjectMilestones, 'projectMilestones');
+        applyLive<ProjectPlanningStage>(val(results[14]), setProjectPlanningStages, 'projectPlanningStages');
+        applyLive<DesignJob>(val(results[15]), setDesignJobs, 'designJobs');
+        applyLive<Drawing2D>(val(results[16]), setDrawings2D, 'drawings2D');
+        applyLive<Design3DModel>(val(results[17]), setDesigns3D, 'designs3D');
+        applyLive<BOMHeader>(val(results[18]), setBoms, 'boms');
+        applyLive<Supplier>(val(results[19]), setSuppliers, 'suppliers');
+        applyLive<PurchaseRequisition>(val(results[20]), setPurchaseRequisitions, 'purchaseRequisitions');
+        applyLive<PurchaseOrder>(val(results[21]), setPurchaseOrders, 'purchaseOrders');
+        applyLive<ItemMaster>(val(results[22]), setItemMasters, 'itemMasters');
+        applyLive<ItemCategory>(val(results[23]), setItemCategories, 'itemCategories');
+        applyLive<UOMMaster>(val(results[24]), setUoms, 'uoms');
+        applyLive<Warehouse>(val(results[25]), setWarehouses, 'warehouses');
+        applyLive<GoodsReceiptNote>(val(results[26]), setGoodsReceipts, 'goodsReceipts');
+        applyLive<StockBalance>(val(results[27]), setStockBalances, 'stockBalances');
+        applyLive<MaterialIssue>(val(results[28]), setMaterialIssues, 'materialIssues');
+        applyLive<MaterialReturn>(val(results[29]), setMaterialReturns, 'materialReturns');
+        applyLive<ManufacturingJob>(val(results[30]), setManufacturingJobs, 'manufacturingJobs');
+        applyLive<WorkCenter>(val(results[31]), setWorkCenters, 'workCenters');
 
         const woRes = val<WorkOrder[]>(results[32]);
         if (woRes && Array.isArray(woRes) && woRes.length > 0) {
@@ -1344,64 +1372,30 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             status: w.status || 'Planned',
           }));
           setWorkOrders(normalized);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_workOrders', JSON.stringify(normalized)); } catch (_) {}
+          }
         }
 
-        const fgRes = val<FinishedGoodsItem[]>(results[33]);
-        if (fgRes && Array.isArray(fgRes)) setFinishedGoods(fgRes);
-
-        const assetRes = val<InternalAsset[]>(results[34]);
-        if (assetRes && Array.isArray(assetRes)) setInternalAssets(assetRes);
-
-        const cmRes = val<CustomerMachine[]>(results[35]);
-        if (cmRes && Array.isArray(cmRes)) setCustomerMachines(cmRes);
-
-        const srRes = val<ServiceRequest[]>(results[36]);
-        if (srRes && Array.isArray(srRes)) setServiceRequests(srRes);
-
-        const bdRes = val<BreakdownRecord[]>(results[37]);
-        if (bdRes && Array.isArray(bdRes)) setBreakdowns(bdRes);
-
-        const svRes = val<ServiceVisit[]>(results[38]);
-        if (svRes && Array.isArray(svRes)) setServiceVisits(svRes);
-
-        const desgRes = val<Designation[]>(results[39]);
-        if (desgRes && Array.isArray(desgRes)) setDesignations(desgRes);
-
-        const shiftRes = val<ShiftMaster[]>(results[40]);
-        if (shiftRes && Array.isArray(shiftRes)) setShiftMasters(shiftRes);
-
-        const attRes = val<AttendanceRecord[]>(results[41]);
-        if (attRes && Array.isArray(attRes)) setAttendanceRecords(attRes);
-
-        const lvRes = val<LeaveRequest[]>(results[42]);
-        if (lvRes && Array.isArray(lvRes)) setLeaveRequests(lvRes);
-
-        const payRes = val<PayrollRecord[]>(results[43]);
-        if (payRes && Array.isArray(payRes)) setPayrollRecords(payRes);
-
-        const fyRes = val<FinancialYear[]>(results[44]);
-        if (fyRes && Array.isArray(fyRes)) setFinancialYears(fyRes);
-
-        const coaRes = val<ChartOfAccount[]>(results[45]);
-        if (coaRes && Array.isArray(coaRes)) setChartOfAccounts(coaRes);
-
-        const siRes = val<SalesInvoice[]>(results[46]);
-        if (siRes && Array.isArray(siRes)) setSalesInvoices(siRes);
-
-        const piRes = val<PurchaseInvoice[]>(results[47]);
-        if (piRes && Array.isArray(piRes)) setPurchaseInvoices(piRes);
-
-        const crRes = val<CustomerReceipt[]>(results[48]);
-        if (crRes && Array.isArray(crRes)) setCustomerReceipts(crRes);
-
-        const spRes = val<SupplierPayment[]>(results[49]);
-        if (spRes && Array.isArray(spRes)) setSupplierPayments(spRes);
-
-        const apprRes = val<ApprovalItem[]>(results[50]);
-        if (apprRes && Array.isArray(apprRes)) setCentralApprovals(apprRes);
-
-        const altRes = val<ERPAlertItem[]>(results[51]);
-        if (altRes && Array.isArray(altRes)) setCentralAlerts(altRes);
+        applyLive<FinishedGoodsItem>(val(results[33]), setFinishedGoods, 'finishedGoods');
+        applyLive<InternalAsset>(val(results[34]), setInternalAssets, 'internalAssets');
+        applyLive<CustomerMachine>(val(results[35]), setCustomerMachines, 'customerMachines');
+        applyLive<ServiceRequest>(val(results[36]), setServiceRequests, 'serviceRequests');
+        applyLive<BreakdownRecord>(val(results[37]), setBreakdowns, 'breakdowns');
+        applyLive<ServiceVisit>(val(results[38]), setServiceVisits, 'serviceVisits');
+        applyLive<Designation>(val(results[39]), setDesignations, 'designations');
+        applyLive<ShiftMaster>(val(results[40]), setShiftMasters, 'shifts');
+        applyLive<AttendanceRecord>(val(results[41]), setAttendanceRecords, 'attendance');
+        applyLive<LeaveRequest>(val(results[42]), setLeaveRequests, 'leaves');
+        applyLive<PayrollRecord>(val(results[43]), setPayrollRecords, 'payroll');
+        applyLive<FinancialYear>(val(results[44]), setFinancialYears, 'financialYears');
+        applyLive<ChartOfAccount>(val(results[45]), setChartOfAccounts, 'chartOfAccounts');
+        applyLive<SalesInvoice>(val(results[46]), setSalesInvoices, 'salesInvoices');
+        applyLive<PurchaseInvoice>(val(results[47]), setPurchaseInvoices, 'purchaseInvoices');
+        applyLive<CustomerReceipt>(val(results[48]), setCustomerReceipts, 'customerReceipts');
+        applyLive<SupplierPayment>(val(results[49]), setSupplierPayments, 'supplierPayments');
+        applyLive<ApprovalItem>(val(results[50]), setCentralApprovals, 'approvals');
+        applyLive<ERPAlertItem>(val(results[51]), setCentralAlerts, 'alerts');
 
         const meRes = val<any>(results[52]);
         if (meRes && meRes.username) {
@@ -1416,6 +1410,10 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (err) {
         console.warn('Initial live data load warning:', err);
+      } finally {
+        if (isMounted) {
+          setIsInitialLoading(false);
+        }
       }
     }
 
@@ -3963,13 +3961,25 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addCustomerMachine = (cm: Omit<CustomerMachine, 'id'>) => {
     const newId = `CM-2026-00${customerMachines.length + 1}`;
     const newMachine: CustomerMachine = { ...cm, id: newId };
-    setCustomerMachines((prev) => [newMachine, ...prev]);
+    setCustomerMachines((prev) => {
+      const updated = [newMachine, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_customerMachines', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'maintenance', 'customer-machines', newId, `Registered customer machine ${newMachine.machineName}`);
     api.post('/customer-machines/', newMachine).catch((err) => console.warn('Failed to add customer machine:', err));
   };
 
   const updateCustomerMachine = (id: string, cmData: Partial<CustomerMachine>) => {
-    setCustomerMachines((prev) => prev.map((m) => (m.id === id ? { ...m, ...cmData } : m)));
+    setCustomerMachines((prev) => {
+      const updated = prev.map((m) => (m.id === id ? { ...m, ...cmData } : m));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_customerMachines', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'maintenance', 'customer-machines', id, `Updated customer machine ${id}`);
   };
 
@@ -3982,7 +3992,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       requestDate: new Date().toISOString().split('T')[0],
       createdAt: new Date().toISOString(),
     };
-    setServiceRequests((prev) => [newSr, ...prev]);
+    setServiceRequests((prev) => {
+      const updated = [newSr, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_serviceRequests', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'maintenance', 'service-requests', reqNo, `Created service request ${reqNo}`);
     sendNotification({
       title: 'New Service Request Logged',
@@ -5000,6 +5016,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         securityChecks,
         goLiveChecklist,
         toggleGoLiveItem,
+        isInitialLoading,
       }}
     >
       {children}
