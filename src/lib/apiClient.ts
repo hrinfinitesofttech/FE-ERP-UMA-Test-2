@@ -477,6 +477,12 @@ export const api = {
       approve: (id: string, approvedBy?: string) =>
         request<any>(`/expenses/${id}/approve/`, { method: 'POST', body: JSON.stringify({ approved_by: approvedBy || 'Super Admin' }) }),
     },
+    fixedAssets: {
+      list: () => request<any[]>('/fixed-assets/'),
+      create: (data: any) => request<any>('/fixed-assets/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/fixed-assets/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/fixed-assets/${id}/`, { method: 'DELETE' }),
+    },
   },
 
   // 360° Traceability & Central Approvals

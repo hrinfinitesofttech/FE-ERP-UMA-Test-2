@@ -735,6 +735,8 @@ interface ERPContextType {
   reconcileBankTransaction: (transactionId: string, matchedErpDocNumber: string) => void;
   fixedAssets: FixedAsset[];
   addFixedAsset: (asset: Omit<FixedAsset, 'id'>) => void;
+  updateFixedAsset: (id: string, asset: Partial<FixedAsset>) => void;
+  deleteFixedAsset: (id: string) => void;
   depreciationEntries: DepreciationEntry[];
   runDepreciation: (assetId: string, period: string, amount: number) => void;
   jobCostings: JobCostingSummary[];
@@ -1277,6 +1279,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ['expenseEntries', setExpenseEntries],
         ['holidays', setHolidays],
         ['wfhRequests', setWFHRequests],
+        ['fixedAssets', setFixedAssets],
       ];
 
       let hasCached = false;
@@ -1367,6 +1370,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           api.accounting.contraEntries.list(),
           api.accounting.bankAccounts.list(),
           api.accounting.expenses.list(),
+          api.accounting.fixedAssets.list(),
           api.hr.holidays.list(),
           api.integration.approvals.list(),
           api.integration.alerts.list(),
@@ -1550,11 +1554,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         applyLive<ContraEntry>(val(results[57]), setContraEntries, 'contraEntries');
         applyLive<BankAccount>(val(results[58]), setBankAccounts, 'bankAccounts');
         applyLive<ExpenseEntry>(val(results[59]), setExpenseEntries, 'expenseEntries');
-        applyLive<HolidayItem>(val(results[60]), setHolidays, 'holidays');
-        applyLive<ApprovalItem>(val(results[61]), setCentralApprovals, 'approvals');
-        applyLive<ERPAlertItem>(val(results[62]), setCentralAlerts, 'alerts');
+        applyLive<FixedAsset>(val(results[60]), setFixedAssets, 'fixedAssets');
+        applyLive<HolidayItem>(val(results[61]), setHolidays, 'holidays');
+        applyLive<ApprovalItem>(val(results[62]), setCentralApprovals, 'approvals');
+        applyLive<ERPAlertItem>(val(results[63]), setCentralAlerts, 'alerts');
 
-        const meRes = val<any>(results[63]);
+        const meRes = val<any>(results[64]);
         if (meRes && meRes.username) {
           setCurrentUser((prev) => ({
             ...prev,
@@ -4337,8 +4342,33 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addFixedAsset = (asset: Omit<FixedAsset, 'id'>) => {
     const id = `AST-${String(fixedAssets.length + 1).padStart(3, '0')}`;
     const newAsset: FixedAsset = { ...asset, id };
-    setFixedAssets((prev) => [...prev, newAsset]);
+    setFixedAssets((prev) => {
+      const updated = [...prev, newAsset];
+      try { localStorage.setItem('UMA_ERP_fixedAssets', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
     logAction('CREATE', 'Accounting', 'Fixed Assets', id, `Registered Fixed Asset ${asset.assetCode} - ${asset.assetName}`);
+    api.post('/fixed-assets/', newAsset).catch((err) => console.warn('Failed to save fixed asset to DB:', err));
+  };
+
+  const updateFixedAsset = (id: string, asset: Partial<FixedAsset>) => {
+    setFixedAssets((prev) => {
+      const updated = prev.map((a) => (a.id === id || a.assetCode === id ? { ...a, ...asset } : a));
+      try { localStorage.setItem('UMA_ERP_fixedAssets', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
+    logAction('UPDATE', 'Accounting', 'Fixed Assets', id, `Updated Fixed Asset ${id}`);
+    api.patch(`/fixed-assets/${id}/`, asset).catch((err) => console.warn('Failed to update fixed asset in DB:', err));
+  };
+
+  const deleteFixedAsset = (id: string) => {
+    setFixedAssets((prev) => {
+      const updated = prev.filter((a) => a.id !== id && a.assetCode !== id);
+      try { localStorage.setItem('UMA_ERP_fixedAssets', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
+    logAction('DELETE', 'Accounting', 'Fixed Assets', id, `Deleted Fixed Asset ${id}`);
+    api.delete(`/fixed-assets/${id}/`).catch((err) => console.warn('Failed to delete fixed asset from DB:', err));
   };
 
   const runDepreciation = (assetId: string, period: string, amount: number) => {
@@ -5470,6 +5500,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         reconcileBankTransaction,
         fixedAssets,
         addFixedAsset,
+        updateFixedAsset,
+        deleteFixedAsset,
         depreciationEntries,
         runDepreciation,
         jobCostings,
