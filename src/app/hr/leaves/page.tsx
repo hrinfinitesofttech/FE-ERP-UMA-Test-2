@@ -13,8 +13,7 @@ export default function LeaveManagementPage() {
     leaveTypeId: leaveTypes[0]?.id || 'LT-01',
     fromDate: new Date().toISOString().split('T')[0],
     toDate: new Date().toISOString().split('T')[0],
-    numberOfDays: 1,
-    isHalfDay: false,
+    durationOption: 'Full Day' as 'Full Day' | 'First Half' | 'Second Half' | 'Half Day',
     reason: 'Family function in hometown.',
   });
 
@@ -22,6 +21,8 @@ export default function LeaveManagementPage() {
     e.preventDefault();
     const emp = availableEmployees.find((e) => e.id === formData.employeeId);
     const lt = leaveTypes.find((l) => l.id === formData.leaveTypeId);
+    const isHalf = formData.durationOption !== 'Full Day';
+    const numDays = isHalf ? 0.5 : 1;
 
     addLeaveRequest({
       employeeId: formData.employeeId,
@@ -31,8 +32,9 @@ export default function LeaveManagementPage() {
       leaveName: lt?.leaveName || 'Casual Leave',
       fromDate: formData.fromDate,
       toDate: formData.toDate,
-      numberOfDays: Number(formData.numberOfDays),
-      isHalfDay: formData.isHalfDay,
+      numberOfDays: numDays,
+      isHalfDay: isHalf,
+      halfDayType: isHalf ? (formData.durationOption as any) : 'Full Day',
       reason: formData.reason,
       reportingManager: 'Rajesh Patel (Department Head)',
     });
@@ -106,7 +108,14 @@ export default function LeaveManagementPage() {
                   <td className="p-4 font-semibold text-[#3E2723]">{req.leaveName}</td>
                   <td className="p-4 text-xs">
                     <div className="text-[#544B45] font-mono">{req.fromDate} to {req.toDate}</div>
-                    <div className="text-emerald-400 font-bold">{req.numberOfDays} Day(s) {req.isHalfDay && '(Half Day)'}</div>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <span className="text-emerald-600 font-bold">{req.numberOfDays} Day(s)</span>
+                      {req.isHalfDay && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-600 border border-indigo-500/20">
+                          {req.halfDayType || 'Half Day'}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="p-4 text-xs text-[#70665F] max-w-xs truncate">&quot;{req.reason}&quot;</td>
                   <td className="p-4">
@@ -170,6 +179,20 @@ export default function LeaveManagementPage() {
                       {l.leaveName}
                     </option>
                   ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[#70665F] mb-1">Leave Duration / Half Day Option</label>
+                <select
+                  value={formData.durationOption}
+                  onChange={(e) => setFormData({ ...formData, durationOption: e.target.value as any })}
+                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17] font-semibold"
+                >
+                  <option value="Full Day">Full Day (1 Day)</option>
+                  <option value="First Half">First Half Leave (0.5 Day - Morning)</option>
+                  <option value="Second Half">Second Half Leave (0.5 Day - Afternoon)</option>
+                  <option value="Half Day">Half Day Leave (0.5 Day)</option>
                 </select>
               </div>
 

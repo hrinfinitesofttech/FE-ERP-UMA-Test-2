@@ -18,6 +18,10 @@ export type AttendanceStatusType =
   | 'Present'
   | 'Absent'
   | 'Half Day'
+  | 'First Half'
+  | 'Second Half'
+  | 'First Half Leave'
+  | 'Second Half Leave'
   | 'Late'
   | 'Early Checkout'
   | 'WFH'
@@ -251,6 +255,7 @@ export interface LeaveRequest {
   toDate: string;
   numberOfDays: number;
   isHalfDay: boolean;
+  halfDayType?: 'First Half' | 'Second Half' | 'Half Day' | 'Full Day';
   reason: string;
   attachmentUrl?: string;
   reportingManager: string;

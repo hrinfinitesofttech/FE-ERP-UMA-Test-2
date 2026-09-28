@@ -165,6 +165,8 @@ export default function AttendanceRegularizationPage() {
                   >
                     <option value="Present">Present</option>
                     <option value="Half Day">Half Day</option>
+                    <option value="First Half">First Half (Morning)</option>
+                    <option value="Second Half">Second Half (Afternoon)</option>
                     <option value="WFH">WFH</option>
                     <option value="On Leave">On Leave</option>
                   </select>
