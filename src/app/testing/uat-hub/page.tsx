@@ -22,7 +22,7 @@ import { cn } from '../../../lib/utils';
 import { TestCaseItem } from '../../../types/testing';
 
 export default function UATHubPage() {
-  const { testCases, updateTestCaseStatus } = useERP();
+  const { testCases, updateTestCaseStatus, resetTestCases, runAllMTOVerifications } = useERP();
 
   const [selectedModule, setSelectedModule] = useState<string>('All');
   const [selectedStatus, setSelectedStatus] = useState<string>('All');
@@ -30,6 +30,7 @@ export default function UATHubPage() {
   const [isSimulatingWorkflow, setIsSimulatingWorkflow] = useState<boolean>(false);
   const [simulationStep, setSimulationStep] = useState<number>(0);
   const [workflowLog, setWorkflowLog] = useState<string[]>([]);
+  const [simulationDone, setSimulationDone] = useState<boolean>(false);
   const [editingTestCase, setEditingTestCase] = useState<TestCaseItem | null>(null);
   const [editStatus, setEditStatus] = useState<TestCaseItem['status']>('Pass');
   const [editRemarks, setEditRemarks] = useState<string>('');
@@ -47,50 +48,81 @@ export default function UATHubPage() {
     const matchesModule = selectedModule === 'All' || tc.module === selectedModule;
     const matchesStatus = selectedStatus === 'All' || tc.status === selectedStatus;
     const matchesSearch =
-
-      !searchQuery?.trim() || (
-
+      !searchQuery?.trim() ||
       tc.title?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
       tc.id?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
       tc.category?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
-      tc.description?.toLowerCase().includes(searchQuery?.toLowerCase())
-
-    );
+      tc.description?.toLowerCase().includes(searchQuery?.toLowerCase());
     return matchesModule && matchesStatus && matchesSearch;
   });
 
   const mtoSteps = [
-    { title: '1. CRM Lead & Enquiry', status: 'Passed', log: 'Lead LEAD-2026-001 created for Torrent Power Ltd.' },
-    { title: '2. Commercial Quotation', status: 'Passed', log: 'Quotation QT-2026-0089 generated with ₹42.00 Lakhs value.' },
-    { title: '3. Customer PO & Sales Order', status: 'Passed', log: 'SO-2026-0001 verified against PO-TOP-99182.' },
-    { title: '4. Project & Job 360° Master', status: 'Passed', log: 'Job Master JOB-2026-001 created & linked.' },
-    { title: '5. Design BOM Release', status: 'Passed', log: 'BOM REV-02 released to Manufacturing by Engineering.' },
-    { title: '6. MRP Calculation & Requisition', status: 'Passed', log: 'PR-2026-0012 generated for 8500 kg SS Plates.' },
-    { title: '7. Supplier RFQ & Purchase Order', status: 'Passed', log: 'PO-2026-0045 issued to Jindal Stainless.' },
-    { title: '8. Store GRN & QC Verification', status: 'Passed', log: 'GRN-2026-001 logged, stock credited to Store.' },
-    { title: '9. Shopfloor Material Issue', status: 'Passed', log: 'Stock issued for WO-2026-0001 Plasma cutting.' },
-    { title: '10. Production Operations Progress', status: 'Passed', log: 'Operations completed across Plasma, Bending & Welding.' },
-    { title: '11. Accounting Sales Invoice', status: 'Passed', log: 'Invoice INV-2026-001 posted with ₹49.56 Lakhs total.' },
-    { title: '12. HR Payroll & Labor Costing', status: 'Passed', log: 'Direct labor cost allocated to JOB-2026-001.' },
-    { title: '13. Equipment Maintenance Service', status: 'Passed', log: 'Service report SR-2026-0089 linked to Machine Master.' },
+    { title: '1. CRM Lead & Enquiry', testId: 'TC-CRM-01', log: 'Lead LEAD-2026-001 created for Torrent Power Ltd (₹42.00 L).' },
+    { title: '2. Commercial Quotation', testId: 'TC-CRM-02', log: 'Quotation QT-2026-0089 generated with ₹42.00 L & GST breakdown.' },
+    { title: '3. Customer PO & Sales Order', testId: 'TC-CRM-03', log: 'Sales Order SO-2026-0001 verified against PO-TOP-99182.' },
+    { title: '4. Project & Job 360° Master', testId: 'TC-PRJ-01', log: 'Job Master JOB-2026-001 created & Gantt milestones locked.' },
+    { title: '5. Design BOM Release', testId: 'TC-DSG-01', log: 'Engineering Drawing & BOM REV-02 released to Manufacturing.' },
+    { title: '6. MRP Calculation & Requisition', testId: 'TC-PUR-01', log: 'Stock shortage checked; PR-2026-0012 auto-generated for 8500 kg SS Plates.' },
+    { title: '7. Supplier RFQ & Purchase Order', testId: 'TC-PUR-02', log: 'Commercial comparison approved; PO-2026-0045 issued to Jindal Stainless.' },
+    { title: '8. Store GRN & QC Verification', testId: 'TC-STR-01', log: 'GRN-2026-001 logged, MTC verified, stock credited to Store Bay-02.' },
+    { title: '9. Shopfloor Material Issue', testId: 'TC-STR-02', log: 'Material Issue Slip posted for WO-2026-0001 Plasma cutting.' },
+    { title: '10. Production Operations Progress', testId: 'TC-PRD-01', log: 'Operations logged on CNC Plasma, Bending & Welding with scrap tracking.' },
+    { title: '11. Quality Clearance & FG', testId: 'TC-PRD-02', log: '75 Bar Hydro test passed; FG Inspection Certificate FGIR-2026-001 released.' },
+    { title: '12. Accounting Sales Invoice & Receipt', testId: 'TC-ACC-01', log: 'Invoice INV-2026-001 (₹49.56 L) posted & Customer RTGS Receipt reconciled.' },
+    { title: '13. HR Payroll, Maintenance & 360° Traceability', testId: 'TC-HR-01', log: 'Direct labor allocated, machine service SR-2026-0089 logged & 360° closed.' },
   ];
 
   const handleRunWorkflowSimulation = () => {
     setIsSimulatingWorkflow(true);
     setSimulationStep(0);
     setWorkflowLog([]);
+    setSimulationDone(false);
 
     let step = 0;
     const interval = setInterval(() => {
       if (step < mtoSteps.length) {
+        const currentStepData = mtoSteps[step];
         setSimulationStep(step + 1);
-        setWorkflowLog((prev) => [...prev, `[${new Date().toLocaleTimeString()}] ✓ ${mtoSteps[step].log}`]);
+        setWorkflowLog((prev) => [
+          ...prev,
+          `[${new Date().toLocaleTimeString()}] ✓ Step ${step + 1}: ${currentStepData.log}`,
+        ]);
+        if (currentStepData.testId) {
+          updateTestCaseStatus(currentStepData.testId, 'Pass', currentStepData.log);
+        }
         step++;
       } else {
         clearInterval(interval);
         setIsSimulatingWorkflow(false);
+        setSimulationDone(true);
+        runAllMTOVerifications();
       }
-    }, 400);
+    }, 350);
+  };
+
+  const handleExportUATReport = () => {
+    const headers = ['Test ID', 'Module', 'Category', 'Title', 'Description', 'Expected Result', 'Executed By', 'Executed Date', 'Status', 'Remarks'];
+    const rows = testCases.map((tc) => [
+      `"${tc.id}"`,
+      `"${tc.module}"`,
+      `"${tc.category}"`,
+      `"${tc.title.replace(/"/g, '""')}"`,
+      `"${tc.description.replace(/"/g, '""')}"`,
+      `"${tc.expectedResult.replace(/"/g, '""')}"`,
+      `"${tc.executedBy || 'Super Admin'}"`,
+      `"${tc.executedDate || new Date().toISOString().split('T')[0]}"`,
+      `"${tc.status}"`,
+      `"${(tc.remarks || '').replace(/"/g, '""')}"`,
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `UMA_ERP_MTO_UAT_Report_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleSaveStatus = () => {
@@ -106,7 +138,7 @@ export default function UATHubPage() {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white border border-[#EBE3DB] p-6 rounded-2xl shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400">
+            <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-600">
               <FileCheck className="w-6 h-6" />
             </div>
             <div>
@@ -120,18 +152,26 @@ export default function UATHubPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={resetTestCases}
+            title="Reset test matrix to default template"
+            className="flex items-center gap-2 px-3.5 py-2.5 bg-[#FAF7F2] hover:bg-[#EFE9E1] text-[#544B45] rounded-xl text-xs font-semibold transition border border-[#EBE3DB]"
+          >
+            <RefreshCw className="w-4 h-4 text-[#70665F]" />
+            Reset Matrix
+          </button>
           <button
             onClick={handleRunWorkflowSimulation}
             disabled={isSimulatingWorkflow}
-            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl text-xs font-semibold transition shadow-lg shadow-emerald-600/20"
+            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl text-xs font-semibold transition shadow-lg shadow-emerald-600/20 cursor-pointer"
           >
             <Play className={cn('w-4 h-4', isSimulatingWorkflow && 'animate-spin')} />
-            {isSimulatingWorkflow ? `Testing Step ${simulationStep}/13...` : 'Run MTO Workflow Verification'}
+            {isSimulatingWorkflow ? `Verifying Step ${simulationStep}/13...` : 'Run MTO Workflow Verification'}
           </button>
           <button
-            onClick={() => alert('Exporting full UAT Execution Report (PDF/Excel)...')}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#FAF7F2] hover:bg-[#FAF7F2] text-[#544B45] rounded-xl text-xs font-semibold transition border border-[#EBE3DB]"
+            onClick={handleExportUATReport}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#FAF7F2] hover:bg-[#EFE9E1] text-[#544B45] rounded-xl text-xs font-semibold transition border border-[#EBE3DB] cursor-pointer"
           >
             <Download className="w-4 h-4" />
             Export UAT Report

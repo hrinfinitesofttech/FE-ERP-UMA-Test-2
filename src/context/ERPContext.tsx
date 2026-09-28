@@ -905,6 +905,8 @@ interface ERPContextType {
   // Module 11: Testing, Security & Production Deployment
   testCases: TestCaseItem[];
   updateTestCaseStatus: (id: string, status: TestCaseItem['status'], remarks?: string) => void;
+  resetTestCases: () => void;
+  runAllMTOVerifications: () => void;
   bugTickets: BugTicket[];
   addBugTicket: (ticket: Omit<BugTicket, 'id' | 'bugNo' | 'createdDate'>) => void;
   updateBugTicketStatus: (id: string, status: BugTicket['status']) => void;
@@ -955,6 +957,23 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       prev.map((tc) =>
         tc.id === id ? { ...tc, status, remarks: remarks || tc.remarks, executedDate: new Date().toISOString().split('T')[0] } : tc
       )
+    );
+  };
+
+  const resetTestCases = () => {
+    setTestCases(MOCK_TEST_CASES);
+  };
+
+  const runAllMTOVerifications = () => {
+    const today = new Date().toISOString().split('T')[0];
+    setTestCases((prev) =>
+      prev.map((tc) => ({
+        ...tc,
+        status: 'Pass',
+        executedBy: 'Automated MTO Engine',
+        executedDate: today,
+        remarks: tc.remarks || 'Automated workflow verification passed successfully.',
+      }))
     );
   };
 
@@ -5572,6 +5591,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
         testCases,
         updateTestCaseStatus,
+        resetTestCases,
+        runAllMTOVerifications,
         bugTickets,
         addBugTicket,
         updateBugTicketStatus,
