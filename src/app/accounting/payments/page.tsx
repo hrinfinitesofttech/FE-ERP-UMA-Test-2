@@ -3,51 +3,76 @@
 import React, { useState } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import { Banknote, Plus, Search, Landmark, CheckCircle2 } from 'lucide-react';
+import { BankAccount } from '../../../types/accounting';
+import { INITIAL_BANK_ACCOUNTS } from '../../../data/mockAccountingData';
 
 export default function SupplierPaymentsPage() {
   const { supplierPayments, addSupplierPayment, suppliers, purchaseInvoices, bankAccounts } = useERP();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const activeBankAccounts: BankAccount[] =
+    bankAccounts && bankAccounts.length > 0 ? bankAccounts : INITIAL_BANK_ACCOUNTS;
+
   const [supplierId, setSupplierId] = useState(suppliers[0]?.id || '');
   const [invoiceNumber, setInvoiceNumber] = useState(purchaseInvoices[0]?.invoiceNumber || 'PINV-2026-0001');
   const [paymentMode, setPaymentMode] = useState<any>('RTGS');
-  const [bankAccountId, setBankAccountId] = useState(bankAccounts[0]?.id || '');
+  const [bankAccountId, setBankAccountId] = useState(activeBankAccounts[0]?.id || 'BANK-01');
   const [amountPaid, setAmountPaid] = useState<number | string>('');
   const [referenceNo, setReferenceNo] = useState('');
 
   const filtered = supplierPayments.filter((p) => {
+    const q = (searchTerm || '').trim().toLowerCase();
+    if (!q) return true;
     const pNo = p.paymentNumber || '';
     const suppName = p.supplierName || '';
     const refNo = p.referenceNumber || '';
     return (
-      pNo?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      suppName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      refNo?.toLowerCase().includes(searchTerm?.toLowerCase())
+      pNo?.toLowerCase().includes(q) ||
+      suppName?.toLowerCase().includes(q) ||
+      refNo?.toLowerCase().includes(q)
     );
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const supp = suppliers.find((s) => s.id === supplierId) || suppliers[0];
-    const bank = bankAccounts.find((b) => b.id === bankAccountId) || bankAccounts[0];
+    const supp =
+      suppliers.find((s) => s.id === supplierId) ||
+      suppliers[0] || {
+        id: 'SUPP-001',
+        supplierName: 'General Supplier',
+      };
 
-    addSupplierPayment({
-      paymentDate: new Date().toISOString().split('T')[0],
-      supplierId: supp.id,
-      supplierName: supp.supplierName || (supp as any).name || 'Unknown Supplier',
-      purchaseInvoiceNumber: invoiceNumber,
-      paymentMode,
-      bankAccountId: bank.id,
-      bankName: bank.bankName,
-      amountPaid: Number(amountPaid) || 0,
-      referenceNumber: referenceNo,
-      status: 'Paid',
-      remarks: 'Vendor bill payment via RTGS',
-      createdBy: 'Rajesh Patel',
-    });
+    const bank =
+      activeBankAccounts.find((b) => b.id === bankAccountId) ||
+      activeBankAccounts[0] || {
+        id: 'BANK-01',
+        bankName: 'HDFC Bank',
+        accountNumber: '50200098765432',
+      };
 
-    setIsModalOpen(false);
+    try {
+      addSupplierPayment({
+        paymentDate: new Date().toISOString().split('T')[0],
+        supplierId: supp.id,
+        supplierName: supp.supplierName || (supp as any).name || 'Supplier',
+        purchaseInvoiceNumber: invoiceNumber || 'Direct Payment',
+        paymentMode,
+        bankAccountId: bank.id,
+        bankName: bank.bankName,
+        amountPaid: Number(amountPaid) || 0,
+        referenceNumber: referenceNo || `UTR-${Date.now().toString().slice(-8)}`,
+        status: 'Paid',
+        remarks: 'Vendor bill payment via RTGS/NEFT',
+        createdBy: 'Admin',
+      });
+
+      setIsModalOpen(false);
+      setAmountPaid('');
+      setReferenceNo('');
+    } catch (err) {
+      console.error('Error recording supplier payment:', err);
+    }
   };
 
   return (
@@ -177,9 +202,9 @@ export default function SupplierPaymentsPage() {
                     onChange={(e) => setBankAccountId(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723]"
                   >
-                    {bankAccounts.map((b) => (
+                    {activeBankAccounts.map((b) => (
                       <option key={b.id} value={b.id}>
-                        {b.bankName} ({b.accountNumber.slice(-4)})
+                        {b.bankName} ({b.accountNumber ? b.accountNumber.slice(-4) : 'Main'})
                       </option>
                     ))}
                   </select>
