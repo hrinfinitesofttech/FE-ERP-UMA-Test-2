@@ -18,8 +18,8 @@ export default function AttendancePage() {
     checkIn: '09:05',
     checkOut: '18:10',
     status: 'Present' as AttendanceStatusType,
-    source: 'Biometric System' as const,
-    remarks: 'Regular shop floor punch',
+    source: 'Manual Log' as 'Biometric System' | 'Mobile App GPS' | 'Manual Log' | 'Regularization',
+    remarks: 'Manual attendance log entry',
   });
 
   const isHalfDayStatus = (s: string) =>
@@ -332,6 +332,20 @@ export default function AttendancePage() {
                     className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17] font-mono"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-[#70665F] mb-1">Punch Source / Origin</label>
+                <select
+                  value={formData.source}
+                  onChange={(e) => setFormData({ ...formData, source: e.target.value as any })}
+                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17] font-medium"
+                >
+                  <option value="Manual Log">Manual Log (Default for Manual Entry)</option>
+                  <option value="Biometric System">Biometric System</option>
+                  <option value="Mobile App GPS">Mobile App GPS</option>
+                  <option value="Regularization">Regularization</option>
+                </select>
               </div>
 
               <div className="pt-3 border-t border-[#EBE3DB] flex justify-end gap-3">
