@@ -1332,7 +1332,19 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         if (wcRes && Array.isArray(wcRes)) setWorkCenters(wcRes);
 
         const woRes = val<WorkOrder[]>(results[32]);
-        if (woRes && Array.isArray(woRes)) setWorkOrders(woRes);
+        if (woRes && Array.isArray(woRes) && woRes.length > 0) {
+          const normalized = woRes.map((w: any) => ({
+            ...w,
+            workOrderNumber: w.workOrderNumber || w.work_order_number || w.id,
+            jobNumber: w.jobNumber || w.job_number || '',
+            productName: w.productName || w.product_name || '',
+            bomRevision: w.bomRevision || w.bom_revision || 'REV-00',
+            designRevision: w.designRevision || w.design_revision || 'REV-00',
+            plannedEndDate: w.plannedEndDate || w.planned_end_date || '',
+            status: w.status || 'Planned',
+          }));
+          setWorkOrders(normalized);
+        }
 
         const fgRes = val<FinishedGoodsItem[]>(results[33]);
         if (fgRes && Array.isArray(fgRes)) setFinishedGoods(fgRes);
@@ -1671,6 +1683,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             remarks: `Auto-generated from Project Planning (${prj.projectNumber})`,
             createdAt: prj.startDate,
           };
+          api.production.workOrders.create(newWO).catch(() => {});
           return [newWO, ...prev];
         }
         return prev;
@@ -3572,11 +3585,21 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const releaseWorkOrder = (id: string) => {
+    const target = workOrders.find((w) => w.id === id || w.workOrderNumber === id);
     setWorkOrders((prev) => prev.map((w) => (w.id === id || w.workOrderNumber === id ? { ...w, status: 'Released' } : w)));
     logAction('UPDATE', 'Production', 'Work Orders', id, `Released Work Order ${id} to shop floor`);
-    api.production.workOrders.release(id).catch((err: any) =>
-      console.warn('Failed to update work order on backend:', err)
-    );
+
+    const payload = target ? { ...target, status: 'Released' } : { id, workOrderNumber: id, status: 'Released' };
+    api.production.workOrders.release(id, payload).then((res: any) => {
+      if (res && res.workOrder) {
+        setWorkOrders((prev) => prev.map((w) => (w.id === id || w.workOrderNumber === id ? { ...w, ...res.workOrder, status: 'Released' } : w)));
+      }
+    }).catch(() => {
+      // Fallback: also ensure record exists via create/patch
+      api.production.workOrders.create(payload).catch((err: any) =>
+        console.warn('Failed to update work order on backend:', err)
+      );
+    });
   };
 
   const addProductionOrder = (data: Omit<ProductionOrder, 'id' | 'productionOrderNumber' | 'createdAt'>) => {
