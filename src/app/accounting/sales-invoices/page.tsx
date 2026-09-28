@@ -12,15 +12,72 @@ export default function SalesInvoicesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Form state
+  const [selectedSoId, setSelectedSoId] = useState<string>(salesOrders[0]?.id || salesOrders[0]?.salesOrderNumber || '');
   const [customerId, setCustomerId] = useState(customers[0]?.id || '');
   const [salesOrderNumber, setSalesOrderNumber] = useState(salesOrders[0]?.salesOrderNumber || (salesOrders[0] as any)?.salesOrderNo || 'SO-2026-0001');
-  const [dueDate, setDueDate] = useState('2026-10-15');
+  const [dueDate, setDueDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    return d.toISOString().split('T')[0];
+  });
   const [placeOfSupply, setPlaceOfSupply] = useState('Gujarat (24)');
 
   // Form line items
   const [items, setItems] = useState<Array<{ description: string; hsnSac: string; qty: number | string; unitPrice: number | string; taxRate: number | string }>>([
     { description: 'Automated Hydraulic Scrap Baling Press 100-Ton', hsnSac: '8462', qty: 1, unitPrice: 3800000, taxRate: 18 },
   ]);
+
+  // Handle Sales Order Selection - Automatically prefill Customer, Items, Rates & GST
+  const handleSelectSalesOrder = (soIdOrNo: string) => {
+    setSelectedSoId(soIdOrNo);
+    if (!soIdOrNo || soIdOrNo === 'DIRECT_INVOICE') {
+      setSalesOrderNumber('');
+      return;
+    }
+
+    const matchedSo = salesOrders.find(
+      (s) => s.id === soIdOrNo || s.salesOrderNumber === soIdOrNo || (s as any).salesOrderNo === soIdOrNo
+    );
+
+    if (matchedSo) {
+      setSalesOrderNumber(matchedSo.salesOrderNumber || (matchedSo as any).salesOrderNo || '');
+      
+      // Match and set customer
+      const cust = customers.find(
+        (c) => c.id === matchedSo.customerId || c.companyName?.toLowerCase() === matchedSo.customerName?.toLowerCase()
+      );
+      if (cust) {
+        setCustomerId(cust.id);
+        if (cust.gstin && !cust.gstin.startsWith('24')) {
+          setPlaceOfSupply('Other State (Interstate IGST)');
+        } else {
+          setPlaceOfSupply('Gujarat (24)');
+        }
+      }
+
+      // Auto populate items from Sales Order
+      if (matchedSo.items && matchedSo.items.length > 0) {
+        const autoItems = matchedSo.items.map((it: any) => ({
+          description: it.productName ? `${it.productName}${it.specification ? ' - ' + it.specification : ''}` : it.description || 'Machinery / Equipment',
+          hsnSac: it.hsnSac || it.hsnCode || '8462',
+          qty: Number(it.quantity || it.qty || 1),
+          unitPrice: Number(it.rate || it.unitPrice || it.amount || 0),
+          taxRate: 18,
+        }));
+        setItems(autoItems);
+      } else if (matchedSo.orderValue) {
+        setItems([
+          {
+            description: `Sales Order Contract: ${matchedSo.salesOrderNumber}`,
+            hsnSac: '8462',
+            qty: 1,
+            unitPrice: matchedSo.orderValue,
+            taxRate: 18,
+          },
+        ]);
+      }
+    }
+  };
 
   const filteredInvoices = salesInvoices.filter((inv) => {
     const matchesSearch =
@@ -32,7 +89,11 @@ export default function SalesInvoicesPage() {
   });
 
   const handleAddItem = () => {
-    setItems((prev) => [...prev, { description: 'Installation & Calibration Services', hsnSac: '9987', qty: 1, unitPrice: 150000, taxRate: 18 }]);
+    setItems((prev) => [...prev, { description: '', hsnSac: '8462', qty: 1, unitPrice: 0, taxRate: 18 }]);
+  };
+
+  const handleRemoveItem = (idxToRemove: number) => {
+    setItems((prev) => prev.filter((_, i) => i !== idxToRemove));
   };
 
   const handleCreateInvoice = (e: React.FormEvent) => {
@@ -220,51 +281,89 @@ export default function SalesInvoicesPage() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
-            <h3 className="text-base font-bold text-[#211B17] border-b border-[#EBE3DB] pb-3">Generate GST Sales Invoice</h3>
+            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+              <div>
+                <h3 className="text-base font-bold text-[#211B17]">Generate GST Sales Invoice</h3>
+                <p className="text-[11px] text-[#70665F]">Select a Sales Order to auto-fill customer, items, and pricing</p>
+              </div>
+              <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-semibold rounded-full border border-emerald-200">
+                ✨ Auto-Calculated
+              </span>
+            </div>
+
             <form onSubmit={handleCreateInvoice} className="space-y-4 text-xs">
+              {/* Sales Order Auto-Fetch Selection */}
+              <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl">
+                <label className="block text-amber-900 font-semibold mb-1 text-[11px]">
+                  Select Sales Order (Auto-fills Customer, Items & Rates)
+                </label>
+                <select
+                  value={selectedSoId}
+                  onChange={(e) => handleSelectSalesOrder(e.target.value)}
+                  className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-[#3E2723] font-medium"
+                >
+                  <option value="DIRECT_INVOICE">-- Direct / Manual Sales Invoice --</option>
+                  {salesOrders.map((so) => (
+                    <option key={so.id} value={so.id || so.salesOrderNumber}>
+                      {so.salesOrderNumber} - {so.customerName} (₹{Number(so.orderValue || 0).toLocaleString('en-IN')})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] mb-1">Customer</label>
+                  <label className="block text-[#70665F] mb-1 font-medium">Customer</label>
                   <select
                     value={customerId}
-                    onChange={(e) => setCustomerId(e.target.value)}
+                    onChange={(e) => {
+                      setCustomerId(e.target.value);
+                      const c = customers.find((x) => x.id === e.target.value);
+                      if (c && c.gstin && !c.gstin.startsWith('24')) {
+                        setPlaceOfSupply('Other State (Interstate IGST)');
+                      } else {
+                        setPlaceOfSupply('Gujarat (24)');
+                      }
+                    }}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723]"
                   >
                     {customers.map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.companyName} ({c.gstin})
+                        {c.companyName} {c.gstin ? `(${c.gstin})` : ''}
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-[#70665F] mb-1">Place of Supply</label>
+                  <label className="block text-[#70665F] mb-1 font-medium">Place of Supply (GST Type)</label>
                   <select
                     value={placeOfSupply}
                     onChange={(e) => setPlaceOfSupply(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723]"
                   >
-                    <option value="Gujarat (24)">Gujarat (Intrastate CGST+SGST)</option>
-                    <option value="Maharashtra (27)">Maharashtra (Interstate IGST)</option>
-                    <option value="Rajasthan (08)">Rajasthan (Interstate IGST)</option>
+                    <option value="Gujarat (24)">Gujarat (Intrastate CGST 9% + SGST 9%)</option>
+                    <option value="Other State (Interstate IGST)">Other State (Interstate IGST 18%)</option>
+                    <option value="Maharashtra (27)">Maharashtra (Interstate IGST 18%)</option>
+                    <option value="Rajasthan (08)">Rajasthan (Interstate IGST 18%</option>
                   </select>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] mb-1">Sales Order Reference</label>
+                  <label className="block text-[#70665F] mb-1 font-medium">Sales Order Reference</label>
                   <input
                     type="text"
                     value={salesOrderNumber}
                     onChange={(e) => setSalesOrderNumber(e.target.value)}
+                    placeholder="e.g. SO-2026-0001"
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[#70665F] mb-1">Payment Due Date</label>
+                  <label className="block text-[#70665F] mb-1 font-medium">Payment Due Date</label>
                   <input
                     type="date"
                     value={dueDate}
@@ -277,73 +376,142 @@ export default function SalesInvoicesPage() {
               {/* Items Section */}
               <div className="space-y-2 pt-2 border-t border-[#EBE3DB]">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-[#211B17]">Invoice Line Items</span>
-                  <button type="button" onClick={handleAddItem} className="text-emerald-400 hover:underline text-[11px]">
+                  <span className="font-bold text-[#211B17]">Invoice Line Items ({items.length})</span>
+                  <button
+                    type="button"
+                    onClick={handleAddItem}
+                    className="text-emerald-600 hover:text-emerald-700 font-semibold text-[11px] bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 cursor-pointer"
+                  >
                     + Add Line Item
                   </button>
                 </div>
 
-                {items.map((it, idx) => (
-                  <div key={idx} className="grid grid-cols-5 gap-2 p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
-                    <div className="col-span-2">
-                      <label className="block text-[#70665F] text-[10px]">Description</label>
-                      <input
-                        type="text"
-                        value={it.description}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, description: val } : item)));
-                        }}
-                        className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1 text-[#3E2723] text-xs"
-                      />
+                {items.map((it, idx) => {
+                  const lineTotal = (Number(it.qty) || 0) * (Number(it.unitPrice) || 0);
+                  return (
+                    <div key={idx} className="grid grid-cols-12 gap-2 p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] items-end">
+                      <div className="col-span-5">
+                        <label className="block text-[#70665F] text-[10px]">Description / Product</label>
+                        <input
+                          type="text"
+                          value={it.description}
+                          placeholder="Item name & specs"
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, description: val } : item)));
+                          }}
+                          className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-[#3E2723] text-xs"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-[#70665F] text-[10px]">HSN/SAC</label>
+                        <input
+                          type="text"
+                          value={it.hsnSac}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, hsnSac: val } : item)));
+                          }}
+                          className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-[#3E2723] text-xs font-mono"
+                        />
+                      </div>
+                      <div className="col-span-1">
+                        <label className="block text-[#70665F] text-[10px]">Qty</label>
+                        <input
+                          type="number"
+                          placeholder="0"
+                          value={it.qty}
+                          onChange={(e) => {
+                            const val = e.target.value === '' ? '' : Number(e.target.value);
+                            setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, qty: val } : item)));
+                          }}
+                          className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-[#3E2723] text-xs text-center"
+                        />
+                      </div>
+                      <div className="col-span-3">
+                        <label className="block text-[#70665F] text-[10px]">Unit Rate (₹)</label>
+                        <input
+                          type="number"
+                          placeholder="0"
+                          value={it.unitPrice}
+                          onChange={(e) => {
+                            const val = e.target.value === '' ? '' : Number(e.target.value);
+                            setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, unitPrice: val } : item)));
+                          }}
+                          className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-[#3E2723] text-xs text-right font-mono"
+                        />
+                      </div>
+                      <div className="col-span-1 flex justify-center pb-1">
+                        {items.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveItem(idx)}
+                            className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition"
+                            title="Remove item"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-[#70665F] text-[10px]">HSN/SAC</label>
-                      <input
-                        type="text"
-                        value={it.hsnSac}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, hsnSac: val } : item)));
-                        }}
-                        className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1 text-[#3E2723] text-xs"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[#70665F] text-[10px]">Qty</label>
-                      <input
-                        type="number"
-                        placeholder="0"
-                        value={it.qty}
-                        onChange={(e) => {
-                          const val = e.target.value === '' ? '' : Number(e.target.value);
-                          setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, qty: val } : item)));
-                        }}
-                        className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1 text-[#3E2723] text-xs"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[#70665F] text-[10px]">Unit Rate (₹)</label>
-                      <input
-                        type="number"
-                        placeholder="0"
-                        value={it.unitPrice}
-                        onChange={(e) => {
-                          const val = e.target.value === '' ? '' : Number(e.target.value);
-                          setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, unitPrice: val } : item)));
-                        }}
-                        className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1 text-[#3E2723] text-xs"
-                      />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
+              {/* Real-time Calculation Summary Box */}
+              {(() => {
+                const subTotal = items.reduce((acc, it) => acc + (Number(it.qty) || 0) * (Number(it.unitPrice) || 0), 0);
+                const isGujarat = placeOfSupply.includes('Gujarat');
+                const taxRate = 18;
+                const totalTax = (subTotal * taxRate) / 100;
+                const cgst = isGujarat ? totalTax / 2 : 0;
+                const sgst = isGujarat ? totalTax / 2 : 0;
+                const igst = !isGujarat ? totalTax : 0;
+                const grandTotal = subTotal + totalTax;
+
+                return (
+                  <div className="bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB] space-y-1.5 text-xs">
+                    <div className="flex justify-between text-[#70665F]">
+                      <span>Taxable Value (Subtotal):</span>
+                      <span className="font-mono font-semibold text-[#3E2723]">₹{subTotal.toLocaleString('en-IN')}</span>
+                    </div>
+                    {isGujarat ? (
+                      <>
+                        <div className="flex justify-between text-[#70665F]">
+                          <span>CGST (9%):</span>
+                          <span className="font-mono text-amber-700">₹{cgst.toLocaleString('en-IN')}</span>
+                        </div>
+                        <div className="flex justify-between text-[#70665F]">
+                          <span>SGST (9%):</span>
+                          <span className="font-mono text-amber-700">₹{sgst.toLocaleString('en-IN')}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex justify-between text-[#70665F]">
+                        <span>IGST (18%):</span>
+                        <span className="font-mono text-amber-700">₹{igst.toLocaleString('en-IN')}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-sm font-bold text-[#211B17] pt-2 border-t border-[#EBE3DB]">
+                      <span>Grand Total (Payable):</span>
+                      <span className="font-mono text-emerald-600">₹{grandTotal.toLocaleString('en-IN')}</span>
+                    </div>
+                  </div>
+                );
+              })()}
+
               <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl bg-white text-[#544B45]">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-white border border-[#EBE3DB] text-[#544B45] hover:bg-gray-50"
+                >
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 rounded-xl bg-emerald-600 text-[#211B17] font-semibold">
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition shadow-sm cursor-pointer"
+                >
                   Generate Invoice
                 </button>
               </div>
