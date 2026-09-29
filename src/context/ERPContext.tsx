@@ -91,6 +91,7 @@ import {
   WarehouseLocation,
   OpeningStock,
   GoodsReceiptNote,
+  GRNStatus,
   QCInspection,
   StockBalance,
   StockReservation,
@@ -1388,6 +1389,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ['uoms', setUoms],
         ['warehouses', setWarehouses],
         ['goodsReceipts', setGoodsReceipts],
+        ['qcInspections', setQcInspections],
         ['stockBalances', setStockBalances],
         ['materialIssues', setMaterialIssues],
         ['materialReturns', setMaterialReturns],
@@ -1436,6 +1438,58 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             if (Array.isArray(data) && data.length > 0) {
               if (key === 'employees') {
                 setter(deduplicateEmployees(data));
+              } else if (key === 'itemCategories') {
+                const normalized = data.map((c: any) => ({
+                  ...c,
+                  id: String(c.id || c.categoryCode || c.code),
+                  categoryCode: c.categoryCode || c.code || c.category_code || c.id || 'CAT',
+                  categoryName: c.categoryName || c.name || c.category_name || (c.description ? c.description.split(',')[0] : 'Item Category'),
+                  description: c.description || '',
+                  parentCategory: c.parentCategory || c.parent_category || 'Top Level',
+                  status: c.status || 'Active',
+                }));
+                setter(normalized);
+              } else if (key === 'warehouses') {
+                const normalized = data.map((w: any) => ({
+                  ...w,
+                  id: String(w.id || w.warehouseCode || w.warehouse_code),
+                  warehouseCode: w.warehouseCode || w.warehouse_code || w.id,
+                  warehouseName: w.warehouseName || w.name || w.warehouse_name || w.warehouseCode || w.id,
+                  warehouseType: w.warehouseType || w.warehouse_type || 'Raw Material',
+                  address: w.address || '',
+                  managerName: w.managerName || w.incharge || 'Store Incharge',
+                  contactPhone: w.contactPhone || w.contact_phone || '',
+                  contactEmail: w.contactEmail || w.contact_email || '',
+                  status: w.status || 'Active',
+                }));
+                setter(normalized);
+              } else if (key === 'qcInspections') {
+                const normalized = data.map((q: any) => {
+                  const firstItm = (q.items && Array.isArray(q.items) && q.items[0]) || {};
+                  return {
+                    id: String(q.id || q.inspectionNumber || q.inspection_number || 'QC'),
+                    inspectionNumber: q.inspectionNumber || q.inspection_number || q.id || 'QC',
+                    inspectionDate: q.inspectionDate || q.inspection_date || '',
+                    grnId: q.grnId || q.grn_id || '',
+                    grnNumber: q.grnNumber || q.grn_number || '',
+                    itemId: q.itemId || q.item_id || firstItm.itemId || 'ITM-01',
+                    itemCode: q.itemCode || q.item_code || firstItm.itemCode || firstItm.item_code || 'RAW-MAT',
+                    itemName: q.itemName || q.item_name || firstItm.itemName || firstItm.item_name || 'Material Item',
+                    jobId: q.jobId || q.job_id || 'General Stock',
+                    supplierName: q.supplierName || q.supplier_name || firstItm.supplierName || 'Supplier',
+                    requiredSpecification: q.requiredSpecification || q.required_specification || 'Standard Spec',
+                    actualSpecification: q.actualSpecification || q.actual_specification || 'Passed Inspection',
+                    inspectionParameters: q.inspectionParameters || q.inspection_parameters || 'Visual, Dimension, Spec Verification',
+                    sampleQuantity: Number(q.sampleQuantity || q.sample_quantity || 1),
+                    acceptedQuantity: Number(q.acceptedQuantity ?? q.accepted_quantity ?? firstItm.acceptedQuantity ?? firstItm.acceptedQty ?? 1),
+                    rejectedQuantity: Number(q.rejectedQuantity ?? q.rejected_quantity ?? firstItm.rejectedQuantity ?? firstItm.rejectedQty ?? 0),
+                    rejectionReason: q.rejectionReason || q.rejection_reason || '',
+                    qcResult: (q.qcResult || q.overall_result || 'Pass') as any,
+                    inspectorName: q.inspectorName || q.inspector || 'Suresh Patel (Sr. QC Lead)',
+                    remarks: q.remarks || '',
+                  };
+                });
+                setter(normalized);
               } else {
                 setter(data);
               }
@@ -1540,6 +1594,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           api.hr.appraisals.list(),
           api.integration.approvals.list(),
           api.integration.alerts.list(),
+          api.store.qcInspections(),
           api.auth.me(),
         ]);
 
@@ -1812,11 +1867,117 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             try { localStorage.setItem('UMA_ERP_uoms', JSON.stringify(normalizedUoms)); } catch (_) {}
           }
         }
-        applyLive<Warehouse>(val(results[28]), setWarehouses, 'warehouses');
+        const rawWh = val<any[]>(results[28]);
+        if (rawWh && Array.isArray(rawWh) && rawWh.length > 0) {
+          const normalizedWh: Warehouse[] = rawWh.map((w: any) => ({
+            ...w,
+            id: String(w.id || w.warehouseCode || w.warehouse_code),
+            warehouseCode: w.warehouseCode || w.warehouse_code || w.id,
+            warehouseName: w.warehouseName || w.name || w.warehouse_name || w.warehouseCode || w.id,
+            warehouseType: w.warehouseType || w.warehouse_type || 'Raw Material',
+            address: w.address || '',
+            managerName: w.managerName || w.incharge || 'Store Incharge',
+            contactPhone: w.contactPhone || w.contact_phone || '',
+            contactEmail: w.contactEmail || w.contact_email || '',
+            status: w.status || 'Active',
+          }));
+          setWarehouses(normalizedWh);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_warehouses', JSON.stringify(normalizedWh)); } catch (_) {}
+          }
+        } else {
+          applyLive<Warehouse>(val(results[28]), setWarehouses, 'warehouses');
+        }
         applyLive<GoodsReceiptNote>(val(results[29]), setGoodsReceipts, 'goodsReceipts');
-        applyLive<StockBalance>(val(results[30]), setStockBalances, 'stockBalances');
-        applyLive<MaterialIssue>(val(results[31]), setMaterialIssues, 'materialIssues');
-        applyLive<MaterialReturn>(val(results[32]), setMaterialReturns, 'materialReturns');
+        const rawStock = val<any[]>(results[30]);
+        if (rawStock && Array.isArray(rawStock) && rawStock.length > 0) {
+          const normalizedStock: StockBalance[] = rawStock.map((s: any) => {
+            const available = Number(s.availableQty ?? s.available_quantity ?? s.quantity ?? s.currentQuantity ?? 0);
+            const reserved = Number(s.reservedQty ?? s.reserved_quantity ?? 0);
+            const usable = Number(s.usableQty ?? s.usable_quantity ?? (available - reserved));
+            const rate = Number(s.averageRate ?? s.average_unit_cost ?? s.unit_rate ?? s.rate ?? s.standardCost ?? 0);
+            const valuation = Number(s.stockValue ?? s.total_value ?? (usable * rate));
+            return {
+              ...s,
+              id: String(s.id || s.item_id || s.itemCode || `stk-${Math.random().toString(36).slice(2, 6)}`),
+              itemId: s.itemId || s.item_id || '',
+              itemCode: s.itemCode || s.item_code || '',
+              itemName: s.itemName || s.item_name || '',
+              category: s.category || s.category_name || '',
+              warehouseId: s.warehouseId || s.warehouse_id || '',
+              warehouseName: s.warehouseName || s.warehouse_name || 'Main Raw Material & Plate Yard',
+              locationCode: s.locationCode || s.location_code || s.bin_location || 'W1-ZA-R1-S1-B01',
+              batchLot: s.batchLot || s.batch_lot || s.heat_number || s.lot_number || '-',
+              availableQty: isNaN(available) ? 0 : available,
+              reservedQty: isNaN(reserved) ? 0 : reserved,
+              allocatedQty: Number(s.allocatedQty ?? s.allocated_quantity ?? 0),
+              inTransitQty: Number(s.inTransitQty ?? s.in_transit_quantity ?? 0),
+              damagedQty: Number(s.damagedQty ?? s.damaged_quantity ?? 0),
+              rejectedQty: Number(s.rejectedQty ?? s.rejected_quantity ?? 0),
+              usableQty: isNaN(usable) ? 0 : usable,
+              averageRate: isNaN(rate) ? 0 : rate,
+              stockValue: isNaN(valuation) ? 0 : valuation,
+              lastUpdatedDate: s.lastUpdatedDate || s.last_updated_date || s.updated_at || new Date().toISOString().split('T')[0],
+            };
+          });
+          setStockBalances(normalizedStock);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_stockBalances', JSON.stringify(normalizedStock)); } catch (_) {}
+          }
+        }
+
+        const rawIssues = val<any[]>(results[31]);
+        if (rawIssues && Array.isArray(rawIssues) && rawIssues.length > 0) {
+          const normalizedIssues: MaterialIssue[] = rawIssues.map((i: any) => ({
+            ...i,
+            id: String(i.id || i.issue_number || i.issueNumber),
+            issueNumber: i.issueNumber || i.issue_number || i.id,
+            issueDate: i.issueDate || i.issue_date || new Date().toISOString().split('T')[0],
+            projectId: i.projectId || i.project_id || 'PRJ-2026-0001',
+            jobId: i.jobId || i.job_number || i.jobNumber || '',
+            workOrderNumber: i.workOrderNumber || i.work_order_number || '',
+            bomNumber: i.bomNumber || i.bom_number || '',
+            bomRevision: i.bomRevision || i.bom_revision || 'Rev-01',
+            productionStage: i.productionStage || i.production_stage || 'Shell & Dish End Cutting / Rolling',
+            requestedBy: i.requestedBy || i.requested_by || i.issued_to || '',
+            issuedBy: i.issuedBy || i.issued_by || 'Hitesh Rawal (Store Head)',
+            warehouseId: i.warehouseId || i.warehouse_id || 'wh-main',
+            warehouseName: i.warehouseName || i.warehouse_name || 'Main Raw Material & Plate Yard',
+            status: i.status || 'Fully Issued',
+            totalIssueValue: Number(i.totalIssueValue ?? i.total_issue_value ?? 0),
+            remarks: i.remarks || i.notes || '',
+            items: Array.isArray(i.items) ? i.items : [],
+          }));
+          setMaterialIssues(normalizedIssues);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_materialIssues', JSON.stringify(normalizedIssues)); } catch (_) {}
+          }
+        }
+
+        const rawReturns = val<any[]>(results[32]);
+        if (rawReturns && Array.isArray(rawReturns) && rawReturns.length > 0) {
+          const normalizedReturns: MaterialReturn[] = rawReturns.map((r: any) => ({
+            ...r,
+            id: String(r.id || r.return_number || r.returnNumber),
+            returnNumber: r.returnNumber || r.return_number || r.id,
+            returnDate: r.returnDate || r.return_date || new Date().toISOString().split('T')[0],
+            projectId: r.projectId || r.project_id || 'PRJ-2026-0001',
+            jobId: r.jobId || r.job_number || r.jobNumber || '',
+            workOrderNumber: r.workOrderNumber || r.work_order_number || '',
+            materialIssueNumber: r.materialIssueNumber || r.material_issue_number || r.issueNo || '',
+            warehouseId: r.warehouseId || r.warehouse_id || 'wh-main',
+            warehouseName: r.warehouseName || r.warehouse_name || 'Main Raw Material & Plate Yard',
+            returnedBy: r.returnedBy || r.returned_by || 'Ketan Parmar (Shop Supervisor)',
+            receivedBy: r.receivedBy || r.received_by || 'Hitesh Rawal (Store Head)',
+            totalReturnValue: Number(r.totalReturnValue ?? r.total_return_value ?? 0),
+            remarks: r.remarks || r.notes || '',
+            items: Array.isArray(r.items) ? r.items : [],
+          }));
+          setMaterialReturns(normalizedReturns);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_materialReturns', JSON.stringify(normalizedReturns)); } catch (_) {}
+          }
+        }
         applyLive<ManufacturingJob>(val(results[33]), setManufacturingJobs, 'manufacturingJobs');
         applyLive<WorkCenter>(val(results[34]), setWorkCenters, 'workCenters');
 
@@ -1932,7 +2093,40 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         applyLive<ApprovalItem>(val(results[68]), setCentralApprovals, 'approvals');
         applyLive<ERPAlertItem>(val(results[69]), setCentralAlerts, 'alerts');
 
-        const meRes = val<any>(results[70]);
+        const qcRes = val<any[]>(results[70]);
+        if (qcRes && Array.isArray(qcRes) && qcRes.length > 0) {
+          const normalizedQc: QCInspection[] = qcRes.map((q: any) => {
+            const firstItm = (q.items && Array.isArray(q.items) && q.items[0]) || {};
+            return {
+              id: String(q.id || q.inspectionNumber || q.inspection_number || 'QC'),
+              inspectionNumber: q.inspectionNumber || q.inspection_number || q.id || 'QC',
+              inspectionDate: q.inspectionDate || q.inspection_date || '',
+              grnId: q.grnId || q.grn_id || '',
+              grnNumber: q.grnNumber || q.grn_number || '',
+              itemId: q.itemId || q.item_id || firstItm.itemId || 'ITM-01',
+              itemCode: q.itemCode || q.item_code || firstItm.itemCode || firstItm.item_code || 'RAW-MAT',
+              itemName: q.itemName || q.item_name || firstItm.itemName || firstItm.item_name || 'Material Item',
+              jobId: q.jobId || q.job_id || 'General Stock',
+              supplierName: q.supplierName || q.supplier_name || firstItm.supplierName || 'Supplier',
+              requiredSpecification: q.requiredSpecification || q.required_specification || 'Standard Spec',
+              actualSpecification: q.actualSpecification || q.actual_specification || 'Passed Inspection',
+              inspectionParameters: q.inspectionParameters || q.inspection_parameters || 'Visual, Dimension, Spec Verification',
+              sampleQuantity: Number(q.sampleQuantity || q.sample_quantity || 1),
+              acceptedQuantity: Number(q.acceptedQuantity ?? q.accepted_quantity ?? firstItm.acceptedQuantity ?? firstItm.acceptedQty ?? 1),
+              rejectedQuantity: Number(q.rejectedQuantity ?? q.rejected_quantity ?? firstItm.rejectedQuantity ?? firstItm.rejectedQty ?? 0),
+              rejectionReason: q.rejectionReason || q.rejection_reason || '',
+              qcResult: (q.qcResult || q.overall_result || 'Pass') as any,
+              inspectorName: q.inspectorName || q.inspector || 'Suresh Patel (Sr. QC Lead)',
+              remarks: q.remarks || '',
+            };
+          });
+          setQcInspections(normalizedQc);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_qcInspections', JSON.stringify(normalizedQc)); } catch (_) {}
+          }
+        }
+
+        const meRes = val<any>(results[71]);
         if (meRes && meRes.username) {
           setCurrentUser((prev) => ({
             ...prev,
@@ -4695,23 +4889,62 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addQCInspection = (data: Omit<QCInspection, 'id' | 'inspectionNumber'>) => {
     const inspectionNumber = `QC-${new Date().getFullYear()}-${String(qcInspections.length + 1).padStart(4, '0')}`;
     const newQc: QCInspection = { ...data, id: inspectionNumber, inspectionNumber };
-    setQcInspections((prev) => [newQc, ...prev]);
-    api.post('/qc-inspections/', newQc).catch((err) => console.warn('Failed to add QC inspection:', err));
+    setQcInspections((prev) => {
+      const updated = [newQc, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_qcInspections', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    api.post('/qc-inspections/', {
+      ...newQc,
+      grn_id: newQc.grnId,
+      grn_number: newQc.grnNumber,
+      inspection_date: newQc.inspectionDate,
+      inspector: newQc.inspectorName,
+      overall_result: newQc.qcResult,
+      items: [{
+        itemCode: newQc.itemCode,
+        itemName: newQc.itemName,
+        acceptedQuantity: newQc.acceptedQuantity,
+        rejectedQuantity: newQc.rejectedQuantity,
+        supplierName: newQc.supplierName,
+      }],
+    }).catch((err) => console.warn('Failed to add QC inspection:', err));
   };
 
   const approveQCInspection = (id: string, inspectorName: string, qcResult: 'Pass' | 'Fail' | 'Conditional Approval', acceptedQty: number, rejectedQty: number) => {
     const targetQc = qcInspections.find((q) => q.id === id);
     if (!targetQc) return;
 
-    setQcInspections((prev) =>
-      prev.map((q) => (q.id === id ? { ...q, qcResult, acceptedQuantity: acceptedQty, rejectedQuantity: rejectedQty, inspectorName } : q))
-    );
+    setQcInspections((prev) => {
+      const updated = prev.map((q) => (q.id === id ? { ...q, qcResult, acceptedQuantity: acceptedQty, rejectedQuantity: rejectedQty, inspectorName } : q));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_qcInspections', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
 
-    setGoodsReceipts((prev) =>
-      prev.map((g) => (g.id === targetQc.grnId ? { ...g, status: qcResult === 'Pass' ? 'Accepted' : qcResult === 'Fail' ? 'Rejected' : 'Partially Accepted' } : g))
-    );
+    setGoodsReceipts((prev) => {
+      const updated = prev.map((g) => (g.id === targetQc.grnId ? { ...g, status: (qcResult === 'Pass' ? 'Accepted' : qcResult === 'Fail' ? 'Rejected' : 'Partially Accepted') as GRNStatus } : g));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_goodsReceipts', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
 
     logAction('APPROVE', 'Store', 'QC Inspection', id, `QC Inspection ${targetQc.inspectionNumber} set to ${qcResult} by ${inspectorName}`);
+    api.patch(`/qc-inspections/${id}/`, {
+      overall_result: qcResult,
+      inspector: inspectorName,
+      items: [{
+        itemCode: targetQc.itemCode,
+        itemName: targetQc.itemName,
+        acceptedQuantity: acceptedQty,
+        rejectedQuantity: rejectedQty,
+        supplierName: targetQc.supplierName,
+      }],
+    }).catch((err) => console.warn('Failed to update QC inspection on backend:', err));
   };
 
   const updateStockBalance = (id: string, updates: Partial<StockBalance>) => {
@@ -4775,8 +5008,15 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       transferNumber,
       createdAt: new Date().toISOString().split('T')[0],
     };
-    setStockTransfers((prev) => [newTrn, ...prev]);
+    setStockTransfers((prev) => {
+      const updated = [newTrn, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_stockTransfers', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Store', 'Stock Transfer', newTrn.id, `Transferred items from ${data.fromWarehouseName} to ${data.toWarehouseName}`);
+    api.post('/stock-transfers/', newTrn).catch((err) => console.warn('Failed to add stock transfer:', err));
   };
 
   const addStockAdjustment = (data: Omit<StockAdjustment, 'id' | 'adjustmentNumber' | 'createdAt'>) => {
@@ -4787,8 +5027,15 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       adjustmentNumber,
       createdAt: new Date().toISOString().split('T')[0],
     };
-    setStockAdjustments((prev) => [newAdj, ...prev]);
+    setStockAdjustments((prev) => {
+      const updated = [newAdj, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_stockAdjustments', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Store', 'Stock Adjustment', newAdj.id, `Adjusted stock for ${data.itemName}: diff ${data.differenceQuantity}`);
+    api.post('/stock-adjustments/', newAdj).catch((err) => console.warn('Failed to add stock adjustment:', err));
   };
 
   const addScrapEntry = (data: Omit<ScrapEntry, 'id' | 'scrapNumber' | 'createdAt'>) => {

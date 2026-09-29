@@ -11,36 +11,87 @@ import { formatCurrency } from '../../../../lib/utils';
 function QuotationFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { customers, enquiries, addQuotation, currentUser } = useERP();
+  const { customers, enquiries, leads, addQuotation, currentUser } = useERP();
 
-  const prefillCustId = searchParams.get('customerId');
-  const prefillEnqId = searchParams.get('enquiryId');
+  const prefillCustId = searchParams.get('customerId') || '';
+  const prefillEnqId = searchParams.get('enquiryId') || '';
+  const prefillLeadId = searchParams.get('leadId') || '';
 
-  const [customerId, setCustomerId] = useState(prefillCustId || customers[0]?.id || '');
+  // Match Lead from search params or localStorage
+  const matchedLead = leads.find((l) =>
+    (prefillLeadId && (l.id === prefillLeadId || l.leadNo === prefillLeadId)) ||
+    (prefillEnqId && (l.convertedEnquiryId === prefillEnqId || l.id === prefillEnqId)) ||
+    (prefillCustId && (l.convertedCustomerId === prefillCustId || l.id === prefillCustId))
+  ) || (typeof window !== 'undefined' ? (() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('UMA_ERP_leads') || '[]');
+      return stored.find((l: any) =>
+        (prefillLeadId && (l.id === prefillLeadId || l.leadNo === prefillLeadId)) ||
+        (prefillEnqId && (l.convertedEnquiryId === prefillEnqId || l.id === prefillEnqId)) ||
+        (prefillCustId && (l.convertedCustomerId === prefillCustId || l.id === prefillCustId))
+      );
+    } catch (_) { return null; }
+  })() : null);
+
+  const matchedEnquiry = enquiries.find((e) =>
+    (prefillEnqId && (e.id === prefillEnqId || e.enquiryNo === prefillEnqId)) ||
+    (prefillCustId && e.customerId === prefillCustId) ||
+    (prefillLeadId && e.leadId === prefillLeadId)
+  );
+
+  const [customerId, setCustomerId] = useState(
+    prefillCustId || matchedLead?.convertedCustomerId || customers[0]?.id || ''
+  );
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [validUntil, setValidUntil] = useState('2026-10-30');
+
+  // Compute initial product name, desc, qty, rate from lead/enquiry
+  const initProductName =
+    matchedLead?.productName ||
+    matchedEnquiry?.machineProduct ||
+    'Heavy SS 316L Chemical Reactor Vessel (10 KL)';
+  const initDesc =
+    matchedLead?.requirementDescription ||
+    matchedEnquiry?.requirement ||
+    matchedEnquiry?.specification ||
+    'Shell: 8mm SS 316L, Jacket: Dimple SS 304, 15 HP Anchor Agitator with Dual Mechanical Seal.';
+  const initQty = Number(matchedLead?.quantity || matchedEnquiry?.quantity || 1);
+  const initRate = matchedLead?.budget
+    ? Math.round(Number(matchedLead.budget) / (initQty || 1))
+    : 4200000;
+  const initTax = 18;
+  const initBase = initQty * initRate;
+  const initAmount = Math.round(initBase * (1 + initTax / 100));
 
   // Items
   const [items, setItems] = useState<QuotationItem[]>([
     {
       id: 'item-1',
-      productName: 'Heavy SS 316L Chemical Reactor Vessel (10 KL)',
-      description: 'Shell: 8mm SS 316L, Jacket: Dimple SS 304, 15 HP Anchor Agitator with Dual Mechanical Seal.',
-      quantity: 1,
+      productName: initProductName,
+      description: initDesc,
+      quantity: initQty,
       unit: 'Set',
-      rate: 4200000,
+      rate: initRate,
       discountPercent: 0,
-      taxPercent: 18,
-      amount: 4956000,
+      taxPercent: initTax,
+      amount: initAmount,
     },
   ]);
 
   // Commercials & Scope
-  const [technicalSpecs, setTechnicalSpecs] = useState('Design Code: ASME Sec VIII Div 1. Hydro test: 12 Bar. Design Temp: 180°C.');
-  const [scopeOfSupply, setScopeOfSupply] = useState('Supply of complete reactor vessel, motor, gearbox, seal pot, mounting stool.');
+  const [technicalSpecs, setTechnicalSpecs] = useState(
+    matchedLead?.capacity
+      ? `Capacity: ${matchedLead.capacity} (${matchedLead.machineType || 'Industrial Equipment'}). ${matchedLead.requirementDescription || ''}`
+      : matchedEnquiry?.specification || 'Design Code: ASME Sec VIII Div 1. Hydro test: 12 Bar. Design Temp: 180°C.'
+  );
+  const [scopeOfSupply, setScopeOfSupply] = useState(
+    matchedLead?.productName
+      ? `Supply, fabrication, inspection and testing of ${matchedLead.productName} as per specifications.`
+      : 'Supply of complete reactor vessel, motor, gearbox, seal pot, mounting stool.'
+  );
   const [exclusions, setExclusions] = useState('Civil foundations, interconnecting piping, insulation cladding.');
   const [paymentTerms, setPaymentTerms] = useState('30% Advance, 60% ag. Proforma Invoice, 10% after Commissioning.');
-  const [deliveryTime, setDeliveryTime] = useState('8 to 10 Weeks from approved GA drawing.');
+  const [deliveryTime, setDeliveryTime] = useState(matchedLead?.expectedDelivery ? `By ${matchedLead.expectedDelivery}` : '8 to 10 Weeks from approved GA drawing.');
   const [warranty, setWarranty] = useState('18 Months from dispatch or 12 Months from commissioning.');
   const [termsAndConditions, setTermsAndConditions] = useState('Prices Ex-Works Makarpura, Vadodara. Freight extra at actuals.');
 
@@ -160,7 +211,41 @@ function QuotationFormContent() {
               <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Customer *</label>
               <select
                 value={customerId}
-                onChange={(e) => setCustomerId(e.target.value)}
+                onChange={(e) => {
+                  const newCustId = e.target.value;
+                  setCustomerId(newCustId);
+                  const custLead = leads.find((l) => l.convertedCustomerId === newCustId || l.id === newCustId);
+                  const custEnq = enquiries.find((enq) => enq.customerId === newCustId);
+                  if (custLead || custEnq) {
+                    const prodName = custLead?.productName || custEnq?.machineProduct;
+                    const desc = custLead?.requirementDescription || custEnq?.requirement || custEnq?.specification;
+                    const qty = Number(custLead?.quantity || custEnq?.quantity || 1);
+                    const rate = custLead?.budget ? Math.round(Number(custLead.budget) / (qty || 1)) : 100000;
+                    const tax = 18;
+                    const base = qty * rate;
+                    const amt = Math.round(base * (1 + tax / 100));
+
+                    if (prodName) {
+                      setItems([
+                        {
+                          id: 'item-1',
+                          productName: prodName,
+                          description: desc || 'Standard technical specifications',
+                          quantity: qty,
+                          unit: 'Set',
+                          rate,
+                          discountPercent: 0,
+                          taxPercent: tax,
+                          amount: amt,
+                        },
+                      ]);
+                      setScopeOfSupply(`Supply, fabrication, inspection and testing of ${prodName} as per specifications.`);
+                    }
+                    if (custLead?.capacity) {
+                      setTechnicalSpecs(`Capacity: ${custLead.capacity} (${custLead.machineType || 'Industrial'}). ${custLead.requirementDescription || ''}`);
+                    }
+                  }
+                }}
                 className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-bold text-slate-900 dark:text-[#211B17]"
               >
                 {customers.map((c) => (

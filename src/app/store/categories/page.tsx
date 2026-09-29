@@ -97,21 +97,22 @@ export default function ItemCategoriesPage() {
       {/* Grid of Categories */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((cat) => {
-          const cCode = cat.categoryCode || (cat as any).code || cat.id;
-          const cName = cat.categoryName || (cat as any).name || 'Category';
+          const cCode = cat.categoryCode || (cat as any).code || (cat as any).category_code || cat.id || 'CAT';
+          const cName = cat.categoryName || (cat as any).name || (cat as any).category_name || (cat.description ? cat.description.split(',')[0] : 'Item Category');
+          const pGroup = cat.parentCategory || (cat as any).parent_category || (cat as any).parentGroup || 'Top Level';
           return (
-            <div key={cat.id || cCode} className="bg-white border border-[#EBE3DB] p-5 rounded-2xl shadow-md hover:border-[#EBE3DB] transition">
+            <div key={cat.id || cCode} className="bg-white border border-[#EBE3DB] p-5 rounded-2xl shadow-md hover:border-[#D4C3B3] transition">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="p-2 rounded-xl bg-crm-brand-600/20 text-crm-brand-500 border border-crm-brand-600/30">
-                    <Tag className="w-4 h-4" />
+                  <span className="p-2 rounded-xl bg-crm-brand-600/20 text-crm-brand-700 border border-crm-brand-600/30">
+                    <Tag className="w-4 h-4 text-crm-brand-700" />
                   </span>
                   <div>
-                    <div className="text-xs font-mono text-crm-brand-500 font-bold">{cCode}</div>
+                    <div className="text-xs font-mono text-crm-brand-700 font-bold">{cCode}</div>
                     <h3 className="text-sm font-bold text-[#211B17] mt-0.5">{cName}</h3>
                   </div>
                 </div>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-700 border border-emerald-500/30">
                   {cat.status || 'Active'}
                 </span>
               </div>
@@ -119,7 +120,7 @@ export default function ItemCategoriesPage() {
               <div className="mt-3 pt-3 border-t border-[#EBE3DB] text-xs space-y-1 text-[#544B45]">
                 <div className="flex items-center justify-between">
                   <span className="text-[#70665F] text-[11px]">Parent Group:</span>
-                  <span className="font-semibold text-[#544B45]">{cat.parentCategory || (cat as any).parent_category || 'Top Level'}</span>
+                  <span className="font-semibold text-[#544B45]">{pGroup}</span>
                 </div>
                 <div className="text-[#70665F] text-[11px] leading-relaxed pt-1">{cat.description || 'Standard item classification'}</div>
               </div>

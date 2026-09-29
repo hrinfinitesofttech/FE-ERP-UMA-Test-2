@@ -4,45 +4,64 @@ import React, { useState } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import { Workflow, Plus, Search, Building, ArrowRight, CheckCircle } from 'lucide-react';
 
+const DEFAULT_WAREHOUSES = [
+  { id: 'wh-main', warehouseCode: 'WH-001', warehouseName: 'Main Raw Material & Plate Yard' },
+  { id: 'wh-pipe', warehouseCode: 'WH-002', warehouseName: 'Pipe & Tube Yard' },
+  { id: 'wh-comp', warehouseCode: 'WH-003', warehouseName: 'Bought-Out & Hardware Store' },
+  { id: 'wh-fg', warehouseCode: 'WH-004', warehouseName: 'Finished Equipment Storage Yard' },
+  { id: 'wh-scrap', warehouseCode: 'WH-005', warehouseName: 'Scrap & Offcut Yard' },
+];
+
+const DEFAULT_ITEMS = [
+  { id: 'ITEM-001', itemCode: 'RM-SS316L-PL-8MM', itemName: 'SS 316L Plates (8mm thk, SA 240)', uom: 'Kg', standardCost: 260 },
+  { id: 'ITEM-002', itemCode: 'RM-SS304-PIPE-4IN', itemName: 'SS 304 Seamless Pipe 4" Sch 40', uom: 'Mtr', standardCost: 1450 },
+  { id: 'ITEM-003', itemCode: 'BO-FLG-150-ANSI', itemName: 'WNRF Flange 4" 150# A182-F316L', uom: 'Nos', standardCost: 1850 },
+  { id: 'ITEM-004', itemCode: 'BO-GSK-SPWD-4IN', itemName: 'Spiral Wound Gasket 4" 150# SS316', uom: 'Nos', standardCost: 320 },
+  { id: 'ITEM-005', itemCode: 'CON-WELD-E316L-16', itemName: 'Welding Electrode E316L-16 (3.15mm)', uom: 'Kg', standardCost: 480 },
+];
+
 export default function StockTransfersPage() {
   const { stockTransfers, addStockTransfer, warehouses, itemMasters } = useERP();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const effectiveWarehouses = warehouses && warehouses.length > 0 ? warehouses : DEFAULT_WAREHOUSES;
+  const effectiveItems = itemMasters && itemMasters.length > 0 ? itemMasters : DEFAULT_ITEMS;
+
   // Form State
-  const [fromWhId, setFromWhId] = useState(warehouses[0]?.id || 'WH-001');
-  const [toWhId, setToWhId] = useState(warehouses[4]?.id || 'WH-005');
+  const [fromWhId, setFromWhId] = useState(effectiveWarehouses[0]?.id || 'wh-main');
+  const [toWhId, setToWhId] = useState(effectiveWarehouses[4]?.id || effectiveWarehouses[1]?.id || 'wh-scrap');
   const [fromLoc, setFromLoc] = useState('W1-ZA-R1-S1-B01');
   const [toLoc, setToLoc] = useState('W5-ZS-B1-F1-S01');
-  const [itemId, setItemId] = useState(itemMasters[0]?.id || 'ITEM-001');
+  const [itemId, setItemId] = useState(effectiveItems[0]?.id || 'ITEM-001');
   const [qty, setQty] = useState(80);
   const [reason, setReason] = useState('Move non-usable SS 316 turning scrap offcuts to scrap yard');
 
-  const fromWh = warehouses.find((w) => w.id === fromWhId) || warehouses[0];
-  const toWh = warehouses.find((w) => w.id === toWhId) || warehouses[4];
-  const selectedItem = itemMasters.find((i) => i.id === itemId) || itemMasters[0];
+  const selectedFromWh = effectiveWarehouses.find((w) => w.id === fromWhId) || effectiveWarehouses[0];
+  const selectedToWh = effectiveWarehouses.find((w) => w.id === toWhId) || effectiveWarehouses[4] || effectiveWarehouses[1] || effectiveWarehouses[0];
+  const selectedItem = effectiveItems.find((i) => i.id === itemId) || effectiveItems[0];
 
-  const filtered = stockTransfers.filter(
-    (t) =>
-
-      !searchTerm?.trim() ||
-
-      t.transferNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      t.fromWarehouseName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      t.toWarehouseName?.toLowerCase().includes(searchTerm?.toLowerCase())
-  );
+  const filtered = stockTransfers.filter((t) => {
+    const term = searchTerm.toLowerCase().trim();
+    if (!term) return true;
+    const tNo = (t.transferNumber || (t as any).transfer_number || '').toLowerCase();
+    const fromW = (t.fromWarehouseName || (t as any).from_warehouse_name || '').toLowerCase();
+    const toW = (t.toWarehouseName || (t as any).to_warehouse_name || '').toLowerCase();
+    const rsn = (t.reason || '').toLowerCase();
+    return tNo.includes(term) || fromW.includes(term) || toW.includes(term) || rsn.includes(term);
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fromWh || !toWh || !selectedItem) return;
+    if (!selectedFromWh || !selectedToWh || !selectedItem) return;
 
     addStockTransfer({
       transferDate: new Date().toISOString().split('T')[0],
-      fromWarehouseId: fromWh.id,
-      fromWarehouseName: fromWh.warehouseName,
+      fromWarehouseId: selectedFromWh.id,
+      fromWarehouseName: selectedFromWh.warehouseName,
       fromLocationCode: fromLoc,
-      toWarehouseId: toWh.id,
-      toWarehouseName: toWh.warehouseName,
+      toWarehouseId: selectedToWh.id,
+      toWarehouseName: selectedToWh.warehouseName,
       toLocationCode: toLoc,
       reason,
       requestedBy: 'Bhavin Shah (Production Manager)',
@@ -123,32 +142,44 @@ export default function StockTransfersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB]">
-              {filtered.map((t) => (
-                <tr key={t.id} className="hover:bg-[#FAF7F2]/40 transition">
-                  <td className="p-3.5 font-medium">
-                    <div className="font-bold text-indigo-400 text-xs font-mono">{t.transferNumber}</div>
-                    <div className="text-[10px] text-[#70665F] mt-0.5">{t.transferDate}</div>
-                  </td>
-                  <td className="p-3.5 text-[#544B45]">
-                    <div className="font-bold text-[#211B17]">{t.fromWarehouseName}</div>
-                    <div className="text-[10px] font-mono text-teal-400 mt-0.5">{t.fromLocationCode}</div>
-                  </td>
-                  <td className="p-3.5 text-center">
-                    <ArrowRight className="w-4 h-4 text-indigo-400 mx-auto" />
-                  </td>
-                  <td className="p-3.5 text-[#544B45]">
-                    <div className="font-bold text-[#211B17]">{t.toWarehouseName}</div>
-                    <div className="text-[10px] font-mono text-emerald-400 mt-0.5">{t.toLocationCode}</div>
-                  </td>
-                  <td className="p-3.5 text-[#544B45] text-xs max-w-[200px] truncate">{t.reason}</td>
-                  <td className="p-3.5 font-semibold text-[#544B45]">{t.requestedBy}</td>
-                  <td className="p-3.5 text-center">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                      {t.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+              {filtered.map((t) => {
+                const trnNo = t.transferNumber || (t as any).transfer_number || t.id;
+                const trnDate = t.transferDate || (t as any).transfer_date || new Date().toISOString().split('T')[0];
+                const fromW = t.fromWarehouseName || (t as any).from_warehouse_name || 'Main Raw Material & Plate Yard';
+                const fromL = t.fromLocationCode || (t as any).from_location_code || 'W1-ZA-R1-S1-B01';
+                const toW = t.toWarehouseName || (t as any).to_warehouse_name || 'Scrap & Offcut Yard';
+                const toL = t.toLocationCode || (t as any).to_location_code || 'W5-ZS-B1-F1-S01';
+                const rsn = t.reason || 'Location Movement';
+                const reqBy = t.requestedBy || (t as any).requested_by || 'Bhavin Shah (Production Manager)';
+                const st = t.status || 'Completed';
+
+                return (
+                  <tr key={t.id} className="hover:bg-[#FAF7F2]/40 transition">
+                    <td className="p-3.5 font-medium">
+                      <div className="font-bold text-indigo-400 text-xs font-mono">{trnNo}</div>
+                      <div className="text-[10px] text-[#70665F] mt-0.5">{trnDate}</div>
+                    </td>
+                    <td className="p-3.5 text-[#544B45]">
+                      <div className="font-bold text-[#211B17]">{fromW}</div>
+                      <div className="text-[10px] font-mono text-teal-400 mt-0.5">{fromL}</div>
+                    </td>
+                    <td className="p-3.5 text-center">
+                      <ArrowRight className="w-4 h-4 text-indigo-400 mx-auto" />
+                    </td>
+                    <td className="p-3.5 text-[#544B45]">
+                      <div className="font-bold text-[#211B17]">{toW}</div>
+                      <div className="text-[10px] font-mono text-emerald-400 mt-0.5">{toL}</div>
+                    </td>
+                    <td className="p-3.5 text-[#544B45] text-xs max-w-[200px] truncate">{rsn}</td>
+                    <td className="p-3.5 font-semibold text-[#544B45]">{reqBy}</td>
+                    <td className="p-3.5 text-center">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        {st}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -177,7 +208,7 @@ export default function StockTransfersPage() {
                     onChange={(e) => setFromWhId(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                   >
-                    {warehouses.map((w) => (
+                    {effectiveWarehouses.map((w) => (
                       <option key={w.id} value={w.id}>
                         {w.warehouseName}
                       </option>
@@ -191,7 +222,7 @@ export default function StockTransfersPage() {
                     onChange={(e) => setToWhId(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                   >
-                    {warehouses.map((w) => (
+                    {effectiveWarehouses.map((w) => (
                       <option key={w.id} value={w.id}>
                         {w.warehouseName}
                       </option>
@@ -229,7 +260,7 @@ export default function StockTransfersPage() {
                     onChange={(e) => setItemId(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                   >
-                    {itemMasters.map((i) => (
+                    {effectiveItems.map((i) => (
                       <option key={i.id} value={i.id}>
                         {i.itemCode} - {i.itemName}
                       </option>
@@ -237,7 +268,7 @@ export default function StockTransfersPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[#70665F] mb-1">Quantity ({selectedItem?.uom})</label>
+                  <label className="block text-[#70665F] mb-1">Quantity ({selectedItem?.uom || 'Kg'})</label>
                   <input
                     type="number"
                     value={qty}

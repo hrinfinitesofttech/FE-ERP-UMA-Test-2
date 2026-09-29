@@ -10,20 +10,24 @@ export default function StockMatrixPage() {
   const [selectedWarehouse, setSelectedWarehouse] = useState('all');
 
   const filtered = stockBalances.filter((s) => {
-    const matchesSearch =
-
-      !searchTerm?.trim() || (
-
-      s.itemCode?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      s.itemName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      s.locationCode?.toLowerCase().includes(searchTerm?.toLowerCase())
-
-    );
-    const matchesWh = selectedWarehouse === 'all' || s.warehouseId === selectedWarehouse;
+    const term = searchTerm.toLowerCase().trim();
+    const itemCode = (s.itemCode || (s as any).item_code || '').toLowerCase();
+    const itemName = (s.itemName || (s as any).item_name || '').toLowerCase();
+    const loc = (s.locationCode || (s as any).location_code || '').toLowerCase();
+    const matchesSearch = !term || itemCode.includes(term) || itemName.includes(term) || loc.includes(term);
+    const whId = s.warehouseId || (s as any).warehouse_id || '';
+    const matchesWh = selectedWarehouse === 'all' || whId === selectedWarehouse;
     return matchesSearch && matchesWh;
   });
 
-  const totalValuation = filtered.reduce((acc, s) => acc + s.stockValue, 0);
+  const totalValuation = filtered.reduce((acc, s) => {
+    const avail = Number(s.availableQty ?? (s as any).available_quantity ?? (s as any).quantity ?? 0);
+    const res = Number(s.reservedQty ?? (s as any).reserved_quantity ?? 0);
+    const use = Number(s.usableQty ?? (s as any).usable_quantity ?? (avail - res));
+    const rate = Number(s.averageRate ?? (s as any).average_unit_cost ?? (s as any).unit_rate ?? (s as any).rate ?? 185);
+    const val = Number(s.stockValue ?? (s as any).total_value ?? (use * rate));
+    return acc + (isNaN(val) ? 0 : val);
+  }, 0);
 
   return (
     <div className="p-6 space-y-6 bg-[#FAF7F2] text-[#544B45] ">
@@ -72,7 +76,7 @@ export default function StockMatrixPage() {
 
         <div className="text-xs font-mono text-right">
           <span className="text-[#70665F]">Total Filtered Stock Valuation: </span>
-          <span className="text-emerald-400 font-extrabold text-sm">₹{totalValuation?.toLocaleString('en-IN')}</span>
+          <span className="text-emerald-400 font-extrabold text-sm">₹{totalValuation.toLocaleString('en-IN')}</span>
         </div>
       </div>
 
@@ -95,36 +99,57 @@ export default function StockMatrixPage() {
             </thead>
             <tbody className="divide-y divide-[#EBE3DB]">
               {filtered.map((s) => {
-                const usableQty = s.availableQty - s.reservedQty;
-                const valuation = usableQty * s.averageRate;
+                const itemCode = s.itemCode || (s as any).item_code || 'ITEM';
+                const itemName = s.itemName || (s as any).item_name || 'Item Material';
+                const whName = s.warehouseName || (s as any).warehouse_name || 'Main Raw Material & Plate Yard';
+                const locCode = s.locationCode || (s as any).location_code || 'W1-ZA-R1-S1-B01';
+                const batch = s.batchLot || (s as any).batch_lot || (s as any).heat_number || '-';
+
+                const availRaw = Number(s.availableQty ?? (s as any).available_quantity ?? (s as any).quantity ?? 0);
+                const availableQty = isNaN(availRaw) ? 0 : availRaw;
+
+                const resRaw = Number(s.reservedQty ?? (s as any).reserved_quantity ?? 0);
+                const reservedQty = isNaN(resRaw) ? 0 : resRaw;
+
+                const usableRaw = Number(s.usableQty ?? (s as any).usable_quantity ?? (availableQty - reservedQty));
+                const usableQty = isNaN(usableRaw) ? 0 : usableRaw;
+
+                const rateRaw = Number(s.averageRate ?? (s as any).average_unit_cost ?? (s as any).unit_rate ?? (s as any).rate ?? 185);
+                const averageRate = isNaN(rateRaw) ? 0 : rateRaw;
+
+                const valRaw = Number(s.stockValue ?? (s as any).total_value ?? (usableQty * averageRate));
+                const valuation = isNaN(valRaw) ? 0 : valRaw;
+
                 const isLow = usableQty < 500;
 
                 return (
                   <tr key={s.id} className="hover:bg-[#FAF7F2]/40 transition">
                     <td className="p-3.5 font-medium">
-                      <div className="font-bold text-[#211B17] text-xs">{s.itemCode}</div>
-                      <div className="text-[11px] text-[#70665F] mt-0.5">{s.itemName}</div>
+                      <div className="font-bold text-[#211B17] text-xs">{itemCode}</div>
+                      <div className="text-[11px] text-[#70665F] mt-0.5">{itemName}</div>
                     </td>
                     <td className="p-3.5 text-[#544B45]">
-                      <div className="font-semibold text-[#211B17]">{s.warehouseName}</div>
+                      <div className="font-semibold text-[#211B17]">{whName}</div>
                       <div className="text-[10px] font-mono text-teal-400 mt-0.5 flex items-center gap-1">
                         <MapPin className="w-3 h-3 text-teal-500" />
-                        {s.locationCode}
+                        {locCode}
                       </div>
                     </td>
-                    <td className="p-3.5 font-mono text-crm-brand-500 font-semibold">{s.batchLot || '-'}</td>
+                    <td className="p-3.5 font-mono text-crm-brand-500 font-semibold">{batch}</td>
                     <td className="p-3.5 text-right font-mono font-bold text-[#544B45]">
-                      {s.availableQty?.toLocaleString('en-IN')}
+                      {availableQty.toLocaleString('en-IN')}
                     </td>
                     <td className="p-3.5 text-right font-mono font-bold text-rose-400">
-                      {s.reservedQty?.toLocaleString('en-IN')}
+                      {reservedQty.toLocaleString('en-IN')}
                     </td>
                     <td className="p-3.5 text-right font-mono font-black text-sky-400 text-sm">
-                      {usableQty?.toLocaleString('en-IN')}
+                      {usableQty.toLocaleString('en-IN')}
                     </td>
-                    <td className="p-3.5 text-right font-mono text-[#544B45]">₹{s.averageRate?.toLocaleString('en-IN')}</td>
+                    <td className="p-3.5 text-right font-mono text-[#544B45]">
+                      ₹{averageRate.toLocaleString('en-IN')}
+                    </td>
                     <td className="p-3.5 text-right font-mono font-bold text-emerald-400">
-                      ₹{valuation?.toLocaleString('en-IN')}
+                      ₹{valuation.toLocaleString('en-IN')}
                     </td>
                     <td className="p-3.5 text-center">
                       <span

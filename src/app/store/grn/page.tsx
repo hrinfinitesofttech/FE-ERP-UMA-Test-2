@@ -5,18 +5,27 @@ import { useERP } from '../../../context/ERPContext';
 import { GoodsReceiptNote, GRNStatus } from '../../../types/store';
 import { PackageCheck, Plus, Search, Truck, FileText, CheckCircle, Clock, ShieldAlert, X } from 'lucide-react';
 
+const DEFAULT_WAREHOUSES = [
+  { id: 'wh-main', warehouseCode: 'WH-MAIN', warehouseName: 'Main Raw Material Warehouse (Bay 1 & 2)', address: 'Makarpura, Vadodara', warehouseType: 'Raw Material' as const, managerName: 'Ramesh Patel', contactPhone: '+91 98250 11223', contactEmail: 'store@umatechnofab.com', status: 'Active' as const },
+  { id: 'wh-bought', warehouseCode: 'WH-BOUGHT', warehouseName: 'Bought-Out & Hardware Store (Bay 3)', address: 'Makarpura, Vadodara', warehouseType: 'Bought-Out' as const, managerName: 'Suresh Shah', contactPhone: '+91 98250 11224', contactEmail: 'boughtout@umatechnofab.com', status: 'Active' as const },
+  { id: 'wh-fg', warehouseCode: 'WH-FG', warehouseName: 'Finished Goods & Dispatch Yard', address: 'Makarpura, Vadodara', warehouseType: 'Finished Goods' as const, managerName: 'Mahesh Joshi', contactPhone: '+91 98250 11225', contactEmail: 'dispatch@umatechnofab.com', status: 'Active' as const },
+  { id: 'wh-cons', warehouseCode: 'WH-CONS', warehouseName: 'Consumables & Tools Crib', address: 'Makarpura, Vadodara', warehouseType: 'Consumable' as const, managerName: 'Amit Desai', contactPhone: '+91 98250 11226', contactEmail: 'tools@umatechnofab.com', status: 'Active' as const },
+];
+
 export default function GoodsReceiptPage() {
   const { goodsReceipts, addGRN, purchaseOrders, suppliers, warehouses, projectJobs } = useERP();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
+  const availableWarehouses = warehouses && warehouses.length > 0 ? warehouses : DEFAULT_WAREHOUSES;
+
   // Form State
   const [supplierId, setSupplierId] = useState(suppliers[0]?.id || '');
   const [poId, setPoId] = useState(purchaseOrders[0]?.id || '');
   const [dcNo, setDcNo] = useState('');
   const [invNo, setInvNo] = useState('');
-  const [warehouseId, setWarehouseId] = useState(warehouses[0]?.id || '');
+  const [warehouseId, setWarehouseId] = useState(warehouses[0]?.id || availableWarehouses[0]?.id || 'wh-main');
   const [vehicleNo, setVehicleNo] = useState('');
   const [transporter, setTransporter] = useState('');
   const [remarks, setRemarks] = useState('');
@@ -43,7 +52,7 @@ export default function GoodsReceiptPage() {
 
   const selectedSupplier = suppliers.find((s) => s.id === supplierId) || suppliers[0];
   const selectedPo = purchaseOrders.find((p) => p.id === poId) || purchaseOrders[0];
-  const selectedWh = warehouses.find((w) => w.id === warehouseId) || warehouses[0];
+  const selectedWh = availableWarehouses.find((w) => w.id === warehouseId || w.warehouseCode === warehouseId) || availableWarehouses[0];
 
   const filtered = (goodsReceipts || []).filter((g) => {
     const grnNo = g.grnNumber || (g as any).grn_number || '';
@@ -325,17 +334,20 @@ export default function GoodsReceiptPage() {
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Receiving Store</label>
+                  <label className="block font-semibold text-[#544B45] mb-1">Receiving Store *</label>
                   <select
                     value={warehouseId}
                     onChange={(e) => setWarehouseId(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-600"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] font-medium focus:outline-none focus:border-amber-600"
                   >
-                    {warehouses.map((w) => (
-                      <option key={w.id} value={w.id}>
-                        {w.warehouseName}
-                      </option>
-                    ))}
+                    {availableWarehouses.map((w) => {
+                      const wName = w.warehouseName || (w as any).name || (w as any).warehouse_name || w.warehouseCode || (w as any).warehouse_code || w.id;
+                      return (
+                        <option key={w.id || w.warehouseCode} value={w.id || w.warehouseCode}>
+                          {wName}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
                 <div>

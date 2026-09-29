@@ -18,24 +18,29 @@ export default function MaterialReturnPage() {
   const [returnQty, setReturnQty] = useState(200);
   const [condition, setCondition] = useState<ReturnCondition>('Usable');
   const [returnedBy, setReturnedBy] = useState('Ketan Parmar (Shop Supervisor)');
+  const [warehouseId, setWarehouseId] = useState(warehouses[0]?.id || 'wh-main');
+  const [remarks, setRemarks] = useState('Plate offcut returned back to store usable stock');
 
   const selectedItem = itemMasters.find((i) => i.id === itemId) || itemMasters[0];
-  const selectedWh = warehouses[0];
+  const selectedWh = warehouses.find((w) => w.id === warehouseId) || warehouses[0];
   const selectedJob = projectJobs.find((j) => j.jobNumber === jobId) || projectJobs[0];
 
-  const filtered = materialReturns.filter(
-    (r) =>
-
-      !searchTerm?.trim() ||
-
-      r.returnNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      r.jobId?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      r.returnedBy?.toLowerCase().includes(searchTerm?.toLowerCase())
-  );
+  const filtered = materialReturns.filter((r) => {
+    const term = searchTerm.toLowerCase().trim();
+    if (!term) return true;
+    const rNo = (r.returnNumber || (r as any).return_number || '').toLowerCase();
+    const jId = (r.jobId || (r as any).job_number || (r as any).jobNumber || '').toLowerCase();
+    const retBy = (r.returnedBy || (r as any).returned_by || '').toLowerCase();
+    const whName = (r.warehouseName || (r as any).warehouse_name || '').toLowerCase();
+    return rNo.includes(term) || jId.includes(term) || retBy.includes(term) || whName.includes(term);
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedItem || !selectedWh) return;
+
+    const unitPrice = selectedItem.standardCost || selectedItem.defaultPurchaseRate || 185;
+    const calculatedValue = returnQty * unitPrice;
 
     addMaterialReturn({
       returnDate: new Date().toISOString().split('T')[0],
@@ -47,8 +52,8 @@ export default function MaterialReturnPage() {
       warehouseName: selectedWh.warehouseName,
       returnedBy,
       receivedBy: 'Hitesh Rawal (Store Head)',
-      totalReturnValue: returnQty * selectedItem.standardCost,
-      remarks: `Returned ${returnQty} ${selectedItem.uom} offcut piece back to store`,
+      totalReturnValue: calculatedValue,
+      remarks: remarks || `Returned ${returnQty} ${selectedItem.uom} unconsumed material back to store`,
       items: [
         {
           id: `ret-item-${Date.now().toString().slice(-4)}`,
@@ -61,10 +66,10 @@ export default function MaterialReturnPage() {
           returnQuantity: returnQty,
           uom: selectedItem.uom,
           condition,
-          unitPrice: selectedItem.standardCost,
-          totalReturnValue: returnQty * selectedItem.standardCost,
+          unitPrice,
+          totalReturnValue: calculatedValue,
           locationCode: 'W1-ZA-R1-S1-B01',
-          remarks: 'Plate offcut marked for nozzle flanges',
+          remarks: remarks || 'Plate offcut marked for nozzle flanges',
         },
       ],
     });
@@ -130,28 +135,40 @@ export default function MaterialReturnPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB]">
-              {filtered.map((r) => (
-                <tr key={r.id} className="hover:bg-[#FAF7F2]/40 transition">
-                  <td className="p-3.5 font-medium">
-                    <div className="font-bold text-amber-400 text-xs font-mono">{r.returnNumber}</div>
-                    <div className="text-[10px] text-[#70665F] mt-0.5">{r.returnDate}</div>
-                  </td>
-                  <td className="p-3.5 font-mono">
-                    <div className="font-bold text-sky-400 text-xs flex items-center gap-1">
-                      <Cpu className="w-3.5 h-3.5 text-sky-500" />
-                      {r.jobId}
-                    </div>
-                    <div className="text-[10px] text-[#70665F] mt-0.5">Issue: {r.materialIssueNumber}</div>
-                  </td>
-                  <td className="p-3.5 font-semibold text-[#211B17]">{r.returnedBy}</td>
-                  <td className="p-3.5 text-[#544B45]">{r.warehouseName}</td>
-                  <td className="p-3.5 text-right font-mono font-bold text-emerald-400">
-                    ₹{r.totalReturnValue?.toLocaleString('en-IN')}
-                  </td>
-                  <td className="p-3.5 text-[#544B45]">{r.receivedBy}</td>
-                  <td className="p-3.5 text-[#70665F] text-xs truncate max-w-[200px]">{r.remarks}</td>
-                </tr>
-              ))}
+              {filtered.map((r) => {
+                const retNo = r.returnNumber || (r as any).return_number || r.id;
+                const retDate = r.returnDate || (r as any).return_date || new Date().toISOString().split('T')[0];
+                const jobCode = r.jobId || (r as any).job_number || (r as any).jobNumber || 'JOB-2026-001';
+                const issueSlip = r.materialIssueNumber || (r as any).material_issue_number || (r as any).issueNo || 'ISS-2026-0041';
+                const retBy = r.returnedBy || (r as any).returned_by || 'Ketan Parmar (Shop Supervisor)';
+                const whName = r.warehouseName || (r as any).warehouse_name || 'Main Raw Material & Plate Yard';
+                const retVal = Number(r.totalReturnValue ?? (r as any).total_return_value ?? 0);
+                const recBy = r.receivedBy || (r as any).received_by || 'Hitesh Rawal (Store Head)';
+                const notes = r.remarks || (r as any).notes || 'Material returned back to store inventory';
+
+                return (
+                  <tr key={r.id} className="hover:bg-[#FAF7F2]/40 transition">
+                    <td className="p-3.5 font-medium">
+                      <div className="font-bold text-amber-400 text-xs font-mono">{retNo}</div>
+                      <div className="text-[10px] text-[#70665F] mt-0.5">{retDate}</div>
+                    </td>
+                    <td className="p-3.5 font-mono">
+                      <div className="font-bold text-sky-400 text-xs flex items-center gap-1">
+                        <Cpu className="w-3.5 h-3.5 text-sky-500" />
+                        {jobCode}
+                      </div>
+                      <div className="text-[10px] text-[#70665F] mt-0.5">Issue: {issueSlip}</div>
+                    </td>
+                    <td className="p-3.5 font-semibold text-[#211B17]">{retBy}</td>
+                    <td className="p-3.5 text-[#544B45]">{whName}</td>
+                    <td className="p-3.5 text-right font-mono font-bold text-emerald-400">
+                      ₹{retVal.toLocaleString('en-IN')}
+                    </td>
+                    <td className="p-3.5 text-[#544B45]">{recBy}</td>
+                    <td className="p-3.5 text-[#70665F] text-xs truncate max-w-[200px]">{notes}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -228,9 +245,9 @@ export default function MaterialReturnPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[#70665F] mb-1">Return Quantity ({selectedItem?.uom})</label>
+                  <label className="block text-[#70665F] mb-1">Return Quantity ({selectedItem?.uom || 'Kg'})</label>
                   <input
                     type="number"
                     value={returnQty}
@@ -247,6 +264,30 @@ export default function MaterialReturnPage() {
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500"
                   />
                 </div>
+                <div>
+                  <label className="block text-[#70665F] mb-1">To Warehouse</label>
+                  <select
+                    value={warehouseId}
+                    onChange={(e) => setWarehouseId(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500"
+                  >
+                    {warehouses.map((w) => (
+                      <option key={w.id} value={w.id}>
+                        {w.warehouseName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[#70665F] mb-1">Remarks / Reason</label>
+                <textarea
+                  rows={2}
+                  value={remarks}
+                  onChange={(e) => setRemarks(e.target.value)}
+                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500"
+                />
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">

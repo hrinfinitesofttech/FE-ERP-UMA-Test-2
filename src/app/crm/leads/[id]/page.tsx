@@ -308,7 +308,7 @@ export default function LeadDetailPage() {
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Linked Commercial Quotations</h3>
               <Link
-                href="/crm/quotations/new"
+                href={`/crm/quotations/new?customerId=${lead.convertedCustomerId || ''}&enquiryId=${lead.convertedEnquiryId || ''}&leadId=${lead.id || lead.leadNo}`}
                 className="px-3 py-1.5 bg-[#3E2723] hover:bg-[#2C1810] text-white rounded-lg font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />

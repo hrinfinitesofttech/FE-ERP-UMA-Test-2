@@ -473,6 +473,8 @@ export const api = {
     stock: () => request<any[]>('/stock/'),
     materialIssues: () => request<any[]>('/material-issues/'),
     materialReturns: () => request<any[]>('/material-returns/'),
+    transfers: () => request<any[]>('/stock-transfers/'),
+    adjustments: () => request<any[]>('/stock-adjustments/'),
     stockLedger: () => request<any[]>('/stock-ledger/'),
     scrap: () => request<any[]>('/scrap/'),
   },

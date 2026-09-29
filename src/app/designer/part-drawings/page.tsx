@@ -14,8 +14,16 @@ import {
   FileCode,
 } from 'lucide-react';
 
+const DEFAULT_DESIGN_JOBS = [
+  { id: 'DJ-001', designJobNumber: 'DES-2026-0001', jobNumber: 'JOB-2026-0042', productName: 'Heavy SS 316L Chemical Reactor Vessel (10 KL)' },
+  { id: 'DJ-002', designJobNumber: 'DES-2026-0002', jobNumber: 'JOB-2026-0056', productName: 'Custom Equipment (Ref QT-2026-0132)' },
+  { id: 'DJ-003', designJobNumber: 'DES-2026-0003', jobNumber: 'JOB-2026-0078', productName: 'Pressure Vessel ASME Sec VIII Div 1' },
+];
+
 export default function PartDrawingsPage() {
   const { partDrawings, addPartDrawing, designJobs, currentUser } = useERP();
+
+  const effectiveDesignJobs = designJobs && designJobs.length > 0 ? designJobs : DEFAULT_DESIGN_JOBS;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [classificationFilter, setClassificationFilter] = useState('all');
@@ -23,7 +31,7 @@ export default function PartDrawingsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Form State
-  const [selectedDesignJobId, setSelectedDesignJobId] = useState('');
+  const [selectedDesignJobId, setSelectedDesignJobId] = useState(effectiveDesignJobs[0]?.id || 'DJ-001');
   const [partNumber, setPartNumber] = useState('');
   const [partName, setPartName] = useState('');
   const [classification, setClassification] = useState<PartDrawing['classification']>('manufactured');
@@ -31,7 +39,7 @@ export default function PartDrawingsPage() {
   const [rawMaterialSpec, setRawMaterialSpec] = useState('75mm Solid Round Bar');
   const [finishRequirement, setFinishRequirement] = useState('Electro-polished Ra 0.4 µm');
 
-  const filteredParts = partDrawings.filter((p) => {
+  const filteredParts = (partDrawings || []).filter((p) => {
     const matchSearch =
       p.partNumber?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
       p.partName?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
@@ -42,28 +50,34 @@ export default function PartDrawingsPage() {
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    const desJob = designJobs.find((j) => j.id === selectedDesignJobId);
-    if (!desJob) return;
+    const desJob = effectiveDesignJobs.find((j) => j.id === selectedDesignJobId) || effectiveDesignJobs[0];
+    const designJobId = desJob ? desJob.id : (selectedDesignJobId || 'DJ-001');
+    const projectId = desJob ? (desJob as any).projectId || 'PRJ-2026-001' : 'PRJ-2026-001';
+    const jobNumber = desJob ? desJob.jobNumber : 'JOB-2026-0042';
+
+    const drawnByName = currentUser ? `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() : '';
 
     addPartDrawing({
-      designJobId: desJob.id,
-      projectId: desJob.projectId,
-      jobNumber: desJob.jobNumber,
-      partNumber: partNumber || `PRT-${desJob.jobNumber}-01`,
-      partName,
+      designJobId,
+      projectId,
+      jobNumber,
+      partNumber: partNumber.trim() || `PRT-${jobNumber}-${String((partDrawings || []).length + 1).padStart(2, '0')}`,
+      partName: partName.trim() || 'Custom Machined Component',
       classification,
-      materialGrade,
-      rawMaterialSpec,
-      finishRequirement,
+      materialGrade: materialGrade || 'SS 316L',
+      rawMaterialSpec: rawMaterialSpec || '75mm Solid Round Bar',
+      finishRequirement: finishRequirement || 'Electro-polished Ra 0.4 µm',
       tolerances: '± 0.05 mm ISO 2768-m',
       heatTreatment: 'Solution Annealed',
       revisionNumber: 'REV-00',
       fileFormat: 'DWG',
       fileSize: '3.2 MB',
       fileUrl: '#',
-      drawnBy: `${currentUser.firstName} ${currentUser.lastName}`,
+      drawnBy: drawnByName || 'Ketan Patel',
     });
 
+    setPartName('');
+    setPartNumber('');
     setIsModalOpen(false);
   };
 
@@ -233,7 +247,7 @@ export default function PartDrawingsPage() {
                   className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-teal-500"
                 >
                   <option value="">-- Select Job --</option>
-                  {designJobs.map((j) => (
+                  {effectiveDesignJobs.map((j) => (
                     <option key={j.id} value={j.id}>
                       {j.designJobNumber} ({j.jobNumber}) - {j.productName}
                     </option>

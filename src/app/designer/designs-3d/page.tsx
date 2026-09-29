@@ -25,16 +25,24 @@ import {
   Sparkles,
 } from 'lucide-react';
 
+const DEFAULT_DESIGN_JOBS = [
+  { id: 'DJ-001', designJobNumber: 'DES-2026-0001', jobNumber: 'JOB-2026-0042', productName: 'Heavy SS 316L Chemical Reactor Vessel (10 KL)' },
+  { id: 'DJ-002', designJobNumber: 'DES-2026-0002', jobNumber: 'JOB-2026-0056', productName: 'Custom Equipment (Ref QT-2026-0132)' },
+  { id: 'DJ-003', designJobNumber: 'DES-2026-0003', jobNumber: 'JOB-2026-0078', productName: 'Pressure Vessel ASME Sec VIII Div 1' },
+];
+
 export default function Designs3DPage() {
   const { designs3D, addDesign3D, designJobs, currentUser } = useERP();
+
+  const effectiveDesignJobs = designJobs && designJobs.length > 0 ? designJobs : DEFAULT_DESIGN_JOBS;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedModel, setSelectedModel] = useState<Design3DModel | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Upload Form State
-  const [selectedDesignJobId, setSelectedDesignJobId] = useState('');
-  const [modelTitle, setModelTitle] = useState('');
+  const [selectedDesignJobId, setSelectedDesignJobId] = useState(effectiveDesignJobs[0]?.id || 'DJ-001');
+  const [modelTitle, setModelTitle] = useState('Heavy SS 316L Reactor - 3D Solid Assembly');
   const [software, setSoftware] = useState<Design3DModel['software']>('SolidWorks');
   const [fileFormat, setFileFormat] = useState<Design3DModel['fileFormat']>('STEP');
   const [totalWeightKg, setTotalWeightKg] = useState<number>(4850);
@@ -66,7 +74,7 @@ export default function Designs3DPage() {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setSelectedDesignJobId('');
+    setSelectedDesignJobId(effectiveDesignJobs[0]?.id || 'DJ-001');
     setModelTitle('');
     setSoftware('SolidWorks');
     setFileFormat('STEP');
@@ -81,9 +89,9 @@ export default function Designs3DPage() {
 
   const handleJobSelect = (jobId: string) => {
     setSelectedDesignJobId(jobId);
-    const desJob = designJobs.find((j) => j.id === jobId);
+    const desJob = effectiveDesignJobs.find((j) => j.id === jobId);
     if (desJob) {
-      if (!modelTitle || modelTitle.startsWith('3D Assembly') || modelTitle.startsWith('Solid CAD')) {
+      if (!modelTitle || modelTitle.startsWith('3D Assembly') || modelTitle.startsWith('Solid CAD') || modelTitle.includes('3D Solid Assembly')) {
         setModelTitle(`${desJob.productName || 'Equipment'} - 3D Solid Assembly`);
       }
     }
@@ -141,10 +149,10 @@ export default function Designs3DPage() {
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    const desJob = designJobs.find((j) => j.id === selectedDesignJobId);
-    const jobNumber = desJob ? desJob.jobNumber : 'JOB-2026-001';
-    const projectId = desJob ? desJob.projectId : 'PRJ-2026-001';
-    const designJobId = desJob ? desJob.id : 'DJ-001';
+    const desJob = effectiveDesignJobs.find((j) => j.id === selectedDesignJobId) || effectiveDesignJobs[0];
+    const jobNumber = desJob ? desJob.jobNumber : 'JOB-2026-0042';
+    const projectId = desJob ? (desJob as any).projectId || 'PRJ-2026-001' : 'PRJ-2026-001';
+    const designJobId = desJob ? desJob.id : (selectedDesignJobId || 'DJ-001');
 
     const cleanModelNo = `MOD3D-${jobNumber}-${String((designs3D || []).length + 1).padStart(2, '0')}`;
 
@@ -154,6 +162,7 @@ export default function Designs3DPage() {
       jobNumber,
       modelNumber: cleanModelNo,
       modelTitle: modelTitle.trim() || '3D Solid Model Assembly',
+      modelName: modelTitle.trim() || '3D Solid Model Assembly',
       software,
       fileFormat,
       fileSize: fileSizeStr || '38.4 MB',
@@ -401,7 +410,7 @@ export default function Designs3DPage() {
                   className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600 font-medium"
                 >
                   <option value="">-- Select Design Job Reference --</option>
-                  {(designJobs || []).map((j) => (
+                  {(effectiveDesignJobs || []).map((j) => (
                     <option key={j.id} value={j.id}>
                       {j.designJobNumber} ({j.jobNumber}) - {j.productName}
                     </option>

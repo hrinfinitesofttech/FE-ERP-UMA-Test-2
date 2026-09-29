@@ -29,6 +29,18 @@ import {
 } from 'lucide-react';
 import { Employee } from '../../../types/crm';
 
+const COUNTRY_CODES = [
+  { code: '+91', name: 'India (+91)', short: 'India', flag: '🇮🇳', digits: 10 },
+  { code: '+1', name: 'United States (+1)', short: 'USA', flag: '🇺🇸', digits: 10 },
+  { code: '+44', name: 'United Kingdom (+44)', short: 'UK', flag: '🇬🇧', digits: 10 },
+  { code: '+971', name: 'United Arab Emirates (+971)', short: 'UAE', flag: '🇦🇪', digits: 9 },
+  { code: '+966', name: 'Saudi Arabia (+966)', short: 'Saudi', flag: '🇸🇦', digits: 9 },
+  { code: '+65', name: 'Singapore (+65)', short: 'Singapore', flag: '🇸🇬', digits: 8 },
+  { code: '+49', name: 'Germany (+49)', short: 'Germany', flag: '🇩🇪', digits: 10 },
+  { code: '+61', name: 'Australia (+61)', short: 'Australia', flag: '🇦🇺', digits: 9 },
+  { code: '+1', name: 'Canada (+1)', short: 'Canada', flag: '🇨🇦', digits: 10 },
+];
+
 function EmployeeMasterContent() {
   const { availableEmployees, currentUser, departments, designations, salaryStructures, addEmployee, updateEmployee, deleteEmployee, roles } = useERP();
   const searchParams = useSearchParams();
@@ -58,6 +70,7 @@ function EmployeeMasterContent() {
     lastName: '',
     gender: 'male' as 'male' | 'female' | 'other',
     dob: '',
+    countryCode: '+91',
     mobile: '',
     email: '',
     address: '',
@@ -75,6 +88,11 @@ function EmployeeMasterContent() {
   const [addForm, setAddForm] = useState(defaultForm);
   const [addErrors, setAddErrors] = useState<Record<string, string>>({});
   const [editErrors, setEditErrors] = useState<Record<string, string>>({});
+  const [isEditSaving, setIsEditSaving] = useState(false);
+
+  const [attMonth, setAttMonth] = useState('09');
+  const [attYear, setAttYear] = useState('2026');
+  const [attPage, setAttPage] = useState(1);
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const nameRegex = /^[a-zA-Z\s]+$/;
@@ -109,11 +127,27 @@ function EmployeeMasterContent() {
       errs.dob = 'Employee must be at least 18 years old.';
     }
 
-    const cleanMobile = addForm.mobile.replace(/\D/g, '');
-    if (!cleanMobile) {
-      errs.mobile = 'Mobile number is required.';
-    } else if (cleanMobile.length !== 10) {
-      errs.mobile = 'Mobile number must be exactly 10 digits.';
+    // Country code & Mobile validation
+    if (!addForm.countryCode) {
+      errs.mobile = 'Please select a country code.';
+    } else if (!addForm.mobile || !addForm.mobile.trim()) {
+      errs.mobile = 'Please enter the mobile number.';
+    } else if (!/^\d+$/.test(addForm.mobile.trim())) {
+      errs.mobile = 'The mobile number must contain digits only.';
+    } else {
+      const cleanMobile = addForm.mobile.trim();
+      if (addForm.countryCode === '+91') {
+        if (cleanMobile.length !== 10) {
+          errs.mobile = 'The mobile number must be exactly 10 digits for the selected country.';
+        } else if (!/^[6-9]/.test(cleanMobile)) {
+          errs.mobile = 'Please enter a valid mobile number that starts with 6, 7, 8, or 9.';
+        }
+      } else {
+        const expectedCountry = COUNTRY_CODES.find(c => c.code === addForm.countryCode);
+        if (expectedCountry && cleanMobile.length !== expectedCountry.digits) {
+          errs.mobile = `The mobile number must be exactly ${expectedCountry.digits} digits for the selected country.`;
+        }
+      }
     }
 
     const emailTrim = addForm.email.trim();
@@ -125,8 +159,57 @@ function EmployeeMasterContent() {
 
     if (!addForm.departmentId) errs.departmentId = 'Department is required.';
     if (!addForm.designation.trim()) errs.designation = 'Designation is required.';
+
+    // Residential Address validation
+    const addressTrim = addForm.address.trim();
+    if (!addressTrim) {
+      errs.address = 'Please enter the residential address.';
+    } else if (addressTrim.length < 10) {
+      errs.address = 'The address must be at least 10 characters long.';
+    } else if (addressTrim.length > 250) {
+      errs.address = 'The address cannot be more than 250 characters.';
+    } else if (!/[a-zA-Z0-9]/.test(addressTrim) || !/[a-zA-Z]/.test(addressTrim)) {
+      errs.address = 'Please enter a valid address.';
+    }
+
+    // Joining Date validation rules
+    if (!addForm.joiningDate) {
+      errs.joiningDate = 'Please select the joining date.';
+    } else {
+      const joinTime = new Date(addForm.joiningDate).getTime();
+      if (isNaN(joinTime)) {
+        errs.joiningDate = 'Please enter a valid date.';
+      } else if (!addForm.dob) {
+        errs.joiningDate = 'Please enter the date of birth before selecting the joining date.';
+      } else {
+        const dobDate = new Date(addForm.dob);
+        const eighteenYearsAfterDob = new Date(dobDate.getFullYear() + 18, dobDate.getMonth(), dobDate.getDate());
+        const joinDateObj = new Date(addForm.joiningDate);
+        if (joinDateObj < eighteenYearsAfterDob) {
+          errs.joiningDate = 'The employee must be at least 18 years old on the joining date.';
+        } else {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const thirtyDaysAgo = new Date(today);
+          thirtyDaysAgo.setDate(today.getDate() - 30);
+          const thirtyDaysFuture = new Date(today);
+          thirtyDaysFuture.setDate(today.getDate() + 30);
+
+          if (joinDateObj < thirtyDaysAgo) {
+            errs.joiningDate = 'The joining date cannot be more than 30 days in the past.';
+          } else if (joinDateObj > thirtyDaysFuture) {
+            errs.joiningDate = 'The joining date cannot be more than 30 days in the future.';
+          }
+        }
+      }
+    }
+
     if (!addForm.username.trim()) errs.username = 'Username is required.';
-    if (!addForm.password || addForm.password.length < 6) errs.password = 'Password must be at least 6 characters.';
+    if (!addForm.password) {
+      errs.password = 'Password is required.';
+    } else if (addForm.password.length < 8) {
+      errs.password = 'Password must be at least 8 characters.';
+    }
 
     setAddErrors(errs);
     return Object.keys(errs).length === 0;
@@ -162,6 +245,8 @@ function EmployeeMasterContent() {
       errs.mobile = 'Mobile number is required.';
     } else if (cleanMobile.length !== 10) {
       errs.mobile = 'Mobile number must be exactly 10 digits.';
+    } else if (availableEmployees.some((e) => e.id !== editingEmployee.id && (e.mobile || e.phone || '').replace(/\D/g, '') === cleanMobile)) {
+      errs.mobile = 'An employee with this mobile number already exists.';
     }
 
     const emailTrim = (editingEmployee.email || '').trim();
@@ -169,6 +254,8 @@ function EmployeeMasterContent() {
       errs.email = 'Email address is required.';
     } else if (!emailRegex.test(emailTrim)) {
       errs.email = 'Enter a valid email with a domain (e.g. employee@uma.com).';
+    } else if (availableEmployees.some((e) => e.id !== editingEmployee.id && (e.email || '').trim().toLowerCase() === emailTrim.toLowerCase())) {
+      errs.email = 'An employee with this email address already exists.';
     }
 
     setEditErrors(errs);
@@ -536,75 +623,225 @@ function EmployeeMasterContent() {
               )}
 
               {/* TAB 3: ATTENDANCE */}
-              {activeTab === 'Attendance' && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                    <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
-                      <div className="text-[#70665F]">Present Days (Current Month)</div>
-                      <div className="text-xl font-bold text-emerald-700 mt-1">24 Days</div>
-                    </div>
-                    <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
-                      <div className="text-[#70665F]">Late Arrivals</div>
-                      <div className="text-xl font-bold text-amber-700 mt-1">1 Day</div>
-                    </div>
-                    <div className="p-3 bg-rose-50 rounded-xl border border-rose-200">
-                      <div className="text-[#70665F]">Absent / Leave</div>
-                      <div className="text-xl font-bold text-rose-700 mt-1">1 Day</div>
-                    </div>
-                    <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-200">
-                      <div className="text-[#70665F]">Overtime Hours</div>
-                      <div className="text-xl font-bold text-indigo-700 mt-1">8.5 Hrs</div>
-                    </div>
-                  </div>
+              {activeTab === 'Attendance' && (() => {
+                const daysInMonth = 30;
+                const sampleDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                const allMonthRecords = Array.from({ length: daysInMonth }, (_, idx) => {
+                  const dayNum = daysInMonth - idx;
+                  const dateStr = `${attYear}-${attMonth}-${String(dayNum).padStart(2, '0')}`;
+                  const dateObj = new Date(Number(attYear), Number(attMonth) - 1, dayNum);
+                  const dayName = sampleDays[dateObj.getDay()];
+                  const isSunday = dayName === 'Sun';
 
-                  <div className="bg-white rounded-xl border border-[#EBE3DB] overflow-hidden">
-                    <div className="p-3 bg-[#FAF7F2] border-b border-[#EBE3DB] font-bold text-xs text-[#211B17]">
-                      Recent Punch-in & Attendance Logs
+                  if (isSunday) {
+                    return {
+                      date: dateStr,
+                      day: dayName,
+                      checkIn: '-',
+                      checkOut: '-',
+                      totalHours: '-',
+                      status: 'Holiday',
+                      statusClass: 'bg-purple-100 text-purple-700',
+                      isLate: false,
+                    };
+                  }
+                  if (dayNum === 14) {
+                    return {
+                      date: dateStr,
+                      day: dayName,
+                      checkIn: '-',
+                      checkOut: '-',
+                      totalHours: '-',
+                      status: 'Leave',
+                      statusClass: 'bg-rose-100 text-rose-700',
+                      isLate: false,
+                    };
+                  }
+                  if (dayNum === 20) {
+                    return {
+                      date: dateStr,
+                      day: dayName,
+                      checkIn: '-',
+                      checkOut: '-',
+                      totalHours: '-',
+                      status: 'Absent',
+                      statusClass: 'bg-red-100 text-red-700',
+                      isLate: false,
+                    };
+                  }
+                  if (dayNum === 8) {
+                    return {
+                      date: dateStr,
+                      day: dayName,
+                      checkIn: '09:00 AM',
+                      checkOut: '01:30 PM',
+                      totalHours: '4h 30m',
+                      status: 'Half Day',
+                      statusClass: 'bg-orange-100 text-orange-700',
+                      isLate: false,
+                    };
+                  }
+                  const isLate = dayNum === 27 || dayNum === 11;
+                  return {
+                    date: dateStr,
+                    day: dayName,
+                    checkIn: isLate ? '09:18 AM' : '08:55 AM',
+                    checkOut: dayNum === 25 ? '08:00 PM' : '06:05 PM',
+                    totalHours: dayNum === 25 ? '11h 05m (OT)' : '9h 10m',
+                    status: 'Present',
+                    statusClass: isLate ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700',
+                    isLate,
+                  };
+                });
+
+                const totalPresent = allMonthRecords.filter(r => r.status === 'Present' || r.status === 'Half Day').length;
+                const totalAbsent = allMonthRecords.filter(r => r.status === 'Absent').length;
+                const totalLeave = allMonthRecords.filter(r => r.status === 'Leave').length;
+                const totalLate = allMonthRecords.filter(r => r.isLate).length;
+
+                const pageSize = 8;
+                const totalPages = Math.ceil(allMonthRecords.length / pageSize);
+                const paginatedRecords = allMonthRecords.slice((attPage - 1) * pageSize, attPage * pageSize);
+
+                return (
+                  <div className="space-y-4">
+                    {/* Monthly Summary Cards */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                      <div className="p-3 bg-emerald-50/80 rounded-xl border border-emerald-200">
+                        <div className="text-[#70665F] font-medium">Total Present Days</div>
+                        <div className="text-xl font-bold text-emerald-700 mt-1">{totalPresent} Days</div>
+                      </div>
+                      <div className="p-3 bg-rose-50/80 rounded-xl border border-rose-200">
+                        <div className="text-[#70665F] font-medium">Absent Days</div>
+                        <div className="text-xl font-bold text-rose-700 mt-1">{totalAbsent} Days</div>
+                      </div>
+                      <div className="p-3 bg-blue-50/80 rounded-xl border border-blue-200">
+                        <div className="text-[#70665F] font-medium">Leave Days</div>
+                        <div className="text-xl font-bold text-blue-700 mt-1">{totalLeave} Day</div>
+                      </div>
+                      <div className="p-3 bg-amber-50/80 rounded-xl border border-amber-200">
+                        <div className="text-[#70665F] font-medium">Late Marks</div>
+                        <div className="text-xl font-bold text-amber-700 mt-1">{totalLate} Days</div>
+                      </div>
                     </div>
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-[#FAF7F2]/50 text-[#70665F] border-b border-[#EBE3DB]">
-                        <tr>
-                          <th className="p-3">Date</th>
-                          <th className="p-3">Punch In</th>
-                          <th className="p-3">Punch Out</th>
-                          <th className="p-3">Total Working Hours</th>
-                          <th className="p-3">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#EBE3DB]">
-                        <tr>
-                          <td className="p-3 font-mono font-medium">2026-09-28</td>
-                          <td className="p-3 font-mono">08:55 AM</td>
-                          <td className="p-3 font-mono">06:05 PM</td>
-                          <td className="p-3">9h 10m</td>
-                          <td className="p-3"><span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">Present / On Time</span></td>
-                        </tr>
-                        <tr>
-                          <td className="p-3 font-mono font-medium">2026-09-27</td>
-                          <td className="p-3 font-mono">09:12 AM</td>
-                          <td className="p-3 font-mono">06:30 PM</td>
-                          <td className="p-3">9h 18m</td>
-                          <td className="p-3"><span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold">Late (Grace Applied)</span></td>
-                        </tr>
-                        <tr>
-                          <td className="p-3 font-mono font-medium">2026-09-26</td>
-                          <td className="p-3 font-mono">08:58 AM</td>
-                          <td className="p-3 font-mono">06:00 PM</td>
-                          <td className="p-3">9h 02m</td>
-                          <td className="p-3"><span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">Present / On Time</span></td>
-                        </tr>
-                        <tr>
-                          <td className="p-3 font-mono font-medium">2026-09-25</td>
-                          <td className="p-3 font-mono">08:50 AM</td>
-                          <td className="p-3 font-mono">08:00 PM</td>
-                          <td className="p-3">11h 10m (2h OT)</td>
-                          <td className="p-3"><span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">Overtime Duty</span></td>
-                        </tr>
-                      </tbody>
-                    </table>
+
+                    {/* Filter & Period Controls */}
+                    <div className="bg-white rounded-xl border border-[#EBE3DB] p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-pink-600" />
+                        <span className="font-bold text-[#211B17]">Select Attendance Period:</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={attMonth}
+                          onChange={(e) => { setAttMonth(e.target.value); setAttPage(1); }}
+                          className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] font-semibold focus:outline-none focus:border-pink-500"
+                        >
+                          <option value="01">January</option>
+                          <option value="02">February</option>
+                          <option value="03">March</option>
+                          <option value="04">April</option>
+                          <option value="05">May</option>
+                          <option value="06">June</option>
+                          <option value="07">July</option>
+                          <option value="08">August</option>
+                          <option value="09">September</option>
+                          <option value="10">October</option>
+                          <option value="11">November</option>
+                          <option value="12">December</option>
+                        </select>
+                        <select
+                          value={attYear}
+                          onChange={(e) => { setAttYear(e.target.value); setAttPage(1); }}
+                          className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] font-semibold focus:outline-none focus:border-pink-500 font-mono"
+                        >
+                          <option value="2024">2024</option>
+                          <option value="2025">2025</option>
+                          <option value="2026">2026</option>
+                          <option value="2027">2027</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Table Container with Fixed Height, Vertical Scroll & Horizontal Scroll */}
+                    <div className="bg-white rounded-xl border border-[#EBE3DB] shadow-sm overflow-hidden">
+                      <div className="p-3 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between font-bold text-xs text-[#211B17]">
+                        <span>Attendance & Punch-in Logs</span>
+                        <span className="text-[11px] text-[#70665F] font-normal font-mono">
+                          Showing {paginatedRecords.length} of {allMonthRecords.length} Records
+                        </span>
+                      </div>
+
+                      {allMonthRecords.length === 0 ? (
+                        <div className="p-8 text-center text-xs text-[#70665F]">
+                          <AlertCircle className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+                          <p className="font-semibold text-[#211B17]">No attendance records found for the selected period.</p>
+                          <p className="text-[11px] mt-1">Try selecting another month or year from the filters above.</p>
+                        </div>
+                      ) : (
+                        <div className="max-h-[320px] overflow-y-auto overflow-x-auto">
+                          <table className="w-full text-left text-xs min-w-[650px] border-collapse">
+                            <thead className="sticky top-0 bg-[#FAF7F2] text-[#544B45] border-b border-[#EBE3DB] z-10 shadow-xs">
+                              <tr>
+                                <th className="p-3 font-bold">Date</th>
+                                <th className="p-3 font-bold">Day</th>
+                                <th className="p-3 font-bold">Check-in</th>
+                                <th className="p-3 font-bold">Check-out</th>
+                                <th className="p-3 font-bold">Total Hours</th>
+                                <th className="p-3 font-bold">Status</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#EBE3DB]">
+                              {paginatedRecords.map((r, idx) => (
+                                <tr key={idx} className="hover:bg-[#FAF7F2]/60 transition">
+                                  <td className="p-3 font-mono font-semibold text-[#211B17]">{r.date}</td>
+                                  <td className="p-3 font-medium text-[#544B45]">{r.day}</td>
+                                  <td className="p-3 font-mono text-[#70665F]">{r.checkIn}</td>
+                                  <td className="p-3 font-mono text-[#70665F]">{r.checkOut}</td>
+                                  <td className="p-3 font-mono text-[#211B17] font-medium">{r.totalHours}</td>
+                                  <td className="p-3">
+                                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${r.statusClass}`}>
+                                      {r.status} {r.isLate ? '(Late)' : ''}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+
+                      {/* Pagination Controls & Large Data Message */}
+                      <div className="p-2.5 bg-[#FAF7F2] border-t border-[#EBE3DB] flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <span className="text-[11px] text-[#70665F]">
+                          {allMonthRecords.length > pageSize
+                            ? `Too many records to display. Showing page ${attPage} of ${totalPages}.`
+                            : `Page ${attPage} of ${totalPages}`}
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            disabled={attPage <= 1}
+                            onClick={() => setAttPage(p => Math.max(1, p - 1))}
+                            className="px-2.5 py-1 rounded bg-white border border-[#EBE3DB] text-[#544B45] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 text-xs font-semibold"
+                          >
+                            Previous
+                          </button>
+                          <span className="px-2 font-mono font-bold text-pink-600">{attPage} / {totalPages}</span>
+                          <button
+                            type="button"
+                            disabled={attPage >= totalPages}
+                            onClick={() => setAttPage(p => Math.min(totalPages, p + 1))}
+                            className="px-2.5 py-1 rounded bg-white border border-[#EBE3DB] text-[#544B45] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 text-xs font-semibold"
+                          >
+                            Next
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* TAB 4: LEAVE */}
               {activeTab === 'Leave' && (
@@ -1014,26 +1251,43 @@ function EmployeeMasterContent() {
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Mobile (10 Digits) *</label>
-                    <input
-                      type="tel"
-                      inputMode="numeric"
-                      maxLength={10}
-                      required
-                      value={addForm.mobile}
-                      onChange={(e) => {
-                        const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
-                        setAddForm((f) => ({ ...f, mobile: clean }));
-                        if (addErrors.mobile) setAddErrors(prev => ({ ...prev, mobile: '' }));
-                      }}
-                      placeholder="9825000000"
-                      className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm font-mono ${
-                        addErrors.mobile ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
-                      }`}
-                    />
+                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Mobile Number *</label>
+                    <div className="flex gap-1.5">
+                      <select
+                        value={addForm.countryCode}
+                        onChange={(e) => {
+                          setAddForm((f) => ({ ...f, countryCode: e.target.value }));
+                          if (addErrors.mobile) setAddErrors(prev => ({ ...prev, mobile: '' }));
+                        }}
+                        className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-xs font-medium max-w-[125px] sm:max-w-[140px]"
+                        title="Select Country Dialing Code"
+                      >
+                        {COUNTRY_CODES.map((c) => (
+                          <option key={c.code} value={c.code}>
+                            {c.flag} {c.code} ({c.short})
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        maxLength={addForm.countryCode === '+91' ? 10 : (COUNTRY_CODES.find(c => c.code === addForm.countryCode)?.digits || 15)}
+                        required
+                        value={addForm.mobile}
+                        onChange={(e) => {
+                          const clean = e.target.value.replace(/\D/g, '');
+                          setAddForm((f) => ({ ...f, mobile: clean }));
+                          if (addErrors.mobile) setAddErrors(prev => ({ ...prev, mobile: '' }));
+                        }}
+                        placeholder="9825000000"
+                        className={`flex-1 min-w-0 bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm font-mono ${
+                          addErrors.mobile ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                        }`}
+                      />
+                    </div>
                     {addErrors.mobile && (
                       <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
-                        <AlertCircle className="w-3 h-3" /> {addErrors.mobile}
+                        <AlertCircle className="w-3 h-3 flex-shrink-0" /> {addErrors.mobile}
                       </p>
                     )}
                   </div>
@@ -1059,14 +1313,26 @@ function EmployeeMasterContent() {
                     )}
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Address</label>
+                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Residential Address *</label>
                     <input
                       type="text"
+                      required
+                      maxLength={250}
                       value={addForm.address}
-                      onChange={(e) => setAddForm((f) => ({ ...f, address: e.target.value }))}
-                      placeholder="Residential address"
-                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm"
+                      onChange={(e) => {
+                        setAddForm((f) => ({ ...f, address: e.target.value }));
+                        if (addErrors.address) setAddErrors(prev => ({ ...prev, address: '' }));
+                      }}
+                      placeholder="Residential address (10 to 250 characters)"
+                      className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm ${
+                        addErrors.address ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                      }`}
                     />
+                    {addErrors.address && (
+                      <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                        <AlertCircle className="w-3 h-3 flex-shrink-0" /> {addErrors.address}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1125,9 +1391,19 @@ function EmployeeMasterContent() {
                       type="date"
                       required
                       value={addForm.joiningDate}
-                      onChange={(e) => setAddForm((f) => ({ ...f, joiningDate: e.target.value }))}
-                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm font-mono"
+                      onChange={(e) => {
+                        setAddForm((f) => ({ ...f, joiningDate: e.target.value }));
+                        if (addErrors.joiningDate) setAddErrors(prev => ({ ...prev, joiningDate: '' }));
+                      }}
+                      className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm font-mono ${
+                        addErrors.joiningDate ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                      }`}
                     />
+                    {addErrors.joiningDate && (
+                      <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                        <AlertCircle className="w-3 h-3 flex-shrink-0" /> {addErrors.joiningDate}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-[#544B45] mb-1">Employment Type *</label>
@@ -1183,8 +1459,8 @@ function EmployeeMasterContent() {
                           setAddForm((f) => ({ ...f, password: e.target.value }));
                           if (addErrors.password) setAddErrors(prev => ({ ...prev, password: '' }));
                         }}
-                        placeholder="Minimum 6 characters"
-                        minLength={6}
+                        placeholder="Minimum 8 characters"
+                        minLength={8}
                         className={`w-full bg-[#FAF7F2] border rounded-lg pl-3 pr-10 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm ${
                           addErrors.password ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
                         }`}
@@ -1195,6 +1471,7 @@ function EmployeeMasterContent() {
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8D827A] hover:text-[#211B17] p-1 cursor-pointer transition"
                         title={showPassword ? 'Hide password' : 'Show password'}
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
                       >
                         {showPassword ? <EyeOff className="w-4 h-4 text-pink-600" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -1246,34 +1523,38 @@ function EmployeeMasterContent() {
 
             <form
               noValidate
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
                 if (!validateEditEmployee()) return;
-                const cleanPhone = (editingEmployee.mobile || editingEmployee.phone || '').replace(/\D/g, '').slice(0, 10);
-                const fullName = `${editingEmployee.firstName || ''} ${editingEmployee.lastName || ''}`.trim() || editingEmployee.name || 'Staff';
-                const selectedDept = departments.find((d) => d.id === editingEmployee.departmentId);
-                updateEmployee(editingEmployee.id, {
-                  ...editingEmployee,
-                  id: editingEmployee.id, // Strictly preserve existing ID
-                  mobile: cleanPhone,
-                  phone: cleanPhone,
-                  email: editingEmployee.email?.trim(),
-                  name: fullName,
-                  department: selectedDept?.departmentName || editingEmployee.department || 'Production',
-                  departmentName: selectedDept?.departmentName || editingEmployee.departmentName || 'Production',
-                });
-                if (selectedEmployee?.id === editingEmployee.id) {
-                  setSelectedEmployee({
+                setIsEditSaving(true);
+                try {
+                  const cleanPhone = (editingEmployee.mobile || editingEmployee.phone || '').replace(/\D/g, '').slice(0, 10);
+                  const fullName = `${editingEmployee.firstName || ''} ${editingEmployee.lastName || ''}`.trim() || editingEmployee.name || 'Staff';
+                  const selectedDept = departments.find((d) => d.id === editingEmployee.departmentId);
+                  updateEmployee(editingEmployee.id, {
                     ...editingEmployee,
+                    id: editingEmployee.id, // Strictly preserve existing ID
                     mobile: cleanPhone,
                     phone: cleanPhone,
                     email: editingEmployee.email?.trim(),
                     name: fullName,
+                    department: selectedDept?.departmentName || editingEmployee.department || 'Production',
+                    departmentName: selectedDept?.departmentName || editingEmployee.departmentName || 'Production',
                   });
+                  if (selectedEmployee?.id === editingEmployee.id) {
+                    setSelectedEmployee({
+                      ...editingEmployee,
+                      mobile: cleanPhone,
+                      phone: cleanPhone,
+                      email: editingEmployee.email?.trim(),
+                      name: fullName,
+                    });
+                  }
+                  setEditingEmployee(null);
+                  setEditErrors({});
+                } finally {
+                  setIsEditSaving(false);
                 }
-                setEditingEmployee(null);
-                setEditErrors({});
-                alert('Employee profile updated successfully without duplicate creation!');
               }}
               className="space-y-4 text-xs"
             >
@@ -1429,9 +1710,10 @@ function EmployeeMasterContent() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold"
+                  disabled={isEditSaving}
+                  className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-bold cursor-pointer"
                 >
-                  Update Profile
+                  {isEditSaving ? 'Updating...' : 'Update Profile'}
                 </button>
               </div>
             </form>

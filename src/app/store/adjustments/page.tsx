@@ -5,39 +5,59 @@ import { useERP } from '../../../context/ERPContext';
 import { StockAdjustment } from '../../../types/store';
 import { RotateCcw, Plus, Search, AlertTriangle, CheckCircle } from 'lucide-react';
 
+const DEFAULT_WAREHOUSES = [
+  { id: 'wh-main', warehouseCode: 'WH-001', warehouseName: 'Main Raw Material & Plate Yard' },
+  { id: 'wh-pipe', warehouseCode: 'WH-002', warehouseName: 'Pipe & Tube Yard' },
+  { id: 'wh-comp', warehouseCode: 'WH-003', warehouseName: 'Bought-Out & Hardware Store' },
+  { id: 'wh-fg', warehouseCode: 'WH-004', warehouseName: 'Finished Equipment Storage Yard' },
+  { id: 'wh-scrap', warehouseCode: 'WH-005', warehouseName: 'Scrap & Offcut Yard' },
+];
+
+const DEFAULT_ITEMS = [
+  { id: 'ITEM-001', itemCode: 'RM-SS316L-PL-8MM', itemName: 'SS 316L Plates (8mm thk, SA 240)', uom: 'Kg', standardCost: 260 },
+  { id: 'ITEM-002', itemCode: 'RM-SS304-PIPE-4IN', itemName: 'SS 304 Seamless Pipe 4" Sch 40', uom: 'Mtr', standardCost: 1450 },
+  { id: 'ITEM-003', itemCode: 'BO-FLG-150-ANSI', itemName: 'WNRF Flange 4" 150# A182-F316L', uom: 'Nos', standardCost: 1850 },
+  { id: 'ITEM-004', itemCode: 'BO-GSK-SPWD-4IN', itemName: 'Spiral Wound Gasket 4" 150# SS316', uom: 'Nos', standardCost: 320 },
+  { id: 'ITEM-005', itemCode: 'CON-WELD-E316L-16', itemName: 'Welding Electrode E316L-16 (3.15mm)', uom: 'Kg', standardCost: 480 },
+];
+
 export default function StockAdjustmentsPage() {
   const { stockAdjustments, addStockAdjustment, warehouses, itemMasters } = useERP();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const effectiveWarehouses = warehouses && warehouses.length > 0 ? warehouses : DEFAULT_WAREHOUSES;
+  const effectiveItems = itemMasters && itemMasters.length > 0 ? itemMasters : DEFAULT_ITEMS;
+
   // Form State
-  const [warehouseId, setWarehouseId] = useState(warehouses[2]?.id || 'WH-003');
-  const [itemId, setItemId] = useState(itemMasters[4]?.id || 'ITEM-005');
-  const [locationCode, setLocationCode] = useState('W3-ZE-R5-S1-B01');
+  const [warehouseId, setWarehouseId] = useState(effectiveWarehouses[0]?.id || 'wh-main');
+  const [itemId, setItemId] = useState(effectiveItems[0]?.id || 'ITEM-001');
+  const [locationCode, setLocationCode] = useState('W1-ZA-R1-S1-B01');
   const [sysQty, setSysQty] = useState(360);
   const [phyQty, setPhyQty] = useState(350);
   const [reason, setReason] = useState<'Physical Count Difference' | 'Damaged Stock' | 'Missing Stock' | 'Data Correction' | 'Opening Balance Correction' | 'Other'>('Damaged Stock');
   const [remarks, setRemarks] = useState('10 Kg TIG wire packets damaged due to rain leakage');
 
-  const selectedWh = warehouses.find((w) => w.id === warehouseId) || warehouses[0];
-  const selectedItem = itemMasters.find((i) => i.id === itemId) || itemMasters[0];
+  const selectedWh = effectiveWarehouses.find((w) => w.id === warehouseId) || effectiveWarehouses[0];
+  const selectedItem = effectiveItems.find((i) => i.id === itemId) || effectiveItems[0];
 
-  const filtered = stockAdjustments.filter(
-    (a) =>
-
-      !searchTerm?.trim() ||
-
-      a.adjustmentNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      a.itemName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      a.reason?.toLowerCase().includes(searchTerm?.toLowerCase())
-  );
+  const filtered = stockAdjustments.filter((a) => {
+    const term = searchTerm.toLowerCase().trim();
+    if (!term) return true;
+    const aNo = (a.adjustmentNumber || (a as any).adjustment_number || '').toLowerCase();
+    const iName = (a.itemName || (a as any).item_name || '').toLowerCase();
+    const rsn = (a.reason || '').toLowerCase();
+    const whName = (a.warehouseName || (a as any).warehouse_name || '').toLowerCase();
+    return aNo.includes(term) || iName.includes(term) || rsn.includes(term) || whName.includes(term);
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedWh || !selectedItem) return;
 
     const diff = phyQty - sysQty;
-    const value = diff * selectedItem.standardCost;
+    const unitPrice = selectedItem.standardCost || 185;
+    const value = diff * unitPrice;
 
     addStockAdjustment({
       adjustmentDate: new Date().toISOString().split('T')[0],
@@ -50,7 +70,7 @@ export default function StockAdjustmentsPage() {
       systemQuantity: sysQty,
       physicalQuantity: phyQty,
       differenceQuantity: diff,
-      unitPrice: selectedItem.standardCost,
+      unitPrice,
       adjustmentValue: value,
       reason,
       remarks,
@@ -78,7 +98,7 @@ export default function StockAdjustmentsPage() {
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-pink-600 text-[#211B17] text-xs font-bold shadow-lg shadow-pink-600/30 hover:bg-pink-500 transition"
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-pink-600 text-white text-xs font-bold shadow-lg shadow-pink-600/30 hover:bg-pink-500 transition"
         >
           <Plus className="w-4 h-4" />
           Create Stock Adjustment
@@ -120,35 +140,51 @@ export default function StockAdjustmentsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB]">
-              {filtered.map((a) => (
-                <tr key={a.id} className="hover:bg-[#FAF7F2]/40 transition">
-                  <td className="p-3.5 font-medium">
-                    <div className="font-bold text-pink-400 text-xs font-mono">{a.adjustmentNumber}</div>
-                    <div className="text-[10px] text-[#70665F] mt-0.5">{a.adjustmentDate}</div>
-                  </td>
-                  <td className="p-3.5 text-[#544B45]">
-                    <div className="font-semibold text-[#211B17]">{a.warehouseName}</div>
-                    <div className="text-[10px] font-mono text-teal-400 mt-0.5">{a.locationCode}</div>
-                  </td>
-                  <td className="p-3.5 font-medium">
-                    <div className="font-bold text-[#211B17] text-xs">{a.itemCode}</div>
-                    <div className="text-[11px] text-[#70665F] mt-0.5">{a.itemName}</div>
-                  </td>
-                  <td className="p-3.5 text-right font-mono text-[#544B45]">{a.systemQuantity}</td>
-                  <td className="p-3.5 text-right font-mono text-[#544B45]">{a.physicalQuantity}</td>
-                  <td className="p-3.5 text-right font-mono font-black text-pink-400">
-                    {a.differenceQuantity > 0 ? `+${a.differenceQuantity}` : a.differenceQuantity}
-                  </td>
-                  <td className="p-3.5 text-right font-mono font-bold text-rose-400">
-                    ₹{a.adjustmentValue?.toLocaleString('en-IN')}
-                  </td>
-                  <td className="p-3.5 text-[#544B45]">
-                    <div className="font-semibold text-amber-400">{a.reason}</div>
-                    <div className="text-[10px] text-[#70665F] truncate max-w-[150px]">{a.remarks}</div>
-                  </td>
-                  <td className="p-3.5 font-medium text-[#544B45]">{a.approvedBy}</td>
-                </tr>
-              ))}
+              {filtered.map((a) => {
+                const adjNo = a.adjustmentNumber || (a as any).adjustment_number || a.id;
+                const adjDate = a.adjustmentDate || (a as any).adjustment_date || new Date().toISOString().split('T')[0];
+                const whName = a.warehouseName || (a as any).warehouse_name || 'Main Raw Material & Plate Yard';
+                const locCode = a.locationCode || (a as any).location_code || 'W1-ZA-R1-S1-B01';
+                const itemCode = a.itemCode || (a as any).item_code || 'ITEM';
+                const itemName = a.itemName || (a as any).item_name || 'Item Material';
+                const sysQ = Number(a.systemQuantity ?? (a as any).system_quantity ?? 0);
+                const phyQ = Number(a.physicalQuantity ?? (a as any).physical_quantity ?? 0);
+                const diffQ = Number(a.differenceQuantity ?? (a as any).difference_quantity ?? (phyQ - sysQ));
+                const val = Number(a.adjustmentValue ?? (a as any).adjustment_value ?? 0);
+                const rsn = a.reason || 'Damaged Stock';
+                const rem = a.remarks || '-';
+                const appBy = a.approvedBy || (a as any).approved_by || 'Hitesh Rawal (Store Head)';
+
+                return (
+                  <tr key={a.id} className="hover:bg-[#FAF7F2]/40 transition">
+                    <td className="p-3.5 font-medium">
+                      <div className="font-bold text-pink-400 text-xs font-mono">{adjNo}</div>
+                      <div className="text-[10px] text-[#70665F] mt-0.5">{adjDate}</div>
+                    </td>
+                    <td className="p-3.5 text-[#544B45]">
+                      <div className="font-semibold text-[#211B17]">{whName}</div>
+                      <div className="text-[10px] font-mono text-teal-400 mt-0.5">{locCode}</div>
+                    </td>
+                    <td className="p-3.5 font-medium">
+                      <div className="font-bold text-[#211B17] text-xs">{itemCode}</div>
+                      <div className="text-[11px] text-[#70665F] mt-0.5">{itemName}</div>
+                    </td>
+                    <td className="p-3.5 text-right font-mono text-[#544B45]">{sysQ}</td>
+                    <td className="p-3.5 text-right font-mono text-[#544B45]">{phyQ}</td>
+                    <td className="p-3.5 text-right font-mono font-black text-pink-400">
+                      {diffQ > 0 ? `+${diffQ}` : diffQ}
+                    </td>
+                    <td className="p-3.5 text-right font-mono font-bold text-rose-400">
+                      ₹{val.toLocaleString('en-IN')}
+                    </td>
+                    <td className="p-3.5 text-[#544B45]">
+                      <div className="font-semibold text-amber-400">{rsn}</div>
+                      <div className="text-[10px] text-[#70665F] truncate max-w-[150px]">{rem}</div>
+                    </td>
+                    <td className="p-3.5 font-medium text-[#544B45]">{appBy}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -171,15 +207,15 @@ export default function StockAdjustmentsPage() {
             <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] mb-1">Select Warehouse</label>
+                  <label className="block text-[#70665F] mb-1">Select Warehouse *</label>
                   <select
                     value={warehouseId}
                     onChange={(e) => setWarehouseId(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500"
                   >
-                    {warehouses.map((w) => (
+                    {effectiveWarehouses.map((w) => (
                       <option key={w.id} value={w.id}>
-                        {w.warehouseName}
+                        {w.warehouseName || (w as any).name || (w as any).warehouse_name || (w as any).warehouseCode || w.id}
                       </option>
                     ))}
                   </select>
@@ -191,9 +227,9 @@ export default function StockAdjustmentsPage() {
                     onChange={(e) => setItemId(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500"
                   >
-                    {itemMasters.map((i) => (
+                    {effectiveItems.map((i) => (
                       <option key={i.id} value={i.id}>
-                        {i.itemCode} - {i.itemName}
+                        {i.itemCode || (i as any).item_code || i.id} - {i.itemName || (i as any).item_name || (i as any).name}
                       </option>
                     ))}
                   </select>
@@ -257,7 +293,7 @@ export default function StockAdjustmentsPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-pink-600 text-[#211B17] hover:bg-pink-500 text-xs font-semibold shadow-lg shadow-pink-600/30"
+                  className="px-4 py-2 rounded-xl bg-pink-600 text-white hover:bg-pink-500 text-xs font-semibold shadow-lg shadow-pink-600/30"
                 >
                   Confirm Adjustment
                 </button>
