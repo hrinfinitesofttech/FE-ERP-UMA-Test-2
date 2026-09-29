@@ -29,8 +29,36 @@ export default function LeadDetailPage() {
   const router = useRouter();
   const { leads, updateLead, convertLeadToCustomer, followUps, addFollowUp, siteVisits, addSiteVisit, quotations } = useERP();
 
-  const leadId = String(params.id || '');
-  const lead = leads.find((l) => l.id === leadId || l.leadNo === leadId);
+  const rawId = Array.isArray(params?.id) ? params.id[0] : params?.id;
+  const leadId = decodeURIComponent(String(rawId || '')).trim();
+
+  // 1. Context search
+  let lead = leads.find(
+    (l) =>
+      l.id?.toLowerCase() === leadId.toLowerCase() ||
+      l.leadNo?.toLowerCase() === leadId.toLowerCase() ||
+      String(l.id) === leadId ||
+      String(l.leadNo) === leadId
+  );
+
+  // 2. Immediate localStorage fallback if context update is in-flight
+  if (!lead && typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('UMA_ERP_leads');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          lead = parsed.find(
+            (l: any) =>
+              l.id?.toLowerCase() === leadId.toLowerCase() ||
+              l.leadNo?.toLowerCase() === leadId.toLowerCase() ||
+              String(l.id) === leadId ||
+              String(l.leadNo) === leadId
+          );
+        }
+      }
+    } catch (_) {}
+  }
 
   const todayStr = new Date().toISOString().split('T')[0];
   const [activeTab, setActiveTab] = useState<'timeline' | 'followups' | 'visits' | 'quotations' | 'specs'>('timeline');

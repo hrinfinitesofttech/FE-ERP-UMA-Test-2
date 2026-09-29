@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useERP } from '../../../context/ERPContext';
-import { ItemMaster, ItemType } from '../../../types/store';
+import { ItemMaster, ItemType, ItemCategory, UOMMaster } from '../../../types/store';
 import {
   Package,
   Plus,
@@ -23,6 +23,26 @@ import {
 export default function ItemMasterPage() {
   const { itemMasters, addItemMaster, updateItemMaster, deleteItemMaster, itemCategories, uoms, warehouses, suppliers } = useERP();
 
+  const defaultCategories: ItemCategory[] = [
+    { id: 'CAT-001', categoryCode: 'RAW-PLT', categoryName: 'Stainless Steel Plates & Sheets', status: 'Active', description: 'Plates and sheets' },
+    { id: 'CAT-002', categoryCode: 'RAW-PIP', categoryName: 'Seamless & Welded Pipes', status: 'Active', description: 'Pipes' },
+    { id: 'CAT-003', categoryCode: 'BOUGHT-OUT', categoryName: 'Motors, Valves & Bought-Out', status: 'Active', description: 'Bought-out components' },
+    { id: 'CAT-004', categoryCode: 'CONSUMABLES', categoryName: 'Welding Wire, Gases & Consumables', status: 'Active', description: 'Consumables' },
+    { id: 'CAT-005', categoryCode: 'HARDWARE', categoryName: 'Fasteners, Flanges & Hardware', status: 'Active', description: 'Fasteners' },
+  ];
+
+  const defaultUOMs: UOMMaster[] = [
+    { id: 'UOM-001', uomCode: 'Kg', uomName: 'Kilogram', baseUom: 'Kg', conversionFactor: 1 },
+    { id: 'UOM-002', uomCode: 'Nos', uomName: 'Numbers / Pieces', baseUom: 'Nos', conversionFactor: 1 },
+    { id: 'UOM-003', uomCode: 'Mtr', uomName: 'Meter', baseUom: 'Mtr', conversionFactor: 1 },
+    { id: 'UOM-004', uomCode: 'Set', uomName: 'Set', baseUom: 'Set', conversionFactor: 1 },
+    { id: 'UOM-005', uomCode: 'Ltr', uomName: 'Litre', baseUom: 'Ltr', conversionFactor: 1 },
+    { id: 'UOM-006', uomCode: 'SqMtr', uomName: 'Square Meter', baseUom: 'SqMtr', conversionFactor: 1 },
+  ];
+
+  const availableCategories = itemCategories && itemCategories.length > 0 ? itemCategories : defaultCategories;
+  const availableUOMs = uoms && uoms.length > 0 ? uoms : defaultUOMs;
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -34,13 +54,13 @@ export default function ItemMasterPage() {
     itemCode: '',
     itemName: '',
     itemType: 'Plate',
-    category: 'Stainless Steel Plates & Sheets',
+    category: availableCategories[0]?.categoryName || 'Stainless Steel Plates & Sheets',
     description: '',
     specification: '',
     brandMake: '',
     hsnSac: '72193200',
     gstRate: 18,
-    uom: 'Kg',
+    uom: availableUOMs[0]?.uomCode || 'Kg',
     status: 'Active',
     minimumStock: 1000,
     maximumStock: 10000,
@@ -210,11 +230,14 @@ export default function ItemMasterPage() {
             className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-1.5 text-xs text-[#211B17] focus:outline-none cursor-pointer"
           >
             <option value="all">All Categories</option>
-            {itemCategories.map((c) => (
-              <option key={c.id} value={c.categoryName}>
-                {c.categoryName}
-              </option>
-            ))}
+            {availableCategories.map((c) => {
+              const cName = c.categoryName || (c as any).name || c.categoryCode;
+              return (
+                <option key={c.id || c.categoryCode} value={cName}>
+                  {cName}
+                </option>
+              );
+            })}
           </select>
         </div>
 
@@ -361,11 +384,14 @@ export default function ItemMasterPage() {
                     onChange={(e) => setEditingItem({ ...editingItem, category: e.target.value })}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17]"
                   >
-                    {itemCategories.map((c) => (
-                      <option key={c.id} value={c.categoryName}>
-                        {c.categoryName}
-                      </option>
-                    ))}
+                    {availableCategories.map((c) => {
+                      const cName = c.categoryName || (c as any).name || c.categoryCode;
+                      return (
+                        <option key={c.id || c.categoryCode} value={cName}>
+                          {cName}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
                 <div>
@@ -375,11 +401,15 @@ export default function ItemMasterPage() {
                     onChange={(e) => setEditingItem({ ...editingItem, uom: e.target.value })}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17]"
                   >
-                    {uoms.map((u) => (
-                      <option key={u.id} value={u.uomCode}>
-                        {u.uomCode} - {u.uomName}
-                      </option>
-                    ))}
+                    {availableUOMs.map((u) => {
+                      const uCode = u.uomCode || (u as any).code || u.uomName;
+                      const uName = u.uomName || (u as any).name || uCode;
+                      return (
+                        <option key={u.id || uCode} value={uCode}>
+                          {uCode} - {uName}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
               </div>
@@ -515,11 +545,14 @@ export default function ItemMasterPage() {
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                   >
-                    {itemCategories.map((c) => (
-                      <option key={c.id} value={c.categoryName}>
-                        {c.categoryName}
-                      </option>
-                    ))}
+                    {availableCategories.map((c) => {
+                      const cName = c.categoryName || (c as any).name || c.categoryCode;
+                      return (
+                        <option key={c.id || c.categoryCode} value={cName}>
+                          {cName}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
                 <div>
@@ -529,11 +562,15 @@ export default function ItemMasterPage() {
                     onChange={(e) => setFormData({ ...formData, uom: e.target.value })}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                   >
-                    {uoms.map((u) => (
-                      <option key={u.id} value={u.uomCode}>
-                        {u.uomCode} - {u.uomName}
-                      </option>
-                    ))}
+                    {availableUOMs.map((u) => {
+                      const uCode = u.uomCode || (u as any).code || u.uomName;
+                      const uName = u.uomName || (u as any).name || uCode;
+                      return (
+                        <option key={u.id || uCode} value={uCode}>
+                          {uCode} - {uName}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
               </div>

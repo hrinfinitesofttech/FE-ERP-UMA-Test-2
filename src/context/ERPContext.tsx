@@ -1748,10 +1748,70 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         } else {
           applyLive<PurchaseRequisition>(val(results[23]), setPurchaseRequisitions, 'purchaseRequisitions');
         }
-        applyLive<PurchaseOrder>(val(results[24]), setPurchaseOrders, 'purchaseOrders');
-        applyLive<ItemMaster>(val(results[25]), setItemMasters, 'itemMasters');
-        applyLive<ItemCategory>(val(results[26]), setItemCategories, 'itemCategories');
-        applyLive<UOMMaster>(val(results[27]), setUoms, 'uoms');
+        const rawItems = val<any[]>(results[25]);
+        if (rawItems && Array.isArray(rawItems) && rawItems.length > 0) {
+          const normalizedItems: ItemMaster[] = rawItems.map((i: any) => ({
+            ...i,
+            id: String(i.id),
+            itemCode: i.itemCode || i.item_code || i.id,
+            itemName: i.itemName || i.item_name || '',
+            itemType: i.itemType || i.item_type || 'Raw Material',
+            category: i.category || i.categoryName || i.category_name || '',
+            subCategory: i.subCategory || i.sub_category || '',
+            specification: i.specification || '',
+            description: i.description || '',
+            brandMake: i.brandMake || i.brand_make || '',
+            hsnSac: i.hsnSac || i.hsn_sac || '72193200',
+            gstRate: Number(i.gstRate ?? i.gst_rate ?? 18),
+            uom: i.uom || i.uomCode || 'Kg',
+            minimumStock: Number(i.minimumStock ?? i.minimum_stock ?? 0),
+            maximumStock: Number(i.maximumStock ?? i.maximum_stock ?? 0),
+            reorderLevel: Number(i.reorderLevel ?? i.reorder_level ?? 0),
+            standardCost: Number(i.standardCost ?? i.unit_cost ?? i.standard_cost ?? 0),
+            status: i.status || 'Active',
+            batchTracking: Boolean(i.batchTracking ?? i.batch_tracking ?? true),
+            serialTracking: Boolean(i.serialTracking ?? i.serial_tracking ?? false),
+            lotTracking: Boolean(i.lotTracking ?? i.lot_tracking ?? true),
+          }));
+          setItemMasters(normalizedItems);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_itemMasters', JSON.stringify(normalizedItems)); } catch (_) {}
+          }
+        }
+
+        const rawCats = val<any[]>(results[26]);
+        if (rawCats && Array.isArray(rawCats) && rawCats.length > 0) {
+          const normalizedCats: ItemCategory[] = rawCats.map((c: any) => ({
+            ...c,
+            id: String(c.id),
+            categoryCode: c.categoryCode || c.code || c.id,
+            categoryName: c.categoryName || c.name || 'Category',
+            description: c.description || '',
+            parentCategory: c.parentCategory || c.parent_category || 'Top Level',
+            status: c.status || 'Active',
+          }));
+          setItemCategories(normalizedCats);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_itemCategories', JSON.stringify(normalizedCats)); } catch (_) {}
+          }
+        }
+
+        const rawUoms = val<any[]>(results[27]);
+        if (rawUoms && Array.isArray(rawUoms) && rawUoms.length > 0) {
+          const normalizedUoms: UOMMaster[] = rawUoms.map((u: any) => ({
+            ...u,
+            id: String(u.id),
+            uomCode: u.uomCode || u.code || u.id,
+            uomName: u.uomName || u.name || u.uomCode || u.code || 'Unit',
+            baseUom: u.baseUom || u.base_uom || u.uomCode || u.code || 'Unit',
+            conversionFactor: Number(u.conversionFactor || u.conversion_factor || 1),
+            description: u.description || '',
+          }));
+          setUoms(normalizedUoms);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_uoms', JSON.stringify(normalizedUoms)); } catch (_) {}
+          }
+        }
         applyLive<Warehouse>(val(results[28]), setWarehouses, 'warehouses');
         applyLive<GoodsReceiptNote>(val(results[29]), setGoodsReceipts, 'goodsReceipts');
         applyLive<StockBalance>(val(results[30]), setStockBalances, 'stockBalances');
@@ -4436,45 +4496,97 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
   // Module 5: Store Management Handlers
   const addItemMaster = (data: Omit<ItemMaster, 'id' | 'createdAt'>) => {
-    const id = `ITEM-${String(itemMasters.length + 1).padStart(3, '0')}`;
+    const id = data.itemCode || `ITEM-${String(itemMasters.length + 1).padStart(3, '0')}`;
     const newItem: ItemMaster = { ...data, id, createdAt: new Date().toISOString().split('T')[0] };
-    setItemMasters((prev) => [newItem, ...prev]);
+    setItemMasters((prev) => {
+      const updated = [newItem, ...prev.filter((i) => i.id !== id && i.itemCode !== data.itemCode)];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_itemMasters', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Store', 'Item Master', id, `Added Item ${data.itemCode} - ${data.itemName}`);
     // Sync to PythonAnywhere backend
     api.store.items.create(newItem).then((res) => {
       if (res && res.id) {
-        setItemMasters((prev) => prev.map((item) => (item.id === id ? { ...item, ...res } : item)));
+        setItemMasters((prev) => {
+          const updated = prev.map((item) => (item.id === id ? { ...item, ...res } : item));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_itemMasters', JSON.stringify(updated)); } catch (_) {}
+          }
+          return updated;
+        });
       }
     }).catch((err) => console.warn('Failed to sync item to backend:', err));
   };
 
   const updateItemMaster = (id: string, updates: Partial<ItemMaster>) => {
-    setItemMasters((prev) => prev.map((item) => (item.id === id ? { ...item, ...updates } : item)));
+    setItemMasters((prev) => {
+      const updated = prev.map((item) => (item.id === id ? { ...item, ...updates } : item));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_itemMasters', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'Store', 'Item Master', id, `Updated item ${id}`);
     // Sync to PythonAnywhere backend
     api.store.items.update(id, updates).catch((err) => console.warn('Failed to update item on backend:', err));
   };
 
   const deleteItemMaster = (id: string) => {
-    setItemMasters((prev) => prev.filter((item) => item.id !== id));
+    setItemMasters((prev) => {
+      const updated = prev.filter((item) => item.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_itemMasters', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('DELETE', 'Store', 'Item Master', id, `Deleted Item Master ${id}`);
     api.store.items.delete(id).catch((err) => console.warn('Failed to delete item master on backend:', err));
   };
 
   const addItemCategory = (data: Omit<ItemCategory, 'id'>) => {
-    const id = `CAT-${String(itemCategories.length + 1).padStart(3, '0')}`;
+    const id = data.categoryCode || `CAT-${String(itemCategories.length + 1).padStart(3, '0')}`;
     const newCat: ItemCategory = { ...data, id };
-    setItemCategories((prev) => [...prev, newCat]);
+    setItemCategories((prev) => {
+      const updated = [...prev.filter((c) => c.id !== id && c.categoryCode !== data.categoryCode), newCat];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_itemCategories', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Store', 'Categories', id, `Added Category ${data.categoryName}`);
-    api.post('/item-categories/', newCat).catch((err) => console.warn('Failed to add category:', err));
+    api.post('/item-categories/', {
+      id,
+      code: data.categoryCode,
+      name: data.categoryName,
+      categoryCode: data.categoryCode,
+      categoryName: data.categoryName,
+      description: data.description,
+      status: data.status,
+      parent_category: data.parentCategory,
+    }).catch((err) => console.warn('Failed to add category:', err));
   };
 
   const addUOM = (data: Omit<UOMMaster, 'id'>) => {
-    const id = `UOM-${String(uoms.length + 1).padStart(3, '0')}`;
+    const id = data.uomCode || `UOM-${String(uoms.length + 1).padStart(3, '0')}`;
     const newUom: UOMMaster = { ...data, id };
-    setUoms((prev) => [...prev, newUom]);
+    setUoms((prev) => {
+      const updated = [...prev.filter((u) => u.id !== id && u.uomCode !== data.uomCode), newUom];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_uoms', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Store', 'UOM Master', id, `Added UOM ${data.uomCode}`);
-    api.post('/uoms/', newUom).catch((err) => console.warn('Failed to add UOM:', err));
+    api.post('/uoms/', {
+      id,
+      code: data.uomCode,
+      name: data.uomName,
+      uomCode: data.uomCode,
+      uomName: data.uomName,
+      description: data.description,
+    }).catch((err) => console.warn('Failed to add UOM:', err));
   };
 
   const addWarehouse = (data: Omit<Warehouse, 'id'>) => {

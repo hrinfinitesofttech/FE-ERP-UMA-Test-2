@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useERP } from '../../../context/ERPContext';
+import { ItemCategory } from '../../../types/store';
 import { Layers, Plus, Search, Tag, CheckCircle } from 'lucide-react';
 
 export default function ItemCategoriesPage() {
@@ -9,29 +10,40 @@ export default function ItemCategoriesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const defaultCategories: ItemCategory[] = [
+    { id: 'CAT-001', categoryCode: 'RAW-PLT', categoryName: 'Stainless Steel Plates & Sheets', parentCategory: 'Raw Materials', status: 'Active', description: 'Steel plates, forgings, pipes, rounds' },
+    { id: 'CAT-002', categoryCode: 'BOUGHT-OUT', categoryName: 'Motors & Bought-Out Items', parentCategory: 'Bought-Out Items', status: 'Active', description: 'Motors, seals, valves, gearboxes' },
+    { id: 'CAT-003', categoryCode: 'CONSUMABLES', categoryName: 'Welding & Consumables', parentCategory: 'Consumables', status: 'Active', description: 'Welding wire, grinding wheels, gases' },
+    { id: 'CAT-004', categoryCode: 'FIN-EQUIP', categoryName: 'Equipment & Pressure Vessels', parentCategory: 'Finished Goods', status: 'Active', description: 'Completed pressure vessels and equipment' },
+  ];
+
+  const availableCategories = itemCategories && itemCategories.length > 0 ? itemCategories : defaultCategories;
+
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
   const [parent, setParent] = useState('Raw Materials');
   const [desc, setDesc] = useState('');
 
-  const filtered = itemCategories.filter(
-    (c) =>
-
+  const filtered = availableCategories.filter((c) => {
+    const cCode = c.categoryCode || (c as any).code || '';
+    const cName = c.categoryName || (c as any).name || '';
+    const cDesc = c.description || '';
+    return (
       !searchTerm?.trim() ||
-
-      c.categoryCode?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      c.categoryName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      c.description?.toLowerCase().includes(searchTerm?.toLowerCase())
-  );
+      cCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cDesc.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!code || !name) return;
     addItemCategory({
-      categoryCode: code,
-      categoryName: name,
+      categoryCode: code.trim().toUpperCase(),
+      categoryName: name.trim(),
       parentCategory: parent,
-      description: desc,
+      description: desc.trim(),
       status: 'Active',
     });
     setIsModalOpen(false);
@@ -84,32 +96,36 @@ export default function ItemCategoriesPage() {
 
       {/* Grid of Categories */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((cat) => (
-          <div key={cat.id} className="bg-white border border-[#EBE3DB] p-5 rounded-2xl shadow-md hover:border-[#EBE3DB] transition">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-2">
-                <span className="p-2 rounded-xl bg-crm-brand-600/20 text-crm-brand-500 border border-crm-brand-600/30">
-                  <Tag className="w-4 h-4" />
-                </span>
-                <div>
-                  <div className="text-xs font-mono text-crm-brand-500 font-bold">{cat.categoryCode}</div>
-                  <h3 className="text-sm font-bold text-[#211B17] mt-0.5">{cat.categoryName}</h3>
+        {filtered.map((cat) => {
+          const cCode = cat.categoryCode || (cat as any).code || cat.id;
+          const cName = cat.categoryName || (cat as any).name || 'Category';
+          return (
+            <div key={cat.id || cCode} className="bg-white border border-[#EBE3DB] p-5 rounded-2xl shadow-md hover:border-[#EBE3DB] transition">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="p-2 rounded-xl bg-crm-brand-600/20 text-crm-brand-500 border border-crm-brand-600/30">
+                    <Tag className="w-4 h-4" />
+                  </span>
+                  <div>
+                    <div className="text-xs font-mono text-crm-brand-500 font-bold">{cCode}</div>
+                    <h3 className="text-sm font-bold text-[#211B17] mt-0.5">{cName}</h3>
+                  </div>
                 </div>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  {cat.status || 'Active'}
+                </span>
               </div>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                {cat.status}
-              </span>
-            </div>
 
-            <div className="mt-3 pt-3 border-t border-[#EBE3DB] text-xs space-y-1 text-[#544B45]">
-              <div className="flex items-center justify-between">
-                <span className="text-[#70665F] text-[11px]">Parent Group:</span>
-                <span className="font-semibold text-[#544B45]">{cat.parentCategory || 'Top Level'}</span>
+              <div className="mt-3 pt-3 border-t border-[#EBE3DB] text-xs space-y-1 text-[#544B45]">
+                <div className="flex items-center justify-between">
+                  <span className="text-[#70665F] text-[11px]">Parent Group:</span>
+                  <span className="font-semibold text-[#544B45]">{cat.parentCategory || (cat as any).parent_category || 'Top Level'}</span>
+                </div>
+                <div className="text-[#70665F] text-[11px] leading-relaxed pt-1">{cat.description || 'Standard item classification'}</div>
               </div>
-              <div className="text-[#70665F] text-[11px] leading-relaxed pt-1">{cat.description}</div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Add Modal */}
