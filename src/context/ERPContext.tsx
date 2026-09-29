@@ -1202,7 +1202,15 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
     return MOCK_3D_MODELS;
   });
-  const [assemblyDrawings, setAssemblyDrawings] = useState<AssemblyDrawing[]>(MOCK_ASSEMBLY_DRAWINGS);
+  const [assemblyDrawings, setAssemblyDrawings] = useState<AssemblyDrawing[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_assemblyDrawings');
+        if (stored) return JSON.parse(stored);
+      } catch (_) {}
+    }
+    return MOCK_ASSEMBLY_DRAWINGS;
+  });
   const [partDrawings, setPartDrawings] = useState<PartDrawing[]>(MOCK_PART_DRAWINGS);
   const [boms, setBoms] = useState<BOMHeader[]>(MOCK_BOM_HEADERS);
   const [bomRevisions, setBomRevisions] = useState<BOMRevision[]>(MOCK_BOM_REVISIONS);
@@ -1241,7 +1249,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const [warehouses, setWarehouses] = useState<Warehouse[]>(INITIAL_WAREHOUSES);
   const [warehouseLocations, setWarehouseLocations] = useState<WarehouseLocation[]>(INITIAL_WAREHOUSE_LOCATIONS);
   const [openingStocks, setOpeningStocks] = useState<OpeningStock[]>(INITIAL_OPENING_STOCKS);
-  const [goodsReceipts, setGoodsReceipts] = useState<GoodsReceiptNote[]>(INITIAL_GOODS_RECEIPTS);
+  const [goodsReceipts, setGoodsReceipts] = useState<GoodsReceiptNote[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_goodsReceipts');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_GOODS_RECEIPTS;
+  });
   const [qcInspections, setQcInspections] = useState<QCInspection[]>(INITIAL_QC_INSPECTIONS);
   const [stockBalances, setStockBalances] = useState<StockBalance[]>(INITIAL_STOCK_BALANCES);
   const [stockReservations, setStockReservations] = useState<StockReservation[]>(INITIAL_STOCK_RESERVATIONS);
@@ -1254,8 +1273,30 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const [stockLedgers, setStockLedgers] = useState<StockLedgerEntry[]>(INITIAL_STOCK_LEDGERS);
 
   // Module 6: Production / Manufacturing / MRP States
-  const [manufacturingJobs, setManufacturingJobs] = useState<ManufacturingJob[]>(INITIAL_MANUFACTURING_JOBS);
-  const [productionPlans, setProductionPlans] = useState<ProductionPlan[]>(INITIAL_PRODUCTION_PLANS);
+  const [manufacturingJobs, setManufacturingJobs] = useState<ManufacturingJob[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_manufacturingJobs');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_MANUFACTURING_JOBS;
+  });
+  const [productionPlans, setProductionPlans] = useState<ProductionPlan[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_productionPlans');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_PRODUCTION_PLANS;
+  });
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>(INITIAL_WORK_ORDERS);
   const [productionOrders, setProductionOrders] = useState<ProductionOrder[]>(INITIAL_PRODUCTION_ORDERS);
   const [routingOperations, setRoutingOperations] = useState<RoutingOperation[]>(INITIAL_ROUTING_OPERATIONS);
@@ -4020,8 +4061,23 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addAssemblyDrawing = (data: Omit<AssemblyDrawing, 'id'>) => {
     const id = `ASM-${Date.now().toString().slice(-5)}`;
     const newAsm: AssemblyDrawing = { ...data, id };
-    setAssemblyDrawings((prev) => [newAsm, ...prev]);
+    setAssemblyDrawings((prev) => {
+      const updated = [newAsm, ...prev];
+      try { localStorage.setItem('UMA_ERP_assemblyDrawings', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
     logAction('CREATE', 'Designer', 'Assembly Drawings', id, `Uploaded Assembly Drawing ${data.assemblyNumber}`);
+    api.post('/assembly-drawings/', newAsm)
+      .then((res) => {
+        if (res.data?.id) {
+          setAssemblyDrawings((prev) => {
+            const synced = prev.map((a) => (a.id === id ? { ...a, ...res.data } : a));
+            try { localStorage.setItem('UMA_ERP_assemblyDrawings', JSON.stringify(synced)); } catch (_) {}
+            return synced;
+          });
+        }
+      })
+      .catch((err) => console.warn('Failed to add assembly drawing to backend:', err));
   };
 
   const addPartDrawing = (data: Omit<PartDrawing, 'id'>) => {
@@ -4475,7 +4531,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       grnNumber,
       createdAt: new Date().toISOString().split('T')[0],
     };
-    setGoodsReceipts((prev) => [newGrn, ...prev]);
+    setGoodsReceipts((prev) => {
+      const updated = [newGrn, ...prev];
+      try { localStorage.setItem('UMA_ERP_goodsReceipts', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
 
     if (newGrn.jobId) {
       updateJobStatus(newGrn.jobId, 'step-6', 'in_progress');
@@ -4492,14 +4552,30 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     });
     const grnPayload = {
       ...newGrn,
+      id: grnNumber,
       grnNumber: newGrn.grnNumber || grnNumber,
-      receiptDate: (newGrn as any).receiptDate || newGrn.createdAt || new Date().toISOString().split('T')[0],
+      grn_number: newGrn.grnNumber || grnNumber,
+      date: (newGrn as any).grnDate || newGrn.createdAt || new Date().toISOString().split('T')[0],
+      po_id: (newGrn as any).poId || '',
+      po_number: (newGrn as any).poNumber || '',
+      supplier_id: (newGrn as any).supplierId || '',
+      supplier_name: (newGrn as any).supplierName || '',
+      challan_number: (newGrn as any).deliveryChallanNumber || (newGrn as any).challanNumber || '',
+      invoice_number: (newGrn as any).invoiceNumber || '',
+      vehicle_number: (newGrn as any).vehicleNumber || '',
+      received_by: (newGrn as any).receivedBy || 'Store Officer',
+      warehouse_id: (newGrn as any).warehouseId || '',
+      notes: (newGrn as any).remarks || '',
       items: newGrn.items || [],
       status: (newGrn as any).status || 'received',
     };
     api.store.grns.create(grnPayload).then((res) => {
       if (res && res.id) {
-        setGoodsReceipts((prev) => prev.map((g) => (g.id === grnNumber ? { ...g, ...res } : g)));
+        setGoodsReceipts((prev) => {
+          const synced = prev.map((g) => (g.id === grnNumber ? { ...g, ...res } : g));
+          try { localStorage.setItem('UMA_ERP_goodsReceipts', JSON.stringify(synced)); } catch (_) {}
+          return synced;
+        });
       }
     }).catch((err) => console.warn('Failed to sync GRN to backend:', err));
   };
@@ -4636,13 +4712,21 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       id,
       createdAt: new Date().toISOString().split('T')[0],
     };
-    setManufacturingJobs((prev) => [newJob, ...prev]);
+    setManufacturingJobs((prev) => {
+      const updated = [newJob, ...prev];
+      try { localStorage.setItem('UMA_ERP_manufacturingJobs', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
     logAction('CREATE', 'Production', 'Manufacturing Jobs', newJob.id, `Created manufacturing job ${newJob.jobNumber}`);
     api.post('/manufacturing-jobs/', newJob).catch((err) => console.warn('Failed to add mfg job:', err));
   };
 
   const updateManufacturingJob = (id: string, updates: Partial<ManufacturingJob>) => {
-    setManufacturingJobs((prev) => prev.map((j) => (j.id === id || j.jobNumber === id ? { ...j, ...updates } : j)));
+    setManufacturingJobs((prev) => {
+      const updated = prev.map((j) => (j.id === id || j.jobNumber === id ? { ...j, ...updates } : j));
+      try { localStorage.setItem('UMA_ERP_manufacturingJobs', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
   };
 
   const addProductionPlan = (data: Omit<ProductionPlan, 'id' | 'createdAt'>) => {
@@ -4653,7 +4737,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       planNumber,
       createdAt: new Date().toISOString().split('T')[0],
     };
-    setProductionPlans((prev) => [newPlan, ...prev]);
+    setProductionPlans((prev) => {
+      const updated = [newPlan, ...prev];
+      try { localStorage.setItem('UMA_ERP_productionPlans', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
     logAction('CREATE', 'Production', 'Production Planning', newPlan.id, `Created production plan ${newPlan.planNumber} for Job ${newPlan.jobNumber}`);
     api.post('/production-plans/', newPlan).catch((err) => console.warn('Failed to add production plan:', err));
   };
