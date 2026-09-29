@@ -25,9 +25,23 @@ export type BOMItemType =
   | 'Standard Component'
   | 'Electrical'
   | 'Hardware'
-  | 'Sub-Assembly';
+  | 'Sub-Assembly'
+  | 'RAW_MATERIAL'
+  | 'FABRICATED'
+  | 'BOUGHT_OUT'
+  | 'CONSUMABLE'
+  | 'HARDWARE'
+  | 'ELECTRICAL';
 
-export type ProcurementType = 'Purchase' | 'Stock' | 'Manufacture' | 'Fabricate';
+export type ProcurementType =
+  | 'Purchase'
+  | 'Stock'
+  | 'Manufacture'
+  | 'Fabricate'
+  | 'In-House'
+  | 'Outsourced'
+  | 'PURCHASE'
+  | 'FABRICATE';
 
 export type RevisionReason =
   | 'Customer Change'
@@ -255,6 +269,8 @@ export interface BOMItem {
   unit: string;
   makeBrand?: string;
   procurementType: ProcurementType;
+  procurement?: 'PURCHASE' | 'FABRICATE';
+  item_type?: 'RAW_MATERIAL' | 'FABRICATED' | 'BOUGHT_OUT' | 'CONSUMABLE' | 'HARDWARE' | 'ELECTRICAL';
   estimatedRate: number;
   totalEstimatedAmount: number;
   parentItemId?: string; // For Multi-level hierarchy
@@ -269,6 +285,10 @@ export interface BOMHeader {
   designJobId?: string;
   machineName?: string;
   bomName?: string;
+  bom_name?: string;
+  product?: string | number;
+  version?: string;
+  quantity?: number;
   revision?: string; // 'REV-00', 'REV-01'
   revisionNumber?: string;
   preparedBy?: string;
