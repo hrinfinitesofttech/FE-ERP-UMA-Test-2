@@ -29,9 +29,10 @@ export default function LeadDetailPage() {
   const router = useRouter();
   const { leads, updateLead, convertLeadToCustomer, followUps, addFollowUp, siteVisits, addSiteVisit, quotations } = useERP();
 
-  const leadId = String(params.id);
-  const lead = leads.find((l) => l.id === leadId);
+  const leadId = String(params.id || '');
+  const lead = leads.find((l) => l.id === leadId || l.leadNo === leadId);
 
+  const todayStr = new Date().toISOString().split('T')[0];
   const [activeTab, setActiveTab] = useState<'timeline' | 'followups' | 'visits' | 'quotations' | 'specs'>('timeline');
   const [newNote, setNewNote] = useState('');
   const [convertSuccess, setConvertSuccess] = useState('');
@@ -39,7 +40,7 @@ export default function LeadDetailPage() {
   // Follow-up quick modal
   const [showFlwModal, setShowFlwModal] = useState(false);
   const [flwType, setFlwType] = useState<'call' | 'whatsapp' | 'email' | 'meeting' | 'visit'>('call');
-  const [flwDate, setFlwDate] = useState('2026-09-24');
+  const [flwDate, setFlwDate] = useState(todayStr);
   const [flwTime, setFlwTime] = useState('11:00 AM');
   const [flwPurpose, setFlwPurpose] = useState('');
 
@@ -63,8 +64,8 @@ export default function LeadDetailPage() {
   const handleAddFollowUp = (e: React.FormEvent) => {
     e.preventDefault();
     addFollowUp({
-      leadOrCustomerId: lead.id,
-      leadOrCustomerName: `${lead.companyName} (${lead.contactPerson})`,
+      leadOrCustomerId: lead.leadNo || lead.id,
+      leadOrCustomerName: `${lead.companyName} (${lead.contactPerson || lead.leadNo})`,
       entityType: 'lead',
       type: flwType,
       assignedToId: lead.assignedSalesPersonId,
@@ -80,9 +81,26 @@ export default function LeadDetailPage() {
     setShowFlwModal(false);
   };
 
-  const relatedFollowUps = followUps.filter((f) => f.leadOrCustomerId === lead.id);
-  const relatedVisits = siteVisits.filter((v) => v.customerId === lead.convertedCustomerId);
-  const relatedQuotations = quotations.filter((q) => q.leadId === lead.id || (q.customerName && lead.companyName && q.customerName.includes(lead.companyName)));
+  const relatedFollowUps = followUps.filter(
+    (f) =>
+      f.leadOrCustomerId === lead.id ||
+      f.leadOrCustomerId === lead.leadNo ||
+      (lead.leadNo && f.leadOrCustomerName && f.leadOrCustomerName.includes(lead.leadNo)) ||
+      (lead.companyName && f.leadOrCustomerName && f.leadOrCustomerName.toLowerCase().includes(lead.companyName.toLowerCase()))
+  );
+  const relatedVisits = siteVisits.filter(
+    (v) =>
+      v.customerId === lead.convertedCustomerId ||
+      v.customerId === lead.id ||
+      v.customerId === lead.leadNo ||
+      (lead.companyName && v.customerName && v.customerName.toLowerCase().includes(lead.companyName.toLowerCase()))
+  );
+  const relatedQuotations = quotations.filter(
+    (q) =>
+      q.leadId === lead.id ||
+      q.leadId === lead.leadNo ||
+      (q.customerName && lead.companyName && q.customerName.toLowerCase().includes(lead.companyName.toLowerCase()))
+  );
 
   return (
     <div className="max-w-5xl mx-auto space-y-4 text-xs pb-10">
@@ -323,6 +341,7 @@ export default function LeadDetailPage() {
                   <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Date</label>
                   <input
                     type="date"
+                    min={todayStr}
                     value={flwDate}
                     onChange={(e) => setFlwDate(e.target.value)}
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"

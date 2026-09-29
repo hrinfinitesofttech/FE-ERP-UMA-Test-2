@@ -19,6 +19,7 @@ import {
   X,
   Edit2,
   Trash2,
+  AlertCircle,
 } from 'lucide-react';
 import { Supplier } from '../../../types/purchase';
 
@@ -32,6 +33,13 @@ export default function SupplierMasterPage() {
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
+
+  // Form errors
+  const [addErrors, setAddErrors] = useState<Record<string, string>>({});
+  const [editErrors, setEditErrors] = useState<Record<string, string>>({});
+
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 
   // New Supplier Form State
   const [newVendorCode, setNewVendorCode] = useState(`VEN-2026-${Math.floor(100 + Math.random() * 900)}`);
@@ -61,16 +69,59 @@ export default function SupplierMasterPage() {
     return true;
   });
 
+  const validateAddSupplier = () => {
+    const errs: Record<string, string> = {};
+    if (!newName.trim()) errs.name = 'Supplier company name is required.';
+    if (!newGstin.trim()) errs.gstin = 'GSTIN is required.';
+    else if (!gstinRegex.test(newGstin.trim().toUpperCase())) {
+      errs.gstin = 'Invalid GSTIN (15 characters, e.g. 24AAAAA0000A1Z5).';
+    }
+
+    const cleanPhone = newPhone.replace(/\D/g, '');
+    if (cleanPhone && cleanPhone.length !== 10) {
+      errs.phone = 'Phone number must be exactly 10 digits.';
+    }
+
+    if (newEmail.trim() && !emailRegex.test(newEmail.trim())) {
+      errs.email = 'Invalid email address format.';
+    }
+
+    setAddErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const validateEditSupplier = () => {
+    if (!editingSupplier) return false;
+    const errs: Record<string, string> = {};
+    if (!editingSupplier.name?.trim() && !editingSupplier.supplierName?.trim()) {
+      errs.name = 'Supplier company name is required.';
+    }
+    if (editingSupplier.gstin && !gstinRegex.test(editingSupplier.gstin.trim().toUpperCase())) {
+      errs.gstin = 'Invalid GSTIN (15 characters).';
+    }
+    const cleanPhone = (editingSupplier.phone || '').replace(/\D/g, '');
+    if (cleanPhone && cleanPhone.length !== 10) {
+      errs.phone = 'Phone number must be exactly 10 digits.';
+    }
+    if (editingSupplier.email?.trim() && !emailRegex.test(editingSupplier.email.trim())) {
+      errs.email = 'Invalid email address format.';
+    }
+    setEditErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   const handleCreateSupplier = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateAddSupplier()) return;
+
     const newSupp: Supplier = {
       id: `SUP-${Date.now()}`,
       vendorCode: newVendorCode,
-      name: newName,
-      supplierName: newName,
+      name: newName.trim(),
+      supplierName: newName.trim(),
       category: newCategory,
-      gstin: newGstin,
-      panNumber: newPan,
+      gstin: newGstin.toUpperCase().trim(),
+      panNumber: newPan.toUpperCase().trim() || newGstin.slice(2, 12).toUpperCase(),
       msmeRegistered: true,
       msmeNumber: 'UDYAM-GJ-01-0098765',
       address: 'Industrial GIDC Area',
@@ -78,9 +129,9 @@ export default function SupplierMasterPage() {
       state: newState,
       pinCode: '380015',
       country: 'India',
-      contactPerson: newContactPerson,
-      phone: newPhone,
-      email: newEmail,
+      contactPerson: newContactPerson.trim(),
+      phone: newPhone.replace(/\D/g, '').slice(0, 10),
+      email: newEmail.trim(),
       paymentTerms: newPaymentTerms,
       creditPeriodDays: 30,
       bankName: 'HDFC Bank',
@@ -99,23 +150,34 @@ export default function SupplierMasterPage() {
     setShowAddModal(false);
     setNewName('');
     setNewGstin('');
+    setNewPan('');
     setNewContactPerson('');
     setNewPhone('');
     setNewEmail('');
+    setAddErrors({});
   };
 
   const handleUpdateSupplier = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingSupplier) return;
-    updateSupplier(editingSupplier.id, {
+    if (!validateEditSupplier()) return;
+
+    const updated = {
       ...editingSupplier,
       supplierName: editingSupplier.name || editingSupplier.supplierName,
+      phone: (editingSupplier.phone || '').replace(/\D/g, '').slice(0, 10),
+      gstin: editingSupplier.gstin?.toUpperCase().trim(),
+      panNumber: editingSupplier.panNumber?.toUpperCase().trim(),
+      email: editingSupplier.email?.trim(),
       updatedAt: new Date().toISOString(),
-    });
+    };
+
+    updateSupplier(editingSupplier.id, updated);
     if (selectedSupplier && selectedSupplier.id === editingSupplier.id) {
-      setSelectedSupplier({ ...editingSupplier });
+      setSelectedSupplier({ ...updated });
     }
     setEditingSupplier(null);
+    setEditErrors({});
   };
 
   const handleDelete = (id: string, name: string) => {
@@ -439,36 +501,60 @@ export default function SupplierMasterPage() {
               </div>
 
               <div>
-                <label className="block text-[#70665F] mb-1">Supplier Company Name</label>
+                <label className="block text-[#70665F] mb-1">Supplier Company Name *</label>
                 <input
                   type="text"
                   value={editingSupplier.name || editingSupplier.supplierName || ''}
-                  onChange={(e) =>
-                    setEditingSupplier({ ...editingSupplier, name: e.target.value, supplierName: e.target.value })
-                  }
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-bold"
+                  onChange={(e) => {
+                    setEditingSupplier({ ...editingSupplier, name: e.target.value, supplierName: e.target.value });
+                    if (editErrors.name) setEditErrors(prev => ({ ...prev, name: '' }));
+                  }}
+                  className={`w-full bg-[#FAF7F2] border p-2 rounded-xl text-[#211B17] font-bold ${
+                    editErrors.name ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                  }`}
                   required
                 />
+                {editErrors.name && (
+                  <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                    <AlertCircle className="w-3 h-3" /> {editErrors.name}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[#70665F] mb-1">GSTIN Number</label>
+                  <label className="block text-[#70665F] mb-1">GSTIN Number *</label>
                   <input
                     type="text"
+                    maxLength={15}
                     value={editingSupplier.gstin || ''}
-                    onChange={(e) => setEditingSupplier({ ...editingSupplier, gstin: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono"
+                    onChange={(e) => {
+                      const val = e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, 15);
+                      setEditingSupplier({ ...editingSupplier, gstin: val });
+                      if (editErrors.gstin) setEditErrors(prev => ({ ...prev, gstin: '' }));
+                    }}
+                    className={`w-full bg-[#FAF7F2] border p-2 rounded-xl text-[#211B17] font-mono uppercase font-bold ${
+                      editErrors.gstin ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                    }`}
                     required
                   />
+                  {editErrors.gstin && (
+                    <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                      <AlertCircle className="w-3 h-3" /> {editErrors.gstin}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-[#70665F] mb-1">PAN Number</label>
                   <input
                     type="text"
+                    maxLength={10}
                     value={editingSupplier.panNumber || ''}
-                    onChange={(e) => setEditingSupplier({ ...editingSupplier, panNumber: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono"
+                    onChange={(e) => {
+                      const val = e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, 10);
+                      setEditingSupplier({ ...editingSupplier, panNumber: val });
+                    }}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono uppercase"
                   />
                 </div>
               </div>
@@ -484,22 +570,45 @@ export default function SupplierMasterPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[#70665F] mb-1">Phone</label>
+                  <label className="block text-[#70665F] mb-1">Phone (10 Digits)</label>
                   <input
-                    type="text"
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
                     value={editingSupplier.phone || ''}
-                    onChange={(e) => setEditingSupplier({ ...editingSupplier, phone: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
+                    onChange={(e) => {
+                      const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setEditingSupplier({ ...editingSupplier, phone: clean });
+                      if (editErrors.phone) setEditErrors(prev => ({ ...prev, phone: '' }));
+                    }}
+                    className={`w-full bg-[#FAF7F2] border p-2 rounded-xl text-[#211B17] font-mono ${
+                      editErrors.phone ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                    }`}
                   />
+                  {editErrors.phone && (
+                    <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                      <AlertCircle className="w-3 h-3" /> {editErrors.phone}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-[#70665F] mb-1">Email</label>
                   <input
                     type="email"
                     value={editingSupplier.email || ''}
-                    onChange={(e) => setEditingSupplier({ ...editingSupplier, email: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
+                    onChange={(e) => {
+                      setEditingSupplier({ ...editingSupplier, email: e.target.value });
+                      if (editErrors.email) setEditErrors(prev => ({ ...prev, email: '' }));
+                    }}
+                    className={`w-full bg-[#FAF7F2] border p-2 rounded-xl text-[#211B17] ${
+                      editErrors.email ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                    }`}
                   />
+                  {editErrors.email && (
+                    <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                      <AlertCircle className="w-3 h-3" /> {editErrors.email}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -584,37 +693,63 @@ export default function SupplierMasterPage() {
               </div>
 
               <div>
-                <label className="block text-[#70665F] mb-1">Supplier Company Name</label>
+                <label className="block text-[#70665F] mb-1">Supplier Company Name *</label>
                 <input
                   type="text"
                   placeholder="e.g. Tata Steel Ltd"
                   value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-bold"
+                  onChange={(e) => {
+                    setNewName(e.target.value);
+                    if (addErrors.name) setAddErrors(prev => ({ ...prev, name: '' }));
+                  }}
+                  className={`w-full bg-[#FAF7F2] border p-2 rounded-xl text-[#211B17] font-bold ${
+                    addErrors.name ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                  }`}
                   required
                 />
+                {addErrors.name && (
+                  <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                    <AlertCircle className="w-3 h-3" /> {addErrors.name}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[#70665F] mb-1">GSTIN Number</label>
+                  <label className="block text-[#70665F] mb-1">GSTIN Number *</label>
                   <input
                     type="text"
+                    maxLength={15}
                     placeholder="24AAAAA0000A1Z5"
                     value={newGstin}
-                    onChange={(e) => setNewGstin(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono"
+                    onChange={(e) => {
+                      const val = e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, 15);
+                      setNewGstin(val);
+                      if (addErrors.gstin) setAddErrors(prev => ({ ...prev, gstin: '' }));
+                    }}
+                    className={`w-full bg-[#FAF7F2] border p-2 rounded-xl text-[#211B17] font-mono uppercase font-bold ${
+                      addErrors.gstin ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                    }`}
                     required
                   />
+                  {addErrors.gstin && (
+                    <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                      <AlertCircle className="w-3 h-3" /> {addErrors.gstin}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-[#70665F] mb-1">PAN Number</label>
                   <input
                     type="text"
+                    maxLength={10}
                     placeholder="AAAAA0000A"
                     value={newPan}
-                    onChange={(e) => setNewPan(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono"
+                    onChange={(e) => {
+                      const val = e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, 10);
+                      setNewPan(val);
+                    }}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono uppercase"
                   />
                 </div>
               </div>
@@ -630,22 +765,47 @@ export default function SupplierMasterPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[#70665F] mb-1">Phone</label>
+                  <label className="block text-[#70665F] mb-1">Phone (10 Digits)</label>
                   <input
-                    type="text"
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
                     value={newPhone}
-                    onChange={(e) => setNewPhone(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
+                    onChange={(e) => {
+                      const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setNewPhone(clean);
+                      if (addErrors.phone) setAddErrors(prev => ({ ...prev, phone: '' }));
+                    }}
+                    placeholder="9825012345"
+                    className={`w-full bg-[#FAF7F2] border p-2 rounded-xl text-[#211B17] font-mono ${
+                      addErrors.phone ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                    }`}
                   />
+                  {addErrors.phone && (
+                    <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                      <AlertCircle className="w-3 h-3" /> {addErrors.phone}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-[#70665F] mb-1">Email</label>
                   <input
                     type="email"
                     value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
+                    onChange={(e) => {
+                      setNewEmail(e.target.value);
+                      if (addErrors.email) setAddErrors(prev => ({ ...prev, email: '' }));
+                    }}
+                    placeholder="vendor@domain.com"
+                    className={`w-full bg-[#FAF7F2] border p-2 rounded-xl text-[#211B17] ${
+                      addErrors.email ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                    }`}
                   />
+                  {addErrors.email && (
+                    <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                      <AlertCircle className="w-3 h-3" /> {addErrors.email}
+                    </p>
+                  )}
                 </div>
               </div>
 

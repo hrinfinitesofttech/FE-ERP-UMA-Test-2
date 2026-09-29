@@ -54,17 +54,58 @@ export default function CustomerMachinesPage() {
     status: 'In Warranty' as const,
   });
 
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  // Close modal on ESC key
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showAddModal) {
+        closeModal();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showAddModal]);
+
+  const closeModal = () => {
+    setShowAddModal(false);
+    setFormData({
+      customerMachineId: `MAC-CUST-${900 + customerMachines.length + 1}`,
+      customerId: '',
+      customerName: '',
+      projectId: '',
+      projectName: '',
+      jobId: '',
+      jobNumber: '',
+      salesOrderId: '',
+      customerPo: '',
+      dispatchNumber: '',
+      installationNumber: '',
+      machineName: '',
+      machineModel: '',
+      serialNumber: `UTF-CR-2026-00${customerMachines.length + 1}`,
+      manufacturingDate: todayStr,
+      installationDate: '',
+      commissioningDate: '',
+      warrantyStart: '',
+      warrantyEnd: '',
+      machineLocation: '',
+      customerContact: '',
+      contactPhone: '',
+      contactEmail: '',
+      serviceEngineer: '',
+      status: 'In Warranty' as const,
+    });
+  };
+
   const filteredMachines = customerMachines.filter((cm) => {
     const matchesSearch =
-
       !searchTerm?.trim() || (
-
-      cm.machineName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      cm.serialNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      cm.customerName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      (cm.jobNumber && cm.jobNumber?.toLowerCase().includes(searchTerm?.toLowerCase()))
-
-    );
+        cm.machineName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+        cm.serialNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+        cm.customerName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+        (cm.jobNumber && cm.jobNumber?.toLowerCase().includes(searchTerm?.toLowerCase()))
+      );
     const matchesStatus = statusFilter === 'all' || cm.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -75,7 +116,7 @@ export default function CustomerMachinesPage() {
       ...formData,
       documents: ['installation_cert.pdf'],
     });
-    setShowAddModal(false);
+    closeModal();
   };
 
   return (
@@ -250,14 +291,24 @@ export default function CustomerMachinesPage() {
 
       {/* Add Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FAF7F2] backdrop-blur-sm">
-          <div className="bg-white dark:bg-white rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
+        <div
+          onClick={closeModal}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col"
+          >
             <div className="p-4 border-b border-slate-200 dark:border-[#EBE3DB] flex items-center justify-between">
               <h3 className="font-bold text-base text-slate-900 dark:text-[#211B17] flex items-center gap-2">
                 <Building className="w-5 h-5 text-crm-brand-600" />
                 Register New Customer Machine
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="text-[#70665F] hover:text-slate-600">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="text-[#70665F] hover:text-slate-600 cursor-pointer"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -265,30 +316,32 @@ export default function CustomerMachinesPage() {
             <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold mb-1">Machine Name</label>
+                  <label className="block font-semibold mb-1">Machine Name *</label>
                   <input
                     type="text"
                     required
+                    placeholder="e.g. Limpet Reactor Vessel"
                     value={formData.machineName}
                     onChange={(e) => setFormData({ ...formData, machineName: e.target.value })}
                     className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold mb-1">Serial Number</label>
+                  <label className="block font-semibold mb-1">Serial Number *</label>
                   <input
                     type="text"
                     required
                     value={formData.serialNumber}
                     onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
-                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
+                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold mb-1">Customer Name</label>
+                  <label className="block font-semibold mb-1">Customer Name *</label>
                   <input
                     type="text"
                     required
+                    placeholder="e.g. Gujarat Alkalies & Chemicals Ltd."
                     value={formData.customerName}
                     onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
                     className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
@@ -298,27 +351,45 @@ export default function CustomerMachinesPage() {
                   <label className="block font-semibold mb-1">Job Number</label>
                   <input
                     type="text"
+                    placeholder="e.g. JOB-2026-0042"
                     value={formData.jobNumber}
                     onChange={(e) => setFormData({ ...formData, jobNumber: e.target.value })}
-                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
+                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold mb-1">Warranty Start</label>
+                  <label className="block font-semibold mb-1">
+                    Warranty Start *
+                    <span className="text-[10px] text-[#70665F] ml-1">(Future Date Only)</span>
+                  </label>
                   <input
                     type="date"
+                    required
+                    min={todayStr}
                     value={formData.warrantyStart}
-                    onChange={(e) => setFormData({ ...formData, warrantyStart: e.target.value })}
-                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
+                    onChange={(e) => {
+                      const newStart = e.target.value;
+                      const update: any = { ...formData, warrantyStart: newStart };
+                      if (formData.warrantyEnd && formData.warrantyEnd < newStart) {
+                        update.warrantyEnd = newStart;
+                      }
+                      setFormData(update);
+                    }}
+                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold mb-1">Warranty End</label>
+                  <label className="block font-semibold mb-1">
+                    Warranty End *
+                    <span className="text-[10px] text-[#70665F] ml-1">(Future Date Only)</span>
+                  </label>
                   <input
                     type="date"
+                    required
+                    min={formData.warrantyStart || todayStr}
                     value={formData.warrantyEnd}
                     onChange={(e) => setFormData({ ...formData, warrantyEnd: e.target.value })}
-                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
+                    className="w-full p-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-mono"
                   />
                 </div>
               </div>
@@ -326,12 +397,15 @@ export default function CustomerMachinesPage() {
               <div className="flex justify-end gap-2 pt-3 border-t">
                 <button
                   type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-lg border text-slate-600 hover:bg-slate-100"
+                  onClick={closeModal}
+                  className="px-4 py-2 rounded-lg border text-slate-600 hover:bg-slate-100 cursor-pointer"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 rounded-lg bg-crm-brand-700 text-white font-semibold">
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-lg bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-semibold cursor-pointer shadow-md transition"
+                >
                   Register Machine
                 </button>
               </div>

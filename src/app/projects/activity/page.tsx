@@ -73,37 +73,49 @@ export default function ProjectActivityPage() {
       </div>
 
       {/* Activity Timeline List */}
-      <div className="bg-white dark:bg-[#0B1120] rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-md p-6">
-        <div className="relative pl-6 border-l-2 border-slate-200 dark:border-[#EBE3DB] space-y-6">
-          {filteredActivities.map((act) => (
-            <div key={act.id} className="relative group">
-              <div className="w-3.5 h-3.5 bg-sky-500 rounded-full absolute -left-[31px] top-1.5 border-4 border-white dark:border-[#0B1120] shadow-sm" />
+      {filteredActivities.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-[#EBE3DB] p-12 text-center shadow-sm space-y-3">
+          <div className="w-12 h-12 bg-sky-50 rounded-2xl flex items-center justify-center mx-auto text-sky-600">
+            <ActivityIcon className="w-6 h-6" />
+          </div>
+          <h3 className="text-base font-bold text-[#211B17]">No Activity Logs Found</h3>
+          <p className="text-xs text-[#70665F] max-w-md mx-auto">
+            There are no recorded activity events matching the current project or search criteria. As team members update planning stages, complete milestones, log delays, or upload drawings, automated chronological logs will appear here.
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-sm p-6">
+          <div className="relative pl-6 border-l-2 border-[#EBE3DB] space-y-6">
+            {filteredActivities.map((act) => (
+              <div key={act.id} className="relative group">
+                <div className="w-3.5 h-3.5 bg-sky-500 rounded-full absolute -left-[31px] top-1.5 border-4 border-white shadow-sm" />
 
-              <div className="p-4 bg-slate-50 dark:bg-white rounded-xl border border-slate-200 dark:border-[#EBE3DB] space-y-1.5">
-                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-slate-900 dark:text-[#211B17] text-xs">{act.action}</span>
-                    <span className="font-mono text-sky-500 font-bold bg-sky-500/10 px-2 py-0.5 rounded text-[10px] border border-sky-500/20">
-                      {act.jobNumber}
+                <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] space-y-1.5 hover:border-sky-300 transition">
+                  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-[#211B17] text-xs">{act.action}</span>
+                      <span className="font-mono text-sky-700 font-bold bg-sky-50 px-2 py-0.5 rounded text-[10px] border border-sky-200">
+                        {act.jobNumber || act.projectId}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-[#70665F] font-mono flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-[#70665F]" />
+                      {act.date} at {act.time}
                     </span>
                   </div>
-                  <span className="text-[10px] text-[#70665F] font-mono flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-[#70665F]" />
-                    {act.date} at {act.time}
-                  </span>
-                </div>
 
-                <p className="text-slate-600 dark:text-[#544B45] text-xs">{act.details}</p>
+                  <p className="text-[#544B45] text-xs">{act.details}</p>
 
-                <div className="text-[10px] text-[#70665F] font-semibold flex items-center gap-1.5 pt-1">
-                  <User className="w-3 h-3 text-[#70665F]" />
-                  <span>Performed by: <strong className="text-slate-700 dark:text-[#544B45]">{act.userName}</strong> ({act.userRole})</span>
+                  <div className="text-[10px] text-[#70665F] font-semibold flex items-center gap-1.5 pt-1">
+                    <User className="w-3 h-3 text-[#70665F]" />
+                    <span>Performed by: <strong className="text-[#211B17]">{act.userName}</strong> ({act.userRole})</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -49,6 +49,25 @@ export default function DesignJobsPage() {
   // Drawer / View Modal State
   const [selectedJob, setSelectedJob] = useState<DesignJob | null>(null);
 
+  // Close modals on ESC key
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (isModalOpen) closeCreateModal();
+        if (selectedJob) setSelectedJob(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isModalOpen, selectedJob]);
+
+  const closeCreateModal = () => {
+    setIsModalOpen(false);
+    setSelectedProjectId('');
+    setRemarks('');
+    setRequiredDate('');
+  };
+
   const filteredJobs = designJobs.filter((j) => {
     const matchSearch =
       j.designJobNumber?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
@@ -88,9 +107,7 @@ export default function DesignJobsPage() {
       activeRevision: 'REV-00',
     });
 
-    setIsModalOpen(false);
-    setSelectedProjectId('');
-    setRemarks('');
+    closeCreateModal();
   };
 
   return (
@@ -264,14 +281,24 @@ export default function DesignJobsPage() {
 
       {/* Modal: Create Design Job */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl space-y-4 p-6">
+        <div
+          onClick={closeCreateModal}
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl space-y-4 p-6"
+          >
             <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
               <h3 className="text-base font-extrabold text-[#211B17] flex items-center gap-2">
                 <Palette className="w-5 h-5 text-crm-brand-500" />
                 Initialize New Design Job
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-[#70665F] hover:text-[#211B17]">
+              <button
+                type="button"
+                onClick={closeCreateModal}
+                className="text-[#70665F] hover:text-[#211B17] cursor-pointer"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -366,14 +393,24 @@ export default function DesignJobsPage() {
 
       {/* View Details Modal */}
       {selectedJob && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl space-y-4 p-6 text-xs">
+        <div
+          onClick={() => setSelectedJob(null)}
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl space-y-4 p-6 text-xs"
+          >
             <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
               <div>
                 <span className="font-mono font-bold text-crm-brand-500 text-sm">{selectedJob.designJobNumber}</span>
                 <h3 className="text-base font-extrabold text-[#211B17] mt-0.5">{selectedJob.productName}</h3>
               </div>
-              <button onClick={() => setSelectedJob(null)} className="text-[#70665F] hover:text-[#211B17]">
+              <button
+                type="button"
+                onClick={() => setSelectedJob(null)}
+                className="text-[#70665F] hover:text-[#211B17] cursor-pointer"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>

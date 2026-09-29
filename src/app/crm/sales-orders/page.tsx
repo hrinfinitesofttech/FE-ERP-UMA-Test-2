@@ -44,17 +44,17 @@ export default function SalesOrdersPage() {
       header: 'EQUIPMENT SCOPE',
       cell: (so) => (
         <span className="font-semibold text-[#544B45] block max-w-sm truncate">
-          {so.items[0]?.productName || 'Custom Manufacturing Machine'}
+          {so.items?.[0]?.productName || (so as any).machineProduct || (so as any).machine_product || 'Custom Manufacturing Machine'}
         </span>
       ),
     },
     {
       header: 'TOTAL ORDER VALUE',
-      cell: (so) => <span className="font-mono font-bold text-[#169B62] text-xs whitespace-nowrap inline-block">{formatCurrency(so.orderValue)}</span>,
+      cell: (so) => <span className="font-mono font-bold text-[#169B62] text-xs whitespace-nowrap inline-block">{formatCurrency(Number(so.orderValue) || Number((so as any).grand_total) || Number((so as any).total_amount) || 0)}</span>,
     },
     {
       header: 'DELIVERY TARGET',
-      cell: (so) => <span className="text-[#70665F] font-mono text-[11px] whitespace-nowrap inline-block">{formatDate(so.deliveryDate)}</span>,
+      cell: (so) => <span className="text-[#70665F] font-mono text-[11px] whitespace-nowrap inline-block">{formatDate(so.deliveryDate || (so as any).target_delivery_date || (so as any).delivery_date)}</span>,
     },
     {
       header: 'MTO INTEGRATION STATUS',

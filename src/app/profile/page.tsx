@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useERP } from '../../context/ERPContext';
-import { User, Lock, Mail, Phone, MapPin, Building, Shield, CheckCircle2, Camera } from 'lucide-react';
+import { User, Lock, Mail, Phone, MapPin, Building, Shield, CheckCircle2, Camera, Eye, EyeOff } from 'lucide-react';
 
 export default function ProfilePage() {
   const { currentUser, updateCurrentUserProfile, changePassword } = useERP();
@@ -10,12 +10,14 @@ export default function ProfilePage() {
   const [address, setAddress] = useState(currentUser.address);
   const [newPass, setNewPass] = useState('');
   const [confirmPass, setConfirmPass] = useState('');
+  const [showNewPass, setShowNewPass] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [savedMsg, setSavedMsg] = useState('');
   const [passMsg, setPassMsg] = useState('');
 
   const handleUpdateProfile = (e: React.FormEvent) => {
     e.preventDefault();
-    updateCurrentUserProfile({ mobile, address });
+    updateCurrentUserProfile({ mobile: mobile.replace(/\D/g, '').slice(0, 10), address });
     setSavedMsg('Profile information updated successfully.');
     setTimeout(() => setSavedMsg(''), 3000);
   };
@@ -99,11 +101,13 @@ export default function ProfilePage() {
             <div>
               <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Mobile Contact</label>
               <input
-                type="text"
+                type="tel"
+                inputMode="numeric"
+                maxLength={10}
                 value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
+                onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
                 required
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17] font-mono"
               />
             </div>
 
@@ -143,31 +147,53 @@ export default function ProfilePage() {
           <form onSubmit={handleChangePassword} className="space-y-3">
             <div>
               <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">New Password</label>
-              <input
-                type="password"
-                value={newPass}
-                onChange={(e) => setNewPass(e.target.value)}
-                placeholder="Min 6 characters"
-                required
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
-              />
+              <div className="relative">
+                <input
+                  type={showNewPass ? 'text' : 'password'}
+                  value={newPass}
+                  onChange={(e) => setNewPass(e.target.value)}
+                  placeholder="Min 6 characters"
+                  required
+                  className="w-full pl-3 pr-10 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowNewPass(!showNewPass)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8D827A] hover:text-[#211B17] p-1 cursor-pointer transition"
+                  title={showNewPass ? 'Hide password' : 'Show password'}
+                >
+                  {showNewPass ? <EyeOff className="w-4 h-4 text-crm-brand-700" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             <div>
               <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Confirm New Password</label>
-              <input
-                type="password"
-                value={confirmPass}
-                onChange={(e) => setConfirmPass(e.target.value)}
-                placeholder="Re-type new password"
-                required
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
-              />
+              <div className="relative">
+                <input
+                  type={showConfirmPass ? 'text' : 'password'}
+                  value={confirmPass}
+                  onChange={(e) => setConfirmPass(e.target.value)}
+                  placeholder="Re-type new password"
+                  required
+                  className="w-full pl-3 pr-10 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowConfirmPass(!showConfirmPass)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8D827A] hover:text-[#211B17] p-1 cursor-pointer transition"
+                  title={showConfirmPass ? 'Hide password' : 'Show password'}
+                >
+                  {showConfirmPass ? <EyeOff className="w-4 h-4 text-crm-brand-700" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             <button
               type="submit"
-              className="px-4 py-2 bg-[#FAF7F2] dark:bg-[#FAF7F2] hover:bg-white text-[#211B17] rounded-lg font-bold transition shadow-sm"
+              className="px-4 py-2 bg-[#FAF7F2] dark:bg-[#FAF7F2] hover:bg-white text-[#211B17] rounded-lg font-bold transition shadow-sm border border-[#EBE3DB]"
             >
               Update Password
             </button>

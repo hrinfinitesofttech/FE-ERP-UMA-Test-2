@@ -27,11 +27,17 @@ export default function ProjectDelaysPage() {
 
   const handleLogDelay = (e: React.FormEvent) => {
     e.preventDefault();
-    const prj = projectJobs.find((p) => p.id === projectId) || projectJobs[0];
+    const prj = projectJobs.find((p) => p.id === projectId) || projectJobs[0] || {
+      id: projectId || 'PRJ-2026-0001',
+      projectNumber: 'PRJ-2026-0001',
+      jobNumber: 'JOB-2026-0001',
+      deliveryDate: new Date().toISOString().split('T')[0],
+    };
 
-    // Compute expected delivery date
-    const orig = new Date(prj.deliveryDate);
-    orig.setDate(orig.getDate() + Number(delayDays));
+    const baseDateStr = (prj as any).deliveryDate || (prj as any).targetDeliveryDate || (prj as any).target_delivery_date || new Date().toISOString().split('T')[0];
+    let orig = new Date(baseDateStr);
+    if (isNaN(orig.getTime())) orig = new Date();
+    orig.setDate(orig.getDate() + (Number(delayDays) || 3));
     const expDateStr = orig.toISOString().split('T')[0];
 
     addProjectDelay({
@@ -42,12 +48,12 @@ export default function ProjectDelaysPage() {
       department,
       taskName,
       startDate: new Date().toISOString().split('T')[0],
-      delayDays: Number(delayDays),
-      responsiblePerson,
-      impact: impact || `${delayDays} days schedule shift in manufacturing queue.`,
-      correctiveAction: correctiveAction || 'Fast-track subsequent assembly station.',
+      delayDays: Number(delayDays) || 1,
+      responsiblePerson: responsiblePerson.trim() || 'Project Coordinator',
+      impact: impact.trim() || `${delayDays} days schedule shift in manufacturing queue.`,
+      correctiveAction: correctiveAction.trim() || 'Fast-track subsequent assembly station.',
       status: 'open',
-      originalDeliveryDate: prj.deliveryDate,
+      originalDeliveryDate: baseDateStr,
       expectedDeliveryDate: expDateStr,
     });
 
@@ -100,39 +106,47 @@ export default function ProjectDelaysPage() {
 
       {/* Delays List Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredDelays.map((del) => (
-          <div key={del.id} className="bg-white dark:bg-[#0B1120] p-5 rounded-2xl border border-amber-200 dark:border-amber-900/50 shadow-md space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded text-[11px] border border-amber-500/20">
-                {del.delayNo} • {del.jobNumber}
-              </span>
-              <span className="px-2 py-0.5 rounded bg-rose-500/10 text-rose-500 font-mono font-bold text-[10px] border border-rose-500/20">
-                +{del.delayDays} Days Delay
-              </span>
-            </div>
-
-            <h3 className="font-bold text-slate-900 dark:text-[#211B17] text-xs">
-              Reason: {del.delayReason} (Dept: {del.department})
-            </h3>
-
-            <div className="p-3 bg-amber-50/50 dark:bg-amber-950/20 rounded-xl border border-amber-200/60 dark:border-amber-900/40 space-y-1.5 text-xs">
-              <div className="flex justify-between font-mono">
-                <span className="text-[#70665F]">Original Target:</span>
-                <span className="line-through text-[#70665F]">{formatDate(del.originalDeliveryDate)}</span>
-              </div>
-              <div className="flex justify-between font-mono font-bold text-rose-600 dark:text-rose-400">
-                <span>Revised Expected Delivery:</span>
-                <span>{formatDate(del.expectedDeliveryDate)}</span>
-              </div>
-            </div>
-
-            <div className="text-xs space-y-1 text-slate-600 dark:text-[#544B45]">
-              <div><strong>Impact:</strong> {del.impact}</div>
-              <div><strong>Corrective Action:</strong> {del.correctiveAction}</div>
-              <div className="text-[10px] text-[#70665F] font-mono pt-1">Responsible: {del.responsiblePerson}</div>
-            </div>
+        {filteredDelays.length === 0 ? (
+          <div className="col-span-full bg-white p-12 text-center rounded-2xl border border-slate-200 text-[#70665F] space-y-2">
+            <Clock className="w-10 h-10 text-amber-300 mx-auto" />
+            <h4 className="font-bold text-slate-800 text-sm">No project delay records logged</h4>
+            <p className="text-xs text-slate-500">All manufacturing projects are currently operating on schedule.</p>
           </div>
-        ))}
+        ) : (
+          filteredDelays.map((del) => (
+            <div key={del.id} className="bg-white dark:bg-[#0B1120] p-5 rounded-2xl border border-amber-200 dark:border-amber-900/50 shadow-md space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded text-[11px] border border-amber-500/20">
+                  {del.delayNo} • {del.jobNumber}
+                </span>
+                <span className="px-2 py-0.5 rounded bg-rose-500/10 text-rose-500 font-mono font-bold text-[10px] border border-rose-500/20">
+                  +{del.delayDays} Days Delay
+                </span>
+              </div>
+
+              <h3 className="font-bold text-slate-900 dark:text-[#211B17] text-xs">
+                Reason: {del.delayReason} (Dept: {del.department})
+              </h3>
+
+              <div className="p-3 bg-amber-50/50 dark:bg-amber-950/20 rounded-xl border border-amber-200/60 dark:border-amber-900/40 space-y-1.5 text-xs">
+                <div className="flex justify-between font-mono">
+                  <span className="text-[#70665F]">Original Target:</span>
+                  <span className="line-through text-[#70665F]">{formatDate(del.originalDeliveryDate)}</span>
+                </div>
+                <div className="flex justify-between font-mono font-bold text-rose-600 dark:text-rose-400">
+                  <span>Revised Expected Delivery:</span>
+                  <span>{formatDate(del.expectedDeliveryDate)}</span>
+                </div>
+              </div>
+
+              <div className="text-xs space-y-1 text-slate-600 dark:text-[#544B45]">
+                <div><strong>Impact:</strong> {del.impact}</div>
+                <div><strong>Corrective Action:</strong> {del.correctiveAction}</div>
+                <div className="text-[10px] text-[#70665F] font-mono pt-1">Responsible: {del.responsiblePerson}</div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* LOG DELAY MODAL */}

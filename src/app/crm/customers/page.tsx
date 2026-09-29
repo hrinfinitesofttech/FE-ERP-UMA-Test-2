@@ -7,7 +7,7 @@ import { useERP } from '../../../context/ERPContext';
 import { DataTable, Column } from '../../../components/data/DataTable';
 import { Customer } from '../../../types/crm';
 import { formatCurrency } from '../../../lib/utils';
-import { Building, Plus, ArrowUpRight, Mail, Phone, Edit2, Trash2, X } from 'lucide-react';
+import { Building, Plus, ArrowUpRight, Mail, Phone, Edit2, Trash2, X, AlertCircle } from 'lucide-react';
 
 export default function CustomersListPage() {
   const router = useRouter();
@@ -25,9 +25,55 @@ export default function CustomersListPage() {
   const [state, setState] = useState('Gujarat');
   const [address, setAddress] = useState('');
   const [creditLimit, setCreditLimit] = useState(10000000);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [editErrors, setEditErrors] = useState<Record<string, string>>({});
+
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
+  const validateAddForm = () => {
+    const errs: Record<string, string> = {};
+    if (!companyName.trim()) errs.companyName = 'Company name is required';
+    if (!contactPerson.trim()) errs.contactPerson = 'Contact person is required';
+    const cleanMobile = mobile.replace(/\D/g, '');
+    if (!cleanMobile) errs.mobile = 'Mobile number is required';
+    else if (cleanMobile.length !== 10) errs.mobile = 'Mobile number must be exactly 10 digits';
+    
+    if (!email.trim()) errs.email = 'Email address is required';
+    else if (!emailRegex.test(email.trim())) errs.email = 'Invalid email format (e.g. name@domain.com)';
+
+    if (gstin.trim() && !gstinRegex.test(gstin.trim().toUpperCase())) {
+      errs.gstin = 'Invalid GSTIN format (15 characters)';
+    }
+
+    setFormErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const validateEditForm = () => {
+    if (!editingCustomer) return false;
+    const errs: Record<string, string> = {};
+    if (!editingCustomer.companyName?.trim()) errs.companyName = 'Company name is required';
+    if (!editingCustomer.contactPerson?.trim()) errs.contactPerson = 'Contact person is required';
+    const cleanMobile = (editingCustomer.mobile || '').replace(/\D/g, '');
+    if (!cleanMobile) errs.mobile = 'Mobile number is required';
+    else if (cleanMobile.length !== 10) errs.mobile = 'Mobile number must be exactly 10 digits';
+
+    if (!editingCustomer.email?.trim()) errs.email = 'Email address is required';
+    else if (!emailRegex.test(editingCustomer.email.trim())) errs.email = 'Invalid email format (e.g. name@domain.com)';
+
+    if (editingCustomer.gstin?.trim() && !gstinRegex.test(editingCustomer.gstin.trim().toUpperCase())) {
+      errs.gstin = 'Invalid GSTIN format (15 characters)';
+    }
+
+    setEditErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateAddForm()) return;
+
     addCustomer({
       customerType: 'company',
       companyName,
@@ -36,8 +82,8 @@ export default function CustomersListPage() {
       pan: gstin.slice(2, 12) || 'AAACX0000X',
       contactPerson,
       designation: 'General Manager',
-      mobile,
-      email,
+      mobile: mobile.replace(/\D/g, '').slice(0, 10),
+      email: email.trim(),
       billingAddress: address,
       shippingAddress: address,
       city,
@@ -56,14 +102,23 @@ export default function CustomersListPage() {
     setMobile('');
     setEmail('');
     setGstin('');
+    setFormErrors({});
     setShowModal(false);
   };
 
   const handleUpdate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingCustomer) return;
-    updateCustomer(editingCustomer.id, editingCustomer);
+    if (!validateEditForm()) return;
+
+    updateCustomer(editingCustomer.id, {
+      ...editingCustomer,
+      mobile: (editingCustomer.mobile || '').replace(/\D/g, '').slice(0, 10),
+      email: editingCustomer.email?.trim(),
+      gstin: editingCustomer.gstin?.toUpperCase(),
+    });
     setEditingCustomer(null);
+    setEditErrors({});
   };
 
   const handleDelete = (id: string, name: string) => {
@@ -193,10 +248,20 @@ export default function CustomersListPage() {
                   type="text"
                   required
                   value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
+                  onChange={(e) => {
+                    setCompanyName(e.target.value);
+                    if (formErrors.companyName) setFormErrors(prev => ({ ...prev, companyName: '' }));
+                  }}
                   placeholder="e.g. Aarti Industries Ltd."
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-bold"
+                  className={`w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-bold ${
+                    formErrors.companyName ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[#EBE3DB]'
+                  }`}
                 />
+                {formErrors.companyName && (
+                  <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                    <AlertCircle className="w-3 h-3" /> {formErrors.companyName}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -204,11 +269,23 @@ export default function CustomersListPage() {
                   <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">GSTIN Number</label>
                   <input
                     type="text"
+                    maxLength={15}
                     value={gstin}
-                    onChange={(e) => setGstin(e.target.value?.toUpperCase())}
+                    onChange={(e) => {
+                      const val = e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, 15);
+                      setGstin(val);
+                      if (formErrors.gstin) setFormErrors(prev => ({ ...prev, gstin: '' }));
+                    }}
                     placeholder="24AAACX0000X1Z1"
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-mono uppercase font-bold"
+                    className={`w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-mono uppercase font-bold ${
+                      formErrors.gstin ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[#EBE3DB]'
+                    }`}
                   />
+                  {formErrors.gstin && (
+                    <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                      <AlertCircle className="w-3 h-3" /> {formErrors.gstin}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Industry</label>
@@ -216,7 +293,7 @@ export default function CustomersListPage() {
                     type="text"
                     value={industry}
                     onChange={(e) => setIndustry(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg"
                   />
                 </div>
               </div>
@@ -228,21 +305,44 @@ export default function CustomersListPage() {
                     type="text"
                     required
                     value={contactPerson}
-                    onChange={(e) => setContactPerson(e.target.value)}
+                    onChange={(e) => {
+                      setContactPerson(e.target.value);
+                      if (formErrors.contactPerson) setFormErrors(prev => ({ ...prev, contactPerson: '' }));
+                    }}
                     placeholder="e.g. Rajeev Singhal"
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-semibold"
+                    className={`w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-semibold ${
+                      formErrors.contactPerson ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[#EBE3DB]'
+                    }`}
                   />
+                  {formErrors.contactPerson && (
+                    <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                      <AlertCircle className="w-3 h-3" /> {formErrors.contactPerson}
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Mobile *</label>
+                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Mobile (10 Digits) *</label>
                   <input
                     type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
                     required
                     value={mobile}
-                    onChange={(e) => setMobile(e.target.value)}
-                    placeholder="+91 98250 XXXXX"
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
+                    onChange={(e) => {
+                      const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setMobile(clean);
+                      if (formErrors.mobile) setFormErrors(prev => ({ ...prev, mobile: '' }));
+                    }}
+                    placeholder="9825012345"
+                    className={`w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-mono ${
+                      formErrors.mobile ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[#EBE3DB]'
+                    }`}
                   />
+                  {formErrors.mobile && (
+                    <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                      <AlertCircle className="w-3 h-3" /> {formErrors.mobile}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -252,10 +352,20 @@ export default function CustomersListPage() {
                   type="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (formErrors.email) setFormErrors(prev => ({ ...prev, email: '' }));
+                  }}
                   placeholder="contact@company.com"
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
+                  className={`w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg ${
+                    formErrors.email ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[#EBE3DB]'
+                  }`}
                 />
+                {formErrors.email && (
+                  <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                    <AlertCircle className="w-3 h-3" /> {formErrors.email}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -265,7 +375,7 @@ export default function CustomersListPage() {
                     type="text"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg"
                   />
                 </div>
                 <div>
@@ -274,7 +384,7 @@ export default function CustomersListPage() {
                     type="number"
                     value={creditLimit}
                     onChange={(e) => setCreditLimit(Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-mono"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg font-mono"
                   />
                 </div>
               </div>
@@ -319,9 +429,19 @@ export default function CustomersListPage() {
                   type="text"
                   required
                   value={editingCustomer.companyName}
-                  onChange={(e) => setEditingCustomer({ ...editingCustomer, companyName: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-bold"
+                  onChange={(e) => {
+                    setEditingCustomer({ ...editingCustomer, companyName: e.target.value });
+                    if (editErrors.companyName) setEditErrors(prev => ({ ...prev, companyName: '' }));
+                  }}
+                  className={`w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-bold ${
+                    editErrors.companyName ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[#EBE3DB]'
+                  }`}
                 />
+                {editErrors.companyName && (
+                  <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                    <AlertCircle className="w-3 h-3" /> {editErrors.companyName}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -329,10 +449,22 @@ export default function CustomersListPage() {
                   <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">GSTIN Number</label>
                   <input
                     type="text"
+                    maxLength={15}
                     value={editingCustomer.gstin || ''}
-                    onChange={(e) => setEditingCustomer({ ...editingCustomer, gstin: e.target.value?.toUpperCase() })}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-mono uppercase font-bold"
+                    onChange={(e) => {
+                      const val = e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, 15);
+                      setEditingCustomer({ ...editingCustomer, gstin: val });
+                      if (editErrors.gstin) setEditErrors(prev => ({ ...prev, gstin: '' }));
+                    }}
+                    className={`w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-mono uppercase font-bold ${
+                      editErrors.gstin ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[#EBE3DB]'
+                    }`}
                   />
+                  {editErrors.gstin && (
+                    <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                      <AlertCircle className="w-3 h-3" /> {editErrors.gstin}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Industry</label>
@@ -340,7 +472,7 @@ export default function CustomersListPage() {
                     type="text"
                     value={editingCustomer.industry || ''}
                     onChange={(e) => setEditingCustomer({ ...editingCustomer, industry: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg"
                   />
                 </div>
               </div>
@@ -352,19 +484,42 @@ export default function CustomersListPage() {
                     type="text"
                     required
                     value={editingCustomer.contactPerson || ''}
-                    onChange={(e) => setEditingCustomer({ ...editingCustomer, contactPerson: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-semibold"
+                    onChange={(e) => {
+                      setEditingCustomer({ ...editingCustomer, contactPerson: e.target.value });
+                      if (editErrors.contactPerson) setEditErrors(prev => ({ ...prev, contactPerson: '' }));
+                    }}
+                    className={`w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-semibold ${
+                      editErrors.contactPerson ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[#EBE3DB]'
+                    }`}
                   />
+                  {editErrors.contactPerson && (
+                    <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                      <AlertCircle className="w-3 h-3" /> {editErrors.contactPerson}
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Mobile *</label>
+                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Mobile (10 Digits) *</label>
                   <input
                     type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
                     required
                     value={editingCustomer.mobile || ''}
-                    onChange={(e) => setEditingCustomer({ ...editingCustomer, mobile: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
+                    onChange={(e) => {
+                      const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setEditingCustomer({ ...editingCustomer, mobile: clean });
+                      if (editErrors.mobile) setEditErrors(prev => ({ ...prev, mobile: '' }));
+                    }}
+                    className={`w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-mono ${
+                      editErrors.mobile ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[#EBE3DB]'
+                    }`}
                   />
+                  {editErrors.mobile && (
+                    <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                      <AlertCircle className="w-3 h-3" /> {editErrors.mobile}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -374,9 +529,19 @@ export default function CustomersListPage() {
                   type="email"
                   required
                   value={editingCustomer.email || ''}
-                  onChange={(e) => setEditingCustomer({ ...editingCustomer, email: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
+                  onChange={(e) => {
+                    setEditingCustomer({ ...editingCustomer, email: e.target.value });
+                    if (editErrors.email) setEditErrors(prev => ({ ...prev, email: '' }));
+                  }}
+                  className={`w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg ${
+                    editErrors.email ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[#EBE3DB]'
+                  }`}
                 />
+                {editErrors.email && (
+                  <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                    <AlertCircle className="w-3 h-3" /> {editErrors.email}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -386,7 +551,7 @@ export default function CustomersListPage() {
                     type="text"
                     value={editingCustomer.city || ''}
                     onChange={(e) => setEditingCustomer({ ...editingCustomer, city: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg"
                   />
                 </div>
                 <div>
@@ -395,7 +560,7 @@ export default function CustomersListPage() {
                     type="number"
                     value={editingCustomer.creditLimit || 0}
                     onChange={(e) => setEditingCustomer({ ...editingCustomer, creditLimit: Number(e.target.value) })}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-mono"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg font-mono"
                   />
                 </div>
               </div>

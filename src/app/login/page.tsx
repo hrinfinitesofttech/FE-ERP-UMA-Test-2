@@ -12,6 +12,8 @@ import {
   FileSpreadsheet,
   Cpu,
   Sparkles,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { cn } from '../../lib/utils'; // Included just in case
 
@@ -20,6 +22,7 @@ export default function LoginPage() {
   const { login } = useERP();
   const [username, setUsername] = useState('rajesh.admin');
   const [password, setPassword] = useState('admin123');
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -185,13 +188,22 @@ export default function LoginPage() {
                 <div className="relative">
                   <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8D827A]" />
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="w-full pl-10 pr-4 py-2.5 bg-[#FAF7F2] border border-[#E7DED5] rounded-xl text-xs text-[#211B17] placeholder:text-[#8D827A] focus:outline-none focus:ring-2 focus:ring-[#9C6538]/20 focus:border-[#75401F] transition shadow-xs font-mono"
+                    className="w-full pl-10 pr-10 py-2.5 bg-[#FAF7F2] border border-[#E7DED5] rounded-xl text-xs text-[#211B17] placeholder:text-[#8D827A] focus:outline-none focus:ring-2 focus:ring-[#9C6538]/20 focus:border-[#75401F] transition shadow-xs font-mono"
                   />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8D827A] hover:text-[#211B17] p-1 cursor-pointer transition"
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4 text-[#9C6538]" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 

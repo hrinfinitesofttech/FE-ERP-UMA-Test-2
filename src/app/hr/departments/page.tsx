@@ -15,6 +15,7 @@ import {
   Layers,
   ArrowRight,
   X,
+  AlertCircle,
 } from 'lucide-react';
 import { Department } from '../../../types/crm';
 
@@ -30,34 +31,84 @@ export default function DepartmentsPage() {
   const [managerName, setManagerName] = useState('Sanjay Shah (HOD)');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<'active' | 'inactive'>('active');
+  const [addErrors, setAddErrors] = useState<Record<string, string>>({});
+  const [editErrors, setEditErrors] = useState<Record<string, string>>({});
+
+  const validateAddForm = () => {
+    const errs: Record<string, string> = {};
+    const trimmedName = deptName.trim();
+    if (!trimmedName) {
+      errs.deptName = 'Department name is required.';
+    } else if (trimmedName.length < 2) {
+      errs.deptName = 'Department name must be at least 2 characters.';
+    } else if (departments.some(d => (d.departmentName || d.name || '').toLowerCase() === trimmedName.toLowerCase())) {
+      errs.deptName = 'A department with this name already exists.';
+    }
+
+    const trimmedCode = deptCode.trim();
+    if (trimmedCode && departments.some(d => (d.code || '').toUpperCase() === trimmedCode.toUpperCase())) {
+      errs.deptCode = 'A department with this code already exists.';
+    }
+
+    setAddErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const validateEditForm = () => {
+    if (!editingDept) return false;
+    const errs: Record<string, string> = {};
+    const trimmedName = (editingDept.departmentName || editingDept.name || '').trim();
+    if (!trimmedName) {
+      errs.departmentName = 'Department name is required.';
+    } else if (trimmedName.length < 2) {
+      errs.departmentName = 'Department name must be at least 2 characters.';
+    } else if (departments.some(d => d.id !== editingDept.id && (d.departmentName || d.name || '').toLowerCase() === trimmedName.toLowerCase())) {
+      errs.departmentName = 'Another department already has this name.';
+    }
+
+    setEditErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!deptName) return;
-    const code = deptCode || deptName.slice(0, 4).toUpperCase();
+    if (!validateAddForm()) return;
+
+    const trimmedName = deptName.trim();
+    const code = (deptCode.trim() || trimmedName.replace(/[^A-Za-z]/g, '').slice(0, 4)).toUpperCase();
     addDepartment({
       code,
-      name: deptName,
-      departmentName: deptName,
+      name: trimmedName,
+      departmentName: trimmedName,
       managerId: 'EMP-001',
-      managerName: managerName || 'Sanjay Shah (HOD)',
-      description: description || 'Core Operational Department',
+      managerName: managerName.trim() || 'Sanjay Shah (HOD)',
+      description: description.trim() || 'Core Operational Department',
       status,
     });
     setDeptName('');
     setDeptCode('');
     setDescription('');
+    setAddErrors({});
     setShowAddModal(false);
   };
 
   const handleUpdate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingDept) return;
+    if (!validateEditForm() || !editingDept) return;
+
+    const trimmedName = (editingDept.departmentName || editingDept.name || '').trim();
+    const trimmedCode = (editingDept.code || '').trim().toUpperCase();
     updateDepartment(editingDept.id, {
       ...editingDept,
-      name: editingDept.departmentName || editingDept.name,
+      name: trimmedName,
+      departmentName: trimmedName,
+      code: trimmedCode,
+      managerName: (editingDept.managerName || '').trim(),
+      description: (editingDept.description || '').trim(),
+      status: editingDept.status || 'active',
     });
     setEditingDept(null);
+    setEditErrors({});
   };
 
   const handleDelete = (id: string, name: string) => {
@@ -193,7 +244,7 @@ export default function DepartmentsPage() {
               </button>
             </div>
 
-            <form onSubmit={handleCreate} className="space-y-4 text-xs">
+            <form onSubmit={handleCreate} noValidate className="space-y-4 text-xs">
               <div>
                 <label className="block font-semibold text-[#544B45] mb-1">Department Name *</label>
                 <input
@@ -203,12 +254,20 @@ export default function DepartmentsPage() {
                   value={deptName}
                   onChange={(e) => {
                     setDeptName(e.target.value);
+                    if (addErrors.deptName) setAddErrors((prev) => ({ ...prev, deptName: '' }));
                     if (!deptCode) {
                       setDeptCode(e.target.value.replace(/[^A-Za-z]/g, '').slice(0, 4).toUpperCase());
                     }
                   }}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] font-semibold"
+                  className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] font-semibold ${
+                    addErrors.deptName ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                  }`}
                 />
+                {addErrors.deptName && (
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-semibold">
+                    <AlertCircle className="w-3 h-3" /> {addErrors.deptName}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -218,9 +277,19 @@ export default function DepartmentsPage() {
                     type="text"
                     placeholder="e.g. QA, RD, FIN"
                     value={deptCode}
-                    onChange={(e) => setDeptCode(e.target.value.toUpperCase())}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] font-mono"
+                    onChange={(e) => {
+                      setDeptCode(e.target.value.toUpperCase());
+                      if (addErrors.deptCode) setAddErrors((prev) => ({ ...prev, deptCode: '' }));
+                    }}
+                    className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] font-mono ${
+                      addErrors.deptCode ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                    }`}
                   />
+                  {addErrors.deptCode && (
+                    <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-semibold">
+                      <AlertCircle className="w-3 h-3" /> {addErrors.deptCode}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block font-semibold text-[#544B45] mb-1">Status</label>
@@ -261,13 +330,13 @@ export default function DepartmentsPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200"
+                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold"
+                  className="px-4 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold cursor-pointer"
                 >
                   Create Department
                 </button>
@@ -286,27 +355,35 @@ export default function DepartmentsPage() {
                 <Edit2 className="w-5 h-5 text-amber-500" />
                 Edit Department: {editingDept.departmentName || editingDept.name}
               </h2>
-              <button onClick={() => setEditingDept(null)} className="text-[#70665F] hover:text-[#211B17]">
+              <button onClick={() => setEditingDept(null)} className="text-[#70665F] hover:text-[#211B17] cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleUpdate} className="space-y-4 text-xs">
+            <form onSubmit={handleUpdate} noValidate className="space-y-4 text-xs">
               <div>
                 <label className="block font-semibold text-[#544B45] mb-1">Department Name *</label>
                 <input
                   type="text"
                   required
                   value={editingDept.departmentName || editingDept.name || ''}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setEditingDept({
                       ...editingDept,
                       departmentName: e.target.value,
                       name: e.target.value,
-                    })
-                  }
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] font-semibold"
+                    });
+                    if (editErrors.departmentName) setEditErrors((prev) => ({ ...prev, departmentName: '' }));
+                  }}
+                  className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] font-semibold ${
+                    editErrors.departmentName ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                  }`}
                 />
+                {editErrors.departmentName && (
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-semibold">
+                    <AlertCircle className="w-3 h-3" /> {editErrors.departmentName}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -323,7 +400,7 @@ export default function DepartmentsPage() {
                   <label className="block font-semibold text-[#544B45] mb-1">Status</label>
                   <select
                     value={editingDept.status || 'active'}
-                    onChange={(e) => setEditingDept({ ...editingDept, status: e.target.value })}
+                    onChange={(e) => setEditingDept({ ...editingDept, status: e.target.value as any })}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17]"
                   >
                     <option value="active">Active</option>
@@ -356,13 +433,13 @@ export default function DepartmentsPage() {
                 <button
                   type="button"
                   onClick={() => setEditingDept(null)}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45]"
+                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold"
+                  className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold cursor-pointer"
                 >
                   Update Department
                 </button>

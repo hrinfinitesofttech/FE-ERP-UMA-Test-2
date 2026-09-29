@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import {
   FileText,
@@ -73,6 +73,29 @@ export default function EmployeeDocumentsPage() {
     expiryDate: '',
     remarks: '',
   });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [deleteConfirmDoc, setDeleteConfirmDoc] = useState<EmployeeDocumentItem | null>(null);
+
+  // Close modals on ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showUploadModal) closeUploadModal();
+        if (deleteConfirmDoc) setDeleteConfirmDoc(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showUploadModal, deleteConfirmDoc]);
+
+  const closeUploadModal = () => {
+    setShowUploadModal(false);
+    setFormErrors({});
+    setSelectedFile(null);
+    setSelectedFileName('');
+    setSelectedFileSize('');
+    setFilePreviewUrl('');
+  };
 
   const handleOpenModal = () => {
     const defaultEmpId = employeeList[0]?.id || 'EMP-001';
@@ -84,6 +107,7 @@ export default function EmployeeDocumentsPage() {
       expiryDate: '',
       remarks: '',
     });
+    setFormErrors({});
     setSelectedFile(null);
     setSelectedFileName('');
     setSelectedFileSize('');
@@ -95,6 +119,7 @@ export default function EmployeeDocumentsPage() {
     const file = e.target.files?.[0];
     if (file) {
       processFile(file);
+      setFormErrors((prev) => ({ ...prev, file: '' }));
     }
   };
 
@@ -123,34 +148,68 @@ export default function EmployeeDocumentsPage() {
     const file = e.dataTransfer.files?.[0];
     if (file) {
       processFile(file);
+      setFormErrors((prev) => ({ ...prev, file: '' }));
     }
+  };
+
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+    if (!formData.employeeId) {
+      errors.employeeId = 'Please select an employee.';
+    }
+
+    const docNum = formData.documentNumber.trim();
+    if (!docNum) {
+      errors.documentNumber = 'Document number is required and cannot be blank.';
+    } else {
+      if (formData.documentType === 'Aadhaar') {
+        const cleanAadhaar = docNum.replace(/[\s-]/g, '');
+        if (!/^\d{12}$/.test(cleanAadhaar)) {
+          errors.documentNumber = 'Aadhaar must be exactly 12 digits (e.g. 6508 7587 1888).';
+        }
+      } else if (formData.documentType === 'PAN') {
+        if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(docNum)) {
+          errors.documentNumber = 'PAN must be in valid format (e.g. ABCDE1234F).';
+        }
+      } else if (docNum.length > 25) {
+        errors.documentNumber = 'Document number cannot exceed 25 characters.';
+      }
+    }
+
+    if (!selectedFile && !filePreviewUrl) {
+      errors.file = 'Please upload/attach a document file (PDF, JPG, PNG, DOC).';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleUploadSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) return;
+
     const emp = employeeList.find((e) => e.id === formData.employeeId) || employeeList[0];
-    
-    // Fallback file link if none selected
     const docUrl = filePreviewUrl || `/docs/${formData.documentType.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}.pdf`;
 
     addEmployeeDocument({
       employeeId: emp.id,
       employeeName: emp.name,
       documentType: formData.documentType,
-      documentNumber: formData.documentNumber || `DOC-${Math.floor(100000 + Math.random() * 900000)}`,
+      documentNumber: formData.documentNumber.trim(),
       issueDate: formData.issueDate || new Date().toISOString().split('T')[0],
       expiryDate: formData.expiryDate || '',
       fileUrl: docUrl,
       verificationStatus: 'Pending',
-      remarks: formData.remarks || (selectedFileName ? `Attached: ${selectedFileName}` : 'Uploaded document verification request'),
+      remarks: formData.remarks?.trim() || (selectedFileName ? `Attached: ${selectedFileName}` : 'Uploaded document verification request'),
     });
 
     setShowUploadModal(false);
   };
 
-  const handleDelete = (id: string, docType: string, empName: string) => {
-    if (confirm(`Are you sure you want to delete ${docType} for ${empName}?`)) {
-      deleteEmployeeDocument(id);
+  const confirmDelete = () => {
+    if (deleteConfirmDoc) {
+      deleteEmployeeDocument(deleteConfirmDoc.id);
+      setDeleteConfirmDoc(null);
     }
   };
 
@@ -337,7 +396,7 @@ export default function EmployeeDocumentsPage() {
                           </a>
                         )}
                         <button
-                          onClick={() => handleDelete(doc.id, doc.documentType, doc.employeeName)}
+                          onClick={() => setDeleteConfirmDoc(doc)}
                           className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition cursor-pointer"
                           title="Delete Document"
                         >
@@ -353,18 +412,63 @@ export default function EmployeeDocumentsPage() {
         </div>
       </div>
 
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmDoc && (
+        <div
+          onClick={() => setDeleteConfirmDoc(null)}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl text-center"
+          >
+            <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-[#211B17]">Delete Document?</h3>
+              <p className="text-xs text-[#70665F] mt-1">
+                Are you sure you want to delete <strong className="text-[#211B17]">{deleteConfirmDoc.documentType}</strong> ({deleteConfirmDoc.documentNumber}) for <strong className="text-[#211B17]">{deleteConfirmDoc.employeeName}</strong>?
+              </p>
+            </div>
+            <div className="flex justify-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmDoc(null)}
+                className="px-4 py-2 bg-[#FAF7F2] hover:bg-slate-200 text-[#544B45] font-semibold text-xs rounded-xl cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer"
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Upload Document Modal */}
       {showUploadModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
+        <div
+          onClick={closeUploadModal}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl"
+          >
             <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
               <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
                 <Upload className="w-5 h-5 text-crm-brand-700" /> Upload Employee Document
               </h2>
               <button
                 type="button"
-                onClick={() => setShowUploadModal(false)}
-                className="text-[#70665F] hover:text-[#211B17] font-bold text-base"
+                onClick={closeUploadModal}
+                className="text-[#70665F] hover:text-[#211B17] font-bold text-base cursor-pointer"
               >
                 ✕
               </button>
@@ -385,17 +489,28 @@ export default function EmployeeDocumentsPage() {
                     </option>
                   ))}
                 </select>
+                {formErrors.employeeId && (
+                  <p className="text-[11px] text-rose-600 font-semibold mt-1">{formErrors.employeeId}</p>
+                )}
               </div>
 
               <div>
                 <label className="block font-semibold text-[#544B45] mb-1">Document Type *</label>
                 <select
                   value={formData.documentType}
-                  onChange={(e) => setFormData({ ...formData, documentType: e.target.value as any })}
+                  onChange={(e) => {
+                    const newType = e.target.value as any;
+                    const isExp = ['Medical Fitness', 'Driving License', 'Passport', 'Visa / Work Permit', 'Insurance Policy', 'Contract / Agreement'].includes(newType);
+                    setFormData({
+                      ...formData,
+                      documentType: newType,
+                      expiryDate: isExp ? formData.expiryDate : '',
+                    });
+                  }}
                   className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] font-medium"
                 >
-                  <option value="Aadhaar">Aadhaar Card</option>
-                  <option value="PAN">PAN Card</option>
+                  <option value="Aadhaar">Aadhaar Card (12 Digits)</option>
+                  <option value="PAN">PAN Card (10 Characters)</option>
                   <option value="Resume">Resume / CV</option>
                   <option value="Educational Degree">Educational Degree</option>
                   <option value="Previous Experience Certificate">Experience Certificate</option>
@@ -408,24 +523,54 @@ export default function EmployeeDocumentsPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Document Number *</label>
+                  <label className="block font-semibold text-[#544B45] mb-1">
+                    Document Number *
+                    <span className="text-[10px] text-[#70665F] font-normal ml-1">
+                      (Max {formData.documentType === 'PAN' ? 10 : formData.documentType === 'Aadhaar' ? 14 : 25} chars)
+                    </span>
+                  </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. 6508-7587-1888"
+                    maxLength={formData.documentType === 'PAN' ? 10 : formData.documentType === 'Aadhaar' ? 14 : 25}
+                    placeholder={
+                      formData.documentType === 'Aadhaar'
+                        ? 'e.g. 6508 7587 1888'
+                        : formData.documentType === 'PAN'
+                        ? 'e.g. ABCDE1234F'
+                        : 'e.g. DEG-2026-889'
+                    }
                     value={formData.documentNumber}
-                    onChange={(e) => setFormData({ ...formData, documentNumber: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] font-mono font-medium"
+                    onChange={(e) => {
+                      const val = formData.documentType === 'PAN' ? e.target.value.toUpperCase() : e.target.value;
+                      setFormData({ ...formData, documentNumber: val });
+                      if (formErrors.documentNumber) {
+                        setFormErrors((prev) => ({ ...prev, documentNumber: '' }));
+                      }
+                    }}
+                    className={`w-full px-3 py-2 bg-[#FAF7F2] border rounded-xl text-[#211B17] font-mono font-medium focus:outline-none ${
+                      formErrors.documentNumber ? 'border-rose-500 bg-rose-50/20' : 'border-[#EBE3DB]'
+                    }`}
                   />
+                  {formErrors.documentNumber && (
+                    <p className="text-[11px] text-rose-600 font-semibold mt-1">{formErrors.documentNumber}</p>
+                  )}
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Expiry Date (If applicable)</label>
-                  <input
-                    type="date"
-                    value={formData.expiryDate}
-                    onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17]"
-                  />
+                  <label className="block font-semibold text-[#544B45] mb-1">Expiry Date</label>
+                  {['Medical Fitness', 'Driving License', 'Passport', 'Visa / Work Permit', 'Insurance Policy', 'Contract / Agreement'].includes(formData.documentType) ? (
+                    <input
+                      type="date"
+                      value={formData.expiryDate}
+                      onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
+                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] focus:outline-none focus:border-crm-brand-600"
+                    />
+                  ) : (
+                    <div className="w-full px-3 py-2 bg-[#F3ECE4]/70 border border-[#EBE3DB] rounded-xl text-[11px] text-[#70665F] font-semibold flex items-center gap-1.5 h-[38px]">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <span>Lifetime / No Expiry Applicable</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -451,6 +596,8 @@ export default function EmployeeDocumentsPage() {
                       ? 'border-crm-brand-600 bg-crm-brand-50'
                       : selectedFileName
                       ? 'border-emerald-500 bg-emerald-50/50'
+                      : formErrors.file
+                      ? 'border-rose-500 bg-rose-50/30'
                       : 'border-[#EBE3DB] bg-[#FAF7F2] hover:border-crm-brand-500 hover:bg-white'
                   }`}
                 >
@@ -472,7 +619,7 @@ export default function EmployeeDocumentsPage() {
                           setSelectedFileSize('');
                           setFilePreviewUrl('');
                         }}
-                        className="p-1 text-rose-500 hover:bg-rose-100 rounded-lg ml-2"
+                        className="p-1 text-rose-500 hover:bg-rose-100 rounded-lg ml-2 cursor-pointer"
                         title="Remove file"
                       >
                         ✕
@@ -490,6 +637,9 @@ export default function EmployeeDocumentsPage() {
                     </div>
                   )}
                 </div>
+                {formErrors.file && (
+                  <p className="text-[11px] text-rose-600 font-semibold mt-1">{formErrors.file}</p>
+                )}
               </div>
 
               <div>
@@ -506,8 +656,8 @@ export default function EmployeeDocumentsPage() {
               <div className="pt-3 border-t border-[#EBE3DB] flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowUploadModal(false)}
-                  className="px-4 py-2 bg-[#FAF7F2] hover:bg-slate-200 text-[#544B45] font-semibold rounded-xl"
+                  onClick={closeUploadModal}
+                  className="px-4 py-2 bg-[#FAF7F2] hover:bg-slate-200 text-[#544B45] font-semibold rounded-xl cursor-pointer"
                 >
                   Cancel
                 </button>

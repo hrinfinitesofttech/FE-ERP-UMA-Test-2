@@ -64,14 +64,14 @@ export default function HRDashboardPage() {
         </div>
         <div className="flex items-center gap-3">
           <Link
-            href="/hr/employees"
-            className="flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-500 text-[#211B17] font-semibold text-sm rounded-lg shadow-md transition"
+            href="/hr/employees?add=true"
+            className="flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-500 text-white font-semibold text-sm rounded-lg shadow-md transition cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Add Employee
           </Link>
           <Link
             href="/hr/monthly-payroll"
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] font-semibold text-sm rounded-lg shadow-md transition"
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm rounded-lg shadow-md transition cursor-pointer"
           >
             <DollarSign className="w-4 h-4" /> Run Monthly Payroll
           </Link>

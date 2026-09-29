@@ -123,52 +123,60 @@ export default function ProjectIssuesPage() {
 
       {/* Issues Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredIssues.map((iss) => (
-          <div key={iss.id} className="bg-white dark:bg-[#0B1120] p-5 rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-md space-y-3 flex flex-col justify-between">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-mono font-bold text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded text-[11px] border border-rose-500/20">
-                  {iss.issueNo} • {iss.jobNumber}
-                </span>
-                <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border ${
-                  iss.status === 'resolved' || iss.status === 'closed'
-                    ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
-                    : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                }`}>
-                  {iss.status}
-                </span>
+        {filteredIssues.length === 0 ? (
+          <div className="col-span-full bg-white p-12 text-center rounded-2xl border border-slate-200 text-[#70665F] space-y-2">
+            <AlertTriangle className="w-10 h-10 text-rose-300 mx-auto" />
+            <h4 className="font-bold text-slate-800 text-sm">No project issues or defects reported</h4>
+            <p className="text-xs text-slate-500">All shop floor stations and design deliverables are operating without open non-conformances.</p>
+          </div>
+        ) : (
+          filteredIssues.map((iss) => (
+            <div key={iss.id} className="bg-white dark:bg-[#0B1120] p-5 rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-md space-y-3 flex flex-col justify-between">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono font-bold text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded text-[11px] border border-rose-500/20">
+                    {iss.issueNo} • {iss.jobNumber}
+                  </span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border ${
+                    iss.status === 'resolved' || iss.status === 'closed'
+                      ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                      : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                  }`}>
+                    {iss.status}
+                  </span>
+                </div>
+
+                <h3 className="font-bold text-slate-900 dark:text-[#211B17] text-xs">
+                  [{iss.issueType}] in {iss.department} Dept
+                </h3>
+                <p className="text-slate-600 dark:text-[#70665F] text-xs bg-slate-50 dark:bg-white p-2.5 rounded-xl border border-slate-200 dark:border-[#EBE3DB]">
+                  {iss.description}
+                </p>
+
+                {iss.resolution && (
+                  <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 rounded-xl text-emerald-700 dark:text-emerald-400 text-xs">
+                    <strong>Resolution:</strong> {iss.resolution}
+                  </div>
+                )}
               </div>
 
-              <h3 className="font-bold text-slate-900 dark:text-[#211B17] text-xs">
-                [{iss.issueType}] in {iss.department} Dept
-              </h3>
-              <p className="text-slate-600 dark:text-[#70665F] text-xs bg-slate-50 dark:bg-white p-2.5 rounded-xl border border-slate-200 dark:border-[#EBE3DB]">
-                {iss.description}
-              </p>
-
-              {iss.resolution && (
-                <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 rounded-xl text-emerald-700 dark:text-emerald-400 text-xs">
-                  <strong>Resolution:</strong> {iss.resolution}
-                </div>
-              )}
+              <div className="pt-3 border-t border-slate-200 dark:border-[#EBE3DB] flex items-center justify-between text-[11px] font-mono">
+                <span className="text-[#70665F]">Assigned: {iss.assignedTo}</span>
+                {iss.status !== 'resolved' && iss.status !== 'closed' && (
+                  <button
+                    onClick={() => {
+                      setResolveModalId(iss.id);
+                      setResolutionText('');
+                    }}
+                    className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg transition"
+                  >
+                    Resolve Issue
+                  </button>
+                )}
+              </div>
             </div>
-
-            <div className="pt-3 border-t border-slate-200 dark:border-[#EBE3DB] flex items-center justify-between text-[11px] font-mono">
-              <span className="text-[#70665F]">Assigned: {iss.assignedTo}</span>
-              {iss.status !== 'resolved' && iss.status !== 'closed' && (
-                <button
-                  onClick={() => {
-                    setResolveModalId(iss.id);
-                    setResolutionText('');
-                  }}
-                  className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg transition"
-                >
-                  Resolve Issue
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       {/* REPORT ISSUE MODAL */}

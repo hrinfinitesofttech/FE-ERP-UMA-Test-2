@@ -32,6 +32,27 @@ export default function DesignPlanningPage() {
   const [startDate, setStartDate] = useState('');
   const [dueDate, setDueDate] = useState('');
 
+  // Close modal with ESC key
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isModalOpen) {
+        closeModal();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isModalOpen]);
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedDesignJobId('');
+    setTaskName('');
+    setDesigner('Dharmesh Joshi');
+    setEstimatedHours(16);
+    setStartDate('');
+    setDueDate('');
+  };
+
   const filteredTasks = designTasks.filter((t) => {
     const matchSearch =
       t.taskName?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
@@ -64,7 +85,7 @@ export default function DesignPlanningPage() {
       progressPercent: 0,
     });
 
-    setIsModalOpen(false);
+    closeModal();
   };
 
   return (
@@ -185,14 +206,24 @@ export default function DesignPlanningPage() {
 
       {/* Modal: Create Task */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl space-y-4 p-6 text-xs">
+        <div
+          onClick={closeModal}
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl space-y-4 p-6 text-xs"
+          >
             <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
               <h3 className="text-base font-extrabold text-[#211B17] flex items-center gap-2">
                 <Compass className="w-5 h-5 text-indigo-400" />
                 Assign New Engineering Task
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-[#70665F] hover:text-[#211B17]">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="text-[#70665F] hover:text-[#211B17]"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>

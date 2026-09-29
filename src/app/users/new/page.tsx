@@ -4,11 +4,19 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useERP } from '../../../context/ERPContext';
-import { ArrowLeft, UserPlus, Shield, Building, Key } from 'lucide-react';
+import { ArrowLeft, UserPlus, Shield, Building, Key, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 export default function NewUserPage() {
   const router = useRouter();
   const { addEmployee, departments, roles, employees } = useERP();
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const maxDobDate = new Date();
+  maxDobDate.setFullYear(maxDobDate.getFullYear() - 18);
+  const maxDob = maxDobDate.toISOString().split('T')[0];
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -22,7 +30,7 @@ export default function NewUserPage() {
     designation: '',
     roleId: roles[0]?.id || 'role-crm-employee',
     reportingManagerId: employees[0]?.id || '',
-    joiningDate: new Date().toISOString().split('T')[0],
+    joiningDate: todayStr,
     employmentType: 'full_time' as 'full_time' | 'contract' | 'probation',
     status: 'active' as 'active' | 'inactive',
     username: '',
@@ -30,14 +38,69 @@ export default function NewUserPage() {
     isFamilyMember: false,
   });
 
+  const nameRegex = /^[a-zA-Z\s]+$/;
+
+  const validateForm = () => {
+    const errs: Record<string, string> = {};
+    const firstNameTrim = formData.firstName.trim();
+    if (!firstNameTrim) {
+      errs.firstName = 'First name is required.';
+    } else if (!nameRegex.test(firstNameTrim)) {
+      errs.firstName = 'First name can only contain letters.';
+    } else if (firstNameTrim.length < 2) {
+      errs.firstName = 'First name must be at least 2 characters.';
+    } else if (firstNameTrim.length > 50) {
+      errs.firstName = 'First name cannot exceed 50 characters.';
+    }
+
+    const lastNameTrim = formData.lastName.trim();
+    if (!lastNameTrim) {
+      errs.lastName = 'Last name is required.';
+    } else if (!nameRegex.test(lastNameTrim)) {
+      errs.lastName = 'Last name can only contain letters.';
+    } else if (lastNameTrim.length < 2) {
+      errs.lastName = 'Last name must be at least 2 characters.';
+    } else if (lastNameTrim.length > 50) {
+      errs.lastName = 'Last name cannot exceed 50 characters.';
+    }
+    
+    const cleanMobile = formData.mobile.replace(/\D/g, '');
+    if (!cleanMobile) {
+      errs.mobile = 'Mobile number is required.';
+    } else if (cleanMobile.length !== 10) {
+      errs.mobile = 'Mobile number must be exactly 10 digits.';
+    }
+
+    const emailTrim = formData.email.trim();
+    if (!emailTrim) {
+      errs.email = 'Email address is required.';
+    } else if (!emailRegex.test(emailTrim)) {
+      errs.email = 'Enter a valid email with a domain (e.g. employee@uma.com).';
+    }
+
+    if (formData.dob && formData.dob > maxDob) {
+      errs.dob = 'Employee must be at least 18 years old.';
+    }
+
+    if (!formData.username.trim()) errs.username = 'System username is required.';
+    if (!formData.password || formData.password.length < 6) errs.password = 'Password must be at least 6 characters.';
+
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) return;
+
     const dept = departments.find((d) => d.id === formData.departmentId);
     const role = roles.find((r) => r.id === formData.roleId);
     const mgr = employees.find((emp) => emp.id === formData.reportingManagerId);
 
     addEmployee({
       ...formData,
+      mobile: formData.mobile.replace(/\D/g, '').slice(0, 10),
+      email: formData.email.trim(),
       departmentName: dept?.name || 'CRM & Sales',
       roleName: role?.name || 'CRM Employee',
       reportingManagerName: mgr ? `${mgr.firstName} ${mgr.lastName}` : undefined,
@@ -63,7 +126,7 @@ export default function NewUserPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} noValidate className="space-y-6">
           {/* SECTION 1: BASIC INFO */}
           <div className="space-y-3">
             <h3 className="font-bold text-sm text-slate-800 dark:text-[#544B45] flex items-center gap-2">
@@ -72,26 +135,50 @@ export default function NewUserPage() {
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">First Name *</label>
+                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">First Name (Letters only, max 50) *</label>
                 <input
                   type="text"
                   required
+                  maxLength={50}
                   value={formData.firstName}
-                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/[^a-zA-Z\s]/g, '').slice(0, 50);
+                    setFormData({ ...formData, firstName: clean });
+                    if (errors.firstName) setErrors(prev => ({ ...prev, firstName: '' }));
+                  }}
                   placeholder="e.g. Ramesh"
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
+                  className={`w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg text-slate-900 dark:text-[#211B17] ${
+                    errors.firstName ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[#EBE3DB]'
+                  }`}
                 />
+                {errors.firstName && (
+                  <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                    <AlertCircle className="w-3 h-3" /> {errors.firstName}
+                  </p>
+                )}
               </div>
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Last Name *</label>
+                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Last Name (Letters only, max 50) *</label>
                 <input
                   type="text"
                   required
+                  maxLength={50}
                   value={formData.lastName}
-                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/[^a-zA-Z\s]/g, '').slice(0, 50);
+                    setFormData({ ...formData, lastName: clean });
+                    if (errors.lastName) setErrors(prev => ({ ...prev, lastName: '' }));
+                  }}
                   placeholder="e.g. Patel"
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
+                  className={`w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg text-slate-900 dark:text-[#211B17] ${
+                    errors.lastName ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[#EBE3DB]'
+                  }`}
                 />
+                {errors.lastName && (
+                  <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                    <AlertCircle className="w-3 h-3" /> {errors.lastName}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Gender</label>
@@ -109,15 +196,28 @@ export default function NewUserPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Mobile Number *</label>
+                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Mobile Number (10 Digits) *</label>
                 <input
                   type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
                   required
                   value={formData.mobile}
-                  onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                  placeholder="+91 98250 XXXXX"
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setFormData({ ...formData, mobile: clean });
+                    if (errors.mobile) setErrors(prev => ({ ...prev, mobile: '' }));
+                  }}
+                  placeholder="9825012345"
+                  className={`w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg text-slate-900 dark:text-[#211B17] font-mono ${
+                    errors.mobile ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[#EBE3DB]'
+                  }`}
                 />
+                {errors.mobile && (
+                  <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                    <AlertCircle className="w-3 h-3" /> {errors.mobile}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Email Address *</label>
@@ -125,19 +225,40 @@ export default function NewUserPage() {
                   type="email"
                   required
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, email: e.target.value });
+                    if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+                  }}
                   placeholder="name@umatechnofab.com"
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
+                  className={`w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg text-slate-900 dark:text-[#211B17] ${
+                    errors.email ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[#EBE3DB]'
+                  }`}
                 />
+                {errors.email && (
+                  <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                    <AlertCircle className="w-3 h-3" /> {errors.email}
+                  </p>
+                )}
               </div>
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Date of Birth</label>
+                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Date of Birth (Min 18 Yrs)</label>
                 <input
                   type="date"
+                  max={maxDob}
                   value={formData.dob}
-                  onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
+                  onChange={(e) => {
+                    setFormData({ ...formData, dob: e.target.value });
+                    if (errors.dob) setErrors(prev => ({ ...prev, dob: '' }));
+                  }}
+                  className={`w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg text-slate-900 dark:text-[#211B17] font-mono ${
+                    errors.dob ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[#EBE3DB]'
+                  }`}
                 />
+                {errors.dob && (
+                  <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                    <AlertCircle className="w-3 h-3" /> {errors.dob}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -259,12 +380,23 @@ export default function NewUserPage() {
               </div>
               <div>
                 <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Initial Password</label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="w-full pl-3 pr-10 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
+                  />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8D827A] hover:text-[#211B17] p-1 cursor-pointer transition"
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4 text-crm-brand-700" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
             </div>
 

@@ -93,59 +93,77 @@ export default function CustomerChangeRequestsPage() {
       </div>
 
       {/* Change Requests List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredCRs.map((cr) => (
-          <div key={cr.id} className="bg-white dark:bg-[#0B1120] p-5 rounded-2xl border border-pink-200 dark:border-pink-900/50 shadow-md space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="font-mono font-bold text-pink-600 dark:text-pink-400 bg-pink-500/10 px-2 py-0.5 rounded text-[11px] border border-pink-500/20">
-                {cr.changeRequestNo} • {cr.jobNumber}
-              </span>
-              <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border ${
-                cr.approvalStatus === 'approved' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
-              }`}>
-                {cr.approvalStatus}
-              </span>
-            </div>
-
-            <div>
-              <h3 className="font-bold text-slate-900 dark:text-[#211B17] text-xs">{cr.customerName}</h3>
-              <div className="text-[11px] text-[#70665F] font-mono">Requested by: {cr.requestedBy} ({formatDate(cr.requestDate)})</div>
-            </div>
-
-            <p className="text-slate-700 dark:text-[#544B45] text-xs bg-slate-50 dark:bg-white p-2.5 rounded-xl border border-slate-200 dark:border-[#EBE3DB]">
-              <strong>Modification Scope:</strong> {cr.changeDescription}
-            </p>
-
-            <div className="grid grid-cols-2 gap-2 text-[11px] font-mono p-2.5 bg-pink-50/50 dark:bg-pink-950/20 rounded-xl border border-pink-200/50 dark:border-pink-900/40">
-              <div>Cost Impact: <strong className="text-emerald-600 dark:text-emerald-400">{formatCurrency(cr.costImpact)}</strong></div>
-              <div>Timeline Impact: <strong className="text-rose-500">+{cr.timelineImpactDays} Days</strong></div>
-            </div>
-
-            <div className="pt-2 border-t border-slate-200 dark:border-[#EBE3DB] flex items-center justify-between">
-              <div className="text-[10px] text-[#70665F] font-mono">
-                {cr.approvedBy ? `Approved by ${cr.approvedBy} on ${cr.approvedDate}` : 'Awaiting Review'}
+      {filteredCRs.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-[#EBE3DB] p-12 text-center shadow-sm space-y-3">
+          <div className="w-12 h-12 bg-pink-50 rounded-2xl flex items-center justify-center mx-auto text-pink-600">
+            <RotateCcw className="w-6 h-6" />
+          </div>
+          <h3 className="text-base font-bold text-[#211B17]">No Change Requests Found</h3>
+          <p className="text-xs text-[#70665F] max-w-md mx-auto">
+            There are currently no customer specification change requests recorded for the selected filter. Click below to create a change request.
+          </p>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer mt-2"
+          >
+            <Plus className="w-4 h-4" /> Create First Change Request
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredCRs.map((cr) => (
+            <div key={cr.id} className="bg-white p-5 rounded-2xl border border-pink-200 shadow-md space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-mono font-bold text-pink-700 bg-pink-50 px-2 py-0.5 rounded text-[11px] border border-pink-200">
+                  {cr.changeRequestNo || cr.id} • {cr.jobNumber || cr.projectNumber}
+                </span>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border ${
+                  cr.approvalStatus === 'approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+                }`}>
+                  {cr.approvalStatus}
+                </span>
               </div>
 
-              {cr.approvalStatus === 'requested' && can('project', 'projects', 'approve') && (
-                <div className="flex gap-1.5">
-                  <button
-                    onClick={() => approveChangeRequest(cr.id, 'approved')}
-                    className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs"
-                  >
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => approveChangeRequest(cr.id, 'rejected')}
-                    className="px-2.5 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg text-xs"
-                  >
-                    Reject
-                  </button>
+              <div>
+                <h3 className="font-bold text-[#211B17] text-xs">{cr.customerName}</h3>
+                <div className="text-[11px] text-[#70665F] font-mono">Requested by: {cr.requestedBy} ({formatDate(cr.requestDate)})</div>
+              </div>
+
+              <p className="text-[#544B45] text-xs bg-[#FAF7F2] p-2.5 rounded-xl border border-[#EBE3DB]">
+                <strong>Modification Scope:</strong> {cr.changeDescription}
+              </p>
+
+              <div className="grid grid-cols-2 gap-2 text-[11px] font-mono p-2.5 bg-pink-50/50 rounded-xl border border-pink-100">
+                <div>Cost Impact: <strong className="text-emerald-700">{formatCurrency(cr.costImpact)}</strong></div>
+                <div>Timeline Impact: <strong className="text-rose-600">+{cr.timelineImpactDays} Days</strong></div>
+              </div>
+
+              <div className="pt-2 border-t border-[#EBE3DB] flex items-center justify-between">
+                <div className="text-[10px] text-[#70665F] font-mono">
+                  {cr.approvedBy ? `Approved by ${cr.approvedBy} on ${cr.approvedDate || 'Record'}` : 'Awaiting Review'}
                 </div>
-              )}
+
+                {cr.approvalStatus === 'requested' && (
+                  <div className="flex gap-1.5">
+                    <button
+                      onClick={() => approveChangeRequest(cr.id, 'approved')}
+                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs cursor-pointer shadow-sm"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => approveChangeRequest(cr.id, 'rejected')}
+                      className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-xs cursor-pointer shadow-sm"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* NEW CHANGE REQUEST MODAL */}
       {isModalOpen && (

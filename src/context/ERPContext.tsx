@@ -433,6 +433,8 @@ interface ERPContextType {
   updateCompany: (data: Partial<CompanySetting>) => void;
   numbering: NumberingSetting[];
   updateNumbering: (id: string, data: Partial<NumberingSetting>) => void;
+  addNumbering: (item: Omit<NumberingSetting, 'id'>) => void;
+  resetNumbering: () => void;
   getNextDocNumber: (docType: NumberingSetting['docType']) => string;
 
   // Master Entities
@@ -480,9 +482,13 @@ interface ERPContextType {
 
   siteVisits: SiteVisit[];
   addSiteVisit: (visitData: Omit<SiteVisit, 'id' | 'visitNo'>) => SiteVisit;
+  updateSiteVisit: (id: string, visitData: Partial<SiteVisit>) => void;
+  deleteSiteVisit: (id: string) => void;
 
   exhibitions: Exhibition[];
   addExhibition: (expoData: Omit<Exhibition, 'id'>) => Exhibition;
+  updateExhibition: (id: string, expoData: Partial<Exhibition>) => void;
+  deleteExhibition: (id: string) => void;
 
   quotations: Quotation[];
   addQuotation: (quoData: Omit<Quotation, 'id' | 'quotationNumber'>) => Quotation;
@@ -912,6 +918,8 @@ interface ERPContextType {
   notifications: NotificationItem[];
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
+  deleteNotification: (id: string) => void;
+  clearAllNotifications: () => void;
   sendNotification: (notif: Omit<NotificationItem, 'id' | 'timestamp' | 'isRead'>) => void;
 
   // Module 11: Testing, Security & Production Deployment
@@ -1108,21 +1116,92 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const [projectPlanningStages, setProjectPlanningStages] = useState<ProjectPlanningStage[]>(MOCK_PLANNING_STAGES);
   const [departmentAssignments, setDepartmentAssignments] = useState<DepartmentAssignment[]>(MOCK_DEPARTMENT_ASSIGNMENTS);
   const [projectMilestones, setProjectMilestones] = useState<ProjectMilestone[]>(MOCK_MILESTONES);
-  const [projectIssues, setProjectIssues] = useState<ProjectIssue[]>(MOCK_PROJECT_ISSUES);
-  const [projectDelays, setProjectDelays] = useState<ProjectDelay[]>(MOCK_PROJECT_DELAYS);
-  const [changeRequests, setChangeRequests] = useState<CustomerChangeRequest[]>(MOCK_CHANGE_REQUESTS);
+  const [projectIssues, setProjectIssues] = useState<ProjectIssue[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_projectIssues');
+        if (stored) return JSON.parse(stored);
+      } catch (_) {}
+    }
+    return MOCK_PROJECT_ISSUES;
+  });
+  const [projectDelays, setProjectDelays] = useState<ProjectDelay[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_projectDelays');
+        if (stored) return JSON.parse(stored);
+      } catch (_) {}
+    }
+    return MOCK_PROJECT_DELAYS;
+  });
+  const [changeRequests, setChangeRequests] = useState<CustomerChangeRequest[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_changeRequests');
+        if (stored) return JSON.parse(stored);
+      } catch (_) {}
+    }
+    return MOCK_CHANGE_REQUESTS;
+  });
   const [projectDocuments, setProjectDocuments] = useState<ProjectDocument[]>(MOCK_PROJECT_DOCUMENTS);
   const [projectCosts, setProjectCosts] = useState<ProjectCostItem[]>(MOCK_PROJECT_COSTS);
   const [projectComments, setProjectComments] = useState<ProjectComment[]>(MOCK_PROJECT_COMMENTS);
   const [projectApprovals, setProjectApprovals] = useState<ProjectApproval[]>(MOCK_PROJECT_APPROVALS);
-  const [projectActivities, setProjectActivities] = useState<ProjectActivityLog[]>(MOCK_PROJECT_ACTIVITIES);
+  const [projectActivities, setProjectActivities] = useState<ProjectActivityLog[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_projectActivities');
+        if (stored) return JSON.parse(stored);
+      } catch (_) {}
+    }
+    return MOCK_PROJECT_ACTIVITIES;
+  });
 
-  // Module 3: Designer & Engineering Management States
-  const [designJobs, setDesignJobs] = useState<DesignJob[]>(INITIAL_DESIGN_JOBS);
-  const [customerRequirements, setCustomerRequirements] = useState<CustomerRequirement[]>(MOCK_CUSTOMER_REQUIREMENTS);
-  const [designTasks, setDesignTasks] = useState<DesignTask[]>(MOCK_DESIGN_TASKS);
-  const [drawings2D, setDrawings2D] = useState<Drawing2D[]>(MOCK_2D_DRAWINGS);
-  const [designs3D, setDesigns3D] = useState<Design3DModel[]>(MOCK_3D_MODELS);
+  const [designJobs, setDesignJobs] = useState<DesignJob[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_designJobs');
+        if (stored) return JSON.parse(stored);
+      } catch (_) {}
+    }
+    return INITIAL_DESIGN_JOBS;
+  });
+  const [customerRequirements, setCustomerRequirements] = useState<CustomerRequirement[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_customerRequirements');
+        if (stored) return JSON.parse(stored);
+      } catch (_) {}
+    }
+    return MOCK_CUSTOMER_REQUIREMENTS;
+  });
+  const [designTasks, setDesignTasks] = useState<DesignTask[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_designTasks');
+        if (stored) return JSON.parse(stored);
+      } catch (_) {}
+    }
+    return MOCK_DESIGN_TASKS;
+  });
+  const [drawings2D, setDrawings2D] = useState<Drawing2D[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_drawings2D');
+        if (stored) return JSON.parse(stored);
+      } catch (_) {}
+    }
+    return MOCK_2D_DRAWINGS;
+  });
+  const [designs3D, setDesigns3D] = useState<Design3DModel[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_designs3D');
+        if (stored) return JSON.parse(stored);
+      } catch (_) {}
+    }
+    return MOCK_3D_MODELS;
+  });
   const [assemblyDrawings, setAssemblyDrawings] = useState<AssemblyDrawing[]>(MOCK_ASSEMBLY_DRAWINGS);
   const [partDrawings, setPartDrawings] = useState<PartDrawing[]>(MOCK_PART_DRAWINGS);
   const [boms, setBoms] = useState<BOMHeader[]>(MOCK_BOM_HEADERS);
@@ -1244,6 +1323,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ['projectTasks', setProjectTasks],
         ['projectMilestones', setProjectMilestones],
         ['projectPlanningStages', setProjectPlanningStages],
+        ['departmentAssignments', setDepartmentAssignments],
         ['designJobs', setDesignJobs],
         ['drawings2D', setDrawings2D],
         ['designs3D', setDesigns3D],
@@ -1292,6 +1372,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ['overtimeRecords', setOvertimeRecords],
         ['earlyCheckoutRequests', setEarlyCheckoutRequests],
         ['employeeAppraisals', setEmployeeAppraisals],
+        ['notifications', setNotifications],
       ];
 
       let hasCached = false;
@@ -1301,12 +1382,27 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           try {
             const data = JSON.parse(item);
             if (Array.isArray(data) && data.length > 0) {
-              setter(data);
+              if (key === 'employees') {
+                setter(deduplicateEmployees(data));
+              } else {
+                setter(data);
+              }
               hasCached = true;
             }
           } catch (_) {}
         }
       }
+      const cachedCompany = localStorage.getItem('UMA_ERP_company');
+      if (cachedCompany) {
+        try {
+          const cData = JSON.parse(cachedCompany);
+          if (cData && typeof cData === 'object') {
+            setCompany((prev) => ({ ...prev, ...cData }));
+            hasCached = true;
+          }
+        } catch (_) {}
+      }
+
       if (hasCached) {
         setIsInitialLoading(false);
       }
@@ -1330,6 +1426,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           api.crm.quotations.list(),
           api.crm.customerPos.list(),
           api.crm.salesOrders.list(),
+          api.crm.followUps.list(),
+          api.crm.siteVisits.list(),
+          api.crm.exhibitions.list(),
           api.employees.list(),
           api.departments.list(),
           api.roles.list(),
@@ -1416,19 +1515,134 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         applyLive<Opportunity>(val(results[4]), setOpportunities, 'opportunities');
         applyLive<Quotation>(val(results[5]), setQuotations, 'quotations');
         applyLive<CustomerPO>(val(results[6]), setCustomerPOs, 'customerPOs');
-        applyLive<SalesOrder>(val(results[7]), setSalesOrders, 'salesOrders');
-        applyLive<Employee>(val(results[8]), setEmployees, 'employees');
-        applyLive<Department>(val(results[9]), setDepartments, 'departments');
-        applyLive<Role>(val(results[10]), setRoles, 'roles');
-        applyLive<ProjectJobMaster>(val(results[11]), setProjectJobs, 'projectJobs');
-        applyLive<ProjectTask>(val(results[12]), setProjectTasks, 'projectTasks');
-        applyLive<ProjectMilestone>(val(results[13]), setProjectMilestones, 'projectMilestones');
-        applyLive<ProjectPlanningStage>(val(results[14]), setProjectPlanningStages, 'projectPlanningStages');
-        applyLive<DesignJob>(val(results[15]), setDesignJobs, 'designJobs');
-        applyLive<Drawing2D>(val(results[16]), setDrawings2D, 'drawings2D');
-        applyLive<Design3DModel>(val(results[17]), setDesigns3D, 'designs3D');
-        applyLive<BOMHeader>(val(results[18]), setBoms, 'boms');
-        const rawSuppliers = val<any[]>(results[19]);
+        const rawSalesOrders = val<any[]>(results[7]);
+        if (rawSalesOrders && Array.isArray(rawSalesOrders) && rawSalesOrders.length > 0) {
+          const normalizedSalesOrders: SalesOrder[] = rawSalesOrders.map((so: any) => ({
+            ...so,
+            id: String(so.id),
+            salesOrderNumber: so.salesOrderNumber || so.sales_order_number || so.id,
+            customerId: so.customerId || so.customer_id || '',
+            customerName: so.customerName || so.customer_name || '',
+            customerPoId: so.customerPoId || so.customer_po_id || '',
+            customerPoNumber: so.customerPoNumber || so.customer_po_number || '',
+            quotationId: so.quotationId || so.quotation_id || '',
+            quotationNumber: so.quotationNumber || so.quotation_number || '',
+            orderDate: so.orderDate || so.order_date || '',
+            deliveryDate: so.deliveryDate || so.target_delivery_date || so.targetDeliveryDate || '',
+            items: Array.isArray(so.items) ? so.items : [],
+            orderValue: Number(so.orderValue) || Number(so.grand_total) || Number(so.total_amount) || 0,
+            paymentTerms: so.paymentTerms || so.payment_terms || '',
+            assignedProjectManager: so.assignedProjectManager || so.assigned_project_manager || so.created_by || 'Unassigned',
+            status: so.status || 'confirmed',
+            projectId: so.projectId || so.project_id || undefined,
+            jobNumber: so.jobNumber || so.job_number || undefined,
+          }));
+          setSalesOrders(normalizedSalesOrders);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_salesOrders', JSON.stringify(normalizedSalesOrders)); } catch (_) {}
+          }
+        }
+
+        const rawFollowUps = val<any>(results[8]);
+        if (rawFollowUps) {
+          const followUpsList: any[] = Array.isArray(rawFollowUps)
+            ? rawFollowUps
+            : Array.isArray(rawFollowUps?.results)
+            ? rawFollowUps.results
+            : Array.isArray(rawFollowUps?.data)
+            ? rawFollowUps.data
+            : [];
+          if (followUpsList.length > 0) {
+            const normalizedFollowUps: FollowUp[] = followUpsList.map((f: any) => ({
+              ...f,
+              id: String(f.id || f.follow_up_no || f.followUpNo),
+              followUpNo: f.followUpNo || f.follow_up_no || f.id,
+              leadOrCustomerId: f.leadOrCustomerId || f.lead_or_customer_id || f.customer_id || f.lead_id || '',
+              leadOrCustomerName: f.leadOrCustomerName || f.lead_or_customer_name || f.customer_name || '',
+              entityType: f.entityType || f.entity_type || 'lead',
+              type: f.type || 'call',
+              assignedToId: f.assignedToId || f.assigned_to_id || f.sales_person_id || '',
+              assignedToName: f.assignedToName || f.assigned_to_name || f.sales_person_name || '',
+              date: f.date || f.scheduled_date || '',
+              time: f.time || f.scheduled_time || '',
+              priority: f.priority || 'medium',
+              purpose: f.purpose || f.discussion_purpose || '',
+              notes: f.notes || f.discussion_notes || '',
+              nextFollowUpDate: f.nextFollowUpDate || f.next_follow_up_date || '',
+              status: f.status || 'pending',
+              completedNotes: f.completedNotes || f.completed_notes || '',
+            }));
+            setFollowUps(normalizedFollowUps);
+            if (typeof window !== 'undefined') {
+              try { localStorage.setItem('UMA_ERP_followUps', JSON.stringify(normalizedFollowUps)); } catch (_) {}
+            }
+          }
+        }
+
+        const rawVisits = val<any[]>(results[9]);
+        if (rawVisits && Array.isArray(rawVisits) && rawVisits.length > 0) {
+          const normalizedVisits: SiteVisit[] = rawVisits.map((v: any) => ({
+            ...v,
+            id: String(v.id || v.visit_no || v.visitNo),
+            visitNo: v.visitNo || v.visit_no || v.id,
+            customerId: v.customerId || v.customer_id || '',
+            customerName: v.customerName || v.customer_name || '',
+            contactPerson: v.contactPerson || v.contact_person || '',
+            contactMobile: v.contactMobile || v.contact_mobile || '',
+            visitDate: v.visitDate || v.visit_date || '',
+            location: v.location || '',
+            employeeId: v.employeeId || v.employee_id || '',
+            employeeName: v.employeeName || v.employee_name || '',
+            purpose: v.purpose || '',
+            discussionNotes: v.discussionNotes || v.discussion_notes || v.discussionSummary || v.discussion_summary || '',
+            requirementDetails: v.requirementDetails || v.requirement_details || '',
+            outcome: v.outcome || 'positive',
+            nextAction: v.nextAction || v.next_action || '',
+            nextFollowUpDate: v.nextFollowUpDate || v.next_follow_up_date || '',
+          }));
+          setSiteVisits(normalizedVisits);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_siteVisits', JSON.stringify(normalizedVisits)); } catch (_) {}
+          }
+        }
+
+        const rawExhibitions = val<any[]>(results[10]);
+        if (rawExhibitions && Array.isArray(rawExhibitions) && rawExhibitions.length > 0) {
+          const normalizedExhibitions: Exhibition[] = rawExhibitions.map((e: any) => ({
+            id: String(e.id),
+            expoName: e.expoName || e.expo_name || 'Exhibition',
+            organizer: e.organizer || '',
+            location: e.location || '',
+            startDate: e.startDate || e.start_date || '',
+            endDate: e.endDate || e.end_date || '',
+            stallNumber: e.stallNumber || e.stall_number || '',
+            contactPerson: e.contactPerson || e.contact_person || '',
+            budget: Number(e.budget) || 0,
+            assignedTeam: Array.isArray(e.assignedTeam) ? e.assignedTeam : (Array.isArray(e.assigned_team) ? e.assigned_team : []),
+            productsDisplayed: e.productsDisplayed || e.products_displayed || '',
+            notes: e.notes || '',
+            totalContacts: Number(e.totalContacts) || Number(e.total_contacts) || 0,
+            qualifiedLeads: Number(e.qualifiedLeads) || Number(e.qualified_leads) || 0,
+            quotationsSent: Number(e.quotationsSent) || Number(e.quotations_sent) || 0,
+            convertedCustomers: Number(e.convertedCustomers) || Number(e.converted_customers) || 0,
+          }));
+          setExhibitions(normalizedExhibitions);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_exhibitions', JSON.stringify(normalizedExhibitions)); } catch (_) {}
+          }
+        }
+        applyLive<Employee>(val(results[11]), setEmployees, 'employees');
+        applyLive<Department>(val(results[12]), setDepartments, 'departments');
+        applyLive<Role>(val(results[13]), setRoles, 'roles');
+        applyLive<ProjectJobMaster>(val(results[14]), setProjectJobs, 'projectJobs');
+        applyLive<ProjectTask>(val(results[15]), setProjectTasks, 'projectTasks');
+        applyLive<ProjectMilestone>(val(results[16]), setProjectMilestones, 'projectMilestones');
+        applyLive<ProjectPlanningStage>(val(results[17]), setProjectPlanningStages, 'projectPlanningStages');
+        applyLive<DesignJob>(val(results[18]), setDesignJobs, 'designJobs');
+        applyLive<Drawing2D>(val(results[19]), setDrawings2D, 'drawings2D');
+        applyLive<Design3DModel>(val(results[20]), setDesigns3D, 'designs3D');
+        applyLive<BOMHeader>(val(results[21]), setBoms, 'boms');
+        const rawSuppliers = val<any[]>(results[22]);
         if (rawSuppliers && Array.isArray(rawSuppliers) && rawSuppliers.length > 0) {
           const normalizedSuppliers: Supplier[] = rawSuppliers.map((s: any) => {
             const sName = s.name || s.supplierName || s.supplier_name || (s as any).companyName || 'Supplier';
@@ -1452,20 +1666,20 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             try { localStorage.setItem('UMA_ERP_suppliers', JSON.stringify(normalizedSuppliers)); } catch (_) {}
           }
         }
-        applyLive<PurchaseRequisition>(val(results[20]), setPurchaseRequisitions, 'purchaseRequisitions');
-        applyLive<PurchaseOrder>(val(results[21]), setPurchaseOrders, 'purchaseOrders');
-        applyLive<ItemMaster>(val(results[22]), setItemMasters, 'itemMasters');
-        applyLive<ItemCategory>(val(results[23]), setItemCategories, 'itemCategories');
-        applyLive<UOMMaster>(val(results[24]), setUoms, 'uoms');
-        applyLive<Warehouse>(val(results[25]), setWarehouses, 'warehouses');
-        applyLive<GoodsReceiptNote>(val(results[26]), setGoodsReceipts, 'goodsReceipts');
-        applyLive<StockBalance>(val(results[27]), setStockBalances, 'stockBalances');
-        applyLive<MaterialIssue>(val(results[28]), setMaterialIssues, 'materialIssues');
-        applyLive<MaterialReturn>(val(results[29]), setMaterialReturns, 'materialReturns');
-        applyLive<ManufacturingJob>(val(results[30]), setManufacturingJobs, 'manufacturingJobs');
-        applyLive<WorkCenter>(val(results[31]), setWorkCenters, 'workCenters');
+        applyLive<PurchaseRequisition>(val(results[23]), setPurchaseRequisitions, 'purchaseRequisitions');
+        applyLive<PurchaseOrder>(val(results[24]), setPurchaseOrders, 'purchaseOrders');
+        applyLive<ItemMaster>(val(results[25]), setItemMasters, 'itemMasters');
+        applyLive<ItemCategory>(val(results[26]), setItemCategories, 'itemCategories');
+        applyLive<UOMMaster>(val(results[27]), setUoms, 'uoms');
+        applyLive<Warehouse>(val(results[28]), setWarehouses, 'warehouses');
+        applyLive<GoodsReceiptNote>(val(results[29]), setGoodsReceipts, 'goodsReceipts');
+        applyLive<StockBalance>(val(results[30]), setStockBalances, 'stockBalances');
+        applyLive<MaterialIssue>(val(results[31]), setMaterialIssues, 'materialIssues');
+        applyLive<MaterialReturn>(val(results[32]), setMaterialReturns, 'materialReturns');
+        applyLive<ManufacturingJob>(val(results[33]), setManufacturingJobs, 'manufacturingJobs');
+        applyLive<WorkCenter>(val(results[34]), setWorkCenters, 'workCenters');
 
-        const woRes = val<WorkOrder[]>(results[32]);
+        const woRes = val<WorkOrder[]>(results[35]);
         if (woRes && Array.isArray(woRes) && woRes.length > 0) {
           const normalized = woRes.map((w: any) => ({
             ...w,
@@ -1483,24 +1697,24 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        applyLive<FinishedGoodsItem>(val(results[33]), setFinishedGoods, 'finishedGoods');
-        applyLive<InternalAsset>(val(results[34]), setInternalAssets, 'internalAssets');
-        applyLive<CustomerMachine>(val(results[35]), setCustomerMachines, 'customerMachines');
-        applyLive<ServiceRequest>(val(results[36]), setServiceRequests, 'serviceRequests');
-        applyLive<BreakdownRecord>(val(results[37]), setBreakdowns, 'breakdowns');
-        applyLive<ServiceVisit>(val(results[38]), setServiceVisits, 'serviceVisits');
-        applyLive<ServicePartIssue>(val(results[39]), setServicePartIssues, 'servicePartIssues');
-        applyLive<ServicePartReturn>(val(results[40]), setServicePartReturns, 'servicePartReturns');
-        applyLive<ServiceReport>(val(results[41]), setServiceReports, 'serviceReports');
-        applyLive<Designation>(val(results[42]), setDesignations, 'designations');
-        applyLive<ShiftMaster>(val(results[43]), setShiftMasters, 'shifts');
-        applyLive<AttendanceRecord>(val(results[44]), setAttendanceRecords, 'attendance');
-        applyLive<LeaveRequest>(val(results[45]), setLeaveRequests, 'leaves');
-        applyLive<PayrollRecord>(val(results[46]), setPayrollRecords, 'payroll');
-        applyLive<EmployeeOnboardingItem>(val(results[47]), setEmployeeOnboardings, 'employeeOnboardings');
-        applyLive<FinancialYear>(val(results[48]), setFinancialYears, 'financialYears');
-        applyLive<ChartOfAccount>(val(results[49]), setChartOfAccounts, 'chartOfAccounts');
-        const siRes = val<any[]>(results[50]);
+        applyLive<FinishedGoodsItem>(val(results[36]), setFinishedGoods, 'finishedGoods');
+        applyLive<InternalAsset>(val(results[37]), setInternalAssets, 'internalAssets');
+        applyLive<CustomerMachine>(val(results[38]), setCustomerMachines, 'customerMachines');
+        applyLive<ServiceRequest>(val(results[39]), setServiceRequests, 'serviceRequests');
+        applyLive<BreakdownRecord>(val(results[40]), setBreakdowns, 'breakdowns');
+        applyLive<ServiceVisit>(val(results[41]), setServiceVisits, 'serviceVisits');
+        applyLive<ServicePartIssue>(val(results[42]), setServicePartIssues, 'servicePartIssues');
+        applyLive<ServicePartReturn>(val(results[43]), setServicePartReturns, 'servicePartReturns');
+        applyLive<ServiceReport>(val(results[44]), setServiceReports, 'serviceReports');
+        applyLive<Designation>(val(results[45]), setDesignations, 'designations');
+        applyLive<ShiftMaster>(val(results[46]), setShiftMasters, 'shifts');
+        applyLive<AttendanceRecord>(val(results[47]), setAttendanceRecords, 'attendance');
+        applyLive<LeaveRequest>(val(results[48]), setLeaveRequests, 'leaves');
+        applyLive<PayrollRecord>(val(results[49]), setPayrollRecords, 'payroll');
+        applyLive<EmployeeOnboardingItem>(val(results[50]), setEmployeeOnboardings, 'employeeOnboardings');
+        applyLive<FinancialYear>(val(results[51]), setFinancialYears, 'financialYears');
+        applyLive<ChartOfAccount>(val(results[52]), setChartOfAccounts, 'chartOfAccounts');
+        const siRes = val<any[]>(results[53]);
         if (siRes && Array.isArray(siRes) && siRes.length > 0) {
           const normalizedSI: SalesInvoice[] = siRes.map((inv: any) => {
             const grandTotal = Number(inv.grandTotal ?? inv.grand_total ?? 0);
@@ -1541,7 +1755,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        const piRes = val<any[]>(results[51]);
+        const piRes = val<any[]>(results[54]);
         if (piRes && Array.isArray(piRes) && piRes.length > 0) {
           const normalizedPI: PurchaseInvoice[] = piRes.map((inv: any) => ({
             ...inv,
@@ -1561,23 +1775,23 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             try { localStorage.setItem('UMA_ERP_purchaseInvoices', JSON.stringify(normalizedPI)); } catch (_) {}
           }
         }
-        applyLive<CustomerReceipt>(val(results[52]), setCustomerReceipts, 'customerReceipts');
-        applyLive<SupplierPayment>(val(results[53]), setSupplierPayments, 'supplierPayments');
-        applyLive<JournalEntry>(val(results[54]), setJournalEntries, 'journalEntries');
-        applyLive<CreditNote>(val(results[55]), setCreditNotes, 'creditNotes');
-        applyLive<DebitNote>(val(results[56]), setDebitNotes, 'debitNotes');
-        applyLive<ContraEntry>(val(results[57]), setContraEntries, 'contraEntries');
-        applyLive<BankAccount>(val(results[58]), setBankAccounts, 'bankAccounts');
-        applyLive<ExpenseEntry>(val(results[59]), setExpenseEntries, 'expenseEntries');
-        applyLive<FixedAsset>(val(results[60]), setFixedAssets, 'fixedAssets');
-        applyLive<HolidayItem>(val(results[61]), setHolidays, 'holidays');
-        applyLive<OvertimeRecord>(val(results[62]), setOvertimeRecords, 'overtimeRecords');
-        applyLive<EarlyCheckoutRequest>(val(results[63]), setEarlyCheckoutRequests, 'earlyCheckoutRequests');
-        applyLive<EmployeeAppraisal>(val(results[64]), setEmployeeAppraisals, 'employeeAppraisals');
-        applyLive<ApprovalItem>(val(results[65]), setCentralApprovals, 'approvals');
-        applyLive<ERPAlertItem>(val(results[66]), setCentralAlerts, 'alerts');
+        applyLive<CustomerReceipt>(val(results[55]), setCustomerReceipts, 'customerReceipts');
+        applyLive<SupplierPayment>(val(results[56]), setSupplierPayments, 'supplierPayments');
+        applyLive<JournalEntry>(val(results[57]), setJournalEntries, 'journalEntries');
+        applyLive<CreditNote>(val(results[58]), setCreditNotes, 'creditNotes');
+        applyLive<DebitNote>(val(results[59]), setDebitNotes, 'debitNotes');
+        applyLive<ContraEntry>(val(results[60]), setContraEntries, 'contraEntries');
+        applyLive<BankAccount>(val(results[61]), setBankAccounts, 'bankAccounts');
+        applyLive<ExpenseEntry>(val(results[62]), setExpenseEntries, 'expenseEntries');
+        applyLive<FixedAsset>(val(results[63]), setFixedAssets, 'fixedAssets');
+        applyLive<HolidayItem>(val(results[64]), setHolidays, 'holidays');
+        applyLive<OvertimeRecord>(val(results[65]), setOvertimeRecords, 'overtimeRecords');
+        applyLive<EarlyCheckoutRequest>(val(results[66]), setEarlyCheckoutRequests, 'earlyCheckoutRequests');
+        applyLive<EmployeeAppraisal>(val(results[67]), setEmployeeAppraisals, 'employeeAppraisals');
+        applyLive<ApprovalItem>(val(results[68]), setCentralApprovals, 'approvals');
+        applyLive<ERPAlertItem>(val(results[69]), setCentralAlerts, 'alerts');
 
-        const meRes = val<any>(results[67]);
+        const meRes = val<any>(results[70]);
         if (meRes && meRes.username) {
           setCurrentUser((prev) => ({
             ...prev,
@@ -1949,7 +2163,23 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       timestamp: new Date().toISOString(),
       isRead: false,
     };
-    setNotifications((prev) => [newNotif, ...prev]);
+    setNotifications((prev) => {
+      const updated = [newNotif, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_notifications', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    api.post('/notifications/', {
+      id: newNotif.id,
+      title: newNotif.title,
+      message: newNotif.message,
+      type: newNotif.type,
+      department: newNotif.department,
+      link_url: newNotif.linkUrl || '',
+      is_read: false,
+      priority: newNotif.priority || 'normal',
+    }).catch((err) => console.warn('Failed to sync notification to backend:', err));
   };
 
   // Authentication Helpers
@@ -2012,15 +2242,68 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
   // Company & Numbering Updates
   const updateCompany = (data: Partial<CompanySetting>) => {
-    setCompany((prev) => ({ ...prev, ...data }));
+    setCompany((prev) => {
+      const updated = { ...prev, ...data };
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('UMA_ERP_company', JSON.stringify(updated));
+        } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'Company Settings', 'Company Profile', 'COMP-01', 'Updated company profile information');
-    api.company.update(data).catch((err) => console.warn('Failed to update company:', err));
+    api.company.update(data).then((res) => {
+      if (res && typeof res === 'object') {
+        setCompany((prev) => {
+          const updated = { ...prev, ...res };
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.setItem('UMA_ERP_company', JSON.stringify(updated));
+            } catch (_) {}
+          }
+          return updated;
+        });
+      }
+    }).catch((err) => console.warn('Failed to update company on backend:', err));
   };
 
   const updateNumbering = (id: string, data: Partial<NumberingSetting>) => {
-    setNumbering((prev) => prev.map((n) => (n.id === id ? { ...n, ...data } : n)));
+    setNumbering((prev) => {
+      const updated = prev.map((n) => (n.id === id ? { ...n, ...data } : n));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_numbering', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'Settings', 'Numbering Series', id, 'Updated numbering series pattern');
     api.patch(`/numbering/${id}/`, data).catch((err) => console.warn('Failed to update numbering:', err));
+  };
+
+  const addNumbering = (item: Omit<NumberingSetting, 'id'>) => {
+    const newId = `NUM-${String(numbering.length + 1).padStart(3, '0')}`;
+    const nextPreview = `${item.prefix}${String((item.currentNumber || 0) + 1).padStart(item.digitCount || 4, '0')}`;
+    const newRule: NumberingSetting = {
+      ...item,
+      id: newId,
+      samplePreview: nextPreview,
+    };
+    setNumbering((prev) => {
+      const updated = [...prev, newRule];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_numbering', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('CREATE', 'Settings', 'Numbering Series', newId, `Added numbering rule for ${item.module} - ${item.docType}`);
+    api.post('/numbering/', newRule).catch((err) => console.warn('Failed to add numbering rule on backend:', err));
+  };
+
+  const resetNumbering = () => {
+    setNumbering(INITIAL_NUMBERING);
+    if (typeof window !== 'undefined') {
+      try { localStorage.setItem('UMA_ERP_numbering', JSON.stringify(INITIAL_NUMBERING)); } catch (_) {}
+    }
+    logAction('UPDATE', 'Settings', 'Numbering Series', 'ALL', 'Reset numbering series to defaults');
   };
 
   // Department CRUD
@@ -2064,40 +2347,173 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     api.roles.update(id, role).catch((err) => console.warn('Failed to update role:', err));
   };
 
+  // Helper to deduplicate employees by ID / username / email and sanitize invalid records
+  const deduplicateEmployees = (list: Employee[]): Employee[] => {
+    if (!Array.isArray(list)) return [];
+    const map = new Map<string, Employee>();
+    for (const emp of list) {
+      if (!emp) continue;
+      // Determine canonical key
+      let key = (emp.id && emp.id.trim() && emp.id.trim() !== '-') ? emp.id.trim() : '';
+      if (!key) {
+        if (emp.username && emp.username.trim()) {
+          key = `USER-${emp.username.trim().toLowerCase()}`;
+        } else if (emp.email && emp.email.trim()) {
+          key = `EMAIL-${emp.email.trim().toLowerCase()}`;
+        } else {
+          key = `NAME-${((emp.firstName || '') + (emp.lastName || '') + (emp.name || '')).trim() || 'staff'}`;
+        }
+      }
+
+      if (map.has(key)) {
+        const existing = map.get(key)!;
+        map.set(key, {
+          ...existing,
+          ...emp,
+          id: existing.id && existing.id !== '-' ? existing.id : (emp.id && emp.id !== '-' ? emp.id : key),
+          name: emp.name || `${emp.firstName || existing.firstName || ''} ${emp.lastName || existing.lastName || ''}`.trim() || existing.name,
+        });
+      } else {
+        const assignedId = (emp.id && emp.id.trim() && emp.id.trim() !== '-')
+          ? emp.id.trim()
+          : (key.startsWith('EMP-') ? key : `EMP-${String(map.size + 1).padStart(3, '0')}`);
+
+        map.set(key, {
+          ...emp,
+          id: assignedId,
+          name: emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || 'Staff',
+        });
+      }
+    }
+    return Array.from(map.values());
+  };
+
   // Employee CRUD
-  const addEmployee = (emp: Omit<Employee, 'id'>) => {
-    const newEmp: Employee = {
-      ...emp,
-      id: `EMP-${String(employees.length + 1).padStart(3, '0')}`,
-    };
-    setEmployees((prev) => [...prev, newEmp]);
-    logAction('CREATE', 'User Management', 'Add Employee', newEmp.id, `Created employee ${newEmp.firstName} ${newEmp.lastName}`);
-    api.employees.create(newEmp).catch((err) => console.warn('Failed to add employee:', err));
+  const addEmployee = (emp: Omit<Employee, 'id'> & { id?: string }) => {
+    setEmployees((prev) => {
+      const cleanPrev = deduplicateEmployees(prev);
+      // Check if employee already exists by ID, username, or email
+      const existingIndex = cleanPrev.findIndex(
+        (e) =>
+          (emp.id && e.id === emp.id) ||
+          (emp.username && e.username && e.username.toLowerCase() === emp.username.toLowerCase()) ||
+          (emp.email && e.email && e.email.toLowerCase() === emp.email.toLowerCase())
+      );
+
+      let updated: Employee[];
+      if (existingIndex !== -1) {
+        // UPDATE existing employee instead of creating a duplicate
+        const existing = cleanPrev[existingIndex];
+        const updatedEmp: Employee = {
+          ...existing,
+          ...emp,
+          id: existing.id, // Strictly preserve existing ID
+          name: emp.name || `${emp.firstName || existing.firstName || ''} ${emp.lastName || existing.lastName || ''}`.trim() || existing.name,
+        };
+        updated = cleanPrev.map((e, idx) => (idx === existingIndex ? updatedEmp : e));
+        logAction('UPDATE', 'User Management', 'Update Staff/Employee Profile', existing.id, `Updated employee ${existing.id} (${updatedEmp.firstName} ${updatedEmp.lastName})`);
+        api.employees.update(existing.id, updatedEmp).catch((err) => console.warn('Failed to update employee via API:', err));
+      } else {
+        // Calculate the highest numeric ID to avoid any collision
+        let maxNum = 0;
+        cleanPrev.forEach((e) => {
+          if (e.id && e.id.startsWith('EMP-')) {
+            const num = parseInt(e.id.replace('EMP-', ''), 10);
+            if (!isNaN(num) && num > maxNum) maxNum = num;
+          }
+        });
+        const newId = (emp.id && emp.id.startsWith('EMP-') && !cleanPrev.some(e => e.id === emp.id))
+          ? emp.id
+          : `EMP-${String(maxNum + 1).padStart(3, '0')}`;
+
+        const newEmp: Employee = {
+          ...emp,
+          id: newId,
+          name: emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || 'Staff',
+        };
+        updated = [...cleanPrev, newEmp];
+        logAction('CREATE', 'User Management', 'Add Employee', newEmp.id, `Created employee ${newEmp.firstName} ${newEmp.lastName} with ID ${newEmp.id}`);
+        api.employees.create(newEmp).catch((err) => console.warn('Failed to add employee via API:', err));
+      }
+
+      const deduplicated = deduplicateEmployees(updated);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employees', JSON.stringify(deduplicated)); } catch (_) {}
+      }
+      return deduplicated;
+    });
   };
 
   const updateEmployee = (id: string, emp: Partial<Employee>) => {
     setEmployees((prev) => {
-      const updated = prev.map((e) => (e.id === id ? { ...e, ...emp } : e));
-      if (typeof window !== 'undefined') {
-        try { localStorage.setItem('UMA_ERP_employees', JSON.stringify(updated)); } catch (_) {}
+      const cleanPrev = deduplicateEmployees(prev);
+      const targetIndex = cleanPrev.findIndex((e) => e.id === id || e.username === id || e.email === id);
+
+      let updated: Employee[];
+      if (targetIndex !== -1) {
+        const existing = cleanPrev[targetIndex];
+        const updatedEmp: Employee = {
+          ...existing,
+          ...emp,
+          id: existing.id, // Strictly preserve existing ID
+          name: emp.name || `${emp.firstName || existing.firstName || ''} ${emp.lastName || existing.lastName || ''}`.trim() || existing.name,
+        };
+        // Update the item and remove any stray duplicate matching this ID
+        updated = cleanPrev
+          .map((e, idx) => (idx === targetIndex ? updatedEmp : e))
+          .filter((e, idx) => idx === targetIndex || e.id !== existing.id);
+      } else {
+        // Not found by ID, check if emp.id is in state
+        const byEmpId = emp.id ? cleanPrev.findIndex((e) => e.id === emp.id) : -1;
+        if (byEmpId !== -1) {
+          const existing = cleanPrev[byEmpId];
+          const updatedEmp: Employee = {
+            ...existing,
+            ...emp,
+            id: existing.id,
+            name: emp.name || `${emp.firstName || existing.firstName || ''} ${emp.lastName || existing.lastName || ''}`.trim() || existing.name,
+          };
+          updated = cleanPrev.map((e, idx) => (idx === byEmpId ? updatedEmp : e));
+        } else {
+          // Employee not found, create single record
+          const newId = id && id.startsWith('EMP-') ? id : `EMP-${String(cleanPrev.length + 1).padStart(3, '0')}`;
+          const newEmp: Employee = {
+            ...(emp as Employee),
+            id: newId,
+            name: emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || 'Staff',
+          };
+          updated = [...cleanPrev, newEmp];
+        }
       }
-      return updated;
+
+      const deduplicated = deduplicateEmployees(updated);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employees', JSON.stringify(deduplicated)); } catch (_) {}
+      }
+      return deduplicated;
     });
-    logAction('UPDATE', 'User Management', 'Edit Employee', id, `Updated employee ${id}`);
+
+    if (currentUser.id === id || currentUser.username === id) {
+      setCurrentUser((prev) => ({ ...prev, ...emp, id: prev.id }));
+    }
+    logAction('UPDATE', 'User Management', 'Edit Staff/Employee Profile', id, `Updated employee ${id}`);
     if (emp.password) {
       api.employees.resetPassword(id, emp.password).catch((err) => console.warn('Failed to reset password via API:', err));
     }
-    api.employees.update(id, emp).catch((err) => console.warn('Failed to update employee:', err));
+    api.employees.update(id, emp).catch((err) => console.warn('Failed to update employee via API:', err));
   };
 
   const resetEmployeePassword = async (id: string, password: string): Promise<{ success: boolean; message?: string }> => {
     setEmployees((prev) => {
-      const updated = prev.map((e) => (e.id === id ? { ...e, password } : e));
+      const updated = prev.map((e) => (e.id === id || e.username === id || e.email === id ? { ...e, password } : e));
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_employees', JSON.stringify(updated)); } catch (_) {}
       }
       return updated;
     });
+    if (currentUser.id === id || currentUser.username === id) {
+      setCurrentUser((prev) => ({ ...prev, password }));
+    }
     logAction('UPDATE', 'User Management', 'Reset Password', id, `Reset password for employee ${id}`);
     try {
       const res = await api.employees.resetPassword(id, password);
@@ -2129,7 +2545,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       leadNo,
       createdDate: new Date().toISOString().split('T')[0],
     };
-    setLeads((prev) => [newLead, ...prev]);
+    setLeads((prev) => {
+      const updated = [newLead, ...prev.filter((l) => l.id !== leadNo && l.leadNo !== leadNo)];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_leads', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'CRM', 'Leads', leadNo, `New Lead for ${newLead.companyName} (${newLead.productName})`);
     sendNotification({
       title: 'New Lead Registered',
@@ -2139,23 +2561,71 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       linkUrl: `/crm/leads/${newLead.id}`,
       priority: newLead.priority === 'urgent' ? 'high' : 'normal',
     });
+
+    // Auto-schedule initial follow-up if nextFollowUpDate was provided during lead registration
+    if (newLead.nextFollowUpDate) {
+      const flwNo = `FLW-2026-${String(followUps.length + 1).padStart(4, '0')}`;
+      const initialFlw: FollowUp = {
+        id: flwNo,
+        followUpNo: flwNo,
+        leadOrCustomerId: newLead.id,
+        leadOrCustomerName: `${newLead.companyName} (${newLead.contactPerson})`,
+        entityType: 'lead',
+        type: 'call',
+        assignedToId: newLead.assignedSalesPersonId,
+        assignedToName: newLead.assignedSalesPersonName,
+        date: newLead.nextFollowUpDate,
+        time: '11:00 AM',
+        priority: newLead.priority === 'urgent' ? 'high' : 'medium',
+        purpose: `Initial inquiry follow-up for ${newLead.productName}`,
+        notes: newLead.requirementDescription || 'Lead registration initial follow-up',
+        status: 'pending',
+      };
+      setFollowUps((prev) => {
+        const updated = [initialFlw, ...prev.filter((f) => f.id !== flwNo)];
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_followUps', JSON.stringify(updated)); } catch (_) {}
+        }
+        return updated;
+      });
+      api.crm.followUps.create(initialFlw).catch((err) => console.warn('Failed to sync initial follow-up:', err));
+    }
+
     // Sync to PythonAnywhere Backend
     api.crm.leads.create(newLead).then((res) => {
       if (res && res.id) {
-        setLeads((prev) => prev.map((l) => (l.id === leadNo ? { ...l, ...res } : l)));
+        setLeads((prev) => {
+          const updated = prev.map((l) => (l.id === leadNo ? { ...l, ...res } : l));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_leads', JSON.stringify(updated)); } catch (_) {}
+          }
+          return updated;
+        });
       }
     }).catch((err) => console.warn('Failed to sync lead to backend:', err));
     return newLead;
   };
 
   const updateLead = (id: string, leadData: Partial<Lead>) => {
-    setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, ...leadData } : l)));
+    setLeads((prev) => {
+      const updated = prev.map((l) => (l.id === id || l.leadNo === id ? { ...l, ...leadData } : l));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_leads', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'CRM', 'Leads', id, `Updated lead ${id}`);
     api.crm.leads.update(id, leadData).catch((err) => console.warn('Failed to update lead on backend:', err));
   };
 
   const deleteLead = (id: string) => {
-    setLeads((prev) => prev.filter((l) => l.id !== id));
+    setLeads((prev) => {
+      const updated = prev.filter((l) => l.id !== id && l.leadNo !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_leads', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('DELETE', 'CRM', 'Leads', id, `Deleted lead ${id}`);
     api.crm.leads.delete(id).catch((err) => console.warn('Failed to delete lead on backend:', err));
   };
@@ -2351,20 +2821,49 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       id: flwNo,
       followUpNo: flwNo,
     };
-    setFollowUps((prev) => [newFlw, ...prev]);
+    setFollowUps((prev) => {
+      const updated = [newFlw, ...prev.filter((f) => f.id !== flwNo && f.followUpNo !== flwNo)];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_followUps', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'CRM', 'Follow-ups', flwNo, `Scheduled follow-up for ${newFlw.leadOrCustomerName}`);
-    api.post('/followups/', newFlw).then((res) => { if (res && res.id) setFollowUps((prev) => prev.map((f) => f.id === flwNo ? { ...f, ...res } : f)); }).catch((err) => console.warn('Failed to sync follow-up:', err));
+    api.crm.followUps.create(newFlw).then((res) => {
+      if (res && (res.id || res.follow_up_no || res.followUpNo)) {
+        const syncedFlw: FollowUp = {
+          ...newFlw,
+          ...res,
+          id: String(res.id || newFlw.id),
+          followUpNo: res.followUpNo || res.follow_up_no || newFlw.followUpNo,
+          leadOrCustomerId: res.leadOrCustomerId || res.lead_or_customer_id || newFlw.leadOrCustomerId,
+          leadOrCustomerName: res.leadOrCustomerName || res.lead_or_customer_name || newFlw.leadOrCustomerName,
+          nextFollowUpDate: res.nextFollowUpDate || res.next_follow_up_date || newFlw.nextFollowUpDate,
+        };
+        setFollowUps((prev) => {
+          const updated = prev.map((f) => (f.id === flwNo ? syncedFlw : f));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_followUps', JSON.stringify(updated)); } catch (_) {}
+          }
+          return updated;
+        });
+      }
+    }).catch((err) => console.warn('Failed to sync follow-up:', err));
     return newFlw;
   };
 
   const completeFollowUp = (id: string, notes: string, nextDate?: string) => {
-    setFollowUps((prev) =>
-      prev.map((f) =>
-        f.id === id ? { ...f, status: 'completed', completedNotes: notes, nextFollowUpDate: nextDate } : f
-      )
-    );
+    setFollowUps((prev) => {
+      const updated = prev.map((f) =>
+        f.id === id ? { ...f, status: 'completed' as const, completedNotes: notes, nextFollowUpDate: nextDate } : f
+      );
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_followUps', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'CRM', 'Follow-ups', id, `Completed follow-up: ${notes}`);
-    api.post(`/followups/${id}/complete/`, { notes, nextDate }).catch((err) => console.warn('Failed to complete follow-up:', err));
+    api.crm.followUps.complete(id, { notes, nextDate }).catch((err) => console.warn('Failed to complete follow-up:', err));
   };
 
   const addSiteVisit = (visitData: Omit<SiteVisit, 'id' | 'visitNo'>): SiteVisit => {
@@ -2374,21 +2873,145 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       id: visitNo,
       visitNo,
     };
-    setSiteVisits((prev) => [newVisit, ...prev]);
+    setSiteVisits((prev) => {
+      const updated = [newVisit, ...prev.filter((v) => v.id !== visitNo && v.visitNo !== visitNo)];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_siteVisits', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'CRM', 'Visits', visitNo, `Logged site visit to ${newVisit.customerName}`);
-    api.post('/visits/', newVisit).then((res) => { if (res && res.id) setSiteVisits((prev) => prev.map((v) => v.id === visitNo ? { ...v, ...res } : v)); }).catch((err) => console.warn('Failed to sync visit:', err));
+    api.crm.siteVisits.create(newVisit).then((res) => {
+      if (res && (res.id || res.visit_no || res.visitNo)) {
+        const normalized: SiteVisit = {
+          id: String(res.id || res.visit_no || res.visitNo || visitNo),
+          visitNo: res.visitNo || res.visit_no || visitNo,
+          customerId: res.customerId || res.customer_id || newVisit.customerId,
+          customerName: res.customerName || res.customer_name || newVisit.customerName,
+          contactPerson: res.contactPerson || res.contact_person || newVisit.contactPerson,
+          contactMobile: res.contactMobile || res.contact_mobile || newVisit.contactMobile,
+          visitDate: res.visitDate || res.visit_date || newVisit.visitDate,
+          location: res.location || newVisit.location,
+          employeeId: res.employeeId || res.employee_id || newVisit.employeeId,
+          employeeName: res.employeeName || res.employee_name || newVisit.employeeName,
+          purpose: res.purpose || newVisit.purpose,
+          discussionNotes: res.discussionNotes || res.discussion_notes || res.discussionSummary || newVisit.discussionNotes,
+          requirementDetails: res.requirementDetails || res.requirement_details || newVisit.requirementDetails,
+          outcome: res.outcome || newVisit.outcome,
+          nextAction: res.nextAction || res.next_action || newVisit.nextAction,
+          nextFollowUpDate: res.nextFollowUpDate || res.next_follow_up_date || newVisit.nextFollowUpDate,
+        };
+        setSiteVisits((prev) => {
+          const updated = prev.map((v) => (v.id === visitNo || v.visitNo === visitNo ? normalized : v));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_siteVisits', JSON.stringify(updated)); } catch (_) {}
+          }
+          return updated;
+        });
+      }
+    }).catch((err) => console.warn('Failed to sync visit:', err));
     return newVisit;
   };
 
+  const updateSiteVisit = (id: string, visitData: Partial<SiteVisit>) => {
+    setSiteVisits((prev) => {
+      const updated = prev.map((v) => (v.id === id || v.visitNo === id ? { ...v, ...visitData } : v));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_siteVisits', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('UPDATE', 'CRM', 'Visits', id, `Updated site visit record ${id}`);
+    api.crm.siteVisits.update(id, visitData).catch((err) => console.warn('Failed to update visit via API:', err));
+  };
+
+  const deleteSiteVisit = (id: string) => {
+    setSiteVisits((prev) => {
+      const updated = prev.filter((v) => v.id !== id && v.visitNo !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_siteVisits', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'CRM', 'Visits', id, `Deleted site visit record ${id}`);
+    api.crm.siteVisits.delete(id).catch((err) => console.warn('Failed to delete visit via API:', err));
+  };
+
   const addExhibition = (expoData: Omit<Exhibition, 'id'>): Exhibition => {
+    let maxNum = 0;
+    exhibitions.forEach((e) => {
+      if (e.id && e.id.startsWith('EXPO-2026-')) {
+        const num = parseInt(e.id.replace('EXPO-2026-', ''), 10);
+        if (!isNaN(num) && num > maxNum) maxNum = num;
+      }
+    });
+    const newId = `EXPO-2026-${String(maxNum + 1).padStart(2, '0')}`;
     const newExpo: Exhibition = {
       ...expoData,
-      id: `EXPO-2026-${String(exhibitions.length + 1).padStart(2, '0')}`,
+      id: newId,
     };
-    setExhibitions((prev) => [...prev, newExpo]);
-    logAction('CREATE', 'CRM', 'Exhibitions', newExpo.id, `Created exhibition entry ${newExpo.expoName}`);
-    api.post('/exhibitions/', newExpo).catch((err) => console.warn('Failed to sync exhibition:', err));
+    setExhibitions((prev) => {
+      const updated = [newExpo, ...prev.filter((e) => e.id !== newId)];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_exhibitions', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('CREATE', 'CRM', 'Exhibitions', newId, `Registered Exhibition ${newExpo.expoName}`);
+    api.crm.exhibitions.create(newExpo).then((res) => {
+      if (res && res.id) {
+        const normalized: Exhibition = {
+          id: String(res.id || newId),
+          expoName: res.expoName || res.expo_name || newExpo.expoName,
+          organizer: res.organizer || newExpo.organizer,
+          location: res.location || newExpo.location,
+          startDate: res.startDate || res.start_date || newExpo.startDate,
+          endDate: res.endDate || res.end_date || newExpo.endDate,
+          stallNumber: res.stallNumber || res.stall_number || newExpo.stallNumber,
+          contactPerson: res.contactPerson || res.contact_person || newExpo.contactPerson,
+          budget: Number(res.budget) || newExpo.budget,
+          assignedTeam: Array.isArray(res.assignedTeam) ? res.assignedTeam : (Array.isArray(res.assigned_team) ? res.assigned_team : newExpo.assignedTeam),
+          productsDisplayed: res.productsDisplayed || res.products_displayed || newExpo.productsDisplayed,
+          notes: res.notes || newExpo.notes,
+          totalContacts: Number(res.totalContacts) || Number(res.total_contacts) || newExpo.totalContacts,
+          qualifiedLeads: Number(res.qualifiedLeads) || Number(res.qualified_leads) || newExpo.qualifiedLeads,
+          quotationsSent: Number(res.quotationsSent) || Number(res.quotations_sent) || newExpo.quotationsSent,
+          convertedCustomers: Number(res.convertedCustomers) || Number(res.converted_customers) || newExpo.convertedCustomers,
+        };
+        setExhibitions((prev) => {
+          const updated = prev.map((e) => (e.id === newId ? normalized : e));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_exhibitions', JSON.stringify(updated)); } catch (_) {}
+          }
+          return updated;
+        });
+      }
+    }).catch((err) => console.warn('Failed to sync exhibition:', err));
     return newExpo;
+  };
+
+  const updateExhibition = (id: string, expoData: Partial<Exhibition>) => {
+    setExhibitions((prev) => {
+      const updated = prev.map((e) => (e.id === id ? { ...e, ...expoData } : e));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_exhibitions', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('UPDATE', 'CRM', 'Exhibitions', id, `Updated exhibition record ${id}`);
+    api.crm.exhibitions.update(id, expoData).catch((err) => console.warn('Failed to update exhibition via API:', err));
+  };
+
+  const deleteExhibition = (id: string) => {
+    setExhibitions((prev) => {
+      const updated = prev.filter((e) => e.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_exhibitions', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'CRM', 'Exhibitions', id, `Deleted exhibition record ${id}`);
+    api.crm.exhibitions.delete(id).catch((err) => console.warn('Failed to delete exhibition via API:', err));
   };
 
   // Quotations & Multi-Revision Engine
@@ -2738,14 +3361,20 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       id: `ACT-${Date.now()}`,
       projectId,
       jobNumber,
-      userName: `${currentUser.firstName} ${currentUser.lastName}`,
-      userRole: currentUser.roleName,
+      userName: `${currentUser.firstName || 'Bhavin'} ${currentUser.lastName || 'Shah'}`.trim() || 'Admin User',
+      userRole: currentUser.roleName || 'Project Manager',
       date: now.toISOString().split('T')[0],
       time: now.toTimeString().split(' ')[0].slice(0, 5),
       action,
       details,
     };
-    setProjectActivities((prev) => [newAct, ...prev]);
+    setProjectActivities((prev) => {
+      const updated = [newAct, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_projectActivities', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
   };
 
   const addProjectTask = (taskData: Omit<ProjectTask, 'id' | 'taskNumber'>): ProjectTask => {
@@ -2964,8 +3593,17 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       ...data,
       id: `DA-${Date.now()}`,
     };
-    setDepartmentAssignments((prev) => [newDA, ...prev]);
+    setDepartmentAssignments((prev) => {
+      const updated = [newDA, ...prev.filter((d) => d.id !== newDA.id)];
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('UMA_ERP_departmentAssignments', JSON.stringify(updated));
+        } catch (_) {}
+      }
+      return updated;
+    });
     logProjectActivity(data.projectId, data.jobNumber, 'Department Assigned', `Assigned ${data.department} dept (Manager: ${data.manager})`);
+    api.post('/department-assignments/', newDA).catch((err) => console.warn('Failed to sync department assignment:', err));
     return newDA;
   };
 
@@ -2994,7 +3632,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       issueNo: issNo,
       reportedDate: new Date().toISOString().split('T')[0],
     };
-    setProjectIssues((prev) => [newIssue, ...prev]);
+    setProjectIssues((prev) => {
+      const updated = [newIssue, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_projectIssues', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logProjectActivity(data.projectId, data.jobNumber, 'Issue Reported', `${data.issueType}: ${data.description}`);
     sendNotification({
       title: 'Project Issue Logged',
@@ -3009,9 +3653,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const resolveProjectIssue = (id: string, resolution: string) => {
-    setProjectIssues((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, resolution, status: 'resolved' } : i))
-    );
+    setProjectIssues((prev) => {
+      const updated = prev.map((i) => (i.id === id ? { ...i, resolution, status: 'resolved' as const } : i));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_projectIssues', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
   };
 
   const addProjectDelay = (data: Omit<ProjectDelay, 'id' | 'delayNo'>): ProjectDelay => {
@@ -3021,7 +3669,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       id: delNo,
       delayNo: delNo,
     };
-    setProjectDelays((prev) => [newDelay, ...prev]);
+    setProjectDelays((prev) => {
+      const updated = [newDelay, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_projectDelays', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
 
     // Also update project expected delivery date
     setProjectJobs((prev) =>
@@ -3042,7 +3696,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       requestDate: new Date().toISOString().split('T')[0],
       approvalStatus: 'requested',
     };
-    setChangeRequests((prev) => [newCR, ...prev]);
+    setChangeRequests((prev) => {
+      const updated = [newCR, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_changeRequests', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logProjectActivity(data.projectId, data.jobNumber, 'Customer Change Requested', `CR ${crNo} submitted by ${data.requestedBy}`);
     sendNotification({
       title: 'Customer Change Request Received',
@@ -3052,22 +3712,41 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       linkUrl: '/projects/change-requests',
       priority: 'high',
     });
+    api.post('/projects/change-requests/', newCR).catch((err) => console.warn('Failed to add change request on backend:', err));
     return newCR;
   };
 
   const approveChangeRequest = (id: string, status: 'approved' | 'rejected') => {
-    setChangeRequests((prev) =>
-      prev.map((cr) =>
+    const approver = `${currentUser.firstName || 'Bhavin'} ${currentUser.lastName || 'Shah'}`.trim() || 'Admin User';
+    const appDate = new Date().toISOString().split('T')[0];
+    setChangeRequests((prev) => {
+      const updated = prev.map((cr) =>
         cr.id === id
           ? {
               ...cr,
-              approvalStatus: status === 'approved' ? 'approved' : 'rejected',
-              approvedBy: `${currentUser.firstName} ${currentUser.lastName}`,
-              approvedDate: new Date().toISOString().split('T')[0],
+              approvalStatus: status === 'approved' ? 'approved' as const : 'rejected' as const,
+              approvedBy: approver,
+              approvedDate: appDate,
             }
           : cr
-      )
-    );
+      );
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_changeRequests', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
+    const target = changeRequests.find((cr) => cr.id === id);
+    if (target) {
+      logProjectActivity(target.projectId, target.jobNumber, `Change Request ${status.toUpperCase()}`, `CR ${target.changeRequestNo} ${status} by ${approver}`);
+    }
+
+    api.patch(`/projects/change-requests/${id}/`, {
+      approval_status: status === 'approved' ? 'approved' : 'rejected',
+      status: status === 'approved' ? 'approved' : 'rejected',
+      approved_by: approver,
+      approved_date: appDate,
+    }).catch((err) => console.warn('Failed to update change request status on backend:', err));
   };
 
   const addProjectDocument = (data: Omit<ProjectDocument, 'id' | 'uploadDate'>): ProjectDocument => {
@@ -3140,7 +3819,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       id,
       createdDate: new Date().toISOString().split('T')[0],
     };
-    setDesignJobs((prev) => [newJob, ...prev]);
+    setDesignJobs((prev) => {
+      const updated = [newJob, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_designJobs', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Designer', 'Design Jobs', id, `Created design job ${newJob.designJobNumber} for project ${data.projectId}`);
     const jobPayload = {
       ...newJob,
@@ -3149,13 +3834,25 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     api.designer.jobs.create(jobPayload).then((res) => {
       if (res && res.id) {
-        setDesignJobs((prev) => prev.map((j) => (j.id === id ? { ...j, ...res } : j)));
+        setDesignJobs((prev) => {
+          const synced = prev.map((j) => (j.id === id ? { ...j, ...res } : j));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_designJobs', JSON.stringify(synced)); } catch (_) {}
+          }
+          return synced;
+        });
       }
     }).catch((err) => console.warn('Failed to sync design job to backend:', err));
   };
 
   const updateDesignJob = (id: string, updates: Partial<DesignJob>) => {
-    setDesignJobs((prev) => prev.map((j) => (j.id === id ? { ...j, ...updates } : j)));
+    setDesignJobs((prev) => {
+      const updated = prev.map((j) => (j.id === id ? { ...j, ...updates } : j));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_designJobs', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'Designer', 'Design Jobs', id, `Updated design job ${id}`);
     api.designer.jobs.update(id, updates).catch((err) => console.warn('Failed to update design job on backend:', err));
   };
@@ -3163,24 +3860,44 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addCustomerRequirement = (data: Omit<CustomerRequirement, 'id'>) => {
     const id = `REQ-${new Date().getFullYear()}-${String(customerRequirements.length + 1).padStart(3, '0')}`;
     const newReq: CustomerRequirement = { ...data, id };
-    setCustomerRequirements((prev) => [newReq, ...prev]);
+    setCustomerRequirements((prev) => {
+      const updated = [newReq, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_customerRequirements', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Designer', 'Customer Requirements', id, `Added technical requirement sheet for ${data.jobNumber}`);
-    api.post('/customer-requirements/', newReq).catch((err) => console.warn('Failed to add customer requirement:', err));
+    api.post('/customer-requirements/', newReq).then((res: any) => {
+      if (res && res.id) {
+        setCustomerRequirements((prev) => {
+          const synced = prev.map((r) => (r.id === id ? { ...r, ...res } : r));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_customerRequirements', JSON.stringify(synced)); } catch (_) {}
+          }
+          return synced;
+        });
+      }
+    }).catch((err) => console.warn('Failed to add customer requirement:', err));
   };
 
   const approveCustomerRequirement = (id: string, approvedBy: string) => {
-    setCustomerRequirements((prev) =>
-      prev.map((r) =>
+    setCustomerRequirements((prev) => {
+      const updated = prev.map((r) =>
         r.id === id
           ? {
               ...r,
-              status: 'approved',
+              status: 'approved' as CustomerRequirement['status'],
               approvedBy,
               approvalDate: new Date().toISOString().split('T')[0],
             }
           : r
-      )
-    );
+      );
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_customerRequirements', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('APPROVE', 'Designer', 'Customer Requirements', id, `Approved technical requirement sheet by ${approvedBy}`);
     api.patch(`/customer-requirements/${id}/`, { status: 'approved', approvedBy }).catch((err) => console.warn('Failed to approve requirement:', err));
   };
@@ -3188,28 +3905,76 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addDesignTask = (data: Omit<DesignTask, 'id'>) => {
     const id = `DTASK-${Date.now().toString().slice(-5)}`;
     const newTask: DesignTask = { ...data, id };
-    setDesignTasks((prev) => [newTask, ...prev]);
+    setDesignTasks((prev) => {
+      const updated = [newTask, ...prev];
+      try { localStorage.setItem('UMA_ERP_designTasks', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
     logAction('CREATE', 'Designer', 'Design Tasks', id, `Created design task ${data.taskName}`);
+    api.post('/tasks/', newTask)
+      .then((res) => {
+        if (res.data?.id) {
+          setDesignTasks((prev) => {
+            const synced = prev.map((t) => (t.id === id ? { ...t, ...res.data } : t));
+            try { localStorage.setItem('UMA_ERP_designTasks', JSON.stringify(synced)); } catch (_) {}
+            return synced;
+          });
+        }
+      })
+      .catch((err) => console.warn('Failed to add design task to backend:', err));
   };
 
   const updateDesignTask = (id: string, updates: Partial<DesignTask>) => {
-    setDesignTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...updates } : t)));
+    setDesignTasks((prev) => {
+      const updated = prev.map((t) => (t.id === id ? { ...t, ...updates } : t));
+      try { localStorage.setItem('UMA_ERP_designTasks', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
+    api.patch(`/tasks/${id}/`, updates).catch((err) => console.warn('Failed to update design task:', err));
   };
 
   const addDrawing2D = (data: Omit<Drawing2D, 'id' | 'createdDate'>) => {
     const id = `DRW2D-${Date.now().toString().slice(-5)}`;
     const newDrw: Drawing2D = { ...data, id, createdDate: new Date().toISOString().split('T')[0] };
-    setDrawings2D((prev) => [newDrw, ...prev]);
+    setDrawings2D((prev) => {
+      const updated = [newDrw, ...prev];
+      try { localStorage.setItem('UMA_ERP_drawings2D', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
     logAction('CREATE', 'Designer', '2D Drawings', id, `Uploaded 2D Drawing ${data.drawingNumber}`);
-    api.post('/drawings-2d/', newDrw).catch((err) => console.warn('Failed to add 2D drawing:', err));
+    api.post('/drawings-2d/', newDrw)
+      .then((res) => {
+        if (res.data?.id) {
+          setDrawings2D((prev) => {
+            const synced = prev.map((d) => (d.id === id ? { ...d, ...res.data } : d));
+            try { localStorage.setItem('UMA_ERP_drawings2D', JSON.stringify(synced)); } catch (_) {}
+            return synced;
+          });
+        }
+      })
+      .catch((err) => console.warn('Failed to add 2D drawing to backend:', err));
   };
 
   const addDesign3D = (data: Omit<Design3DModel, 'id' | 'uploadedDate'>) => {
     const id = `MOD3D-${Date.now().toString().slice(-5)}`;
     const newMod: Design3DModel = { ...data, id, uploadedDate: new Date().toISOString().split('T')[0] };
-    setDesigns3D((prev) => [newMod, ...prev]);
+    setDesigns3D((prev) => {
+      const updated = [newMod, ...prev];
+      try { localStorage.setItem('UMA_ERP_designs3D', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
     logAction('CREATE', 'Designer', '3D Models', id, `Uploaded 3D Model ${data.modelName}`);
-    api.post('/models-3d/', newMod).catch((err) => console.warn('Failed to add 3D model:', err));
+    api.post('/models-3d/', newMod)
+      .then((res) => {
+        if (res.data?.id) {
+          setDesigns3D((prev) => {
+            const synced = prev.map((m) => (m.id === id ? { ...m, ...res.data } : m));
+            try { localStorage.setItem('UMA_ERP_designs3D', JSON.stringify(synced)); } catch (_) {}
+            return synced;
+          });
+        }
+      })
+      .catch((err) => console.warn('Failed to add 3D model to backend:', err));
   };
 
   const addAssemblyDrawing = (data: Omit<AssemblyDrawing, 'id'>) => {
@@ -3993,11 +4758,43 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const markNotificationRead = (id: string) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+    setNotifications((prev) => {
+      const updated = prev.map((n) => (n.id === id ? { ...n, isRead: true } : n));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_notifications', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    api.post(`/notifications/${id}/mark-read/`).catch(() => {});
   };
 
   const markAllNotificationsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    setNotifications((prev) => {
+      const updated = prev.map((n) => ({ ...n, isRead: true }));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_notifications', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    api.post('/notifications/mark-all-read/').catch(() => {});
+  };
+
+  const deleteNotification = (id: string) => {
+    setNotifications((prev) => {
+      const updated = prev.filter((n) => n.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_notifications', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    api.delete(`/notifications/${id}/`).catch(() => {});
+  };
+
+  const clearAllNotifications = () => {
+    setNotifications([]);
+    if (typeof window !== 'undefined') {
+      try { localStorage.setItem('UMA_ERP_notifications', JSON.stringify([])); } catch (_) {}
+    }
   };
 
   // Module 7 Handlers
@@ -5441,7 +6238,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       value={{
         currentUser,
         setCurrentUser,
-        availableEmployees: employees && employees.length > 0 ? employees : INITIAL_EMPLOYEES,
+        availableEmployees: deduplicateEmployees(employees && employees.length > 0 ? employees : INITIAL_EMPLOYEES),
         isAuthenticated,
         login,
         logout,
@@ -5459,6 +6256,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         updateCompany,
         numbering,
         updateNumbering,
+        addNumbering,
+        resetNumbering,
         getNextDocNumber,
         departments,
         addDepartment,
@@ -5494,8 +6293,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         completeFollowUp,
         siteVisits,
         addSiteVisit,
+        updateSiteVisit,
+        deleteSiteVisit,
         exhibitions,
         addExhibition,
+        updateExhibition,
+        deleteExhibition,
         quotations,
         addQuotation,
         addQuotationRevision,
@@ -5898,6 +6701,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         notifications,
         markNotificationRead,
         markAllNotificationsRead,
+        deleteNotification,
+        clearAllNotifications,
         sendNotification,
 
         testCases,

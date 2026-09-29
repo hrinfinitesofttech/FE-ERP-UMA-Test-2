@@ -31,7 +31,6 @@ export default function CustomerRequirementsPage() {
   const [selectedReq, setSelectedReq] = useState<CustomerRequirement | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Form State
   const [selectedDesignJobId, setSelectedDesignJobId] = useState('');
   const [contactPerson, setContactPerson] = useState('');
   const [contactMobile, setContactMobile] = useState('');
@@ -45,6 +44,29 @@ export default function CustomerRequirementsPage() {
   const [controlSystem, setControlSystem] = useState('Siemens S7-1200 PLC + HMI');
   const [safetyRequirements, setSafetyRequirements] = useState('Flameproof Motors & Emergency Stop Switches');
   const [specialRequirements, setSpecialRequirements] = useState('');
+
+  // Close modals with ESC key
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (isModalOpen) closeCreateModal();
+        if (selectedReq) setSelectedReq(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isModalOpen, selectedReq]);
+
+  const closeCreateModal = () => {
+    setIsModalOpen(false);
+    setSelectedDesignJobId('');
+    setContactPerson('');
+    setContactMobile('');
+    setCapacity('');
+    setApplication('');
+    setDimensions('');
+    setSpecialRequirements('');
+  };
 
   const filteredReqs = customerRequirements.filter((r) => {
     return (
@@ -204,14 +226,24 @@ export default function CustomerRequirementsPage() {
 
       {/* Modal: Add Requirement Sheet */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl space-y-4 p-6">
+        <div
+          onClick={closeCreateModal}
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl space-y-4 p-6"
+          >
             <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
               <h3 className="text-base font-extrabold text-[#211B17] flex items-center gap-2">
                 <FileText className="w-5 h-5 text-amber-400" />
                 Add Customer Technical Requirement Sheet
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-[#70665F] hover:text-[#211B17]">
+              <button
+                type="button"
+                onClick={closeCreateModal}
+                className="text-[#70665F] hover:text-[#211B17] cursor-pointer"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -317,14 +349,14 @@ export default function CustomerRequirementsPage() {
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#EBE3DB]">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-white text-[#544B45] font-bold"
+                  onClick={closeCreateModal}
+                  className="px-4 py-2 rounded-xl bg-white text-[#544B45] font-bold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-[#211B17] font-bold"
+                  className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-[#211B17] font-bold cursor-pointer"
                 >
                   Save Spec Sheet
                 </button>
@@ -336,14 +368,24 @@ export default function CustomerRequirementsPage() {
 
       {/* View Full Spec Modal */}
       {selectedReq && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl space-y-4 p-6 text-xs max-h-[85vh] overflow-y-auto">
+        <div
+          onClick={() => setSelectedReq(null)}
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl space-y-4 p-6 text-xs max-h-[85vh] overflow-y-auto"
+          >
             <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
               <div>
                 <span className="font-mono font-bold text-amber-400 text-sm">{selectedReq.id}</span>
                 <h3 className="text-base font-extrabold text-[#211B17] mt-0.5">{selectedReq.machineName}</h3>
               </div>
-              <button onClick={() => setSelectedReq(null)} className="text-[#70665F] hover:text-[#211B17]">
+              <button
+                type="button"
+                onClick={() => setSelectedReq(null)}
+                className="text-[#70665F] hover:text-[#211B17] cursor-pointer"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -387,8 +429,9 @@ export default function CustomerRequirementsPage() {
 
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#EBE3DB]">
               <button
+                type="button"
                 onClick={() => setSelectedReq(null)}
-                className="px-4 py-2 rounded-xl bg-white text-[#544B45] font-bold"
+                className="px-4 py-2 rounded-xl bg-white text-[#544B45] font-bold cursor-pointer"
               >
                 Close
               </button>

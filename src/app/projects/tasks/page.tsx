@@ -7,7 +7,7 @@ import { ProjectTask } from '../../../types/crm';
 import { CheckSquare, Plus, Search, Filter, AlertTriangle, ArrowRight, X, Clock, CheckCircle2 } from 'lucide-react';
 
 export default function TasksPage() {
-  const { projectTasks, addProjectTask, updateProjectTask, deleteProjectTask, projectJobs, can } = useERP();
+  const { projectTasks, addProjectTask, updateProjectTask, deleteProjectTask, projectJobs, availableEmployees = [], can } = useERP();
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,7 +20,11 @@ export default function TasksPage() {
   const [taskName, setTaskName] = useState('');
   const [description, setDescription] = useState('');
   const [department, setDepartment] = useState('production');
-  const [assignedTo, setAssignedTo] = useState('Bhavin Shah');
+  const [assignedTo, setAssignedTo] = useState(
+    availableEmployees[0]
+      ? `${availableEmployees[0].firstName || ''} ${availableEmployees[0].lastName || ''}`.trim() || availableEmployees[0].name || 'Bhavin Shah'
+      : 'Bhavin Shah'
+  );
   const [priority, setPriority] = useState<'low' | 'medium' | 'high' | 'urgent'>('high');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [dueDate, setDueDate] = useState('');
@@ -296,13 +300,31 @@ export default function TasksPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Assigned To</label>
-                  <input
-                    type="text"
+                  <label className="block text-xs font-bold text-slate-700 dark:text-[#544B45] mb-1">Assigned To (Employee) *</label>
+                  <select
+                    required
                     value={assignedTo}
                     onChange={(e) => setAssignedTo(e.target.value)}
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold"
-                  />
+                  >
+                    {availableEmployees.map((emp) => {
+                      const empName = `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || emp.name || emp.id;
+                      const empDept = emp.department || emp.departmentName || 'Staff';
+                      return (
+                        <option key={emp.id} value={empName}>
+                          {empName} ({empDept})
+                        </option>
+                      );
+                    })}
+                    {availableEmployees.length === 0 && (
+                      <>
+                        <option value="Bhavin Shah">Bhavin Shah (Production)</option>
+                        <option value="Dharmesh Joshi">Dharmesh Joshi (Design)</option>
+                        <option value="Pravin Patel">Pravin Patel (CRM)</option>
+                        <option value="Ketan Patel">Ketan Patel (QA)</option>
+                      </>
+                    )}
+                  </select>
                 </div>
               </div>
 

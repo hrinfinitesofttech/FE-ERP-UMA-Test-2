@@ -16,6 +16,9 @@ import {
   Calendar,
   DollarSign,
   Layers,
+  Mail,
+  Smartphone,
+  Hash,
 } from 'lucide-react';
 import { LeadSource, LeadStatus, PriorityLevel } from '../../../../types/crm';
 
@@ -37,6 +40,11 @@ export default function NewLeadPage() {
   );
 
   const defaultSalesPersonId = salesEngineers[0]?.id || allEmployees[0]?.id || 'EMP-003';
+
+  // Current today date in YYYY-MM-DD
+  const todayStr = new Date().toISOString().split('T')[0];
+  const defaultFollowUp = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const defaultDelivery = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
   const [formData, setFormData] = useState({
     // 1. Company
@@ -65,7 +73,7 @@ export default function NewLeadPage() {
     capacity: '',
     application: '',
     requirementDescription: '',
-    expectedDelivery: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    expectedDelivery: defaultDelivery,
     budget: '' as number | string,
     priority: 'high' as PriorityLevel,
 
@@ -73,7 +81,7 @@ export default function NewLeadPage() {
     source: 'exhibition' as LeadSource,
     assignedSalesPersonId: defaultSalesPersonId,
     status: 'new' as LeadStatus,
-    nextFollowUpDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    nextFollowUpDate: defaultFollowUp,
     remarks: '',
   });
 
@@ -81,100 +89,120 @@ export default function NewLeadPage() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
 
-  // Field Level Validation
-  const validate = () => {
+  // Email regex for valid standard emails (e.g. user@domain.com)
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  // GSTIN 15-character format
+  const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
+  // Validate single field
+  const validateField = (name: string, value: any): string => {
+    switch (name) {
+      case 'companyName':
+        if (!value || value.trim().length < 2) return 'Company name is required (at least 2 characters).';
+        return '';
+      case 'city':
+        if (!value || value.trim().length < 2) return 'City & State is required.';
+        return '';
+      case 'gstin':
+        if (value && value.trim()) {
+          if (!gstinRegex.test(value.trim().toUpperCase())) {
+            return 'Invalid GSTIN (Must be 15 chars, e.g. 24AAACX0000X1Z1).';
+          }
+        }
+        return '';
+      case 'website':
+        if (value && value.trim()) {
+          const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/i;
+          if (!urlPattern.test(value.trim())) return 'Invalid URL (e.g. https://example.com).';
+        }
+        return '';
+      case 'contactPerson':
+        if (!value || value.trim().length < 2) return 'Contact person name is required (at least 2 characters).';
+        return '';
+      case 'mobile': {
+        if (!value || value.trim() === '') return 'Mobile contact number is required.';
+        const clean = value.replace(/\D/g, '');
+        if (clean.length !== 10) return 'Mobile number must be exactly 10 digits (digits only).';
+        return '';
+      }
+      case 'email':
+        if (!value || value.trim() === '') return 'Email address is required.';
+        if (!emailRegex.test(value.trim())) return 'Invalid email format (Must contain "@" and domain, e.g. name@company.com).';
+        return '';
+      case 'whatsapp':
+        if (value && value.trim()) {
+          const clean = value.replace(/\D/g, '');
+          if (clean.length !== 10) return 'WhatsApp number must be 10 digits.';
+        }
+        return '';
+      case 'productName':
+        if (!value || value.trim().length < 3) return 'Product / Machine title is required (at least 3 characters).';
+        return '';
+      case 'quantity':
+        if (value === '' || Number(value) < 1) return 'Quantity must be at least 1.';
+        return '';
+      case 'expectedDelivery':
+        if (!value || value.trim() === '') return 'Target delivery date is required.';
+        if (value < todayStr) return 'Target delivery date cannot be in the past.';
+        return '';
+      case 'nextFollowUpDate':
+        if (!value || value.trim() === '') return 'Follow-up date is required.';
+        if (value < todayStr) return 'Follow-up date cannot be in the past (Must be today or future).';
+        return '';
+      case 'budget':
+        if (value !== '' && Number(value) < 0) return 'Estimated budget cannot be negative.';
+        return '';
+      case 'assignedSalesPersonId':
+        if (!value) return 'Please assign a sales engineer.';
+        return '';
+      default:
+        return '';
+    }
+  };
+
+  // Full validation
+  const validateAll = () => {
     const errs: Record<string, string> = {};
-
-    // 1. Company validations
-    if (!formData.companyName || formData.companyName.trim().length < 2) {
-      errs.companyName = 'Company name is required (at least 2 characters).';
-    }
-
-    if (formData.gstin && formData.gstin.trim()) {
-      const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-      if (!gstinRegex.test(formData.gstin.trim().toUpperCase())) {
-        errs.gstin = 'Invalid GSTIN format. E.g. 24AAACX0000X1Z1 (15 characters).';
-      }
-    }
-
-    if (formData.website && formData.website.trim()) {
-      const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
-      if (!urlPattern.test(formData.website.trim())) {
-        errs.website = 'Invalid website URL format (e.g. https://example.com).';
-      }
-    }
-
-    if (!formData.city || formData.city.trim().length < 2) {
-      errs.city = 'City & State is required.';
-    }
-
-    // 2. Contact validations
-    if (!formData.contactPerson || formData.contactPerson.trim().length < 2) {
-      errs.contactPerson = 'Contact person name is required (at least 2 characters).';
-    }
-
-    if (!formData.mobile || formData.mobile.trim() === '') {
-      errs.mobile = 'Mobile contact number is required.';
-    } else {
-      const cleanMobile = formData.mobile.replace(/[\s+-]/g, '');
-      if (cleanMobile.length < 10 || cleanMobile.length > 15 || !/^\d+$/.test(cleanMobile)) {
-        errs.mobile = 'Please enter a valid 10-digit mobile number.';
-      }
-    }
-
-    if (!formData.email || formData.email.trim() === '') {
-      errs.email = 'Email address is required.';
-    } else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email.trim())) {
-        errs.email = 'Please enter a valid email address (e.g. contact@company.com).';
-      }
-    }
-
-    if (formData.whatsapp && formData.whatsapp.trim()) {
-      const cleanWa = formData.whatsapp.replace(/[\s+-]/g, '');
-      if (cleanWa.length < 10 || cleanWa.length > 15 || !/^\d+$/.test(cleanWa)) {
-        errs.whatsapp = 'Please enter a valid WhatsApp number (10-15 digits).';
-      }
-    }
-
-    // 3. Requirement validations
-    if (!formData.productName || formData.productName.trim().length < 3) {
-      errs.productName = 'Product / Machine title is required (at least 3 characters).';
-    }
-
-    if (formData.quantity === '' || Number(formData.quantity) < 1) {
-      errs.quantity = 'Quantity must be at least 1.';
-    }
-
-    if (formData.budget !== '' && Number(formData.budget) < 0) {
-      errs.budget = 'Estimated budget cannot be negative.';
-    }
-
-    if (!formData.expectedDelivery || formData.expectedDelivery.trim() === '') {
-      errs.expectedDelivery = 'Target delivery date is required.';
-    }
-
-    // 4. Sales Person
-    if (!formData.assignedSalesPersonId) {
-      errs.assignedSalesPersonId = 'Please assign a sales engineer.';
-    }
-
+    Object.keys(formData).forEach((key) => {
+      const err = validateField(key, (formData as any)[key]);
+      if (err) errs[key] = err;
+    });
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
+  const handleInputChange = (field: string, rawVal: any) => {
+    let sanitizedVal = rawVal;
+
+    // Mobile & WhatsApp: strictly allow digits only, max 10 chars
+    if (field === 'mobile' || field === 'whatsapp' || field === 'altMobile') {
+      sanitizedVal = rawVal.replace(/\D/g, '').slice(0, 10);
+    }
+    // GSTIN: uppercase alphanumeric only, max 15 chars
+    if (field === 'gstin') {
+      sanitizedVal = rawVal.toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, 15);
+    }
+
+    setFormData((prev) => ({ ...prev, [field]: sanitizedVal }));
+
+    // Instant validation on type if field was touched or submit was attempted
+    if (touched[field] || submitAttempted) {
+      const err = validateField(field, sanitizedVal);
+      setErrors((prev) => ({ ...prev, [field]: err }));
+    }
+  };
+
   const handleBlur = (field: string) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
-    validate();
+    const err = validateField(field, (formData as any)[field]);
+    setErrors((prev) => ({ ...prev, [field]: err }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitAttempted(true);
 
-    if (!validate()) {
-      // Scroll to the first error
+    if (!validateAll()) {
       const firstErrorField = document.querySelector('[data-invalid="true"]');
       if (firstErrorField) {
         firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -226,15 +254,19 @@ export default function NewLeadPage() {
         </div>
 
         {/* Global Validation Warning Banner */}
-        {submitAttempted && Object.keys(errors).length > 0 && (
+        {submitAttempted && Object.values(errors).some(Boolean) && (
           <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-start gap-2.5 animate-in fade-in duration-200">
             <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-rose-600" />
             <div>
-              <span className="font-bold block">Please fix the following {Object.keys(errors).length} errors before submitting:</span>
-              <ul className="list-disc list-inside mt-1 space-y-0.5 text-[11px] text-rose-600">
-                {Object.values(errors).map((err, i) => (
-                  <li key={i}>{err}</li>
-                ))}
+              <span className="font-bold block">
+                Please correct the following {Object.values(errors).filter(Boolean).length} validation errors:
+              </span>
+              <ul className="list-disc list-inside mt-1 space-y-0.5 text-[11px] text-rose-600 font-medium">
+                {Object.entries(errors)
+                  .filter(([_, msg]) => Boolean(msg))
+                  .map(([key, err], i) => (
+                    <li key={i}>{err}</li>
+                  ))}
               </ul>
             </div>
           </div>
@@ -257,10 +289,7 @@ export default function NewLeadPage() {
                 <input
                   type="text"
                   value={formData.companyName}
-                  onChange={(e) => {
-                    setFormData({ ...formData, companyName: e.target.value });
-                    if (errors.companyName) setErrors((prev) => ({ ...prev, companyName: '' }));
-                  }}
+                  onChange={(e) => handleInputChange('companyName', e.target.value)}
                   onBlur={() => handleBlur('companyName')}
                   placeholder="e.g. Industrial Enterprises Ltd."
                   className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
@@ -270,8 +299,8 @@ export default function NewLeadPage() {
                   } rounded-lg text-[#211B17] font-bold`}
                 />
                 {errors.companyName && (touched.companyName || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> {errors.companyName}
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.companyName}
                   </p>
                 )}
               </div>
@@ -280,7 +309,7 @@ export default function NewLeadPage() {
                 <input
                   type="text"
                   value={formData.industry}
-                  onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                  onChange={(e) => handleInputChange('industry', e.target.value)}
                   placeholder="e.g. Chemicals / Pharma / Heavy Engineering"
                   className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
                 />
@@ -289,14 +318,12 @@ export default function NewLeadPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div data-invalid={Boolean(errors.gstin && (touched.gstin || submitAttempted))}>
-                <label className="block text-[#544B45] font-semibold mb-1">GSTIN Number</label>
+                <label className="block text-[#544B45] font-semibold mb-1">GSTIN Number (15 digits)</label>
                 <input
                   type="text"
+                  maxLength={15}
                   value={formData.gstin}
-                  onChange={(e) => {
-                    setFormData({ ...formData, gstin: e.target.value.toUpperCase() });
-                    if (errors.gstin) setErrors((prev) => ({ ...prev, gstin: '' }));
-                  }}
+                  onChange={(e) => handleInputChange('gstin', e.target.value)}
                   onBlur={() => handleBlur('gstin')}
                   placeholder="24AAACX0000X1Z1"
                   className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
@@ -306,8 +333,8 @@ export default function NewLeadPage() {
                   } rounded-lg font-mono uppercase text-[#211B17]`}
                 />
                 {errors.gstin && (touched.gstin || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> {errors.gstin}
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.gstin}
                   </p>
                 )}
               </div>
@@ -316,10 +343,7 @@ export default function NewLeadPage() {
                 <input
                   type="url"
                   value={formData.website}
-                  onChange={(e) => {
-                    setFormData({ ...formData, website: e.target.value });
-                    if (errors.website) setErrors((prev) => ({ ...prev, website: '' }));
-                  }}
+                  onChange={(e) => handleInputChange('website', e.target.value)}
                   onBlur={() => handleBlur('website')}
                   placeholder="https://example.com"
                   className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
@@ -329,8 +353,8 @@ export default function NewLeadPage() {
                   } rounded-lg text-[#211B17]`}
                 />
                 {errors.website && (touched.website || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> {errors.website}
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.website}
                   </p>
                 )}
               </div>
@@ -341,10 +365,7 @@ export default function NewLeadPage() {
                 <input
                   type="text"
                   value={formData.city}
-                  onChange={(e) => {
-                    setFormData({ ...formData, city: e.target.value });
-                    if (errors.city) setErrors((prev) => ({ ...prev, city: '' }));
-                  }}
+                  onChange={(e) => handleInputChange('city', e.target.value)}
                   onBlur={() => handleBlur('city')}
                   placeholder="e.g. Vadodara, Gujarat"
                   className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
@@ -354,8 +375,8 @@ export default function NewLeadPage() {
                   } rounded-lg text-[#211B17]`}
                 />
                 {errors.city && (touched.city || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> {errors.city}
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.city}
                   </p>
                 )}
               </div>
@@ -378,10 +399,7 @@ export default function NewLeadPage() {
                 <input
                   type="text"
                   value={formData.contactPerson}
-                  onChange={(e) => {
-                    setFormData({ ...formData, contactPerson: e.target.value });
-                    if (errors.contactPerson) setErrors((prev) => ({ ...prev, contactPerson: '' }));
-                  }}
+                  onChange={(e) => handleInputChange('contactPerson', e.target.value)}
                   onBlur={() => handleBlur('contactPerson')}
                   placeholder="e.g. Harish Trivedi"
                   className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
@@ -391,8 +409,8 @@ export default function NewLeadPage() {
                   } rounded-lg text-[#211B17] font-semibold`}
                 />
                 {errors.contactPerson && (touched.contactPerson || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> {errors.contactPerson}
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.contactPerson}
                   </p>
                 )}
               </div>
@@ -401,33 +419,35 @@ export default function NewLeadPage() {
                 <input
                   type="text"
                   value={formData.designation}
-                  onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
+                  onChange={(e) => handleInputChange('designation', e.target.value)}
                   placeholder="e.g. Head of Capex / Purchase Manager"
                   className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
                 />
               </div>
               <div data-invalid={Boolean(errors.mobile && (touched.mobile || submitAttempted))}>
                 <label className="block text-[#544B45] font-semibold mb-1">
-                  Mobile Contact <span className="text-rose-500">*</span>
+                  Mobile Contact (10 digits) <span className="text-rose-500">*</span>
                 </label>
-                <input
-                  type="tel"
-                  value={formData.mobile}
-                  onChange={(e) => {
-                    setFormData({ ...formData, mobile: e.target.value });
-                    if (errors.mobile) setErrors((prev) => ({ ...prev, mobile: '' }));
-                  }}
-                  onBlur={() => handleBlur('mobile')}
-                  placeholder="+91 98250 XXXXX"
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
-                    errors.mobile && (touched.mobile || submitAttempted)
-                      ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
-                      : 'border-[#EBE3DB]'
-                  } rounded-lg text-[#211B17] font-mono`}
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-2 font-mono text-[#70665F] font-bold">+91</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={10}
+                    value={formData.mobile}
+                    onChange={(e) => handleInputChange('mobile', e.target.value)}
+                    onBlur={() => handleBlur('mobile')}
+                    placeholder="9825012345"
+                    className={`w-full pl-11 pr-3 py-2 bg-[#FAF7F2] border ${
+                      errors.mobile && (touched.mobile || submitAttempted)
+                        ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
+                        : 'border-[#EBE3DB]'
+                    } rounded-lg text-[#211B17] font-mono font-semibold tracking-wider`}
+                  />
+                </div>
                 {errors.mobile && (touched.mobile || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> {errors.mobile}
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.mobile}
                   </p>
                 )}
               </div>
@@ -438,47 +458,49 @@ export default function NewLeadPage() {
                 <label className="block text-[#544B45] font-semibold mb-1">
                   Email Address <span className="text-rose-500">*</span>
                 </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => {
-                    setFormData({ ...formData, email: e.target.value });
-                    if (errors.email) setErrors((prev) => ({ ...prev, email: '' }));
-                  }}
-                  onBlur={() => handleBlur('email')}
-                  placeholder="contact@company.com"
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
-                    errors.email && (touched.email || submitAttempted)
-                      ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
-                      : 'border-[#EBE3DB]'
-                  } rounded-lg text-[#211B17]`}
-                />
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-[#70665F] absolute left-3 top-2.5" />
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    onBlur={() => handleBlur('email')}
+                    placeholder="name@company.com"
+                    className={`w-full pl-9 pr-3 py-2 bg-[#FAF7F2] border ${
+                      errors.email && (touched.email || submitAttempted)
+                        ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
+                        : 'border-[#EBE3DB]'
+                    } rounded-lg text-[#211B17] font-medium`}
+                  />
+                </div>
                 {errors.email && (touched.email || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> {errors.email}
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.email}
                   </p>
                 )}
               </div>
               <div data-invalid={Boolean(errors.whatsapp && (touched.whatsapp || submitAttempted))}>
-                <label className="block text-[#544B45] font-semibold mb-1">WhatsApp Number</label>
-                <input
-                  type="tel"
-                  value={formData.whatsapp}
-                  onChange={(e) => {
-                    setFormData({ ...formData, whatsapp: e.target.value });
-                    if (errors.whatsapp) setErrors((prev) => ({ ...prev, whatsapp: '' }));
-                  }}
-                  onBlur={() => handleBlur('whatsapp')}
-                  placeholder="+91 98250 XXXXX"
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
-                    errors.whatsapp && (touched.whatsapp || submitAttempted)
-                      ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
-                      : 'border-[#EBE3DB]'
-                  } rounded-lg text-[#211B17] font-mono`}
-                />
+                <label className="block text-[#544B45] font-semibold mb-1">WhatsApp Number (10 digits)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2 font-mono text-[#70665F] font-bold">+91</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={10}
+                    value={formData.whatsapp}
+                    onChange={(e) => handleInputChange('whatsapp', e.target.value)}
+                    onBlur={() => handleBlur('whatsapp')}
+                    placeholder="9825012345"
+                    className={`w-full pl-11 pr-3 py-2 bg-[#FAF7F2] border ${
+                      errors.whatsapp && (touched.whatsapp || submitAttempted)
+                        ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
+                        : 'border-[#EBE3DB]'
+                    } rounded-lg text-[#211B17] font-mono font-semibold tracking-wider`}
+                  />
+                </div>
                 {errors.whatsapp && (touched.whatsapp || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> {errors.whatsapp}
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.whatsapp}
                   </p>
                 )}
               </div>
@@ -504,10 +526,7 @@ export default function NewLeadPage() {
                 <input
                   type="text"
                   value={formData.productName}
-                  onChange={(e) => {
-                    setFormData({ ...formData, productName: e.target.value });
-                    if (errors.productName) setErrors((prev) => ({ ...prev, productName: '' }));
-                  }}
+                  onChange={(e) => handleInputChange('productName', e.target.value)}
                   onBlur={() => handleBlur('productName')}
                   placeholder="e.g. 10 KL SS 316L Chemical Reactor Vessel with Limpet Jacket"
                   className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
@@ -517,8 +536,8 @@ export default function NewLeadPage() {
                   } rounded-lg font-bold text-[#211B17]`}
                 />
                 {errors.productName && (touched.productName || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> {errors.productName}
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.productName}
                   </p>
                 )}
               </div>
@@ -531,13 +550,7 @@ export default function NewLeadPage() {
                   min={1}
                   placeholder="1"
                   value={formData.quantity}
-                  onChange={(e) => {
-                    setFormData({
-                      ...formData,
-                      quantity: e.target.value === '' ? '' : Number(e.target.value),
-                    });
-                    if (errors.quantity) setErrors((prev) => ({ ...prev, quantity: '' }));
-                  }}
+                  onChange={(e) => handleInputChange('quantity', e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))}
                   onBlur={() => handleBlur('quantity')}
                   className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
                     errors.quantity && (touched.quantity || submitAttempted)
@@ -546,8 +559,8 @@ export default function NewLeadPage() {
                   } rounded-lg font-mono text-[#211B17]`}
                 />
                 {errors.quantity && (touched.quantity || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> {errors.quantity}
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.quantity}
                   </p>
                 )}
               </div>
@@ -559,7 +572,7 @@ export default function NewLeadPage() {
                 <input
                   type="text"
                   value={formData.capacity}
-                  onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                  onChange={(e) => handleInputChange('capacity', e.target.value)}
                   placeholder="e.g. 10,000 Litres / 150 Kg"
                   className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
                 />
@@ -570,21 +583,19 @@ export default function NewLeadPage() {
                 </label>
                 <input
                   type="date"
+                  min={todayStr}
                   value={formData.expectedDelivery}
-                  onChange={(e) => {
-                    setFormData({ ...formData, expectedDelivery: e.target.value });
-                    if (errors.expectedDelivery) setErrors((prev) => ({ ...prev, expectedDelivery: '' }));
-                  }}
+                  onChange={(e) => handleInputChange('expectedDelivery', e.target.value)}
                   onBlur={() => handleBlur('expectedDelivery')}
                   className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
                     errors.expectedDelivery && (touched.expectedDelivery || submitAttempted)
                       ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
                       : 'border-[#EBE3DB]'
-                  } rounded-lg text-[#211B17]`}
+                  } rounded-lg text-[#211B17] font-mono`}
                 />
                 {errors.expectedDelivery && (touched.expectedDelivery || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> {errors.expectedDelivery}
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.expectedDelivery}
                   </p>
                 )}
               </div>
@@ -595,13 +606,7 @@ export default function NewLeadPage() {
                   min={0}
                   placeholder="0"
                   value={formData.budget}
-                  onChange={(e) => {
-                    setFormData({
-                      ...formData,
-                      budget: e.target.value === '' ? '' : Number(e.target.value),
-                    });
-                    if (errors.budget) setErrors((prev) => ({ ...prev, budget: '' }));
-                  }}
+                  onChange={(e) => handleInputChange('budget', e.target.value === '' ? '' : Number(e.target.value))}
                   onBlur={() => handleBlur('budget')}
                   className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
                     errors.budget && (touched.budget || submitAttempted)
@@ -610,8 +615,8 @@ export default function NewLeadPage() {
                   } rounded-lg font-bold text-emerald-600`}
                 />
                 {errors.budget && (touched.budget || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> {errors.budget}
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.budget}
                   </p>
                 )}
               </div>
@@ -622,7 +627,7 @@ export default function NewLeadPage() {
               <textarea
                 rows={3}
                 value={formData.requirementDescription}
-                onChange={(e) => setFormData({ ...formData, requirementDescription: e.target.value })}
+                onChange={(e) => handleInputChange('requirementDescription', e.target.value)}
                 placeholder="Pressure ratings, material of construction (SS304/SS316/Hastelloy), testing requirements (Hydro/Radiography), cGMP standards..."
                 className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
               />
@@ -642,7 +647,7 @@ export default function NewLeadPage() {
                 <label className="block text-[#544B45] font-semibold mb-1">Lead Source</label>
                 <select
                   value={formData.source}
-                  onChange={(e) => setFormData({ ...formData, source: e.target.value as any })}
+                  onChange={(e) => handleInputChange('source', e.target.value as any)}
                   className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] font-semibold"
                 >
                   <option value="exhibition">Exhibition / Expo</option>
@@ -660,10 +665,7 @@ export default function NewLeadPage() {
                 </label>
                 <select
                   value={formData.assignedSalesPersonId}
-                  onChange={(e) => {
-                    setFormData({ ...formData, assignedSalesPersonId: e.target.value });
-                    if (errors.assignedSalesPersonId) setErrors((prev) => ({ ...prev, assignedSalesPersonId: '' }));
-                  }}
+                  onChange={(e) => handleInputChange('assignedSalesPersonId', e.target.value)}
                   className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
                     errors.assignedSalesPersonId && (touched.assignedSalesPersonId || submitAttempted)
                       ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
@@ -685,8 +687,8 @@ export default function NewLeadPage() {
                   })}
                 </select>
                 {errors.assignedSalesPersonId && (touched.assignedSalesPersonId || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> {errors.assignedSalesPersonId}
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.assignedSalesPersonId}
                   </p>
                 )}
               </div>
@@ -695,7 +697,7 @@ export default function NewLeadPage() {
                 <label className="block text-[#544B45] font-semibold mb-1">Priority</label>
                 <select
                   value={formData.priority}
-                  onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
+                  onChange={(e) => handleInputChange('priority', e.target.value as any)}
                   className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] font-bold"
                 >
                   <option value="low">Low Priority</option>
@@ -705,14 +707,27 @@ export default function NewLeadPage() {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Next Follow-up Date</label>
+              <div data-invalid={Boolean(errors.nextFollowUpDate && (touched.nextFollowUpDate || submitAttempted))}>
+                <label className="block text-[#544B45] font-semibold mb-1">
+                  Next Follow-up Date <span className="text-rose-500">*</span>
+                </label>
                 <input
                   type="date"
+                  min={todayStr}
                   value={formData.nextFollowUpDate}
-                  onChange={(e) => setFormData({ ...formData, nextFollowUpDate: e.target.value })}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] font-mono"
+                  onChange={(e) => handleInputChange('nextFollowUpDate', e.target.value)}
+                  onBlur={() => handleBlur('nextFollowUpDate')}
+                  className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
+                    errors.nextFollowUpDate && (touched.nextFollowUpDate || submitAttempted)
+                      ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
+                      : 'border-[#EBE3DB]'
+                  } rounded-lg text-[#211B17] font-mono`}
                 />
+                {errors.nextFollowUpDate && (touched.nextFollowUpDate || submitAttempted) && (
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.nextFollowUpDate}
+                  </p>
+                )}
               </div>
             </div>
           </div>

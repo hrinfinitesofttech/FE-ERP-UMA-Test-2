@@ -213,6 +213,181 @@ export const api = {
       create: (data: any) => request<any>('/sales-orders/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/sales-orders/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
     },
+    followUps: {
+      list: async () => {
+        try {
+          return await request<any[]>('/followups/');
+        } catch {
+          return await request<any[]>('/crm/followups/');
+        }
+      },
+      get: async (id: string) => {
+        try {
+          return await request<any>(`/followups/${id}/`);
+        } catch {
+          return await request<any>(`/crm/followups/${id}/`);
+        }
+      },
+      create: async (data: any) => {
+        try {
+          return await request<any>('/followups/', { method: 'POST', body: JSON.stringify(data) });
+        } catch {
+          return await request<any>('/crm/followups/', { method: 'POST', body: JSON.stringify(data) });
+        }
+      },
+      update: async (id: string, data: any) => {
+        try {
+          return await request<any>(`/followups/${id}/`, { method: 'PATCH', body: JSON.stringify(data) });
+        } catch {
+          return await request<any>(`/crm/followups/${id}/`, { method: 'PATCH', body: JSON.stringify(data) });
+        }
+      },
+      delete: async (id: string) => {
+        try {
+          return await request<any>(`/followups/${id}/`, { method: 'DELETE' });
+        } catch {
+          return await request<any>(`/crm/followups/${id}/`, { method: 'DELETE' });
+        }
+      },
+      complete: async (id: string, data: { notes?: string; nextDate?: string }) => {
+        try {
+          return await request<any>(`/followups/${id}/complete/`, { method: 'POST', body: JSON.stringify(data) });
+        } catch {
+          return await request<any>(`/crm/followups/${id}/complete/`, { method: 'POST', body: JSON.stringify(data) });
+        }
+      },
+    },
+    siteVisits: {
+      list: async () => {
+        try {
+          return await request<any[]>('/visits/');
+        } catch {
+          return await request<any[]>('/crm/visits/');
+        }
+      },
+      create: async (data: any) => {
+        const payload = {
+          ...data,
+          id: data.id || data.visitNo,
+          visit_no: data.visitNo || data.id,
+          customer_id: data.customerId || '',
+          customer_name: data.customerName || '',
+          contact_person: data.contactPerson || '',
+          contact_mobile: data.contactMobile || '',
+          visit_date: data.visitDate || '',
+          location: data.location || '',
+          employee_id: data.employeeId || '',
+          employee_name: data.employeeName || '',
+          purpose: data.purpose || '',
+          discussion_notes: data.discussionNotes || data.discussionSummary || '',
+          requirement_details: data.requirementDetails || '',
+          outcome: data.outcome || 'positive',
+          next_action: data.nextAction || '',
+          next_follow_up_date: data.nextFollowUpDate || '',
+        };
+        try {
+          return await request<any>('/visits/', { method: 'POST', body: JSON.stringify(payload) });
+        } catch {
+          return await request<any>('/crm/visits/', { method: 'POST', body: JSON.stringify(payload) });
+        }
+      },
+      update: async (id: string, data: any) => {
+        const payload = {
+          ...data,
+          visit_no: data.visitNo || data.id || id,
+          customer_id: data.customerId,
+          customer_name: data.customerName,
+          contact_person: data.contactPerson,
+          contact_mobile: data.contactMobile,
+          visit_date: data.visitDate,
+          location: data.location,
+          employee_id: data.employeeId,
+          employee_name: data.employeeName,
+          purpose: data.purpose,
+          discussion_notes: data.discussionNotes || data.discussionSummary,
+          requirement_details: data.requirementDetails,
+          outcome: data.outcome,
+          next_action: data.nextAction,
+          next_follow_up_date: data.nextFollowUpDate,
+        };
+        try {
+          return await request<any>(`/visits/${id}/`, { method: 'PATCH', body: JSON.stringify(payload) });
+        } catch {
+          return await request<any>(`/crm/visits/${id}/`, { method: 'PATCH', body: JSON.stringify(payload) });
+        }
+      },
+      delete: async (id: string) => {
+        try {
+          return await request<any>(`/visits/${id}/`, { method: 'DELETE' });
+        } catch {
+          return await request<any>(`/crm/visits/${id}/`, { method: 'DELETE' });
+        }
+      },
+    },
+    exhibitions: {
+      list: async () => {
+        try {
+          return await request<any[]>('/exhibitions/');
+        } catch {
+          return await request<any[]>('/crm/exhibitions/');
+        }
+      },
+      create: async (data: any) => {
+        const payload = {
+          ...data,
+          id: data.id || `EXPO-2026-${Date.now().toString().slice(-4)}`,
+          expo_name: data.expoName || data.expo_name || 'Exhibition',
+          organizer: data.organizer || '',
+          location: data.location || '',
+          start_date: data.startDate || data.start_date || '',
+          end_date: data.endDate || data.end_date || '',
+          stall_number: data.stallNumber || data.stall_number || '',
+          contact_person: data.contactPerson || data.contact_person || '',
+          budget: Number(data.budget) || 0,
+          assigned_team: Array.isArray(data.assignedTeam) ? data.assignedTeam : (Array.isArray(data.assigned_team) ? data.assigned_team : []),
+          products_displayed: data.productsDisplayed || data.products_displayed || '',
+          notes: data.notes || '',
+          total_contacts: Number(data.totalContacts) || Number(data.total_contacts) || 0,
+          qualified_leads: Number(data.qualifiedLeads) || Number(data.qualified_leads) || 0,
+          quotations_sent: Number(data.quotationsSent) || Number(data.quotations_sent) || 0,
+          converted_customers: Number(data.convertedCustomers) || Number(data.converted_customers) || 0,
+        };
+        try {
+          return await request<any>('/exhibitions/', { method: 'POST', body: JSON.stringify(payload) });
+        } catch {
+          return await request<any>('/crm/exhibitions/', { method: 'POST', body: JSON.stringify(payload) });
+        }
+      },
+      update: async (id: string, data: any) => {
+        const payload = {
+          ...data,
+          expo_name: data.expoName,
+          start_date: data.startDate,
+          end_date: data.endDate,
+          stall_number: data.stallNumber,
+          contact_person: data.contactPerson,
+          budget: Number(data.budget),
+          assigned_team: data.assignedTeam,
+          products_displayed: data.productsDisplayed,
+          total_contacts: Number(data.totalContacts),
+          qualified_leads: Number(data.qualifiedLeads),
+          quotations_sent: Number(data.quotationsSent),
+          converted_customers: Number(data.convertedCustomers),
+        };
+        try {
+          return await request<any>(`/exhibitions/${id}/`, { method: 'PATCH', body: JSON.stringify(payload) });
+        } catch {
+          return await request<any>(`/crm/exhibitions/${id}/`, { method: 'PATCH', body: JSON.stringify(payload) });
+        }
+      },
+      delete: async (id: string) => {
+        try {
+          return await request<any>(`/exhibitions/${id}/`, { method: 'DELETE' });
+        } catch {
+          return await request<any>(`/crm/exhibitions/${id}/`, { method: 'DELETE' });
+        }
+      },
+    },
   },
 
   // Project Management

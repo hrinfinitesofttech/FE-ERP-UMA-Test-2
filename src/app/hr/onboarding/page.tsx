@@ -36,6 +36,7 @@ export default function EmployeeOnboardingPage() {
     departments,
     designations,
     shiftMasters,
+    availableEmployees,
     employees,
   } = useERP();
 
@@ -44,7 +45,14 @@ export default function EmployeeOnboardingPage() {
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
+  const masterEmployees = useMemo(() => {
+    const list = (availableEmployees && availableEmployees.length > 0 ? availableEmployees : employees) || [];
+    return list.filter((e) => e && (e.id || e.firstName || e.name) && (e as any).status !== 'Inactive' && (e as any).status !== 'Terminated');
+  }, [availableEmployees, employees]);
+
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
   const [formData, setFormData] = useState({
+    candidateId: '',
     candidateName: '',
     email: '',
     mobile: '',
@@ -52,9 +60,64 @@ export default function EmployeeOnboardingPage() {
     department: 'Production',
     designation: 'Senior CNC Operator',
     reportingManager: 'Rajesh Patel',
-    shift: 'General Day Shift (09:00 - 18:00)',
+    shift: 'General Shift (09:00 AM - 06:00 PM)',
     offeredCTC: 480000,
   });
+
+  // Close modal on ESC key
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showAddModal) {
+        closeModal();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showAddModal]);
+
+  const closeModal = () => {
+    setShowAddModal(false);
+    setSelectedEmployeeId('');
+    setFormData({
+      candidateId: '',
+      candidateName: '',
+      email: '',
+      mobile: '',
+      joiningDate: new Date().toISOString().split('T')[0],
+      department: departments?.[0]?.departmentName || 'Production',
+      designation: designations?.[0]?.designationName || 'Senior CNC Operator',
+      reportingManager: 'Rajesh Patel',
+      shift: 'General Shift (09:00 AM - 06:00 PM)',
+      offeredCTC: 480000,
+    });
+  };
+
+  const handleSelectEmployee = (empId: string) => {
+    setSelectedEmployeeId(empId);
+    const emp = masterEmployees.find((e) => e.id === empId);
+    if (emp) {
+      const fullName = `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || emp.name || emp.username || emp.id;
+      setFormData({
+        ...formData,
+        candidateId: emp.id,
+        candidateName: fullName,
+        email: emp.email || '',
+        mobile: emp.mobile || emp.phone || '',
+        department: emp.departmentName || emp.department || departments?.[0]?.departmentName || 'Production',
+        designation: emp.designation || designations?.[0]?.designationName || 'Staff',
+        reportingManager: emp.reportingManagerName || 'Rajesh Patel',
+        joiningDate: emp.joiningDate || emp.joinedDate || new Date().toISOString().split('T')[0],
+      });
+    } else {
+      setFormData({
+        ...formData,
+        candidateId: '',
+        candidateName: '',
+        email: '',
+        mobile: '',
+      });
+    }
+  };
 
   const onboardingSteps = [
     'Recruitment',
@@ -70,16 +133,53 @@ export default function EmployeeOnboardingPage() {
   ];
 
   const filteredOnboardings = useMemo(() => {
-    return (employeeOnboardings || []).filter((item) => {
-      const matchesSearch =
-        item.candidateName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.designation?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.id?.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus = statusFilter === 'All' || item.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    });
-  }, [employeeOnboardings, searchQuery, statusFilter]);
+    return (employeeOnboardings || [])
+      .filter((item) => {
+        // An employee who does not exist in the Employee Master must not appear in the onboarding list.
+        const matchingMaster = masterEmployees.find(
+          (m) =>
+            (item.candidateId && m.id === item.candidateId) ||
+            (m.firstName && `${m.firstName} ${m.lastName || ''}`.trim().toLowerCase() === item.candidateName?.toLowerCase()) ||
+            (m.name && m.name.toLowerCase() === item.candidateName?.toLowerCase()) ||
+            (m.email && item.email && m.email.toLowerCase() === item.email.toLowerCase())
+        );
+        if (!matchingMaster && masterEmployees.length > 0) {
+          return false;
+        }
+
+        const matchesSearch =
+          item.candidateName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.designation?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (item.candidateId && item.candidateId.toLowerCase().includes(searchQuery.toLowerCase()));
+        
+        const matchesStatus = statusFilter === 'All' || item.status === statusFilter;
+        return matchesSearch && matchesStatus;
+      })
+      .map((item) => {
+        const matchingMaster = masterEmployees.find(
+          (m) =>
+            (item.candidateId && m.id === item.candidateId) ||
+            (m.firstName && `${m.firstName} ${m.lastName || ''}`.trim().toLowerCase() === item.candidateName?.toLowerCase()) ||
+            (m.name && m.name.toLowerCase() === item.candidateName?.toLowerCase()) ||
+            (m.email && item.email && m.email.toLowerCase() === item.email.toLowerCase())
+        );
+        if (matchingMaster) {
+          const fullName = `${matchingMaster.firstName || ''} ${matchingMaster.lastName || ''}`.trim() || matchingMaster.name || item.candidateName;
+          return {
+            ...item,
+            candidateId: matchingMaster.id || item.candidateId,
+            candidateName: fullName,
+            email: matchingMaster.email || item.email,
+            mobile: matchingMaster.mobile || matchingMaster.phone || item.mobile,
+            department: matchingMaster.departmentName || matchingMaster.department || item.department,
+            designation: matchingMaster.designation || item.designation,
+          };
+        }
+        return item;
+      });
+  }, [employeeOnboardings, masterEmployees, searchQuery, statusFilter]);
 
   const stats = useMemo(() => {
     const total = (employeeOnboardings || []).length;
@@ -91,9 +191,13 @@ export default function EmployeeOnboardingPage() {
 
   const handleCreateOnboarding = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.candidateName.trim()) return;
+    if (!formData.candidateName.trim() || !formData.candidateId) {
+      alert('Please select an existing employee from Employee Master.');
+      return;
+    }
 
     addEmployeeOnboarding({
+      candidateId: formData.candidateId,
       candidateName: formData.candidateName.trim(),
       email: formData.email.trim(),
       mobile: formData.mobile.trim(),
@@ -114,18 +218,7 @@ export default function EmployeeOnboardingPage() {
       status: 'In Progress',
     });
 
-    setFormData({
-      candidateName: '',
-      email: '',
-      mobile: '',
-      joiningDate: new Date().toISOString().split('T')[0],
-      department: departments?.[0]?.departmentName || 'Production',
-      designation: designations?.[0]?.designationName || 'Senior CNC Operator',
-      reportingManager: 'Rajesh Patel',
-      shift: 'General Day Shift (09:00 - 18:00)',
-      offeredCTC: 480000,
-    });
-    setShowAddModal(false);
+    closeModal();
   };
 
   const handleDelete = (id: string) => {
@@ -264,6 +357,11 @@ export default function EmployeeOnboardingPage() {
                       <span className="text-xs font-mono font-bold text-crm-brand-700 bg-crm-brand-50 px-2 py-0.5 rounded border border-crm-brand-200">
                         {item.id}
                       </span>
+                      {item.candidateId && (
+                        <span className="text-xs font-mono font-bold text-sky-800 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+                          ID: {item.candidateId}
+                        </span>
+                      )}
                       <h3 className="text-lg font-bold text-[#211B17]">{item.candidateName}</h3>
                       <span
                         className={`px-3 py-0.5 rounded-full text-xs font-semibold ${
@@ -416,14 +514,21 @@ export default function EmployeeOnboardingPage() {
 
       {/* Add Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl animate-in fade-in zoom-in duration-200">
+        <div
+          onClick={closeModal}
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl animate-in fade-in zoom-in duration-200"
+          >
             <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
               <h2 className="text-lg font-bold text-[#211B17] flex items-center gap-2">
                 <UserPlus className="w-5 h-5 text-crm-brand-700" /> Initiate Employee Onboarding
               </h2>
               <button
-                onClick={() => setShowAddModal(false)}
+                type="button"
+                onClick={closeModal}
                 className="text-[#70665F] hover:text-[#211B17] p-1 rounded-lg hover:bg-gray-100"
               >
                 <X className="w-5 h-5" />
@@ -432,15 +537,34 @@ export default function EmployeeOnboardingPage() {
 
             <form onSubmit={handleCreateOnboarding} className="space-y-4 text-xs">
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Candidate Full Name *</label>
-                <input
-                  type="text"
+                <label className="block text-[#544B45] font-semibold mb-1">
+                  Select Existing Employee from Master *
+                </label>
+                <select
                   required
-                  placeholder="e.g. Pankaj Mehta"
-                  value={formData.candidateName}
-                  onChange={(e) => setFormData({ ...formData, candidateName: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
-                />
+                  value={selectedEmployeeId}
+                  onChange={(e) => handleSelectEmployee(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17] font-medium focus:outline-none focus:border-crm-brand-500"
+                >
+                  <option value="">-- Choose Employee from Employee Master --</option>
+                  {masterEmployees.map((emp) => {
+                    const fullName = `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || emp.name || emp.username;
+                    return (
+                      <option key={emp.id} value={emp.id}>
+                        {fullName} ({emp.id}) - {emp.departmentName || emp.department || 'Staff'} ({emp.designation || 'Employee'})
+                      </option>
+                    );
+                  })}
+                </select>
+                {!selectedEmployeeId ? (
+                  <p className="text-[11px] text-amber-700 mt-1 font-medium flex items-center gap-1">
+                    <span>⚠️</span> Only employees registered in Employee Master can be onboarded.
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-emerald-700 mt-1 font-medium flex items-center gap-1">
+                    <span>✓</span> Candidate details linked to Employee Master ({selectedEmployeeId}).
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -448,20 +572,20 @@ export default function EmployeeOnboardingPage() {
                   <label className="block text-[#544B45] font-semibold mb-1">Email</label>
                   <input
                     type="email"
-                    placeholder="pankaj@umatechnofab.com"
+                    placeholder="Auto-populated from Master"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
                   />
                 </div>
                 <div>
                   <label className="block text-[#544B45] font-semibold mb-1">Mobile Number</label>
                   <input
                     type="tel"
-                    placeholder="9825012345"
+                    placeholder="Auto-populated from Master"
                     value={formData.mobile}
                     onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
                   />
                 </div>
               </div>
@@ -541,10 +665,18 @@ export default function EmployeeOnboardingPage() {
                   <select
                     value={formData.shift}
                     onChange={(e) => setFormData({ ...formData, shift: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500 font-medium"
                   >
-                    {(shiftMasters || []).map((s) => {
-                      const shiftName = s.shiftName || 'Day Shift';
+                    {((shiftMasters && shiftMasters.length > 0)
+                      ? shiftMasters
+                      : [
+                          { id: 'SHF-001', shiftName: 'General Shift (GS)', startTime: '09:00', endTime: '18:00' },
+                          { id: 'SHF-002', shiftName: 'Morning Shift (Shift A)', startTime: '06:00', endTime: '14:00' },
+                          { id: 'SHF-003', shiftName: 'Evening Shift (Shift B)', startTime: '14:00', endTime: '22:00' },
+                          { id: 'SHF-004', shiftName: 'Night Shift (Shift C)', startTime: '22:00', endTime: '06:00' },
+                        ]
+                    ).map((s) => {
+                      const shiftName = s.shiftName || 'General Shift (GS)';
                       return (
                         <option key={s.id || shiftName} value={shiftName}>
                           {shiftName} ({s.startTime} - {s.endTime})
@@ -558,14 +690,19 @@ export default function EmployeeOnboardingPage() {
               <div className="pt-4 border-t border-[#EBE3DB] flex justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => setShowAddModal(false)}
+                  onClick={closeModal}
                   className="px-4 py-2 bg-[#FAF7F5] hover:bg-[#EBE3DB] text-[#544B45] font-semibold rounded-lg transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-semibold rounded-lg shadow-sm transition"
+                  disabled={!selectedEmployeeId}
+                  className={`px-5 py-2 font-semibold rounded-lg shadow-sm transition ${
+                    selectedEmployeeId
+                      ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white cursor-pointer'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
                 >
                   Start Onboarding Workflow
                 </button>

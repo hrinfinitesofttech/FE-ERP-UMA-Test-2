@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import { Building, Save, CheckCircle2, Shield } from 'lucide-react';
 
@@ -8,12 +8,26 @@ export default function CompanySettingsPage() {
   const { company, updateCompany } = useERP();
   const [formData, setFormData] = useState({ ...company });
   const [savedMsg, setSavedMsg] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (company && Object.keys(company).length > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        ...company,
+      }));
+    }
+  }, [company]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
     updateCompany(formData);
     setSavedMsg(true);
-    setTimeout(() => setSavedMsg(false), 3000);
+    setTimeout(() => {
+      setSavedMsg(false);
+      setIsSaving(false);
+    }, 4000);
   };
 
   return (
@@ -192,10 +206,11 @@ export default function CompanySettingsPage() {
           <div className="pt-4 flex justify-end">
             <button
               type="submit"
-              className="px-6 py-2.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-xl font-bold flex items-center gap-2 shadow-md transition"
+              disabled={isSaving}
+              className="px-6 py-2.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-xl font-bold flex items-center gap-2 shadow-md transition disabled:opacity-50 cursor-pointer"
             >
               <Save className="w-4 h-4" />
-              <span>Save Company Profile</span>
+              <span>{isSaving ? 'Saving Profile...' : 'Save Company Profile'}</span>
             </button>
           </div>
         </form>
