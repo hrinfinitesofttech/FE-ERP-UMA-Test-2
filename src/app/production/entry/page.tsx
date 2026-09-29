@@ -21,8 +21,27 @@ export default function ProductionEntryPage() {
 
   const computedGood = Math.max(0, (Number(produced) || 0) - (Number(rejected) || 0) - (Number(scrap) || 0));
 
+  // Close modal on ESC key
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showModal) {
+        setShowModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showModal]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!opName.trim()) {
+      alert('Operation Name is required and cannot be blank.');
+      return;
+    }
+    if (!operator) {
+      alert('Please select an Operator.');
+      return;
+    }
     const wo = workOrders.find((w) => w.workOrderNumber === selectedWo);
 
     recordProductionEntry({
@@ -31,7 +50,7 @@ export default function ProductionEntryPage() {
       jobNumber: wo?.jobNumber || 'JOB-2026-001',
       workOrderNumber: selectedWo,
       productionOrderNumber: `PO-PROD-2026-001`,
-      operationName: opName,
+      operationName: opName.trim(),
       workCenterName: wcName,
       machineName: 'SAW Automatic Manipulator M/C-01',
       operatorName: operator,
@@ -57,7 +76,6 @@ export default function ProductionEntryPage() {
     setScrap(0);
     setDowntime(0);
     setDowntimeReason('');
-    alert(`Production Entry logged successfully! Good Qty = ${computedGood}`);
   };
 
   return (
@@ -137,40 +155,75 @@ export default function ProductionEntryPage() {
 
       {/* Entry Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl text-[#544B45] max-h-[90vh] overflow-y-auto">
+        <div
+          onClick={() => setShowModal(false)}
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl text-[#544B45] max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-150"
+          >
             <div className="flex justify-between items-center border-b border-[#EBE3DB] pb-3">
               <h3 className="text-base font-bold text-[#211B17]">Log Shift Production Entry</h3>
-              <button onClick={() => setShowModal(false)} className="text-[#70665F] hover:text-[#211B17] font-bold text-lg">
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="text-[#70665F] hover:text-[#211B17] font-bold text-lg p-1 rounded-lg hover:bg-gray-100"
+              >
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">Target Work Order</label>
+                <label className="block font-semibold text-[#544B45] mb-1">Target Work Order *</label>
                 <select
+                  required
                   value={selectedWo}
                   onChange={(e) => setSelectedWo(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#544B45] focus:outline-none focus:border-lime-500"
+                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#544B45] focus:outline-none focus:border-lime-500 font-medium"
                 >
                   {workOrders.map((w) => (
                     <option key={w.id} value={w.workOrderNumber}>
-                      {w.workOrderNumber} — {w.jobNumber} ({w.productName.slice(0, 20)})
+                      {w.workOrderNumber} — {w.jobNumber} ({w.productName.slice(0, 30)})
                     </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">Operation Name</label>
+                <label className="block font-semibold text-[#544B45] mb-1">
+                  Operation Name *
+                </label>
                 <input
                   type="text"
                   required
+                  minLength={2}
+                  placeholder="e.g. CNC Plasma Cutting, SAW Welding, Dish Forming"
+                  list="operationSuggestions"
                   value={opName}
                   onChange={(e) => setOpName(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#544B45] focus:outline-none focus:border-lime-500"
+                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#544B45] focus:outline-none focus:border-lime-500 font-medium"
                 />
+                <datalist id="operationSuggestions">
+                  <option value="CNC Plasma Cutting & Edge Prep" />
+                  <option value="Plate Rolling & Shell Forming" />
+                  <option value="Dish End Pressing & Crown Forming" />
+                  <option value="Longitudinal SAW Automatic Welding" />
+                  <option value="Circumferential Seam Welding" />
+                  <option value="Nozzle Hole Drilling & Flange Fit-up" />
+                  <option value="Limpet Coil Pitch Bending & Welding" />
+                  <option value="Jacket Hydrostatic Pressure Testing" />
+                  <option value="Post-Weld Heat Treatment (PWHT)" />
+                  <option value="Internal Surface Pickling & Passivation" />
+                  <option value="External Sand Blasting & Epoxy Primer" />
+                  <option value="Final Assembly & FAT Clearance" />
+                </datalist>
+                {!opName.trim() && (
+                  <span className="text-[11px] text-amber-600 mt-1 block">
+                    ⚠️ Operation Name is required and cannot be empty.
+                  </span>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">

@@ -51,15 +51,33 @@ export default function PurchaseRequisitionPage() {
     },
   ]);
 
-  const filteredPRs = purchaseRequisitions.filter(pr => {
-    if (statusFilter !== 'ALL' && pr.status !== statusFilter) return false;
-    if (projectFilter !== 'ALL' && pr.projectId !== projectFilter) return false;
+  // Close modals on ESC key
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showCreateModal) setShowCreateModal(false);
+        if (viewPR) setViewPR(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showCreateModal, viewPR]);
+
+  const filteredPRs = (purchaseRequisitions || []).filter(pr => {
+    const prStatus = pr.status || (pr as any).approval_status || 'Submitted';
+    const prProjId = pr.projectId || (pr as any).project_id || '';
+    const prNum = pr.prNumber || (pr as any).pr_number || pr.id || '';
+    const prJob = pr.jobId || (pr as any).job_code || (pr as any).jobNumber || '';
+    const prReqBy = pr.requestedBy || (pr as any).requested_by || '';
+
+    if (statusFilter !== 'ALL' && prStatus.toLowerCase() !== statusFilter.toLowerCase()) return false;
+    if (projectFilter !== 'ALL' && prProjId !== projectFilter) return false;
     if (searchQuery) {
-      const q = searchQuery?.toLowerCase();
+      const q = searchQuery.toLowerCase();
       return (
-        pr.prNumber?.toLowerCase().includes(q) ||
-        pr.jobId?.toLowerCase().includes(q) ||
-        pr.requestedBy?.toLowerCase().includes(q)
+        prNum.toLowerCase().includes(q) ||
+        prJob.toLowerCase().includes(q) ||
+        prReqBy.toLowerCase().includes(q)
       );
     }
     return true;

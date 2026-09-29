@@ -1214,7 +1214,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const [suppliers, setSuppliers] = useState<Supplier[]>(INITIAL_SUPPLIERS);
   const [supplierContacts, setSupplierContacts] = useState<SupplierContact[]>(MOCK_SUPPLIER_CONTACTS);
   const [materialRequirements, setMaterialRequirements] = useState<MaterialRequirement[]>(MOCK_MATERIAL_REQUIREMENTS);
-  const [purchaseRequisitions, setPurchaseRequisitions] = useState<PurchaseRequisition[]>(MOCK_PURCHASE_REQUISITIONS);
+  const [purchaseRequisitions, setPurchaseRequisitions] = useState<PurchaseRequisition[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_purchaseRequisitions');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return MOCK_PURCHASE_REQUISITIONS;
+  });
   const [rfqs, setRfqs] = useState<RequestForQuotation[]>(MOCK_RFQS);
   const [supplierQuotations, setSupplierQuotations] = useState<SupplierQuotation[]>(MOCK_SUPPLIER_QUOTATIONS);
   const [quotationComparisons, setQuotationComparisons] = useState<QuotationComparison[]>(MOCK_QUOTATION_COMPARISONS);
@@ -1666,7 +1677,36 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             try { localStorage.setItem('UMA_ERP_suppliers', JSON.stringify(normalizedSuppliers)); } catch (_) {}
           }
         }
-        applyLive<PurchaseRequisition>(val(results[23]), setPurchaseRequisitions, 'purchaseRequisitions');
+        const rawPRs = val<any[]>(results[23]);
+        if (rawPRs && Array.isArray(rawPRs) && rawPRs.length > 0) {
+          const normalizedPRs: PurchaseRequisition[] = rawPRs.map((pr: any) => ({
+            ...pr,
+            id: String(pr.id || pr.pr_number || pr.prNumber),
+            prNumber: pr.prNumber || pr.pr_number || pr.id,
+            projectId: pr.projectId || pr.project_id || 'PRJ-2026-0001',
+            jobId: pr.jobId || pr.job_code || pr.jobNumber || 'JOB-2026-001',
+            bomId: pr.bomId || pr.bom_id || `BOM-${pr.jobId || pr.job_code || 'JOB-2026-001'}`,
+            bomRevision: pr.bomRevision || pr.bom_revision || 'REV-01',
+            requisitionDate: pr.requisitionDate || pr.request_date || pr.prDate || new Date().toISOString().split('T')[0],
+            requiredByDate: pr.requiredByDate || pr.required_by_date || '',
+            priority: pr.priority || 'High',
+            requestedBy: pr.requestedBy || pr.requested_by || 'Super Admin',
+            department: pr.department || 'Purchase / Planning',
+            status: pr.status || 'Submitted',
+            items: Array.isArray(pr.items) ? pr.items : [],
+            totalItems: Array.isArray(pr.items) ? pr.items.length : Number(pr.totalItems || 0),
+            estimatedCost: Number(pr.estimatedCost ?? pr.total_estimated_cost ?? 0),
+            remarks: pr.remarks || '',
+            createdAt: pr.createdAt || pr.created_at || new Date().toISOString(),
+            updatedAt: pr.updatedAt || pr.updated_at || new Date().toISOString(),
+          }));
+          setPurchaseRequisitions(normalizedPRs);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_purchaseRequisitions', JSON.stringify(normalizedPRs)); } catch (_) {}
+          }
+        } else {
+          applyLive<PurchaseRequisition>(val(results[23]), setPurchaseRequisitions, 'purchaseRequisitions');
+        }
         applyLive<PurchaseOrder>(val(results[24]), setPurchaseOrders, 'purchaseOrders');
         applyLive<ItemMaster>(val(results[25]), setItemMasters, 'itemMasters');
         applyLive<ItemCategory>(val(results[26]), setItemCategories, 'itemCategories');
@@ -4123,42 +4163,75 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addPurchaseRequisition = (data: Omit<PurchaseRequisition, 'id' | 'prDate'>) => {
-    const prNumber = `PR-${new Date().getFullYear()}-${String(purchaseRequisitions.length + 1).padStart(3, '0')}`;
+    const prNumber = data.prNumber || `PR-${new Date().getFullYear()}-${String(purchaseRequisitions.length + 1).padStart(3, '0')}`;
     const newPr: PurchaseRequisition = {
       ...data,
-      id: prNumber,
+      id: (data as any).id || prNumber,
       prNumber,
-      prDate: new Date().toISOString().split('T')[0],
+      prDate: (data as any).prDate || data.requisitionDate || new Date().toISOString().split('T')[0],
+      requisitionDate: data.requisitionDate || (data as any).prDate || new Date().toISOString().split('T')[0],
     };
-    setPurchaseRequisitions((prev) => [newPr, ...prev]);
-    logAction('CREATE', 'Purchase', 'Purchase Requisition', newPr.id, `Created PR ${newPr.prNumber} for job ${data.jobNumber}`);
+    setPurchaseRequisitions((prev) => {
+      const updated = [newPr, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_purchaseRequisitions', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('CREATE', 'Purchase', 'Purchase Requisition', newPr.id, `Created PR ${newPr.prNumber} for job ${data.jobNumber || (data as any).jobId}`);
     const prPayload = {
-      ...newPr,
-      prNumber: newPr.prNumber || prNumber,
+      id: newPr.id,
+      prNumber: newPr.prNumber,
+      pr_number: newPr.prNumber,
+      projectId: newPr.projectId,
+      project_id: newPr.projectId,
+      jobId: newPr.jobId,
+      jobNumber: (newPr as any).jobNumber,
+      job_code: newPr.jobId || (newPr as any).jobNumber,
+      requisitionDate: newPr.requisitionDate,
+      request_date: newPr.requisitionDate,
       requiredByDate: (newPr as any).requiredByDate || (newPr as any).requiredDate || '2026-12-31',
+      required_by_date: (newPr as any).requiredByDate || (newPr as any).requiredDate || '2026-12-31',
+      priority: newPr.priority || 'High',
+      status: newPr.status || 'Submitted',
       items: newPr.items || [],
-      status: newPr.status || 'pending_approval',
+      estimatedCost: Number(newPr.estimatedCost || 0),
+      total_estimated_cost: Number(newPr.estimatedCost || 0),
+      requestedBy: newPr.requestedBy,
+      requested_by: newPr.requestedBy,
+      department: newPr.department || 'Purchase / Planning',
+      remarks: newPr.remarks,
     };
     api.purchase.requisitions.create(prPayload).then((res) => {
-      if (res && res.id) {
-        setPurchaseRequisitions((prev) => prev.map((p) => (p.id === prNumber ? { ...p, ...res } : p)));
+      if (res && (res.id || res.pr_number || res.prNumber)) {
+        setPurchaseRequisitions((prev) => {
+          const synced = prev.map((p) => (p.id === newPr.id || p.prNumber === newPr.prNumber ? { ...p, ...res } : p));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_purchaseRequisitions', JSON.stringify(synced)); } catch (_) {}
+          }
+          return synced;
+        });
       }
     }).catch((err) => console.warn('Failed to sync PR to backend:', err));
   };
 
   const approvePurchaseRequisition = (id: string, approvedBy: string) => {
-    setPurchaseRequisitions((prev) =>
-      prev.map((pr) =>
+    setPurchaseRequisitions((prev) => {
+      const updated = prev.map((pr) =>
         pr.id === id
           ? {
               ...pr,
-              status: 'approved',
+              status: 'Approved' as PurchaseRequisition['status'],
               approvedBy,
               approvedDate: new Date().toISOString().split('T')[0],
             }
           : pr
-      )
-    );
+      );
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_purchaseRequisitions', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('APPROVE', 'Purchase', 'Purchase Requisition', id, `Approved PR by ${approvedBy}`);
   };
 
