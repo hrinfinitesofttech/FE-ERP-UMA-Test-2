@@ -1402,7 +1402,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const [bomRevisions, setBomRevisions] = useState<BOMRevision[]>(MOCK_BOM_REVISIONS);
   const [designRevisions, setDesignRevisions] = useState<DesignRevisionLog[]>(MOCK_DESIGN_REVISIONS);
   const [designReviews, setDesignReviews] = useState<DesignReviewChecklist[]>(MOCK_DESIGN_REVIEWS);
-  const [technicalDocuments, setTechnicalDocuments] = useState<TechnicalDocumentItem[]>(MOCK_TECHNICAL_DOCUMENTS);
+  const [technicalDocuments, setTechnicalDocuments] = useState<TechnicalDocumentItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_technicalDocuments');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return MOCK_TECHNICAL_DOCUMENTS;
+  });
 
   // Module 4: Purchase Management States
   const [suppliers, setSuppliers] = useState<Supplier[]>(INITIAL_SUPPLIERS);
@@ -1825,6 +1836,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           api.purchase.supplierQuotations.list(),
           api.purchase.quotationComparisons.list(),
           api.production.orders.list(),
+          api.designer.technicalDocuments.list(),
         ]);
 
         if (!isMounted) return;
@@ -2753,6 +2765,29 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           setProductionOrders(normalizedPO);
           if (typeof window !== 'undefined') {
             try { localStorage.setItem('UMA_ERP_productionOrders', JSON.stringify(normalizedPO)); } catch (_) {}
+          }
+        }
+
+        const rawTechDocs = val<any[]>(results[82]);
+        if (rawTechDocs && Array.isArray(rawTechDocs) && rawTechDocs.length > 0) {
+          const normalizedDocs: TechnicalDocumentItem[] = rawTechDocs.map((td: any) => ({
+            ...td,
+            id: String(td.id || td.document_number || td.documentNumber),
+            documentName: td.documentName || td.document_name || td.title || 'Technical Document',
+            category: td.category || td.document_type || 'Calculation',
+            version: td.version || 'v1.0',
+            revision: td.revision || 'REV-00',
+            projectId: td.projectId || td.project_id || '',
+            jobNumber: td.jobNumber || td.job_number || '',
+            uploadedBy: td.uploadedBy || td.uploaded_by || 'Engineering Team',
+            uploadDate: td.uploadDate || td.upload_date || td.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+            fileUrl: td.fileUrl || td.file_url || '#',
+            fileSize: td.fileSize || td.file_size || '5.2 MB',
+            accessPermission: td.accessPermission || td.access_permission || 'public',
+          }));
+          setTechnicalDocuments(normalizedDocs);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_technicalDocuments', JSON.stringify(normalizedDocs)); } catch (_) {}
           }
         }
       } catch (err) {
@@ -5080,9 +5115,27 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addTechnicalDocument = (data: Omit<TechnicalDocumentItem, 'id' | 'uploadDate'>) => {
     const id = `TDOC-${Date.now().toString().slice(-5)}`;
     const newDoc: TechnicalDocumentItem = { ...data, id, uploadDate: new Date().toISOString().split('T')[0] };
-    setTechnicalDocuments((prev) => [newDoc, ...prev]);
+    setTechnicalDocuments((prev) => {
+      const updated = [newDoc, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_technicalDocuments', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Designer', 'Technical Documents', id, `Uploaded Technical Document ${data.documentName}`);
-    api.post('/technical-documents/', newDoc).catch((err) => console.warn('Failed to add tech doc:', err));
+    api.designer.technicalDocuments.create(newDoc)
+      .then((res: any) => {
+        if (res && res.id) {
+          setTechnicalDocuments((prev) => {
+            const synced = prev.map((d) => (d.id === id ? { ...d, ...res } : d));
+            if (typeof window !== 'undefined') {
+              try { localStorage.setItem('UMA_ERP_technicalDocuments', JSON.stringify(synced)); } catch (_) {}
+            }
+            return synced;
+          });
+        }
+      })
+      .catch((err) => console.warn('Failed to sync technical document to backend:', err));
   };
 
   const releaseDesignToManufacturing = (designJobId: string, releasedBy: string) => {

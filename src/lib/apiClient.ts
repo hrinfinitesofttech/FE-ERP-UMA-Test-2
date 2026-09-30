@@ -433,32 +433,99 @@ export const api = {
   // Design & Engineering
   designer: {
     jobs: {
-      list: () => request<any[]>('/design-jobs/'),
-      create: (data: any) => request<any>('/design-jobs/', { method: 'POST', body: JSON.stringify(data) }),
-      update: (id: string, data: any) => request<any>(`/design-jobs/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      list: () => request<any[]>('/designer/jobs/'),
+      create: (data: any) => request<any>('/designer/jobs/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/designer/jobs/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       releaseToProduction: (id: string) =>
-        request<any>(`/design-jobs/${id}/release-to-production/`, { method: 'POST' }),
+        request<any>(`/designer/jobs/${id}/release-to-production/`, { method: 'POST' }),
     },
     requirements: {
-      list: () => request<any[]>('/customer-requirements/'),
-      get: (id: string) => request<any>(`/customer-requirements/${id}/`),
-      create: (data: any) => request<any>('/customer-requirements/', { method: 'POST', body: JSON.stringify(data) }),
-      update: (id: string, data: any) => request<any>(`/customer-requirements/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
-      delete: (id: string) => request<any>(`/customer-requirements/${id}/`, { method: 'DELETE' }),
+      list: () => request<any[]>('/designer/requirements/'),
+      get: (id: string) => request<any>(`/designer/requirements/${id}/`),
+      create: (data: any) => request<any>('/designer/requirements/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/designer/requirements/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/designer/requirements/${id}/`, { method: 'DELETE' }),
     },
     tasks: {
-      list: () => request<any[]>('/design-tasks/'),
-      get: (id: string) => request<any>(`/design-tasks/${id}/`),
-      create: (data: any) => request<any>('/design-tasks/', { method: 'POST', body: JSON.stringify(data) }),
-      update: (id: string, data: any) => request<any>(`/design-tasks/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
-      delete: (id: string) => request<any>(`/design-tasks/${id}/`, { method: 'DELETE' }),
+      list: async () => {
+        try {
+          return await request<any[]>('/designer/tasks/');
+        } catch {
+          return await request<any[]>('/designer/design-tasks/');
+        }
+      },
+      get: async (id: string) => {
+        try {
+          return await request<any>(`/designer/tasks/${id}/`);
+        } catch {
+          return await request<any>(`/designer/design-tasks/${id}/`);
+        }
+      },
+      create: async (data: any) => {
+        try {
+          return await request<any>('/designer/tasks/', { method: 'POST', body: JSON.stringify(data) });
+        } catch {
+          return await request<any>('/designer/design-tasks/', { method: 'POST', body: JSON.stringify(data) });
+        }
+      },
+      update: async (id: string, data: any) => {
+        try {
+          return await request<any>(`/designer/tasks/${id}/`, { method: 'PATCH', body: JSON.stringify(data) });
+        } catch {
+          return await request<any>(`/designer/design-tasks/${id}/`, { method: 'PATCH', body: JSON.stringify(data) });
+        }
+      },
+      delete: async (id: string) => {
+        try {
+          return await request<any>(`/designer/tasks/${id}/`, { method: 'DELETE' });
+        } catch {
+          return await request<any>(`/designer/design-tasks/${id}/`, { method: 'DELETE' });
+        }
+      },
     },
-    drawings2d: () => request<any[]>('/drawings-2d/'),
-    models3d: () => request<any[]>('/models-3d/'),
+    drawings2d: () => request<any[]>('/designer/drawings-2d/'),
+    models3d: () => request<any[]>('/designer/models-3d/'),
     boms: {
-      list: () => request<any[]>('/boms/'),
-      create: (data: any) => request<any>('/boms/', { method: 'POST', body: JSON.stringify(data) }),
-      update: (id: string, data: any) => request<any>(`/boms/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      list: () => request<any[]>('/designer/boms/'),
+      create: (data: any) => request<any>('/designer/boms/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/designer/boms/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+    },
+    technicalDocuments: {
+      list: async () => {
+        try {
+          return await request<any[]>('/designer/technical-documents/');
+        } catch {
+          return await request<any[]>('/technical-documents/');
+        }
+      },
+      get: async (id: string) => {
+        try {
+          return await request<any>(`/designer/technical-documents/${id}/`);
+        } catch {
+          return await request<any>(`/technical-documents/${id}/`);
+        }
+      },
+      create: async (data: any) => {
+        try {
+          return await request<any>('/designer/technical-documents/', { method: 'POST', body: JSON.stringify(data) });
+        } catch {
+          return await request<any>('/technical-documents/', { method: 'POST', body: JSON.stringify(data) });
+        }
+      },
+      update: async (id: string, data: any) => {
+        try {
+          return await request<any>(`/designer/technical-documents/${id}/`, { method: 'PATCH', body: JSON.stringify(data) });
+        } catch {
+          return await request<any>(`/technical-documents/${id}/`, { method: 'PATCH', body: JSON.stringify(data) });
+        }
+      },
+      delete: async (id: string) => {
+        try {
+          return await request<any>(`/designer/technical-documents/${id}/`, { method: 'DELETE' });
+        } catch {
+          return await request<any>(`/technical-documents/${id}/`, { method: 'DELETE' });
+        }
+      },
     },
   },
 
