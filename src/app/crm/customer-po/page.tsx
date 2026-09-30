@@ -43,7 +43,11 @@ export default function CustomerPOPage() {
     },
     {
       header: 'PO Value',
-      cell: (po) => <span className="font-bold text-emerald-600 font-mono">{formatCurrency(po.poAmount)}</span>,
+      cell: (po) => (
+        <span className="font-bold text-emerald-600 font-mono">
+          {formatCurrency(Number(po.poAmount || (po as any).po_value || (po as any).poAmount || 0))}
+        </span>
+      ),
     },
     {
       header: 'PO Date & Target Delivery',

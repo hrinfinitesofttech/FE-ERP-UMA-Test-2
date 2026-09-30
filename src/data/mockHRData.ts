@@ -136,7 +136,29 @@ export const mockEmployeeExits: EmployeeExitItem[] = [
     status: 'Notice Period',
   },
 ];
-export const mockFullAndFinalSettlements: FullAndFinalSettlementItem[] = [];
+export const mockFullAndFinalSettlements: FullAndFinalSettlementItem[] = [
+  {
+    id: 'FNF-2026-01',
+    employeeId: 'EMP-001',
+    employeeName: 'Istpleee Emp',
+    exitId: 'EXIT-2026-01',
+    lastWorkingDate: '2026-10-30',
+    pendingSalaryDays: 15,
+    pendingSalaryAmount: 35000,
+    leaveEncashmentDays: 8,
+    leaveEncashmentAmount: 16000,
+    bonusIncentive: 5000,
+    overtimeAmount: 2400,
+    reimbursementsAmount: 1800,
+    advanceRecovery: 5000,
+    loanRecovery: 0,
+    noticePeriodRecovery: 0,
+    otherDeductions: 0,
+    netFinalPayable: 55200,
+    settlementDate: '2026-09-30',
+    paymentStatus: 'Pending Accounting Clearance',
+  },
+];
 export const mockShifts: ShiftMaster[] = [
   {
     id: 'SHF-001',

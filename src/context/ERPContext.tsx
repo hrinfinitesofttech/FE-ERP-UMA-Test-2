@@ -1660,8 +1660,27 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         applyLive<Contact>(val(results[2]), setContacts, 'contacts');
         applyLive<Enquiry>(val(results[3]), setEnquiries, 'enquiries');
         applyLive<Opportunity>(val(results[4]), setOpportunities, 'opportunities');
-        applyLive<Quotation>(val(results[5]), setQuotations, 'quotations');
-        applyLive<CustomerPO>(val(results[6]), setCustomerPOs, 'customerPOs');
+        const rawCustomerPOs = val<any[]>(results[6]);
+        if (rawCustomerPOs && Array.isArray(rawCustomerPOs) && rawCustomerPOs.length > 0) {
+          const normalizedPOs: CustomerPO[] = rawCustomerPOs.map((po: any) => ({
+            ...po,
+            id: String(po.id),
+            poNumber: po.poNumber || po.po_number || po.id,
+            poDate: po.poDate || po.po_date || '',
+            customerId: po.customerId || po.customer_id || '',
+            customerName: po.customerName || po.customer_name || '',
+            quotationId: po.quotationId || po.quotation_id || '',
+            quotationNumber: po.quotationNumber || po.quotation_number || '',
+            salesOrderId: po.salesOrderId || po.sales_order_id || po.converted_so_id || '',
+            poAmount: Number(po.poAmount) || Number(po.po_value) || Number(po.po_amount) || 0,
+            paymentTerms: po.paymentTerms || po.payment_terms || '',
+            deliveryDate: po.deliveryDate || po.delivery_date || '',
+            status: po.status || 'received',
+          }));
+          applyLive<CustomerPO>(normalizedPOs, setCustomerPOs, 'customerPOs');
+        } else {
+          applyLive<CustomerPO>(val(results[6]), setCustomerPOs, 'customerPOs');
+        }
         const rawSalesOrders = val<any[]>(results[7]);
         if (rawSalesOrders && Array.isArray(rawSalesOrders) && rawSalesOrders.length > 0) {
           const normalizedSalesOrders: SalesOrder[] = rawSalesOrders.map((so: any) => ({
@@ -6145,7 +6164,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
     return mockEmployeeExits;
   });
-  const [fullAndFinalSettlements, setFullAndFinalSettlements] = useState<FullAndFinalSettlementItem[]>(mockFullAndFinalSettlements);
+  const [fullAndFinalSettlements, setFullAndFinalSettlements] = useState<FullAndFinalSettlementItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_fullAndFinalSettlements');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return mockFullAndFinalSettlements;
+  });
   const [shiftMasters, setShiftMasters] = useState<ShiftMaster[]>(mockShifts);
   const [shiftRosters, setShiftRosters] = useState<ShiftRosterItem[]>(mockShiftRosters);
   const [holidays, setHolidays] = useState<HolidayItem[]>(mockHolidays);
@@ -6454,18 +6484,37 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addFullAndFinalSettlement = (fnf: Omit<FullAndFinalSettlementItem, 'id'>) => {
     const newId = `FNF-2026-0${fullAndFinalSettlements.length + 1}`;
     const newFnf = { ...fnf, id: newId };
-    setFullAndFinalSettlements((prev) => [newFnf, ...prev]);
+    setFullAndFinalSettlements((prev) => {
+      const updated = [newFnf, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_fullAndFinalSettlements', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'hr', 'full-final-settlement', newId, `Calculated F&F settlement for ${fnf.employeeName}`);
+    api.post('/full-final-settlements/', newFnf).catch((err) => console.warn('Failed to sync FNF to backend:', err));
   };
   const updateFinalSettlementStatus = (id: string, status: FullAndFinalSettlementItem['paymentStatus'], voucherNo?: string) => {
-    setFullAndFinalSettlements((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, paymentStatus: status, ...(voucherNo ? { accountingVoucherNo: voucherNo } : {}) } : f))
-    );
+    setFullAndFinalSettlements((prev) => {
+      const updated = prev.map((f) => (f.id === id ? { ...f, paymentStatus: status, ...(voucherNo ? { accountingVoucherNo: voucherNo } : {}) } : f));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_fullAndFinalSettlements', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'hr', 'full-final-settlement', id, `Updated F&F payment status to ${status}`);
+    api.patch(`/full-final-settlements/${id}/`, { status, voucherNo }).catch((err) => console.warn('Failed to update FNF status on backend:', err));
   };
   const deleteFullAndFinalSettlement = (id: string) => {
-    setFullAndFinalSettlements((prev) => prev.filter((f) => f.id !== id));
+    setFullAndFinalSettlements((prev) => {
+      const updated = prev.filter((f) => f.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_fullAndFinalSettlements', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('DELETE', 'hr', 'full-final-settlement', id, `Deleted F&F settlement record ${id}`);
+    api.delete(`/full-final-settlements/${id}/`).catch((err) => console.warn('Failed to delete FNF on backend:', err));
   };
 
   const addShiftMaster = (shift: Omit<ShiftMaster, 'id'>) => {
