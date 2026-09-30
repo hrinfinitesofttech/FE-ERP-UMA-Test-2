@@ -26,31 +26,89 @@ export default function SupplierQuotationsPage() {
   const [showRecordModal, setShowRecordModal] = useState(false);
 
   // Form State
-  const [newRfqId, setNewRfqId] = useState(rfqs[0]?.id || 'RFQ-001');
-  const [newSupplierId, setNewSupplierId] = useState(suppliers[0]?.id || 'SUP-001');
-  const [newRefNumber, setNewRefNumber] = useState(`SQ-REF-${Math.floor(1000 + Math.random() * 9000)}`);
-  const [newQuoteDate, setNewQuoteDate] = useState('2026-10-02');
-  const [newValidUntil, setNewValidUntil] = useState('2026-11-02');
-  const [newFreightCharges, setNewFreightCharges] = useState(5000);
+  const [newRfqId, setNewRfqId] = useState('');
+  const [newSupplierId, setNewSupplierId] = useState('');
+  const [newRefNumber, setNewRefNumber] = useState('');
+  const [newQuoteDate, setNewQuoteDate] = useState('');
+  const [newValidUntil, setNewValidUntil] = useState('');
+  const [newFreightCharges, setNewFreightCharges] = useState(0);
   const [newGstPercentage, setNewGstPercentage] = useState(18);
 
-  const [quoteItems, setQuoteItems] = useState<Partial<SupplierQuotationItem>[]>([
-    {
-      itemCode: 'RM-MS-12MM',
-      itemName: 'IS 2062 Grade E250 MS Plate 12mm',
-      specification: 'Size 2500x6000mm',
-      category: 'Raw Material',
-      unitOfMeasure: 'KG',
-      quotedQuantity: 2500,
-      unitPrice: 65,
-      totalPrice: 162500,
-      discountPercentage: 0,
-      gstPercentage: 18,
-      netPrice: 191750,
-      leadTimeDays: 7,
-      technicalCompliant: true,
-    },
-  ]);
+  const [quoteItems, setQuoteItems] = useState<Partial<SupplierQuotationItem>[]>([]);
+
+  // Initialize form defaults
+  React.useEffect(() => {
+    if (!newQuoteDate) {
+      setNewQuoteDate(new Date().toISOString().split('T')[0]);
+    }
+    if (!newValidUntil) {
+      const d = new Date();
+      d.setDate(d.getDate() + 30);
+      setNewValidUntil(d.toISOString().split('T')[0]);
+    }
+    if (!newRefNumber) {
+      setNewRefNumber(`SQ-REF-${Math.floor(1000 + Math.random() * 9000)}`);
+    }
+  }, [newQuoteDate, newValidUntil, newRefNumber]);
+
+  // Sync RFQ and Supplier dropdowns
+  React.useEffect(() => {
+    if (rfqs.length > 0 && !newRfqId) {
+      setNewRfqId(rfqs[0].id);
+    }
+  }, [rfqs, newRfqId]);
+
+  React.useEffect(() => {
+    if (suppliers.length > 0 && !newSupplierId) {
+      setNewSupplierId(suppliers[0].id);
+    }
+  }, [suppliers, newSupplierId]);
+
+  // When RFQ changes, auto-populate line items from RFQ
+  React.useEffect(() => {
+    const activeRfq = rfqs.find(r => r.id === newRfqId) || rfqs[0];
+    if (activeRfq && Array.isArray(activeRfq.items) && activeRfq.items.length > 0) {
+      setQuoteItems(
+        activeRfq.items.map((it: any) => {
+          const qty = Number(it.requiredQuantity || it.required_quantity || 1);
+          const price = Number(it.targetPrice || it.target_price || it.estimatedUnitPrice || 100);
+          return {
+            itemCode: it.itemCode || it.item_code || 'ITEM',
+            itemName: it.itemName || it.item_name || 'Item',
+            specification: it.specification || '',
+            category: it.category || 'Raw Material',
+            unitOfMeasure: it.unitOfMeasure || it.unit_of_measure || 'NOS',
+            quotedQuantity: qty,
+            unitPrice: price,
+            totalPrice: qty * price,
+            discountPercentage: 0,
+            gstPercentage: 18,
+            netPrice: qty * price * 1.18,
+            leadTimeDays: 7,
+            technicalCompliant: true,
+          };
+        })
+      );
+    } else if (quoteItems.length === 0) {
+      setQuoteItems([
+        {
+          itemCode: 'ITEM-001',
+          itemName: 'Quoted Item',
+          specification: 'Standard Specification',
+          category: 'Raw Material',
+          unitOfMeasure: 'NOS',
+          quotedQuantity: 10,
+          unitPrice: 500,
+          totalPrice: 5000,
+          discountPercentage: 0,
+          gstPercentage: 18,
+          netPrice: 5900,
+          leadTimeDays: 7,
+          technicalCompliant: true,
+        },
+      ]);
+    }
+  }, [newRfqId, rfqs]);
 
   const filteredQuotes = supplierQuotations.filter(q => {
     if (rfqFilter !== 'ALL' && q.rfqId !== rfqFilter) return false;
@@ -65,34 +123,74 @@ export default function SupplierQuotationsPage() {
     return true;
   });
 
+  const handleItemChange = (idx: number, field: keyof SupplierQuotationItem, val: any) => {
+    setQuoteItems(prev => {
+      const updated = [...prev];
+      updated[idx] = { ...updated[idx], [field]: val };
+      if (field === 'quotedQuantity' || field === 'unitPrice' || field === 'discountPercentage') {
+        const qty = Number(updated[idx].quotedQuantity || 0);
+        const price = Number(updated[idx].unitPrice || 0);
+        const disc = Number(updated[idx].discountPercentage || 0);
+        const lineSub = qty * price * (1 - disc / 100);
+        updated[idx].totalPrice = lineSub;
+        updated[idx].netPrice = lineSub * (1 + newGstPercentage / 100);
+      }
+      return updated;
+    });
+  };
+
   const handleRecordQuoteSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const rfqObj = rfqs.find(r => r.id === newRfqId);
-    const suppObj = suppliers.find(s => s.id === newSupplierId);
-    if (!rfqObj || !suppObj) return;
+    const effectiveRfqId = newRfqId || rfqs[0]?.id;
+    const effectiveSupplierId = newSupplierId || suppliers[0]?.id;
 
-    const formattedItems: SupplierQuotationItem[] = quoteItems.map((qi, idx) => ({
-      id: `SQI-${Date.now()}-${idx}`,
-      quotationId: '',
-      itemCode: qi.itemCode || 'ITEM-001',
-      itemName: qi.itemName || 'Quoted Item',
-      specification: qi.specification || '',
-      category: (qi.category as any) || 'Raw Material',
-      unitOfMeasure: qi.unitOfMeasure || 'NOS',
-      quotedQuantity: Number(qi.quotedQuantity || 1),
-      unitPrice: Number(qi.unitPrice || 0),
-      totalPrice: Number(qi.quotedQuantity || 1) * Number(qi.unitPrice || 0),
-      discountPercentage: 0,
-      gstPercentage: newGstPercentage,
-      netPrice: (Number(qi.quotedQuantity || 1) * Number(qi.unitPrice || 0)) * (1 + newGstPercentage / 100),
-      leadTimeDays: Number(qi.leadTimeDays || 7),
-      technicalCompliant: true,
-      remarks: 'Comply with spec',
-    }));
+    if (!effectiveRfqId) {
+      alert('Please select a valid RFQ.');
+      return;
+    }
+    if (!effectiveSupplierId) {
+      alert('Please select a supplier.');
+      return;
+    }
+
+    const rfqObj = rfqs.find(r => r.id === effectiveRfqId || r.rfqNumber === effectiveRfqId);
+    const suppObj = suppliers.find(s => s.id === effectiveSupplierId);
+    if (!rfqObj) {
+      alert('Selected RFQ not found in database.');
+      return;
+    }
+    if (!suppObj) {
+      alert('Selected supplier not found in database.');
+      return;
+    }
+
+    const formattedItems: SupplierQuotationItem[] = quoteItems.map((qi, idx) => {
+      const qty = Number(qi.quotedQuantity || 1);
+      const price = Number(qi.unitPrice || 0);
+      const tot = qty * price;
+      return {
+        id: `SQI-${Date.now()}-${idx}`,
+        quotationId: '',
+        itemCode: qi.itemCode || 'ITEM-001',
+        itemName: qi.itemName || 'Quoted Item',
+        specification: qi.specification || '',
+        category: (qi.category as any) || 'Raw Material',
+        unitOfMeasure: qi.unitOfMeasure || 'NOS',
+        quotedQuantity: qty,
+        unitPrice: price,
+        totalPrice: tot,
+        discountPercentage: Number(qi.discountPercentage || 0),
+        gstPercentage: newGstPercentage,
+        netPrice: tot * (1 + newGstPercentage / 100),
+        leadTimeDays: Number(qi.leadTimeDays || 7),
+        technicalCompliant: qi.technicalCompliant ?? true,
+        remarks: 'Quotation verified',
+      };
+    });
 
     const subTotal = formattedItems.reduce((sum, item) => sum + item.totalPrice, 0);
     const taxTotal = (subTotal * newGstPercentage) / 100;
-    const grandTotal = subTotal + taxTotal + newFreightCharges;
+    const grandTotal = subTotal + taxTotal + Number(newFreightCharges || 0);
 
     const newQuotation: SupplierQuotation = {
       id: `SQ-${Date.now()}`,
@@ -101,20 +199,20 @@ export default function SupplierQuotationsPage() {
       rfqNumber: rfqObj.rfqNumber,
       supplierId: suppObj.id,
       supplierName: suppObj.name,
-      supplierQuotationRef: newRefNumber,
+      supplierQuotationRef: newRefNumber || `REF-${Date.now()}`,
       quotationDate: newQuoteDate,
       validityDate: newValidUntil,
-      paymentTerms: suppObj.paymentTerms,
+      paymentTerms: suppObj.paymentTerms || '30 Days Credit',
       deliveryTerms: 'FOR Destination',
       leadTimeDays: 7,
       currency: 'INR',
       subTotal: subTotal,
       taxTotal: taxTotal,
-      freightCharges: newFreightCharges,
+      freightCharges: Number(newFreightCharges || 0),
       grandTotal: grandTotal,
       technicalStatus: 'Compliant',
       items: formattedItems,
-      recordedBy: `${currentUser.firstName} ${currentUser.lastName}`,
+      recordedBy: currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'Purchase Admin',
       status: 'Submitted',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -307,8 +405,14 @@ export default function SupplierQuotationsPage() {
 
       {/* RECORD QUOTATION MODAL */}
       {showRecordModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl">
+        <div
+          onClick={() => setShowRecordModal(false)}
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border border-[#EBE3DB] rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl max-h-[90vh] flex flex-col"
+          >
             <div className="p-5 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between">
               <h2 className="text-lg font-black text-[#211B17]">Record Received Supplier Quotation</h2>
               <button onClick={() => setShowRecordModal(false)} className="text-[#70665F] hover:text-[#211B17]">
@@ -316,80 +420,184 @@ export default function SupplierQuotationsPage() {
               </button>
             </div>
 
-            <form onSubmit={handleRecordQuoteSubmit} className="p-6 space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[#70665F] mb-1">Select RFQ</label>
-                  <select
-                    value={newRfqId || rfqs[0]?.id || ''}
-                    onChange={(e) => setNewRfqId(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
+            {rfqs.length === 0 ? (
+              <div className="p-8 text-center space-y-4">
+                <div className="w-12 h-12 mx-auto rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
+                  <FileCheck2 className="w-6 h-6" />
+                </div>
+                <h3 className="font-bold text-[#211B17] text-base">No RFQs Found in Database</h3>
+                <p className="text-xs text-[#70665F] max-w-md mx-auto">
+                  A Supplier Quotation requires an active RFQ (Request for Quotation) issued to vendors. Please create an RFQ first.
+                </p>
+                <div className="pt-2">
+                  <a
+                    href="/purchase/rfq"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl shadow transition"
                   >
-                    {rfqs.length === 0 ? (
-                      <option value="">No RFQs Available</option>
-                    ) : (
-                      rfqs.map(r => (
+                    Go to RFQ Register →
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleRecordQuoteSubmit} className="p-6 space-y-4 text-xs overflow-y-auto">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[#70665F] mb-1 font-semibold">Select RFQ *</label>
+                    <select
+                      value={newRfqId || rfqs[0]?.id || ''}
+                      onChange={(e) => setNewRfqId(e.target.value)}
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] focus:outline-none focus:border-crm-brand-600"
+                      required
+                    >
+                      {rfqs.map(r => (
                         <option key={r.id} value={r.id}>
                           {r.rfqNumber || r.id} {r.jobId ? `(${r.jobId})` : ''} - {r.status || 'Active'}
                         </option>
-                      ))
-                    )}
-                  </select>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[#70665F] mb-1 font-semibold">Select Bidding Supplier *</label>
+                    <select
+                      value={newSupplierId || suppliers[0]?.id || ''}
+                      onChange={(e) => setNewSupplierId(e.target.value)}
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] focus:outline-none focus:border-crm-brand-600"
+                      required
+                    >
+                      {suppliers.map(s => (
+                        <option key={s.id} value={s.id}>{s.name} ({s.category})</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-[#70665F] mb-1">Select Bidding Supplier</label>
-                  <select
-                    value={newSupplierId}
-                    onChange={(e) => setNewSupplierId(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
-                  >
-                    {suppliers.map(s => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-[#70665F] mb-1">Vendor Quotation Ref No</label>
-                  <input
-                    type="text"
-                    value={newRefNumber}
-                    onChange={(e) => setNewRefNumber(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono"
-                    required
-                  />
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-[#70665F] mb-1 font-semibold">Vendor Quotation Ref No *</label>
+                    <input
+                      type="text"
+                      value={newRefNumber}
+                      onChange={(e) => setNewRefNumber(e.target.value)}
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono focus:outline-none focus:border-crm-brand-600"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[#70665F] mb-1 font-semibold">Quotation Date *</label>
+                    <input
+                      type="date"
+                      value={newQuoteDate}
+                      onChange={(e) => setNewQuoteDate(e.target.value)}
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono focus:outline-none focus:border-crm-brand-600"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[#70665F] mb-1 font-semibold">Validity Date *</label>
+                    <input
+                      type="date"
+                      value={newValidUntil}
+                      onChange={(e) => setNewValidUntil(e.target.value)}
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono focus:outline-none focus:border-crm-brand-600"
+                      required
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-[#70665F] mb-1">Quotation Date</label>
-                  <input
-                    type="date"
-                    value={newQuoteDate}
-                    onChange={(e) => setNewQuoteDate(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[#70665F] mb-1">Validity Date</label>
-                  <input
-                    type="date"
-                    value={newValidUntil}
-                    onChange={(e) => setNewValidUntil(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono"
-                  />
-                </div>
-              </div>
 
-              <div className="pt-4 flex justify-end gap-2 border-t border-[#EBE3DB]">
-                <button type="button" onClick={() => setShowRecordModal(false)} className="px-4 py-2 bg-[#FAF7F2] text-[#211B17] rounded-xl">
-                  Cancel
-                </button>
-                <button type="submit" className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl">
-                  Save Received Quotation
-                </button>
-              </div>
-            </form>
+                {/* Quoted Line Items Table */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-bold text-[#211B17]">Quoted Line Items ({quoteItems.length})</span>
+                    <span className="text-[10px] text-[#70665F]">Auto-loaded from selected RFQ</span>
+                  </div>
+                  <div className="border border-[#EBE3DB] rounded-xl overflow-hidden">
+                    <table className="w-full text-xs text-left">
+                      <thead className="bg-[#FAF7F2] text-[#70665F]">
+                        <tr>
+                          <th className="p-2.5">Item Name & Spec</th>
+                          <th className="p-2.5 text-right w-24">Quoted Qty</th>
+                          <th className="p-2.5 text-right w-28">Unit Rate (₹)</th>
+                          <th className="p-2.5 text-right w-24">Disc %</th>
+                          <th className="p-2.5 text-right w-32">Total (₹)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#EBE3DB]">
+                        {quoteItems.map((it, idx) => (
+                          <tr key={idx} className="bg-white">
+                            <td className="p-2.5">
+                              <div className="font-semibold text-[#211B17]">{it.itemName}</div>
+                              <div className="text-[10px] text-[#70665F] font-mono">{it.itemCode} {it.specification ? `• ${it.specification}` : ''}</div>
+                            </td>
+                            <td className="p-2.5 text-right">
+                              <input
+                                type="number"
+                                value={it.quotedQuantity}
+                                onChange={(e) => handleItemChange(idx, 'quotedQuantity', Number(e.target.value))}
+                                className="w-20 bg-[#FAF7F2] border border-[#EBE3DB] p-1 rounded text-right font-mono text-[#211B17]"
+                              />
+                            </td>
+                            <td className="p-2.5 text-right">
+                              <input
+                                type="number"
+                                value={it.unitPrice}
+                                onChange={(e) => handleItemChange(idx, 'unitPrice', Number(e.target.value))}
+                                className="w-24 bg-[#FAF7F2] border border-[#EBE3DB] p-1 rounded text-right font-mono text-[#211B17]"
+                              />
+                            </td>
+                            <td className="p-2.5 text-right">
+                              <input
+                                type="number"
+                                value={it.discountPercentage || 0}
+                                onChange={(e) => handleItemChange(idx, 'discountPercentage', Number(e.target.value))}
+                                className="w-16 bg-[#FAF7F2] border border-[#EBE3DB] p-1 rounded text-right font-mono text-[#211B17]"
+                              />
+                            </td>
+                            <td className="p-2.5 text-right font-mono font-bold text-emerald-600">
+                              ₹{((it.quotedQuantity || 0) * (it.unitPrice || 0) * (1 - (it.discountPercentage || 0) / 100))?.toLocaleString('en-IN')}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[#70665F] mb-1 font-semibold">Freight Charges (₹)</label>
+                    <input
+                      type="number"
+                      value={newFreightCharges}
+                      onChange={(e) => setNewFreightCharges(Number(e.target.value))}
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono focus:outline-none focus:border-crm-brand-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[#70665F] mb-1 font-semibold">GST Percentage (%)</label>
+                    <select
+                      value={newGstPercentage}
+                      onChange={(e) => setNewGstPercentage(Number(e.target.value))}
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] focus:outline-none focus:border-crm-brand-600"
+                    >
+                      <option value={0}>0% (Exempt)</option>
+                      <option value={5}>5%</option>
+                      <option value={12}>12%</option>
+                      <option value={18}>18% Standard</option>
+                      <option value={28}>28%</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="pt-4 flex justify-end gap-2 border-t border-[#EBE3DB]">
+                  <button type="button" onClick={() => setShowRecordModal(false)} className="px-4 py-2 bg-[#FAF7F2] text-[#211B17] font-bold rounded-xl hover:bg-stone-200 transition">
+                    Cancel
+                  </button>
+                  <button type="submit" className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl shadow transition">
+                    Save Received Quotation
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

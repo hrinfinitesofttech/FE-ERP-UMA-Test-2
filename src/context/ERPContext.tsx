@@ -1806,6 +1806,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           api.projects.documents(),
           api.projects.changeRequests(),
           api.designer.requirements.list(),
+          api.designer.tasks.list(),
+          api.purchase.mrp.list(),
+          api.purchase.rfqs.list(),
+          api.purchase.supplierQuotations.list(),
+          api.purchase.quotationComparisons.list(),
         ]);
 
         if (!isMounted) return;
@@ -2587,6 +2592,127 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             try { localStorage.setItem('UMA_ERP_customerRequirements', JSON.stringify(normalizedReqs)); } catch (_) {}
           }
         }
+
+        const rawTasks = val<any[]>(results[76]);
+        if (rawTasks && Array.isArray(rawTasks)) {
+          const normalizedTasks: DesignTask[] = rawTasks.map((t: any) => ({
+            ...t,
+            id: String(t.id),
+            designJobId: t.designJobId || t.design_job_id || '',
+            projectId: t.projectId || t.project_id || '',
+            jobNumber: t.jobNumber || t.job_number || '',
+            taskName: t.taskName || t.task_name || '',
+            customerName: t.customerName || t.customer_name || '',
+            machineName: t.machineName || t.machine_name || '',
+            designer: t.designer || 'Dharmesh Joshi',
+            startDate: t.startDate || t.start_date || '',
+            targetDate: t.targetDate || t.target_date || '',
+            dueDate: t.dueDate || t.due_date || '',
+            priority: t.priority || 'high',
+            estimatedHours: Number(t.estimatedHours || t.estimated_hours || 16),
+            actualHours: Number(t.actualHours || t.actual_hours || 0),
+            progressPercent: Number(t.progressPercent || t.progress_percent || 0),
+            status: t.status || 'pending',
+            remarks: t.remarks || '',
+            createdAt: t.createdAt || t.created_at || '',
+          }));
+          setDesignTasks(normalizedTasks);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_designTasks', JSON.stringify(normalizedTasks)); } catch (_) {}
+          }
+        }
+
+        const rawMRP = val<any[]>(results[77]);
+        if (rawMRP && Array.isArray(rawMRP)) {
+          const normalizedMRP: MaterialRequirement[] = rawMRP.map((m: any) => ({
+            ...m,
+            id: String(m.id),
+            projectId: m.projectId || m.project_id || '',
+            jobId: m.jobId || m.job_id || '',
+            jobNumber: m.jobNumber || m.job_number || m.jobId || m.job_id || '',
+            customerName: m.customerName || m.customer_name || '',
+            designJobId: m.designJobId || m.design_job_id || '',
+            bomId: m.bomId || m.bom_id || '',
+            bomNumber: m.bomNumber || m.bom_number || '',
+            bomRevision: m.bomRevision || m.bom_revision || 'REV-01',
+            partNumber: m.partNumber || m.part_number || '',
+            itemCode: m.itemCode || m.item_code || '',
+            itemName: m.itemName || m.item_name || '',
+            materialName: m.materialName || m.material_name || '',
+            specification: m.specification || '',
+            category: m.category || 'Raw Material',
+            requiredQuantity: Number(m.requiredQuantity || m.required_quantity || 0),
+            unitOfMeasure: m.unitOfMeasure || m.unit_of_measure || 'NOS',
+            availableStock: Number(m.availableStock || m.available_stock || 0),
+            reservedStock: Number(m.reservedStock || m.reserved_stock || 0),
+            onOrderQuantity: Number(m.onOrderQuantity || m.on_order_quantity || 0),
+            shortageQuantity: Number(m.shortageQuantity || m.shortage_quantity || 0),
+            requiredByDate: m.requiredByDate || m.required_by_date || '',
+            procurementType: m.procurementType || m.procurement_type || 'Purchase',
+            procurementStatus: m.procurementStatus || m.procurement_status || 'Pending',
+            drawingNumber: m.drawingNumber || m.drawing_number || '',
+            status: m.status || 'shortage',
+          }));
+          setMaterialRequirements(normalizedMRP);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_materialRequirements', JSON.stringify(normalizedMRP)); } catch (_) {}
+          }
+        }
+
+        const rawRfqs = val<any[]>(results[78]);
+        if (rawRfqs && Array.isArray(rawRfqs)) {
+          const normalizedRfqs: RequestForQuotation[] = rawRfqs.map((r: any) => ({
+            ...r,
+            id: String(r.id || r.rfqNumber || r.rfq_number),
+            rfqNumber: r.rfqNumber || r.rfq_number || r.id,
+            prId: r.prId || r.pr_id || '',
+            prNumber: r.prNumber || r.pr_id || '',
+            rfqDate: r.rfqDate || r.rfq_date || '',
+            dueDate: r.dueDate || r.due_date || '',
+            invitedSuppliers: r.invitedSuppliers || r.suppliers || [],
+            suppliers: r.suppliers || r.invitedSuppliers || [],
+            items: r.items || [],
+            status: r.status || 'Sent to Suppliers',
+            termsAndConditions: r.termsAndConditions || r.terms_and_conditions || '',
+            issuedBy: r.issuedBy || 'Purchase Team',
+            createdAt: r.createdAt || r.created_at || '',
+          }));
+          setRfqs(normalizedRfqs);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_rfqs', JSON.stringify(normalizedRfqs)); } catch (_) {}
+          }
+        }
+
+        const rawSQs = val<any[]>(results[79]);
+        if (rawSQs && Array.isArray(rawSQs)) {
+          const normalizedSQs: SupplierQuotation[] = rawSQs.map((q: any) => ({
+            ...q,
+            id: String(q.id || q.quotationNumber || q.quotation_number),
+            quotationNumber: q.quotationNumber || q.quotation_number || q.id,
+            rfqId: q.rfqId || q.rfq_id || '',
+            rfqNumber: q.rfqNumber || q.rfq_id || '',
+            supplierId: q.supplierId || q.supplier_id || '',
+            supplierName: q.supplierName || q.supplier_name || '',
+            supplierQuotationRef: q.supplierQuotationRef || q.quotationNumber || q.quotation_number || '',
+            quotationDate: q.quotationDate || q.date || '',
+            validityDate: q.validityDate || q.valid_until || '',
+            items: q.items || [],
+            subTotal: Number(q.subTotal || q.sub_total || 0),
+            taxTotal: Number(q.taxTotal || q.tax_amount || 0),
+            grandTotal: Number(q.grandTotal || q.grand_total || 0),
+            paymentTerms: q.paymentTerms || q.payment_terms || '',
+            deliveryTerms: q.deliveryTerms || 'FOR Destination',
+            leadTimeDays: Number(q.leadTimeDays || 7),
+            status: q.status || 'Received',
+            technicalStatus: q.technicalStatus || 'Compliant',
+            recordedBy: q.recordedBy || 'Purchase Officer',
+            createdAt: q.createdAt || q.created_at || '',
+          }));
+          setSupplierQuotations(normalizedSQs);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_supplierQuotations', JSON.stringify(normalizedSQs)); } catch (_) {}
+          }
+        }
       } catch (err) {
         console.warn('Initial live data load warning:', err);
       } finally {
@@ -2757,45 +2883,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       });
 
-      // 4. SYNC WITH DESIGN PLANNING TASKS (designTasks)
-      if (designStage?.assignedEmployees && designStage.assignedEmployees.length > 0) {
-        setDesignTasks((prev) => {
-          const hasTasks = prev.some((t) => t.projectId === prj.id || t.jobNumber === prj.jobNumber);
-          if (hasTasks) return prev;
-
-          const newTasks: DesignTask[] = (designStage.assignedEmployees || []).map((emp, idx) => {
-            const taskTitles = [
-              '3D Mechanical Modeling & CAD Layout',
-              '2D GA (General Arrangement) Drawings',
-              'Engineering BOM & Technical Specs',
-              'Fabrication & Nozzle Detail Drawings',
-            ];
-            const taskTitle = taskTitles[idx % taskTitles.length];
-            return {
-              id: `DSK-${prj.jobNumber.slice(-4)}-${idx + 1}`,
-              designJobId: currentDesignJobId || `DES-${prj.jobNumber.slice(-4)}`,
-              projectId: prj.id,
-              jobNumber: prj.jobNumber,
-              taskName: `${taskTitle} - ${prj.productName}`,
-              customerName: prj.customerName,
-              machineName: prj.productName,
-              designer: emp.name,
-              startDate: designStage.plannedStart || prj.startDate,
-              targetDate: designStage.plannedEnd || prj.deliveryDate,
-              dueDate: designStage.plannedEnd || prj.deliveryDate,
-              priority: (prj.priority as any) || 'high',
-              estimatedHours: 24,
-              actualHours: 0,
-              progressPercent: designStage.status === 'completed' ? 100 : designStage.status === 'in_progress' ? 40 : 0,
-              status: designStage.status === 'completed' ? 'completed' : designStage.status === 'in_progress' ? 'in_progress' : 'pending',
-              remarks: `Assigned in Project Planning for ${prj.projectNumber}`,
-            };
-          });
-          return [...newTasks, ...prev];
-        });
-      }
-
-      // 5. SYNC WITH PRODUCTION WORK ORDERS (workOrders)
+      // 4. SYNC WITH PRODUCTION WORK ORDERS (workOrders)
       setWorkOrders((prev) => {
         const existing = prev.find((w) => w.projectId === prj.id || w.jobNumber === prj.jobNumber);
         if (!existing) {
@@ -4799,11 +4887,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
     logAction('CREATE', 'Designer', 'Design Tasks', id, `Created design task ${data.taskName}`);
-    api.post('/tasks/', newTask)
-      .then((res) => {
-        if (res.data?.id) {
+    api.designer.tasks.create(newTask)
+      .then((res: any) => {
+        if (res && res.id) {
           setDesignTasks((prev) => {
-            const synced = prev.map((t) => (t.id === id ? { ...t, ...res.data } : t));
+            const synced = prev.map((t) => (t.id === id ? { ...t, ...res } : t));
             try { localStorage.setItem('UMA_ERP_designTasks', JSON.stringify(synced)); } catch (_) {}
             return synced;
           });
@@ -4818,7 +4906,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       try { localStorage.setItem('UMA_ERP_designTasks', JSON.stringify(updated)); } catch (_) {}
       return updated;
     });
-    api.patch(`/tasks/${id}/`, updates).catch((err) => console.warn('Failed to update design task:', err));
+    api.designer.tasks.update(id, updates).catch((err) => console.warn('Failed to update design task:', err));
   };
 
   const addDrawing2D = (data: Omit<Drawing2D, 'id' | 'createdDate'>) => {
@@ -5022,7 +5110,24 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addMaterialRequirement = (data: Omit<MaterialRequirement, 'id'>) => {
     const id = `MRP-${Date.now().toString().slice(-5)}`;
     const newMrp: MaterialRequirement = { ...data, id };
-    setMaterialRequirements((prev) => [newMrp, ...prev]);
+    setMaterialRequirements((prev) => {
+      const updated = [newMrp, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_materialRequirements', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    api.purchase.mrp.create(newMrp).then((res) => {
+      if (res && res.id) {
+        setMaterialRequirements((prev) => {
+          const synced = prev.map((m) => (m.id === newMrp.id ? { ...m, ...res } : m));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_materialRequirements', JSON.stringify(synced)); } catch (_) {}
+          }
+          return synced;
+        });
+      }
+    }).catch((err) => console.warn('Failed to sync MRP to backend:', err));
   };
 
   const addPurchaseRequisition = (data: Omit<PurchaseRequisition, 'id' | 'prDate'>) => {
@@ -5114,7 +5219,17 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
     logAction('CREATE', 'Purchase', 'RFQ', newRfq.id, `Generated RFQ ${newRfq.rfqNumber} to suppliers`);
-    api.post('/rfqs/', newRfq).catch((err) => console.warn('Failed to add RFQ:', err));
+    api.purchase.rfqs.create(newRfq).then((res) => {
+      if (res && (res.id || res.rfqNumber || res.rfq_number)) {
+        setRfqs((prev) => {
+          const synced = prev.map((r) => (r.id === newRfq.id || r.rfqNumber === newRfq.rfqNumber ? { ...r, ...res } : r));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_rfqs', JSON.stringify(synced)); } catch (_) {}
+          }
+          return synced;
+        });
+      }
+    }).catch((err) => console.warn('Failed to add RFQ to backend:', err));
   };
 
   const addSupplierQuotation = (data: Omit<SupplierQuotation, 'id'>) => {
@@ -5127,8 +5242,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
       return updated;
     });
-    logAction('CREATE', 'Purchase', 'Supplier Quotations', id, `Recorded Quotation ${data.supplierQuotationNumber} from ${data.supplierName}`);
-    api.post('/supplier-quotations/', newSq).catch((err) => console.warn('Failed to add supplier quotation:', err));
+    logAction('CREATE', 'Purchase', 'Supplier Quotations', id, `Recorded Quotation ${data.supplierQuotationNumber || data.quotationNumber} from ${data.supplierName}`);
+    api.purchase.supplierQuotations.create(newSq).then((res) => {
+      if (res && (res.id || res.quotationNumber || res.quotation_number)) {
+        setSupplierQuotations((prev) => {
+          const synced = prev.map((q) => (q.id === newSq.id || q.quotationNumber === newSq.quotationNumber ? { ...q, ...res } : q));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_supplierQuotations', JSON.stringify(synced)); } catch (_) {}
+          }
+          return synced;
+        });
+      }
+    }).catch((err) => console.warn('Failed to add supplier quotation to backend:', err));
   };
 
   const addQuotationComparison = (data: Omit<QuotationComparison, 'id' | 'comparisonDate'>) => {

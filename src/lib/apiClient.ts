@@ -446,6 +446,13 @@ export const api = {
       update: (id: string, data: any) => request<any>(`/customer-requirements/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: string) => request<any>(`/customer-requirements/${id}/`, { method: 'DELETE' }),
     },
+    tasks: {
+      list: () => request<any[]>('/design-tasks/'),
+      get: (id: string) => request<any>(`/design-tasks/${id}/`),
+      create: (data: any) => request<any>('/design-tasks/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/design-tasks/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/design-tasks/${id}/`, { method: 'DELETE' }),
+    },
     drawings2d: () => request<any[]>('/drawings-2d/'),
     models3d: () => request<any[]>('/models-3d/'),
     boms: {
@@ -457,6 +464,13 @@ export const api = {
 
   // Purchase Management
   purchase: {
+    mrp: {
+      list: () => request<any[]>('/material-requirements/'),
+      get: (id: string) => request<any>(`/material-requirements/${id}/`),
+      create: (data: any) => request<any>('/material-requirements/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/material-requirements/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/material-requirements/${id}/`, { method: 'DELETE' }),
+    },
     suppliers: {
       list: () => request<any[]>('/suppliers/'),
       create: (data: any) => request<any>('/suppliers/', { method: 'POST', body: JSON.stringify(data) }),
@@ -465,12 +479,31 @@ export const api = {
     },
     requisitions: {
       list: () => request<any[]>('/purchase-requisitions/'),
+      get: (id: string) => request<any>(`/purchase-requisitions/${id}/`),
       create: (data: any) => request<any>('/purchase-requisitions/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/purchase-requisitions/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/purchase-requisitions/${id}/`, { method: 'DELETE' }),
       convertToRfq: (id: string) => request<any>(`/purchase-requisitions/${id}/convert-to-rfq/`, { method: 'POST' }),
     },
-    rfqs: () => request<any[]>('/rfqs/'),
-    supplierQuotations: () => request<any[]>('/supplier-quotations/'),
+    rfqs: {
+      list: () => request<any[]>('/rfqs/'),
+      get: (id: string) => request<any>(`/rfqs/${id}/`),
+      create: (data: any) => request<any>('/rfqs/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/rfqs/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/rfqs/${id}/`, { method: 'DELETE' }),
+    },
+    supplierQuotations: {
+      list: () => request<any[]>('/supplier-quotations/'),
+      get: (id: string) => request<any>(`/supplier-quotations/${id}/`),
+      create: (data: any) => request<any>('/supplier-quotations/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/supplier-quotations/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/supplier-quotations/${id}/`, { method: 'DELETE' }),
+    },
+    quotationComparisons: {
+      list: () => request<any[]>('/quotation-comparisons/'),
+      create: (data: any) => request<any>('/quotation-comparisons/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/quotation-comparisons/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+    },
     orders: {
       list: () => request<any[]>('/purchase-orders/'),
       create: (data: any) => request<any>('/purchase-orders/', { method: 'POST', body: JSON.stringify(data) }),

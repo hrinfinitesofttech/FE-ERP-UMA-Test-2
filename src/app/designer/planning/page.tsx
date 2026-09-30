@@ -202,6 +202,20 @@ export default function DesignPlanningPage() {
             </div>
           </div>
         ))}
+
+        {filteredTasks.length === 0 && (
+          <div className="p-12 text-center bg-white rounded-2xl border border-[#EBE3DB] space-y-3 shadow-sm">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-600">
+              <Compass className="w-7 h-7" />
+            </div>
+            <h3 className="text-base font-bold text-[#211B17]">No Design Tasks Found</h3>
+            <p className="text-xs text-[#70665F] max-w-md mx-auto">
+              {searchQuery
+                ? `No engineering tasks matched "${searchQuery}".`
+                : 'There are currently no engineering design tasks assigned.'}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Modal: Create Task */}
