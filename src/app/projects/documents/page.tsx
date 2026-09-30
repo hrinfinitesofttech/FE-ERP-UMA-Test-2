@@ -243,7 +243,20 @@ export default function ProjectDocumentsPage() {
 
       {/* UPLOAD DOCUMENT MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              if (docName.trim() || selectedFileName) {
+                if (window.confirm('You have unsaved changes. Are you sure you want to close?')) {
+                  setIsModalOpen(false);
+                }
+              } else {
+                setIsModalOpen(false);
+              }
+            }
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200"
+        >
           <div className="bg-white border rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
             <div className="p-4 border-b border-slate-100 flex justify-between items-center">
               <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">

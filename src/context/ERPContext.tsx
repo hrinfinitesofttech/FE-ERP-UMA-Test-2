@@ -1308,12 +1308,26 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== 'undefined') {
       try {
         const stored = localStorage.getItem('UMA_ERP_changeRequests');
-        if (stored) return JSON.parse(stored);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) return parsed;
+        }
       } catch (_) {}
     }
-    return MOCK_CHANGE_REQUESTS;
+    return [];
   });
-  const [projectDocuments, setProjectDocuments] = useState<ProjectDocument[]>(MOCK_PROJECT_DOCUMENTS);
+  const [projectDocuments, setProjectDocuments] = useState<ProjectDocument[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_projectDocuments');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch (_) {}
+    }
+    return [];
+  });
   const [projectCosts, setProjectCosts] = useState<ProjectCostItem[]>(MOCK_PROJECT_COSTS);
   const [projectComments, setProjectComments] = useState<ProjectComment[]>(MOCK_PROJECT_COMMENTS);
   const [projectApprovals, setProjectApprovals] = useState<ProjectApproval[]>(MOCK_PROJECT_APPROVALS);
@@ -1789,6 +1803,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           api.store.qcInspections(),
           api.auth.me(),
           api.projects.departmentAssignments(),
+          api.projects.documents(),
+          api.projects.changeRequests(),
         ]);
 
         if (!isMounted) return;
@@ -2477,6 +2493,58 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           setDepartmentAssignments(normalizedDAs);
           if (typeof window !== 'undefined') {
             try { localStorage.setItem('UMA_ERP_departmentAssignments', JSON.stringify(normalizedDAs)); } catch (_) {}
+          }
+        }
+
+        const rawDocs = val<any[]>(results[73]);
+        if (rawDocs && Array.isArray(rawDocs)) {
+          const normalizedDocs: ProjectDocument[] = rawDocs.map((d: any) => ({
+            ...d,
+            id: String(d.id),
+            documentName: d.documentName || d.document_name || d.name || 'Project Document',
+            type: d.type || d.docType || 'Drawing',
+            version: d.version || 'v1.0',
+            uploadedBy: d.uploadedBy || d.uploaded_by || 'Super Admin',
+            uploadDate: d.uploadDate || d.upload_date || (d.created_at ? d.created_at.split('T')[0] : new Date().toISOString().split('T')[0]),
+            department: d.department || '',
+            relatedRecord: d.relatedRecord || d.related_record || '',
+            description: d.description || '',
+            fileSize: d.fileSize || d.file_size || '1.5 MB',
+            fileUrl: d.fileUrl || d.file_url || '',
+            projectId: d.projectId || d.project_id || '',
+            jobNumber: d.jobNumber || d.job_number || '',
+          }));
+          setProjectDocuments(normalizedDocs);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_projectDocuments', JSON.stringify(normalizedDocs)); } catch (_) {}
+          }
+        }
+
+        const rawCRs = val<any[]>(results[74]);
+        if (rawCRs && Array.isArray(rawCRs)) {
+          const normalizedCRs: CustomerChangeRequest[] = rawCRs.map((cr: any) => ({
+            ...cr,
+            id: String(cr.id),
+            changeRequestNo: cr.changeRequestNo || cr.change_request_no || cr.request_no || cr.id,
+            projectId: cr.projectId || cr.project_id || '',
+            projectNumber: cr.projectNumber || cr.project_number || cr.projectId || cr.project_id || '',
+            jobNumber: cr.jobNumber || cr.job_number || '',
+            customerName: cr.customerName || cr.customer_name || '',
+            requestedBy: cr.requestedBy || cr.requested_by || 'Customer Representative',
+            requestDate: cr.requestDate || cr.request_date || (cr.created_at ? cr.created_at.split('T')[0] : new Date().toISOString().split('T')[0]),
+            changeDescription: cr.changeDescription || cr.change_description || cr.description || cr.title || '',
+            reason: cr.reason || '',
+            designImpact: cr.designImpact || cr.design_impact || '',
+            materialImpact: cr.materialImpact || cr.material_impact || '',
+            costImpact: Number(cr.costImpact ?? cr.cost_impact ?? cr.impact_on_cost ?? 0),
+            timelineImpactDays: Number(cr.timelineImpactDays ?? cr.timeline_impact_days ?? cr.impact_on_timeline_days ?? 0),
+            approvalStatus: cr.approvalStatus || cr.approval_status || cr.status || 'requested',
+            approvedBy: cr.approvedBy || cr.approved_by || '',
+            approvedDate: cr.approvedDate || cr.approved_date || '',
+          }));
+          setChangeRequests(normalizedCRs);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_changeRequests', JSON.stringify(normalizedCRs)); } catch (_) {}
           }
         }
       } catch (err) {
@@ -4479,7 +4547,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addCustomerChangeRequest = (data: Omit<CustomerChangeRequest, 'id' | 'changeRequestNo' | 'requestDate' | 'approvalStatus'>): CustomerChangeRequest => {
-    const crNo = `CR-2026-${String(changeRequests.length + 1).padStart(3, '0')}`;
+    const crNo = `CR-2026-${String(Date.now()).slice(-4)}`;
     const newCR: CustomerChangeRequest = {
       ...data,
       id: crNo,
@@ -4488,7 +4556,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       approvalStatus: 'requested',
     };
     setChangeRequests((prev) => {
-      const updated = [newCR, ...prev];
+      const updated = [newCR, ...prev.filter((c) => c.id !== newCR.id)];
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_changeRequests', JSON.stringify(updated)); } catch (_) {}
       }
@@ -4503,7 +4571,17 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       linkUrl: '/projects/change-requests',
       priority: 'high',
     });
-    api.post('/projects/change-requests/', newCR).catch((err) => console.warn('Failed to add change request on backend:', err));
+    api.projects.createChangeRequest(newCR).then((res) => {
+      if (res && res.id) {
+        setChangeRequests((prev) => {
+          const updated = prev.map((c) => (c.id === newCR.id ? { ...c, ...res, id: String(res.id) } : c));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_changeRequests', JSON.stringify(updated)); } catch (_) {}
+          }
+          return updated;
+        });
+      }
+    }).catch((err) => console.warn('Failed to add change request on backend:', err));
     return newCR;
   };
 
@@ -4532,7 +4610,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       logProjectActivity(target.projectId, target.jobNumber, `Change Request ${status.toUpperCase()}`, `CR ${target.changeRequestNo} ${status} by ${approver}`);
     }
 
-    api.patch(`/projects/change-requests/${id}/`, {
+    api.projects.updateChangeRequest(id, {
       approval_status: status === 'approved' ? 'approved' : 'rejected',
       status: status === 'approved' ? 'approved' : 'rejected',
       approved_by: approver,
@@ -4546,8 +4624,25 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       id: `DOC-${Date.now()}`,
       uploadDate: new Date().toISOString().split('T')[0],
     };
-    setProjectDocuments((prev) => [newDoc, ...prev]);
+    setProjectDocuments((prev) => {
+      const updated = [newDoc, ...prev.filter((d) => d.id !== newDoc.id)];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_projectDocuments', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logProjectActivity(data.projectId, data.jobNumber, 'Document Uploaded', `${data.documentName} (${data.version})`);
+    api.projects.createDocument(newDoc).then((res) => {
+      if (res && res.id) {
+        setProjectDocuments((prev) => {
+          const updated = prev.map((d) => (d.id === newDoc.id ? { ...d, ...res, id: String(res.id) } : d));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_projectDocuments', JSON.stringify(updated)); } catch (_) {}
+          }
+          return updated;
+        });
+      }
+    }).catch((err) => console.warn('Failed to upload document on backend:', err));
     return newDoc;
   };
 

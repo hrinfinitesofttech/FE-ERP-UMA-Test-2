@@ -167,7 +167,20 @@ export default function CustomerChangeRequestsPage() {
 
       {/* NEW CHANGE REQUEST MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FAF7F2] backdrop-blur-sm animate-in fade-in duration-200">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              if (changeDescription.trim() || reason.trim()) {
+                if (window.confirm('You have unsaved changes. Are you sure you want to close?')) {
+                  setIsModalOpen(false);
+                }
+              } else {
+                setIsModalOpen(false);
+              }
+            }
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
+        >
           <div className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
             <div className="p-4 border-b border-slate-200 dark:border-[#EBE3DB] bg-slate-50 dark:bg-white flex justify-between items-center">
               <h3 className="font-bold text-slate-900 dark:text-[#211B17] text-sm flex items-center gap-2">

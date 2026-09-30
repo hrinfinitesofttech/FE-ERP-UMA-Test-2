@@ -183,44 +183,7 @@ export const MOCK_DEPARTMENT_ASSIGNMENTS: DepartmentAssignment[] = [];
 export const MOCK_MILESTONES: ProjectMilestone[] = [];
 export const MOCK_PROJECT_ISSUES: ProjectIssue[] = [];
 export const MOCK_PROJECT_DELAYS: ProjectDelay[] = [];
-export const MOCK_CHANGE_REQUESTS: CustomerChangeRequest[] = [
-  {
-    id: 'CR-2026-001',
-    changeRequestNo: 'CR-2026-001',
-    projectId: 'PRJ-2026-0001',
-    projectNumber: 'PRJ-2026-0001',
-    jobNumber: 'JOB-6614',
-    customerName: 'Jullian Enterprise',
-    requestedBy: 'Amit Sharma (Customer Lead)',
-    requestDate: '2026-09-20',
-    changeDescription: 'Upgrade impeller design from 3-blade marine propeller to 4-blade pitched turbine for high-viscosity resin mixing.',
-    reason: 'Customer requested improved mixing efficiency and higher shear rate during polymerization trial.',
-    designImpact: 'CAD model revised with 4-blade CFD fluid dynamics recalculation.',
-    materialImpact: 'Additional SS 316L 12mm plate required for blade fabrication.',
-    costImpact: 45000,
-    timelineImpactDays: 4,
-    approvalStatus: 'approved',
-    approvedBy: 'Bhavin Shah',
-    approvedDate: '2026-09-22',
-  },
-  {
-    id: 'CR-2026-002',
-    changeRequestNo: 'CR-2026-002',
-    projectId: 'PRJ-2026-0002',
-    projectNumber: 'PRJ-2026-0002',
-    jobNumber: 'JOB-6615',
-    customerName: 'Reliance Industries Ltd',
-    requestedBy: 'Dinesh Verma (Plant Engineer)',
-    requestDate: '2026-09-25',
-    changeDescription: 'Add secondary drain nozzle (DN50 Class 150) at the bottom dish end with sanitary clamp flange.',
-    reason: 'Zero-dead-leg cleaning in place (CIP) compliance for pharmaceutical grade solvent extraction.',
-    designImpact: 'Nozzle orientation and bottom shell clearance redrawn in GA sheet.',
-    materialImpact: '1x DN50 SS316 flange & pipe piece inwarded.',
-    costImpact: 28000,
-    timelineImpactDays: 2,
-    approvalStatus: 'requested',
-  }
-];
+export const MOCK_CHANGE_REQUESTS: CustomerChangeRequest[] = [];
 export const MOCK_PROJECT_DOCUMENTS: ProjectDocument[] = [];
 export const MOCK_PROJECT_COSTS: ProjectCostItem[] = [];
 export const MOCK_PROJECT_COMMENTS: ProjectComment[] = [];

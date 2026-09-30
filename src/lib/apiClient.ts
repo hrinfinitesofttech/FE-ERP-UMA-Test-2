@@ -414,6 +414,20 @@ export const api = {
       request<any>(`/department-assignments/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
     deleteDepartmentAssignment: (id: string) =>
       request<any>(`/department-assignments/${id}/`, { method: 'DELETE' }),
+    documents: (projectId?: string) =>
+      request<any[]>(projectId ? `/project-documents/?projectId=${projectId}` : '/project-documents/'),
+    createDocument: (data: any) =>
+      request<any>('/project-documents/', { method: 'POST', body: JSON.stringify(data) }),
+    deleteDocument: (id: string) =>
+      request<any>(`/project-documents/${id}/`, { method: 'DELETE' }),
+    changeRequests: (projectId?: string) =>
+      request<any[]>(projectId ? `/change-requests/?projectId=${projectId}` : '/change-requests/'),
+    createChangeRequest: (data: any) =>
+      request<any>('/change-requests/', { method: 'POST', body: JSON.stringify(data) }),
+    updateChangeRequest: (id: string, data: any) =>
+      request<any>(`/change-requests/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+    deleteChangeRequest: (id: string) =>
+      request<any>(`/change-requests/${id}/`, { method: 'DELETE' }),
   },
 
   // Design & Engineering
