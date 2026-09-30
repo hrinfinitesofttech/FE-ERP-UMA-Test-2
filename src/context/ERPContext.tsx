@@ -1121,18 +1121,128 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
 
   // CRM States
-  const [leads, setLeads] = useState<Lead[]>(INITIAL_LEADS);
-  const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);
+  const [leads, setLeads] = useState<Lead[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_leads');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_LEADS;
+  });
+  const [customers, setCustomers] = useState<Customer[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_customers');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_CUSTOMERS;
+  });
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [enquiries, setEnquiries] = useState<Enquiry[]>(INITIAL_ENQUIRIES);
-  const [opportunities, setOpportunities] = useState<Opportunity[]>(INITIAL_OPPORTUNITIES);
-  const [followUps, setFollowUps] = useState<FollowUp[]>(INITIAL_FOLLOWUPS);
-  const [siteVisits, setSiteVisits] = useState<SiteVisit[]>(INITIAL_VISITS);
+  const [enquiries, setEnquiries] = useState<Enquiry[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_enquiries');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_ENQUIRIES;
+  });
+  const [opportunities, setOpportunities] = useState<Opportunity[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_opportunities');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_OPPORTUNITIES;
+  });
+  const [followUps, setFollowUps] = useState<FollowUp[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_followUps');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_FOLLOWUPS;
+  });
+  const [siteVisits, setSiteVisits] = useState<SiteVisit[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_siteVisits');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_VISITS;
+  });
   const [exhibitions, setExhibitions] = useState<Exhibition[]>(INITIAL_EXHIBITIONS);
-  const [quotations, setQuotations] = useState<Quotation[]>(INITIAL_QUOTATIONS);
-  const [customerPOs, setCustomerPOs] = useState<CustomerPO[]>(INITIAL_CUSTOMER_POS);
-  const [salesOrders, setSalesOrders] = useState<SalesOrder[]>(INITIAL_SALES_ORDERS);
-  const [projectJobs, setProjectJobs] = useState<ProjectJobMaster[]>(INITIAL_PROJECT_JOBS);
+  const [quotations, setQuotations] = useState<Quotation[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_quotations');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_QUOTATIONS;
+  });
+  const [customerPOs, setCustomerPOs] = useState<CustomerPO[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_customerPOs');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_CUSTOMER_POS;
+  });
+  const [salesOrders, setSalesOrders] = useState<SalesOrder[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_salesOrders');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_SALES_ORDERS;
+  });
+  const [projectJobs, setProjectJobs] = useState<ProjectJobMaster[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_projectJobs');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_PROJECT_JOBS;
+  });
   const [projectTasks, setProjectTasks] = useState<ProjectTask[]>(MOCK_PROJECT_TASKS);
   const [projectPlanningStages, setProjectPlanningStages] = useState<ProjectPlanningStage[]>(MOCK_PLANNING_STAGES);
   const [departmentAssignments, setDepartmentAssignments] = useState<DepartmentAssignment[]>(MOCK_DEPARTMENT_ASSIGNMENTS);
@@ -3502,7 +3612,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       id: quoNo,
       quotationNumber: quoNo,
     };
-    setQuotations((prev) => [newQuo, ...prev]);
+    setQuotations((prev) => {
+      const updated = [newQuo, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_quotations', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'CRM', 'Quotations', quoNo, `Generated Quotation ${quoNo} (Rev-00) for ₹${newQuo.latestSummary?.grandTotal || 0}`);
     sendNotification({
       title: 'Quotation Ready for Approval',
@@ -3514,15 +3630,21 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     });
     api.crm.quotations.create(newQuo).then((res) => {
       if (res && res.id) {
-        setQuotations((prev) => prev.map((q) => (q.id === quoNo ? { ...q, ...res } : q)));
+        setQuotations((prev) => {
+          const updated = prev.map((q) => (q.id === quoNo ? { ...q, ...res } : q));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_quotations', JSON.stringify(updated)); } catch (_) {}
+          }
+          return updated;
+        });
       }
     }).catch((err) => console.warn('Failed to sync quotation to backend:', err));
     return newQuo;
   };
 
   const addQuotationRevision = (quotationId: string, revision: QuotationRevision) => {
-    setQuotations((prev) =>
-      prev.map((q) => {
+    setQuotations((prev) => {
+      const updated = prev.map((q) => {
         if (q.id !== quotationId) return q;
         return {
           ...q,
@@ -3534,15 +3656,19 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             machineProduct: revision.items[0]?.productName || q.latestSummary.machineProduct,
           },
         };
-      })
-    );
+      });
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_quotations', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'CRM', 'Quotation Revision', quotationId, `Created revision ${revision.revisionNumber}`);
     api.crm.quotations.addRevision(quotationId, revision).catch((err) => console.warn('Failed to sync quotation revision:', err));
   };
 
   const updateQuotationStatus = (quotationId: string, revisionNumber: string, status: QuotationRevision['status']) => {
-    setQuotations((prev) =>
-      prev.map((q) => {
+    setQuotations((prev) => {
+      const updated = prev.map((q) => {
         if (q.id !== quotationId) return q;
         const updatedRevs = q.revisions.map((r) => (r.revisionNumber === revisionNumber ? { ...r, status } : r));
         return {
@@ -3553,8 +3679,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             status,
           },
         };
-      })
-    );
+      });
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_quotations', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('APPROVE', 'CRM', 'Quotations', quotationId, `Updated ${revisionNumber} status to ${status}`);
     api.crm.quotations.updateStatus(quotationId, { revisionNumber, status }).catch((err) =>
       console.warn('Failed to update quotation status on backend:', err)
@@ -3568,7 +3698,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       ...poData,
       id: poId,
     };
-    setCustomerPOs((prev) => [newPO, ...prev]);
+    setCustomerPOs((prev) => {
+      const updated = [newPO, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_customerPOs', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'CRM', 'Customer PO', poId, `Received Customer PO ${newPO.poNumber} for ₹${newPO.poAmount}`);
     sendNotification({
       title: 'Customer PO Received',
@@ -3586,7 +3722,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     api.crm.customerPos.create(poPayload).then((res) => {
       if (res && res.id) {
-        setCustomerPOs((prev) => prev.map((p) => (p.id === poId ? { ...p, ...res } : p)));
+        setCustomerPOs((prev) => {
+          const updated = prev.map((p) => (p.id === poId ? { ...p, ...res } : p));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_customerPOs', JSON.stringify(updated)); } catch (_) {}
+          }
+          return updated;
+        });
       }
     }).catch((err) => console.warn('Failed to sync customer PO to backend:', err));
     return newPO;
@@ -3625,8 +3767,20 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       ],
     };
 
-    setSalesOrders((prev) => [newSO, ...prev]);
-    setCustomerPOs((prev) => prev.map((p) => (p.id === poId ? { ...p, status: 'sales_order_created', salesOrderId: soNo } : p)));
+    setSalesOrders((prev) => {
+      const updated = [newSO, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_salesOrders', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    setCustomerPOs((prev) => {
+      const updated = prev.map((p) => (p.id === poId ? { ...p, status: 'sales_order_created' as const, salesOrderId: soNo } : p));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_customerPOs', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('APPROVE', 'CRM', 'Sales Order Created', soNo, `Generated Sales Order ${soNo} from Customer PO ${po.poNumber}`);
     sendNotification({
       title: 'Sales Order Confirmed',
@@ -3644,7 +3798,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     api.crm.salesOrders.create(soPayload).then((res) => {
       if (res && res.id) {
-        setSalesOrders((prev) => prev.map((s) => (s.id === soNo ? { ...s, ...res } : s)));
+        setSalesOrders((prev) => {
+          const updated = prev.map((s) => (s.id === soNo ? { ...s, ...res } : s));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_salesOrders', JSON.stringify(updated)); } catch (_) {}
+          }
+          return updated;
+        });
       }
     }).catch((err) => console.warn('Failed to sync sales order to backend:', err));
     api.crm.customerPos.update(poId, { status: 'converted_to_so', convertedSoId: soNo }).catch((err) =>
@@ -3660,7 +3820,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       id: soNo,
       salesOrderNumber: soNo,
     };
-    setSalesOrders((prev) => [newSO, ...prev]);
+    setSalesOrders((prev) => {
+      const updated = [newSO, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_salesOrders', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'CRM', 'Sales Orders', soNo, `Created Sales Order ${soNo}`);
     const soPayload = {
       ...newSO,
@@ -3670,7 +3836,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     api.crm.salesOrders.create(soPayload).then((res) => {
       if (res && res.id) {
-        setSalesOrders((prev) => prev.map((s) => (s.id === soNo ? { ...s, ...res } : s)));
+        setSalesOrders((prev) => {
+          const updated = prev.map((s) => (s.id === soNo ? { ...s, ...res } : s));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_salesOrders', JSON.stringify(updated)); } catch (_) {}
+          }
+          return updated;
+        });
       }
     }).catch((err) => console.warn('Failed to sync sales order to backend:', err));
     return newSO;
@@ -3722,12 +3894,22 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     setProjectPlanningStages((prev) => [...prev, ...newStages]);
     setProjectMilestones((prev) => [...prev, ...newMilestones]);
     setDepartmentAssignments((prev) => [...prev, ...newDeptAssignments]);
-    setProjectJobs((prev) => [newProject, ...prev]);
+    setProjectJobs((prev) => {
+      const updated = [newProject, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_projectJobs', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
 
     // Update Sales Order with Project Link
-    setSalesOrders((prev) =>
-      prev.map((s) => (s.id === salesOrderId ? { ...s, status: 'project_created', projectId: prjNo, jobNumber: jobNo } : s))
-    );
+    setSalesOrders((prev) => {
+      const updated = prev.map((s) => (s.id === salesOrderId ? { ...s, status: 'project_created' as const, projectId: prjNo, jobNumber: jobNo } : s));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_salesOrders', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
 
     const prjPayload = {
       ...newProject,
@@ -3737,7 +3919,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     api.projects.create(prjPayload).then((res) => {
       if (res && res.id) {
-        setProjectJobs((prev) => prev.map((p) => (p.id === prjNo ? { ...p, ...res } : p)));
+        setProjectJobs((prev) => {
+          const updated = prev.map((p) => (p.id === prjNo ? { ...p, ...res } : p));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_projectJobs', JSON.stringify(updated)); } catch (_) {}
+          }
+          return updated;
+        });
       }
     }).catch((err) => console.warn('Failed to sync project to backend:', err));
     api.crm.salesOrders.update(so.id, { status: 'project_created', projectId: prjNo }).catch((err) =>
@@ -6203,7 +6391,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
     return mockShiftRosters;
   });
-  const [holidays, setHolidays] = useState<HolidayItem[]>(mockHolidays);
+  const [holidays, setHolidays] = useState<HolidayItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_holidays');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return mockHolidays;
+  });
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(mockAttendanceRecords);
   const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>(mockLeaveTypes);
   const [leaveBalances] = useState<LeaveBalance[]>(mockLeaveBalances);

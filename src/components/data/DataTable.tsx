@@ -23,6 +23,7 @@ interface DataTableProps<T> {
   filterComponent?: React.ReactNode;
   actions?: React.ReactNode;
   pageSizeDefault?: number;
+  pageSizeOptions?: number[];
   isLoading?: boolean;
 }
 
@@ -35,7 +36,8 @@ export function DataTable<T extends Record<string, any>>({
   searchPlaceholder = 'Search records...',
   filterComponent,
   actions,
-  pageSizeDefault = 15,
+  pageSizeDefault = 10,
+  pageSizeOptions = [10, 20, 30, 50, 100],
   isLoading: propIsLoading,
 }: DataTableProps<T>) {
   let contextLoading = false;
@@ -210,20 +212,39 @@ export function DataTable<T extends Record<string, any>>({
       </div>
 
       {/* Pagination Footer */}
-      <div className="p-3.5 border-t border-[#E7DED5] flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#70665F] bg-[#FAF7F2] print:hidden">
-        <div>
+      <div className="p-3.5 border-t border-[#E7DED5] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#70665F] bg-[#FAF7F2] print:hidden">
+        <div className="flex items-center gap-4">
           {isLoading && filteredData.length === 0 ? (
             <span className="flex items-center gap-2 text-xs text-[#70665F]">
               <Loader2 className="w-3.5 h-3.5 animate-spin text-[#75401F]" />
               <span>Connecting to live cloud records...</span>
             </span>
           ) : (
-            <>
+            <div>
               Showing <span className="font-bold text-[#211B17]">{filteredData.length > 0 ? startIndex + 1 : 0}</span> to{' '}
               <span className="font-bold text-[#211B17]">{Math.min(startIndex + pageSize, filteredData.length)}</span> of{' '}
               <span className="font-bold text-[#211B17]">{filteredData.length}</span> records
-            </>
+            </div>
           )}
+
+          {/* Rows per page selector */}
+          <div className="flex items-center gap-1.5 text-xs text-[#70665F]">
+            <span>Rows:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="bg-white border border-[#E7DED5] rounded px-2 py-0.5 text-xs font-semibold text-[#211B17] focus:outline-none focus:border-[#75401F]"
+            >
+              {pageSizeOptions.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
