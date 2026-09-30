@@ -21,11 +21,13 @@ import {
   X,
   LayoutGrid,
   List,
+  ChevronLeft,
   ChevronRight,
   Sun,
   Flame,
   Star,
   RefreshCw,
+  SlidersHorizontal,
 } from 'lucide-react';
 
 const DEPARTMENT_OPTIONS = [
@@ -53,7 +55,12 @@ export default function HolidayCalendarPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [monthFilter, setMonthFilter] = useState('all');
+  const [deptFilter, setDeptFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(6);
 
   // Form State
   const initialFormState = {
@@ -76,15 +83,25 @@ export default function HolidayCalendarPage() {
 
   // Check if form is dirty
   const isFormDirty = useMemo(() => {
+    if (editingHoliday) {
+      const origName = editingHoliday.holidayName || (editingHoliday as any).name || '';
+      const origDate = editingHoliday.holidayDate || editingHoliday.date || '';
+      const origDesc = editingHoliday.description || '';
+      return (
+        formData.holidayName !== origName ||
+        formData.holidayDate !== origDate ||
+        formData.description !== origDesc
+      );
+    }
     return (
       formData.holidayName.trim() !== '' ||
       formData.description.trim() !== '' ||
       formData.isOptional !== false
     );
-  }, [formData]);
+  }, [formData, editingHoliday]);
 
   const closeModalWithConfirm = () => {
-    if (isFormDirty && !editingHoliday) {
+    if (isFormDirty) {
       const confirmClose = window.confirm(
         'You have unsaved changes. Are you sure you want to close?'
       );
@@ -123,7 +140,7 @@ export default function HolidayCalendarPage() {
         const isDuplicate = holidays.some((h) => {
           const hId = h.id;
           const hDate = h.holidayDate || h.date;
-          if (editingHoliday && hId === editingHoliday.id) return false;
+          if (editingHoliday && (hId === editingHoliday.id || (editingHoliday as any).id === hId)) return false;
           return hDate === value;
         });
         if (isDuplicate) return 'A holiday already exists on this date.';
@@ -179,7 +196,7 @@ export default function HolidayCalendarPage() {
     }
   };
 
-  // Toggle department in selection
+  // Toggle department in selection with instant feedback
   const toggleDepartment = (dept: string) => {
     if (dept === 'All Departments') {
       setFormData((prev) => ({ ...prev, applicableDepartments: ['All Departments'] }));
@@ -248,7 +265,7 @@ export default function HolidayCalendarPage() {
           financialYear: formData.financialYear,
           description: formData.description.trim(),
         });
-        setSuccessToast(`The holiday "${formData.holidayName}" has been updated successfully.`);
+        setSuccessToast('The holiday has been updated successfully.');
       } else {
         addHoliday({
           holidayName: formData.holidayName.trim(),
@@ -280,7 +297,7 @@ export default function HolidayCalendarPage() {
   const executeDelete = () => {
     if (!deleteConfirmHoliday) return;
     deleteHoliday(deleteConfirmHoliday.id);
-    setSuccessToast(`Holiday "${deleteConfirmHoliday.holidayName}" deleted successfully.`);
+    setSuccessToast(`Holiday "${deleteConfirmHoliday.holidayName || (deleteConfirmHoliday as any).name}" deleted successfully.`);
     setDeleteConfirmHoliday(null);
     setTimeout(() => setSuccessToast(null), 4000);
   };
@@ -290,7 +307,7 @@ export default function HolidayCalendarPage() {
     setLoadError(null);
     setTimeout(() => {
       setIsLoading(false);
-    }, 400);
+    }, 300);
   };
 
   // Filtered Holidays List
@@ -315,9 +332,25 @@ export default function HolidayCalendarPage() {
       }
       const matchesMonth = monthFilter === 'all' || holMonth === Number(monthFilter);
 
-      return matchesSearch && matchesType && matchesMonth;
+      let matchesDept = true;
+      if (deptFilter !== 'all') {
+        const depts = hol.applicableDepartments || ['All Departments'];
+        matchesDept = depts.includes('All Departments') || depts.includes(deptFilter);
+      }
+
+      return matchesSearch && matchesType && matchesMonth && matchesDept;
     });
-  }, [holidays, searchTerm, typeFilter, monthFilter]);
+  }, [holidays, searchTerm, typeFilter, monthFilter, deptFilter]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, typeFilter, monthFilter, deptFilter, pageSize]);
+
+  // Paginated Slices
+  const totalPages = Math.ceil(filteredHolidays.length / pageSize) || 1;
+  const startIndex = (currentPage - 1) * pageSize;
+  const paginatedHolidays = filteredHolidays.slice(startIndex, startIndex + pageSize);
 
   // Statistics
   const totalHolidays = (holidays || []).length;
@@ -370,7 +403,7 @@ export default function HolidayCalendarPage() {
         <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between gap-3 text-rose-800 text-sm">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
-            <span>{loadError}</span>
+            <span>The holidays could not be loaded. Please try again.</span>
           </div>
           <button
             onClick={handleRefresh}
@@ -415,7 +448,7 @@ export default function HolidayCalendarPage() {
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="bg-white border border-[#EBE3DB] rounded-xl p-3.5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="bg-white border border-[#EBE3DB] rounded-xl p-3.5 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-3">
         <div className="relative flex-1 w-full">
           <Search className="w-4 h-4 text-[#A89F91] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -427,7 +460,7 @@ export default function HolidayCalendarPage() {
           />
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
@@ -460,6 +493,19 @@ export default function HolidayCalendarPage() {
             <option value="12">December</option>
           </select>
 
+          <select
+            value={deptFilter}
+            onChange={(e) => setDeptFilter(e.target.value)}
+            className="px-3 py-2 bg-[#FDFBF9] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-amber-600"
+          >
+            <option value="all">All Departments</option>
+            {DEPARTMENT_OPTIONS.filter((d) => d !== 'All Departments').map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </select>
+
           <div className="flex items-center border border-[#EBE3DB] rounded-lg p-0.5 bg-[#FAF7F2]">
             <button
               onClick={() => setViewMode('cards')}
@@ -481,135 +527,56 @@ export default function HolidayCalendarPage() {
 
       {/* Holiday Content Grid / Table */}
       {isLoading ? (
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-12 text-center">
+        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-12 text-center shadow-sm">
           <RefreshCw className="w-8 h-8 text-amber-600 animate-spin mx-auto mb-3" />
-          <p className="text-sm font-semibold text-[#544B45]">Loading holiday calendar...</p>
+          <p className="text-sm font-semibold text-[#544B45]">Loading holidays...</p>
         </div>
       ) : filteredHolidays.length === 0 ? (
         <div className="bg-white border border-[#EBE3DB] rounded-2xl p-12 text-center space-y-3 shadow-sm">
           <Calendar className="w-12 h-12 text-[#A89F91] mx-auto" />
           <h3 className="text-base font-bold text-[#211B17]">No holidays found</h3>
           <p className="text-xs text-[#70665F] max-w-md mx-auto">
-            {searchTerm || typeFilter !== 'all' || monthFilter !== 'all'
+            {searchTerm || typeFilter !== 'all' || monthFilter !== 'all' || deptFilter !== 'all'
               ? 'No holiday records match your search criteria.'
               : 'No holidays have been configured for this financial year. Click "+ Add Holiday Entry" to create one.'}
           </p>
         </div>
       ) : viewMode === 'cards' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredHolidays.map((hol) => {
-            const hDate = hol.holidayDate || hol.date || '';
-            const parsedDate = hDate ? new Date(hDate) : null;
-            const dayNum = parsedDate && !isNaN(parsedDate.getTime()) ? parsedDate.getDate() : '--';
-            const monthStr = parsedDate && !isNaN(parsedDate.getTime()) ? parsedDate.toLocaleDateString('en-US', { month: 'short' }) : '';
-            const dayName = parsedDate && !isNaN(parsedDate.getTime()) ? parsedDate.toLocaleDateString('en-US', { weekday: 'long' }) : '';
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {paginatedHolidays.map((hol) => {
+              const hDate = hol.holidayDate || hol.date || '';
+              const parsedDate = hDate ? new Date(hDate) : null;
+              const dayNum = parsedDate && !isNaN(parsedDate.getTime()) ? parsedDate.getDate() : '--';
+              const monthStr = parsedDate && !isNaN(parsedDate.getTime()) ? parsedDate.toLocaleDateString('en-US', { month: 'short' }) : '';
+              const dayName = parsedDate && !isNaN(parsedDate.getTime()) ? parsedDate.toLocaleDateString('en-US', { weekday: 'long' }) : '';
 
-            return (
-              <div
-                key={hol.id}
-                className="bg-white border border-[#EBE3DB] rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-md hover:border-amber-300 transition duration-200 flex flex-col justify-between"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-14 h-14 bg-amber-500 text-white rounded-2xl flex flex-col items-center justify-center font-bold shadow-xs">
-                        <span className="text-lg leading-none">{dayNum}</span>
-                        <span className="text-[10px] uppercase tracking-wider">{monthStr}</span>
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-bold text-[#211B17] leading-snug">
-                          {hol.holidayName || (hol as any).name}
-                        </h3>
-                        <div className="text-xs font-semibold text-amber-800 flex items-center gap-1 mt-0.5">
-                          <Clock className="w-3.5 h-3.5" />
-                          <span>{dayName}</span>
-                          <span className="text-[#A89F91] font-mono font-normal">({hDate})</span>
+              return (
+                <div
+                  key={hol.id}
+                  className="bg-white border border-[#EBE3DB] rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-md hover:border-amber-300 transition duration-200 flex flex-col justify-between"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-14 h-14 bg-amber-500 text-white rounded-2xl flex flex-col items-center justify-center font-bold shadow-xs shrink-0">
+                          <span className="text-lg leading-none">{dayNum}</span>
+                          <span className="text-[10px] uppercase tracking-wider">{monthStr}</span>
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-bold text-[#211B17] leading-snug">
+                            {hol.holidayName || (hol as any).name}
+                          </h3>
+                          <div className="text-xs font-semibold text-amber-800 flex items-center gap-1 mt-0.5">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>{dayName}</span>
+                            <span className="text-[#A89F91] font-mono font-normal">({hDate})</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${
-                        hol.holidayType === 'Festival'
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          : hol.holidayType === 'Company Holiday'
-                          ? 'bg-amber-50 text-amber-700 border-amber-200'
-                          : 'bg-blue-50 text-blue-700 border-blue-200'
-                      }`}
-                    >
-                      {hol.holidayType || 'Public Holiday'}
-                    </span>
-                  </div>
-
-                  <div className="bg-[#FAF7F2] p-3 rounded-xl border border-[#EBE3DB] space-y-1.5 text-xs">
-                    <div className="flex items-center gap-1.5 text-[#544B45]">
-                      <Building2 className="w-3.5 h-3.5 text-[#70665F] shrink-0" />
-                      <span className="truncate">
-                        {hol.applicableDepartments && Array.isArray(hol.applicableDepartments) && hol.applicableDepartments.length > 0
-                          ? hol.applicableDepartments.join(', ')
-                          : 'All Departments'}
-                      </span>
-                    </div>
-                    {hol.description && (
-                      <p className="text-[11px] text-[#70665F] line-clamp-2 italic">
-                        &ldquo;{hol.description}&rdquo;
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-[#EBE3DB]/60 flex items-center justify-between text-xs">
-                  <span className="font-mono text-[10px] text-[#70665F] bg-[#FAF7F2] px-2 py-0.5 rounded">
-                    {hol.financialYear || 'FY 2026-27'}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => handleOpenEditModal(hol)}
-                      className="p-1.5 text-[#70665F] hover:text-amber-700 hover:bg-amber-50 rounded-lg transition"
-                      title="Edit holiday"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => setDeleteConfirmHoliday(hol)}
-                      className="p-1.5 text-[#70665F] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                      title="Delete holiday"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[#70665F] font-semibold uppercase text-[11px] tracking-wider">
-                  <th className="py-3.5 px-4">Date</th>
-                  <th className="py-3.5 px-4">Holiday Name</th>
-                  <th className="py-3.5 px-4">Type</th>
-                  <th className="py-3.5 px-4">Applicable Departments</th>
-                  <th className="py-3.5 px-4">Financial Year</th>
-                  <th className="py-3.5 px-4">Description</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#EBE3DB]/60 text-[#211B17]">
-                {filteredHolidays.map((hol) => (
-                  <tr key={hol.id} className="hover:bg-[#FAF7F2]/60 transition">
-                    <td className="py-3.5 px-4 font-mono font-bold text-amber-800">
-                      {hol.holidayDate || hol.date}
-                    </td>
-                    <td className="py-3.5 px-4 font-bold text-[#211B17]">
-                      {hol.holidayName || (hol as any).name}
-                    </td>
-                    <td className="py-3.5 px-4">
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${
                           hol.holidayType === 'Festival'
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                             : hol.holidayType === 'Company Holiday'
@@ -619,40 +586,210 @@ export default function HolidayCalendarPage() {
                       >
                         {hol.holidayType || 'Public Holiday'}
                       </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-[#544B45]">
-                      {hol.applicableDepartments && Array.isArray(hol.applicableDepartments) && hol.applicableDepartments.length > 0
-                        ? hol.applicableDepartments.join(', ')
-                        : 'All Departments'}
-                    </td>
-                    <td className="py-3.5 px-4 font-mono text-[#70665F]">
-                      {hol.financialYear || 'FY 2026-27'}
-                    </td>
-                    <td className="py-3.5 px-4 text-[#70665F] max-w-xs truncate">
-                      {hol.description || '-'}
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => handleOpenEditModal(hol)}
-                          className="p-1.5 text-[#70665F] hover:text-amber-700 hover:bg-amber-50 rounded-lg transition"
-                          title="Edit holiday"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => setDeleteConfirmHoliday(hol)}
-                          className="p-1.5 text-[#70665F] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                          title="Delete holiday"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                    </div>
+
+                    <div className="bg-[#FAF7F2] p-3 rounded-xl border border-[#EBE3DB] space-y-1.5 text-xs">
+                      <div className="flex items-center gap-1.5 text-[#544B45]">
+                        <Building2 className="w-3.5 h-3.5 text-[#70665F] shrink-0" />
+                        <span className="truncate">
+                          {hol.applicableDepartments && Array.isArray(hol.applicableDepartments) && hol.applicableDepartments.length > 0
+                            ? hol.applicableDepartments.join(', ')
+                            : 'All Departments'}
+                        </span>
                       </div>
-                    </td>
+                      {hol.description && (
+                        <p className="text-[11px] text-[#70665F] line-clamp-2 italic">
+                          &ldquo;{hol.description}&rdquo;
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-[#EBE3DB]/60 flex items-center justify-between text-xs">
+                    <span className="font-mono text-[10px] text-[#70665F] bg-[#FAF7F2] px-2 py-0.5 rounded">
+                      {hol.financialYear || 'FY 2026-27'}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleOpenEditModal(hol)}
+                        className="p-1.5 text-[#70665F] hover:text-amber-700 hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                        title="Edit holiday"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirmHoliday(hol)}
+                        className="p-1.5 text-[#70665F] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                        title="Delete holiday"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Cards Pagination */}
+          <div className="p-3.5 bg-white rounded-xl border border-[#EBE3DB] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#70665F]">
+            <div className="flex items-center gap-4">
+              <div>
+                Showing <span className="font-bold text-[#211B17]">{startIndex + 1}</span> to{' '}
+                <span className="font-bold text-[#211B17]">{Math.min(startIndex + pageSize, filteredHolidays.length)}</span> of{' '}
+                <span className="font-bold text-[#211B17]">{filteredHolidays.length}</span> holidays
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span>Show:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  className="bg-[#FAF7F2] border border-[#EBE3DB] rounded px-2 py-0.5 text-xs font-semibold text-[#211B17]"
+                >
+                  <option value="6">6 per page</option>
+                  <option value="12">12 per page</option>
+                  <option value="24">24 per page</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-1.5 rounded-lg border border-[#EBE3DB] disabled:opacity-30 hover:bg-[#FAF7F2] text-[#70665F] transition cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="font-bold text-[#211B17] px-2 font-mono">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="p-1.5 rounded-lg border border-[#EBE3DB] disabled:opacity-30 hover:bg-[#FAF7F2] text-[#70665F] transition cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[#70665F] font-semibold uppercase text-[11px] tracking-wider">
+                    <th className="py-3.5 px-4">Date</th>
+                    <th className="py-3.5 px-4">Holiday Name</th>
+                    <th className="py-3.5 px-4">Type</th>
+                    <th className="py-3.5 px-4">Applicable Departments</th>
+                    <th className="py-3.5 px-4">Financial Year</th>
+                    <th className="py-3.5 px-4">Description</th>
+                    <th className="py-3.5 px-4 text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-[#EBE3DB]/60 text-[#211B17]">
+                  {paginatedHolidays.map((hol) => (
+                    <tr key={hol.id} className="hover:bg-[#FAF7F2]/60 transition">
+                      <td className="py-3.5 px-4 font-mono font-bold text-amber-800">
+                        {hol.holidayDate || hol.date}
+                      </td>
+                      <td className="py-3.5 px-4 font-bold text-[#211B17]">
+                        {hol.holidayName || (hol as any).name}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                            hol.holidayType === 'Festival'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : hol.holidayType === 'Company Holiday'
+                              ? 'bg-amber-50 text-amber-700 border-amber-200'
+                              : 'bg-blue-50 text-blue-700 border-blue-200'
+                          }`}
+                        >
+                          {hol.holidayType || 'Public Holiday'}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-[#544B45]">
+                        {hol.applicableDepartments && Array.isArray(hol.applicableDepartments) && hol.applicableDepartments.length > 0
+                          ? hol.applicableDepartments.join(', ')
+                          : 'All Departments'}
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-[#70665F]">
+                        {hol.financialYear || 'FY 2026-27'}
+                      </td>
+                      <td className="py-3.5 px-4 text-[#70665F] max-w-xs truncate">
+                        {hol.description || '-'}
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => handleOpenEditModal(hol)}
+                            className="p-1.5 text-[#70665F] hover:text-amber-700 hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                            title="Edit holiday"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirmHoliday(hol)}
+                            className="p-1.5 text-[#70665F] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                            title="Delete holiday"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Table Pagination */}
+          <div className="p-3.5 bg-white rounded-xl border border-[#EBE3DB] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#70665F]">
+            <div className="flex items-center gap-4">
+              <div>
+                Showing <span className="font-bold text-[#211B17]">{startIndex + 1}</span> to{' '}
+                <span className="font-bold text-[#211B17]">{Math.min(startIndex + pageSize, filteredHolidays.length)}</span> of{' '}
+                <span className="font-bold text-[#211B17]">{filteredHolidays.length}</span> records
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span>Rows:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  className="bg-[#FAF7F2] border border-[#EBE3DB] rounded px-2 py-0.5 text-xs font-semibold text-[#211B17]"
+                >
+                  <option value="6">6</option>
+                  <option value="12">12</option>
+                  <option value="24">24</option>
+                  <option value="50">50</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-1.5 rounded-lg border border-[#EBE3DB] disabled:opacity-30 hover:bg-[#FAF7F2] text-[#70665F] transition cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="font-bold text-[#211B17] px-2 font-mono">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="p-1.5 rounded-lg border border-[#EBE3DB] disabled:opacity-30 hover:bg-[#FAF7F2] text-[#70665F] transition cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -673,12 +810,12 @@ export default function HolidayCalendarPage() {
             <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
               <h3 className="text-base font-bold text-[#211B17] flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-amber-600" />
-                {editingHoliday ? 'Edit Holiday Entry' : 'Add Holiday Entry'}
+                {editingHoliday ? `Edit Holiday (${editingHoliday.id})` : 'Add Holiday Entry'}
               </h3>
               <button
                 type="button"
                 onClick={closeModalWithConfirm}
-                className="text-[#70665F] hover:text-[#211B17] p-1.5 rounded-lg hover:bg-[#F5EFEB] transition"
+                className="text-[#70665F] hover:text-[#211B17] p-1.5 rounded-lg hover:bg-[#F5EFEB] transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -780,7 +917,7 @@ export default function HolidayCalendarPage() {
                 </div>
               </div>
 
-              {/* 4. Applicable Departments */}
+              {/* 4. Applicable Departments with Instant Selection */}
               <div>
                 <label className="block text-[#544B45] font-semibold mb-1">Applicable Departments</label>
                 <div className="flex flex-wrap gap-1.5 p-2.5 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
@@ -791,7 +928,7 @@ export default function HolidayCalendarPage() {
                         type="button"
                         key={dept}
                         onClick={() => toggleDepartment(dept)}
-                        className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition ${
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
                           isSelected
                             ? 'bg-amber-600 text-white shadow-xs'
                             : 'bg-white text-[#544B45] border border-[#EBE3DB] hover:bg-[#F5EFEB]'
@@ -821,13 +958,13 @@ export default function HolidayCalendarPage() {
                 <button
                   type="button"
                   onClick={closeModalWithConfirm}
-                  className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold text-xs rounded-lg transition"
+                  className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold text-xs rounded-lg transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs rounded-lg shadow-md transition flex items-center gap-2"
+                  className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs rounded-lg shadow-md transition flex items-center gap-2 cursor-pointer"
                 >
                   <Sparkles className="w-4 h-4" />
                   {editingHoliday ? 'Update Holiday' : 'Save Holiday'}
@@ -870,14 +1007,14 @@ export default function HolidayCalendarPage() {
               <button
                 type="button"
                 onClick={() => setDeleteConfirmHoliday(null)}
-                className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold rounded-lg transition"
+                className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold rounded-lg transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={executeDelete}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-lg shadow transition"
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-lg shadow transition cursor-pointer"
               >
                 Yes, Delete Holiday
               </button>
