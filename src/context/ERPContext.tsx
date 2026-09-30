@@ -1438,6 +1438,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ['employees', setEmployees],
         ['departments', setDepartments],
         ['roles', setRoles],
+        ['designations', setDesignations],
         ['employeeDocuments', setEmployeeDocuments],
         ['employeeOnboardings', setEmployeeOnboardings],
         ['financialYears', setFinancialYears],
@@ -2073,8 +2074,39 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         applyLive<ServiceVisit>(val(results[41]), setServiceVisits, 'serviceVisits');
         applyLive<ServicePartIssue>(val(results[42]), setServicePartIssues, 'servicePartIssues');
         applyLive<ServicePartReturn>(val(results[43]), setServicePartReturns, 'servicePartReturns');
-        applyLive<ServiceReport>(val(results[44]), setServiceReports, 'serviceReports');
-        applyLive<Designation>(val(results[45]), setDesignations, 'designations');
+        const rawDesgs = val<any[]>(results[45]);
+        if (rawDesgs && Array.isArray(rawDesgs) && rawDesgs.length > 0) {
+          setDesignations((prev) => {
+            const map = new Map<string, Designation>();
+            (prev || []).forEach((d) => {
+              if (d && d.id) map.set(d.id, d);
+            });
+            rawDesgs.forEach((d: any) => {
+              const name = d.designationName || d.designation_name || d.name || '';
+              const code = d.designationCode || d.designation_code || d.code || '';
+              const id = String(d.id || (code ? `DESG-${code}` : `DESG-${Date.now().toString().slice(-4)}`));
+              const existing = map.get(id);
+              map.set(id, {
+                ...existing,
+                ...d,
+                id,
+                designationCode: code || existing?.designationCode || id,
+                designationName: name || existing?.designationName || '',
+                department: d.department || d.department_name || existing?.department || 'Production & Shop Floor',
+                level: Number(d.level) || existing?.level || 4,
+                reportingDesignation: d.reportingDesignation || d.reporting_designation || existing?.reportingDesignation || 'General Manager',
+                jobDescription: d.jobDescription || d.job_description || existing?.jobDescription || '',
+                responsibilities: Array.isArray(d.responsibilities) ? d.responsibilities : (existing?.responsibilities || []),
+                status: d.status || existing?.status || 'Active',
+              });
+            });
+            const merged = Array.from(map.values());
+            if (typeof window !== 'undefined') {
+              try { localStorage.setItem('UMA_ERP_designations', JSON.stringify(merged)); } catch (_) {}
+            }
+            return merged;
+          });
+        }
         applyLive<ShiftMaster>(val(results[46]), setShiftMasters, 'shifts');
         applyLive<AttendanceRecord>(val(results[47]), setAttendanceRecords, 'attendance');
         applyLive<LeaveRequest>(val(results[48]), setLeaveRequests, 'leaves');
@@ -6057,7 +6089,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Module 9 HR & Payroll State
-  const [designations, setDesignations] = useState<Designation[]>(mockDesignations);
+  const [designations, setDesignations] = useState<Designation[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_designations');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return mockDesignations;
+  });
   const [employeeDocuments, setEmployeeDocuments] = useState<EmployeeDocumentItem[]>(mockEmployeeDocuments);
   const [employeeOnboardings, setEmployeeOnboardings] = useState<EmployeeOnboardingItem[]>(mockEmployeeOnboardings);
   const [employeeTransfers, setEmployeeTransfers] = useState<EmployeeTransferItem[]>(mockEmployeeTransfers);
@@ -6091,15 +6134,30 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
   // Module 9 HR Handlers
   const addDesignation = (desg: Omit<Designation, 'id'>) => {
-    const newId = `DESG-0${designations.length + 1}`;
-    const newDesg = { ...desg, id: newId };
-    setDesignations((prev) => [...prev, newDesg]);
+    const rawCode = (desg.designationCode || '').trim();
+    const newId = rawCode ? `DESG-${rawCode.replace(/[^A-Za-z0-9]/g, '').slice(0, 8)}` : `DESG-0${designations.length + 1}`;
+    const newDesg: Designation = { ...desg, id: newId };
+    setDesignations((prev) => {
+      const updated = [...prev.filter((d) => d.id !== newId), newDesg];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_designations', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'hr', 'designations', newId, `Created Designation ${desg.designationName}`);
-    api.post('/designations/', newDesg).catch((err) => console.warn('Failed to add designation:', err));
+    api.post('/designations/', newDesg).catch((err) => console.warn('Failed to add designation on backend:', err));
   };
+
   const updateDesignation = (id: string, desg: Partial<Designation>) => {
-    setDesignations((prev) => prev.map((d) => (d.id === id ? { ...d, ...desg } : d)));
+    setDesignations((prev) => {
+      const updated = prev.map((d) => (d.id === id ? { ...d, ...desg } : d));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_designations', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'hr', 'designations', id, `Updated Designation`);
+    api.patch(`/designations/${id}/`, desg).catch((err) => console.warn('Failed to update designation on backend:', err));
   };
 
   const addEmployeeDocument = (doc: Omit<EmployeeDocumentItem, 'id'>) => {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import {
   Building,
@@ -25,6 +25,7 @@ export default function DepartmentsPage() {
   const { departments, availableEmployees, addDepartment, updateDepartment, deleteDepartment, updateEmployee } = useERP();
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
+  const [originalDept, setOriginalDept] = useState<Department | null>(null);
   const [viewStaffDept, setViewStaffDept] = useState<Department | null>(null);
 
   // Add Form State
@@ -41,6 +42,7 @@ export default function DepartmentsPage() {
 
   // Edit Form State
   const [editStaffIds, setEditStaffIds] = useState<string[]>([]);
+  const [originalEditStaffIds, setOriginalEditStaffIds] = useState<string[]>([]);
   const [editHodId, setEditHodId] = useState<string>('');
   const [editStaffSearchQuery, setEditStaffSearchQuery] = useState('');
   const [isEditStaffDropdownOpen, setIsEditStaffDropdownOpen] = useState(false);
@@ -51,8 +53,59 @@ export default function DepartmentsPage() {
 
   const deptNameRegex = /^[a-zA-Z0-9\s&/-]+$/;
 
+  // Check if Add form has unsaved user inputs
+  const isAddFormDirty = useMemo(() => {
+    return (
+      deptName.trim() !== '' ||
+      deptCode.trim() !== '' ||
+      description.trim() !== '' ||
+      selectedStaffIds.length > 0 ||
+      selectedHodId !== ''
+    );
+  }, [deptName, deptCode, description, selectedStaffIds, selectedHodId]);
+
+  // Check if Edit form has changes compared to original
+  const isEditFormDirty = useMemo(() => {
+    if (!editingDept || !originalDept) return false;
+    const nameChanged = (editingDept.departmentName || editingDept.name || '').trim() !== (originalDept.departmentName || originalDept.name || '').trim();
+    const codeChanged = (editingDept.code || '').trim().toUpperCase() !== (originalDept.code || '').trim().toUpperCase();
+    const statusChanged = (editingDept.status || 'active') !== (originalDept.status || 'active');
+    const descChanged = (editingDept.description || '').trim() !== (originalDept.description || '').trim();
+    const hodChanged = editHodId !== (originalDept.managerId || '');
+    const staffChanged =
+      editStaffIds.length !== originalEditStaffIds.length ||
+      editStaffIds.some((id) => !originalEditStaffIds.includes(id));
+
+    return nameChanged || codeChanged || statusChanged || descChanged || hodChanged || staffChanged;
+  }, [editingDept, originalDept, editHodId, editStaffIds, originalEditStaffIds]);
+
+  const openAddModal = () => {
+    setDeptName('');
+    setDeptCode('');
+    setDescription('');
+    setStatus('active');
+    setSelectedStaffIds([]);
+    setSelectedHodId('');
+    setStaffSearchQuery('');
+    setAddErrors({});
+    setShowAddModal(true);
+  };
+
+  const closeAddModalWithConfirm = () => {
+    if (isAddFormDirty) {
+      if (window.confirm('You have unsaved changes. Are you sure you want to close?')) {
+        setShowAddModal(false);
+        setAddErrors({});
+      }
+    } else {
+      setShowAddModal(false);
+      setAddErrors({});
+    }
+  };
+
   const openEditModal = (dept: Department) => {
-    setEditingDept(dept);
+    setEditingDept(JSON.parse(JSON.stringify(dept)));
+    setOriginalDept(JSON.parse(JSON.stringify(dept)));
     const deptNameKey = (dept.departmentName || dept.name || '').toLowerCase();
     const assigned = availableEmployees
       .filter((e) => (e.department || e.departmentName || '').toLowerCase() === deptNameKey)
@@ -71,17 +124,32 @@ export default function DepartmentsPage() {
 
     const staffList = Array.from(new Set([...assigned, ...(hodId ? [hodId] : [])]));
     setEditStaffIds(staffList);
+    setOriginalEditStaffIds(staffList);
     setEditHodId(hodId);
     setEditStaffSearchQuery('');
     setIsEditStaffDropdownOpen(false);
     setEditErrors({});
   };
 
+  const closeEditModalWithConfirm = () => {
+    if (isEditFormDirty) {
+      if (window.confirm('You have unsaved changes. Are you sure you want to close?')) {
+        setEditingDept(null);
+        setOriginalDept(null);
+        setEditErrors({});
+      }
+    } else {
+      setEditingDept(null);
+      setOriginalDept(null);
+      setEditErrors({});
+    }
+  };
+
   const validateAddForm = () => {
     const errs: Record<string, string> = {};
     const trimmedName = deptName.trim();
     if (!trimmedName) {
-      errs.deptName = 'The department name is filled in, but the form did not recognise it. Please re-enter it.';
+      errs.deptName = 'Please enter the department name.';
     } else if (trimmedName.length < 2 || trimmedName.length > 50 || !deptNameRegex.test(trimmedName)) {
       errs.deptName = 'The department name must be between 2 and 50 characters and cannot contain special characters.';
     } else if (departments.some(d => (d.departmentName || d.name || '').toLowerCase() === trimmedName.toLowerCase())) {
@@ -98,7 +166,11 @@ export default function DepartmentsPage() {
     }
 
     if (!selectedHodId) {
-      errs.hod = 'Please select a department head.';
+      errs.hod = 'Please select a department head from the assigned staff.';
+    }
+
+    if (!description.trim()) {
+      errs.description = 'Please enter a description for the department.';
     }
 
     setAddErrors(errs);
@@ -110,7 +182,7 @@ export default function DepartmentsPage() {
     const errs: Record<string, string> = {};
     const trimmedName = (editingDept.departmentName || editingDept.name || '').trim();
     if (!trimmedName) {
-      errs.departmentName = 'The department name is filled in, but the form did not recognise it. Please re-enter it.';
+      errs.departmentName = 'Please enter the department name.';
     } else if (trimmedName.length < 2 || trimmedName.length > 50 || !deptNameRegex.test(trimmedName)) {
       errs.departmentName = 'The department name must be between 2 and 50 characters and cannot contain special characters.';
     } else if (departments.some(d => d.id !== editingDept.id && (d.departmentName || d.name || '').toLowerCase() === trimmedName.toLowerCase())) {
@@ -122,7 +194,11 @@ export default function DepartmentsPage() {
     }
 
     if (!editHodId) {
-      errs.hod = 'Please select a department head.';
+      errs.hod = 'Please select a department head from the assigned staff.';
+    }
+
+    if (!(editingDept.description || '').trim()) {
+      errs.description = 'Please enter a description for the department.';
     }
 
     setEditErrors(errs);
@@ -156,7 +232,7 @@ export default function DepartmentsPage() {
         departmentName: trimmedName,
         managerId: selectedHodId || 'EMP-001',
         managerName: hodName,
-        description: description.trim() || 'Core Operational Department',
+        description: description.trim(),
         status,
         employeeCount: selectedStaffIds.length,
       });
@@ -171,7 +247,7 @@ export default function DepartmentsPage() {
 
       setFeedbackMessage({
         type: 'success',
-        text: 'The department has been created and staff assigned successfully.',
+        text: `The department "${trimmedName}" has been created and staff assigned successfully.`,
       });
       setDeptName('');
       setDeptCode('');
@@ -186,10 +262,6 @@ export default function DepartmentsPage() {
       if (msg.includes('duplicate') || msg.includes('already exists')) {
         setAddErrors((prev) => ({ ...prev, deptName: 'A department with this name already exists.' }));
         setFeedbackMessage({ type: 'error', text: 'A department with this name already exists.' });
-      } else if (msg.includes('verify') || msg.includes('verification')) {
-        setFeedbackMessage({ type: 'error', text: 'The details entered could not be verified. Please try again.' });
-      } else if (msg.includes('connect') || msg.includes('network') || msg.includes('submit')) {
-        setFeedbackMessage({ type: 'error', text: 'The department could not be submitted. Please try again.' });
       } else {
         setFeedbackMessage({ type: 'error', text: 'Something went wrong while creating the department. Please try again.' });
       }
@@ -201,6 +273,14 @@ export default function DepartmentsPage() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingDept) return;
+
+    if (!isEditFormDirty) {
+      setFeedbackMessage({
+        type: 'error',
+        text: 'No changes were made to update.',
+      });
+      return;
+    }
 
     if (!validateEditForm()) {
       setFeedbackMessage({
@@ -228,13 +308,13 @@ export default function DepartmentsPage() {
         code: trimmedCode,
         managerId: editHodId,
         managerName: hodName,
-        description: (editingDept.description || '').trim() || 'Core Operational Department',
+        description: (editingDept.description || '').trim(),
         status: editingDept.status || 'active',
         employeeCount: editStaffIds.length,
       });
 
       // Synchronize assigned staff members
-      const oldDeptName = (editingDept.departmentName || editingDept.name || '').toLowerCase();
+      const oldDeptName = (originalDept?.departmentName || originalDept?.name || '').toLowerCase();
 
       // 1. Assign updated staff members
       editStaffIds.forEach((empId) => {
@@ -259,9 +339,10 @@ export default function DepartmentsPage() {
 
       setFeedbackMessage({
         type: 'success',
-        text: 'Department and staff assignments updated successfully.',
+        text: `Department "${trimmedName}" and staff assignments updated successfully.`,
       });
       setEditingDept(null);
+      setOriginalDept(null);
       setEditErrors({});
     } catch (err: any) {
       setFeedbackMessage({
@@ -295,10 +376,7 @@ export default function DepartmentsPage() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => {
-              setAddErrors({});
-              setShowAddModal(true);
-            }}
+            onClick={openAddModal}
             className="flex items-center gap-2 px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-white font-semibold text-sm rounded-xl shadow-md transition cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Add Department
@@ -332,7 +410,7 @@ export default function DepartmentsPage() {
       <div className="p-4 bg-cyan-950/20 border border-cyan-800/40 rounded-xl flex items-center gap-3 text-xs text-cyan-900">
         <Shield className="w-5 h-5 text-crm-brand-500 flex-shrink-0" />
         <div>
-          <span className="font-bold">ERP Integration Integrity Rule:</span> This page references the central ERP Department Master. No duplicate department masters are maintained inside HR. All employee assignments across Production, Maintenance, Accounting, and Store synchronize with this hierarchy.
+          <span className="font-bold">ERP Integration Integrity Rule:</span> This page references the central ERP Department Master. All employee assignments across Production, Maintenance, Accounting, and Store synchronize with this hierarchy.
         </div>
       </div>
 
@@ -384,13 +462,13 @@ export default function DepartmentsPage() {
 
                 <div>
                   <h3 className="text-base font-bold text-[#211B17]">{currentName}</h3>
-                  <p className="text-xs text-[#70665F] mt-0.5">{dept.description || 'Core Operational Department'}</p>
+                  <p className="text-xs text-[#70665F] mt-0.5">{dept.description || 'No description provided'}</p>
                 </div>
 
                 <div className="border-t border-[#EBE3DB] pt-3 space-y-2 text-xs">
                   <div className="flex justify-between items-center text-[#544B45]">
-                    <span className="text-[#70665F]">Department Manager:</span>
-                    <span className="font-semibold text-[#211B17]">{dept.managerName || 'Sanjay Shah (HOD)'}</span>
+                    <span className="text-[#70665F]">Department Manager (HOD):</span>
+                    <span className="font-semibold text-[#211B17]">{dept.managerName || 'Assigned Lead'}</span>
                   </div>
                   <div className="flex justify-between items-center text-[#544B45]">
                     <span className="text-[#70665F]">Assigned Headcount:</span>
@@ -417,20 +495,24 @@ export default function DepartmentsPage() {
         })}
       </div>
 
-      {/* ADD DEPARTMENT MODAL */}
+      {/* ADD DEPARTMENT MODAL (With backdrop close and unsaved changes confirmation) */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl">
+        <div
+          onClick={closeAddModalWithConfirm}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border border-[#EBE3DB] rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl"
+          >
             <div className="flex items-center justify-between pb-3 border-b border-[#EBE3DB]">
               <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
                 <Building className="w-5 h-5 text-crm-brand-600" />
                 Add New Department
               </h2>
               <button
-                onClick={() => {
-                  setShowAddModal(false);
-                  setAddErrors({});
-                }}
+                type="button"
+                onClick={closeAddModalWithConfirm}
                 className="text-[#70665F] hover:text-[#211B17] cursor-pointer"
               >
                 <X className="w-5 h-5" />
@@ -452,8 +534,8 @@ export default function DepartmentsPage() {
                       setDeptCode(e.target.value.replace(/[^A-Za-z]/g, '').slice(0, 4).toUpperCase());
                     }
                   }}
-                  className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] font-semibold ${
-                    addErrors.deptName ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                  className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] font-semibold focus:outline-none ${
+                    addErrors.deptName ? 'border-rose-500 bg-rose-50/20' : 'border-[#EBE3DB] focus:border-crm-brand-600'
                   }`}
                 />
                 {addErrors.deptName && (
@@ -474,9 +556,7 @@ export default function DepartmentsPage() {
                       setDeptCode(e.target.value.toUpperCase());
                       if (addErrors.deptCode) setAddErrors((prev) => ({ ...prev, deptCode: '' }));
                     }}
-                    className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] font-mono ${
-                      addErrors.deptCode ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
-                    }`}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] font-mono focus:outline-none focus:border-crm-brand-600"
                   />
                   {addErrors.deptCode && (
                     <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-semibold">
@@ -489,7 +569,7 @@ export default function DepartmentsPage() {
                   <select
                     value={status}
                     onChange={(e) => setStatus(e.target.value as any)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17]"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none"
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
@@ -555,7 +635,7 @@ export default function DepartmentsPage() {
                         setStaffSearchQuery(e.target.value);
                         setIsStaffDropdownOpen(true);
                       }}
-                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-3 py-2 text-[#211B17]"
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                     />
                   </div>
 
@@ -633,7 +713,7 @@ export default function DepartmentsPage() {
                 )}
               </div>
 
-              {/* Department Head (HOD) selection - Strictly from assigned staff */}
+              {/* Department Head (HOD) selection - Strictly Dropdown of assigned staff */}
               <div>
                 <label className="block font-semibold text-[#544B45] mb-1">
                   Department Head (HOD) *
@@ -646,8 +726,8 @@ export default function DepartmentsPage() {
                       setAddErrors((prev) => ({ ...prev, hod: '' }));
                     }
                   }}
-                  className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] ${
-                    addErrors.hod ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                  className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] focus:outline-none ${
+                    addErrors.hod ? 'border-rose-500 bg-rose-50/20' : 'border-[#EBE3DB] focus:border-crm-brand-600'
                   }`}
                 >
                   <option value="">-- Select Department Head from Assigned Staff --</option>
@@ -676,23 +756,31 @@ export default function DepartmentsPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">Description</label>
+                <label className="block font-semibold text-[#544B45] mb-1">Description *</label>
                 <textarea
-                  placeholder="Responsibilities, scope, and key functions"
+                  required
+                  placeholder="Responsibilities, operational scope, and key deliverables..."
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => {
+                    setDescription(e.target.value);
+                    if (addErrors.description) setAddErrors((prev) => ({ ...prev, description: '' }));
+                  }}
                   rows={2}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17]"
+                  className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] focus:outline-none ${
+                    addErrors.description ? 'border-rose-500 bg-rose-50/20' : 'border-[#EBE3DB] focus:border-crm-brand-600'
+                  }`}
                 />
+                {addErrors.description && (
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-semibold">
+                    <AlertCircle className="w-3 h-3" /> {addErrors.description}
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowAddModal(false);
-                    setAddErrors({});
-                  }}
+                  onClick={closeAddModalWithConfirm}
                   className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200 cursor-pointer font-semibold"
                 >
                   Cancel
@@ -717,20 +805,24 @@ export default function DepartmentsPage() {
         </div>
       )}
 
-      {/* EDIT DEPARTMENT MODAL */}
+      {/* EDIT DEPARTMENT MODAL (With strict HOD dropdown, change tracking, and backdrop unsaved confirmation) */}
       {editingDept && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl">
+        <div
+          onClick={closeEditModalWithConfirm}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border border-[#EBE3DB] rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl"
+          >
             <div className="flex items-center justify-between pb-3 border-b border-[#EBE3DB]">
               <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
                 <Edit2 className="w-5 h-5 text-amber-500" />
                 Edit Department: {editingDept.departmentName || editingDept.name}
               </h2>
               <button
-                onClick={() => {
-                  setEditingDept(null);
-                  setEditErrors({});
-                }}
+                type="button"
+                onClick={closeEditModalWithConfirm}
                 className="text-[#70665F] hover:text-[#211B17] cursor-pointer"
               >
                 <X className="w-5 h-5" />
@@ -752,8 +844,8 @@ export default function DepartmentsPage() {
                     });
                     if (editErrors.departmentName) setEditErrors((prev) => ({ ...prev, departmentName: '' }));
                   }}
-                  className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] font-semibold ${
-                    editErrors.departmentName ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                  className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] font-semibold focus:outline-none ${
+                    editErrors.departmentName ? 'border-rose-500 bg-rose-50/20' : 'border-[#EBE3DB] focus:border-amber-600'
                   }`}
                 />
                 {editErrors.departmentName && (
@@ -769,8 +861,11 @@ export default function DepartmentsPage() {
                   <input
                     type="text"
                     value={editingDept.code || ''}
-                    onChange={(e) => setEditingDept({ ...editingDept, code: e.target.value.toUpperCase() })}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] font-mono"
+                    onChange={(e) => {
+                      setEditingDept({ ...editingDept, code: e.target.value.toUpperCase() });
+                      if (editErrors.code) setEditErrors((prev) => ({ ...prev, code: '' }));
+                    }}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] font-mono focus:outline-none focus:border-amber-600"
                   />
                 </div>
                 <div>
@@ -778,7 +873,7 @@ export default function DepartmentsPage() {
                   <select
                     value={editingDept.status || 'active'}
                     onChange={(e) => setEditingDept({ ...editingDept, status: e.target.value as any })}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17]"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none"
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
@@ -844,7 +939,7 @@ export default function DepartmentsPage() {
                         setEditStaffSearchQuery(e.target.value);
                         setIsEditStaffDropdownOpen(true);
                       }}
-                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-3 py-2 text-[#211B17]"
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-600"
                     />
                   </div>
 
@@ -922,7 +1017,7 @@ export default function DepartmentsPage() {
                 )}
               </div>
 
-              {/* Department Head (HOD) selection */}
+              {/* Department Head (HOD) selection - Strictly Dropdown of assigned staff */}
               <div>
                 <label className="block font-semibold text-[#544B45] mb-1">
                   Department Head (HOD) *
@@ -935,8 +1030,8 @@ export default function DepartmentsPage() {
                       setEditErrors((prev) => ({ ...prev, hod: '' }));
                     }
                   }}
-                  className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] ${
-                    editErrors.hod ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                  className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] focus:outline-none ${
+                    editErrors.hod ? 'border-rose-500 bg-rose-50/20' : 'border-[#EBE3DB] focus:border-amber-600'
                   }`}
                 >
                   <option value="">-- Select Department Head from Assigned Staff --</option>
@@ -965,30 +1060,46 @@ export default function DepartmentsPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">Description</label>
+                <label className="block font-semibold text-[#544B45] mb-1">Description *</label>
                 <textarea
+                  required
+                  placeholder="Responsibilities, operational scope, and key deliverables..."
                   value={editingDept.description || ''}
-                  onChange={(e) => setEditingDept({ ...editingDept, description: e.target.value })}
+                  onChange={(e) => {
+                    setEditingDept({ ...editingDept, description: e.target.value });
+                    if (editErrors.description) setEditErrors((prev) => ({ ...prev, description: '' }));
+                  }}
                   rows={2}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17]"
+                  className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] focus:outline-none ${
+                    editErrors.description ? 'border-rose-500 bg-rose-50/20' : 'border-[#EBE3DB] focus:border-amber-600'
+                  }`}
                 />
+                {editErrors.description && (
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-semibold">
+                    <AlertCircle className="w-3 h-3" /> {editErrors.description}
+                  </p>
+                )}
               </div>
+
+              {!isEditFormDirty && (
+                <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] flex items-center gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <span>No changes made yet. Change any field to enable update.</span>
+                </div>
+              )}
 
               <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
                 <button
                   type="button"
-                  onClick={() => {
-                    setEditingDept(null);
-                    setEditErrors({});
-                  }}
+                  onClick={closeEditModalWithConfirm}
                   className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200 cursor-pointer font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={isUpdating}
-                  className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-bold cursor-pointer flex items-center gap-2"
+                  disabled={!isEditFormDirty || isUpdating}
+                  className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold cursor-pointer flex items-center gap-2 shadow-md shadow-amber-600/20"
                 >
                   {isUpdating ? (
                     <>
@@ -1007,8 +1118,14 @@ export default function DepartmentsPage() {
 
       {/* VIEW STAFF MODAL */}
       {viewStaffDept && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+        <div
+          onClick={() => setViewStaffDept(null)}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border border-[#EBE3DB] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl"
+          >
             <div className="flex items-center justify-between pb-3 border-b border-[#EBE3DB]">
               <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
                 <Users className="w-5 h-5 text-crm-brand-600" />

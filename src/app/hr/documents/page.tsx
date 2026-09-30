@@ -76,17 +76,28 @@ export default function EmployeeDocumentsPage() {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [deleteConfirmDoc, setDeleteConfirmDoc] = useState<EmployeeDocumentItem | null>(null);
 
+  // Check if Upload form has user-entered changes
+  const isUploadFormDirty = useMemo(() => {
+    return (
+      formData.documentNumber.trim() !== '' ||
+      formData.issueDate !== '' ||
+      formData.expiryDate !== '' ||
+      formData.remarks.trim() !== '' ||
+      selectedFile !== null
+    );
+  }, [formData, selectedFile]);
+
   // Close modals on ESC key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (showUploadModal) closeUploadModal();
+        if (showUploadModal) closeUploadModalWithConfirm();
         if (deleteConfirmDoc) setDeleteConfirmDoc(null);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showUploadModal, deleteConfirmDoc]);
+  }, [showUploadModal, deleteConfirmDoc, isUploadFormDirty]);
 
   const closeUploadModal = () => {
     setShowUploadModal(false);
@@ -95,6 +106,24 @@ export default function EmployeeDocumentsPage() {
     setSelectedFileName('');
     setSelectedFileSize('');
     setFilePreviewUrl('');
+    setFormData({
+      employeeId: employeeList[0]?.id || 'EMP-001',
+      documentType: 'Aadhaar',
+      documentNumber: '',
+      issueDate: '',
+      expiryDate: '',
+      remarks: '',
+    });
+  };
+
+  const closeUploadModalWithConfirm = () => {
+    if (isUploadFormDirty) {
+      if (window.confirm('You have unsaved changes. Are you sure you want to close?')) {
+        closeUploadModal();
+      }
+    } else {
+      closeUploadModal();
+    }
   };
 
   const handleOpenModal = () => {
@@ -119,17 +148,37 @@ export default function EmployeeDocumentsPage() {
     const file = e.target.files?.[0];
     if (file) {
       processFile(file);
-      setFormErrors((prev) => ({ ...prev, file: '' }));
     }
   };
 
+  const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+  const ALLOWED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'];
+
   const processFile = (file: File) => {
+    const extension = file.name.split('.').pop()?.toLowerCase() || '';
+    if (!ALLOWED_EXTENSIONS.includes(extension)) {
+      setFormErrors((prev) => ({
+        ...prev,
+        file: 'Unsupported file format. Please upload a PDF, JPG, PNG, or DOC file.',
+      }));
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      setFormErrors((prev) => ({
+        ...prev,
+        file: `File size exceeds the 5 MB limit (${(file.size / (1024 * 1024)).toFixed(2)} MB). Please select a smaller file.`,
+      }));
+      return;
+    }
+
     setSelectedFile(file);
     setSelectedFileName(file.name);
     const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
     setSelectedFileSize(`${sizeInMB} MB`);
     const objectUrl = URL.createObjectURL(file);
     setFilePreviewUrl(objectUrl);
+    setFormErrors((prev) => ({ ...prev, file: '' }));
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -148,7 +197,28 @@ export default function EmployeeDocumentsPage() {
     const file = e.dataTransfer.files?.[0];
     if (file) {
       processFile(file);
-      setFormErrors((prev) => ({ ...prev, file: '' }));
+    }
+  };
+
+  const handleDocumentNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputVal = e.target.value;
+
+    if (formData.documentType === 'Aadhaar') {
+      // Keep digits only, max 12
+      const digitsOnly = inputVal.replace(/\D/g, '').slice(0, 12);
+      // Format with a space after every 4 digits: e.g. 1234 5678 9012
+      const formatted = digitsOnly.replace(/(\d{4})(?=\d)/g, '$1 ');
+      setFormData({ ...formData, documentNumber: formatted });
+    } else if (formData.documentType === 'PAN') {
+      // Keep uppercase letters & numbers only, max 10
+      const cleanPan = inputVal.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10);
+      setFormData({ ...formData, documentNumber: cleanPan });
+    } else {
+      setFormData({ ...formData, documentNumber: inputVal.slice(0, 25) });
+    }
+
+    if (formErrors.documentNumber) {
+      setFormErrors((prev) => ({ ...prev, documentNumber: '' }));
     }
   };
 
@@ -163,13 +233,13 @@ export default function EmployeeDocumentsPage() {
       errors.documentNumber = 'Document number is required and cannot be blank.';
     } else {
       if (formData.documentType === 'Aadhaar') {
-        const cleanAadhaar = docNum.replace(/[\s-]/g, '');
+        const cleanAadhaar = docNum.replace(/\s+/g, '');
         if (!/^\d{12}$/.test(cleanAadhaar)) {
-          errors.documentNumber = 'Aadhaar must be exactly 12 digits (e.g. 6508 7587 1888).';
+          errors.documentNumber = 'Aadhaar must be exactly 12 digits (e.g. 1234 5678 9012).';
         }
       } else if (formData.documentType === 'PAN') {
         if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(docNum)) {
-          errors.documentNumber = 'PAN must be in valid format (e.g. ABCDE1234F).';
+          errors.documentNumber = 'PAN must be in valid format with 10 characters (e.g. ABCDE1234F).';
         }
       } else if (docNum.length > 25) {
         errors.documentNumber = 'Document number cannot exceed 25 characters.';
@@ -177,7 +247,7 @@ export default function EmployeeDocumentsPage() {
     }
 
     if (!selectedFile && !filePreviewUrl) {
-      errors.file = 'Please upload/attach a document file (PDF, JPG, PNG, DOC).';
+      errors.file = 'Please upload/attach a document file (PDF, JPG, PNG, DOC, DOCX).';
     }
 
     setFormErrors(errors);
@@ -191,11 +261,17 @@ export default function EmployeeDocumentsPage() {
     const emp = employeeList.find((e) => e.id === formData.employeeId) || employeeList[0];
     const docUrl = filePreviewUrl || `/docs/${formData.documentType.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}.pdf`;
 
+    // Remove spaces before saving for consistent database storage
+    const storedDocNumber =
+      formData.documentType === 'Aadhaar'
+        ? formData.documentNumber.replace(/\s+/g, '')
+        : formData.documentNumber.trim();
+
     addEmployeeDocument({
       employeeId: emp.id,
       employeeName: emp.name,
       documentType: formData.documentType,
-      documentNumber: formData.documentNumber.trim(),
+      documentNumber: storedDocNumber,
       issueDate: formData.issueDate || new Date().toISOString().split('T')[0],
       expiryDate: formData.expiryDate || '',
       fileUrl: docUrl,
@@ -203,7 +279,7 @@ export default function EmployeeDocumentsPage() {
       remarks: formData.remarks?.trim() || (selectedFileName ? `Attached: ${selectedFileName}` : 'Uploaded document verification request'),
     });
 
-    setShowUploadModal(false);
+    closeUploadModal();
   };
 
   const confirmDelete = () => {
@@ -299,113 +375,127 @@ export default function EmployeeDocumentsPage() {
           >
             <option value="ALL">All Verification Statuses</option>
             <option value="Verified">Verified Only</option>
-            <option value="Pending">Pending Verification Only</option>
-            <option value="Rejected">Rejected Only</option>
+            <option value="Pending">Pending Review</option>
+            <option value="Rejected">Rejected / Expired</option>
           </select>
         </div>
       </div>
 
       {/* Documents Table */}
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[10px] font-bold text-[#70665F] uppercase tracking-wider">
-                <th className="p-4">Employee</th>
-                <th className="p-4">Document Type</th>
-                <th className="p-4">Document No.</th>
-                <th className="p-4">Issue & Expiry Date</th>
-                <th className="p-4">Status & Verifier</th>
-                <th className="p-4 text-center">Actions</th>
+          <table className="w-full text-left text-xs text-[#544B45]">
+            <thead className="bg-[#FAF7F2] text-[#70665F] font-mono text-[11px] uppercase tracking-wider border-b border-[#EBE3DB]">
+              <tr>
+                <th className="p-3.5">Employee Name</th>
+                <th className="p-3.5">Document Type</th>
+                <th className="p-3.5">Document Number</th>
+                <th className="p-3.5">Issue / Expiry</th>
+                <th className="p-3.5">Verification Status</th>
+                <th className="p-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EBE3DB] text-[#211B17]">
+            <tbody className="divide-y divide-[#EBE3DB]">
               {filteredDocs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-[#70665F]">
-                    No documents found. Click <span className="font-bold text-crm-brand-700">"Upload Document"</span> to add an employee record.
+                  <td colSpan={6} className="p-8 text-center text-[#70665F]">
+                    No employee documents match the selected filters. Click &quot;Upload Document&quot; to add records.
                   </td>
                 </tr>
               ) : (
-                filteredDocs.map((doc) => (
-                  <tr key={doc.id} className="hover:bg-[#FAF7F2]/60 transition">
-                    <td className="p-4">
-                      <div className="font-bold text-[#211B17]">{doc.employeeName}</div>
-                      <div className="text-[11px] font-mono text-[#70665F]">ID: {doc.employeeId}</div>
-                    </td>
-                    <td className="p-4">
-                      <span className="font-bold text-crm-brand-700 bg-crm-brand-50 px-2 py-0.5 rounded border border-crm-brand-100">
-                        {doc.documentType}
-                      </span>
-                    </td>
-                    <td className="p-4 font-mono font-semibold text-[#544B45]">{doc.documentNumber}</td>
-                    <td className="p-4 text-[11px] text-[#70665F]">
-                      <div>Issue: <span className="text-[#211B17] font-medium">{doc.issueDate || 'N/A'}</span></div>
-                      <div>Expiry: <span className="text-[#211B17] font-medium">{doc.expiryDate || 'Lifetime / No Expiry'}</span></div>
-                    </td>
-                    <td className="p-4">
-                      <div className="space-y-1">
+                filteredDocs.map((doc) => {
+                  const isVerified = doc.verificationStatus === 'Verified';
+                  const isRejected = doc.verificationStatus === 'Rejected';
+
+                  // Format Aadhaar display with spaces for clean readability
+                  const displayDocNumber =
+                    doc.documentType === 'Aadhaar' && doc.documentNumber && doc.documentNumber.replace(/\D/g, '').length === 12
+                      ? doc.documentNumber.replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '$1 ')
+                      : doc.documentNumber;
+
+                  return (
+                    <tr key={doc.id} className="hover:bg-[#FAF7F2]/60 transition">
+                      <td className="p-3.5 font-bold text-[#211B17]">
+                        <div>{doc.employeeName}</div>
+                        <div className="text-[10px] text-[#70665F] font-mono">{doc.employeeId}</div>
+                      </td>
+                      <td className="p-3.5">
+                        <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-[#FAF7F2] border border-[#EBE3DB] text-[#544B45]">
+                          {doc.documentType}
+                        </span>
+                      </td>
+                      <td className="p-3.5 font-mono font-bold text-[#211B17]">
+                        {displayDocNumber}
+                      </td>
+                      <td className="p-3.5 text-[#544B45]">
+                        <div>Issued: {doc.issueDate || '2026-01-01'}</div>
+                        <div className="text-[10px] text-[#70665F]">
+                          {doc.expiryDate ? `Expires: ${doc.expiryDate}` : 'Lifetime Valid'}
+                        </div>
+                      </td>
+                      <td className="p-3.5">
                         <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                            doc.verificationStatus === 'Verified'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : doc.verificationStatus === 'Pending'
-                              ? 'bg-amber-50 text-amber-700 border-amber-200'
-                              : 'bg-rose-50 text-rose-700 border-rose-200'
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 ${
+                            isVerified
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                              : isRejected
+                              ? 'bg-rose-50 text-rose-700 border-rose-300'
+                              : 'bg-amber-50 text-amber-700 border-amber-300'
                           }`}
                         >
-                          {doc.verificationStatus === 'Verified' ? (
-                            <CheckCircle2 className="w-3 h-3" />
-                          ) : doc.verificationStatus === 'Pending' ? (
-                            <Clock className="w-3 h-3" />
+                          {isVerified ? (
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          ) : isRejected ? (
+                            <XCircle className="w-3 h-3 text-rose-600" />
                           ) : (
-                            <XCircle className="w-3 h-3" />
+                            <Clock className="w-3 h-3 text-amber-600" />
                           )}
                           {doc.verificationStatus}
                         </span>
-                        {doc.verifiedBy && <div className="text-[10px] text-[#70665F]">By: {doc.verifiedBy}</div>}
-                      </div>
-                    </td>
-                    <td className="p-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        {doc.verificationStatus === 'Pending' && (
+                      </td>
+                      <td className="p-3.5 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {doc.fileUrl && (
+                            <a
+                              href={doc.fileUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="p-1.5 text-crm-brand-700 hover:bg-crm-brand-50 rounded-lg transition"
+                              title="Download/View Document"
+                            >
+                              <Download className="w-4 h-4" />
+                            </a>
+                          )}
+                          {doc.verificationStatus === 'Pending' && (
+                            <>
+                              <button
+                                onClick={() => updateEmployeeDocumentStatus(doc.id, 'Verified')}
+                                className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition cursor-pointer"
+                                title="Approve & Mark Verified"
+                              >
+                                <Check className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => updateEmployeeDocumentStatus(doc.id, 'Rejected')}
+                                className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                                title="Reject Document"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
                           <button
-                            onClick={() =>
-                              updateEmployeeDocumentStatus(
-                                doc.id,
-                                'Verified',
-                                `${currentUser?.name || 'Sanjay Shah'} (HR Manager)`
-                              )
-                            }
-                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-lg transition shadow-sm cursor-pointer"
-                            title="Verify Document"
+                            onClick={() => setDeleteConfirmDoc(doc)}
+                            className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                            title="Delete Document"
                           >
-                            Verify
+                            <Trash2 className="w-4 h-4" />
                           </button>
-                        )}
-                        {doc.fileUrl && (
-                          <a
-                            href={doc.fileUrl}
-                            download={doc.documentNumber || 'document'}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="p-1.5 bg-[#FAF7F2] hover:bg-slate-200 rounded-lg text-[#544B45] transition"
-                            title="Download Document"
-                          >
-                            <Download className="w-3.5 h-3.5 text-crm-brand-700" />
-                          </a>
-                        )}
-                        <button
-                          onClick={() => setDeleteConfirmDoc(doc)}
-                          className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition cursor-pointer"
-                          title="Delete Document"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -416,50 +506,52 @@ export default function EmployeeDocumentsPage() {
       {deleteConfirmDoc && (
         <div
           onClick={() => setDeleteConfirmDoc(null)}
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl text-center"
+            className="bg-white border border-[#EBE3DB] rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl"
           >
-            <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto">
-              <Trash2 className="w-6 h-6" />
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-rose-50 text-rose-600 border border-rose-200">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-[#211B17]">Delete Document?</h3>
+                <p className="text-xs text-[#70665F] mt-0.5">
+                  Are you sure you want to remove {deleteConfirmDoc.documentType} ({deleteConfirmDoc.documentNumber})?
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-base font-bold text-[#211B17]">Delete Document?</h3>
-              <p className="text-xs text-[#70665F] mt-1">
-                Are you sure you want to delete <strong className="text-[#211B17]">{deleteConfirmDoc.documentType}</strong> ({deleteConfirmDoc.documentNumber}) for <strong className="text-[#211B17]">{deleteConfirmDoc.employeeName}</strong>?
-              </p>
-            </div>
-            <div className="flex justify-center gap-2 pt-2">
+            <div className="flex justify-end gap-2 pt-2 border-t border-[#EBE3DB]">
               <button
                 type="button"
                 onClick={() => setDeleteConfirmDoc(null)}
-                className="px-4 py-2 bg-[#FAF7F2] hover:bg-slate-200 text-[#544B45] font-semibold text-xs rounded-xl cursor-pointer"
+                className="px-3.5 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200 text-xs font-semibold"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={confirmDelete}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer"
+                className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md shadow-rose-600/20"
               >
-                Yes, Delete
+                Confirm Delete
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Upload Document Modal */}
+      {/* Upload Document Modal (With backdrop close and unsaved changes confirmation) */}
       {showUploadModal && (
         <div
-          onClick={closeUploadModal}
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={closeUploadModalWithConfirm}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl"
+            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
               <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
@@ -467,10 +559,10 @@ export default function EmployeeDocumentsPage() {
               </h2>
               <button
                 type="button"
-                onClick={closeUploadModal}
-                className="text-[#70665F] hover:text-[#211B17] font-bold text-base cursor-pointer"
+                onClick={closeUploadModalWithConfirm}
+                className="text-[#70665F] hover:text-[#211B17] cursor-pointer"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -481,7 +573,7 @@ export default function EmployeeDocumentsPage() {
                   required
                   value={formData.employeeId}
                   onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] font-medium"
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] font-medium focus:outline-none focus:border-crm-brand-600"
                 >
                   {employeeList.map((e) => (
                     <option key={e.id} value={e.id}>
@@ -504,10 +596,12 @@ export default function EmployeeDocumentsPage() {
                     setFormData({
                       ...formData,
                       documentType: newType,
+                      documentNumber: '',
                       expiryDate: isExp ? formData.expiryDate : '',
                     });
+                    setFormErrors({});
                   }}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] font-medium"
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] font-medium focus:outline-none focus:border-crm-brand-600"
                 >
                   <option value="Aadhaar">Aadhaar Card (12 Digits)</option>
                   <option value="PAN">PAN Card (10 Characters)</option>
@@ -526,30 +620,24 @@ export default function EmployeeDocumentsPage() {
                   <label className="block font-semibold text-[#544B45] mb-1">
                     Document Number *
                     <span className="text-[10px] text-[#70665F] font-normal ml-1">
-                      (Max {formData.documentType === 'PAN' ? 10 : formData.documentType === 'Aadhaar' ? 14 : 25} chars)
+                      ({formData.documentType === 'Aadhaar' ? '12 digits with auto-spacing' : formData.documentType === 'PAN' ? '10 alphanumeric' : 'Max 25 chars'})
                     </span>
                   </label>
                   <input
                     type="text"
                     required
-                    maxLength={formData.documentType === 'PAN' ? 10 : formData.documentType === 'Aadhaar' ? 14 : 25}
+                    maxLength={formData.documentType === 'Aadhaar' ? 14 : formData.documentType === 'PAN' ? 10 : 25}
                     placeholder={
                       formData.documentType === 'Aadhaar'
-                        ? 'e.g. 6508 7587 1888'
+                        ? 'e.g. 1234 5678 9012'
                         : formData.documentType === 'PAN'
                         ? 'e.g. ABCDE1234F'
                         : 'e.g. DEG-2026-889'
                     }
                     value={formData.documentNumber}
-                    onChange={(e) => {
-                      const val = formData.documentType === 'PAN' ? e.target.value.toUpperCase() : e.target.value;
-                      setFormData({ ...formData, documentNumber: val });
-                      if (formErrors.documentNumber) {
-                        setFormErrors((prev) => ({ ...prev, documentNumber: '' }));
-                      }
-                    }}
+                    onChange={handleDocumentNumberChange}
                     className={`w-full px-3 py-2 bg-[#FAF7F2] border rounded-xl text-[#211B17] font-mono font-medium focus:outline-none ${
-                      formErrors.documentNumber ? 'border-rose-500 bg-rose-50/20' : 'border-[#EBE3DB]'
+                      formErrors.documentNumber ? 'border-rose-500 bg-rose-50/20' : 'border-[#EBE3DB] focus:border-crm-brand-600'
                     }`}
                   />
                   {formErrors.documentNumber && (
@@ -631,8 +719,8 @@ export default function EmployeeDocumentsPage() {
                       <span className="text-[#211B17] font-bold block text-xs">
                         Click to browse file or Drag & Drop here
                       </span>
-                      <p className="text-[10px] text-[#70665F] mt-0.5">
-                        Supported: PDF, JPG, PNG, DOC up to 10MB
+                      <p className="text-[11px] text-[#70665F] mt-1 font-medium">
+                        Maximum file size: 5 MB. Allowed file types: PDF, JPG, PNG, DOC, DOCX.
                       </p>
                     </div>
                   )}
@@ -656,7 +744,7 @@ export default function EmployeeDocumentsPage() {
               <div className="pt-3 border-t border-[#EBE3DB] flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={closeUploadModal}
+                  onClick={closeUploadModalWithConfirm}
                   className="px-4 py-2 bg-[#FAF7F2] hover:bg-slate-200 text-[#544B45] font-semibold rounded-xl cursor-pointer"
                 >
                   Cancel
@@ -675,4 +763,3 @@ export default function EmployeeDocumentsPage() {
     </div>
   );
 }
-
