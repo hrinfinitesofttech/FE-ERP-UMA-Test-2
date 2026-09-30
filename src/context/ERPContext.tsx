@@ -1273,8 +1273,19 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   });
   const [projectTasks, setProjectTasks] = useState<ProjectTask[]>(MOCK_PROJECT_TASKS);
   const [projectPlanningStages, setProjectPlanningStages] = useState<ProjectPlanningStage[]>(MOCK_PLANNING_STAGES);
-  const [departmentAssignments, setDepartmentAssignments] = useState<DepartmentAssignment[]>(MOCK_DEPARTMENT_ASSIGNMENTS);
   const [projectMilestones, setProjectMilestones] = useState<ProjectMilestone[]>(MOCK_MILESTONES);
+  const [departmentAssignments, setDepartmentAssignments] = useState<DepartmentAssignment[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_departmentAssignments');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch (_) {}
+    }
+    return [];
+  });
   const [projectIssues, setProjectIssues] = useState<ProjectIssue[]>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -1777,6 +1788,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           api.integration.alerts.list(),
           api.store.qcInspections(),
           api.auth.me(),
+          api.projects.departmentAssignments(),
         ]);
 
         if (!isMounted) return;
@@ -2442,6 +2454,30 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             roleName: meRes.roleName || meRes.role || 'Super Admin',
             department: meRes.department || meRes.departmentName || 'Management',
           }));
+        }
+
+        const rawDeptAssignments = val<any[]>(results[72]);
+        if (rawDeptAssignments && Array.isArray(rawDeptAssignments)) {
+          const normalizedDAs: DepartmentAssignment[] = rawDeptAssignments.map((da: any) => ({
+            ...da,
+            id: String(da.id),
+            projectId: da.projectId || da.project_id || '',
+            projectNumber: da.projectNumber || da.project_number || da.projectId || da.project_id || '',
+            jobNumber: da.jobNumber || da.job_number || '',
+            department: da.department || '',
+            manager: da.manager || da.lead_person_name || 'Unassigned',
+            assignedEmployee: da.assignedEmployee || da.lead_person_name || 'Unassigned',
+            responsibility: da.responsibility || da.notes || '',
+            startDate: da.startDate || da.start_date || '',
+            dueDate: da.dueDate || da.due_date || '',
+            status: da.status || 'in_progress',
+            priority: da.priority || 'high',
+            remarks: da.remarks || da.notes || '',
+          }));
+          setDepartmentAssignments(normalizedDAs);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_departmentAssignments', JSON.stringify(normalizedDAs)); } catch (_) {}
+          }
         }
       } catch (err) {
         console.warn('Initial live data load warning:', err);
@@ -4336,7 +4372,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const assignDepartment = (data: Omit<DepartmentAssignment, 'id'>): DepartmentAssignment => {
     const newDA: DepartmentAssignment = {
       ...data,
-      id: `DA-${Date.now()}`,
+      id: `DA-${data.projectId || 'PRJ'}-${data.department}-${Date.now()}`,
     };
     setDepartmentAssignments((prev) => {
       const updated = [newDA, ...prev.filter((d) => d.id !== newDA.id)];
@@ -4348,7 +4384,17 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
     logProjectActivity(data.projectId, data.jobNumber, 'Department Assigned', `Assigned ${data.department} dept (Manager: ${data.manager})`);
-    api.post('/department-assignments/', newDA).catch((err) => console.warn('Failed to sync department assignment:', err));
+    api.projects.createDepartmentAssignment(newDA).then((res) => {
+      if (res && res.id) {
+        setDepartmentAssignments((prev) => {
+          const updated = prev.map((d) => (d.id === newDA.id ? { ...d, ...res, id: res.id } : d));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_departmentAssignments', JSON.stringify(updated)); } catch (_) {}
+          }
+          return updated;
+        });
+      }
+    }).catch((err) => console.warn('Failed to sync department assignment:', err));
     return newDA;
   };
 

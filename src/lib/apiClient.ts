@@ -406,6 +406,14 @@ export const api = {
     createTask: (data: any) => request<any>('/project-tasks/', { method: 'POST', body: JSON.stringify(data) }),
     updateTask: (id: string, data: any) => request<any>(`/project-tasks/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
     deleteTask: (id: string) => request<any>(`/project-tasks/${id}/`, { method: 'DELETE' }),
+    departmentAssignments: (projectId?: string) =>
+      request<any[]>(projectId ? `/department-assignments/?projectId=${projectId}` : '/department-assignments/'),
+    createDepartmentAssignment: (data: any) =>
+      request<any>('/department-assignments/', { method: 'POST', body: JSON.stringify(data) }),
+    updateDepartmentAssignment: (id: string, data: any) =>
+      request<any>(`/department-assignments/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+    deleteDepartmentAssignment: (id: string) =>
+      request<any>(`/department-assignments/${id}/`, { method: 'DELETE' }),
   },
 
   // Design & Engineering
