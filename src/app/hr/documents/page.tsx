@@ -31,6 +31,28 @@ const DEFAULT_EMPLOYEES = [
   { id: 'EMP-005', name: 'Vikram Solanki', department: 'Design & Engineering' },
 ];
 
+export interface DocumentTypeMasterItem {
+  id: string;
+  typeName: string;
+  category: 'Identity' | 'Academic' | 'Professional' | 'Financial' | 'Medical' | 'Legal';
+  isMandatory: boolean;
+  allowMultiple: boolean;
+  status: 'Active' | 'Inactive';
+}
+
+const DOCUMENT_TYPE_MASTER: DocumentTypeMasterItem[] = [
+  { id: 'DOC-TYP-01', typeName: 'Aadhaar Card (12 Digits)', category: 'Identity', isMandatory: true, allowMultiple: false, status: 'Active' },
+  { id: 'DOC-TYP-02', typeName: 'PAN Card (10 Characters)', category: 'Identity', isMandatory: true, allowMultiple: false, status: 'Active' },
+  { id: 'DOC-TYP-03', typeName: 'Educational Degree / Diploma Certificate', category: 'Academic', isMandatory: true, allowMultiple: true, status: 'Active' },
+  { id: 'DOC-TYP-04', typeName: 'Previous Experience Certificate', category: 'Professional', isMandatory: false, allowMultiple: true, status: 'Active' },
+  { id: 'DOC-TYP-05', typeName: 'Bank Passbook / Cancelled Cheque', category: 'Financial', isMandatory: true, allowMultiple: false, status: 'Active' },
+  { id: 'DOC-TYP-06', typeName: 'Medical Fitness Certificate', category: 'Medical', isMandatory: false, allowMultiple: false, status: 'Active' },
+  { id: 'DOC-TYP-07', typeName: 'Resume / Curriculum Vitae (CV)', category: 'Professional', isMandatory: true, allowMultiple: false, status: 'Active' },
+  { id: 'DOC-TYP-08', typeName: 'Appointment Letter', category: 'Legal', isMandatory: true, allowMultiple: false, status: 'Active' },
+  { id: 'DOC-TYP-09', typeName: 'Joining Letter / Relieving Letter', category: 'Legal', isMandatory: false, allowMultiple: true, status: 'Active' },
+  { id: 'DOC-TYP-10', typeName: 'Driving License / Passport / Voter ID', category: 'Identity', isMandatory: false, allowMultiple: false, status: 'Active' },
+];
+
 export default function EmployeeDocumentsPage() {
   const {
     employeeDocuments,
@@ -44,6 +66,11 @@ export default function EmployeeDocumentsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [showUploadModal, setShowUploadModal] = useState(false);
+
+  // Document types list from Master
+  const documentTypesList = useMemo(() => {
+    return DOCUMENT_TYPE_MASTER.filter((dt) => dt.status === 'Active');
+  }, []);
 
   // File input ref
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -67,12 +94,20 @@ export default function EmployeeDocumentsPage() {
 
   const [formData, setFormData] = useState({
     employeeId: '',
-    documentType: 'Aadhaar' as EmployeeDocumentItem['documentType'],
+    documentType: 'Aadhaar Card (12 Digits)' as any,
     documentNumber: '',
     issueDate: '',
     expiryDate: '',
     remarks: '',
   });
+
+  const uploadedTypesForSelectedEmployee = useMemo(() => {
+    if (!formData.employeeId) return new Set<string>();
+    const uploaded = employeeDocuments
+      .filter((d) => d.employeeId === formData.employeeId)
+      .map((d) => (d.documentType || '').toLowerCase());
+    return new Set(uploaded);
+  }, [employeeDocuments, formData.employeeId]);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [deleteConfirmDoc, setDeleteConfirmDoc] = useState<EmployeeDocumentItem | null>(null);
 
@@ -588,31 +623,42 @@ export default function EmployeeDocumentsPage() {
 
               <div>
                 <label className="block font-semibold text-[#544B45] mb-1">Document Type *</label>
-                <select
-                  value={formData.documentType}
-                  onChange={(e) => {
-                    const newType = e.target.value as any;
-                    const isExp = ['Medical Fitness', 'Driving License', 'Passport', 'Visa / Work Permit', 'Insurance Policy', 'Contract / Agreement'].includes(newType);
-                    setFormData({
-                      ...formData,
-                      documentType: newType,
-                      documentNumber: '',
-                      expiryDate: isExp ? formData.expiryDate : '',
-                    });
-                    setFormErrors({});
-                  }}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] font-medium focus:outline-none focus:border-crm-brand-600"
-                >
-                  <option value="Aadhaar">Aadhaar Card (12 Digits)</option>
-                  <option value="PAN">PAN Card (10 Characters)</option>
-                  <option value="Resume">Resume / CV</option>
-                  <option value="Educational Degree">Educational Degree</option>
-                  <option value="Previous Experience Certificate">Experience Certificate</option>
-                  <option value="Joining Letter">Joining Letter</option>
-                  <option value="Appointment Letter">Appointment Letter</option>
-                  <option value="Bank Passbook">Bank Passbook / Cancelled Cheque</option>
-                  <option value="Medical Fitness">Medical Fitness Certificate</option>
-                </select>
+                {documentTypesList.length === 0 ? (
+                  <p className="text-[11px] text-rose-600 font-semibold p-2 bg-rose-50 rounded-lg">
+                    The document types could not be loaded. Please try again.
+                  </p>
+                ) : (
+                  <select
+                    value={formData.documentType}
+                    onChange={(e) => {
+                      const newType = e.target.value as any;
+                      const isExp = ['Medical Fitness Certificate', 'Driving License', 'Passport', 'Visa / Work Permit', 'Insurance Policy'].some((t) => newType.includes(t));
+                      setFormData({
+                        ...formData,
+                        documentType: newType,
+                        documentNumber: '',
+                        expiryDate: isExp ? formData.expiryDate : '',
+                      });
+                      setFormErrors({});
+                    }}
+                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] font-medium focus:outline-none focus:border-crm-brand-600"
+                  >
+                    {documentTypesList.map((dt) => {
+                      const isAlreadyUploaded =
+                        uploadedTypesForSelectedEmployee.has(dt.typeName.toLowerCase()) ||
+                        uploadedTypesForSelectedEmployee.has(dt.typeName.split(' ')[0].toLowerCase());
+                      return (
+                        <option
+                          key={dt.id}
+                          value={dt.typeName}
+                          disabled={isAlreadyUploaded && !dt.allowMultiple}
+                        >
+                          {dt.typeName} {isAlreadyUploaded ? (dt.allowMultiple ? '— (Uploaded • Add Another)' : '✓ (Already Uploaded)') : ''}
+                        </option>
+                      );
+                    })}
+                  </select>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
