@@ -811,10 +811,16 @@ interface ERPContextType {
   toggleOnboardingChecklistTask: (onboardingId: string, taskIndex: number) => void;
   employeeTransfers: EmployeeTransferItem[];
   addEmployeeTransfer: (trn: Omit<EmployeeTransferItem, 'id'>) => void;
+  updateEmployeeTransfer: (id: string, trn: Partial<EmployeeTransferItem>) => void;
+  deleteEmployeeTransfer: (id: string) => void;
   employeePromotions: EmployeePromotionItem[];
   addEmployeePromotion: (prm: Omit<EmployeePromotionItem, 'id'>) => void;
+  updateEmployeePromotion: (id: string, prm: Partial<EmployeePromotionItem>) => void;
+  deleteEmployeePromotion: (id: string) => void;
   employeeExits: EmployeeExitItem[];
   addEmployeeExit: (exit: Omit<EmployeeExitItem, 'id'>) => void;
+  updateEmployeeExit: (id: string, exit: Partial<EmployeeExitItem>) => void;
+  deleteEmployeeExit: (id: string) => void;
   updateEmployeeExitClearance: (id: string, clearanceType: 'dept' | 'asset' | 'hr' | 'accounts', status: boolean) => void;
   fullAndFinalSettlements: FullAndFinalSettlementItem[];
   addFullAndFinalSettlement: (fnf: Omit<FullAndFinalSettlementItem, 'id'>) => void;
@@ -6103,9 +6109,42 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   });
   const [employeeDocuments, setEmployeeDocuments] = useState<EmployeeDocumentItem[]>(mockEmployeeDocuments);
   const [employeeOnboardings, setEmployeeOnboardings] = useState<EmployeeOnboardingItem[]>(mockEmployeeOnboardings);
-  const [employeeTransfers, setEmployeeTransfers] = useState<EmployeeTransferItem[]>(mockEmployeeTransfers);
-  const [employeePromotions, setEmployeePromotions] = useState<EmployeePromotionItem[]>(mockEmployeePromotions);
-  const [employeeExits, setEmployeeExits] = useState<EmployeeExitItem[]>(mockEmployeeExits);
+  const [employeeTransfers, setEmployeeTransfers] = useState<EmployeeTransferItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_employeeTransfers');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return mockEmployeeTransfers;
+  });
+  const [employeePromotions, setEmployeePromotions] = useState<EmployeePromotionItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_employeePromotions');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return mockEmployeePromotions;
+  });
+  const [employeeExits, setEmployeeExits] = useState<EmployeeExitItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_employeeExits');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return mockEmployeeExits;
+  });
   const [fullAndFinalSettlements, setFullAndFinalSettlements] = useState<FullAndFinalSettlementItem[]>(mockFullAndFinalSettlements);
   const [shiftMasters, setShiftMasters] = useState<ShiftMaster[]>(mockShifts);
   const [shiftRosters, setShiftRosters] = useState<ShiftRosterItem[]>(mockShiftRosters);
@@ -6276,41 +6315,139 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
   const addEmployeeTransfer = (trn: Omit<EmployeeTransferItem, 'id'>) => {
     const newId = `TRN-2026-0${employeeTransfers.length + 1}`;
-    const newTrn = { ...trn, id: newId };
-    setEmployeeTransfers((prev) => [newTrn, ...prev]);
+    const newTrn: EmployeeTransferItem = { ...trn, id: newId };
+    setEmployeeTransfers((prev) => {
+      const updated = [newTrn, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employeeTransfers', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'hr', 'employee-transfers', newId, `Transferred ${trn.employeeName} to ${trn.toDepartment}`);
+    api.post('/employee-transfers/', newTrn).catch((err) => console.warn('Failed to sync transfer to backend:', err));
+  };
+
+  const updateEmployeeTransfer = (id: string, trn: Partial<EmployeeTransferItem>) => {
+    setEmployeeTransfers((prev) => {
+      const updated = prev.map((t) => (t.id === id ? { ...t, ...trn } : t));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employeeTransfers', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('UPDATE', 'hr', 'employee-transfers', id, `Updated transfer order ${id}`);
+    api.patch(`/employee-transfers/${id}/`, trn).catch((err) => console.warn('Failed to update transfer on backend:', err));
+  };
+
+  const deleteEmployeeTransfer = (id: string) => {
+    setEmployeeTransfers((prev) => {
+      const updated = prev.filter((t) => t.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employeeTransfers', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'hr', 'employee-transfers', id, `Deleted transfer order ${id}`);
+    api.delete(`/employee-transfers/${id}/`).catch((err) => console.warn('Failed to delete transfer on backend:', err));
   };
 
   const addEmployeePromotion = (prm: Omit<EmployeePromotionItem, 'id'>) => {
     const newId = `PRM-2026-0${employeePromotions.length + 1}`;
-    const newPrm = { ...prm, id: newId };
-    setEmployeePromotions((prev) => [newPrm, ...prev]);
+    const newPrm: EmployeePromotionItem = { ...prm, id: newId };
+    setEmployeePromotions((prev) => {
+      const updated = [newPrm, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employeePromotions', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'hr', 'employee-promotions', newId, `Promoted ${prm.employeeName} to ${prm.newDesignation}`);
+    api.post('/employee-promotions/', newPrm).catch((err) => console.warn('Failed to sync promotion to backend:', err));
+  };
+
+  const updateEmployeePromotion = (id: string, prm: Partial<EmployeePromotionItem>) => {
+    setEmployeePromotions((prev) => {
+      const updated = prev.map((p) => (p.id === id ? { ...p, ...prm } : p));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employeePromotions', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('UPDATE', 'hr', 'employee-promotions', id, `Updated promotion record ${id}`);
+    api.patch(`/employee-promotions/${id}/`, prm).catch((err) => console.warn('Failed to update promotion on backend:', err));
+  };
+
+  const deleteEmployeePromotion = (id: string) => {
+    setEmployeePromotions((prev) => {
+      const updated = prev.filter((p) => p.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employeePromotions', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'hr', 'employee-promotions', id, `Deleted promotion record ${id}`);
+    api.delete(`/employee-promotions/${id}/`).catch((err) => console.warn('Failed to delete promotion on backend:', err));
   };
 
   const addEmployeeExit = (exit: Omit<EmployeeExitItem, 'id'>) => {
     const newId = `EXIT-2026-0${employeeExits.length + 1}`;
-    const newExit = { ...exit, id: newId };
-    setEmployeeExits((prev) => [newExit, ...prev]);
+    const newExit: EmployeeExitItem = { ...exit, id: newId };
+    setEmployeeExits((prev) => {
+      const updated = [newExit, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employeeExits', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'hr', 'resignation-exit', newId, `Logged exit for ${exit.employeeName}`);
+    api.post('/employee-exits/', newExit).catch((err) => console.warn('Failed to sync exit to backend:', err));
   };
+
+  const updateEmployeeExit = (id: string, exit: Partial<EmployeeExitItem>) => {
+    setEmployeeExits((prev) => {
+      const updated = prev.map((e) => (e.id === id ? { ...e, ...exit } : e));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employeeExits', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('UPDATE', 'hr', 'resignation-exit', id, `Updated exit record ${id}`);
+    api.patch(`/employee-exits/${id}/`, exit).catch((err) => console.warn('Failed to update exit on backend:', err));
+  };
+
+  const deleteEmployeeExit = (id: string) => {
+    setEmployeeExits((prev) => {
+      const updated = prev.filter((e) => e.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employeeExits', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'hr', 'resignation-exit', id, `Deleted exit record ${id}`);
+    api.delete(`/employee-exits/${id}/`).catch((err) => console.warn('Failed to delete exit on backend:', err));
+  };
+
   const updateEmployeeExitClearance = (id: string, clearanceType: 'dept' | 'asset' | 'hr' | 'accounts', status: boolean) => {
-    setEmployeeExits((prev) =>
-      prev.map((e) => {
+    setEmployeeExits((prev) => {
+      const updated = prev.map((e) => {
         if (e.id === id) {
-          const updated = { ...e };
-          if (clearanceType === 'dept') updated.departmentClearance = status;
-          if (clearanceType === 'asset') updated.assetReturnClearance = status;
-          if (clearanceType === 'hr') updated.hrClearance = status;
-          if (clearanceType === 'accounts') updated.accountsClearance = status;
-          if (updated.departmentClearance && updated.assetReturnClearance && updated.hrClearance && updated.accountsClearance) {
-            updated.status = 'Cleared';
+          const item = { ...e };
+          if (clearanceType === 'dept') item.departmentClearance = status;
+          if (clearanceType === 'asset') item.assetReturnClearance = status;
+          if (clearanceType === 'hr') item.hrClearance = status;
+          if (clearanceType === 'accounts') item.accountsClearance = status;
+          if (item.departmentClearance && item.assetReturnClearance && item.hrClearance && item.accountsClearance) {
+            item.status = 'Cleared';
           }
-          return updated;
+          return item;
         }
         return e;
-      })
-    );
+      });
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employeeExits', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'hr', 'resignation-exit', id, `Updated clearance (${clearanceType}) to ${status}`);
   };
 
@@ -7263,10 +7400,16 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         toggleOnboardingChecklistTask,
         employeeTransfers,
         addEmployeeTransfer,
+        updateEmployeeTransfer,
+        deleteEmployeeTransfer,
         employeePromotions,
         addEmployeePromotion,
+        updateEmployeePromotion,
+        deleteEmployeePromotion,
         employeeExits,
         addEmployeeExit,
+        updateEmployeeExit,
+        deleteEmployeeExit,
         updateEmployeeExitClearance,
         fullAndFinalSettlements,
         addFullAndFinalSettlement,

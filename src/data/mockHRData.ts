@@ -81,9 +81,61 @@ export const mockEmployeeOnboardings: EmployeeOnboardingItem[] = [
   },
 ];
 
-export const mockEmployeeTransfers: EmployeeTransferItem[] = [];
-export const mockEmployeePromotions: EmployeePromotionItem[] = [];
-export const mockEmployeeExits: EmployeeExitItem[] = [];
+export const mockEmployeeTransfers: EmployeeTransferItem[] = [
+  {
+    id: 'TRN-2026-01',
+    employeeId: 'EMP-001',
+    employeeName: 'Istpleee Emp',
+    effectiveDate: '2026-09-30',
+    fromDepartment: 'Production',
+    toDepartment: 'Maintenance & Services',
+    fromDesignation: 'Technician',
+    toDesignation: 'Senior Service Technician',
+    fromLocation: 'Plant 1',
+    toLocation: 'Customer Service Hub',
+    reason: 'Strategic reassignment for customer site support.',
+    approvedBy: 'Sanjay Shah (HR Manager)',
+    status: 'Approved',
+  },
+];
+
+export const mockEmployeePromotions: EmployeePromotionItem[] = [
+  {
+    id: 'PRM-2026-01',
+    employeeId: 'EMP-001',
+    employeeName: 'Istpleee Emp',
+    effectiveDate: '2026-09-30',
+    oldDesignation: 'Junior Engineer',
+    newDesignation: 'Senior Machine Engineer',
+    oldGrade: 'Level 5',
+    newGrade: 'Level 4',
+    oldCTC: 450000,
+    newCTC: 580000,
+    incrementPercentage: 29,
+    approvedBy: 'General Manager & HR Head',
+    status: 'Approved',
+  },
+];
+
+export const mockEmployeeExits: EmployeeExitItem[] = [
+  {
+    id: 'EXIT-2026-01',
+    employeeId: 'EMP-001',
+    employeeName: 'Istpleee Emp',
+    department: 'Production',
+    designation: 'Senior Operator',
+    resignationDate: '2026-09-30',
+    lastWorkingDate: '2026-10-30',
+    noticePeriodDays: 30,
+    reason: 'Personal reasons & career progression opportunity.',
+    exitInterviewNotes: 'Overall positive feedback regarding plant operations.',
+    departmentClearance: false,
+    assetReturnClearance: false,
+    hrClearance: false,
+    accountsClearance: false,
+    status: 'Notice Period',
+  },
+];
 export const mockFullAndFinalSettlements: FullAndFinalSettlementItem[] = [];
 export const mockShifts: ShiftMaster[] = [
   {

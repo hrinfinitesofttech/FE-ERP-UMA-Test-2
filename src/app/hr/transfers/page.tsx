@@ -19,7 +19,11 @@ import {
   Briefcase,
   Layers,
   Sparkles,
+  Edit2,
+  Trash2,
+  ShieldAlert,
 } from 'lucide-react';
+import { EmployeeTransferItem } from '../../../types/hr';
 
 const PLANT_LOCATIONS = [
   'Plant 1 - Heavy Fabrication Yard',
@@ -34,6 +38,8 @@ export default function EmployeeTransfersPage() {
   const {
     employeeTransfers = [],
     addEmployeeTransfer,
+    updateEmployeeTransfer,
+    deleteEmployeeTransfer,
     availableEmployees = [],
     departments = [],
     designations = [],
@@ -45,7 +51,9 @@ export default function EmployeeTransfersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('ALL');
   const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [successToast, setSuccessToast] = useState<string | null>(null);
+  const [deleteConfirmTrn, setDeleteConfirmTrn] = useState<EmployeeTransferItem | null>(null);
 
   // Form State
   const initialFormState = {
@@ -144,13 +152,14 @@ export default function EmployeeTransfersPage() {
   }, [formData]);
 
   const closeModalWithConfirm = () => {
-    if (isFormDirty) {
+    if (isFormDirty && !editingId) {
       const confirmClose = window.confirm(
         'You have unsaved changes. Are you sure you want to close?'
       );
       if (!confirmClose) return;
     }
     setShowModal(false);
+    setEditingId(null);
     setFormErrors({});
     setFormData(initialFormState);
   };
@@ -158,13 +167,14 @@ export default function EmployeeTransfersPage() {
   // Close modal on Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && showModal) {
-        closeModalWithConfirm();
+      if (e.key === 'Escape') {
+        if (showModal) closeModalWithConfirm();
+        if (deleteConfirmTrn) setDeleteConfirmTrn(null);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showModal, isFormDirty]);
+  }, [showModal, isFormDirty, deleteConfirmTrn]);
 
   // Validate form
   const validateForm = () => {
@@ -211,6 +221,42 @@ export default function EmployeeTransfersPage() {
     return Object.keys(errors).length === 0;
   };
 
+  const handleOpenAddModal = () => {
+    setEditingId(null);
+    setFormData(initialFormState);
+    setFormErrors({});
+    setShowModal(true);
+  };
+
+  const handleOpenEditModal = (trn: EmployeeTransferItem) => {
+    setEditingId(trn.id);
+    setFormData({
+      employeeId: trn.employeeId,
+      fromDepartment: trn.fromDepartment || '',
+      fromDesignation: trn.fromDesignation || '',
+      fromLocation: trn.fromLocation || '',
+      toDepartment: trn.toDepartment,
+      toDesignation: trn.toDesignation,
+      toLocation: trn.toLocation || PLANT_LOCATIONS[0],
+      effectiveDate: trn.effectiveDate,
+      reason: trn.reason,
+    });
+    setFormErrors({});
+    setShowModal(true);
+  };
+
+  const handleDeleteRecord = (trn: EmployeeTransferItem) => {
+    setDeleteConfirmTrn(trn);
+  };
+
+  const executeDelete = () => {
+    if (!deleteConfirmTrn) return;
+    deleteEmployeeTransfer(deleteConfirmTrn.id);
+    setSuccessToast(`Transfer order ${deleteConfirmTrn.id} deleted successfully.`);
+    setDeleteConfirmTrn(null);
+    setTimeout(() => setSuccessToast(null), 4000);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -222,20 +268,37 @@ export default function EmployeeTransfersPage() {
     const empName = emp?.name || (emp ? `${(emp as any).firstName || ''} ${(emp as any).lastName || ''}`.trim() : 'Staff Member');
 
     try {
-      addEmployeeTransfer({
-        employeeId: formData.employeeId,
-        employeeName: empName,
-        effectiveDate: formData.effectiveDate,
-        fromDepartment: formData.fromDepartment || 'General',
-        toDepartment: formData.toDepartment,
-        fromDesignation: formData.fromDesignation || 'Staff',
-        toDesignation: formData.toDesignation,
-        fromLocation: formData.fromLocation || 'Plant 1',
-        toLocation: formData.toLocation,
-        reason: formData.reason.trim(),
-        approvedBy: 'Sanjay Shah (HR Manager)',
-        status: 'Approved',
-      });
+      if (editingId) {
+        updateEmployeeTransfer(editingId, {
+          employeeId: formData.employeeId,
+          employeeName: empName,
+          effectiveDate: formData.effectiveDate,
+          fromDepartment: formData.fromDepartment || 'General',
+          toDepartment: formData.toDepartment,
+          fromDesignation: formData.fromDesignation || 'Staff',
+          toDesignation: formData.toDesignation,
+          fromLocation: formData.fromLocation || 'Plant 1',
+          toLocation: formData.toLocation,
+          reason: formData.reason.trim(),
+        });
+        setSuccessToast(`Transfer order ${editingId} updated successfully.`);
+      } else {
+        addEmployeeTransfer({
+          employeeId: formData.employeeId,
+          employeeName: empName,
+          effectiveDate: formData.effectiveDate,
+          fromDepartment: formData.fromDepartment || 'General',
+          toDepartment: formData.toDepartment,
+          fromDesignation: formData.fromDesignation || 'Staff',
+          toDesignation: formData.toDesignation,
+          fromLocation: formData.fromLocation || 'Plant 1',
+          toLocation: formData.toLocation,
+          reason: formData.reason.trim(),
+          approvedBy: 'Sanjay Shah (HR Manager)',
+          status: 'Approved',
+        });
+        setSuccessToast(`Transfer order issued successfully for ${empName}!`);
+      }
 
       // Synchronize employee master profile
       if (updateEmployee && formData.employeeId) {
@@ -247,13 +310,13 @@ export default function EmployeeTransfersPage() {
       }
 
       setShowModal(false);
+      setEditingId(null);
       setFormData(initialFormState);
       setFormErrors({});
-      setSuccessToast(`Transfer order issued successfully for ${empName}!`);
       setTimeout(() => setSuccessToast(null), 4000);
     } catch (err) {
-      console.error('Failed to issue transfer order:', err);
-      setLoadError('The transfer details could not be loaded correctly. Please refresh the page and try again.');
+      console.error('Failed to save transfer order:', err);
+      setLoadError('The transfer details could not be loaded. Please refresh the page and try again.');
     }
   };
 
@@ -317,11 +380,7 @@ export default function EmployeeTransfersPage() {
             Refresh
           </button>
           <button
-            onClick={() => {
-              setFormData(initialFormState);
-              setFormErrors({});
-              setShowModal(true);
-            }}
+            onClick={handleOpenAddModal}
             className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-semibold text-sm rounded-lg shadow-md transition"
           >
             <Plus className="w-4 h-4" /> Issue Transfer Order
@@ -454,7 +513,7 @@ export default function EmployeeTransfersPage() {
                 key={trn.id}
                 className="bg-white border border-[#EBE3DB] hover:border-amber-600/40 rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-md transition duration-200"
               >
-                {/* Top Row: ID, Name, Status */}
+                {/* Top Row: ID, Name, Status, Actions */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#EBE3DB]/60 pb-3">
                   <div className="flex items-center gap-3">
                     <span className="px-2.5 py-1 bg-amber-500/10 text-amber-700 text-xs font-mono font-bold rounded-md border border-amber-500/20">
@@ -475,6 +534,24 @@ export default function EmployeeTransfersPage() {
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                       {trn.status || 'Approved'} (Effective: {trn.effectiveDate})
                     </span>
+
+                    {/* Edit & Delete Action Buttons */}
+                    <div className="flex items-center gap-1 border-l border-[#EBE3DB] pl-2">
+                      <button
+                        onClick={() => handleOpenEditModal(trn)}
+                        className="p-1.5 text-[#544B45] hover:text-amber-600 hover:bg-amber-50 rounded-lg transition"
+                        title="Edit transfer order"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteRecord(trn)}
+                        className="p-1.5 text-[#544B45] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                        title="Delete transfer order"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -547,7 +624,7 @@ export default function EmployeeTransfersPage() {
         </div>
       )}
 
-      {/* Issue Transfer Order Modal */}
+      {/* Issue / Edit Transfer Order Modal */}
       {showModal && (
         <div
           onClick={(e) => {
@@ -569,10 +646,10 @@ export default function EmployeeTransfersPage() {
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-[#211B17]">
-                    Issue Employee Transfer Order
+                    {editingId ? 'Edit Employee Transfer Order' : 'Issue Employee Transfer Order'}
                   </h2>
                   <p className="text-xs text-[#70665F]">
-                    Assign a staff member to a new department or location
+                    {editingId ? 'Modify transfer parameters and work assignment' : 'Assign a staff member to a new department or location'}
                   </p>
                 </div>
               </div>
@@ -594,8 +671,9 @@ export default function EmployeeTransfersPage() {
                 </label>
                 <select
                   value={formData.employeeId}
+                  disabled={editingId !== null}
                   onChange={(e) => handleEmployeeChange(e.target.value)}
-                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition ${
+                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition disabled:bg-gray-100 ${
                     formErrors.employeeId
                       ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
                       : 'border-[#EBE3DB] focus:border-amber-600'
@@ -837,10 +915,57 @@ export default function EmployeeTransfersPage() {
                   type="submit"
                   className="px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs rounded-lg shadow-md transition flex items-center gap-2"
                 >
-                  <Workflow className="w-4 h-4" /> Submit Transfer
+                  <Workflow className="w-4 h-4" />
+                  {editingId ? 'Update Transfer Order' : 'Submit Transfer'}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmTrn && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setDeleteConfirmTrn(null);
+          }}
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-amber-100 text-amber-700 rounded-xl">
+                <ShieldAlert className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-[#211B17]">Delete Transfer Order</h3>
+                <p className="text-xs text-[#70665F]">Order ID: {deleteConfirmTrn.id}</p>
+              </div>
+            </div>
+
+            <p className="text-sm text-[#544B45] leading-relaxed">
+              Are you sure you want to delete this transfer order for <strong>{deleteConfirmTrn.employeeName}</strong>? This action will remove the transfer record from the history audit log.
+            </p>
+
+            <div className="pt-3 border-t border-[#EBE3DB] flex items-center justify-end gap-3 text-xs">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmTrn(null)}
+                className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold rounded-lg transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={executeDelete}
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg shadow transition"
+              >
+                Yes, Delete Order
+              </button>
+            </div>
           </div>
         </div>
       )}
