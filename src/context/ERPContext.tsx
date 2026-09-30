@@ -6404,9 +6404,31 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     return mockHolidays;
   });
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(mockAttendanceRecords);
-  const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>(mockLeaveTypes);
+  const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_leaveTypes');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return mockLeaveTypes;
+  });
   const [leaveBalances] = useState<LeaveBalance[]>(mockLeaveBalances);
-  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>(mockLeaveRequests);
+  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_leaveRequests');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return mockLeaveRequests;
+  });
   const [wfhRequests, setWFHRequests] = useState<WFHRequest[]>(mockWFHRequests);
   const [missedPunchRequests, setMissedPunchRequests] = useState<MissedPunchRequest[]>(mockMissedPunchRequests);
   const [attendanceRegularizations, setAttendanceRegularizations] = useState<AttendanceRegularization[]>(mockRegularizationRequests);
@@ -6872,7 +6894,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addLeaveType = (lt: Omit<LeaveType, 'id'>) => {
     const newId = `LT-0${leaveTypes.length + 1}`;
     const newLt = { ...lt, id: newId };
-    setLeaveTypes((prev) => [...prev, newLt]);
+    setLeaveTypes((prev) => {
+      const updated = [...prev, newLt];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_leaveTypes', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'hr', 'leave-management', newId, `Added Leave Type ${lt.leaveName}`);
   };
 
@@ -6885,18 +6913,28 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       appliedDate: new Date().toISOString().split('T')[0],
       status: 'Pending',
     };
-    setLeaveRequests((prev) => [newReq, ...prev]);
+    setLeaveRequests((prev) => {
+      const updated = [newReq, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_leaveRequests', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'hr', 'leave-management', lNo, `Applied for leave ${req.leaveName} by ${req.employeeName}`);
     api.hr.leaves.create(newReq).catch((err) => console.warn('Failed to add leave request:', err));
   };
   const updateLeaveRequestStatus = (id: string, status: LeaveApprovalStatus, approvedBy?: string) => {
-    setLeaveRequests((prev) =>
-      prev.map((l) =>
+    setLeaveRequests((prev) => {
+      const updated = prev.map((l) =>
         l.id === id || l.leaveNumber === id
           ? { ...l, status, approvedBy: approvedBy || 'HR / Manager', approvedDate: new Date().toISOString().split('T')[0] }
           : l
-      )
-    );
+      );
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_leaveRequests', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'hr', 'leave-approvals', id, `Leave request status updated to ${status}`);
     api.patch(`/leave-requests/${id}/`, { status, approvedBy }).catch((err) => console.warn('Failed to update leave request:', err));
   };
