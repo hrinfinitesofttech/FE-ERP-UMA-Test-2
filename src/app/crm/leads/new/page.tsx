@@ -230,11 +230,11 @@ export default function NewLeadPage() {
       assignedSalesPersonName: assignedName,
     });
 
-    router.push(`/crm/leads/${created.id}`);
+    router.push('/crm/leads');
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-4 text-xs pb-10">
+    <div className="w-full space-y-4 text-xs pb-10">
       <Link
         href="/crm/leads"
         className="inline-flex items-center gap-1.5 text-crm-brand-700 hover:text-crm-brand-800 font-semibold"
@@ -281,8 +281,8 @@ export default function NewLeadPage() {
               </span>
               Company & Enterprise Details
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div data-invalid={Boolean(errors.companyName && (touched.companyName || submitAttempted))}>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+              <div className="md:col-span-6" data-invalid={Boolean(errors.companyName && (touched.companyName || submitAttempted))}>
                 <label className="block text-[#544B45] font-semibold mb-1">
                   Company Name <span className="text-rose-500">*</span>
                 </label>
@@ -292,11 +292,11 @@ export default function NewLeadPage() {
                   onChange={(e) => handleInputChange('companyName', e.target.value)}
                   onBlur={() => handleBlur('companyName')}
                   placeholder="e.g. Industrial Enterprises Ltd."
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
+                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
                     errors.companyName && (touched.companyName || submitAttempted)
                       ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
                       : 'border-[#EBE3DB]'
-                  } rounded-lg text-[#211B17] font-bold`}
+                  } rounded-xl text-[#211B17] font-bold`}
                 />
                 {errors.companyName && (touched.companyName || submitAttempted) && (
                   <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
@@ -304,20 +304,18 @@ export default function NewLeadPage() {
                   </p>
                 )}
               </div>
-              <div>
+              <div className="md:col-span-6">
                 <label className="block text-[#544B45] font-semibold mb-1">Industry Sector</label>
                 <input
                   type="text"
                   value={formData.industry}
                   onChange={(e) => handleInputChange('industry', e.target.value)}
-                  placeholder="e.g. Chemicals / Pharma / Heavy Engineering"
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
+                  placeholder="e.g. Speciality Chemicals / Pharma / Heavy Engineering"
+                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17]"
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div data-invalid={Boolean(errors.gstin && (touched.gstin || submitAttempted))}>
+              <div className="md:col-span-4" data-invalid={Boolean(errors.gstin && (touched.gstin || submitAttempted))}>
                 <label className="block text-[#544B45] font-semibold mb-1">GSTIN Number (15 digits)</label>
                 <input
                   type="text"
@@ -326,11 +324,11 @@ export default function NewLeadPage() {
                   onChange={(e) => handleInputChange('gstin', e.target.value)}
                   onBlur={() => handleBlur('gstin')}
                   placeholder="24AAACX0000X1Z1"
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
+                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
                     errors.gstin && (touched.gstin || submitAttempted)
                       ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
                       : 'border-[#EBE3DB]'
-                  } rounded-lg font-mono uppercase text-[#211B17]`}
+                  } rounded-xl font-mono uppercase text-[#211B17]`}
                 />
                 {errors.gstin && (touched.gstin || submitAttempted) && (
                   <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
@@ -338,7 +336,8 @@ export default function NewLeadPage() {
                   </p>
                 )}
               </div>
-              <div data-invalid={Boolean(errors.website && (touched.website || submitAttempted))}>
+
+              <div className="md:col-span-4" data-invalid={Boolean(errors.website && (touched.website || submitAttempted))}>
                 <label className="block text-[#544B45] font-semibold mb-1">Website URL</label>
                 <input
                   type="url"
@@ -346,11 +345,11 @@ export default function NewLeadPage() {
                   onChange={(e) => handleInputChange('website', e.target.value)}
                   onBlur={() => handleBlur('website')}
                   placeholder="https://example.com"
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
+                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
                     errors.website && (touched.website || submitAttempted)
                       ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
                       : 'border-[#EBE3DB]'
-                  } rounded-lg text-[#211B17]`}
+                  } rounded-xl text-[#211B17]`}
                 />
                 {errors.website && (touched.website || submitAttempted) && (
                   <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
@@ -358,7 +357,8 @@ export default function NewLeadPage() {
                   </p>
                 )}
               </div>
-              <div data-invalid={Boolean(errors.city && (touched.city || submitAttempted))}>
+
+              <div className="md:col-span-4" data-invalid={Boolean(errors.city && (touched.city || submitAttempted))}>
                 <label className="block text-[#544B45] font-semibold mb-1">
                   City & State <span className="text-rose-500">*</span>
                 </label>
@@ -368,11 +368,11 @@ export default function NewLeadPage() {
                   onChange={(e) => handleInputChange('city', e.target.value)}
                   onBlur={() => handleBlur('city')}
                   placeholder="e.g. Vadodara, Gujarat"
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
+                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
                     errors.city && (touched.city || submitAttempted)
                       ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
                       : 'border-[#EBE3DB]'
-                  } rounded-lg text-[#211B17]`}
+                  } rounded-xl text-[#211B17]`}
                 />
                 {errors.city && (touched.city || submitAttempted) && (
                   <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
@@ -384,15 +384,15 @@ export default function NewLeadPage() {
           </div>
 
           {/* SECTION 2: CONTACT */}
-          <div className="space-y-3 pt-3 border-t border-[#EBE3DB]">
+          <div className="space-y-3 pt-4 border-t border-[#EBE3DB]">
             <h3 className="font-bold text-sm text-[#544B45] flex items-center gap-2">
               <span className="w-5 h-5 rounded-full bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center text-[10px] font-bold border border-crm-brand-200">
                 2
               </span>
               Contact Person Information
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div data-invalid={Boolean(errors.contactPerson && (touched.contactPerson || submitAttempted))}>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+              <div className="md:col-span-4" data-invalid={Boolean(errors.contactPerson && (touched.contactPerson || submitAttempted))}>
                 <label className="block text-[#544B45] font-semibold mb-1">
                   Contact Person Name <span className="text-rose-500">*</span>
                 </label>
@@ -402,11 +402,11 @@ export default function NewLeadPage() {
                   onChange={(e) => handleInputChange('contactPerson', e.target.value)}
                   onBlur={() => handleBlur('contactPerson')}
                   placeholder="e.g. Harish Trivedi"
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
+                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
                     errors.contactPerson && (touched.contactPerson || submitAttempted)
                       ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
                       : 'border-[#EBE3DB]'
-                  } rounded-lg text-[#211B17] font-semibold`}
+                  } rounded-xl text-[#211B17] font-semibold`}
                 />
                 {errors.contactPerson && (touched.contactPerson || submitAttempted) && (
                   <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
@@ -414,22 +414,24 @@ export default function NewLeadPage() {
                   </p>
                 )}
               </div>
-              <div>
+
+              <div className="md:col-span-4">
                 <label className="block text-[#544B45] font-semibold mb-1">Designation</label>
                 <input
                   type="text"
                   value={formData.designation}
                   onChange={(e) => handleInputChange('designation', e.target.value)}
-                  placeholder="e.g. Head of Capex / Purchase Manager"
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
+                  placeholder="e.g. Project Lead / Purchase Head"
+                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17]"
                 />
               </div>
-              <div data-invalid={Boolean(errors.mobile && (touched.mobile || submitAttempted))}>
+
+              <div className="md:col-span-4" data-invalid={Boolean(errors.mobile && (touched.mobile || submitAttempted))}>
                 <label className="block text-[#544B45] font-semibold mb-1">
                   Mobile Contact (10 digits) <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2 font-mono text-[#70665F] font-bold">+91</span>
+                  <span className="absolute left-3 top-2.5 font-mono text-[#70665F] font-bold">+91</span>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -438,11 +440,11 @@ export default function NewLeadPage() {
                     onChange={(e) => handleInputChange('mobile', e.target.value)}
                     onBlur={() => handleBlur('mobile')}
                     placeholder="9825012345"
-                    className={`w-full pl-11 pr-3 py-2 bg-[#FAF7F2] border ${
+                    className={`w-full pl-11 pr-3.5 py-2.5 bg-[#FAF7F2] border ${
                       errors.mobile && (touched.mobile || submitAttempted)
                         ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
                         : 'border-[#EBE3DB]'
-                    } rounded-lg text-[#211B17] font-mono font-semibold tracking-wider`}
+                    } rounded-xl text-[#211B17] font-mono font-semibold tracking-wider`}
                   />
                 </div>
                 {errors.mobile && (touched.mobile || submitAttempted) && (
@@ -451,26 +453,24 @@ export default function NewLeadPage() {
                   </p>
                 )}
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div data-invalid={Boolean(errors.email && (touched.email || submitAttempted))}>
+              <div className="md:col-span-6" data-invalid={Boolean(errors.email && (touched.email || submitAttempted))}>
                 <label className="block text-[#544B45] font-semibold mb-1">
                   Email Address <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-[#70665F] absolute left-3 top-2.5" />
+                  <Mail className="w-4 h-4 text-[#70665F] absolute left-3 top-3" />
                   <input
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     onBlur={() => handleBlur('email')}
                     placeholder="name@company.com"
-                    className={`w-full pl-9 pr-3 py-2 bg-[#FAF7F2] border ${
+                    className={`w-full pl-9 pr-3.5 py-2.5 bg-[#FAF7F2] border ${
                       errors.email && (touched.email || submitAttempted)
                         ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
                         : 'border-[#EBE3DB]'
-                    } rounded-lg text-[#211B17] font-medium`}
+                    } rounded-xl text-[#211B17] font-medium`}
                   />
                 </div>
                 {errors.email && (touched.email || submitAttempted) && (
@@ -479,10 +479,11 @@ export default function NewLeadPage() {
                   </p>
                 )}
               </div>
-              <div data-invalid={Boolean(errors.whatsapp && (touched.whatsapp || submitAttempted))}>
+
+              <div className="md:col-span-6" data-invalid={Boolean(errors.whatsapp && (touched.whatsapp || submitAttempted))}>
                 <label className="block text-[#544B45] font-semibold mb-1">WhatsApp Number (10 digits)</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2 font-mono text-[#70665F] font-bold">+91</span>
+                  <span className="absolute left-3 top-2.5 font-mono text-[#70665F] font-bold">+91</span>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -491,11 +492,11 @@ export default function NewLeadPage() {
                     onChange={(e) => handleInputChange('whatsapp', e.target.value)}
                     onBlur={() => handleBlur('whatsapp')}
                     placeholder="9825012345"
-                    className={`w-full pl-11 pr-3 py-2 bg-[#FAF7F2] border ${
+                    className={`w-full pl-11 pr-3.5 py-2.5 bg-[#FAF7F2] border ${
                       errors.whatsapp && (touched.whatsapp || submitAttempted)
                         ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
                         : 'border-[#EBE3DB]'
-                    } rounded-lg text-[#211B17] font-mono font-semibold tracking-wider`}
+                    } rounded-xl text-[#211B17] font-mono font-semibold tracking-wider`}
                   />
                 </div>
                 {errors.whatsapp && (touched.whatsapp || submitAttempted) && (
@@ -508,16 +509,16 @@ export default function NewLeadPage() {
           </div>
 
           {/* SECTION 3: MACHINE / EQUIPMENT REQUIREMENT */}
-          <div className="space-y-3 pt-3 border-t border-[#EBE3DB]">
+          <div className="space-y-3 pt-4 border-t border-[#EBE3DB]">
             <h3 className="font-bold text-sm text-[#544B45] flex items-center gap-2">
               <span className="w-5 h-5 rounded-full bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center text-[10px] font-bold border border-crm-brand-200">
                 3
               </span>
               Machine & Equipment Technical Requirement
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
               <div
-                className="sm:col-span-2"
+                className="md:col-span-8"
                 data-invalid={Boolean(errors.productName && (touched.productName || submitAttempted))}
               >
                 <label className="block text-[#544B45] font-semibold mb-1">
@@ -529,11 +530,11 @@ export default function NewLeadPage() {
                   onChange={(e) => handleInputChange('productName', e.target.value)}
                   onBlur={() => handleBlur('productName')}
                   placeholder="e.g. 10 KL SS 316L Chemical Reactor Vessel with Limpet Jacket"
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
+                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
                     errors.productName && (touched.productName || submitAttempted)
                       ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
                       : 'border-[#EBE3DB]'
-                  } rounded-lg font-bold text-[#211B17]`}
+                  } rounded-xl font-bold text-[#211B17]`}
                 />
                 {errors.productName && (touched.productName || submitAttempted) && (
                   <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
@@ -541,7 +542,8 @@ export default function NewLeadPage() {
                   </p>
                 )}
               </div>
-              <div data-invalid={Boolean(errors.quantity && (touched.quantity || submitAttempted))}>
+
+              <div className="md:col-span-4" data-invalid={Boolean(errors.quantity && (touched.quantity || submitAttempted))}>
                 <label className="block text-[#544B45] font-semibold mb-1">
                   Quantity <span className="text-rose-500">*</span>
                 </label>
@@ -552,11 +554,11 @@ export default function NewLeadPage() {
                   value={formData.quantity}
                   onChange={(e) => handleInputChange('quantity', e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))}
                   onBlur={() => handleBlur('quantity')}
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
+                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
                     errors.quantity && (touched.quantity || submitAttempted)
                       ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
                       : 'border-[#EBE3DB]'
-                  } rounded-lg font-mono text-[#211B17]`}
+                  } rounded-xl font-mono text-[#211B17]`}
                 />
                 {errors.quantity && (touched.quantity || submitAttempted) && (
                   <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
@@ -564,20 +566,19 @@ export default function NewLeadPage() {
                   </p>
                 )}
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
+              <div className="md:col-span-4">
                 <label className="block text-[#544B45] font-semibold mb-1">Capacity / Dimensions</label>
                 <input
                   type="text"
                   value={formData.capacity}
                   onChange={(e) => handleInputChange('capacity', e.target.value)}
-                  placeholder="e.g. 10,000 Litres / 150 Kg"
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
+                  placeholder="e.g. 10,000 Litres / 150 Kg / 2000 mm Dia"
+                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17]"
                 />
               </div>
-              <div data-invalid={Boolean(errors.expectedDelivery && (touched.expectedDelivery || submitAttempted))}>
+
+              <div className="md:col-span-4" data-invalid={Boolean(errors.expectedDelivery && (touched.expectedDelivery || submitAttempted))}>
                 <label className="block text-[#544B45] font-semibold mb-1">
                   Target Delivery Date <span className="text-rose-500">*</span>
                 </label>
@@ -587,11 +588,11 @@ export default function NewLeadPage() {
                   value={formData.expectedDelivery}
                   onChange={(e) => handleInputChange('expectedDelivery', e.target.value)}
                   onBlur={() => handleBlur('expectedDelivery')}
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
+                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
                     errors.expectedDelivery && (touched.expectedDelivery || submitAttempted)
                       ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
                       : 'border-[#EBE3DB]'
-                  } rounded-lg text-[#211B17] font-mono`}
+                  } rounded-xl text-[#211B17] font-mono`}
                 />
                 {errors.expectedDelivery && (touched.expectedDelivery || submitAttempted) && (
                   <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
@@ -599,7 +600,8 @@ export default function NewLeadPage() {
                   </p>
                 )}
               </div>
-              <div data-invalid={Boolean(errors.budget && (touched.budget || submitAttempted))}>
+
+              <div className="md:col-span-4" data-invalid={Boolean(errors.budget && (touched.budget || submitAttempted))}>
                 <label className="block text-[#544B45] font-semibold mb-1">Estimated Budget (₹)</label>
                 <input
                   type="number"
@@ -608,11 +610,11 @@ export default function NewLeadPage() {
                   value={formData.budget}
                   onChange={(e) => handleInputChange('budget', e.target.value === '' ? '' : Number(e.target.value))}
                   onBlur={() => handleBlur('budget')}
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
+                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
                     errors.budget && (touched.budget || submitAttempted)
                       ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
                       : 'border-[#EBE3DB]'
-                  } rounded-lg font-bold text-emerald-600`}
+                  } rounded-xl font-bold text-emerald-600`}
                 />
                 {errors.budget && (touched.budget || submitAttempted) && (
                   <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
@@ -620,35 +622,35 @@ export default function NewLeadPage() {
                   </p>
                 )}
               </div>
-            </div>
 
-            <div>
-              <label className="block text-[#544B45] font-semibold mb-1">Technical Scope & Description</label>
-              <textarea
-                rows={3}
-                value={formData.requirementDescription}
-                onChange={(e) => handleInputChange('requirementDescription', e.target.value)}
-                placeholder="Pressure ratings, material of construction (SS304/SS316/Hastelloy), testing requirements (Hydro/Radiography), cGMP standards..."
-                className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
-              />
+              <div className="md:col-span-12">
+                <label className="block text-[#544B45] font-semibold mb-1">Technical Scope & Description</label>
+                <textarea
+                  rows={3}
+                  value={formData.requirementDescription}
+                  onChange={(e) => handleInputChange('requirementDescription', e.target.value)}
+                  placeholder="Pressure ratings, material of construction (SS304/SS316/Hastelloy), testing requirements (Hydro/Radiography), cGMP standards..."
+                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17]"
+                />
+              </div>
             </div>
           </div>
 
           {/* SECTION 4: CRM & ASSIGNMENT */}
-          <div className="space-y-3 pt-3 border-t border-[#EBE3DB]">
+          <div className="space-y-3 pt-4 border-t border-[#EBE3DB]">
             <h3 className="font-bold text-sm text-[#544B45] flex items-center gap-2">
               <span className="w-5 h-5 rounded-full bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center text-[10px] font-bold border border-crm-brand-200">
                 4
               </span>
               Lead Source & Sales Assignment
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-              <div>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+              <div className="md:col-span-3">
                 <label className="block text-[#544B45] font-semibold mb-1">Lead Source</label>
                 <select
                   value={formData.source}
                   onChange={(e) => handleInputChange('source', e.target.value as any)}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] font-semibold"
+                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] font-semibold"
                 >
                   <option value="exhibition">Exhibition / Expo</option>
                   <option value="website">Website Inquiry</option>
@@ -659,18 +661,18 @@ export default function NewLeadPage() {
                 </select>
               </div>
 
-              <div data-invalid={Boolean(errors.assignedSalesPersonId && (touched.assignedSalesPersonId || submitAttempted))}>
+              <div className="md:col-span-3" data-invalid={Boolean(errors.assignedSalesPersonId && (touched.assignedSalesPersonId || submitAttempted))}>
                 <label className="block text-[#544B45] font-semibold mb-1">
                   Assigned Sales Engineer <span className="text-rose-500">*</span>
                 </label>
                 <select
                   value={formData.assignedSalesPersonId}
                   onChange={(e) => handleInputChange('assignedSalesPersonId', e.target.value)}
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
+                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
                     errors.assignedSalesPersonId && (touched.assignedSalesPersonId || submitAttempted)
                       ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
                       : 'border-[#EBE3DB]'
-                  } rounded-lg text-[#211B17] font-medium`}
+                  } rounded-xl text-[#211B17] font-medium`}
                 >
                   {allEmployees.map((emp) => {
                     const name =
@@ -693,12 +695,12 @@ export default function NewLeadPage() {
                 )}
               </div>
 
-              <div>
+              <div className="md:col-span-3">
                 <label className="block text-[#544B45] font-semibold mb-1">Priority</label>
                 <select
                   value={formData.priority}
                   onChange={(e) => handleInputChange('priority', e.target.value as any)}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] font-bold"
+                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] font-bold"
                 >
                   <option value="low">Low Priority</option>
                   <option value="medium">Medium</option>
@@ -707,7 +709,7 @@ export default function NewLeadPage() {
                 </select>
               </div>
 
-              <div data-invalid={Boolean(errors.nextFollowUpDate && (touched.nextFollowUpDate || submitAttempted))}>
+              <div className="md:col-span-3" data-invalid={Boolean(errors.nextFollowUpDate && (touched.nextFollowUpDate || submitAttempted))}>
                 <label className="block text-[#544B45] font-semibold mb-1">
                   Next Follow-up Date <span className="text-rose-500">*</span>
                 </label>
@@ -717,11 +719,11 @@ export default function NewLeadPage() {
                   value={formData.nextFollowUpDate}
                   onChange={(e) => handleInputChange('nextFollowUpDate', e.target.value)}
                   onBlur={() => handleBlur('nextFollowUpDate')}
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border ${
+                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
                     errors.nextFollowUpDate && (touched.nextFollowUpDate || submitAttempted)
                       ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
                       : 'border-[#EBE3DB]'
-                  } rounded-lg text-[#211B17] font-mono`}
+                  } rounded-xl text-[#211B17] font-mono`}
                 />
                 {errors.nextFollowUpDate && (touched.nextFollowUpDate || submitAttempted) && (
                   <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
