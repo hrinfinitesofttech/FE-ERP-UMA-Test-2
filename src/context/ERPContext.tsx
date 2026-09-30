@@ -829,8 +829,11 @@ interface ERPContextType {
   shiftMasters: ShiftMaster[];
   addShiftMaster: (shift: Omit<ShiftMaster, 'id'>) => void;
   updateShiftMaster: (id: string, shift: Partial<ShiftMaster>) => void;
+  deleteShiftMaster: (id: string) => void;
   shiftRosters: ShiftRosterItem[];
   addShiftRoster: (roster: Omit<ShiftRosterItem, 'id'>) => void;
+  updateShiftRoster: (id: string, roster: Partial<ShiftRosterItem>) => void;
+  deleteShiftRoster: (id: string) => void;
   holidays: HolidayItem[];
   addHoliday: (holiday: Omit<HolidayItem, 'id'>) => void;
   updateHoliday: (id: string, holiday: Partial<HolidayItem>) => void;
@@ -6176,8 +6179,30 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
     return mockFullAndFinalSettlements;
   });
-  const [shiftMasters, setShiftMasters] = useState<ShiftMaster[]>(mockShifts);
-  const [shiftRosters, setShiftRosters] = useState<ShiftRosterItem[]>(mockShiftRosters);
+  const [shiftMasters, setShiftMasters] = useState<ShiftMaster[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_shiftMasters');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return mockShifts;
+  });
+  const [shiftRosters, setShiftRosters] = useState<ShiftRosterItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_shiftRosters');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return mockShiftRosters;
+  });
   const [holidays, setHolidays] = useState<HolidayItem[]>(mockHolidays);
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(mockAttendanceRecords);
   const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>(mockLeaveTypes);
@@ -6520,20 +6545,73 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addShiftMaster = (shift: Omit<ShiftMaster, 'id'>) => {
     const newId = `SHIFT-0${shiftMasters.length + 1}`;
     const newShift = { ...shift, id: newId };
-    setShiftMasters((prev) => [...prev, newShift]);
+    setShiftMasters((prev) => {
+      const updated = [...prev, newShift];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_shiftMasters', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'hr', 'shift-management', newId, `Created Shift ${shift.shiftName}`);
-    api.post('/shifts/', newShift).catch((err) => console.warn('Failed to add shift:', err));
+    api.post('/shifts/', newShift).catch((err) => console.warn('Failed to add shift on backend:', err));
   };
   const updateShiftMaster = (id: string, shift: Partial<ShiftMaster>) => {
-    setShiftMasters((prev) => prev.map((s) => (s.id === id ? { ...s, ...shift } : s)));
+    setShiftMasters((prev) => {
+      const updated = prev.map((s) => (s.id === id ? { ...s, ...shift } : s));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_shiftMasters', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'hr', 'shift-management', id, `Updated Shift ${id}`);
+    api.patch(`/shifts/${id}/`, shift).catch((err) => console.warn('Failed to update shift on backend:', err));
+  };
+  const deleteShiftMaster = (id: string) => {
+    setShiftMasters((prev) => {
+      const updated = prev.filter((s) => s.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_shiftMasters', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'hr', 'shift-management', id, `Deleted Shift ${id}`);
+    api.delete(`/shifts/${id}/`).catch((err) => console.warn('Failed to delete shift on backend:', err));
   };
 
   const addShiftRoster = (roster: Omit<ShiftRosterItem, 'id'>) => {
     const newId = `RST-${1000 + shiftRosters.length + 1}`;
     const newRoster = { ...roster, id: newId };
-    setShiftRosters((prev) => [newRoster, ...prev]);
+    setShiftRosters((prev) => {
+      const updated = [newRoster, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_shiftRosters', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'hr', 'shift-roster', newId, `Assigned shift ${roster.shiftName} to ${roster.employeeName}`);
+    api.post('/shift-rosters/', newRoster).catch((err) => console.warn('Failed to add shift roster on backend:', err));
+  };
+  const updateShiftRoster = (id: string, roster: Partial<ShiftRosterItem>) => {
+    setShiftRosters((prev) => {
+      const updated = prev.map((r) => (r.id === id ? { ...r, ...roster } : r));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_shiftRosters', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('UPDATE', 'hr', 'shift-roster', id, `Updated shift roster ${id}`);
+    api.patch(`/shift-rosters/${id}/`, roster).catch((err) => console.warn('Failed to update roster on backend:', err));
+  };
+  const deleteShiftRoster = (id: string) => {
+    setShiftRosters((prev) => {
+      const updated = prev.filter((r) => r.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_shiftRosters', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'hr', 'shift-roster', id, `Deleted shift roster ${id}`);
+    api.delete(`/shift-rosters/${id}/`).catch((err) => console.warn('Failed to delete roster on backend:', err));
   };
 
   const addHoliday = (holiday: Omit<HolidayItem, 'id'>) => {
@@ -7467,8 +7545,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         shiftMasters,
         addShiftMaster,
         updateShiftMaster,
+        deleteShiftMaster,
         shiftRosters,
         addShiftRoster,
+        updateShiftRoster,
+        deleteShiftRoster,
         holidays,
         addHoliday,
         updateHoliday,

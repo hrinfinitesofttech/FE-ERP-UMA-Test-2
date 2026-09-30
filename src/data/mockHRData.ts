@@ -213,7 +213,28 @@ export const mockShifts: ShiftMaster[] = [
     status: 'Active',
   },
 ];
-export const mockShiftRosters: ShiftRosterItem[] = [];
+export const mockShiftRosters: ShiftRosterItem[] = [
+  {
+    id: 'RST-1001',
+    employeeId: 'EMP-001',
+    employeeName: 'Istpleee Emp',
+    department: 'Production',
+    date: '2026-09-30',
+    shiftId: 'SHF-001',
+    shiftName: 'General Shift (GS)',
+    assignedBy: 'Shop Floor Planning Head',
+  },
+  {
+    id: 'RST-1002',
+    employeeId: 'EMP-002',
+    employeeName: 'Rajesh Patel',
+    department: 'Design & Engineering',
+    date: '2026-09-30',
+    shiftId: 'SHF-001',
+    shiftName: 'General Shift (GS)',
+    assignedBy: 'Shop Floor Planning Head',
+  },
+];
 export const mockHolidays: HolidayItem[] = [
   {
     id: 'HOL-2026-01',
