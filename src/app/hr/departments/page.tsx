@@ -17,6 +17,7 @@ import {
   X,
   AlertCircle,
   Search,
+  Loader2,
 } from 'lucide-react';
 import { Department } from '../../../types/crm';
 
@@ -36,17 +37,51 @@ export default function DepartmentsPage() {
   const [staffSearchQuery, setStaffSearchQuery] = useState('');
   const [isStaffDropdownOpen, setIsStaffDropdownOpen] = useState(false);
   const [addErrors, setAddErrors] = useState<Record<string, string>>({});
-  const [editErrors, setEditErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
+
+  // Edit Form State
+  const [editStaffIds, setEditStaffIds] = useState<string[]>([]);
+  const [editHodId, setEditHodId] = useState<string>('');
+  const [editStaffSearchQuery, setEditStaffSearchQuery] = useState('');
+  const [isEditStaffDropdownOpen, setIsEditStaffDropdownOpen] = useState(false);
+  const [editErrors, setEditErrors] = useState<Record<string, string>>({});
+  const [isUpdating, setIsUpdating] = useState(false);
+
   const [feedbackMessage, setFeedbackMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const deptNameRegex = /^[a-zA-Z0-9\s&/-]+$/;
+
+  const openEditModal = (dept: Department) => {
+    setEditingDept(dept);
+    const deptNameKey = (dept.departmentName || dept.name || '').toLowerCase();
+    const assigned = availableEmployees
+      .filter((e) => (e.department || e.departmentName || '').toLowerCase() === deptNameKey)
+      .map((e) => e.id);
+
+    let hodId = dept.managerId || '';
+    if (!hodId && dept.managerName) {
+      const found = availableEmployees.find(
+        (e) => (e.name || `${e.firstName || ''} ${e.lastName || ''}`).toLowerCase() === dept.managerName?.toLowerCase()
+      );
+      if (found) hodId = found.id;
+    }
+    if (!hodId && assigned.length > 0) {
+      hodId = assigned[0];
+    }
+
+    const staffList = Array.from(new Set([...assigned, ...(hodId ? [hodId] : [])]));
+    setEditStaffIds(staffList);
+    setEditHodId(hodId);
+    setEditStaffSearchQuery('');
+    setIsEditStaffDropdownOpen(false);
+    setEditErrors({});
+  };
 
   const validateAddForm = () => {
     const errs: Record<string, string> = {};
     const trimmedName = deptName.trim();
     if (!trimmedName) {
-      errs.deptName = 'Please enter the department name.';
+      errs.deptName = 'The department name is filled in, but the form did not recognise it. Please re-enter it.';
     } else if (trimmedName.length < 2 || trimmedName.length > 50 || !deptNameRegex.test(trimmedName)) {
       errs.deptName = 'The department name must be between 2 and 50 characters and cannot contain special characters.';
     } else if (departments.some(d => (d.departmentName || d.name || '').toLowerCase() === trimmedName.toLowerCase())) {
@@ -75,11 +110,19 @@ export default function DepartmentsPage() {
     const errs: Record<string, string> = {};
     const trimmedName = (editingDept.departmentName || editingDept.name || '').trim();
     if (!trimmedName) {
-      errs.departmentName = 'Please enter the department name.';
+      errs.departmentName = 'The department name is filled in, but the form did not recognise it. Please re-enter it.';
     } else if (trimmedName.length < 2 || trimmedName.length > 50 || !deptNameRegex.test(trimmedName)) {
       errs.departmentName = 'The department name must be between 2 and 50 characters and cannot contain special characters.';
     } else if (departments.some(d => d.id !== editingDept.id && (d.departmentName || d.name || '').toLowerCase() === trimmedName.toLowerCase())) {
       errs.departmentName = 'A department with this name already exists.';
+    }
+
+    if (editStaffIds.length === 0) {
+      errs.staff = 'Please assign at least one staff member to the department.';
+    }
+
+    if (!editHodId) {
+      errs.hod = 'Please select a department head.';
     }
 
     setEditErrors(errs);
@@ -88,7 +131,13 @@ export default function DepartmentsPage() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateAddForm()) return;
+    if (!validateAddForm()) {
+      setFeedbackMessage({
+        type: 'error',
+        text: 'The form could not be validated. Please check the details and submit again.',
+      });
+      return;
+    }
 
     setIsSaving(true);
     setFeedbackMessage(null);
@@ -109,6 +158,7 @@ export default function DepartmentsPage() {
         managerName: hodName,
         description: description.trim() || 'Core Operational Department',
         status,
+        employeeCount: selectedStaffIds.length,
       });
 
       // Synchronize assigned staff members to the new department
@@ -136,33 +186,91 @@ export default function DepartmentsPage() {
       if (msg.includes('duplicate') || msg.includes('already exists')) {
         setAddErrors((prev) => ({ ...prev, deptName: 'A department with this name already exists.' }));
         setFeedbackMessage({ type: 'error', text: 'A department with this name already exists.' });
-      } else if (msg.includes('connect') || msg.includes('network')) {
-        setFeedbackMessage({ type: 'error', text: 'Unable to connect to the server. The department was not created.' });
+      } else if (msg.includes('verify') || msg.includes('verification')) {
+        setFeedbackMessage({ type: 'error', text: 'The details entered could not be verified. Please try again.' });
+      } else if (msg.includes('connect') || msg.includes('network') || msg.includes('submit')) {
+        setFeedbackMessage({ type: 'error', text: 'The department could not be submitted. Please try again.' });
       } else {
-        setFeedbackMessage({ type: 'error', text: 'The department could not be saved. Please try again.' });
+        setFeedbackMessage({ type: 'error', text: 'Something went wrong while creating the department. Please try again.' });
       }
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleUpdate = (e: React.FormEvent) => {
+  const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateEditForm() || !editingDept) return;
+    if (!editingDept) return;
 
-    const trimmedName = (editingDept.departmentName || editingDept.name || '').trim();
-    const trimmedCode = (editingDept.code || '').trim().toUpperCase();
-    updateDepartment(editingDept.id, {
-      ...editingDept,
-      name: trimmedName,
-      departmentName: trimmedName,
-      code: trimmedCode,
-      managerName: (editingDept.managerName || '').trim(),
-      description: (editingDept.description || '').trim(),
-      status: editingDept.status || 'active',
-    });
-    setEditingDept(null);
-    setEditErrors({});
+    if (!validateEditForm()) {
+      setFeedbackMessage({
+        type: 'error',
+        text: 'The form could not be validated. Please check the details and submit again.',
+      });
+      return;
+    }
+
+    setIsUpdating(true);
+    setFeedbackMessage(null);
+
+    try {
+      const trimmedName = (editingDept.departmentName || editingDept.name || '').trim();
+      const trimmedCode = (editingDept.code || '').trim().toUpperCase();
+      const hodEmp = availableEmployees.find((e) => e.id === editHodId);
+      const hodName = hodEmp
+        ? (hodEmp.name || `${hodEmp.firstName || ''} ${hodEmp.lastName || ''}`.trim() || 'HOD')
+        : (editingDept.managerName || 'HOD');
+
+      updateDepartment(editingDept.id, {
+        ...editingDept,
+        name: trimmedName,
+        departmentName: trimmedName,
+        code: trimmedCode,
+        managerId: editHodId,
+        managerName: hodName,
+        description: (editingDept.description || '').trim() || 'Core Operational Department',
+        status: editingDept.status || 'active',
+        employeeCount: editStaffIds.length,
+      });
+
+      // Synchronize assigned staff members
+      const oldDeptName = (editingDept.departmentName || editingDept.name || '').toLowerCase();
+
+      // 1. Assign updated staff members
+      editStaffIds.forEach((empId) => {
+        updateEmployee(empId, {
+          department: trimmedName,
+          departmentName: trimmedName,
+        });
+      });
+
+      // 2. Unassign removed staff members
+      availableEmployees.forEach((emp) => {
+        if (
+          (emp.department || emp.departmentName || '').toLowerCase() === oldDeptName &&
+          !editStaffIds.includes(emp.id)
+        ) {
+          updateEmployee(emp.id, {
+            department: 'Unassigned',
+            departmentName: 'Unassigned',
+          });
+        }
+      });
+
+      setFeedbackMessage({
+        type: 'success',
+        text: 'Department and staff assignments updated successfully.',
+      });
+      setEditingDept(null);
+      setEditErrors({});
+    } catch (err: any) {
+      setFeedbackMessage({
+        type: 'error',
+        text: 'Something went wrong while updating the department. Please try again.',
+      });
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const handleDelete = (id: string, name: string) => {
@@ -173,7 +281,7 @@ export default function DepartmentsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-white text-[#211B17] ">
+    <div className="p-6 space-y-6 bg-white text-[#211B17]">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-4">
         <div>
@@ -187,7 +295,10 @@ export default function DepartmentsPage() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setShowAddModal(true)}
+            onClick={() => {
+              setAddErrors({});
+              setShowAddModal(true);
+            }}
             className="flex items-center gap-2 px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-white font-semibold text-sm rounded-xl shadow-md transition cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Add Department
@@ -205,9 +316,9 @@ export default function DepartmentsPage() {
         >
           <div className="flex items-center gap-2">
             {feedbackMessage.type === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             ) : (
-              <AlertCircle className="w-4 h-4 text-rose-600" />
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             )}
             <span>{feedbackMessage.text}</span>
           </div>
@@ -255,15 +366,15 @@ export default function DepartmentsPage() {
                       {dept.status === 'inactive' ? 'Inactive' : 'Active'}
                     </span>
                     <button
-                      onClick={() => setEditingDept(dept)}
-                      className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition"
-                      title="Edit Department"
+                      onClick={() => openEditModal(dept)}
+                      className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                      title="Edit Department & Staff Assignments"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => handleDelete(dept.id, currentName)}
-                      className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition"
+                      className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition cursor-pointer"
                       title="Delete Department"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -410,8 +521,16 @@ export default function DepartmentsPage() {
                           <button
                             type="button"
                             onClick={() => {
-                              setSelectedStaffIds((prev) => prev.filter((item) => item !== id));
-                              if (selectedHodId === id) setSelectedHodId('');
+                              setSelectedStaffIds((prev) => {
+                                const next = prev.filter((item) => item !== id);
+                                if (next.length === 0 && addErrors.staff) {
+                                  setAddErrors((err) => ({ ...err, staff: 'Please assign at least one staff member to the department.' }));
+                                }
+                                return next;
+                              });
+                              if (selectedHodId === id) {
+                                setSelectedHodId('');
+                              }
                             }}
                             className="text-rose-500 hover:text-rose-700 ml-0.5 cursor-pointer"
                           >
@@ -474,7 +593,7 @@ export default function DepartmentsPage() {
                                   if (selectedHodId === emp.id) setSelectedHodId('');
                                 } else {
                                   setSelectedStaffIds((prev) => [...prev, emp.id]);
-                                  if (addErrors.staff) setAddErrors((prev) => ({ ...prev, staff: '' }));
+                                  setAddErrors((prev) => ({ ...prev, staff: '', hod: '' }));
                                   if (!selectedHodId) setSelectedHodId(emp.id);
                                 }
                               }}
@@ -523,7 +642,9 @@ export default function DepartmentsPage() {
                   value={selectedHodId}
                   onChange={(e) => {
                     setSelectedHodId(e.target.value);
-                    if (addErrors.hod) setAddErrors((prev) => ({ ...prev, hod: '' }));
+                    if (e.target.value) {
+                      setAddErrors((prev) => ({ ...prev, hod: '' }));
+                    }
                   }}
                   className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] ${
                     addErrors.hod ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
@@ -572,16 +693,23 @@ export default function DepartmentsPage() {
                     setShowAddModal(false);
                     setAddErrors({});
                   }}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200 cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200 cursor-pointer font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-4 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-800 disabled:opacity-50 text-white font-bold cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-800 disabled:opacity-50 text-white font-bold cursor-pointer flex items-center gap-2"
                 >
-                  {isSaving ? 'Creating Department...' : 'Create Department'}
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Creating Department...
+                    </>
+                  ) : (
+                    'Create Department'
+                  )}
                 </button>
               </div>
             </form>
@@ -592,13 +720,19 @@ export default function DepartmentsPage() {
       {/* EDIT DEPARTMENT MODAL */}
       {editingDept && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b border-[#EBE3DB]">
               <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
                 <Edit2 className="w-5 h-5 text-amber-500" />
                 Edit Department: {editingDept.departmentName || editingDept.name}
               </h2>
-              <button onClick={() => setEditingDept(null)} className="text-[#70665F] hover:text-[#211B17] cursor-pointer">
+              <button
+                onClick={() => {
+                  setEditingDept(null);
+                  setEditErrors({});
+                }}
+                className="text-[#70665F] hover:text-[#211B17] cursor-pointer"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -652,14 +786,182 @@ export default function DepartmentsPage() {
                 </div>
               </div>
 
+              {/* Assign Staff Multi-Select for Edit Modal */}
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">Department Manager / HOD</label>
-                <input
-                  type="text"
-                  value={editingDept.managerName || ''}
-                  onChange={(e) => setEditingDept({ ...editingDept, managerName: e.target.value })}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17]"
-                />
+                <label className="block font-semibold text-[#544B45] mb-1">
+                  Assign Staff (Multi-Select) *
+                </label>
+
+                {/* Selected Staff Tags */}
+                {editStaffIds.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-2 p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl">
+                    {editStaffIds.map((id) => {
+                      const emp = availableEmployees.find((e) => e.id === id);
+                      const name = emp ? (emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || emp.id) : id;
+                      const desig = emp?.designation || emp?.role || 'Staff';
+                      return (
+                        <span
+                          key={id}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-[#EBE3DB] text-[11px] font-semibold text-[#211B17] shadow-sm"
+                        >
+                          <Users className="w-3 h-3 text-amber-600" />
+                          <span>{name}</span>
+                          <span className="text-[10px] text-[#70665F]">({desig})</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditStaffIds((prev) => {
+                                const next = prev.filter((item) => item !== id);
+                                if (next.length === 0 && editErrors.staff) {
+                                  setEditErrors((err) => ({ ...err, staff: 'Please assign at least one staff member to the department.' }));
+                                }
+                                return next;
+                              });
+                              if (editHodId === id) {
+                                setEditHodId('');
+                              }
+                            }}
+                            className="text-rose-500 hover:text-rose-700 ml-0.5 cursor-pointer"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Staff Search Input */}
+                <div className="relative">
+                  <div className="relative">
+                    <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#70665F]" />
+                    <input
+                      type="text"
+                      placeholder="Search staff to add or reassign..."
+                      value={editStaffSearchQuery}
+                      onFocus={() => setIsEditStaffDropdownOpen(true)}
+                      onChange={(e) => {
+                        setEditStaffSearchQuery(e.target.value);
+                        setIsEditStaffDropdownOpen(true);
+                      }}
+                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-3 py-2 text-[#211B17]"
+                    />
+                  </div>
+
+                  {/* Dropdown list */}
+                  {isEditStaffDropdownOpen && (
+                    <div className="mt-1 border border-[#EBE3DB] rounded-xl bg-white shadow-xl max-h-48 overflow-y-auto z-20">
+                      {(() => {
+                        const filtered = availableEmployees.filter((emp) => {
+                          const fullName = (emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`).toLowerCase();
+                          const desig = (emp.designation || emp.role || '').toLowerCase();
+                          const q = editStaffSearchQuery.toLowerCase();
+                          return fullName.includes(q) || desig.includes(q);
+                        });
+
+                        if (filtered.length === 0) {
+                          return (
+                            <div className="p-3 text-center text-[#70665F] text-xs">
+                              No active staff member found.
+                            </div>
+                          );
+                        }
+
+                        return filtered.map((emp) => {
+                          const isSelected = editStaffIds.includes(emp.id);
+                          const name = emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || emp.id;
+                          const desig = emp.designation || emp.role || 'Staff';
+                          const otherDept = emp.department || emp.departmentName;
+
+                          return (
+                            <div
+                              key={emp.id}
+                              onClick={() => {
+                                if (isSelected) {
+                                  setEditStaffIds((prev) => prev.filter((id) => id !== emp.id));
+                                  if (editHodId === emp.id) setEditHodId('');
+                                } else {
+                                  setEditStaffIds((prev) => [...prev, emp.id]);
+                                  setEditErrors((prev) => ({ ...prev, staff: '', hod: '' }));
+                                  if (!editHodId) setEditHodId(emp.id);
+                                }
+                              }}
+                              className={`p-2.5 px-3 flex items-center justify-between border-b last:border-b-0 border-[#EBE3DB] cursor-pointer hover:bg-[#FAF7F2] transition ${
+                                isSelected ? 'bg-amber-50' : ''
+                              }`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  readOnly
+                                  className="rounded text-amber-600 cursor-pointer"
+                                />
+                                <div>
+                                  <div className="font-semibold text-[#211B17]">{name}</div>
+                                  <div className="text-[10px] text-[#70665F]">{desig}</div>
+                                </div>
+                              </div>
+                              {otherDept && (
+                                <span className="text-[10px] px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
+                                  Currently in {otherDept}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  )}
+                </div>
+
+                {editErrors.staff && (
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-semibold">
+                    <AlertCircle className="w-3 h-3" /> {editErrors.staff}
+                  </p>
+                )}
+              </div>
+
+              {/* Department Head (HOD) selection */}
+              <div>
+                <label className="block font-semibold text-[#544B45] mb-1">
+                  Department Head (HOD) *
+                </label>
+                <select
+                  value={editHodId}
+                  onChange={(e) => {
+                    setEditHodId(e.target.value);
+                    if (e.target.value) {
+                      setEditErrors((prev) => ({ ...prev, hod: '' }));
+                    }
+                  }}
+                  className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] ${
+                    editErrors.hod ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                  }`}
+                >
+                  <option value="">-- Select Department Head from Assigned Staff --</option>
+                  {editStaffIds.map((id) => {
+                    const emp = availableEmployees.find((e) => e.id === id);
+                    if (!emp) return null;
+                    const name = emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || emp.id;
+                    const desig = emp.designation || emp.role || 'Staff';
+                    return (
+                      <option key={id} value={id}>
+                        {name} ({desig})
+                      </option>
+                    );
+                  })}
+                </select>
+                {editStaffIds.length === 0 && (
+                  <p className="text-[#70665F] text-[10px] mt-0.5">
+                    Assign staff members above to select a Department Head.
+                  </p>
+                )}
+                {editErrors.hod && (
+                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-semibold">
+                    <AlertCircle className="w-3 h-3" /> {editErrors.hod}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -675,16 +977,27 @@ export default function DepartmentsPage() {
               <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
                 <button
                   type="button"
-                  onClick={() => setEditingDept(null)}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] cursor-pointer"
+                  onClick={() => {
+                    setEditingDept(null);
+                    setEditErrors({});
+                  }}
+                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200 cursor-pointer font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold cursor-pointer"
+                  disabled={isUpdating}
+                  className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-bold cursor-pointer flex items-center gap-2"
                 >
-                  Update Department
+                  {isUpdating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Updating Department...
+                    </>
+                  ) : (
+                    'Update Department'
+                  )}
                 </button>
               </div>
             </form>
@@ -701,7 +1014,7 @@ export default function DepartmentsPage() {
                 <Users className="w-5 h-5 text-crm-brand-600" />
                 Staff Members in {viewStaffDept.departmentName || viewStaffDept.name}
               </h2>
-              <button onClick={() => setViewStaffDept(null)} className="text-[#70665F] hover:text-[#211B17]">
+              <button onClick={() => setViewStaffDept(null)} className="text-[#70665F] hover:text-[#211B17] cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -749,7 +1062,7 @@ export default function DepartmentsPage() {
               <button
                 type="button"
                 onClick={() => setViewStaffDept(null)}
-                className="px-4 py-2 rounded-xl bg-[#FAF7F2] hover:bg-slate-200 text-[#211B17] font-semibold text-xs"
+                className="px-4 py-2 rounded-xl bg-[#FAF7F2] hover:bg-slate-200 text-[#211B17] font-semibold text-xs cursor-pointer"
               >
                 Close
               </button>

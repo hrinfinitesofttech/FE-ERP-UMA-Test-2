@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import { QCInspection, QCResult } from '../../../types/store';
 import { ShieldCheck, Plus, Search, CheckCircle, XCircle, AlertTriangle, FileText } from 'lucide-react';
@@ -54,6 +54,16 @@ export default function QualityInspectionPage() {
   const { qcInspections, approveQCInspection, goodsReceipts } = useERP();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedInspection, setSelectedInspection] = useState<QCInspection | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const grnParam = params.get('grn');
+      if (grnParam) {
+        setSearchTerm(grnParam);
+      }
+    }
+  }, []);
 
   // Approval Modal Form
   const [inspectorName, setInspectorName] = useState('Suresh Patel (Sr. QC Lead)');

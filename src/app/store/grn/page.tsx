@@ -1,9 +1,25 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useERP } from '../../../context/ERPContext';
 import { GoodsReceiptNote, GRNStatus } from '../../../types/store';
-import { PackageCheck, Plus, Search, Truck, FileText, CheckCircle, Clock, ShieldAlert, X } from 'lucide-react';
+import {
+  PackageCheck,
+  Plus,
+  Search,
+  Truck,
+  FileText,
+  CheckCircle,
+  Clock,
+  ShieldAlert,
+  X,
+  ShieldCheck,
+  Eye,
+  Printer,
+  ArrowRight,
+  ClipboardCheck,
+} from 'lucide-react';
 
 const DEFAULT_WAREHOUSES = [
   { id: 'wh-main', warehouseCode: 'WH-MAIN', warehouseName: 'Main Raw Material Warehouse (Bay 1 & 2)', address: 'Makarpura, Vadodara', warehouseType: 'Raw Material' as const, managerName: 'Ramesh Patel', contactPhone: '+91 98250 11223', contactEmail: 'store@umatechnofab.com', status: 'Active' as const },
@@ -13,9 +29,10 @@ const DEFAULT_WAREHOUSES = [
 ];
 
 export default function GoodsReceiptPage() {
-  const { goodsReceipts, addGRN, purchaseOrders, suppliers, warehouses, projectJobs } = useERP();
+  const { goodsReceipts, addGRN, purchaseOrders, suppliers, warehouses, projectJobs, approveQCInspection } = useERP();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedGrnForDetails, setSelectedGrnForDetails] = useState<GoodsReceiptNote | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
 
   const availableWarehouses = warehouses && warehouses.length > 0 ? warehouses : DEFAULT_WAREHOUSES;
@@ -33,13 +50,14 @@ export default function GoodsReceiptPage() {
   // Close modals on ESC key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isModalOpen) {
-        closeModal();
+      if (e.key === 'Escape') {
+        if (isModalOpen) closeModal();
+        if (selectedGrnForDetails) setSelectedGrnForDetails(null);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isModalOpen]);
+  }, [isModalOpen, selectedGrnForDetails]);
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -114,7 +132,7 @@ export default function GoodsReceiptPage() {
     });
 
     closeModal();
-    setSuccessMessage('Goods Receipt Note (GRN) created successfully!');
+    setSuccessMessage('Goods Receipt Note (GRN) created successfully! Pending QC Inspection.');
     setTimeout(() => setSuccessMessage(''), 4000);
   };
 
@@ -134,13 +152,22 @@ export default function GoodsReceiptPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-700 text-white text-xs font-bold shadow-lg shadow-amber-700/30 hover:bg-amber-600 transition"
-        >
-          <Plus className="w-4 h-4" />
-          Create New GRN
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/store/qc-inspection"
+            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white border border-[#EBE3DB] text-[#211B17] hover:bg-[#FAF7F2] text-xs font-bold transition shadow-xs"
+          >
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            QC Inspection Hub
+          </Link>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-700 text-white text-xs font-bold shadow-lg shadow-amber-700/30 hover:bg-amber-600 transition cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            Create New GRN
+          </button>
+        </div>
       </div>
 
       {successMessage && (
@@ -181,12 +208,13 @@ export default function GoodsReceiptPage() {
                 <th className="p-3.5">Vehicle & Transporter</th>
                 <th className="p-3.5 text-right">Inward Value (₹)</th>
                 <th className="p-3.5 text-center">QC Status</th>
+                <th className="p-3.5 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB]">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-[#70665F]">
+                  <td colSpan={9} className="p-8 text-center text-[#70665F]">
                     No Goods Receipt Notes found. Click &quot;Create New GRN&quot; to inward materials.
                   </td>
                 </tr>
@@ -208,6 +236,8 @@ export default function GoodsReceiptPage() {
                       ? g.items.reduce((sum: number, itm: any) => sum + Number(itm.totalAmount || itm.amount || 0), 0)
                       : 638250)
                   ) || 638250;
+
+                  const isPending = g.status === 'Inspection Pending';
 
                   return (
                     <tr key={g.id || grnNo} className="hover:bg-[#FAF7F2]/60 transition">
@@ -234,16 +264,42 @@ export default function GoodsReceiptPage() {
                       </td>
                       <td className="p-3.5 text-center">
                         <span
-                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 ${
                             g.status === 'Accepted'
                               ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                              : g.status === 'Inspection Pending'
-                              ? 'bg-amber-50 text-amber-700 border-amber-300'
+                              : isPending
+                              ? 'bg-amber-50 text-amber-700 border-amber-300 animate-pulse'
                               : 'bg-rose-50 text-rose-700 border-rose-300'
                           }`}
                         >
+                          {isPending ? <Clock className="w-3 h-3 text-amber-600" /> : <CheckCircle className="w-3 h-3 text-emerald-600" />}
                           {g.status || 'Accepted'}
                         </span>
+                      </td>
+                      <td className="p-3.5 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          {isPending ? (
+                            <Link
+                              href={`/store/qc-inspection?grn=${grnNo}`}
+                              className="px-2.5 py-1 bg-amber-700 hover:bg-amber-800 text-white rounded-lg text-[11px] font-bold shadow-xs flex items-center gap-1 transition"
+                              title="Perform Quality Control Inspection"
+                            >
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                              <span>Perform QC</span>
+                            </Link>
+                          ) : (
+                            <span className="px-2 py-0.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md">
+                              Verified
+                            </span>
+                          )}
+                          <button
+                            onClick={() => setSelectedGrnForDetails(g)}
+                            className="p-1.5 text-[#544B45] hover:text-[#211B17] hover:bg-[#FAF7F2] rounded-lg transition cursor-pointer"
+                            title="View Inward GRN Details"
+                          >
+                            <Eye className="w-4 h-4 text-slate-600" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -253,6 +309,141 @@ export default function GoodsReceiptPage() {
           </table>
         </div>
       </div>
+
+      {/* VIEW GRN DETAILS MODAL */}
+      {selectedGrnForDetails && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150"
+          onClick={() => setSelectedGrnForDetails(null)}
+        >
+          <div
+            className="bg-white border border-[#EBE3DB] rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+              <div className="flex items-center gap-2">
+                <PackageCheck className="w-5 h-5 text-amber-700" />
+                <h2 className="text-base font-bold text-[#211B17]">
+                  GRN Details: <span className="font-mono text-amber-800">{selectedGrnForDetails.grnNumber || selectedGrnForDetails.id}</span>
+                </h2>
+              </div>
+              <button
+                onClick={() => setSelectedGrnForDetails(null)}
+                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+              <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
+                <span className="text-[#70665F] block text-[10px] uppercase font-bold">Supplier</span>
+                <span className="font-bold text-[#211B17] text-sm mt-0.5 block">{selectedGrnForDetails.supplierName}</span>
+              </div>
+              <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
+                <span className="text-[#70665F] block text-[10px] uppercase font-bold">PO / Job Reference</span>
+                <span className="font-mono font-bold text-amber-800 text-sm mt-0.5 block">{selectedGrnForDetails.poNumber || 'PO-2026-0042'}</span>
+                <span className="text-[10px] text-amber-600 block">{selectedGrnForDetails.jobId || 'General Stock'}</span>
+              </div>
+              <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
+                <span className="text-[#70665F] block text-[10px] uppercase font-bold">QC Status</span>
+                <span className={`inline-block px-2 py-0.5 rounded-md text-xs font-bold mt-1 ${
+                  selectedGrnForDetails.status === 'Accepted'
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : 'bg-amber-100 text-amber-800'
+                }`}>
+                  {selectedGrnForDetails.status}
+                </span>
+              </div>
+              <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
+                <span className="text-[#70665F] block text-[10px] uppercase font-bold">Delivery Challan & Inv</span>
+                <span className="font-mono font-semibold text-[#211B17] text-xs mt-0.5 block">DC: {selectedGrnForDetails.deliveryChallanNumber || '-'}</span>
+                <span className="text-[10px] text-[#70665F] block">Inv: {selectedGrnForDetails.invoiceNumber || '-'}</span>
+              </div>
+              <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
+                <span className="text-[#70665F] block text-[10px] uppercase font-bold">Store & Warehouse</span>
+                <span className="font-semibold text-[#211B17] text-xs mt-0.5 block">{selectedGrnForDetails.warehouseName || 'wh-main'}</span>
+              </div>
+              <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
+                <span className="text-[#70665F] block text-[10px] uppercase font-bold">Vehicle & Transporter</span>
+                <span className="font-mono font-semibold text-[#211B17] text-xs mt-0.5 block">{selectedGrnForDetails.vehicleNumber || 'GJ-06-AX-4821'}</span>
+                <span className="text-[10px] text-[#70665F] block">{selectedGrnForDetails.transporterName || 'Transporter'}</span>
+              </div>
+            </div>
+
+            {/* Item Breakdown */}
+            <div className="border border-[#EBE3DB] rounded-xl overflow-hidden text-xs">
+              <div className="p-2.5 bg-[#FAF7F2] border-b border-[#EBE3DB] font-bold text-[#211B17]">
+                Inward Materials Breakdown
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-[#FAF7F2]/50 text-[10px] font-mono text-[#70665F] uppercase border-b border-[#EBE3DB]">
+                    <tr>
+                      <th className="p-2.5">Item Code & Name</th>
+                      <th className="p-2.5 text-right">PO Qty</th>
+                      <th className="p-2.5 text-right">Received Qty</th>
+                      <th className="p-2.5 text-right">Accepted Qty</th>
+                      <th className="p-2.5 text-right">Unit Rate (₹)</th>
+                      <th className="p-2.5 text-right">Total (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#EBE3DB]">
+                    {((selectedGrnForDetails.items && selectedGrnForDetails.items.length > 0) ? selectedGrnForDetails.items : [
+                      {
+                        itemCode: 'RM-SS-316L',
+                        itemName: 'Stainless Steel Plate 316L (8mm Thk)',
+                        poQuantity: 3500,
+                        receivedQuantity: 3500,
+                        acceptedQuantity: selectedGrnForDetails.status === 'Accepted' ? 3500 : 0,
+                        uom: 'Kg',
+                        unitPrice: 528.57,
+                        totalAmount: selectedGrnForDetails.totalReceivedValue || 1850000,
+                      }
+                    ]).map((itm: any, idx: number) => (
+                      <tr key={idx} className="hover:bg-[#FAF7F2]/40">
+                        <td className="p-2.5">
+                          <div className="font-bold text-[#211B17]">{itm.itemName || itm.description || 'Material Item'}</div>
+                          <div className="text-[10px] font-mono text-amber-700">{itm.itemCode || 'RAW-MAT'}</div>
+                        </td>
+                        <td className="p-2.5 text-right font-mono font-semibold">{itm.poQuantity || 1} {itm.uom || 'Nos'}</td>
+                        <td className="p-2.5 text-right font-mono font-bold text-amber-800">{itm.receivedQuantity || 1} {itm.uom || 'Nos'}</td>
+                        <td className="p-2.5 text-right font-mono font-semibold text-emerald-700">{itm.acceptedQuantity ?? (selectedGrnForDetails.status === 'Accepted' ? itm.receivedQuantity : 0)}</td>
+                        <td className="p-2.5 text-right font-mono">₹{Number(itm.unitPrice || 0).toLocaleString('en-IN')}</td>
+                        <td className="p-2.5 text-right font-mono font-bold text-[#211B17]">₹{Number(itm.totalAmount || (itm.receivedQuantity * itm.unitPrice) || 0).toLocaleString('en-IN')}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-[#EBE3DB]">
+              <div className="text-[11px] text-[#70665F]">
+                Received By: <span className="font-semibold text-[#211B17]">{selectedGrnForDetails.receivedBy || 'Store Officer'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {selectedGrnForDetails.status === 'Inspection Pending' && (
+                  <Link
+                    href={`/store/qc-inspection?grn=${selectedGrnForDetails.grnNumber || selectedGrnForDetails.id}`}
+                    className="px-4 py-2 rounded-xl bg-amber-700 hover:bg-amber-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-amber-700/20 transition"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    Perform QC Inspection
+                  </Link>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setSelectedGrnForDetails(null)}
+                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200 text-xs font-semibold cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add Modal */}
       {isModalOpen && (

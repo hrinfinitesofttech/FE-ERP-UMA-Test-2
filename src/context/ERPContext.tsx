@@ -440,7 +440,7 @@ interface ERPContextType {
 
   // Master Entities
   departments: Department[];
-  addDepartment: (dept: Omit<Department, 'id' | 'employeeCount'>) => void;
+  addDepartment: (dept: Omit<Department, 'id' | 'employeeCount'> & { employeeCount?: number }) => void;
   updateDepartment: (id: string, dept: Partial<Department>) => void;
   deleteDepartment: (id: string) => void;
 
@@ -951,7 +951,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   // Master state initialized with deep relational seed
   const [company, setCompany] = useState<CompanySetting>(INITIAL_COMPANY);
   const [numbering, setNumbering] = useState<NumberingSetting[]>(INITIAL_NUMBERING);
-  const [departments, setDepartments] = useState<Department[]>(INITIAL_DEPARTMENTS);
+  const [departments, setDepartments] = useState<Department[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_departments');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_DEPARTMENTS;
+  });
   const [roles, setRoles] = useState<Role[]>(INITIAL_ROLES);
 
   // Module 10 Integration States
@@ -1235,8 +1246,30 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
     return MOCK_PURCHASE_REQUISITIONS;
   });
-  const [rfqs, setRfqs] = useState<RequestForQuotation[]>(MOCK_RFQS);
-  const [supplierQuotations, setSupplierQuotations] = useState<SupplierQuotation[]>(MOCK_SUPPLIER_QUOTATIONS);
+  const [rfqs, setRfqs] = useState<RequestForQuotation[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_rfqs');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return MOCK_RFQS;
+  });
+  const [supplierQuotations, setSupplierQuotations] = useState<SupplierQuotation[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_supplierQuotations');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return MOCK_SUPPLIER_QUOTATIONS;
+  });
   const [quotationComparisons, setQuotationComparisons] = useState<QuotationComparison[]>(MOCK_QUOTATION_COMPARISONS);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(MOCK_PURCHASE_ORDERS);
   const [poRevisions, setPoRevisions] = useState<PORevision[]>(MOCK_PO_REVISIONS);
@@ -1738,8 +1771,41 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             try { localStorage.setItem('UMA_ERP_exhibitions', JSON.stringify(normalizedExhibitions)); } catch (_) {}
           }
         }
-        applyLive<Employee>(val(results[11]), setEmployees, 'employees');
-        applyLive<Department>(val(results[12]), setDepartments, 'departments');
+        const rawDepts = val<any[]>(results[12]);
+        if (rawDepts && Array.isArray(rawDepts) && rawDepts.length > 0) {
+          setDepartments((prev) => {
+            const map = new Map<string, Department>();
+            // Keep local state first
+            (prev || []).forEach((d) => {
+              if (d && d.id) map.set(d.id, d);
+            });
+            // Merge/update from backend
+            rawDepts.forEach((d: any) => {
+              const name = d.name || d.departmentName || d.department_name || '';
+              const code = d.code || '';
+              const id = String(d.id || `dept-${code.toLowerCase() || name.toLowerCase()}`);
+              const existing = map.get(id);
+              map.set(id, {
+                ...existing,
+                ...d,
+                id,
+                name: name || existing?.name || '',
+                departmentName: name || existing?.departmentName || '',
+                code: code || existing?.code || '',
+                managerId: d.managerId || d.manager_id || existing?.managerId || '',
+                managerName: d.managerName || d.manager_name || existing?.managerName || '',
+                description: d.description || existing?.description || 'Core Operational Department',
+                status: d.status || existing?.status || 'active',
+                employeeCount: Number(d.employeeCount ?? d.employee_count ?? existing?.employeeCount ?? 0),
+              });
+            });
+            const merged = Array.from(map.values());
+            if (typeof window !== 'undefined') {
+              try { localStorage.setItem('UMA_ERP_departments', JSON.stringify(merged)); } catch (_) {}
+            }
+            return merged;
+          });
+        }
         applyLive<Role>(val(results[13]), setRoles, 'roles');
         applyLive<ProjectJobMaster>(val(results[14]), setProjectJobs, 'projectJobs');
         applyLive<ProjectTask>(val(results[15]), setProjectTasks, 'projectTasks');
@@ -2642,27 +2708,46 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Department CRUD
-  const addDepartment = (dept: Omit<Department, 'id' | 'employeeCount'>) => {
+  const addDepartment = (dept: Omit<Department, 'id' | 'employeeCount'> & { employeeCount?: number }) => {
+    const rawId = dept.code ? `dept-${dept.code.toLowerCase()}` : `dept-${Date.now().toString().slice(-4)}`;
     const newDept: Department = {
       ...dept,
-      id: `dept-${dept.code?.toLowerCase()}`,
-      employeeCount: 0,
+      id: rawId,
+      employeeCount: dept.employeeCount || 0,
     };
-    setDepartments((prev) => [...prev, newDept]);
+    setDepartments((prev) => {
+      const updated = [...prev.filter((d) => d.id !== newDept.id), newDept];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_departments', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Department Management', 'Add Department', newDept.id, `Created department ${newDept.name}`);
-    api.departments.create(newDept).catch((err) => console.warn('Failed to add department:', err));
+    api.departments.create(newDept).catch((err) => console.warn('Failed to add department on backend:', err));
   };
 
   const updateDepartment = (id: string, dept: Partial<Department>) => {
-    setDepartments((prev) => prev.map((d) => (d.id === id ? { ...d, ...dept } : d)));
+    setDepartments((prev) => {
+      const updated = prev.map((d) => (d.id === id ? { ...d, ...dept } : d));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_departments', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'Department Management', 'Edit Department', id, `Updated department info`);
-    api.departments.update(id, dept).catch((err) => console.warn('Failed to update department:', err));
+    api.departments.update(id, dept).catch((err) => console.warn('Failed to update department on backend:', err));
   };
 
   const deleteDepartment = (id: string) => {
-    setDepartments((prev) => prev.filter((d) => d.id !== id));
+    setDepartments((prev) => {
+      const updated = prev.filter((d) => d.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_departments', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('DELETE', 'Department Management', 'Delete Department', id, `Deleted department ${id}`);
-    api.departments.delete(id).catch((err) => console.warn('Failed to delete department:', err));
+    api.departments.delete(id).catch((err) => console.warn('Failed to delete department on backend:', err));
   };
 
   // Role CRUD
@@ -4546,14 +4631,20 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addRFQ = (data: Omit<RequestForQuotation, 'id' | 'rfqDate'>) => {
-    const rfqNumber = `RFQ-${new Date().getFullYear()}-${String(rfqs.length + 1).padStart(3, '0')}`;
+    const rfqNumber = data.rfqNumber || `RFQ-${new Date().getFullYear()}-${String(rfqs.length + 1).padStart(3, '0')}`;
     const newRfq: RequestForQuotation = {
       ...data,
-      id: rfqNumber,
+      id: (data as any).id || rfqNumber,
       rfqNumber,
-      rfqDate: new Date().toISOString().split('T')[0],
+      rfqDate: data.dueDate || new Date().toISOString().split('T')[0],
     };
-    setRfqs((prev) => [newRfq, ...prev]);
+    setRfqs((prev) => {
+      const updated = [newRfq, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_rfqs', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Purchase', 'RFQ', newRfq.id, `Generated RFQ ${newRfq.rfqNumber} to suppliers`);
     api.post('/rfqs/', newRfq).catch((err) => console.warn('Failed to add RFQ:', err));
   };
@@ -4561,7 +4652,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addSupplierQuotation = (data: Omit<SupplierQuotation, 'id'>) => {
     const id = `SQ-${Date.now().toString().slice(-5)}`;
     const newSq: SupplierQuotation = { ...data, id };
-    setSupplierQuotations((prev) => [newSq, ...prev]);
+    setSupplierQuotations((prev) => {
+      const updated = [newSq, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_supplierQuotations', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Purchase', 'Supplier Quotations', id, `Recorded Quotation ${data.supplierQuotationNumber} from ${data.supplierName}`);
     api.post('/supplier-quotations/', newSq).catch((err) => console.warn('Failed to add supplier quotation:', err));
   };

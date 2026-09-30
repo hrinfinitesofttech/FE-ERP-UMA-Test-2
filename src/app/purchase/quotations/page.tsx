@@ -321,13 +321,19 @@ export default function SupplierQuotationsPage() {
                 <div>
                   <label className="block text-[#70665F] mb-1">Select RFQ</label>
                   <select
-                    value={newRfqId}
+                    value={newRfqId || rfqs[0]?.id || ''}
                     onChange={(e) => setNewRfqId(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
                   >
-                    {rfqs.map(r => (
-                      <option key={r.id} value={r.id}>{r.rfqNumber} ({r.jobId})</option>
-                    ))}
+                    {rfqs.length === 0 ? (
+                      <option value="">No RFQs Available</option>
+                    ) : (
+                      rfqs.map(r => (
+                        <option key={r.id} value={r.id}>
+                          {r.rfqNumber || r.id} {r.jobId ? `(${r.jobId})` : ''} - {r.status || 'Active'}
+                        </option>
+                      ))
+                    )}
                   </select>
                 </div>
                 <div>

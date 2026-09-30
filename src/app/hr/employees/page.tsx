@@ -94,8 +94,41 @@ function EmployeeMasterContent() {
   const [attYear, setAttYear] = useState('2026');
   const [attPage, setAttPage] = useState(1);
 
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const nameRegex = /^[a-zA-Z\s]+$/;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+  const getDeptDesignations = (deptIdOrName: string): string[] => {
+    const dept = departments.find(d => d.id === deptIdOrName || (d.departmentName || d.name || '').toLowerCase() === deptIdOrName?.toLowerCase());
+    const deptName = dept?.departmentName || dept?.name || deptIdOrName;
+    const list = designations.filter(d =>
+      d.department?.toLowerCase() === deptName?.toLowerCase() ||
+      (dept && d.department?.toLowerCase() === dept.name?.toLowerCase()) ||
+      (dept && d.department?.toLowerCase() === dept.code?.toLowerCase())
+    );
+    if (list.length > 0) return Array.from(new Set(list.map(d => d.designationName)));
+
+    const fallbackMap: Record<string, string[]> = {
+      'Production': ['Production Manager', 'Shop Floor Supervisor', 'Senior CNC Operator', 'Fabricator & Welder', 'Assembly Technician'],
+      'Accounting': ['Chief Accountant', 'Senior Financial Analyst', 'Accounts Executive', 'Billing & GST Officer', 'Auditor'],
+      'Finance': ['Chief Accountant', 'Senior Financial Analyst', 'Accounts Executive', 'Billing & GST Officer'],
+      'HR': ['HR Manager', 'Talent Acquisition Executive', 'Payroll Specialist', 'HR Operations Officer'],
+      'Payroll': ['HR Manager', 'Payroll Specialist', 'HR Operations Officer'],
+      'Design': ['Lead Design Engineer', 'SolidWorks CAD Modeler', 'BOM & Drafting Engineer', 'R&D Specialist'],
+      'Engineering': ['Lead Design Engineer', 'SolidWorks CAD Modeler', 'BOM & Drafting Engineer'],
+      'Store': ['Warehouse Manager', 'Inventory Controller', 'Store Supervisor', 'Material Handler'],
+      'Warehouse': ['Warehouse Manager', 'Inventory Controller', 'Store Supervisor'],
+      'Purchase': ['Purchase Manager', 'Procurement Executive', 'Vendor Coordinator', 'Sourcing Lead'],
+      'Maintenance': ['Maintenance Head', 'Plant Electrician', 'Mechanical Fitter', 'Field Service Engineer'],
+      'Quality': ['Quality Assurance Manager', 'QC Inspector', 'NDT Testing Specialist'],
+      'CRM': ['Sales Manager', 'Business Development Executive', 'Client Relationship Officer'],
+      'Sales': ['Sales Manager', 'Business Development Executive', 'Client Relationship Officer'],
+    };
+
+    for (const [k, v] of Object.entries(fallbackMap)) {
+      if (deptName?.toLowerCase().includes(k.toLowerCase())) return v;
+    }
+    return ['Department Executive', 'Senior Associate', 'Staff Specialist', 'Officer'];
+  };
 
   const validateAddEmployee = () => {
     const errs: Record<string, string> = {};
@@ -121,10 +154,34 @@ function EmployeeMasterContent() {
       errs.lastName = 'Last name cannot exceed 50 characters.';
     }
 
+    // Date of Birth validations (Exact requirement messages)
     if (!addForm.dob) {
-      errs.dob = 'Date of birth is required.';
-    } else if (addForm.dob > maxDob) {
-      errs.dob = 'Employee must be at least 18 years old.';
+      errs.dob = 'Please select the date of birth.';
+    } else {
+      const dobTime = new Date(addForm.dob).getTime();
+      if (isNaN(dobTime)) {
+        errs.dob = 'Please enter a valid date of birth.';
+      } else {
+        const dobDate = new Date(addForm.dob);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (dobDate > today) {
+          errs.dob = 'The date of birth cannot be a future date.';
+        } else {
+          let age = today.getFullYear() - dobDate.getFullYear();
+          const m = today.getMonth() - dobDate.getMonth();
+          if (m < 0 || (m === 0 && today.getDate() < dobDate.getDate())) {
+            age--;
+          }
+
+          if (age < 18) {
+            errs.dob = 'The employee must be at least 18 years old to be hired.';
+          } else if (age > 60) {
+            errs.dob = 'The employee cannot be older than 60 years at the time of hiring.';
+          }
+        }
+      }
     }
 
     // Country code & Mobile validation
@@ -157,8 +214,24 @@ function EmployeeMasterContent() {
       errs.email = 'Enter a valid email with a domain (e.g. employee@uma.com).';
     }
 
-    if (!addForm.departmentId) errs.departmentId = 'Department is required.';
-    if (!addForm.designation.trim()) errs.designation = 'Designation is required.';
+    // Department & Designation / Vacancy validation
+    if (!addForm.departmentId) {
+      errs.departmentId = 'Please select a department before choosing a designation.';
+    }
+
+    const deptDesignationList = addForm.departmentId ? getDeptDesignations(addForm.departmentId) : [];
+
+    if (!addForm.designation.trim()) {
+      if (!addForm.departmentId) {
+        errs.designation = 'Please select a department before choosing a designation.';
+      } else if (deptDesignationList.length === 0) {
+        errs.designation = 'There are no open vacancies in the selected department.';
+      } else {
+        errs.designation = 'Please select a designation from the list.';
+      }
+    } else if (deptDesignationList.length > 0 && !deptDesignationList.includes(addForm.designation.trim())) {
+      errs.designation = 'The selected designation is not valid. Please choose an open vacancy from the list.';
+    }
 
     // Residential Address validation
     const addressTrim = addForm.address.trim();
@@ -514,19 +587,21 @@ function EmployeeMasterContent() {
       </div>
 
       {/* Detailed Employee Profile Modal (All 11 Tabs with Rich Employee-Specific Details) */}
-      {selectedEmployee && (
+      {selectedEmployee && (() => {
+        const freshEmp = availableEmployees.find(e => e.id === selectedEmployee.id) || selectedEmployee;
+        return (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
             {/* Modal Header */}
             <div className="p-6 bg-white/90 border-b border-[#EBE3DB] flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-full bg-pink-600/30 border-2 border-pink-500 flex items-center justify-center text-xl font-black text-pink-500">
-                  {getEmpName(selectedEmployee).charAt(0)}
+                  {getEmpName(freshEmp).charAt(0)}
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-[#211B17]">{getEmpName(selectedEmployee)}</h2>
+                  <h2 className="text-xl font-bold text-[#211B17]">{getEmpName(freshEmp)}</h2>
                   <p className="text-xs text-[#70665F]">
-                    Employee ID: <span className="font-mono font-bold text-[#211B17]">{selectedEmployee.id}</span> | Department: <span className="text-pink-600 font-semibold">{getEmpDept(selectedEmployee)}</span> | Role: <span className="font-medium text-[#211B17]">{selectedEmployee.role || selectedEmployee.designation || 'Staff'}</span>
+                    Employee ID: <span className="font-mono font-bold text-[#211B17]">{freshEmp.id}</span> | Department: <span className="text-pink-600 font-semibold">{getEmpDept(freshEmp)}</span> | Role: <span className="font-medium text-[#211B17]">{freshEmp.role || freshEmp.roleName || freshEmp.designation || 'Staff'}</span>
                   </p>
                 </div>
               </div>
@@ -694,9 +769,11 @@ function EmployeeMasterContent() {
                   };
                 });
 
-                const totalPresent = allMonthRecords.filter(r => r.status === 'Present' || r.status === 'Half Day').length;
+                const halfDayCount = allMonthRecords.filter(r => r.status === 'Half Day').length;
+                const fullPresentCount = allMonthRecords.filter(r => r.status === 'Present').length;
+                const totalPresent = fullPresentCount + (halfDayCount * 0.5);
                 const totalAbsent = allMonthRecords.filter(r => r.status === 'Absent').length;
-                const totalLeave = allMonthRecords.filter(r => r.status === 'Leave').length;
+                const totalLeave = allMonthRecords.filter(r => r.status === 'Leave').length + (halfDayCount * 0.5);
                 const totalLate = allMonthRecords.filter(r => r.isLate).length;
 
                 const pageSize = 8;
@@ -717,7 +794,7 @@ function EmployeeMasterContent() {
                       </div>
                       <div className="p-3 bg-blue-50/80 rounded-xl border border-blue-200">
                         <div className="text-[#70665F] font-medium">Leave Days</div>
-                        <div className="text-xl font-bold text-blue-700 mt-1">{totalLeave} Day</div>
+                        <div className="text-xl font-bold text-blue-700 mt-1">{totalLeave} Days</div>
                       </div>
                       <div className="p-3 bg-amber-50/80 rounded-xl border border-amber-200">
                         <div className="text-[#70665F] font-medium">Late Marks</div>
@@ -849,8 +926,8 @@ function EmployeeMasterContent() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
                     <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
                       <div className="text-[#70665F]">Casual Leave (CL)</div>
-                      <div className="text-xl font-bold text-[#211B17] mt-1">4 / 12 Days</div>
-                      <div className="text-[11px] text-emerald-600 mt-1">8 Days Available</div>
+                      <div className="text-xl font-bold text-[#211B17] mt-1">4.5 / 12 Days</div>
+                      <div className="text-[11px] text-emerald-600 mt-1">7.5 Days Available (0.5 Half-Day applied)</div>
                     </div>
                     <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
                       <div className="text-[#70665F]">Sick Leave (SL)</div>
@@ -865,8 +942,11 @@ function EmployeeMasterContent() {
                   </div>
 
                   <div className="bg-white rounded-xl border border-[#EBE3DB] overflow-hidden">
-                    <div className="p-3 bg-[#FAF7F2] border-b border-[#EBE3DB] font-bold text-xs text-[#211B17]">
-                      Recent Leave Applications
+                    <div className="p-3 bg-[#FAF7F2] border-b border-[#EBE3DB] font-bold text-xs text-[#211B17] flex items-center justify-between">
+                      <span>Recent Leave Applications</span>
+                      <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        Half-Day leaves counted as 0.5 Day
+                      </span>
                     </div>
                     <table className="w-full text-left text-xs">
                       <thead className="bg-[#FAF7F2]/50 text-[#70665F] border-b border-[#EBE3DB]">
@@ -879,6 +959,13 @@ function EmployeeMasterContent() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#EBE3DB]">
+                        <tr>
+                          <td className="p-3 font-semibold">Casual Leave (Half-Day)</td>
+                          <td className="p-3 font-mono">2026-09-08 (First Half)</td>
+                          <td className="p-3 font-bold text-orange-600">0.5 Day</td>
+                          <td className="p-3 text-[#70665F]">Personal Emergency / Morning Shift Leave</td>
+                          <td className="p-3"><span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">Approved by HOD</span></td>
+                        </tr>
                         <tr>
                           <td className="p-3 font-semibold">Casual Leave</td>
                           <td className="p-3 font-mono">2026-08-18 to 2026-08-19</td>
@@ -1138,7 +1225,8 @@ function EmployeeMasterContent() {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* Add Employee Profile Modal */}
       {showAddModal && (
@@ -1366,22 +1454,29 @@ function EmployeeMasterContent() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-[#544B45] mb-1">Designation *</label>
-                    <input
-                      type="text"
+                    <select
                       required
                       value={addForm.designation}
                       onChange={(e) => {
                         setAddForm((f) => ({ ...f, designation: e.target.value, roleName: e.target.value }));
                         if (addErrors.designation) setAddErrors(prev => ({ ...prev, designation: '' }));
                       }}
-                      placeholder="e.g. Senior Welder"
                       className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm ${
                         addErrors.designation ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
                       }`}
-                    />
+                    >
+                      <option value="">
+                        {!addForm.departmentId ? '-- Please select department first --' : '-- Select Open Designation Vacancy --'}
+                      </option>
+                      {addForm.departmentId && getDeptDesignations(addForm.departmentId).map((desg) => (
+                        <option key={desg} value={desg}>
+                          {desg}
+                        </option>
+                      ))}
+                    </select>
                     {addErrors.designation && (
                       <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
-                        <AlertCircle className="w-3 h-3" /> {addErrors.designation}
+                        <AlertCircle className="w-3 h-3 flex-shrink-0" /> {addErrors.designation}
                       </p>
                     )}
                   </div>
