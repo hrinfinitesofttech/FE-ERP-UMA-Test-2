@@ -602,6 +602,7 @@ interface ERPContextType {
   addRFQ: (rfq: Omit<RequestForQuotation, 'id' | 'rfqDate'>) => void;
   supplierQuotations: SupplierQuotation[];
   addSupplierQuotation: (sq: Omit<SupplierQuotation, 'id'>) => void;
+  approveSupplierQuotation: (id: string, approvedBy: string) => void;
   quotationComparisons: QuotationComparison[];
   addQuotationComparison: (comp: Omit<QuotationComparison, 'id' | 'comparisonDate'>) => void;
   approveQuotationComparison: (id: string, approvedBy: string) => void;
@@ -707,6 +708,7 @@ interface ERPContextType {
   salesInvoices: SalesInvoice[];
   addSalesInvoice: (inv: Omit<SalesInvoice, 'id' | 'invoiceNumber' | 'createdAt'>) => void;
   approveSalesInvoice: (id: string) => void;
+  updateSalesInvoicePayment: (id: string, paymentData: { paymentStatus: 'Paid' | 'Partially Paid' | 'Unpaid'; paidAmount?: number; paymentMode?: string; referenceNumber?: string; paymentDate?: string }) => void;
   purchaseInvoices: PurchaseInvoice[];
   addPurchaseInvoice: (inv: Omit<PurchaseInvoice, 'id' | 'invoiceNumber' | 'createdAt'>) => void;
   postPurchaseInvoice: (id: string) => void;
@@ -1504,7 +1506,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     return INITIAL_PRODUCTION_PLANS;
   });
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>(INITIAL_WORK_ORDERS);
-  const [productionOrders, setProductionOrders] = useState<ProductionOrder[]>(INITIAL_PRODUCTION_ORDERS);
+  const [productionOrders, setProductionOrders] = useState<ProductionOrder[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_productionOrders');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_PRODUCTION_ORDERS;
+  });
   const [routingOperations, setRoutingOperations] = useState<RoutingOperation[]>(INITIAL_ROUTING_OPERATIONS);
   const [workCenters, setWorkCenters] = useState<WorkCenter[]>(INITIAL_WORK_CENTERS);
   const [productionSchedules, setProductionSchedules] = useState<ProductionScheduleItem[]>(INITIAL_PRODUCTION_SCHEDULES);
@@ -1811,6 +1824,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           api.purchase.rfqs.list(),
           api.purchase.supplierQuotations.list(),
           api.purchase.quotationComparisons.list(),
+          api.production.orders.list(),
         ]);
 
         if (!isMounted) return;
@@ -2711,6 +2725,34 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           setSupplierQuotations(normalizedSQs);
           if (typeof window !== 'undefined') {
             try { localStorage.setItem('UMA_ERP_supplierQuotations', JSON.stringify(normalizedSQs)); } catch (_) {}
+          }
+        }
+
+        const rawProdOrders = val<any[]>(results[81]);
+        if (rawProdOrders && Array.isArray(rawProdOrders) && rawProdOrders.length > 0) {
+          const normalizedPO: ProductionOrder[] = rawProdOrders.map((p: any) => ({
+            ...p,
+            id: String(p.id || p.productionOrderNumber || p.production_order_number),
+            productionOrderNumber: p.productionOrderNumber || p.production_order_number || p.id,
+            workOrderId: p.workOrderId || p.work_order_id || '',
+            workOrderNumber: p.workOrderNumber || p.work_order_number || '',
+            jobId: p.jobId || p.job_id || '',
+            jobNumber: p.jobNumber || p.job_number || '',
+            productName: p.productName || p.product_name || 'Manufactured Assembly',
+            quantity: Number(p.quantity || 1),
+            bomRevision: p.bomRevision || p.bom_revision || 'REV-01',
+            designRevision: p.designRevision || p.design_revision || 'REV-01',
+            plannedStartDate: p.plannedStartDate || p.planned_start_date || '',
+            plannedEndDate: p.plannedEndDate || p.planned_end_date || '',
+            actualStartDate: p.actualStartDate || p.actual_start_date || '',
+            actualEndDate: p.actualEndDate || p.actual_end_date || '',
+            productionManager: p.productionManager || p.production_manager || 'Bhavin Shah',
+            status: p.status || 'In Progress',
+            createdAt: p.createdAt || p.created_at || new Date().toISOString(),
+          }));
+          setProductionOrders(normalizedPO);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_productionOrders', JSON.stringify(normalizedPO)); } catch (_) {}
           }
         }
       } catch (err) {
@@ -5256,6 +5298,22 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }).catch((err) => console.warn('Failed to add supplier quotation to backend:', err));
   };
 
+  const approveSupplierQuotation = (id: string, approvedBy: string) => {
+    setSupplierQuotations((prev) => {
+      const updated = prev.map((q) =>
+        q.id === id || q.quotationNumber === id || (q as any).quotation_number === id
+          ? { ...q, status: 'Approved' }
+          : q
+      );
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_supplierQuotations', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('APPROVE', 'Purchase', 'Supplier Quotations', id, `Approved Supplier Quotation ${id} by ${approvedBy}`);
+    api.purchase.supplierQuotations.update(id, { status: 'Approved', approvedBy }).catch((err: any) => console.warn('Failed to approve supplier quotation on backend:', err));
+  };
+
   const addQuotationComparison = (data: Omit<QuotationComparison, 'id' | 'comparisonDate'>) => {
     const id = `COMP-${Date.now().toString().slice(-5)}`;
     const newComp: QuotationComparison = {
@@ -6092,6 +6150,41 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     logAction('APPROVE', 'Accounting', 'Sales Invoices', id, `Approved Sales Invoice ${id}`);
     api.accounting.salesInvoices.approve(id).catch((err) => {
       console.warn('Backend approve sales invoice failed:', err);
+    });
+  };
+
+  const updateSalesInvoicePayment = (
+    id: string,
+    paymentData: { paymentStatus: 'Paid' | 'Partially Paid' | 'Unpaid'; paidAmount?: number; paymentMode?: string; referenceNumber?: string; paymentDate?: string }
+  ) => {
+    setSalesInvoices((prev) => {
+      const updated = prev.map((inv) =>
+        inv.id === id ||
+        inv.invoiceNumber === id ||
+        (inv as any).invoice_number === id ||
+        String(inv.id).toLowerCase() === String(id).toLowerCase() ||
+        String(inv.invoiceNumber).toLowerCase() === String(id).toLowerCase()
+          ? {
+              ...inv,
+              paymentStatus: paymentData.paymentStatus,
+              paidAmount: paymentData.paidAmount !== undefined ? paymentData.paidAmount : (paymentData.paymentStatus === 'Paid' ? inv.grandTotal : inv.paidAmount || 0),
+              dueAmount: paymentData.paymentStatus === 'Paid' ? 0 : (inv.grandTotal - (paymentData.paidAmount !== undefined ? paymentData.paidAmount : inv.paidAmount || 0)),
+              paymentMode: paymentData.paymentMode || (inv as any).paymentMode,
+              paymentReference: paymentData.referenceNumber || (inv as any).paymentReference,
+              paymentDate: paymentData.paymentDate || new Date().toISOString().split('T')[0],
+            }
+          : inv
+      );
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('UMA_ERP_salesInvoices', JSON.stringify(updated));
+        } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('UPDATE', 'Accounting', 'Sales Invoices', id, `Updated payment status to ${paymentData.paymentStatus} for Sales Invoice ${id}`);
+    api.accounting.salesInvoices.update(id, paymentData).catch((err) => {
+      console.warn('Backend update sales invoice payment failed:', err);
     });
   };
 
@@ -7911,6 +8004,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         addRFQ,
         supplierQuotations,
         addSupplierQuotation,
+        approveSupplierQuotation,
         quotationComparisons,
         addQuotationComparison,
         approveQuotationComparison,
@@ -8012,6 +8106,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         salesInvoices,
         addSalesInvoice,
         approveSalesInvoice,
+        updateSalesInvoicePayment,
         purchaseInvoices,
         addPurchaseInvoice,
         postPurchaseInvoice,

@@ -552,6 +552,13 @@ export const api = {
       update: (id: string, data: any) => request<any>(`/work-orders/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       release: (id: string, data?: any) => request<any>(`/work-orders/${id}/release/`, { method: 'POST', body: data ? JSON.stringify(data) : undefined }),
     },
+    orders: {
+      list: () => request<any[]>('/production-orders/'),
+      get: (id: string) => request<any>(`/production-orders/${id}/`),
+      create: (data: any) => request<any>('/production-orders/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/production-orders/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/production-orders/${id}/`, { method: 'DELETE' }),
+    },
     entries: () => request<any[]>('/production-entries/'),
     wip: () => request<any[]>('/wip-records/'),
     finishedGoods: {
