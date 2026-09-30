@@ -1814,7 +1814,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
 
         function applyLive<T>(res: T[] | null, setter: React.Dispatch<React.SetStateAction<T[]>>, cacheKey?: string) {
-          if (res && Array.isArray(res) && res.length > 0) {
+          if (res && Array.isArray(res)) {
             setter(res);
             if (cacheKey && typeof window !== 'undefined') {
               try {
