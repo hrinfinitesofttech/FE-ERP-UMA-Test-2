@@ -60,11 +60,11 @@ export function Topbar() {
         {/* Global Search Button Trigger (Ctrl+K) */}
         <button
           onClick={() => setIsSearchOpen(true)}
-          className="flex items-center gap-2.5 px-4 py-2 w-full bg-[#FAF7F2] hover:bg-white border border-[#E5DDD0] rounded-full text-xs text-[#8C7D72] transition-all text-left group shadow-xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-crm-brand-600"
+          className="flex items-center gap-2.5 px-4 py-2 w-full bg-[#FAF7F2] hover:bg-white border border-[#E5DDD0] rounded-full text-xs text-[#8C7D72] transition-all text-left group shadow-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-crm-brand-700/20"
         >
-          <Search className="w-3.5 h-3.5 text-[#8C7D72] group-hover:text-[#3E2723] transition-colors" />
-          <span className="flex-1 truncate text-xs">Search jobs, customers, products...</span>
-          <kbd className="hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-mono font-bold text-[#8C7D72] bg-white border border-[#E5DDD0] rounded-md shadow-xs">
+          <Search className="w-3.5 h-3.5 text-[#8C7D72] group-hover:text-crm-brand-700 transition-colors" />
+          <span className="flex-1 truncate text-xs font-medium">Search all pages, modules, jobs, leads, stock, PO...</span>
+          <kbd className="hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-mono font-bold text-[#75401F] bg-[#FAF0E6] border border-[#E5DDD0] rounded-md shadow-2xs">
             Ctrl K
           </kbd>
         </button>
