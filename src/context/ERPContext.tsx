@@ -1805,6 +1805,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           api.projects.departmentAssignments(),
           api.projects.documents(),
           api.projects.changeRequests(),
+          api.designer.requirements.list(),
         ]);
 
         if (!isMounted) return;
@@ -2547,6 +2548,45 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             try { localStorage.setItem('UMA_ERP_changeRequests', JSON.stringify(normalizedCRs)); } catch (_) {}
           }
         }
+
+        const rawReqs = val<any[]>(results[75]);
+        if (rawReqs && Array.isArray(rawReqs)) {
+          const normalizedReqs: CustomerRequirement[] = rawReqs.map((r: any) => ({
+            ...r,
+            id: String(r.id),
+            designJobId: r.designJobId || r.design_job_id || '',
+            projectId: r.projectId || r.project_id || '',
+            jobNumber: r.jobNumber || r.job_number || '',
+            customerName: r.customerName || r.customer_name || '',
+            contactPerson: r.contactPerson || r.contact_person || '',
+            contactMobile: r.contactMobile || r.contact_mobile || '',
+            machineName: r.machineName || r.machine_name || '',
+            machineType: r.machineType || r.machine_type || '',
+            model: r.model || '',
+            quantity: Number(r.quantity || 1),
+            capacity: r.capacity || '',
+            application: r.application || '',
+            productionRequirement: r.productionRequirement || r.production_requirement || '',
+            dimensions: r.dimensions || '',
+            material: r.material || '',
+            powerRequirement: r.powerRequirement || r.power_requirement || '',
+            speed: r.speed || '',
+            output: r.output || '',
+            automationLevel: r.automationLevel || r.automation_level || '',
+            controlSystem: r.controlSystem || r.control_system || '',
+            safetyRequirements: r.safetyRequirements || r.safety_requirements || '',
+            specialRequirements: r.specialRequirements || r.special_requirements || '',
+            customerDrawingUrl: r.customerDrawingUrl || r.customer_drawing_url || '',
+            customerNotes: r.customerNotes || r.customer_notes || '',
+            designerNotes: r.designerNotes || r.designer_notes || '',
+            status: r.status || 'approved',
+            createdAt: r.createdAt || r.created_at || '',
+          }));
+          setCustomerRequirements(normalizedReqs);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_customerRequirements', JSON.stringify(normalizedReqs)); } catch (_) {}
+          }
+        }
       } catch (err) {
         console.warn('Initial live data load warning:', err);
       } finally {
@@ -2654,45 +2694,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       });
 
-      // 2. SYNC WITH CUSTOMER REQUIREMENTS SHEET
-      setCustomerRequirements((prev) => {
-        const existing = prev.find(
-          (r) => r.projectId === prj.id || r.jobNumber === prj.jobNumber
-        );
-        if (!existing) {
-          const reqNo = `REQ-2026-${String(prev.length + 1).padStart(3, '0')}`;
-          const newReq: CustomerRequirement = {
-            id: reqNo,
-            designJobId: currentDesignJobId || `DES-2026-000${prev.length + 1}`,
-            projectId: prj.id,
-            jobNumber: prj.jobNumber,
-            customerName: prj.customerName,
-            contactPerson: prj.customerName,
-            contactMobile: '+91 98250 00000',
-            machineName: prj.productName,
-            machineType: 'Custom MTO Equipment',
-            model: `MOD-${prj.jobNumber.slice(-4)}`,
-            quantity: prj.quantity,
-            capacity: prj.specification || 'As per Customer PO',
-            application: 'Industrial Manufacturing',
-            productionRequirement: 'Standard Operating Capacity',
-            dimensions: 'As per GA Drawing',
-            material: 'SS 316L / SS 304',
-            powerRequirement: '15 HP / 3-Phase 415V',
-            speed: 'As per gear ratio',
-            output: 'Continuous batch',
-            automationLevel: 'Semi-Automatic PLC',
-            controlSystem: 'Flameproof Control Panel',
-            safetyRequirements: 'Emergency stop, PRV, rupture disc',
-            specialRequirements: 'Hydro-tested at 8 bar',
-            status: 'approved',
-          };
-          return [newReq, ...prev];
-        }
-        return prev;
-      });
-
-      // 3. SYNC WITH PRODUCTION MODULE (manufacturingJobs)
+      // 2. SYNC WITH PRODUCTION MODULE (manufacturingJobs)
       const prodStage = prjStages.find(
         (s) =>
           s.responsibleDepartment?.toLowerCase().includes('production') ||
@@ -4754,7 +4756,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
     logAction('CREATE', 'Designer', 'Customer Requirements', id, `Added technical requirement sheet for ${data.jobNumber}`);
-    api.post('/customer-requirements/', newReq).then((res: any) => {
+    api.designer.requirements.create(newReq).then((res: any) => {
       if (res && res.id) {
         setCustomerRequirements((prev) => {
           const synced = prev.map((r) => (r.id === id ? { ...r, ...res } : r));
@@ -4785,7 +4787,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
     logAction('APPROVE', 'Designer', 'Customer Requirements', id, `Approved technical requirement sheet by ${approvedBy}`);
-    api.patch(`/customer-requirements/${id}/`, { status: 'approved', approvedBy }).catch((err) => console.warn('Failed to approve requirement:', err));
+    api.designer.requirements.update(id, { status: 'approved', approvedBy }).catch((err) => console.warn('Failed to approve requirement:', err));
   };
 
   const addDesignTask = (data: Omit<DesignTask, 'id'>) => {

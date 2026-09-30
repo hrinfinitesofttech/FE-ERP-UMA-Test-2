@@ -439,6 +439,13 @@ export const api = {
       releaseToProduction: (id: string) =>
         request<any>(`/design-jobs/${id}/release-to-production/`, { method: 'POST' }),
     },
+    requirements: {
+      list: () => request<any[]>('/customer-requirements/'),
+      get: (id: string) => request<any>(`/customer-requirements/${id}/`),
+      create: (data: any) => request<any>('/customer-requirements/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/customer-requirements/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/customer-requirements/${id}/`, { method: 'DELETE' }),
+    },
     drawings2d: () => request<any[]>('/drawings-2d/'),
     models3d: () => request<any[]>('/models-3d/'),
     boms: {

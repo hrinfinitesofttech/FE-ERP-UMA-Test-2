@@ -224,6 +224,20 @@ export default function CustomerRequirementsPage() {
         ))}
       </div>
 
+      {filteredReqs.length === 0 && (
+        <div className="p-12 text-center bg-white rounded-2xl border border-[#EBE3DB] space-y-3 shadow-sm">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600">
+            <FileText className="w-7 h-7" />
+          </div>
+          <h3 className="text-base font-bold text-[#211B17]">No Customer Technical Requirements Found</h3>
+          <p className="text-xs text-[#70665F] max-w-md mx-auto">
+            {searchQuery
+              ? `No requirement sheets matched "${searchQuery}".`
+              : 'There are currently no customer technical requirement specifications in the system.'}
+          </p>
+        </div>
+      )}
+
       {/* Modal: Add Requirement Sheet */}
       {isModalOpen && (
         <div
