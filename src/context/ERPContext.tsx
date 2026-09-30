@@ -1201,7 +1201,25 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         const stored = localStorage.getItem('UMA_ERP_quotations');
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const uniqueMap = new Map<string, Quotation>();
+            parsed.forEach((q: any) => {
+              const qId = String(q.id || q.quotationNumber || '').trim();
+              if (qId && !uniqueMap.has(qId)) {
+                const revs = Array.isArray(q.revisions) ? q.revisions : [];
+                const lastRev = revs[revs.length - 1] || {};
+                const firstItem = (lastRev.items || [{}])[0];
+                const summary = q.latestSummary || {
+                  machineProduct: firstItem?.productName || 'Process Equipment',
+                  grandTotal: Number(lastRev?.grandTotal) || 0,
+                  status: lastRev?.status || 'draft',
+                };
+                uniqueMap.set(qId, { ...q, id: qId, latestSummary: summary });
+              }
+            });
+            const cleaned = Array.from(uniqueMap.values());
+            if (cleaned.length > 0) return cleaned;
+          }
         }
       } catch (_) {}
     }
@@ -1213,7 +1231,17 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         const stored = localStorage.getItem('UMA_ERP_customerPOs');
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const uniqueMap = new Map<string, CustomerPO>();
+            parsed.forEach((p: any) => {
+              const pId = String(p.id || p.poNumber || '').trim();
+              if (pId && !uniqueMap.has(pId)) {
+                uniqueMap.set(pId, p);
+              }
+            });
+            const cleaned = Array.from(uniqueMap.values());
+            if (cleaned.length > 0) return cleaned;
+          }
         }
       } catch (_) {}
     }
@@ -1773,6 +1801,48 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         applyLive<Contact>(val(results[2]), setContacts, 'contacts');
         applyLive<Enquiry>(val(results[3]), setEnquiries, 'enquiries');
         applyLive<Opportunity>(val(results[4]), setOpportunities, 'opportunities');
+        const rawQuotations = val<any[]>(results[5]);
+        if (rawQuotations && Array.isArray(rawQuotations) && rawQuotations.length > 0) {
+          const uniqueMap = new Map<string, Quotation>();
+          rawQuotations.forEach((q: any) => {
+            const qId = String(q.id || q.quotationNumber || q.quotation_number || '').trim();
+            if (!qId) return;
+            const revs = Array.isArray(q.revisions) ? q.revisions : [];
+            const lastRev = revs[revs.length - 1] || {};
+            const firstItem = (lastRev.items || [{}])[0];
+            const summary = q.latestSummary || {
+              machineProduct: firstItem?.productName || 'Process Equipment',
+              grandTotal: Number(lastRev?.grandTotal) || 0,
+              status: lastRev?.status || 'draft',
+            };
+            const normalized: Quotation = {
+              ...q,
+              id: qId,
+              quotationNumber: q.quotationNumber || q.quotation_number || qId,
+              currentRevision: q.currentRevision || q.current_revision || 'Rev-00',
+              date: q.date || '',
+              validUntil: q.validUntil || q.valid_until || '',
+              customerId: q.customerId || q.customer_id || '',
+              customerName: q.customerName || q.customer_name || '',
+              contactPerson: q.contactPerson || q.contact_person || '',
+              contactMobile: q.contactMobile || q.contact_mobile || '',
+              contactEmail: q.contactEmail || q.contact_email || '',
+              enquiryId: q.enquiryId || q.enquiry_id || '',
+              opportunityId: q.opportunityId || q.opportunity_id || '',
+              salesPersonId: q.salesPersonId || q.sales_person_id || '',
+              salesPersonName: q.salesPersonName || q.sales_person_name || '',
+              revisions: revs,
+              notes: q.notes || '',
+              latestSummary: summary,
+            };
+            uniqueMap.set(qId, normalized);
+          });
+          const normalizedQuotations = Array.from(uniqueMap.values());
+          setQuotations(normalizedQuotations);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_quotations', JSON.stringify(normalizedQuotations)); } catch (_) {}
+          }
+        }
         const rawCustomerPOs = val<any[]>(results[6]);
         if (rawCustomerPOs && Array.isArray(rawCustomerPOs) && rawCustomerPOs.length > 0) {
           const normalizedPOs: CustomerPO[] = rawCustomerPOs.map((po: any) => ({
@@ -3606,14 +3676,21 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
   // Quotations & Multi-Revision Engine
   const addQuotation = (quoData: Omit<Quotation, 'id' | 'quotationNumber'>): Quotation => {
-    const quoNo = getNextDocNumber('quotation');
+    const existingNums = quotations.map((q) => {
+      const match = (q.quotationNumber || q.id || '').match(/QT-2026-(\d+)/);
+      return match ? parseInt(match[1], 10) : 0;
+    });
+    const maxNum = Math.max(132, ...existingNums);
+    const nextNum = maxNum + 1;
+    const quoNo = `QT-2026-${String(nextNum).padStart(4, '0')}`;
     const newQuo: Quotation = {
       ...quoData,
       id: quoNo,
       quotationNumber: quoNo,
     };
     setQuotations((prev) => {
-      const updated = [newQuo, ...prev];
+      const filtered = prev.filter((q) => q.id !== quoNo && q.quotationNumber !== quoNo);
+      const updated = [newQuo, ...filtered];
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_quotations', JSON.stringify(updated)); } catch (_) {}
       }
@@ -3629,9 +3706,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       priority: 'high',
     });
     api.crm.quotations.create(newQuo).then((res) => {
-      if (res && res.id) {
+      if (res && (res.id || res.quotationNumber)) {
         setQuotations((prev) => {
-          const updated = prev.map((q) => (q.id === quoNo ? { ...q, ...res } : q));
+          const updated = prev.map((q) => (q.id === quoNo ? { ...q, ...res, id: res.id || quoNo, quotationNumber: res.quotationNumber || quoNo } : q));
           if (typeof window !== 'undefined') {
             try { localStorage.setItem('UMA_ERP_quotations', JSON.stringify(updated)); } catch (_) {}
           }
