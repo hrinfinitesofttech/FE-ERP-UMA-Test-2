@@ -599,6 +599,8 @@ interface ERPContextType {
   purchaseRequisitions: PurchaseRequisition[];
   addPurchaseRequisition: (pr: Omit<PurchaseRequisition, 'id' | 'prDate'>) => void;
   approvePurchaseRequisition: (id: string, approvedBy: string) => void;
+  rejectPurchaseRequisition: (id: string, remarks?: string) => void;
+  updatePurchaseRequisitionStatus: (id: string, status: PurchaseRequisition['status'], remarks?: string, approvedBy?: string) => void;
   rfqs: RequestForQuotation[];
   addRFQ: (rfq: Omit<RequestForQuotation, 'id' | 'rfqDate'>) => void;
   supplierQuotations: SupplierQuotation[];
@@ -5476,14 +5478,15 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const approvePurchaseRequisition = (id: string, approvedBy: string) => {
+    const today = new Date().toISOString().split('T')[0];
     setPurchaseRequisitions((prev) => {
       const updated = prev.map((pr) =>
-        pr.id === id
+        pr.id === id || pr.prNumber === id || (pr as any).pr_number === id
           ? {
               ...pr,
               status: 'Approved' as PurchaseRequisition['status'],
               approvedBy,
-              approvedDate: new Date().toISOString().split('T')[0],
+              approvedDate: today,
             }
           : pr
       );
@@ -5493,6 +5496,68 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
     logAction('APPROVE', 'Purchase', 'Purchase Requisition', id, `Approved PR by ${approvedBy}`);
+    api.purchase.requisitions.update(id, { status: 'Approved', approvedBy, approvedDate: today })
+      .catch(() => {
+        api.patch(`/purchase-requisitions/${id}/`, { status: 'Approved', approvedBy })
+          .catch(() => {
+            api.post(`/purchase-requisitions/${id}/approve/`, { approvedBy })
+              .catch((err) => console.warn('Failed to sync PR approval to backend:', err));
+          });
+      });
+  };
+
+  const rejectPurchaseRequisition = (id: string, remarks?: string) => {
+    setPurchaseRequisitions((prev) => {
+      const updated = prev.map((pr) =>
+        pr.id === id || pr.prNumber === id || (pr as any).pr_number === id
+          ? {
+              ...pr,
+              status: 'Rejected' as PurchaseRequisition['status'],
+              remarks: remarks || pr.remarks || 'Rejected/Disapproved',
+            }
+          : pr
+      );
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_purchaseRequisitions', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('REJECT', 'Purchase', 'Purchase Requisition', id, `Rejected PR ${id}. Remarks: ${remarks || ''}`);
+    api.purchase.requisitions.update(id, { status: 'Rejected', remarks: remarks || 'Rejected' })
+      .catch(() => {
+        api.patch(`/purchase-requisitions/${id}/`, { status: 'Rejected', remarks: remarks || 'Rejected' })
+          .catch(() => {
+            api.post(`/purchase-requisitions/${id}/reject/`, { remarks: remarks || 'Rejected' })
+              .catch((err) => console.warn('Failed to sync PR rejection to backend:', err));
+          });
+      });
+  };
+
+  const updatePurchaseRequisitionStatus = (id: string, status: PurchaseRequisition['status'], remarks?: string, approvedBy?: string) => {
+    const today = new Date().toISOString().split('T')[0];
+    setPurchaseRequisitions((prev) => {
+      const updated = prev.map((pr) =>
+        pr.id === id || pr.prNumber === id || (pr as any).pr_number === id
+          ? {
+              ...pr,
+              status,
+              ...(remarks ? { remarks } : {}),
+              ...(approvedBy ? { approvedBy } : {}),
+              ...(status === 'Approved' ? { approvedDate: today } : {}),
+            }
+          : pr
+      );
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_purchaseRequisitions', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('UPDATE', 'Purchase', 'Purchase Requisition', id, `Updated PR status to ${status}`);
+    api.purchase.requisitions.update(id, { status, remarks, approvedBy })
+      .catch(() => {
+        api.patch(`/purchase-requisitions/${id}/`, { status, remarks, approvedBy })
+          .catch((err) => console.warn('Failed to sync PR status to backend:', err));
+      });
   };
 
   const addRFQ = (data: Omit<RequestForQuotation, 'id' | 'rfqDate'>) => {
@@ -8251,6 +8316,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         purchaseRequisitions,
         addPurchaseRequisition,
         approvePurchaseRequisition,
+        rejectPurchaseRequisition,
+        updatePurchaseRequisitionStatus,
         rfqs,
         addRFQ,
         supplierQuotations,
