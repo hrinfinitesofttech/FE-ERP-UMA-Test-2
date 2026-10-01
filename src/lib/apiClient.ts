@@ -444,8 +444,10 @@ export const api = {
       list: () => request<any[]>('/designer/jobs/'),
       create: (data: any) => request<any>('/designer/jobs/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/designer/jobs/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
-      releaseToProduction: (id: string) =>
-        request<any>(`/designer/jobs/${id}/release-to-production/`, { method: 'POST' }),
+      releaseToProduction: (id: string, data?: any) =>
+        request<any>(`/designer/jobs/${id}/release-to-production/`, { method: 'POST', body: JSON.stringify(data || {}) }),
+      revokeRelease: (id: string, data?: any) =>
+        request<any>(`/designer/jobs/${id}/revoke-release/`, { method: 'POST', body: JSON.stringify(data || {}) }),
     },
     requirements: {
       list: () => request<any[]>('/designer/requirements/'),

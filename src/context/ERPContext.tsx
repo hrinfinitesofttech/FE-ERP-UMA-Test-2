@@ -585,6 +585,7 @@ interface ERPContextType {
   technicalDocuments: TechnicalDocumentItem[];
   addTechnicalDocument: (doc: Omit<TechnicalDocumentItem, 'id' | 'uploadDate'>) => void;
   releaseDesignToManufacturing: (designJobId: string, releasedBy: string) => void;
+  revokeDesignRelease: (designJobId: string, revokedBy: string) => void;
 
   // Module 4: Purchase Management Entities
   suppliers: Supplier[];
@@ -2080,7 +2081,40 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         applyLive<ProjectTask>(val(results[15]), setProjectTasks, 'projectTasks');
         applyLive<ProjectMilestone>(val(results[16]), setProjectMilestones, 'projectMilestones');
         applyLive<ProjectPlanningStage>(val(results[17]), setProjectPlanningStages, 'projectPlanningStages');
-        applyLive<DesignJob>(val(results[18]), setDesignJobs, 'designJobs');
+        const rawDesignJobs = val<any[]>(results[18]);
+        if (rawDesignJobs && Array.isArray(rawDesignJobs) && rawDesignJobs.length > 0) {
+          setDesignJobs((prev) => {
+            const localMap = new Map(prev.map((j) => [j.id, j]));
+            prev.forEach((j) => {
+              if (j.designJobNumber) localMap.set(j.designJobNumber, j);
+              if (j.jobNumber) localMap.set(j.jobNumber, j);
+            });
+            const normalized: DesignJob[] = rawDesignJobs.map((j: any) => {
+              const local = localMap.get(j.id) || localMap.get(j.designJobNumber) || localMap.get(j.design_job_number) || localMap.get(j.job_number) || localMap.get(j.jobNumber);
+              const isLocalReleased = local?.status === 'released_to_production' || local?.status === 'approved';
+              return {
+                ...j,
+                id: String(j.id || j.designJobNumber || j.design_job_number),
+                designJobNumber: j.designJobNumber || j.design_job_number || j.id,
+                projectId: j.projectId || j.project_id || 'PRJ-2026-0001',
+                jobNumber: j.jobNumber || j.job_number || 'JOB-2026-001',
+                customerId: j.customerId || j.customer_id || '',
+                customerName: j.customerName || j.customer_name || 'Customer',
+                productName: j.productName || j.product_name || 'Custom Equipment',
+                status: isLocalReleased ? local.status : (j.status || 'in_progress'),
+                remarks: local?.remarks || j.remarks || '',
+                activeRevision: j.activeRevision || j.active_revision || 'REV-00',
+                deliveryDate: j.deliveryDate || j.delivery_date || '',
+                assignedDesigner: j.assignedDesigner || j.assigned_designer || 'Dharmesh Joshi',
+                designManager: j.designManager || j.design_manager || 'Ketan Patel',
+              };
+            });
+            if (typeof window !== 'undefined') {
+              try { localStorage.setItem('UMA_ERP_designJobs', JSON.stringify(normalized)); } catch (_) {}
+            }
+            return normalized;
+          });
+        }
         applyLive<Drawing2D>(val(results[19]), setDrawings2D, 'drawings2D');
         applyLive<Design3DModel>(val(results[20]), setDesigns3D, 'designs3D');
         applyLive<BOMHeader>(val(results[21]), setBoms, 'boms');
@@ -5235,25 +5269,33 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const releaseDesignToManufacturing = (designJobId: string, releasedBy: string) => {
-    const desJob = designJobs.find((j) => j.id === designJobId);
+    const desJob = designJobs.find((j) => j.id === designJobId || j.designJobNumber === designJobId || j.jobNumber === designJobId);
     if (!desJob) return;
 
-    setDesignJobs((prev) =>
-      prev.map((j) =>
-        j.id === designJobId
-          ? { ...j, status: 'released_to_production', remarks: `Released to shop floor by ${releasedBy}` }
+    setDesignJobs((prev) => {
+      const updated = prev.map((j) =>
+        j.id === desJob.id || j.designJobNumber === desJob.designJobNumber || j.jobNumber === desJob.jobNumber
+          ? { ...j, status: 'released_to_production' as const, remarks: `Released to shop floor by ${releasedBy} on ${new Date().toLocaleDateString()}` }
           : j
-      )
-    );
+      );
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_designJobs', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
 
-    setBoms((prev) =>
-      prev.map((b) => (b.projectId === desJob.projectId || b.jobNumber === desJob.jobNumber ? { ...b, status: 'released_to_production' } : b))
-    );
+    setBoms((prev) => {
+      const updated = prev.map((b) => (b.projectId === desJob.projectId || b.jobNumber === desJob.jobNumber ? { ...b, status: 'released_to_production' as any } : b));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_boms', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
 
     updateJobStatus(desJob.jobNumber, 'step-3', 'completed');
     updateJobStatus(desJob.jobNumber, 'step-4', 'in_progress');
 
-    logAction('APPROVE', 'Designer', 'Design Release', designJobId, `Design Job ${desJob.designJobNumber} (${desJob.jobNumber}) released to Purchase, Store & Production departments by ${releasedBy}`);
+    logAction('APPROVE', 'Designer', 'Design Release', desJob.id, `Design Job ${desJob.designJobNumber} (${desJob.jobNumber}) released to Purchase, Store & Production departments by ${releasedBy}`);
 
     sendNotification({
       title: `🚀 Design Released for Manufacturing: ${desJob.jobNumber}`,
@@ -5263,6 +5305,52 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       priority: 'high',
       linkUrl: `/designer/jobs`,
     });
+
+    api.designer.jobs.releaseToProduction(desJob.id, { releasedBy, remarks: `Released to shop floor by ${releasedBy}` }).catch((err) =>
+      console.warn('Failed to sync release to backend:', err)
+    );
+  };
+
+  const revokeDesignRelease = (designJobId: string, revokedBy: string) => {
+    const desJob = designJobs.find((j) => j.id === designJobId || j.designJobNumber === designJobId || j.jobNumber === designJobId);
+    if (!desJob) return;
+
+    setDesignJobs((prev) => {
+      const updated = prev.map((j) =>
+        j.id === desJob.id || j.designJobNumber === desJob.designJobNumber || j.jobNumber === desJob.jobNumber
+          ? { ...j, status: 'in_progress' as const, remarks: `Release disapproved/revoked by ${revokedBy} on ${new Date().toLocaleDateString()}` }
+          : j
+      );
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_designJobs', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
+    setBoms((prev) => {
+      const updated = prev.map((b) => (b.projectId === desJob.projectId || b.jobNumber === desJob.jobNumber ? { ...b, status: 'draft' as any } : b));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_boms', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
+    updateJobStatus(desJob.jobNumber, 'step-3', 'in_progress');
+
+    logAction('REJECT', 'Designer', 'Design Release', desJob.id, `Design Job ${desJob.designJobNumber} (${desJob.jobNumber}) release disapproved/revoked by ${revokedBy}`);
+
+    sendNotification({
+      title: `⚠️ Design Release Revoked: ${desJob.jobNumber}`,
+      message: `Design Job ${desJob.designJobNumber} (${desJob.productName}) release was disapproved/revoked by ${revokedBy}. Status reset to In Progress.`,
+      type: 'warning',
+      department: 'project',
+      priority: 'high',
+      linkUrl: `/designer/approval?job=${desJob.jobNumber}`,
+    });
+
+    api.designer.jobs.revokeRelease(desJob.id, { revokedBy, remarks: `Release revoked by ${revokedBy}` }).catch((err) =>
+      console.warn('Failed to sync revoke to backend:', err)
+    );
   };
 
   // Module 4: Purchase Management Handlers
@@ -8138,6 +8226,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         technicalDocuments,
         addTechnicalDocument,
         releaseDesignToManufacturing,
+        revokeDesignRelease,
         suppliers,
         addSupplier,
         updateSupplier,
