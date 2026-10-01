@@ -2097,37 +2097,70 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         const rawDesignJobs = val<any[]>(results[18]);
         if (rawDesignJobs && Array.isArray(rawDesignJobs) && rawDesignJobs.length > 0) {
           setDesignJobs((prev) => {
-            const localMap = new Map(prev.map((j) => [j.id, j]));
-            prev.forEach((j) => {
+            const localMap = new Map<string, DesignJob>();
+            if (typeof window !== 'undefined') {
+              try {
+                const stored = localStorage.getItem('UMA_ERP_designJobs');
+                if (stored) {
+                  const parsed = JSON.parse(stored);
+                  if (Array.isArray(parsed)) {
+                    parsed.forEach((j: any) => {
+                      if (j.id) localMap.set(j.id, j);
+                      if (j.designJobNumber) localMap.set(j.designJobNumber, j);
+                      if (j.jobNumber) localMap.set(j.jobNumber, j);
+                    });
+                  }
+                }
+              } catch (_) {}
+            }
+            (prev || []).forEach((j) => {
+              if (j.id) localMap.set(j.id, j);
               if (j.designJobNumber) localMap.set(j.designJobNumber, j);
               if (j.jobNumber) localMap.set(j.jobNumber, j);
             });
-            const normalized: DesignJob[] = rawDesignJobs.map((j: any) => {
+
+            const mergedList: DesignJob[] = [];
+            const seenIds = new Set<string>();
+
+            rawDesignJobs.forEach((j: any) => {
               const local = localMap.get(j.id) || localMap.get(j.designJobNumber) || localMap.get(j.design_job_number) || localMap.get(j.job_number) || localMap.get(j.jobNumber);
               const isReleased = j.status === 'released_to_production' || j.status === 'approved' || local?.status === 'released_to_production' || local?.status === 'approved';
               const effectiveStatus = isReleased ? 'released_to_production' : (j.status || local?.status || 'in_progress');
-              const effectiveRemarks = isReleased ? (j.remarks || local?.remarks || 'Released to shop floor') : (j.remarks || local?.remarks || '');
-              return {
+              const effectiveRemarks = j.remarks || local?.remarks || (isReleased ? 'Released to shop floor' : '');
+              const jobObj: DesignJob = {
+                ...local,
                 ...j,
                 id: String(j.id || j.designJobNumber || j.design_job_number),
                 designJobNumber: j.designJobNumber || j.design_job_number || j.id,
-                projectId: j.projectId || j.project_id || 'PRJ-2026-0001',
-                jobNumber: j.jobNumber || j.job_number || 'JOB-2026-001',
-                customerId: j.customerId || j.customer_id || '',
-                customerName: j.customerName || j.customer_name || 'Customer',
-                productName: j.productName || j.product_name || 'Custom Equipment',
+                projectId: j.projectId || j.project_id || local?.projectId || 'PRJ-2026-0001',
+                jobNumber: j.jobNumber || j.job_number || local?.jobNumber || 'JOB-2026-001',
+                customerId: j.customerId || j.customer_id || local?.customerId || '',
+                customerName: j.customerName || j.customer_name || local?.customerName || 'Customer',
+                productName: j.productName || j.product_name || local?.productName || 'Custom Equipment',
                 status: effectiveStatus,
                 remarks: effectiveRemarks,
-                activeRevision: j.activeRevision || j.active_revision || 'REV-00',
-                deliveryDate: j.deliveryDate || j.delivery_date || '',
-                assignedDesigner: j.assignedDesigner || j.assigned_designer || 'Dharmesh Joshi',
-                designManager: j.designManager || j.design_manager || 'Ketan Patel',
+                activeRevision: j.activeRevision || j.active_revision || local?.activeRevision || 'REV-00',
+                deliveryDate: j.deliveryDate || j.delivery_date || local?.deliveryDate || '',
+                assignedDesigner: j.assignedDesigner || j.assigned_designer || local?.assignedDesigner || 'Dharmesh Joshi',
+                designManager: j.designManager || j.design_manager || local?.designManager || 'Ketan Patel',
               };
+              seenIds.add(jobObj.id);
+              if (jobObj.designJobNumber) seenIds.add(jobObj.designJobNumber);
+              mergedList.push(jobObj);
             });
+
+            localMap.forEach((localJob) => {
+              if (localJob && localJob.id && !seenIds.has(localJob.id) && !seenIds.has(localJob.designJobNumber)) {
+                seenIds.add(localJob.id);
+                if (localJob.designJobNumber) seenIds.add(localJob.designJobNumber);
+                mergedList.push(localJob);
+              }
+            });
+
             if (typeof window !== 'undefined') {
-              try { localStorage.setItem('UMA_ERP_designJobs', JSON.stringify(normalized)); } catch (_) {}
+              try { localStorage.setItem('UMA_ERP_designJobs', JSON.stringify(mergedList)); } catch (_) {}
             }
-            return normalized;
+            return mergedList;
           });
         }
         applyLive<Drawing2D>(val(results[19]), setDrawings2D, 'drawings2D');

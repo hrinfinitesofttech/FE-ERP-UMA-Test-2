@@ -22,10 +22,11 @@ export default function DesignApprovalPage() {
   const activeJob = designJobs.find((j) => j.id === selectedJobId) || designJobs[0];
   const activeBOM = boms.find((b) => b.designJobId === activeJob?.id || b.jobNumber === activeJob?.jobNumber);
 
+  const releaserName = (currentUser?.name || `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim()) || 'Admin User';
+
   const handleRelease = () => {
     if (!activeJob) return;
-    const releaser = `${currentUser.firstName} ${currentUser.lastName}`;
-    releaseDesignToManufacturing(activeJob.id, releaser);
+    releaseDesignToManufacturing(activeJob.id, releaserName);
   };
 
   return (
@@ -156,7 +157,7 @@ export default function DesignApprovalPage() {
                     <span className="font-bold text-emerald-400">TIER 4: SUPER ADMIN</span>
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                   </div>
-                  <div className="font-bold text-[#211B17]">{currentUser.firstName} {currentUser.lastName}</div>
+                  <div className="font-bold text-[#211B17]">{releaserName}</div>
                   <p className="text-[10px] text-[#70665F]">Final Release Authorization to Purchase & Production</p>
                 </div>
               </div>
