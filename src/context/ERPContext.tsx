@@ -586,6 +586,8 @@ interface ERPContextType {
   addTechnicalDocument: (doc: Omit<TechnicalDocumentItem, 'id' | 'uploadDate'>) => void;
   releaseDesignToManufacturing: (designJobId: string, releasedBy: string) => void;
   revokeDesignRelease: (designJobId: string, revokedBy: string) => void;
+  approveDesignJob: (designJobId: string, approvedBy: string, approvalNotes?: string) => void;
+  disapproveDesignJob: (designJobId: string, disapprovedBy: string, rejectionReason: string) => void;
 
   // Module 4: Purchase Management Entities
   suppliers: Supplier[];
@@ -5401,6 +5403,70 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
+  const approveDesignJob = (designJobId: string, approvedBy: string, approvalNotes?: string) => {
+    const desJob = designJobs.find((j) => j.id === designJobId || j.designJobNumber === designJobId || j.jobNumber === designJobId);
+    if (!desJob) return;
+
+    setDesignJobs((prev) => {
+      const updated = prev.map((j) =>
+        j.id === desJob.id || j.designJobNumber === desJob.designJobNumber || j.jobNumber === desJob.jobNumber
+          ? { ...j, status: 'approved' as const, approvedBy, approvalNotes: approvalNotes || 'Approved by Lead/Manager' }
+          : j
+      );
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_designJobs', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
+    logAction('APPROVE', 'Designer', 'Design Job', desJob.id, `Design Job ${desJob.designJobNumber} (${desJob.jobNumber}) approved by ${approvedBy}`);
+
+    sendNotification({
+      title: `✅ Design Approved: ${desJob.jobNumber}`,
+      message: `Design Job ${desJob.designJobNumber} (${desJob.productName}) was approved by ${approvedBy}. Ready for release to production.`,
+      type: 'success',
+      department: 'project',
+      priority: 'high',
+      linkUrl: `/designer/jobs`,
+    });
+
+    api.designer.jobs.approve(desJob.id, { approvedBy, approvalNotes }).catch((err) =>
+      console.warn('Failed to sync design job approval to backend:', err)
+    );
+  };
+
+  const disapproveDesignJob = (designJobId: string, disapprovedBy: string, rejectionReason: string) => {
+    const desJob = designJobs.find((j) => j.id === designJobId || j.designJobNumber === designJobId || j.jobNumber === designJobId);
+    if (!desJob) return;
+
+    setDesignJobs((prev) => {
+      const updated = prev.map((j) =>
+        j.id === desJob.id || j.designJobNumber === desJob.designJobNumber || j.jobNumber === desJob.jobNumber
+          ? { ...j, status: 'rejected' as const, disapprovalReason: rejectionReason, remarks: `Disapproved by ${disapprovedBy}: ${rejectionReason}` }
+          : j
+      );
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_designJobs', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
+    logAction('REJECT', 'Designer', 'Design Job', desJob.id, `Design Job ${desJob.designJobNumber} (${desJob.jobNumber}) rejected by ${disapprovedBy}: ${rejectionReason}`);
+
+    sendNotification({
+      title: `❌ Design Job Disapproved: ${desJob.jobNumber}`,
+      message: `Design Job ${desJob.designJobNumber} (${desJob.productName}) was disapproved by ${disapprovedBy}. Reason: ${rejectionReason}`,
+      type: 'alert',
+      department: 'project',
+      priority: 'high',
+      linkUrl: `/designer/jobs`,
+    });
+
+    api.designer.jobs.disapprove(desJob.id, { disapprovedBy, rejectionReason }).catch((err) =>
+      console.warn('Failed to sync design job rejection to backend:', err)
+    );
+  };
+
   // Module 4: Purchase Management Handlers
   const addSupplier = (data: Omit<Supplier, 'id'>) => {
     const id = `SUP-${new Date().getFullYear()}-${String(suppliers.length + 1).padStart(3, '0')}`;
@@ -8338,6 +8404,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         addTechnicalDocument,
         releaseDesignToManufacturing,
         revokeDesignRelease,
+        approveDesignJob,
+        disapproveDesignJob,
         suppliers,
         addSupplier,
         updateSupplier,

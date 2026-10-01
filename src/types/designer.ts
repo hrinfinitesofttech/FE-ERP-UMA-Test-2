@@ -5,6 +5,8 @@ export type DesignJobStatus =
   | 'review'
   | 'revision_required'
   | 'approved'
+  | 'disapproved'
+  | 'rejected'
   | 'bom_pending'
   | 'bom_approved'
   | 'released_to_production'
@@ -73,6 +75,12 @@ export interface DesignJob {
   status: DesignJobStatus;
   remarks?: string;
   activeRevision: string; // e.g. 'REV-01'
+  approvedBy?: string;
+  approvedDate?: string;
+  disapprovedBy?: string;
+  disapprovedDate?: string;
+  rejectionReason?: string;
+  approvalNotes?: string;
   createdDate: string;
 }
 

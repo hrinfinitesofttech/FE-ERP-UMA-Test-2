@@ -448,6 +448,10 @@ export const api = {
         request<any>(`/designer/jobs/${id}/release-to-production/`, { method: 'POST', body: JSON.stringify(data || {}) }),
       revokeRelease: (id: string, data?: any) =>
         request<any>(`/designer/jobs/${id}/revoke-release/`, { method: 'POST', body: JSON.stringify(data || {}) }),
+      approve: (id: string, data?: any) =>
+        request<any>(`/designer/jobs/${id}/approve/`, { method: 'POST', body: JSON.stringify(data || {}) }),
+      disapprove: (id: string, data?: any) =>
+        request<any>(`/designer/jobs/${id}/disapprove/`, { method: 'POST', body: JSON.stringify(data || {}) }),
     },
     requirements: {
       list: () => request<any[]>('/designer/requirements/'),
