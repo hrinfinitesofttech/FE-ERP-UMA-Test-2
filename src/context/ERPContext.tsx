@@ -2126,7 +2126,15 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
             rawDesignJobs.forEach((j: any) => {
               const local = localMap.get(j.id) || localMap.get(j.designJobNumber) || localMap.get(j.design_job_number) || localMap.get(j.job_number) || localMap.get(j.jobNumber);
-              const isReleased = j.status === 'released_to_production' || j.status === 'approved' || local?.status === 'released_to_production' || local?.status === 'approved';
+              const isReleased =
+                String(j.status || '').toLowerCase() === 'released_to_production' ||
+                String(j.status || '').toLowerCase() === 'approved' ||
+                String(j.status || '').toLowerCase() === 'released' ||
+                String(local?.status || '').toLowerCase() === 'released_to_production' ||
+                String(local?.status || '').toLowerCase() === 'approved' ||
+                String(local?.status || '').toLowerCase() === 'released' ||
+                String(j.remarks || '').toLowerCase().includes('released to shop floor') ||
+                String(local?.remarks || '').toLowerCase().includes('released to shop floor');
               const effectiveStatus = isReleased ? 'released_to_production' : (j.status || local?.status || 'in_progress');
               const effectiveRemarks = j.remarks || local?.remarks || (isReleased ? 'Released to shop floor' : '');
               const jobObj: DesignJob = {

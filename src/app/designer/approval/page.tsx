@@ -39,6 +39,20 @@ export default function DesignApprovalPage() {
     setMounted(true);
   }, []);
 
+  const isJobReleased = (job?: any) => {
+    if (!job) return false;
+    const st = String(job.status || '').toLowerCase();
+    const rm = String(job.remarks || '').toLowerCase();
+    return (
+      st === 'released_to_production' ||
+      st === 'released' ||
+      st === 'approved' ||
+      st === 'bom_approved' ||
+      st === 'completed' ||
+      rm.includes('released to shop floor')
+    );
+  };
+
   // Filtered jobs
   const filteredJobs = useMemo(() => {
     return designJobs.filter((job) => {
@@ -48,7 +62,7 @@ export default function DesignApprovalPage() {
         (job.productName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (job.customerName || '').toLowerCase().includes(searchQuery.toLowerCase());
 
-      const isReleased = job.status === 'released_to_production';
+      const isReleased = isJobReleased(job);
       if (statusFilter === 'released') return matchesSearch && isReleased;
       if (statusFilter === 'pending') return matchesSearch && !isReleased;
       return matchesSearch;
@@ -91,7 +105,7 @@ export default function DesignApprovalPage() {
   };
 
   const totalCount = designJobs.length;
-  const releasedCount = designJobs.filter((j) => j.status === 'released_to_production').length;
+  const releasedCount = designJobs.filter((j) => isJobReleased(j)).length;
   const pendingCount = totalCount - releasedCount;
 
   if (!mounted) {
@@ -145,7 +159,7 @@ export default function DesignApprovalPage() {
               </div>
             </div>
 
-            {activeJob && activeJob.status !== 'released_to_production' && (
+            {activeJob && !isJobReleased(activeJob) && (
               <button
                 onClick={handleRelease}
                 disabled={isReleasing}
@@ -229,7 +243,7 @@ export default function DesignApprovalPage() {
               ) : (
                 filteredJobs.map((j) => {
                   const isSelected = (activeJob?.id === j.id) || (activeJob?.designJobNumber === j.designJobNumber);
-                  const isReleased = j.status === 'released_to_production';
+                  const isReleased = isJobReleased(j);
 
                   return (
                     <button
@@ -441,7 +455,7 @@ export default function DesignApprovalPage() {
                 </div>
 
                 {/* Status Release Banner */}
-                {activeJob.status === 'released_to_production' ? (
+                {isJobReleased(activeJob) ? (
                   <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-emerald-500/10 to-emerald-600/15 border-2 border-emerald-500/50 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3.5">
                       <div className="p-3 rounded-2xl bg-emerald-600 text-white shadow-md shadow-emerald-600/30">
