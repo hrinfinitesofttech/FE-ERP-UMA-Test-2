@@ -5713,7 +5713,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addSupplierQuotation = (data: Omit<SupplierQuotation, 'id'>) => {
-    const id = `SQ-${Date.now().toString().slice(-5)}`;
+    const id = (data as any).id || `SQ-${Date.now().toString().slice(-5)}`;
     const newSq: SupplierQuotation = { ...data, id };
     setSupplierQuotations((prev) => {
       const updated = [newSq, ...prev];
@@ -5722,8 +5722,37 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
       return updated;
     });
-    logAction('CREATE', 'Purchase', 'Supplier Quotations', id, `Recorded Quotation ${data.supplierQuotationNumber || data.quotationNumber} from ${data.supplierName}`);
-    api.purchase.supplierQuotations.create(newSq).then((res) => {
+    logAction('CREATE', 'Purchase', 'Supplier Quotations', id, `Recorded Quotation ${data.supplierQuotationRef || data.quotationNumber} from ${data.supplierName}`);
+    
+    const backendPayload = {
+      ...newSq,
+      id,
+      quotation_number: newSq.quotationNumber || id,
+      quotationNumber: newSq.quotationNumber || id,
+      rfq_id: newSq.rfqId || (newSq as any).rfq_id || '',
+      rfqId: newSq.rfqId || (newSq as any).rfq_id || '',
+      supplier_id: newSq.supplierId || (newSq as any).supplier_id || '',
+      supplierId: newSq.supplierId || (newSq as any).supplier_id || '',
+      supplier_name: newSq.supplierName || (newSq as any).supplier_name || '',
+      supplierName: newSq.supplierName || (newSq as any).supplier_name || '',
+      date: newSq.quotationDate || (newSq as any).date || new Date().toISOString().split('T')[0],
+      quotationDate: newSq.quotationDate || (newSq as any).date || new Date().toISOString().split('T')[0],
+      valid_until: newSq.validityDate || (newSq as any).valid_until || (newSq as any).validUntil || '',
+      validityDate: newSq.validityDate || (newSq as any).valid_until || (newSq as any).validUntil || '',
+      validUntil: newSq.validityDate || (newSq as any).valid_until || (newSq as any).validUntil || '',
+      sub_total: Number(newSq.subTotal || (newSq as any).sub_total || 0),
+      subTotal: Number(newSq.subTotal || (newSq as any).sub_total || 0),
+      tax_amount: Number(newSq.taxTotal || (newSq as any).tax_amount || 0),
+      taxTotal: Number(newSq.taxTotal || (newSq as any).tax_amount || 0),
+      grand_total: Number(newSq.grandTotal || (newSq as any).grand_total || 0),
+      grandTotal: Number(newSq.grandTotal || (newSq as any).grand_total || 0),
+      delivery_lead_time: `${newSq.leadTimeDays || 7} Days`,
+      payment_terms: newSq.paymentTerms || '',
+      status: newSq.status || 'received',
+      items: newSq.items || [],
+    };
+
+    api.purchase.supplierQuotations.create(backendPayload).then((res) => {
       if (res && (res.id || res.quotationNumber || res.quotation_number)) {
         setSupplierQuotations((prev) => {
           const synced = prev.map((q) => (q.id === newSq.id || q.quotationNumber === newSq.quotationNumber ? { ...q, ...res } : q));

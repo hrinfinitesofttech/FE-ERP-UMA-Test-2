@@ -39,6 +39,216 @@ async function getOrRefreshToken(): Promise<string | null> {
   return null;
 }
 
+function normalizePayload(endpoint: string, body: any): any {
+  if (!body || typeof body !== 'object') return body;
+  const d = { ...body };
+  const ep = endpoint.toLowerCase();
+  const nowStr = new Date().toISOString().split('T')[0];
+
+  d.id = d.id || d.code || d.departmentCode || d.department_code || d.leadNumber || d.leadNo || d.customerCode || d.enquiryNo || d.opportunityNo || d.quotationNumber || d.poNumber || d.soNumber || d.job_number || d.designJobNumber || d.bomNumber || d.supplierCode || d.vendorCode || d.requisitionNumber || d.rfqNumber || d.itemCode || d.warehouseCode || d.grnNumber || d.inspectionNumber || d.issueNumber || d.transferNumber || d.workCenterCode || d.planNumber || d.workOrderNumber || d.assetCode || d.requestNumber || d.designationCode || d.leaveNumber || d.loanNumber || d.invoiceNumber || d.receiptNumber || d.paymentNumber || d.expenseNumber || `DOC-${Date.now().toString().slice(-6)}`;
+
+  // Organization & Employees
+  if (ep.includes('/departments')) {
+    d.code = d.code || d.departmentCode || d.department_code || d.id || 'DEPT';
+    d.name = d.name || d.departmentName || d.code;
+  } else if (ep.includes('/roles')) {
+    d.id = d.id || d.code || d.roleCode || `ROLE-${Date.now().toString().slice(-4)}`;
+    d.role_code = d.role_code || d.roleCode || d.code || d.id;
+    d.name = d.name || 'Role';
+    d.department = d.department || 'Production';
+  } else if (ep.includes('/employees')) {
+    d.username = d.username || (d.email ? d.email.split('@')[0] : (d.employeeId || d.id || `emp_${Date.now()}`));
+    d.employee_id = d.employee_id || d.employeeId || d.id || `EMP-${Date.now().toString().slice(-4)}`;
+    d.first_name = d.first_name || d.firstName || 'First';
+    d.last_name = d.last_name || d.lastName || 'Last';
+    d.email = d.email || `${d.username}@umaerp.com`;
+  }
+  // CRM
+  else if (ep.includes('/leads')) {
+    d.mobile = d.mobile || d.phone || '9999999999';
+    d.productName = d.productName || d.product_name || d.requirementDescription || 'Equipment';
+    d.companyName = d.companyName || d.company_name || 'Prospect Co';
+    d.contactPerson = d.contactPerson || d.contact_person || 'Contact';
+  } else if (ep.includes('/customers')) {
+    d.companyName = d.companyName || d.company_name || d.name || 'Customer Co';
+    d.contactPerson = d.contactPerson || d.contact_person || d.name || 'Contact';
+    d.mobile = d.mobile || d.phone || '9999999999';
+  } else if (ep.includes('/enquiries')) {
+    d.customerId = d.customerId || d.customer_id || 'CUST-001';
+    d.customerName = d.customerName || d.customer_name || 'Customer';
+    d.requirement = d.requirement || d.title || d.specification || 'Requirements';
+    d.machineProduct = d.machineProduct || d.productName || 'Equipment';
+    d.date = d.date || d.enquiryDate || nowStr;
+  } else if (ep.includes('/opportunities')) {
+    d.customerId = d.customerId || d.customer_id || 'CUST-001';
+    d.customerName = d.customerName || d.customer_name || 'Customer';
+    d.machineProduct = d.machineProduct || d.productName || d.title || 'Equipment';
+    d.expectedValue = d.expectedValue || d.estimatedValue || 10000;
+  }
+  // Projects
+  else if (ep.includes('/projects')) {
+    d.customerId = d.customerId || d.customer_id || 'CUST-001';
+    d.customerName = d.customerName || d.customer_name || 'Customer';
+    d.productName = d.productName || d.product_name || d.title || 'Project Work';
+  }
+  // Purchase
+  else if (ep.includes('/suppliers')) {
+    d.vendorCode = d.vendorCode || d.supplierCode || d.code || d.id || 'SUP-001';
+    d.contactPerson = d.contactPerson || d.contact_person || d.name || 'Vendor Rep';
+    d.mobile = d.mobile || d.phone || '9999999999';
+  } else if (ep.includes('/rfqs')) {
+    const due = new Date();
+    due.setDate(due.getDate() + 7);
+    d.dueDate = d.dueDate || d.due_date || due.toISOString().split('T')[0];
+    d.rfqNumber = d.rfqNumber || d.rfq_number || d.id || `RFQ-2026-${Date.now().toString().slice(-4)}`;
+    d.rfq_number = d.rfqNumber;
+    d.rfqDate = d.rfqDate || d.date || nowStr;
+    d.date = d.rfqDate;
+  } else if (ep.includes('/supplier-quotations')) {
+    d.quotationNumber = d.quotationNumber || d.quotation_number || d.id || `SQ-2026-${Date.now().toString().slice(-4)}`;
+    d.quotation_number = d.quotationNumber;
+    d.supplierId = d.supplierId || d.supplier_id || 'SUP-001';
+    d.supplier_id = d.supplierId;
+    d.supplierName = d.supplierName || d.supplier_name || 'Supplier';
+    d.supplier_name = d.supplierName;
+    d.date = d.date || d.quotationDate || nowStr;
+    d.quotationDate = d.quotationDate || d.date || nowStr;
+    d.valid_until = d.valid_until || d.validityDate || d.validUntil || nowStr;
+    d.validityDate = d.validityDate || d.valid_until || d.validUntil || nowStr;
+    d.validUntil = d.validUntil || d.valid_until || d.validityDate || nowStr;
+  } else if (ep.includes('/purchase-orders')) {
+    const deliv = new Date();
+    deliv.setDate(deliv.getDate() + 14);
+    d.poNumber = d.poNumber || d.po_number || d.id || `PO-2026-${Date.now().toString().slice(-4)}`;
+    d.po_number = d.poNumber;
+    d.supplierId = d.supplierId || d.supplier_id || 'SUP-001';
+    d.supplier_id = d.supplierId;
+    d.supplierName = d.supplierName || d.supplier_name || 'Supplier';
+    d.supplier_name = d.supplierName;
+    d.deliveryDate = d.deliveryDate || d.delivery_date || deliv.toISOString().split('T')[0];
+    d.preparedBy = d.preparedBy || d.prepared_by || 'Purchase Officer';
+    d.date = d.date || d.poDate || nowStr;
+  } else if (ep.includes('/purchase-returns')) {
+    d.returnNumber = d.returnNumber || d.return_number || d.id || `PRT-2026-${Date.now().toString().slice(-4)}`;
+    d.return_number = d.returnNumber;
+    d.supplierId = d.supplierId || d.supplier_id || 'SUP-001';
+    d.supplier_name = d.supplierName || d.supplier_name || 'Supplier';
+    d.reason = d.reason || 'Quality Rejection';
+    d.date = d.date || d.returnDate || nowStr;
+  }
+  // Store
+  else if (ep.includes('/warehouses')) {
+    d.warehouseCode = d.warehouseCode || d.warehouse_code || d.code || d.id || 'WH-001';
+    d.warehouse_code = d.warehouseCode;
+    d.name = d.name || 'Main Warehouse';
+  } else if (ep.includes('/qc-inspections')) {
+    d.grnId = d.grnId || d.grn_id || 'GRN-001';
+    d.grnNumber = d.grnNumber || d.grn_number || 'GRN-2026-0001';
+    d.date = d.date || d.inspectionDate || nowStr;
+  }
+  // Production
+  else if (ep.includes('/work-centers')) {
+    d.workCenterCode = d.workCenterCode || d.center_code || d.code || d.id || 'WC-001';
+    d.workCenterName = d.workCenterName || d.name || 'Work Center';
+  } else if (ep.includes('/production-plans')) {
+    d.planNumber = d.planNumber || d.plan_number || d.id || `PP-2026-${Date.now().toString().slice(-4)}`;
+    d.plan_number = d.planNumber;
+  }
+  // Maintenance
+  else if (ep.includes('/internal-assets')) {
+    d.assetName = d.assetName || d.name || 'Industrial Asset';
+    d.assetCode = d.assetCode || d.asset_code || d.code || d.id || 'AST-001';
+  } else if (ep.includes('/service-requests')) {
+    d.requestNumber = d.requestNumber || d.request_number || d.id || `SR-2026-${Date.now().toString().slice(-4)}`;
+    d.request_number = d.requestNumber;
+    d.requestDate = d.requestDate || d.date || nowStr;
+    d.customerName = d.customerName || d.client_name || d.assetName || 'Client';
+  } else if (ep.includes('/pm-plans')) {
+    d.planNumber = d.planNumber || d.plan_number || d.id || `PM-2026-${Date.now().toString().slice(-4)}`;
+    d.plan_number = d.planNumber;
+    d.startDate = d.startDate || nowStr;
+    const nextDue = new Date();
+    nextDue.setDate(nextDue.getDate() + 30);
+    d.nextDueDate = d.nextDueDate || nextDue.toISOString().split('T')[0];
+  }
+  // HR
+  else if (ep.includes('/designations')) {
+    d.designationCode = d.designationCode || d.code || d.id || 'DES-001';
+    d.designationName = d.designationName || d.name || 'Designation';
+  } else if (ep.includes('/leave-requests')) {
+    d.id = d.id || d.leaveNumber || `LV-${Date.now().toString().slice(-4)}`;
+    d.leaveNumber = d.id;
+    d.employeeId = d.employeeId || d.employee_id || 'EMP-001';
+    d.department = d.department || 'General';
+    d.leaveName = d.leaveName || d.leaveType || 'Casual Leave';
+    d.appliedDate = d.appliedDate || d.date || nowStr;
+    d.fromDate = d.fromDate || d.startDate || nowStr;
+    d.toDate = d.toDate || d.endDate || nowStr;
+    d.reason = d.reason || 'Personal / Sick Leave';
+  } else if (ep.includes('/advance-loans') || ep.includes('/employee-advances')) {
+    d.id = d.id || d.loanNumber || `ADV-${Date.now().toString().slice(-4)}`;
+    d.loanNumber = d.id;
+    d.employeeId = d.employeeId || d.employee_id || 'EMP-001';
+    d.department = d.department || 'General';
+    d.disbursementDate = d.disbursementDate || nowStr;
+  } else if (ep.includes('/employee-onboardings')) {
+    d.id = d.id || `ONB-${Date.now().toString().slice(-4)}`;
+    d.designation = d.designation || d.position || 'Staff';
+    d.department = d.department || 'Production';
+    d.joiningDate = d.joiningDate || d.joining_date || nowStr;
+  } else if (ep.includes('/employee-exits')) {
+    d.id = d.id || `EXIT-${Date.now().toString().slice(-4)}`;
+    d.employeeId = d.employeeId || d.employee_id || 'EMP-001';
+    d.department = d.department || 'General';
+    d.designation = d.designation || 'Staff';
+    d.reason = d.reason || 'Career Growth / Personal';
+    d.lastWorkingDate = d.lastWorkingDate || d.resignationDate || nowStr;
+  }
+  // Accounting
+  else if (ep.includes('/sales-invoices')) {
+    const due = new Date();
+    due.setDate(due.getDate() + 30);
+    d.invoiceNumber = d.invoiceNumber || d.invoice_number || d.id || `INV-2026-${Date.now().toString().slice(-4)}`;
+    d.invoice_number = d.invoiceNumber;
+    d.invoiceDate = d.invoiceDate || d.date || nowStr;
+    d.date = d.invoiceDate;
+    d.dueDate = d.dueDate || due.toISOString().split('T')[0];
+    d.customerId = d.customerId || 'CUST-001';
+    d.customerName = d.customerName || 'Customer';
+  } else if (ep.includes('/purchase-invoices')) {
+    const due = new Date();
+    due.setDate(due.getDate() + 30);
+    d.invoiceNumber = d.invoiceNumber || d.invoice_number || d.id || `PINV-2026-${Date.now().toString().slice(-4)}`;
+    d.invoice_number = d.invoiceNumber;
+    d.invoiceDate = d.invoiceDate || d.date || nowStr;
+    d.date = d.invoiceDate;
+    d.dueDate = d.dueDate || due.toISOString().split('T')[0];
+    d.supplierId = d.supplierId || 'SUP-001';
+    d.supplierName = d.supplierName || 'Supplier';
+  } else if (ep.includes('/customer-receipts')) {
+    d.receiptNumber = d.receiptNumber || d.receipt_number || d.id || `REC-2026-${Date.now().toString().slice(-4)}`;
+    d.receipt_number = d.receiptNumber;
+    d.receiptDate = d.receiptDate || d.date || nowStr;
+    d.date = d.receiptDate;
+    d.customerId = d.customerId || 'CUST-001';
+    d.customerName = d.customerName || 'Customer';
+  } else if (ep.includes('/supplier-payments')) {
+    d.paymentNumber = d.paymentNumber || d.payment_number || d.id || `PAY-2026-${Date.now().toString().slice(-4)}`;
+    d.payment_number = d.paymentNumber;
+    d.paymentDate = d.paymentDate || d.date || nowStr;
+    d.date = d.paymentDate;
+    d.supplierId = d.supplierId || 'SUP-001';
+    d.supplierName = d.supplierName || 'Supplier';
+  } else if (ep.includes('/expense-entries') || ep.includes('/expenses')) {
+    d.expenseNumber = d.expenseNumber || d.expense_number || d.id || `EXP-2026-${Date.now().toString().slice(-4)}`;
+    d.expense_number = d.expenseNumber;
+    d.expenseDate = d.expenseDate || d.date || nowStr;
+    d.date = d.expenseDate;
+    d.category = d.category || 'General';
+  }
+  return d;
+}
+
 export async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
   
@@ -54,8 +264,18 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
     ...(options.headers || {}),
   };
 
+  let body = options.body;
+  if (body && typeof body === 'string' && (options.method === 'POST' || options.method === 'PATCH' || options.method === 'PUT')) {
+    try {
+      const parsed = JSON.parse(body);
+      const normalized = normalizePayload(endpoint, parsed);
+      body = JSON.stringify(normalized);
+    } catch (_) {}
+  }
+
   let response = await fetch(url, {
     ...options,
+    body,
     headers,
   });
 
