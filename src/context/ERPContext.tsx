@@ -4518,8 +4518,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           );
         }
       }
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_projectPlanningStages', JSON.stringify(updated)); } catch (_) {}
+      }
       return updated;
     });
+    api.projects.updatePlanningStage(id, stageUpdates).catch((err) => console.warn('Failed to update stage on backend:', err));
   };
 
   const addPlanningStage = (stageData: Omit<ProjectPlanningStage, 'id'>): ProjectPlanningStage => {
@@ -4527,9 +4531,15 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       ...stageData,
       id: `STG-${stageData.projectId}-${Date.now().toString().slice(-4)}`,
     };
-    setProjectPlanningStages((prev) => [...prev, newStage]);
+    setProjectPlanningStages((prev) => {
+      const updated = [...prev, newStage];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_projectPlanningStages', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logProjectActivity(stageData.projectId, stageData.jobNumber, 'Stage Added', `Added planning stage: ${stageData.stageName}`);
-    api.post('/planning-stages/', {
+    api.projects.createPlanningStage({
       ...newStage,
       project_id: stageData.projectId,
       stage_number: stageData.stageNumber,
@@ -4544,7 +4554,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       description: stageData.remarks || '',
     }).then((res: any) => {
       if (res && res.id) {
-        setProjectPlanningStages((prev) => prev.map((s) => (s.id === newStage.id ? { ...s, id: res.id } : s)));
+        setProjectPlanningStages((prev) => {
+          const synced = prev.map((s) => (s.id === newStage.id ? { ...s, ...res, id: res.id } : s));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_projectPlanningStages', JSON.stringify(synced)); } catch (_) {}
+          }
+          return synced;
+        });
       }
     }).catch((err) => console.warn('Failed to add stage on backend:', err));
     return newStage;
@@ -4590,8 +4606,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         'Stage Removed',
         `Removed stage "${target.stageName}". Remaining active stages: ${prjStages.length}`
       );
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_projectPlanningStages', JSON.stringify(updated)); } catch (_) {}
+      }
       return updated;
     });
+    api.projects.deletePlanningStage(id).catch((err) => console.warn('Failed to delete stage on backend:', err));
   };
 
   const reorderPlanningStages = (projectId: string, newOrderedStages: ProjectPlanningStage[]) => {
@@ -4603,7 +4623,15 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ...stg,
         stageNumber: idx + 1,
       }));
-      return [...otherStages, ...renumbered];
+      const updated = [...otherStages, ...renumbered];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_projectPlanningStages', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    // Sync each renumbered stage to backend
+    newOrderedStages.forEach((stg, idx) => {
+      api.projects.updatePlanningStage(stg.id, { stageNumber: idx + 1, stage_number: idx + 1 }).catch(() => {});
     });
   };
 
@@ -4635,10 +4663,16 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     if (!prj) return [];
 
     const newStages = create16PlanningStagesForProject(prj);
-    setProjectPlanningStages((prev) => [
-      ...prev.filter((s) => s.projectId !== projectId && s.jobNumber !== prj.jobNumber),
-      ...newStages,
-    ]);
+    setProjectPlanningStages((prev) => {
+      const updated = [
+        ...prev.filter((s) => s.projectId !== projectId && s.jobNumber !== prj.jobNumber),
+        ...newStages,
+      ];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_projectPlanningStages', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
 
     const avgProgress = Math.round(
       newStages.reduce((sum, s) => sum + (s.progressPercent || 0), 0) / newStages.length
@@ -4648,6 +4682,15 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     );
 
     logProjectActivity(prj.id, prj.jobNumber, 'Planning Matrix Generated', 'Generated full 16-stage MTO execution plan');
+
+    // Trigger backend 16-stage generation & sync
+    api.projects.generatePlanningStages(projectId).catch(() => {
+      // Fallback: create each stage individually
+      newStages.forEach((stg) => {
+        api.projects.createPlanningStage(stg).catch(() => {});
+      });
+    });
+
     return newStages;
   };
 

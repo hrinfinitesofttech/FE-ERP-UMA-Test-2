@@ -399,6 +399,14 @@ export const api = {
     delete: (id: string) => request<any>(`/projects/${id}/`, { method: 'DELETE' }),
     planningStages: (projectId?: string) =>
       request<any[]>(projectId ? `/planning-stages/?projectId=${projectId}` : '/planning-stages/'),
+    createPlanningStage: (data: any) =>
+      request<any>('/planning-stages/', { method: 'POST', body: JSON.stringify(data) }),
+    updatePlanningStage: (id: string, data: any) =>
+      request<any>(`/planning-stages/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+    deletePlanningStage: (id: string) =>
+      request<any>(`/planning-stages/${id}/`, { method: 'DELETE' }),
+    generatePlanningStages: (projectId: string) =>
+      request<any>(`/projects/${projectId}/generate-stages/`, { method: 'POST' }),
     milestones: (projectId?: string) =>
       request<any[]>(projectId ? `/project-milestones/?projectId=${projectId}` : '/project-milestones/'),
     tasks: (projectId?: string) =>
