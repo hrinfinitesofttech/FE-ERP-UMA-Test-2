@@ -3027,15 +3027,62 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   // Numbering Generator Helper
   const getNextDocNumber = (docType: NumberingSetting['docType']): string => {
     const numConfig = numbering.find((n) => n.docType === docType);
-    if (!numConfig) {
-      return `${docType?.toUpperCase()}-${Date.now().toString().slice(-4)}`;
+    let prefix = numConfig?.prefix || '';
+    let digitCount = numConfig?.digitCount || 4;
+    let suffix = numConfig?.suffix || '';
+
+    if (!prefix) {
+      if (docType === 'customer_po') prefix = 'CPO-2026-';
+      else if (docType === 'sales_order') prefix = 'SO-2026-';
+      else if (docType === 'quotation') prefix = 'QT-2026-';
+      else if (docType === 'lead') prefix = 'LEAD-2026-';
+      else if (docType === 'enquiry') prefix = 'ENQ-2026-';
+      else if (docType === 'opportunity') prefix = 'OPP-2026-';
+      else if (docType === 'visit') prefix = 'VIS-2026-';
+      else if (docType === 'project') prefix = 'PRJ-2026-';
+      else if (docType === 'job') prefix = 'JOB-2026-';
+      else prefix = `${docType?.toUpperCase()}-2026-`;
     }
-    const nextNum = numConfig.currentNumber + 1;
+
+    // Collect all existing IDs in state for this document type
+    let existingIds: string[] = [];
+    if (docType === 'customer_po') {
+      existingIds = (customerPOs || []).flatMap((p) => [p.id, (p as any).internalCpoNo, (p as any).internal_cpo_no]).filter(Boolean);
+    } else if (docType === 'sales_order') {
+      existingIds = (salesOrders || []).flatMap((s) => [s.id, s.salesOrderNumber]).filter(Boolean);
+    } else if (docType === 'quotation') {
+      existingIds = (quotations || []).flatMap((q) => [q.id, q.quotationNumber]).filter(Boolean);
+    } else if (docType === 'lead') {
+      existingIds = (leads || []).flatMap((l) => [l.id, l.leadNo]).filter(Boolean);
+    } else if (docType === 'enquiry') {
+      existingIds = (enquiries || []).flatMap((e) => [e.id, e.enquiryNo]).filter(Boolean);
+    } else if (docType === 'opportunity') {
+      existingIds = (opportunities || []).flatMap((o) => [o.id, o.opportunityNo]).filter(Boolean);
+    } else if (docType === 'visit') {
+      existingIds = (siteVisits || []).flatMap((v) => [v.id, v.visitNo]).filter(Boolean);
+    } else if (docType === 'project') {
+      existingIds = (projectJobs || []).flatMap((p) => [p.id, p.projectNumber]).filter(Boolean);
+    } else if (docType === 'job') {
+      existingIds = (projectJobs || []).flatMap((p) => [p.jobNumber]).filter(Boolean);
+    }
+
+    let maxNum = numConfig?.currentNumber || 0;
+    existingIds.forEach((idStr) => {
+      const match = String(idStr).match(/(\d+)$/);
+      if (match) {
+        const parsed = parseInt(match[1], 10);
+        if (!isNaN(parsed) && parsed > maxNum) {
+          maxNum = parsed;
+        }
+      }
+    });
+
+    const nextNum = maxNum + 1;
     setNumbering((prev) =>
       prev.map((n) => (n.docType === docType ? { ...n, currentNumber: nextNum } : n))
     );
-    const padded = String(nextNum).padStart(numConfig.digitCount, '0');
-    return `${numConfig.prefix}${padded}${numConfig.suffix || ''}`;
+    const padded = String(nextNum).padStart(digitCount, '0');
+    return `${prefix}${padded}${suffix}`;
   };
 
   // Audit Logger Hook
