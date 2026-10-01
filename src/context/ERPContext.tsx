@@ -5322,10 +5322,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const desJob = designJobs.find((j) => j.id === designJobId || j.designJobNumber === designJobId || j.jobNumber === designJobId);
     if (!desJob) return;
 
+    const remarks = `Released to shop floor by ${releasedBy} on ${new Date().toLocaleDateString()}`;
+
     setDesignJobs((prev) => {
       const updated = prev.map((j) =>
         j.id === desJob.id || j.designJobNumber === desJob.designJobNumber || j.jobNumber === desJob.jobNumber
-          ? { ...j, status: 'released_to_production' as const, remarks: `Released to shop floor by ${releasedBy} on ${new Date().toLocaleDateString()}` }
+          ? { ...j, status: 'released_to_production' as const, remarks, approvedBy: releasedBy, approvedDate: new Date().toLocaleDateString() }
           : j
       );
       if (typeof window !== 'undefined') {
@@ -5356,7 +5358,21 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       linkUrl: `/designer/jobs`,
     });
 
-    api.designer.jobs.releaseToProduction(desJob.id, { releasedBy, remarks: `Released to shop floor by ${releasedBy}` }).catch((err) =>
+    api.designer.jobs.releaseToProduction(desJob.id, {
+      ...desJob,
+      status: 'released_to_production',
+      releasedBy,
+      remarks,
+      customerName: desJob.customerName,
+      productName: desJob.productName,
+      jobNumber: desJob.jobNumber,
+      projectId: desJob.projectId,
+      machineType: desJob.machineType,
+      assignedDesigner: desJob.assignedDesigner,
+      designManager: desJob.designManager,
+      activeRevision: desJob.activeRevision,
+      deliveryDate: desJob.deliveryDate,
+    }).catch((err) =>
       console.warn('Failed to sync release to backend:', err)
     );
   };
