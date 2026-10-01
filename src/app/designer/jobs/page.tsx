@@ -85,8 +85,15 @@ export default function DesignJobsPage() {
     const proj = projectJobs.find((p) => p.id === selectedProjectId);
     if (!proj) return;
 
+    let maxNum = 0;
+    designJobs.forEach((j) => {
+      const match = (j.id || '').match(/(\d+)$/) || (j.designJobNumber || '').match(/(\d+)$/);
+      if (match) maxNum = Math.max(maxNum, parseInt(match[1], 10));
+    });
+    const desJobNumber = `DES-${new Date().getFullYear()}-${String(maxNum + 1).padStart(4, '0')}`;
+
     addDesignJob({
-      designJobNumber: `DES-${new Date().getFullYear()}-${String(designJobs.length + 1).padStart(4, '0')}`,
+      designJobNumber: desJobNumber,
       projectId: proj.id,
       projectNumber: proj.projectNumber,
       jobNumber: proj.jobNumber,

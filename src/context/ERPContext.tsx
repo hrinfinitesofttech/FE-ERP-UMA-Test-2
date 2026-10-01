@@ -4913,10 +4913,16 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
   // Module 3: Designer Management Handlers
   const addDesignJob = (data: Omit<DesignJob, 'id' | 'createdDate'>) => {
-    const id = `DES-${new Date().getFullYear()}-${String(designJobs.length + 1).padStart(4, '0')}`;
+    let maxNum = 0;
+    designJobs.forEach((j) => {
+      const match = (j.id || '').match(/(\d+)$/) || (j.designJobNumber || '').match(/(\d+)$/);
+      if (match) maxNum = Math.max(maxNum, parseInt(match[1], 10));
+    });
+    const id = `DES-${new Date().getFullYear()}-${String(maxNum + 1).padStart(4, '0')}`;
     const newJob: DesignJob = {
       ...data,
       id,
+      designJobNumber: data.designJobNumber || id,
       createdDate: new Date().toISOString().split('T')[0],
     };
     setDesignJobs((prev) => {
