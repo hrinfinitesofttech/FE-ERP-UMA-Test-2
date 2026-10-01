@@ -388,7 +388,7 @@ export interface CustomerPO {
   poAmount: number;
   paymentTerms: string;
   deliveryDate: string;
-  status: 'received' | 'verified' | 'sales_order_created' | 'cancelled';
+  status: 'received' | 'verified' | 'sales_order_created' | 'converted_to_so' | 'cancelled' | string;
   attachmentUrl?: string;
   remarks?: string;
 }
