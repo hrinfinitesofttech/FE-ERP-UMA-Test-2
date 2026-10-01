@@ -316,7 +316,7 @@ export default function EmployeeTransfersPage() {
       setTimeout(() => setSuccessToast(null), 4000);
     } catch (err) {
       console.error('Failed to save transfer order:', err);
-      setLoadError('The transfer details could not be loaded. Please refresh the page and try again.');
+      setLoadError('The transfer details could not be loaded correctly. Please refresh the page and try again.');
     }
   };
 

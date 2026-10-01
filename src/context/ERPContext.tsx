@@ -1399,7 +1399,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     return MOCK_ASSEMBLY_DRAWINGS;
   });
   const [partDrawings, setPartDrawings] = useState<PartDrawing[]>(MOCK_PART_DRAWINGS);
-  const [boms, setBoms] = useState<BOMHeader[]>(MOCK_BOM_HEADERS);
+  const [boms, setBoms] = useState<BOMHeader[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_boms');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return MOCK_BOM_HEADERS;
+  });
   const [bomRevisions, setBomRevisions] = useState<BOMRevision[]>(MOCK_BOM_REVISIONS);
   const [designRevisions, setDesignRevisions] = useState<DesignRevisionLog[]>(MOCK_DESIGN_REVISIONS);
   const [designReviews, setDesignReviews] = useState<DesignReviewChecklist[]>(MOCK_DESIGN_REVIEWS);
@@ -2091,7 +2102,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             });
             const normalized: DesignJob[] = rawDesignJobs.map((j: any) => {
               const local = localMap.get(j.id) || localMap.get(j.designJobNumber) || localMap.get(j.design_job_number) || localMap.get(j.job_number) || localMap.get(j.jobNumber);
-              const isLocalReleased = local?.status === 'released_to_production' || local?.status === 'approved';
+              const isReleased = j.status === 'released_to_production' || j.status === 'approved' || local?.status === 'released_to_production' || local?.status === 'approved';
+              const effectiveStatus = isReleased ? 'released_to_production' : (j.status || local?.status || 'in_progress');
+              const effectiveRemarks = isReleased ? (j.remarks || local?.remarks || 'Released to shop floor') : (j.remarks || local?.remarks || '');
               return {
                 ...j,
                 id: String(j.id || j.designJobNumber || j.design_job_number),
@@ -2101,8 +2114,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
                 customerId: j.customerId || j.customer_id || '',
                 customerName: j.customerName || j.customer_name || 'Customer',
                 productName: j.productName || j.product_name || 'Custom Equipment',
-                status: isLocalReleased ? local.status : (j.status || 'in_progress'),
-                remarks: local?.remarks || j.remarks || '',
+                status: effectiveStatus,
+                remarks: effectiveRemarks,
                 activeRevision: j.activeRevision || j.active_revision || 'REV-00',
                 deliveryDate: j.deliveryDate || j.delivery_date || '',
                 assignedDesigner: j.assignedDesigner || j.assigned_designer || 'Dharmesh Joshi',
