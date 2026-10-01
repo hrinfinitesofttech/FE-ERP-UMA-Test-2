@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import {
   Zap,
@@ -29,10 +29,15 @@ import {
 export default function DesignApprovalPage() {
   const { designJobs, releaseDesignToManufacturing, revokeDesignRelease, currentUser, boms } = useERP();
 
+  const [mounted, setMounted] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'released'>('all');
   const [isReleasing, setIsReleasing] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Filtered jobs
   const filteredJobs = useMemo(() => {
@@ -88,6 +93,18 @@ export default function DesignApprovalPage() {
   const totalCount = designJobs.length;
   const releasedCount = designJobs.filter((j) => j.status === 'released_to_production').length;
   const pendingCount = totalCount - releasedCount;
+
+  if (!mounted) {
+    return (
+      <div className="p-8 max-w-[1600px] mx-auto space-y-6">
+        <div className="h-32 bg-[#FAF7F2] animate-pulse rounded-3xl border border-[#EBE3DB]" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-4 h-96 bg-[#FAF7F2] animate-pulse rounded-3xl border border-[#EBE3DB]" />
+          <div className="lg:col-span-8 h-96 bg-[#FAF7F2] animate-pulse rounded-3xl border border-[#EBE3DB]" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-[1600px] mx-auto space-y-6 text-[#211B17]">
