@@ -246,6 +246,85 @@ function normalizePayload(endpoint: string, body: any): any {
     d.date = d.expenseDate;
     d.category = d.category || 'General';
   }
+  // Production Module Normalization
+  else if (ep.includes('/production-schedules')) {
+    d.scheduleNumber = d.scheduleNumber || d.schedule_number || d.id || `SCH-2026-${Date.now().toString().slice(-4)}`;
+    d.schedule_number = d.scheduleNumber;
+    d.job_number = d.jobNumber || d.job_number || d.jobId || '';
+    d.work_order_number = d.workOrderNumber || d.work_order_number || d.woNum || '';
+    d.operation_name = d.operationName || d.operation_name || d.opName || 'Operation';
+    d.work_center_code = d.workCenterCode || d.work_center_code || d.wcCode || '';
+    d.work_center_name = d.workCenterName || d.work_center_name || '';
+    d.assigned_operator = d.assignedOperator || d.assigned_operator || d.operator || '';
+  } else if (ep.includes('/production-entries')) {
+    d.productionEntryNumber = d.productionEntryNumber || d.production_entry_number || d.id || `PENTRY-2026-${Date.now().toString().slice(-4)}`;
+    d.production_entry_number = d.productionEntryNumber;
+    d.entry_date = d.entryDate || d.entry_date || nowStr;
+    d.job_number = d.jobNumber || d.job_number || d.jobId || '';
+    d.work_order_number = d.workOrderNumber || d.work_order_number || '';
+    d.operation_name = d.operationName || d.operation_name || 'Production Operation';
+    d.operator_name = d.operatorName || d.operator_name || d.operator || 'Operator';
+    d.produced_quantity = d.producedQuantity !== undefined ? d.producedQuantity : (d.produced_quantity || 0);
+    d.rejected_quantity = d.rejectedQuantity !== undefined ? d.rejectedQuantity : (d.rejected_quantity || 0);
+    d.rework_quantity = d.reworkQuantity !== undefined ? d.reworkQuantity : (d.rework_quantity || 0);
+    d.scrap_quantity = d.scrapQuantity !== undefined ? d.scrapQuantity : (d.scrap_quantity || 0);
+    d.good_quantity = d.goodQuantity !== undefined ? d.goodQuantity : Math.max(0, Number(d.produced_quantity) - Number(d.rejected_quantity) - Number(d.scrap_quantity));
+  } else if (ep.includes('/rework-orders')) {
+    d.reworkNumber = d.reworkNumber || d.rework_number || d.id || `RWK-2026-${Date.now().toString().slice(-4)}`;
+    d.rework_number = d.reworkNumber;
+    d.job_number = d.jobNumber || d.job_number || d.jobId || '';
+    d.work_order_number = d.workOrderNumber || d.work_order_number || '';
+    d.item_code = d.itemCode || d.item_code || 'ITEM-001';
+    d.item_name = d.itemName || d.item_name || 'Component';
+    d.start_date = d.startDate || d.start_date || nowStr;
+    d.assigned_operator = d.assignedOperator || d.assigned_operator || d.operator || '';
+    d.rework_instructions = d.reworkInstructions || d.rework_instructions || d.instructions || '';
+  } else if (ep.includes('/production-scraps')) {
+    d.scrapNumber = d.scrapNumber || d.scrap_number || d.id || `PSCRAP-2026-${Date.now().toString().slice(-4)}`;
+    d.scrap_number = d.scrapNumber;
+    d.entry_date = d.entryDate || d.entry_date || nowStr;
+    d.job_number = d.jobNumber || d.job_number || d.jobId || '';
+    d.work_order_number = d.workOrderNumber || d.work_order_number || '';
+    d.material_code = d.materialCode || d.material_code || 'SCRAP-001';
+    d.material_name = d.materialName || d.material_name || 'Scrap Material';
+    d.scrap_type = d.scrapType || d.scrap_type || 'Cutting Scrap';
+    d.operator_name = d.operatorName || d.operator_name || d.operator || '';
+  } else if (ep.includes('/routing-operations')) {
+    d.id = d.id || `OP-${(d.operationNumber || d.sequence || 1) * 10}`;
+    d.operation_number = d.operationNumber !== undefined ? d.operationNumber : (d.operation_number || 10);
+    d.operation_name = d.operationName || d.operation_name || 'Routing Operation';
+    d.sequence = d.sequence !== undefined ? d.sequence : (d.sequence_number || 1);
+    d.work_center_code = d.workCenterCode || d.work_center_code || '';
+    d.work_center_name = d.workCenterName || d.work_center_name || '';
+    d.machine_name = d.machineName || d.machine_name || '';
+    d.department = d.department || 'Production';
+    d.planned_setup_minutes = d.plannedSetupMinutes !== undefined ? d.plannedSetupMinutes : (d.planned_setup_minutes || 0);
+    d.planned_processing_minutes = d.plannedProcessingMinutes !== undefined ? d.plannedProcessingMinutes : (d.planned_processing_minutes || 0);
+    d.total_planned_minutes = d.totalPlannedMinutes !== undefined ? d.totalPlannedMinutes : (Number(d.planned_setup_minutes) + Number(d.planned_processing_minutes));
+    d.assigned_operator = d.assignedOperator || d.assigned_operator || '';
+    d.qc_required = d.qcRequired !== undefined ? d.qcRequired : (d.qc_required !== undefined ? d.qc_required : true);
+    d.instructions = d.instructions || '';
+    d.status = d.status || 'Ready';
+  } else if (ep.includes('/production-holds')) {
+    d.holdNumber = d.holdNumber || d.hold_number || d.id || `HLD-2026-${Date.now().toString().slice(-4)}`;
+    d.hold_number = d.holdNumber;
+    d.job_number = d.jobNumber || d.job_number || d.jobId || '';
+    d.work_order_number = d.workOrderNumber || d.work_order_number || '';
+    d.operation_name = d.operationName || d.operation_name || 'Fitting & Assembly';
+    d.reason = d.reason || 'Material Shortage';
+    d.description = d.description || '';
+    d.start_date = d.startDate || d.start_date || nowStr;
+    d.expected_resume_date = d.expectedResumeDate || d.expected_resume_date || null;
+    d.approved_by = d.approvedBy || d.approved_by || 'Production Manager';
+    d.status = d.status || 'Active Hold';
+  } else if (ep.includes('/material-issues')) {
+    d.issueNumber = d.issueNumber || d.issue_number || d.id || `ISS-2026-${Date.now().toString().slice(-4)}`;
+    d.issue_number = d.issueNumber;
+    d.job_number = d.jobNumber || d.job_number || d.jobId || '';
+    d.work_order_id = d.workOrderNumber || d.work_order_id || d.workOrderId || '';
+    d.issued_to = d.issuedTo || d.issued_to || d.requestedBy || 'Production Head';
+    d.issue_date = d.issueDate || d.issue_date || nowStr;
+  }
   return d;
 }
 
@@ -834,8 +913,18 @@ export const api = {
     },
     qcInspections: () => request<any[]>('/qc-inspections/'),
     stock: () => request<any[]>('/stock/'),
-    materialIssues: () => request<any[]>('/material-issues/'),
-    materialReturns: () => request<any[]>('/material-returns/'),
+    materialIssues: {
+      list: () => request<any[]>('/material-issues/'),
+      create: (data: any) => request<any>('/material-issues/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/material-issues/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/material-issues/${id}/`, { method: 'DELETE' }),
+    },
+    materialReturns: {
+      list: () => request<any[]>('/material-returns/'),
+      create: (data: any) => request<any>('/material-returns/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/material-returns/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/material-returns/${id}/`, { method: 'DELETE' }),
+    },
     transfers: () => request<any[]>('/stock-transfers/'),
     adjustments: () => request<any[]>('/stock-adjustments/'),
     stockLedger: () => request<any[]>('/stock-ledger/'),
@@ -845,8 +934,18 @@ export const api = {
   // Production Execution
   production: {
     jobs: () => request<any[]>('/manufacturing-jobs/'),
-    workCenters: () => request<any[]>('/work-centers/'),
-    routingOperations: () => request<any[]>('/routing-operations/'),
+    workCenters: {
+      list: () => request<any[]>('/work-centers/'),
+      create: (data: any) => request<any>('/work-centers/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/work-centers/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/work-centers/${id}/`, { method: 'DELETE' }),
+    },
+    routingOperations: {
+      list: () => request<any[]>('/routing-operations/'),
+      create: (data: any) => request<any>('/routing-operations/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/routing-operations/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/routing-operations/${id}/`, { method: 'DELETE' }),
+    },
     workOrders: {
       list: () => request<any[]>('/work-orders/'),
       create: (data: any) => request<any>('/work-orders/', { method: 'POST', body: JSON.stringify(data) }),
@@ -860,10 +959,48 @@ export const api = {
       update: (id: string, data: any) => request<any>(`/production-orders/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: string) => request<any>(`/production-orders/${id}/`, { method: 'DELETE' }),
     },
-    entries: () => request<any[]>('/production-entries/'),
-    wip: () => request<any[]>('/wip-records/'),
+    schedules: {
+      list: () => request<any[]>('/production-schedules/'),
+      create: (data: any) => request<any>('/production-schedules/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/production-schedules/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/production-schedules/${id}/`, { method: 'DELETE' }),
+    },
+    entries: {
+      list: () => request<any[]>('/production-entries/'),
+      create: (data: any) => request<any>('/production-entries/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/production-entries/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/production-entries/${id}/`, { method: 'DELETE' }),
+    },
+    wip: {
+      list: () => request<any[]>('/wip-records/'),
+      create: (data: any) => request<any>('/wip-records/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/wip-records/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/wip-records/${id}/`, { method: 'DELETE' }),
+    },
+    holds: {
+      list: () => request<any[]>('/production-holds/'),
+      create: (data: any) => request<any>('/production-holds/', { method: 'POST', body: JSON.stringify(data) }),
+      resume: (id: string, resumeDate?: string) =>
+        request<any>(`/production-holds/${id}/resume/`, { method: 'POST', body: JSON.stringify({ resume_date: resumeDate || new Date().toISOString().split('T')[0] }) }),
+      update: (id: string, data: any) => request<any>(`/production-holds/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/production-holds/${id}/`, { method: 'DELETE' }),
+    },
+    reworkOrders: {
+      list: () => request<any[]>('/rework-orders/'),
+      create: (data: any) => request<any>('/rework-orders/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/rework-orders/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/rework-orders/${id}/`, { method: 'DELETE' }),
+    },
+    scraps: {
+      list: () => request<any[]>('/production-scraps/'),
+      create: (data: any) => request<any>('/production-scraps/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/production-scraps/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/production-scraps/${id}/`, { method: 'DELETE' }),
+    },
     finishedGoods: {
       list: () => request<any[]>('/finished-goods/'),
+      create: (data: any) => request<any>('/finished-goods/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/finished-goods/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       qcPass: (id: string) => request<any>(`/finished-goods/${id}/qc-pass/`, { method: 'POST' }),
     },
   },

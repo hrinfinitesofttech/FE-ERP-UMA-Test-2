@@ -125,29 +125,37 @@ export default function ProductionEntryPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB]">
-              {productionEntries.map((entry) => (
-                <tr key={entry.id} className="hover:bg-[#FAF7F2]/40 transition">
-                  <td className="p-3 font-mono font-bold text-lime-400">{entry.productionEntryNumber}</td>
-                  <td className="p-3">
-                    <div className="font-mono font-bold text-sky-400">{entry.jobNumber}</div>
-                    <div className="font-mono text-indigo-300 text-[11px]">{entry.workOrderNumber}</div>
-                  </td>
-                  <td className="p-3 max-w-xs">
-                    <div className="font-semibold text-[#211B17]">{entry.operationName}</div>
-                    <div className="text-[11px] text-crm-brand- font-mono">{entry.workCenterName}</div>
-                  </td>
-                  <td className="p-3 font-medium text-[#544B45]">{entry.operatorName}</td>
-                  <td className="p-3 text-right font-bold text-[#544B45]">{entry.producedQuantity}</td>
-                  <td className="p-3 text-right font-mono text-rose-400">{entry.rejectedQuantity}</td>
-                  <td className="p-3 text-right font-mono text-amber-400">{entry.scrapQuantity}</td>
-                  <td className="p-3 text-right font-mono font-extrabold text-emerald-400 text-sm">
-                    {entry.goodQuantity}
-                  </td>
-                  <td className="p-3 text-right font-mono text-[#70665F]">
-                    {entry.downtimeMinutes > 0 ? `${entry.downtimeMinutes}m` : '0m'}
+              {productionEntries.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="p-8 text-center text-[#70665F]">
+                    No shift production entries recorded yet in database. Click &quot;Log Shift Production Entry&quot; to submit an operator entry.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                productionEntries.map((entry) => (
+                  <tr key={entry.id} className="hover:bg-[#FAF7F2]/40 transition">
+                    <td className="p-3 font-mono font-bold text-lime-600">{entry.productionEntryNumber}</td>
+                    <td className="p-3">
+                      <div className="font-mono font-bold text-sky-600">{entry.jobNumber}</div>
+                      <div className="font-mono text-indigo-600 text-[11px]">{entry.workOrderNumber}</div>
+                    </td>
+                    <td className="p-3 max-w-xs">
+                      <div className="font-semibold text-[#211B17]">{entry.operationName}</div>
+                      <div className="text-[11px] text-[#70665F] font-mono">{entry.workCenterName}</div>
+                    </td>
+                    <td className="p-3 font-medium text-[#544B45]">{entry.operatorName}</td>
+                    <td className="p-3 text-right font-bold text-[#544B45]">{entry.producedQuantity}</td>
+                    <td className="p-3 text-right font-mono text-rose-600">{entry.rejectedQuantity}</td>
+                    <td className="p-3 text-right font-mono text-amber-600">{entry.scrapQuantity}</td>
+                    <td className="p-3 text-right font-mono font-extrabold text-emerald-600 text-sm">
+                      {entry.goodQuantity}
+                    </td>
+                    <td className="p-3 text-right font-mono text-[#70665F]">
+                      {entry.downtimeMinutes > 0 ? `${entry.downtimeMinutes}m` : '0m'}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

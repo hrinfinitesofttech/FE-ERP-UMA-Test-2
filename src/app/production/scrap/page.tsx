@@ -6,15 +6,15 @@ import { AlertTriangle, Plus, DollarSign, Box, UserCheck } from 'lucide-react';
 import { ProductionScrapType } from '../../../types/production';
 
 export default function ProductionScrapPage() {
-  const { productionScraps, workOrders, addProductionScrap } = useERP();
+  const { productionScraps, workOrders, availableEmployees, addProductionScrap } = useERP();
   const [showModal, setShowModal] = useState(false);
 
-  const [selectedWo, setSelectedWo] = useState('WO-2026-001-A');
+  const [selectedWo, setSelectedWo] = useState(workOrders[0]?.workOrderNumber || 'WO-2026-001-A');
   const [materialName, setMaterialName] = useState('SS 316L Offcut Plates & Plasma Skeleton Scrap');
   const [scrapType, setScrapType] = useState<ProductionScrapType>('Cutting Scrap');
   const [qty, setQty] = useState(45);
   const [estimatedValue, setEstimatedValue] = useState(25200);
-  const [operator, setOperator] = useState('Mahesh Bariya');
+  const [operator, setOperator] = useState(availableEmployees[0]?.name || 'Mahesh Bariya');
 
   const handleAddScrap = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,24 +25,24 @@ export default function ProductionScrapPage() {
       jobId: wo?.jobId || 'PRJ-2026-0001',
       jobNumber: wo?.jobNumber || 'JOB-2026-001',
       workOrderNumber: selectedWo,
-      productionOrderNumber: 'PO-PROD-2026-001',
+      productionOrderNumber: `PO-PROD-${Date.now().toString().slice(-4)}`,
       operationName: 'Plasma & Laser Offcut Recovery',
       materialCode: 'RM-SCRAP-SS316L',
       materialName,
-      quantity: qty,
+      quantity: Number(qty) || 0,
       uom: 'Kg',
       reason: 'Standard CNC nested sheet offcut metal skeleton',
       scrapType,
       operatorName: operator,
-      estimatedValue,
+      estimatedValue: Number(estimatedValue) || 0,
     });
 
     setShowModal(false);
-    alert(`Production scrap logged successfully! Estimated recovery value: ₹${estimatedValue}`);
+    alert(`Production scrap saved to Database successfully! Estimated recovery value: ₹${estimatedValue}`);
   };
 
   return (
-    <div className="p-6 space-y-6 bg-[#090D1A]  text-[#544B45]">
+    <div className="p-6 space-y-6 bg-[#090D1A] text-[#544B45]">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-xl">
         <div className="flex items-center gap-3">
@@ -63,8 +63,11 @@ export default function ProductionScrapPage() {
         </div>
 
         <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 font-bold text-[#211B17] text-xs shadow-lg hover:brightness-110 transition"
+          onClick={() => {
+            if (workOrders.length > 0 && !selectedWo) setSelectedWo(workOrders[0].workOrderNumber);
+            setShowModal(true);
+          }}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 font-bold text-white text-xs shadow-lg hover:brightness-110 transition"
         >
           <Plus className="w-4 h-4" /> Log Production Scrap
         </button>
@@ -86,28 +89,36 @@ export default function ProductionScrapPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB]">
-              {productionScraps.map((scrap) => (
-                <tr key={scrap.id} className="hover:bg-[#FAF7F2]/40 transition">
-                  <td className="p-3 font-mono font-bold text-rose-400">{scrap.scrapNumber}</td>
-                  <td className="p-3">
-                    <div className="font-mono font-bold text-sky-400">{scrap.jobNumber}</div>
-                    <div className="font-mono text-indigo-300 text-[11px]">{scrap.workOrderNumber}</div>
+              {productionScraps.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-[#70665F]">
+                    No production scrap entries recorded yet in database. Click &quot;Log Production Scrap&quot; to log scrap materials.
                   </td>
-                  <td className="p-3 font-semibold text-[#211B17] max-w-xs">{scrap.materialName}</td>
-                  <td className="p-3">
-                    <span className="px-2 py-0.5 rounded bg-crm-brand-600/20 text-crm-brand- text-[10px] font-bold border border-crm-brand-600/30">
-                      {scrap.scrapType}
-                    </span>
-                  </td>
-                  <td className="p-3 text-right font-bold text-[#544B45]">
-                    {scrap.quantity} {scrap.uom}
-                  </td>
-                  <td className="p-3 text-right font-mono font-bold text-rose-300">
-                    ₹{scrap.estimatedValue?.toLocaleString('en-IN')}
-                  </td>
-                  <td className="p-3 font-medium text-[#544B45]">{scrap.operatorName}</td>
                 </tr>
-              ))}
+              ) : (
+                productionScraps.map((scrap) => (
+                  <tr key={scrap.id} className="hover:bg-[#FAF7F2]/40 transition">
+                    <td className="p-3 font-mono font-bold text-rose-600">{scrap.scrapNumber}</td>
+                    <td className="p-3">
+                      <div className="font-mono font-bold text-sky-600">{scrap.jobNumber}</div>
+                      <div className="font-mono text-indigo-600 text-[11px]">{scrap.workOrderNumber}</div>
+                    </td>
+                    <td className="p-3 font-semibold text-[#211B17] max-w-xs">{scrap.materialName}</td>
+                    <td className="p-3">
+                      <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-700 text-[10px] font-bold border border-blue-500/30">
+                        {scrap.scrapType}
+                      </span>
+                    </td>
+                    <td className="p-3 text-right font-bold text-[#544B45]">
+                      {scrap.quantity} {scrap.uom}
+                    </td>
+                    <td className="p-3 text-right font-mono font-bold text-rose-600">
+                      ₹{scrap.estimatedValue?.toLocaleString('en-IN')}
+                    </td>
+                    <td className="p-3 font-medium text-[#544B45]">{scrap.operatorName}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -133,21 +144,24 @@ export default function ProductionScrapPage() {
                   className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#544B45] focus:outline-none focus:border-rose-500"
                 >
                   {workOrders.map((w) => (
-                    <option key={w.id} value={w.workOrderNumber}>
+                    <option key={w.id || w.workOrderNumber} value={w.workOrderNumber}>
                       {w.workOrderNumber} — {w.jobNumber}
                     </option>
                   ))}
+                  {workOrders.length === 0 && (
+                    <option value="WO-2026-001-A">WO-2026-001-A (General)</option>
+                  )}
                 </select>
               </div>
 
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">Material Name</label>
+                <label className="block font-semibold text-[#544B45] mb-1">Material Description</label>
                 <input
                   type="text"
                   required
                   value={materialName}
                   onChange={(e) => setMaterialName(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#544B45] focus:outline-none focus:border-rose-500"
+                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#544B45] focus:outline-none focus:border-rose-500 font-medium"
                 />
               </div>
 
@@ -170,6 +184,8 @@ export default function ProductionScrapPage() {
                   <label className="block font-semibold text-[#544B45] mb-1">Scrap Weight (Kg)</label>
                   <input
                     type="number"
+                    min="0"
+                    step="any"
                     value={qty}
                     onChange={(e) => setQty(Number(e.target.value))}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#544B45] focus:outline-none focus:border-rose-500"
@@ -179,6 +195,8 @@ export default function ProductionScrapPage() {
                   <label className="block font-semibold text-[#544B45] mb-1">Est. Recovery Value (₹)</label>
                   <input
                     type="number"
+                    min="0"
+                    step="any"
                     value={estimatedValue}
                     onChange={(e) => setEstimatedValue(Number(e.target.value))}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#544B45] focus:outline-none focus:border-rose-500"
@@ -191,17 +209,26 @@ export default function ProductionScrapPage() {
                 <input
                   type="text"
                   required
+                  list="scrapOperatorSuggestions"
                   value={operator}
                   onChange={(e) => setOperator(e.target.value)}
                   className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#544B45] focus:outline-none focus:border-rose-500"
                 />
+                <datalist id="scrapOperatorSuggestions">
+                  {(availableEmployees || []).map((emp) => (
+                    <option key={emp.id} value={emp.name} />
+                  ))}
+                  <option value="Mahesh Bariya" />
+                  <option value="Suresh Patel" />
+                  <option value="Jayesh Parmar" />
+                </datalist>
               </div>
 
               <div className="pt-2 flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] font-medium hover:bg-[#FAF7F2]"
+                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] font-medium hover:bg-gray-200"
                 >
                   Cancel
                 </button>

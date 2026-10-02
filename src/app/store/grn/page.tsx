@@ -21,13 +21,6 @@ import {
   ClipboardCheck,
 } from 'lucide-react';
 
-const DEFAULT_WAREHOUSES = [
-  { id: 'wh-main', warehouseCode: 'WH-MAIN', warehouseName: 'Main Raw Material Warehouse (Bay 1 & 2)', address: 'Makarpura, Vadodara', warehouseType: 'Raw Material' as const, managerName: 'Ramesh Patel', contactPhone: '+91 98250 11223', contactEmail: 'store@umatechnofab.com', status: 'Active' as const },
-  { id: 'wh-bought', warehouseCode: 'WH-BOUGHT', warehouseName: 'Bought-Out & Hardware Store (Bay 3)', address: 'Makarpura, Vadodara', warehouseType: 'Bought-Out' as const, managerName: 'Suresh Shah', contactPhone: '+91 98250 11224', contactEmail: 'boughtout@umatechnofab.com', status: 'Active' as const },
-  { id: 'wh-fg', warehouseCode: 'WH-FG', warehouseName: 'Finished Goods & Dispatch Yard', address: 'Makarpura, Vadodara', warehouseType: 'Finished Goods' as const, managerName: 'Mahesh Joshi', contactPhone: '+91 98250 11225', contactEmail: 'dispatch@umatechnofab.com', status: 'Active' as const },
-  { id: 'wh-cons', warehouseCode: 'WH-CONS', warehouseName: 'Consumables & Tools Crib', address: 'Makarpura, Vadodara', warehouseType: 'Consumable' as const, managerName: 'Amit Desai', contactPhone: '+91 98250 11226', contactEmail: 'tools@umatechnofab.com', status: 'Active' as const },
-];
-
 export default function GoodsReceiptPage() {
   const { goodsReceipts, addGRN, purchaseOrders, suppliers, warehouses, projectJobs, approveQCInspection } = useERP();
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,14 +28,14 @@ export default function GoodsReceiptPage() {
   const [selectedGrnForDetails, setSelectedGrnForDetails] = useState<GoodsReceiptNote | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
 
-  const availableWarehouses = warehouses && warehouses.length > 0 ? warehouses : DEFAULT_WAREHOUSES;
+  const availableWarehouses = warehouses || [];
 
   // Form State
   const [supplierId, setSupplierId] = useState(suppliers[0]?.id || '');
   const [poId, setPoId] = useState(purchaseOrders[0]?.id || '');
   const [dcNo, setDcNo] = useState('');
   const [invNo, setInvNo] = useState('');
-  const [warehouseId, setWarehouseId] = useState(warehouses[0]?.id || availableWarehouses[0]?.id || 'wh-main');
+  const [warehouseId, setWarehouseId] = useState(warehouses[0]?.id || '');
   const [vehicleNo, setVehicleNo] = useState('');
   const [transporter, setTransporter] = useState('');
   const [remarks, setRemarks] = useState('');

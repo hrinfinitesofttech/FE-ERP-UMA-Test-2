@@ -9,30 +9,33 @@ export default function ProductionHoldPage() {
   const { productionHolds, workOrders, addProductionHold, resumeProductionHold } = useERP();
   const [showModal, setShowModal] = useState(false);
 
-  const [selectedWo, setSelectedWo] = useState('WO-2026-001-A');
+  const [selectedWo, setSelectedWo] = useState('');
+  const [opName, setOpName] = useState('Fitting & Assembly');
   const [reason, setReason] = useState<ProductionHoldReason>('Material Shortage');
-  const [desc, setDesc] = useState('Awaiting special alloy 90-degree elbows from supplier.');
-  const [resumeDate, setResumeDate] = useState('2026-10-05');
+  const [desc, setDesc] = useState('');
+  const [resumeDate, setResumeDate] = useState('');
 
   const handleHoldSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const wo = workOrders.find((w) => w.workOrderNumber === selectedWo);
+    const targetWo = selectedWo || workOrders[0]?.workOrderNumber || 'WO-2026-001-A';
+    const wo = workOrders.find((w) => w.workOrderNumber === targetWo);
 
     addProductionHold({
-      jobId: wo?.jobId || 'PRJ-2026-0001',
+      jobId: wo?.jobId || wo?.jobNumber || 'JOB-2026-001',
       jobNumber: wo?.jobNumber || 'JOB-2026-001',
-      workOrderNumber: selectedWo,
-      operationName: 'Fitting & Assembly',
+      workOrderNumber: targetWo,
+      operationName: opName || 'Fitting & Assembly',
       reason,
-      description: desc,
+      description: desc || 'Authorized production hold for resolution.',
       startDate: new Date().toISOString().split('T')[0],
-      expectedResumeDate: resumeDate,
+      expectedResumeDate: resumeDate || '',
       approvedBy: 'Bhavin Shah (Senior Production Manager)',
       status: 'Active Hold',
     });
 
     setShowModal(false);
-    alert(`Production Hold HLD-2026 placed on ${selectedWo}!`);
+    setDesc('');
+    alert(`Production Hold placed on ${targetWo}!`);
   };
 
   return (
@@ -82,48 +85,56 @@ export default function ProductionHoldPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB]">
-              {productionHolds.map((hld) => (
-                <tr key={hld.id} className="hover:bg-[#FAF7F2]/40 transition">
-                  <td className="p-3 font-mono font-bold text-red-400">{hld.holdNumber}</td>
-                  <td className="p-3">
-                    <div className="font-mono font-bold text-sky-400">{hld.jobNumber}</div>
-                    <div className="font-mono text-indigo-300 text-[11px]">{hld.workOrderNumber}</div>
-                  </td>
-                  <td className="p-3 font-semibold text-[#211B17]">{hld.operationName}</td>
-                  <td className="p-3">
-                    <span className="px-2 py-0.5 rounded bg-red-500/20 text-red-300 text-[10px] font-bold border border-red-500/30">
-                      {hld.reason}
-                    </span>
-                  </td>
-                  <td className="p-3 text-[#544B45] max-w-xs truncate">{hld.description}</td>
-                  <td className="p-3 text-[#70665F]">{hld.startDate}</td>
-                  <td className="p-3 text-amber-300 font-medium">{hld.expectedResumeDate}</td>
-                  <td className="p-3">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                        hld.status === 'Active Hold'
-                          ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
-                          : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                      }`}
-                    >
-                      {hld.status}
-                    </span>
-                  </td>
-                  <td className="p-3 text-right">
-                    {hld.status === 'Active Hold' && (
-                      <button
-                        onClick={() => {
-                          resumeProductionHold(hld.id, new Date().toISOString().split('T')[0]);
-                          alert(`Production Hold ${hld.holdNumber} resumed! Work order unblocked.`);
-                        }}
-                        className="px-2.5 py-1 rounded bg-emerald-600/20 text-emerald-300 hover:bg-emerald-600/30 border border-emerald-500/30 text-[11px] font-bold transition flex items-center gap-1 ml-auto"
-                      >
-                        <PlayCircle className="w-3.5 h-3.5" /> Resume Production
-                      </button>
-                    )}
+              {productionHolds.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="p-8 text-center text-[#70665F]">
+                    No active production holds. All work orders and routing operations are running on schedule.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                productionHolds.map((hld) => (
+                  <tr key={hld.id} className="hover:bg-[#FAF7F2]/40 transition">
+                    <td className="p-3 font-mono font-bold text-red-500">{hld.holdNumber}</td>
+                    <td className="p-3">
+                      <div className="font-mono font-bold text-sky-600">{hld.jobNumber}</div>
+                      <div className="font-mono text-indigo-500 text-[11px]">{hld.workOrderNumber}</div>
+                    </td>
+                    <td className="p-3 font-semibold text-[#211B17]">{hld.operationName}</td>
+                    <td className="p-3">
+                      <span className="px-2 py-0.5 rounded bg-red-500/20 text-red-600 text-[10px] font-bold border border-red-500/30">
+                        {hld.reason}
+                      </span>
+                    </td>
+                    <td className="p-3 text-[#544B45] max-w-xs truncate">{hld.description}</td>
+                    <td className="p-3 text-[#70665F]">{hld.startDate}</td>
+                    <td className="p-3 text-amber-600 font-medium">{hld.expectedResumeDate || '-'}</td>
+                    <td className="p-3">
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                          hld.status === 'Active Hold'
+                            ? 'bg-rose-500/20 text-rose-600 border-rose-500/30'
+                            : 'bg-emerald-500/20 text-emerald-700 border-emerald-500/30'
+                        }`}
+                      >
+                        {hld.status}
+                      </span>
+                    </td>
+                    <td className="p-3 text-right">
+                      {hld.status === 'Active Hold' && (
+                        <button
+                          onClick={() => {
+                            resumeProductionHold(hld.id, new Date().toISOString().split('T')[0]);
+                            alert(`Production Hold ${hld.holdNumber} resumed! Work order unblocked.`);
+                          }}
+                          className="px-2.5 py-1 rounded bg-emerald-600/20 text-emerald-700 hover:bg-emerald-600/30 border border-emerald-500/30 text-[11px] font-bold transition flex items-center gap-1 ml-auto"
+                        >
+                          <PlayCircle className="w-3.5 h-3.5" /> Resume Production
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -154,6 +165,17 @@ export default function ProductionHoldPage() {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#544B45] mb-1">Operation Step on Hold</label>
+                <input
+                  type="text"
+                  value={opName}
+                  onChange={(e) => setOpName(e.target.value)}
+                  placeholder="e.g. Fitting & Assembly, Milling, Welding"
+                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#544B45] focus:outline-none focus:border-red-500"
+                />
               </div>
 
               <div>

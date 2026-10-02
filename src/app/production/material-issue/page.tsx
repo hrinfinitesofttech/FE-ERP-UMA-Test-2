@@ -8,8 +8,8 @@ export default function ProductionMaterialIssuePage() {
   const { materialIssues, addMaterialIssue, workOrders, itemMasters, openJobModal } = useERP();
   const [showModal, setShowModal] = useState(false);
 
-  const [selectedWo, setSelectedWo] = useState('WO-2026-001-A');
-  const [selectedItemCode, setSelectedItemCode] = useState('RM-PLATE-316L-01');
+  const [selectedWo, setSelectedWo] = useState(workOrders[0]?.workOrderNumber || 'WO-2026-001-A');
+  const [selectedItemCode, setSelectedItemCode] = useState(itemMasters[0]?.itemCode || 'RM-PLATE-316L-01');
   const [qty, setQty] = useState(10);
   const [issuedTo, setIssuedTo] = useState('Ramesh Vaghela (Fabrication)');
 
@@ -52,11 +52,11 @@ export default function ProductionMaterialIssuePage() {
     });
 
     setShowModal(false);
-    alert('Material Issue Slip created & stock debited in Store!');
+    alert('Material Issue Slip created & saved to Database successfully!');
   };
 
   return (
-    <div className="p-6 space-y-6 bg-[#090D1A]  text-[#544B45]">
+    <div className="p-6 space-y-6 bg-[#090D1A] text-[#544B45]">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-xl">
         <div className="flex items-center gap-3">
@@ -77,8 +77,12 @@ export default function ProductionMaterialIssuePage() {
         </div>
 
         <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 font-bold text-[#211B17] text-xs shadow-lg hover:brightness-110 transition"
+          onClick={() => {
+            if (workOrders.length > 0 && !selectedWo) setSelectedWo(workOrders[0].workOrderNumber);
+            if (itemMasters.length > 0 && !selectedItemCode) setSelectedItemCode(itemMasters[0].itemCode);
+            setShowModal(true);
+          }}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 font-bold text-white text-xs shadow-lg hover:brightness-110 transition"
         >
           <Plus className="w-4 h-4" /> Create Material Request Slip
         </button>
@@ -102,34 +106,42 @@ export default function ProductionMaterialIssuePage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB]">
-              {materialIssues.map((issue) => (
-                <tr key={issue.id} className="hover:bg-[#FAF7F2]/40 transition">
-                  <td className="p-3 font-mono font-bold text-emerald-400">{issue.issueNumber}</td>
-                  <td className="p-3 font-mono text-sky-300">{issue.jobId || 'N/A'}</td>
-                  <td className="p-3 font-mono text-indigo-300">{issue.workOrderNumber || 'N/A'}</td>
-                  <td className="p-3 text-[#211B17] font-medium">{issue.requestedBy}</td>
-                  <td className="p-3 text-[#70665F]">{issue.warehouseName}</td>
-                  <td className="p-3 text-right font-bold text-[#544B45]">{issue.items.length}</td>
-                  <td className="p-3 text-right font-bold text-emerald-300 font-mono">
-                    ₹{issue.totalIssueValue?.toLocaleString('en-IN')}
-                  </td>
-                  <td className="p-3">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      {issue.status}
-                    </span>
-                  </td>
-                  <td className="p-3 text-right">
-                    {issue.jobId && (
-                      <button
-                        onClick={() => openJobModal(issue.jobId)}
-                        className="px-2.5 py-1 rounded bg-crm-brand-700/20 text-crm-brand- hover:bg-crm-brand-700/30 border border-crm-brand-600/30 text-[11px] font-bold transition"
-                      >
-                        360° Trace
-                      </button>
-                    )}
+              {materialIssues.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="p-8 text-center text-[#70665F]">
+                    No material request / issue records found in database. Click &quot;Create Material Request Slip&quot; to issue raw materials.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                materialIssues.map((issue) => (
+                  <tr key={issue.id} className="hover:bg-[#FAF7F2]/40 transition">
+                    <td className="p-3 font-mono font-bold text-emerald-500">{issue.issueNumber}</td>
+                    <td className="p-3 font-mono text-sky-600">{issue.jobId || 'N/A'}</td>
+                    <td className="p-3 font-mono text-indigo-600">{issue.workOrderNumber || 'N/A'}</td>
+                    <td className="p-3 text-[#211B17] font-medium">{issue.requestedBy}</td>
+                    <td className="p-3 text-[#70665F]">{issue.warehouseName}</td>
+                    <td className="p-3 text-right font-bold text-[#544B45]">{Array.isArray(issue.items) ? issue.items.length : 1}</td>
+                    <td className="p-3 text-right font-bold text-emerald-600 font-mono">
+                      ₹{issue.totalIssueValue?.toLocaleString('en-IN')}
+                    </td>
+                    <td className="p-3">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-700 border border-emerald-500/30">
+                        {issue.status}
+                      </span>
+                    </td>
+                    <td className="p-3 text-right">
+                      {issue.jobId && (
+                        <button
+                          onClick={() => openJobModal(issue.jobId)}
+                          className="px-2.5 py-1 rounded bg-orange-100 text-orange-700 hover:bg-orange-200 border border-orange-300 text-[11px] font-bold transition"
+                        >
+                          360° Trace
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -155,10 +167,13 @@ export default function ProductionMaterialIssuePage() {
                   className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#544B45] focus:outline-none focus:border-emerald-500"
                 >
                   {workOrders.map((w) => (
-                    <option key={w.id} value={w.workOrderNumber}>
+                    <option key={w.id || w.workOrderNumber} value={w.workOrderNumber}>
                       {w.workOrderNumber} — {w.jobNumber}
                     </option>
                   ))}
+                  {workOrders.length === 0 && (
+                    <option value="WO-2026-001-A">WO-2026-001-A (General)</option>
+                  )}
                 </select>
               </div>
 
@@ -169,11 +184,14 @@ export default function ProductionMaterialIssuePage() {
                   onChange={(e) => setSelectedItemCode(e.target.value)}
                   className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#544B45] focus:outline-none focus:border-emerald-500"
                 >
-                    {itemMasters.map((i) => (
-                      <option key={i.id} value={i.itemCode}>
-                        {i.itemCode} — {i.itemName} ({i.uom})
-                      </option>
-                    ))}
+                  {itemMasters.map((i) => (
+                    <option key={i.id || i.itemCode} value={i.itemCode}>
+                      {i.itemCode} — {i.itemName} ({i.uom})
+                    </option>
+                  ))}
+                  {itemMasters.length === 0 && (
+                    <option value="RM-PLATE-316L-01">RM-PLATE-316L-01 — SS 316L Plate 12mm</option>
+                  )}
                 </select>
               </div>
 
@@ -182,6 +200,7 @@ export default function ProductionMaterialIssuePage() {
                   <label className="block font-semibold text-[#544B45] mb-1">Issue Quantity</label>
                   <input
                     type="number"
+                    min="1"
                     value={qty}
                     onChange={(e) => setQty(Number(e.target.value))}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#544B45] focus:outline-none focus:border-emerald-500"
@@ -191,6 +210,7 @@ export default function ProductionMaterialIssuePage() {
                   <label className="block font-semibold text-[#544B45] mb-1">Issued To Employee</label>
                   <input
                     type="text"
+                    required
                     value={issuedTo}
                     onChange={(e) => setIssuedTo(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#544B45] focus:outline-none focus:border-emerald-500"
@@ -202,7 +222,7 @@ export default function ProductionMaterialIssuePage() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] font-medium hover:bg-[#FAF7F2]"
+                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] font-medium hover:bg-gray-200"
                 >
                   Cancel
                 </button>

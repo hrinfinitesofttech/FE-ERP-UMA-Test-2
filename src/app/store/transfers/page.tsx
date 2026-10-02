@@ -4,38 +4,22 @@ import React, { useState } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import { Workflow, Plus, Search, Building, ArrowRight, CheckCircle } from 'lucide-react';
 
-const DEFAULT_WAREHOUSES = [
-  { id: 'wh-main', warehouseCode: 'WH-001', warehouseName: 'Main Raw Material & Plate Yard' },
-  { id: 'wh-pipe', warehouseCode: 'WH-002', warehouseName: 'Pipe & Tube Yard' },
-  { id: 'wh-comp', warehouseCode: 'WH-003', warehouseName: 'Bought-Out & Hardware Store' },
-  { id: 'wh-fg', warehouseCode: 'WH-004', warehouseName: 'Finished Equipment Storage Yard' },
-  { id: 'wh-scrap', warehouseCode: 'WH-005', warehouseName: 'Scrap & Offcut Yard' },
-];
-
-const DEFAULT_ITEMS = [
-  { id: 'ITEM-001', itemCode: 'RM-SS316L-PL-8MM', itemName: 'SS 316L Plates (8mm thk, SA 240)', uom: 'Kg', standardCost: 260 },
-  { id: 'ITEM-002', itemCode: 'RM-SS304-PIPE-4IN', itemName: 'SS 304 Seamless Pipe 4" Sch 40', uom: 'Mtr', standardCost: 1450 },
-  { id: 'ITEM-003', itemCode: 'BO-FLG-150-ANSI', itemName: 'WNRF Flange 4" 150# A182-F316L', uom: 'Nos', standardCost: 1850 },
-  { id: 'ITEM-004', itemCode: 'BO-GSK-SPWD-4IN', itemName: 'Spiral Wound Gasket 4" 150# SS316', uom: 'Nos', standardCost: 320 },
-  { id: 'ITEM-005', itemCode: 'CON-WELD-E316L-16', itemName: 'Welding Electrode E316L-16 (3.15mm)', uom: 'Kg', standardCost: 480 },
-];
-
 export default function StockTransfersPage() {
   const { stockTransfers, addStockTransfer, warehouses, itemMasters } = useERP();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const effectiveWarehouses = warehouses && warehouses.length > 0 ? warehouses : DEFAULT_WAREHOUSES;
-  const effectiveItems = itemMasters && itemMasters.length > 0 ? itemMasters : DEFAULT_ITEMS;
+  const effectiveWarehouses = warehouses || [];
+  const effectiveItems = itemMasters || [];
 
   // Form State
-  const [fromWhId, setFromWhId] = useState(effectiveWarehouses[0]?.id || 'wh-main');
-  const [toWhId, setToWhId] = useState(effectiveWarehouses[4]?.id || effectiveWarehouses[1]?.id || 'wh-scrap');
+  const [fromWhId, setFromWhId] = useState(effectiveWarehouses[0]?.id || '');
+  const [toWhId, setToWhId] = useState(effectiveWarehouses[1]?.id || '');
   const [fromLoc, setFromLoc] = useState('W1-ZA-R1-S1-B01');
   const [toLoc, setToLoc] = useState('W5-ZS-B1-F1-S01');
-  const [itemId, setItemId] = useState(effectiveItems[0]?.id || 'ITEM-001');
-  const [qty, setQty] = useState(80);
-  const [reason, setReason] = useState('Move non-usable SS 316 turning scrap offcuts to scrap yard');
+  const [itemId, setItemId] = useState(effectiveItems[0]?.id || '');
+  const [qty, setQty] = useState(1);
+  const [reason, setReason] = useState('');
 
   const selectedFromWh = effectiveWarehouses.find((w) => w.id === fromWhId) || effectiveWarehouses[0];
   const selectedToWh = effectiveWarehouses.find((w) => w.id === toWhId) || effectiveWarehouses[4] || effectiveWarehouses[1] || effectiveWarehouses[0];

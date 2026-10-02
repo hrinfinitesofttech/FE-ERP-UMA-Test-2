@@ -89,29 +89,37 @@ export default function RoutingOperationsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB]">
-              {routingOperations.map((op) => (
-                <tr key={op.id} className="hover:bg-[#FAF7F2]/40 transition">
-                  <td className="p-3 font-mono font-bold text-crm-brand-500">{op.operationNumber}</td>
-                  <td className="p-3 font-semibold text-[#211B17] max-w-xs">{op.operationName}</td>
-                  <td className="p-3 font-mono text-crm-brand-">{op.workCenterCode} - {op.workCenterName.slice(0, 20)}</td>
-                  <td className="p-3 text-[#70665F] font-mono text-[11px]">{op.machineName}</td>
-                  <td className="p-3 text-right font-mono text-[#544B45]">{op.plannedSetupMinutes} mins</td>
-                  <td className="p-3 text-right font-mono text-[#544B45]">{op.plannedProcessingMinutes} mins</td>
-                  <td className="p-3 text-right font-mono font-bold text-amber-300">
-                    {Math.round(op.totalPlannedMinutes / 60)} hrs ({op.totalPlannedMinutes}m)
-                  </td>
-                  <td className="p-3 font-medium text-[#544B45]">{op.assignedOperator}</td>
-                  <td className="p-3">
-                    {op.qcRequired ? (
-                      <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30 flex items-center gap-1 w-fit">
-                        <ShieldCheck className="w-3 h-3" /> Mandatory QC
-                      </span>
-                    ) : (
-                      <span className="text-[#70665F] text-[10px]">Standard</span>
-                    )}
+              {routingOperations.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="p-8 text-center text-[#70665F]">
+                    No routing operations found in database. Click &quot;+ Add Operation Step&quot; to configure production sequence.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                routingOperations.map((op) => (
+                  <tr key={op.id} className="hover:bg-[#FAF7F2]/40 transition">
+                    <td className="p-3 font-mono font-bold text-crm-brand-500">{op.operationNumber}</td>
+                    <td className="p-3 font-semibold text-[#211B17] max-w-xs">{op.operationName}</td>
+                    <td className="p-3 font-mono text-crm-brand-">{op.workCenterCode} - {(op.workCenterName || '').slice(0, 20)}</td>
+                    <td className="p-3 text-[#70665F] font-mono text-[11px]">{op.machineName}</td>
+                    <td className="p-3 text-right font-mono text-[#544B45]">{op.plannedSetupMinutes} mins</td>
+                    <td className="p-3 text-right font-mono text-[#544B45]">{op.plannedProcessingMinutes} mins</td>
+                    <td className="p-3 text-right font-mono font-bold text-amber-600">
+                      {Math.round((op.totalPlannedMinutes || (op.plannedSetupMinutes + op.plannedProcessingMinutes)) / 60)} hrs ({op.totalPlannedMinutes || (op.plannedSetupMinutes + op.plannedProcessingMinutes)}m)
+                    </td>
+                    <td className="p-3 font-medium text-[#544B45]">{op.assignedOperator}</td>
+                    <td className="p-3">
+                      {op.qcRequired ? (
+                        <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-700 text-[10px] font-bold border border-emerald-500/30 flex items-center gap-1 w-fit">
+                          <ShieldCheck className="w-3 h-3" /> Mandatory QC
+                        </span>
+                      ) : (
+                        <span className="text-[#70665F] text-[10px]">Standard</span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

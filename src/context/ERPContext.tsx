@@ -641,7 +641,16 @@ interface ERPContextType {
   addGRN: (grn: Omit<GoodsReceiptNote, 'id' | 'grnNumber' | 'createdAt'>) => void;
   qcInspections: QCInspection[];
   addQCInspection: (qc: Omit<QCInspection, 'id' | 'inspectionNumber'>) => void;
-  approveQCInspection: (id: string, inspectorName: string, qcResult: 'Pass' | 'Fail' | 'Conditional Approval', acceptedQty: number, rejectedQty: number) => void;
+  approveQCInspection: (
+    id: string,
+    inspectorName: string,
+    qcResult: 'Pass' | 'Fail' | 'Conditional Approval',
+    acceptedQty: number,
+    rejectedQty: number,
+    remarks?: string,
+    actualSpecification?: string,
+    parameters?: string
+  ) => void;
   stockBalances: StockBalance[];
   updateStockBalance: (id: string, updates: Partial<StockBalance>) => void;
   stockReservations: StockReservation[];
@@ -1496,7 +1505,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
     return INITIAL_GOODS_RECEIPTS;
   });
-  const [qcInspections, setQcInspections] = useState<QCInspection[]>(INITIAL_QC_INSPECTIONS);
+  const [qcInspections, setQcInspections] = useState<QCInspection[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_qcInspections');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_QC_INSPECTIONS;
+  });
   const [stockBalances, setStockBalances] = useState<StockBalance[]>(INITIAL_STOCK_BALANCES);
   const [stockReservations, setStockReservations] = useState<StockReservation[]>(INITIAL_STOCK_RESERVATIONS);
   const [materialIssues, setMaterialIssues] = useState<MaterialIssue[]>(INITIAL_MATERIAL_ISSUES);
@@ -1545,13 +1565,35 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
     return INITIAL_PRODUCTION_ORDERS;
   });
-  const [routingOperations, setRoutingOperations] = useState<RoutingOperation[]>(INITIAL_ROUTING_OPERATIONS);
+  const [routingOperations, setRoutingOperations] = useState<RoutingOperation[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_routingOperations');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_ROUTING_OPERATIONS;
+  });
   const [workCenters, setWorkCenters] = useState<WorkCenter[]>(INITIAL_WORK_CENTERS);
   const [productionSchedules, setProductionSchedules] = useState<ProductionScheduleItem[]>(INITIAL_PRODUCTION_SCHEDULES);
   const [mrpRequirements, setMrpRequirements] = useState<MRPItemRequirement[]>(INITIAL_MRP_REQUIREMENTS);
   const [productionEntries, setProductionEntries] = useState<ProductionEntry[]>(INITIAL_PRODUCTION_ENTRIES);
   const [wipRecords, setWipRecords] = useState<WIPRecord[]>(INITIAL_WIP_RECORDS);
-  const [productionHolds, setProductionHolds] = useState<ProductionHold[]>(INITIAL_PRODUCTION_HOLDS);
+  const [productionHolds, setProductionHolds] = useState<ProductionHold[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_productionHolds');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_PRODUCTION_HOLDS;
+  });
   const [reworkOrders, setReworkOrders] = useState<ReworkOrder[]>(INITIAL_REWORK_ORDERS);
   const [productionScraps, setProductionScraps] = useState<ProductionScrap[]>(INITIAL_PRODUCTION_SCRAPS);
   const [productionCompletions, setProductionCompletions] = useState<ProductionCompletion[]>([]);
@@ -1801,10 +1843,10 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           api.store.warehouses.list(),
           api.store.grns.list(),
           api.store.stock(),
-          api.store.materialIssues(),
-          api.store.materialReturns(),
+          api.store.materialIssues.list(),
+          api.store.materialReturns.list(),
           api.production.jobs(),
-          api.production.workCenters(),
+          api.production.workCenters.list(),
           api.production.workOrders.list(),
           api.production.finishedGoods.list(),
           api.maintenance.internalAssets(),
@@ -1853,6 +1895,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           api.purchase.quotationComparisons.list(),
           api.production.orders.list(),
           api.designer.technicalDocuments.list(),
+          api.production.schedules.list(),
+          api.production.entries.list(),
+          api.production.reworkOrders.list(),
+          api.production.scraps.list(),
+          api.production.holds.list(),
+          api.production.wip.list(),
+          api.production.routingOperations.list(),
         ]);
 
         if (!isMounted) return;
@@ -2881,6 +2930,196 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           if (typeof window !== 'undefined') {
             try { localStorage.setItem('UMA_ERP_technicalDocuments', JSON.stringify(normalizedDocs)); } catch (_) {}
           }
+        }
+
+        const rawSchedules = val<any[]>(results[83]);
+        if (rawSchedules && Array.isArray(rawSchedules) && rawSchedules.length > 0) {
+          const normalizedSchedules: ProductionScheduleItem[] = rawSchedules.map((s: any) => ({
+            ...s,
+            id: String(s.id || s.scheduleNumber || s.schedule_number),
+            scheduleNumber: s.scheduleNumber || s.schedule_number || s.id,
+            jobId: s.jobId || s.job_id || '',
+            jobNumber: s.jobNumber || s.job_number || s.jobId || '',
+            workOrderNumber: s.workOrderNumber || s.work_order_number || '',
+            operationName: s.operationName || s.operation_name || '',
+            workCenterCode: s.workCenterCode || s.work_center_code || '',
+            workCenterName: s.workCenterName || s.work_center_name || '',
+            machineName: s.machineName || s.machine_name || '',
+            assignedOperator: s.assignedOperator || s.assigned_operator || '',
+            plannedStart: s.plannedStart || s.planned_start || '',
+            plannedEnd: s.plannedEnd || s.planned_end || '',
+            actualStart: s.actualStart || s.actual_start || '',
+            actualEnd: s.actualEnd || s.actual_end || '',
+            delayHours: Number(s.delayHours ?? s.delay_hours ?? 0),
+            status: s.status || 'Scheduled',
+          }));
+          setProductionSchedules(normalizedSchedules);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_productionSchedules', JSON.stringify(normalizedSchedules)); } catch (_) {}
+          }
+        }
+
+        const rawEntries = val<any[]>(results[84]);
+        if (rawEntries && Array.isArray(rawEntries) && rawEntries.length > 0) {
+          const normalizedEntries: ProductionEntry[] = rawEntries.map((e: any) => ({
+            ...e,
+            id: String(e.id || e.productionEntryNumber || e.production_entry_number),
+            productionEntryNumber: e.productionEntryNumber || e.production_entry_number || e.id,
+            entryDate: e.entryDate || e.entry_date || new Date().toISOString().split('T')[0],
+            jobId: e.jobId || e.job_id || '',
+            jobNumber: e.jobNumber || e.job_number || e.jobId || '',
+            workOrderNumber: e.workOrderNumber || e.work_order_number || '',
+            productionOrderNumber: e.productionOrderNumber || e.production_order_number || '',
+            operationName: e.operationName || e.operation_name || '',
+            workCenterName: e.workCenterName || e.work_center_name || '',
+            machineName: e.machineName || e.machine_name || '',
+            operatorName: e.operatorName || e.operator_name || '',
+            startTime: e.startTime || e.start_time || '08:00 AM',
+            endTime: e.endTime || e.end_time || '05:00 PM',
+            plannedQuantity: Number(e.plannedQuantity ?? e.planned_quantity ?? 0),
+            producedQuantity: Number(e.producedQuantity ?? e.produced_quantity ?? 0),
+            rejectedQuantity: Number(e.rejectedQuantity ?? e.rejected_quantity ?? 0),
+            reworkQuantity: Number(e.reworkQuantity ?? e.rework_quantity ?? 0),
+            scrapQuantity: Number(e.scrapQuantity ?? e.scrap_quantity ?? 0),
+            goodQuantity: Number(e.goodQuantity ?? e.good_quantity ?? (Number(e.producedQuantity || 0) - Number(e.rejectedQuantity || 0) - Number(e.scrapQuantity || 0))),
+            downtimeMinutes: Number(e.downtimeMinutes ?? e.downtime_minutes ?? 0),
+            downtimeReason: e.downtimeReason || e.downtime_reason || '',
+            remarks: e.remarks || '',
+            createdBy: e.createdBy || e.created_by || '',
+          }));
+          setProductionEntries(normalizedEntries);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_productionEntries', JSON.stringify(normalizedEntries)); } catch (_) {}
+          }
+        }
+
+        const rawRework = val<any[]>(results[85]);
+        if (rawRework && Array.isArray(rawRework) && rawRework.length > 0) {
+          const normalizedRework: ReworkOrder[] = rawRework.map((r: any) => ({
+            ...r,
+            id: String(r.id || r.reworkNumber || r.rework_number),
+            reworkNumber: r.reworkNumber || r.rework_number || r.id,
+            jobId: r.jobId || r.job_id || '',
+            jobNumber: r.jobNumber || r.job_number || r.jobId || '',
+            workOrderNumber: r.workOrderNumber || r.work_order_number || '',
+            productionEntryNumber: r.productionEntryNumber || r.production_entry_number || '',
+            operationName: r.operationName || r.operation_name || '',
+            itemCode: r.itemCode || r.item_code || '',
+            itemName: r.itemName || r.item_name || '',
+            quantity: Number(r.quantity || 1),
+            uom: r.uom || 'Set',
+            reason: r.reason || 'Welding Defect',
+            responsibleDepartment: r.responsibleDepartment || r.responsible_department || 'Production',
+            reworkInstructions: r.reworkInstructions || r.rework_instructions || '',
+            assignedOperator: r.assignedOperator || r.assigned_operator || '',
+            startDate: r.startDate || r.start_date || new Date().toISOString().split('T')[0],
+            completionDate: r.completionDate || r.completion_date || '',
+            status: r.status || 'Open',
+          }));
+          setReworkOrders(normalizedRework);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_reworkOrders', JSON.stringify(normalizedRework)); } catch (_) {}
+          }
+        }
+
+        const rawScraps = val<any[]>(results[86]);
+        if (rawScraps && Array.isArray(rawScraps) && rawScraps.length > 0) {
+          const normalizedScraps: ProductionScrap[] = rawScraps.map((s: any) => ({
+            ...s,
+            id: String(s.id || s.scrapNumber || s.scrap_number),
+            scrapNumber: s.scrapNumber || s.scrap_number || s.id,
+            entryDate: s.entryDate || s.entry_date || new Date().toISOString().split('T')[0],
+            jobId: s.jobId || s.job_id || '',
+            jobNumber: s.jobNumber || s.job_number || s.jobId || '',
+            workOrderNumber: s.workOrderNumber || s.work_order_number || '',
+            productionOrderNumber: s.productionOrderNumber || s.production_order_number || '',
+            operationName: s.operationName || s.operation_name || '',
+            materialCode: s.materialCode || s.material_code || '',
+            materialName: s.materialName || s.material_name || '',
+            quantity: Number(s.quantity || 0),
+            uom: s.uom || 'Kg',
+            reason: s.reason || '',
+            scrapType: s.scrapType || s.scrap_type || 'Cutting Scrap',
+            operatorName: s.operatorName || s.operator_name || '',
+            estimatedValue: Number(s.estimatedValue ?? s.estimated_value ?? 0),
+            remarks: s.remarks || '',
+          }));
+          setProductionScraps(normalizedScraps);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_productionScraps', JSON.stringify(normalizedScraps)); } catch (_) {}
+          }
+        }
+
+        const rawHolds = val<any[]>(results[87]);
+        if (rawHolds && Array.isArray(rawHolds) && rawHolds.length > 0) {
+          const normalizedHolds: ProductionHold[] = rawHolds.map((h: any) => ({
+            ...h,
+            id: String(h.id || h.holdNumber || h.hold_number),
+            holdNumber: h.holdNumber || h.hold_number || h.id,
+            jobId: h.jobId || h.job_id || '',
+            jobNumber: h.jobNumber || h.job_number || h.jobId || '',
+            workOrderNumber: h.workOrderNumber || h.work_order_number || '',
+            operationName: h.operationName || h.operation_name || '',
+            reason: h.reason || '',
+            description: h.description || '',
+            startDate: h.startDate || h.start_date || new Date().toISOString().split('T')[0],
+            expectedResumeDate: h.expectedResumeDate || h.expected_resume_date || '',
+            approvedBy: h.approvedBy || h.approved_by || '',
+            resumeDate: h.resumeDate || h.resume_date || '',
+            status: h.status || 'Active Hold',
+            remarks: h.remarks || '',
+          }));
+          setProductionHolds(normalizedHolds);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_productionHolds', JSON.stringify(normalizedHolds)); } catch (_) {}
+          }
+        }
+
+        const rawWip = val<any[]>(results[88]);
+        if (rawWip && Array.isArray(rawWip) && rawWip.length > 0) {
+          const normalizedWip: WIPRecord[] = rawWip.map((w: any) => ({
+            ...w,
+            id: String(w.id),
+            jobId: w.jobId || w.job_id || '',
+            jobNumber: w.jobNumber || w.job_number || w.jobId || '',
+            workOrderNumber: w.workOrderNumber || w.work_order_number || '',
+            productionOrderNumber: w.productionOrderNumber || w.production_order_number || '',
+            currentOperationName: w.currentOperationName || w.current_operation_name || '',
+            completedOperationsCount: Number(w.completedOperationsCount ?? w.completed_operations_count ?? 0),
+            totalOperationsCount: Number(w.totalOperationsCount ?? w.total_operations_count ?? 0),
+            wipQuantity: Number(w.wipQuantity ?? w.wip_quantity ?? 0),
+            uom: w.uom || 'Nos',
+            location: w.location || '',
+            responsibleDepartment: w.responsibleDepartment || w.responsible_department || '',
+            startDate: w.startDate || w.start_date || '',
+            expectedCompletionDate: w.expectedCompletionDate || w.expected_completion_date || '',
+            delayDays: Number(w.delayDays ?? w.delay_days ?? 0),
+            status: w.status || 'In Progress',
+          }));
+          setWipRecords(normalizedWip);
+        }
+
+        const rawRoutingOps = val<any[]>(results[89]);
+        if (rawRoutingOps && Array.isArray(rawRoutingOps) && rawRoutingOps.length > 0) {
+          const normalizedOps: RoutingOperation[] = rawRoutingOps.map((o: any) => ({
+            ...o,
+            id: String(o.id),
+            operationNumber: Number(o.operationNumber ?? o.operation_number ?? 10),
+            operationName: o.operationName || o.operation_name || '',
+            sequence: Number(o.sequence || 1),
+            workCenterCode: o.workCenterCode || o.work_center_code || '',
+            workCenterName: o.workCenterName || o.work_center_name || '',
+            machineName: o.machineName || o.machine_name || '',
+            department: o.department || '',
+            plannedSetupMinutes: Number(o.plannedSetupMinutes ?? o.planned_setup_minutes ?? 0),
+            plannedProcessingMinutes: Number(o.plannedProcessingMinutes ?? o.planned_processing_minutes ?? 0),
+            totalPlannedMinutes: Number(o.totalPlannedMinutes ?? o.total_planned_minutes ?? 0),
+            assignedOperator: o.assignedOperator || o.assigned_operator || '',
+            qcRequired: o.qcRequired ?? o.qc_required ?? true,
+            instructions: o.instructions || '',
+            status: o.status || 'Pending',
+          }));
+          setRoutingOperations(normalizedOps);
         }
       } catch (err) {
         console.warn('Initial live data load warning:', err);
@@ -6051,10 +6290,64 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       id: grnNumber,
       grnNumber,
       createdAt: new Date().toISOString().split('T')[0],
+      status: 'Inspection Pending',
     };
     setGoodsReceipts((prev) => {
       const updated = [newGrn, ...prev];
       try { localStorage.setItem('UMA_ERP_goodsReceipts', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
+
+    // Auto-generate QC Inspection items for the received GRN
+    const itemsToInspect = (newGrn.items && newGrn.items.length > 0) ? newGrn.items : [
+      {
+        id: `GRNITM-${Date.now().toString().slice(-4)}-1`,
+        grnId: grnNumber,
+        itemId: 'ITM-001',
+        itemCode: 'RAW-MAT',
+        itemName: 'Inward Material',
+        poQuantity: 1,
+        receivedQuantity: 1,
+        acceptedQuantity: 0,
+        rejectedQuantity: 0,
+        shortQuantity: 0,
+        uom: 'Nos',
+        unitPrice: 0,
+        totalAmount: 0,
+        locationCode: 'WH-MAIN-BAY-01',
+      }
+    ];
+
+    const autoQcList: QCInspection[] = itemsToInspect.map((itm: any, idx: number) => {
+      const qcNumber = `QC-${new Date().getFullYear()}-${String(qcInspections.length + idx + 1).padStart(4, '0')}`;
+      return {
+        id: qcNumber,
+        inspectionNumber: qcNumber,
+        inspectionDate: new Date().toISOString().split('T')[0],
+        grnId: grnNumber,
+        grnNumber: grnNumber,
+        itemId: itm.itemId || itm.id || 'ITM-001',
+        itemCode: itm.itemCode || 'RAW-MAT',
+        itemName: itm.itemName || itm.description || 'Raw Material',
+        jobId: newGrn.jobId || 'General Stock',
+        supplierName: newGrn.supplierName || 'Supplier',
+        requiredSpecification: 'Standard Technical Delivery Conditions (TDC)',
+        actualSpecification: 'Awaiting Lab / Dimension Verification',
+        inspectionParameters: 'Dimension check, Spectro PMI Chemical, Visual & MTC Verification',
+        sampleQuantity: Number(itm.receivedQuantity || itm.poQuantity || 1),
+        acceptedQuantity: 0,
+        rejectedQuantity: 0,
+        qcResult: 'Pending' as any,
+        inspectorName: '',
+        remarks: 'Auto-generated on GRN creation. Ready for QC inspection clearance.',
+      };
+    });
+
+    setQcInspections((prev) => {
+      const updated = [...autoQcList, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_qcInspections', JSON.stringify(updated)); } catch (_) {}
+      }
       return updated;
     });
 
@@ -6065,12 +6358,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     logAction('CREATE', 'Store', 'Goods Receipt', newGrn.id, `Received GRN ${newGrn.grnNumber} from ${newGrn.supplierName}`);
     sendNotification({
       title: `📦 GRN Created: ${newGrn.grnNumber}`,
-      message: `Goods received from ${newGrn.supplierName} for PO ${newGrn.poNumber}. Pending QC Inspection.`,
+      message: `Goods received from ${newGrn.supplierName} for PO ${newGrn.poNumber}. Auto-generated QC inspection.`,
       type: 'info',
       department: 'store',
       priority: 'normal',
-      linkUrl: '/store/grn',
+      linkUrl: `/store/qc-inspection?grn=${grnNumber}`,
     });
+
     const grnPayload = {
       ...newGrn,
       id: grnNumber,
@@ -6128,12 +6422,30 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }).catch((err) => console.warn('Failed to add QC inspection:', err));
   };
 
-  const approveQCInspection = (id: string, inspectorName: string, qcResult: 'Pass' | 'Fail' | 'Conditional Approval', acceptedQty: number, rejectedQty: number) => {
-    const targetQc = qcInspections.find((q) => q.id === id);
+  const approveQCInspection = (
+    id: string,
+    inspectorName: string,
+    qcResult: 'Pass' | 'Fail' | 'Conditional Approval',
+    acceptedQty: number,
+    rejectedQty: number,
+    remarks?: string,
+    actualSpecification?: string,
+    parameters?: string
+  ) => {
+    const targetQc = qcInspections.find((q) => q.id === id || q.inspectionNumber === id);
     if (!targetQc) return;
 
     setQcInspections((prev) => {
-      const updated = prev.map((q) => (q.id === id ? { ...q, qcResult, acceptedQuantity: acceptedQty, rejectedQuantity: rejectedQty, inspectorName } : q));
+      const updated = prev.map((q) => (q.id === id || q.inspectionNumber === id) ? {
+        ...q,
+        qcResult,
+        acceptedQuantity: acceptedQty,
+        rejectedQuantity: rejectedQty,
+        inspectorName: inspectorName || q.inspectorName || 'Suresh Patel (Sr. QC Lead)',
+        remarks: remarks || q.remarks,
+        actualSpecification: actualSpecification || q.actualSpecification,
+        inspectionParameters: parameters || q.inspectionParameters,
+      } : q);
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_qcInspections', JSON.stringify(updated)); } catch (_) {}
       }
@@ -6141,14 +6453,71 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     });
 
     setGoodsReceipts((prev) => {
-      const updated = prev.map((g) => (g.id === targetQc.grnId ? { ...g, status: (qcResult === 'Pass' ? 'Accepted' : qcResult === 'Fail' ? 'Rejected' : 'Partially Accepted') as GRNStatus } : g));
+      const updated = prev.map((g) => (g.id === targetQc.grnId || g.grnNumber === targetQc.grnNumber) ? {
+        ...g,
+        status: (qcResult === 'Pass' ? 'Accepted' : qcResult === 'Fail' ? 'Rejected' : 'Partially Accepted') as GRNStatus,
+      } : g);
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_goodsReceipts', JSON.stringify(updated)); } catch (_) {}
       }
       return updated;
     });
 
+    // Update stock balance when acceptedQty > 0
+    if (acceptedQty > 0) {
+      setStockBalances((prev) => {
+        const itemIdx = prev.findIndex((s) => s.itemCode === targetQc.itemCode || s.itemId === targetQc.itemId);
+        let updated = [...prev];
+        if (itemIdx >= 0) {
+          const existing = updated[itemIdx];
+          const newAvail = (existing.availableQty || 0) + acceptedQty;
+          const newUsable = (existing.usableQty || 0) + acceptedQty;
+          updated[itemIdx] = {
+            ...existing,
+            availableQty: newAvail,
+            usableQty: newUsable,
+            stockValue: newUsable * (existing.averageRate || 150),
+            lastUpdatedDate: new Date().toISOString().split('T')[0],
+          };
+        } else {
+          updated.push({
+            id: `STK-${targetQc.itemCode || Date.now()}`,
+            itemId: targetQc.itemId || 'ITM-001',
+            itemCode: targetQc.itemCode || 'RAW-MAT',
+            itemName: targetQc.itemName || 'Raw Material',
+            category: 'Raw Material',
+            warehouseId: 'wh-main',
+            warehouseName: 'Main Raw Material Warehouse (Bay 1 & 2)',
+            locationCode: 'WH-MAIN-BAY-01',
+            availableQty: acceptedQty,
+            reservedQty: 0,
+            allocatedQty: 0,
+            inTransitQty: 0,
+            damagedQty: 0,
+            rejectedQty: rejectedQty,
+            usableQty: acceptedQty,
+            averageRate: 150,
+            stockValue: acceptedQty * 150,
+            lastUpdatedDate: new Date().toISOString().split('T')[0],
+          });
+        }
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_stockBalances', JSON.stringify(updated)); } catch (_) {}
+        }
+        return updated;
+      });
+    }
+
     logAction('APPROVE', 'Store', 'QC Inspection', id, `QC Inspection ${targetQc.inspectionNumber} set to ${qcResult} by ${inspectorName}`);
+    sendNotification({
+      title: `✅ QC Completed: ${targetQc.inspectionNumber}`,
+      message: `${targetQc.itemCode} evaluated as ${qcResult}. Accepted: ${acceptedQty}, Rejected: ${rejectedQty}`,
+      type: qcResult === 'Pass' ? 'success' : qcResult === 'Fail' ? 'alert' : 'warning',
+      department: 'store',
+      priority: 'normal',
+      linkUrl: '/store/qc-inspection',
+    });
+
     api.patch(`/qc-inspections/${id}/`, {
       overall_result: qcResult,
       inspector: inspectorName,
@@ -6374,7 +6743,15 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addRoutingOperation = (op: Omit<RoutingOperation, 'id'>) => {
     const id = `OP-${(routingOperations.length + 1) * 10}`;
     const newOp: RoutingOperation = { ...op, id };
-    setRoutingOperations((prev) => [...prev, newOp]);
+    setRoutingOperations((prev) => {
+      const updated = [...prev, newOp];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_routingOperations', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('CREATE', 'Production', 'Routing Operations', newOp.id, `Created Routing Operation ${newOp.operationName} (${newOp.operationNumber})`);
+    api.production.routingOperations.create(newOp).catch((err) => console.warn('Failed to add routing operation:', err));
   };
 
   const addWorkCenter = (wc: Omit<WorkCenter, 'id'>) => {
@@ -6394,7 +6771,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const id = `SCH-${Date.now().toString().slice(-6)}`;
     const newSch: ProductionScheduleItem = { ...sch, id };
     setProductionSchedules((prev) => [newSch, ...prev]);
-    api.post('/production-schedules/', newSch).catch((err) => console.warn('Failed to add production schedule:', err));
+    api.production.schedules.create(newSch).catch((err) => console.warn('Failed to add production schedule:', err));
   };
 
   const recordProductionEntry = (data: Omit<ProductionEntry, 'id' | 'productionEntryNumber' | 'goodQuantity'>) => {
@@ -6408,18 +6785,33 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setProductionEntries((prev) => [newEntry, ...prev]);
     logAction('CREATE', 'Production', 'Production Entry', newEntry.id, `Recorded entry ${newEntry.productionEntryNumber}: Good Qty = ${goodQuantity} for ${newEntry.workOrderNumber}`);
+    api.production.entries.create(newEntry).catch((err) => console.warn('Failed to record production entry:', err));
   };
 
   const addProductionHold = (data: Omit<ProductionHold, 'id' | 'holdNumber'>) => {
     const holdNumber = `HLD-${new Date().getFullYear()}-${String(productionHolds.length + 1).padStart(3, '0')}`;
     const newHold: ProductionHold = { ...data, id: holdNumber, holdNumber };
-    setProductionHolds((prev) => [newHold, ...prev]);
+    setProductionHolds((prev) => {
+      const updated = [newHold, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_productionHolds', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Production', 'Production Holds', newHold.id, `Placed Hold ${newHold.holdNumber} on ${newHold.workOrderNumber} due to ${newHold.reason}`);
+    api.production.holds.create(newHold).catch((err) => console.warn('Failed to add production hold:', err));
   };
 
   const resumeProductionHold = (id: string, resumeDate: string) => {
-    setProductionHolds((prev) => prev.map((h) => (h.id === id || h.holdNumber === id ? { ...h, status: 'Resumed', resumeDate } : h)));
+    setProductionHolds((prev) => {
+      const updated: ProductionHold[] = prev.map((h) => (h.id === id || h.holdNumber === id ? { ...h, status: 'Resumed' as const, resumeDate } : h));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_productionHolds', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'Production', 'Production Holds', id, `Resumed production hold ${id}`);
+    api.production.holds.resume(id, resumeDate).catch((err) => console.warn('Failed to resume hold:', err));
   };
 
   const addReworkOrder = (data: Omit<ReworkOrder, 'id' | 'reworkNumber'>) => {
@@ -6427,6 +6819,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newRework: ReworkOrder = { ...data, id: reworkNumber, reworkNumber };
     setReworkOrders((prev) => [newRework, ...prev]);
     logAction('CREATE', 'Production', 'Rework Orders', newRework.id, `Created Rework Order ${newRework.reworkNumber} for ${newRework.workOrderNumber}`);
+    api.production.reworkOrders.create(newRework).catch((err) => console.warn('Failed to add rework order:', err));
   };
 
   const addProductionScrap = (data: Omit<ProductionScrap, 'id' | 'scrapNumber'>) => {
@@ -6434,6 +6827,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newScrap: ProductionScrap = { ...data, id: scrapNumber, scrapNumber };
     setProductionScraps((prev) => [newScrap, ...prev]);
     logAction('CREATE', 'Production', 'Production Scrap', newScrap.id, `Logged production scrap ${newScrap.scrapNumber} for ${newScrap.materialName}`);
+    api.production.scraps.create(newScrap).catch((err) => console.warn('Failed to add production scrap:', err));
   };
 
   const completeWorkOrder = (data: Omit<ProductionCompletion, 'id' | 'completionNumber'>) => {
