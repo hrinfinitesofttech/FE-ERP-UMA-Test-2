@@ -102,7 +102,7 @@ export function Topbar() {
           {showNotificationMenu && (
             <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-bg-surface rounded-2xl shadow-xl border border-border overflow-hidden z-50 text-xs animate-in fade-in duration-150">
               <div className="p-3.5 bg-bg-app border-b border-border flex items-center justify-between">
-                <span className="font-bold text-text-primary">System Notifications ({unreadCount})</span>
+                <span className="font-bold text-text-primary">System Notifications {unreadCount > 0 ? `(${unreadCount} new)` : `(${notifications.length})`}</span>
                 <div className="flex items-center gap-2">
                   {unreadCount > 0 && (
                     <button

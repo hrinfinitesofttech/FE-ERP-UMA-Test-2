@@ -137,6 +137,12 @@ export default function QualityInspectionPage() {
   const handleStartInspectionForGrn = (grn: GoodsReceiptNote) => {
     const firstItem = grn.items?.[0];
     const sample = Number(firstItem?.receivedQuantity || firstItem?.poQuantity || 1);
+    const existing = allInspections.find((q) => q.grnNumber === grn.grnNumber || q.grnId === grn.id || q.grnNumber === grn.id);
+    if (existing) {
+      openInspectionModal(existing);
+      return;
+    }
+
     const qcNumber = `QC-${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`;
     const tempQc: QCInspection = {
       id: qcNumber,
@@ -160,21 +166,17 @@ export default function QualityInspectionPage() {
       remarks: 'Clearance verified on physical inward arrival.',
     };
 
-    const existing = allInspections.find((q) => q.grnNumber === grn.grnNumber || q.grnId === grn.id);
-    if (existing) {
-      openInspectionModal(existing);
-    } else {
-      addQCInspection(tempQc);
-      openInspectionModal(tempQc);
-    }
+    openInspectionModal(tempQc);
   };
 
   const handleApprove = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedInspection) return;
 
+    const inspId = selectedInspection.id || selectedInspection.inspectionNumber || selectedInspection.grnNumber || selectedInspection.grnId;
+
     approveQCInspection(
-      selectedInspection.id,
+      inspId,
       inspectorName,
       result,
       acceptedQty,
@@ -184,9 +186,10 @@ export default function QualityInspectionPage() {
       parameters
     );
 
+    const inspName = selectedInspection.inspectionNumber || selectedInspection.id || selectedInspection.grnNumber;
     setSelectedInspection(null);
-    setToastMessage(`QC Inspection ${selectedInspection.inspectionNumber} cleared with result: ${result}!`);
-    setTimeout(() => setToastMessage(''), 4000);
+    setToastMessage(`QC Inspection ${inspName} cleared with result: ${result}!`);
+    setTimeout(() => setToastMessage(''), 5000);
   };
 
   const stats = useMemo(() => {

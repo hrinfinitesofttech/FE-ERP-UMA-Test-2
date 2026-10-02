@@ -1147,18 +1147,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const map = new Map<string, Lead>();
     for (const item of list) {
       if (!item) continue;
-      const leadNo = String(item.leadNo || item.lead_no || '').trim();
-      const id = String(item.id || '').trim();
+      const leadNo = String(item.leadNo || item.lead_no || item.id || '').trim();
+      const id = String(item.id || item.leadNo || item.lead_no || '').trim();
       const company = String(item.companyName || item.company_name || '').trim();
       const product = String(item.productName || item.product_name || '').trim();
 
-      let key = leadNo || (id && id.startsWith('LED-') ? id : '') || (company ? `${company.toLowerCase()}__${product.toLowerCase()}` : id);
+      const key = id || leadNo || (company && product ? `${company.toLowerCase()}__${product.toLowerCase()}` : '');
       if (!key) continue;
 
       const normalized: Lead = {
         ...item,
         id: id || leadNo || key,
-        leadNo: leadNo || (id && id.startsWith('LED-') ? id : (key.startsWith('LED-') ? key : `LED-${id}`)),
+        leadNo: leadNo || id || key,
         companyName: company || item.companyName || 'Unknown Company',
         industry: item.industry || 'Manufacturing',
         website: item.website || '',
@@ -6737,20 +6737,59 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     actualSpecification?: string,
     parameters?: string
   ) => {
-    const targetQc = qcInspections.find((q) => q.id === id || q.inspectionNumber === id);
-    if (!targetQc) return;
-
-    setQcInspections((prev) => {
-      const updated = prev.map((q) => (q.id === id || q.inspectionNumber === id) ? {
-        ...q,
-        qcResult,
+    let targetQc = qcInspections.find((q) => q.id === id || q.inspectionNumber === id || q.grnNumber === id || q.grnId === id);
+    if (!targetQc) {
+      const matchingGrn = goodsReceipts.find((g) => g.id === id || g.grnNumber === id);
+      const firstItem = matchingGrn?.items?.[0];
+      targetQc = {
+        id: id && id.startsWith('QC-') ? id : `QC-${new Date().getFullYear()}-${String(qcInspections.length + 1).padStart(4, '0')}`,
+        inspectionNumber: id && id.startsWith('QC-') ? id : `QC-${new Date().getFullYear()}-${String(qcInspections.length + 1).padStart(4, '0')}`,
+        inspectionDate: new Date().toISOString().split('T')[0],
+        grnId: matchingGrn?.id || id,
+        grnNumber: matchingGrn?.grnNumber || id,
+        itemId: firstItem?.itemId || 'ITM-001',
+        itemCode: firstItem?.itemCode || 'RAW-MAT',
+        itemName: firstItem?.itemName || 'Raw Material',
+        jobId: matchingGrn?.jobId || 'General Stock',
+        supplierName: matchingGrn?.supplierName || 'Supplier',
+        requiredSpecification: 'Standard Technical Delivery Conditions (TDC)',
+        actualSpecification: actualSpecification || 'Inspected OK',
+        inspectionParameters: parameters || 'Dimension & PMI Verification',
+        sampleQuantity: acceptedQty + rejectedQty > 0 ? acceptedQty + rejectedQty : 1,
         acceptedQuantity: acceptedQty,
         rejectedQuantity: rejectedQty,
-        inspectorName: inspectorName || q.inspectorName || 'Suresh Patel (Sr. QC Lead)',
-        remarks: remarks || q.remarks,
-        actualSpecification: actualSpecification || q.actualSpecification,
-        inspectionParameters: parameters || q.inspectionParameters,
-      } : q);
+        qcResult,
+        inspectorName: inspectorName || 'Suresh Patel (Sr. QC Lead)',
+        remarks: remarks || '',
+      };
+    }
+
+    setQcInspections((prev) => {
+      const exists = prev.some((q) => q.id === targetQc!.id || q.inspectionNumber === targetQc!.inspectionNumber || q.grnNumber === targetQc!.grnNumber);
+      let updated: QCInspection[];
+      if (exists) {
+        updated = prev.map((q) => (q.id === targetQc!.id || q.inspectionNumber === targetQc!.inspectionNumber || q.grnNumber === targetQc!.grnNumber) ? {
+          ...q,
+          qcResult,
+          acceptedQuantity: acceptedQty,
+          rejectedQuantity: rejectedQty,
+          inspectorName: inspectorName || q.inspectorName || 'Suresh Patel (Sr. QC Lead)',
+          remarks: remarks || q.remarks,
+          actualSpecification: actualSpecification || q.actualSpecification,
+          inspectionParameters: parameters || q.inspectionParameters,
+        } : q);
+      } else {
+        updated = [{
+          ...targetQc!,
+          qcResult,
+          acceptedQuantity: acceptedQty,
+          rejectedQuantity: rejectedQty,
+          inspectorName: inspectorName || targetQc!.inspectorName,
+          remarks: remarks || targetQc!.remarks,
+          actualSpecification: actualSpecification || targetQc!.actualSpecification,
+          inspectionParameters: parameters || targetQc!.inspectionParameters,
+        }, ...prev];
+      }
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_qcInspections', JSON.stringify(updated)); } catch (_) {}
       }
@@ -6813,7 +6852,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       });
     }
 
-    logAction('APPROVE', 'Store', 'QC Inspection', id, `QC Inspection ${targetQc.inspectionNumber} set to ${qcResult} by ${inspectorName}`);
+    logAction('APPROVE', 'Store', 'QC Inspection', targetQc.id, `QC Inspection ${targetQc.inspectionNumber} set to ${qcResult} by ${inspectorName}`);
     sendNotification({
       title: `✅ QC Completed: ${targetQc.inspectionNumber}`,
       message: `${targetQc.itemCode} evaluated as ${qcResult}. Accepted: ${acceptedQty}, Rejected: ${rejectedQty}`,
@@ -6823,9 +6862,15 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       linkUrl: '/store/qc-inspection',
     });
 
-    api.patch(`/qc-inspections/${id}/`, {
+    api.post('/qc-inspections/', {
+      id: targetQc.id,
+      inspection_number: targetQc.inspectionNumber,
+      grn_id: targetQc.grnId,
+      grn_number: targetQc.grnNumber,
+      inspection_date: targetQc.inspectionDate || new Date().toISOString().split('T')[0],
+      inspector: inspectorName || targetQc.inspectorName,
       overall_result: qcResult,
-      inspector: inspectorName,
+      remarks: remarks || targetQc.remarks || '',
       items: [{
         itemCode: targetQc.itemCode,
         itemName: targetQc.itemName,
