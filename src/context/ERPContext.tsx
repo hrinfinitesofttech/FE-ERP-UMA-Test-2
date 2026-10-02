@@ -1100,6 +1100,350 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     );
   };
   
+  // ==========================================
+  // BULLETPROOF CANONICAL DEDUPLICATION HELPERS
+  // ==========================================
+  const deduplicateEmployees = (list: Employee[]): Employee[] => {
+    if (!Array.isArray(list)) return [];
+    const map = new Map<string, Employee>();
+    for (const emp of list) {
+      if (!emp) continue;
+      let key = (emp.id && emp.id.trim() && emp.id.trim() !== '-') ? emp.id.trim() : '';
+      if (!key) {
+        if (emp.username && emp.username.trim()) {
+          key = `USER-${emp.username.trim().toLowerCase()}`;
+        } else if (emp.email && emp.email.trim()) {
+          key = `EMAIL-${emp.email.trim().toLowerCase()}`;
+        } else {
+          key = `NAME-${((emp.firstName || '') + (emp.lastName || '') + (emp.name || '')).trim() || 'staff'}`;
+        }
+      }
+
+      if (map.has(key)) {
+        const existing = map.get(key)!;
+        map.set(key, {
+          ...existing,
+          ...emp,
+          id: existing.id && existing.id !== '-' ? existing.id : (emp.id && emp.id !== '-' ? emp.id : key),
+          name: emp.name || `${emp.firstName || existing.firstName || ''} ${emp.lastName || existing.lastName || ''}`.trim() || existing.name,
+        });
+      } else {
+        const assignedId = (emp.id && emp.id.trim() && emp.id.trim() !== '-')
+          ? emp.id.trim()
+          : (key.startsWith('EMP-') ? key : `EMP-${String(map.size + 1).padStart(3, '0')}`);
+
+        map.set(key, {
+          ...emp,
+          id: assignedId,
+          name: emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || 'Staff',
+        });
+      }
+    }
+    return Array.from(map.values());
+  };
+
+  const deduplicateLeads = (list: any[]): Lead[] => {
+    if (!Array.isArray(list)) return [];
+    const map = new Map<string, Lead>();
+    for (const item of list) {
+      if (!item) continue;
+      const leadNo = String(item.leadNo || item.lead_no || '').trim();
+      const id = String(item.id || '').trim();
+      const company = String(item.companyName || item.company_name || '').trim();
+      const product = String(item.productName || item.product_name || '').trim();
+
+      let key = leadNo || (id && id.startsWith('LED-') ? id : '') || (company ? `${company.toLowerCase()}__${product.toLowerCase()}` : id);
+      if (!key) continue;
+
+      const normalized: Lead = {
+        ...item,
+        id: id || leadNo || key,
+        leadNo: leadNo || (id && id.startsWith('LED-') ? id : (key.startsWith('LED-') ? key : `LED-${id}`)),
+        companyName: company || item.companyName || 'Unknown Company',
+        industry: item.industry || 'Manufacturing',
+        website: item.website || '',
+        gstin: item.gstin || '',
+        address: item.address || '',
+        city: item.city || '',
+        state: item.state || '',
+        country: item.country || 'India',
+        pincode: item.pincode || '',
+        contactPerson: item.contactPerson || item.contact_person || '',
+        designation: item.designation || '',
+        mobile: item.mobile || '',
+        altMobile: item.altMobile || item.alt_mobile || '',
+        email: item.email || '',
+        whatsapp: item.whatsapp || '',
+        productName: product || item.productName || 'Equipment',
+        machineType: item.machineType || item.machine_type || '',
+        quantity: Number(item.quantity) || 1,
+        capacity: item.capacity || '',
+        application: item.application || '',
+        requirementDescription: item.requirementDescription || item.requirement_description || '',
+        expectedDelivery: item.expectedDelivery || item.expected_delivery || '',
+        budget: Number(item.budget) || 0,
+        priority: item.priority || 'medium',
+        source: item.source || 'direct',
+        assignedSalesPersonId: item.assignedSalesPersonId || item.assigned_sales_person_id || '',
+        assignedSalesPersonName: item.assignedSalesPersonName || item.assigned_sales_person_name || 'Sales Team',
+        status: item.status || 'new',
+        nextFollowUpDate: item.nextFollowUpDate || item.next_follow_up_date || '',
+        remarks: item.remarks || '',
+        createdDate: item.createdDate || item.created_date || new Date().toISOString().split('T')[0],
+        convertedCustomerId: item.convertedCustomerId || item.converted_customer_id || undefined,
+        convertedEnquiryId: item.convertedEnquiryId || item.converted_enquiry_id || undefined,
+        convertedOpportunityId: item.convertedOpportunityId || item.converted_opportunity_id || undefined,
+      };
+
+      if (map.has(key)) {
+        const existing = map.get(key)!;
+        map.set(key, { ...existing, ...normalized, id: existing.id || normalized.id, leadNo: existing.leadNo || normalized.leadNo });
+      } else {
+        map.set(key, normalized);
+      }
+    }
+    return Array.from(map.values());
+  };
+
+  const deduplicateCustomers = (list: any[]): Customer[] => {
+    if (!Array.isArray(list)) return [];
+    const map = new Map<string, Customer>();
+    for (const item of list) {
+      if (!item) continue;
+      const code = String(item.customerCode || item.customer_code || '').trim();
+      const id = String(item.id || '').trim();
+      const company = String(item.companyName || item.company_name || '').trim();
+
+      let key = code || (id && id.startsWith('CUST-') ? id : '') || (company ? company.toLowerCase() : id);
+      if (!key) continue;
+
+      const normalized: Customer = {
+        ...item,
+        id: id || code || key,
+        customerCode: code || (id && id.startsWith('CUST-') ? id : key),
+        customerType: (item.customerType === 'individual' || item.customer_type === 'individual') ? 'individual' : 'company',
+        companyName: company || item.companyName || 'Unknown Customer',
+        industry: item.industry || 'Manufacturing',
+        gstin: item.gstin || '',
+        pan: item.pan || '',
+        website: item.website || '',
+        contactPerson: item.contactPerson || item.contact_person || '',
+        designation: item.designation || '',
+        mobile: item.mobile || '',
+        email: item.email || '',
+        whatsapp: item.whatsapp || '',
+        billingAddress: item.billingAddress || item.billing_address || '',
+        shippingAddress: item.shippingAddress || item.shipping_address || '',
+        city: item.city || '',
+        state: item.state || '',
+        country: item.country || 'India',
+        pincode: item.pincode || '',
+        paymentTerms: item.paymentTerms || item.payment_terms || '30 days net',
+        creditLimit: Number(item.creditLimit ?? item.credit_limit ?? 5000000),
+        currency: item.currency || 'INR',
+        category: item.category || 'Standard',
+        assignedSalesPerson: item.assignedSalesPerson || item.assigned_sales_person || 'Sales Team',
+        createdDate: item.createdDate || item.created_date || new Date().toISOString().split('T')[0],
+        contacts: Array.isArray(item.contacts) ? item.contacts : [],
+      };
+
+      if (map.has(key)) {
+        const existing = map.get(key)!;
+        map.set(key, { ...existing, ...normalized, id: existing.id || normalized.id, customerCode: existing.customerCode || normalized.customerCode });
+      } else {
+        map.set(key, normalized);
+      }
+    }
+    return Array.from(map.values());
+  };
+
+  const deduplicateCustomerPOs = (list: any[]): CustomerPO[] => {
+    if (!Array.isArray(list)) return [];
+    const map = new Map<string, CustomerPO>();
+    for (const item of list) {
+      if (!item) continue;
+      const poNumber = String(item.poNumber || item.po_number || '').trim();
+      const id = String(item.id || '').trim();
+      const customer = String(item.customerName || item.customer_name || '').trim();
+      const quotationNo = String(item.quotationNumber || item.quotation_number || item.quotationId || item.quotation_id || '').trim();
+
+      let key = poNumber || (id && (id.startsWith('CPO-') || id.startsWith('PO-')) ? id : '') || (customer && quotationNo ? `${customer.toLowerCase()}__${quotationNo.toLowerCase()}` : id);
+      if (!key) continue;
+
+      const normalized: CustomerPO = {
+        ...item,
+        id: id || poNumber || key,
+        poNumber: poNumber || id || key,
+        poDate: item.poDate || item.po_date || item.receivedDate || item.received_date || '',
+        customerId: item.customerId || item.customer_id || '',
+        customerName: customer || item.customerName || 'Customer',
+        quotationId: item.quotationId || item.quotation_id || '',
+        quotationNumber: quotationNo || item.quotationNumber || '',
+        salesOrderId: item.salesOrderId || item.sales_order_id || item.converted_so_id || item.convertedSoId || '',
+        poAmount: Number(item.poAmount ?? item.po_amount ?? item.poValue ?? item.po_value ?? 0),
+        paymentTerms: item.paymentTerms || item.payment_terms || '',
+        deliveryDate: item.deliveryDate || item.delivery_date || '',
+        status: item.status || 'received',
+      };
+
+      if (map.has(key)) {
+        const existing = map.get(key)!;
+        map.set(key, { ...existing, ...normalized, id: existing.id || normalized.id, poNumber: existing.poNumber || normalized.poNumber });
+      } else {
+        map.set(key, normalized);
+      }
+    }
+    return Array.from(map.values());
+  };
+
+  const deduplicateSalesOrders = (list: any[]): SalesOrder[] => {
+    if (!Array.isArray(list)) return [];
+    const map = new Map<string, SalesOrder>();
+    for (const item of list) {
+      if (!item) continue;
+      const soNumber = String(item.salesOrderNumber || item.sales_order_number || '').trim();
+      const id = String(item.id || '').trim();
+      const customer = String(item.customerName || item.customer_name || '').trim();
+      const poNumber = String(item.customerPoNumber || item.customer_po_number || '').trim();
+
+      let key = soNumber || (id && id.startsWith('SO-') ? id : '') || (customer && poNumber ? `${customer.toLowerCase()}__${poNumber.toLowerCase()}` : id);
+      if (!key) continue;
+
+      const normalized: SalesOrder = {
+        ...item,
+        id: id || soNumber || key,
+        salesOrderNumber: soNumber || (id && id.startsWith('SO-') ? id : key),
+        customerId: item.customerId || item.customer_id || '',
+        customerName: customer || item.customerName || 'Customer',
+        customerPoId: item.customerPoId || item.customer_po_id || '',
+        customerPoNumber: poNumber || item.customerPoNumber || '',
+        quotationId: item.quotationId || item.quotation_id || '',
+        quotationNumber: item.quotationNumber || item.quotation_number || '',
+        orderDate: item.orderDate || item.order_date || '',
+        deliveryDate: item.deliveryDate || item.delivery_date || item.target_delivery_date || item.targetDeliveryDate || '',
+        items: Array.isArray(item.items) ? item.items : [],
+        orderValue: Number(item.orderValue ?? item.order_value ?? item.grand_total ?? item.grandTotal ?? item.total_amount ?? item.totalAmount ?? 0),
+        paymentTerms: item.paymentTerms || item.payment_terms || '',
+        assignedProjectManager: item.assignedProjectManager || item.assigned_project_manager || item.created_by || 'Unassigned',
+        status: item.status || 'confirmed',
+        projectId: item.projectId || item.project_id || undefined,
+        jobNumber: item.jobNumber || item.job_number || undefined,
+      };
+
+      if (map.has(key)) {
+        const existing = map.get(key)!;
+        map.set(key, { ...existing, ...normalized, id: existing.id || normalized.id, salesOrderNumber: existing.salesOrderNumber || normalized.salesOrderNumber });
+      } else {
+        map.set(key, normalized);
+      }
+    }
+    return Array.from(map.values());
+  };
+
+  const deduplicateProjects = (list: any[]): ProjectJobMaster[] => {
+    if (!Array.isArray(list)) return [];
+    const map = new Map<string, ProjectJobMaster>();
+    for (const item of list) {
+      if (!item) continue;
+      const prjNo = String(item.projectNumber || item.project_number || item.projectCode || item.project_code || '').trim();
+      const jobNo = String(item.jobNumber || item.job_number || '').trim();
+      const id = String(item.id || '').trim();
+      const customer = String(item.customerName || item.customer_name || '').trim();
+      const soNo = String(item.salesOrderNumber || item.sales_order_number || item.salesOrderId || item.sales_order_id || '').trim();
+
+      let key = prjNo || jobNo || (id && id.startsWith('PRJ-') ? id : '') || (customer && soNo ? `${customer.toLowerCase()}__${soNo.toLowerCase()}` : id);
+      if (!key) continue;
+
+      const normalized: ProjectJobMaster = {
+        ...item,
+        id: id || prjNo || key,
+        projectNumber: prjNo || (id && id.startsWith('PRJ-') ? id : key),
+        jobNumber: jobNo || item.jobNumber || (prjNo ? `JOB-${prjNo.replace(/^[^\d]*-?/, '')}` : 'JOB-001'),
+        salesOrderId: item.salesOrderId || item.sales_order_id || '',
+        salesOrderNumber: soNo || item.salesOrderNumber || '',
+        customerPoNumber: item.customerPoNumber || item.customer_po_number || '',
+        quotationNumber: item.quotationNumber || item.quotation_number || '',
+        customerId: item.customerId || item.customer_id || '',
+        customerName: customer || item.customerName || 'Customer',
+        customerContact: item.customerContact || item.customer_contact || item.contactPerson || item.contact_person || '',
+        contactEmail: item.contactEmail || item.contact_email || '',
+        contactMobile: item.contactMobile || item.contact_mobile || '',
+        productName: item.productName || item.product_name || 'Process Equipment',
+        machineModel: item.machineModel || item.machine_model || '',
+        specification: item.specification || 'Standard Specification',
+        quantity: Number(item.quantity) || 1,
+        unit: item.unit || 'Set',
+        orderValue: Number(item.orderValue ?? item.order_value ?? item.totalOrderValue ?? item.total_order_value ?? 0),
+        priority: item.priority || 'medium',
+        startDate: item.startDate || item.start_date || '',
+        deliveryDate: item.deliveryDate || item.delivery_date || item.target_delivery_date || item.targetDeliveryDate || '',
+        expectedDeliveryDate: item.expectedDeliveryDate || item.expected_delivery_date || item.deliveryDate || '',
+        projectManager: item.projectManager || item.project_manager || item.project_manager_name || item.projectManagerName || 'Project Manager',
+        status: item.status || item.current_status || item.currentStatus || 'planning',
+        progressPercent: Number(item.progressPercent ?? item.progress_percent ?? 0),
+        currentStage: item.currentStage || item.current_stage || item.stage || 'Engineering Planning',
+      };
+
+      if (map.has(key)) {
+        const existing = map.get(key)!;
+        map.set(key, { ...existing, ...normalized, id: existing.id || normalized.id, projectNumber: existing.projectNumber || normalized.projectNumber });
+      } else {
+        map.set(key, normalized);
+      }
+    }
+    return Array.from(map.values());
+  };
+
+  const deduplicateQuotations = (list: any[]): Quotation[] => {
+    if (!Array.isArray(list)) return [];
+    const map = new Map<string, Quotation>();
+    for (const item of list) {
+      if (!item) continue;
+      const qNo = String(item.quotationNumber || item.quotation_number || '').trim();
+      const id = String(item.id || '').trim();
+      let key = qNo || (id && id.startsWith('QT-') ? id : '') || id;
+      if (!key) continue;
+
+      const revs = Array.isArray(item.revisions) ? item.revisions : [];
+      const lastRev = revs[revs.length - 1] || {};
+      const firstItem = (lastRev.items || [{}])[0];
+      const summary = item.latestSummary || {
+        machineProduct: firstItem?.productName || 'Process Equipment',
+        grandTotal: Number(lastRev?.grandTotal) || 0,
+        status: lastRev?.status || 'draft',
+      };
+
+      const normalized: Quotation = {
+        ...item,
+        id: id || qNo || key,
+        quotationNumber: qNo || id || key,
+        currentRevision: item.currentRevision || item.current_revision || 'Rev-00',
+        date: item.date || '',
+        validUntil: item.validUntil || item.valid_until || '',
+        customerId: item.customerId || item.customer_id || '',
+        customerName: item.customerName || item.customer_name || '',
+        contactPerson: item.contactPerson || item.contact_person || '',
+        contactMobile: item.contactMobile || item.contact_mobile || '',
+        contactEmail: item.contactEmail || item.contact_email || '',
+        enquiryId: item.enquiryId || item.enquiry_id || '',
+        opportunityId: item.opportunityId || item.opportunity_id || '',
+        salesPersonId: item.salesPersonId || item.sales_person_id || '',
+        salesPersonName: item.salesPersonName || item.sales_person_name || '',
+        revisions: revs,
+        notes: item.notes || '',
+        latestSummary: summary,
+      };
+
+      if (map.has(key)) {
+        const existing = map.get(key)!;
+        map.set(key, { ...existing, ...normalized, id: existing.id || normalized.id, quotationNumber: existing.quotationNumber || normalized.quotationNumber });
+      } else {
+        map.set(key, normalized);
+      }
+    }
+    return Array.from(map.values());
+  };
+
   const defaultAdminUser: Employee = {
     id: 'EMP-001',
     firstName: 'Admin',
@@ -1143,11 +1487,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         const stored = localStorage.getItem('UMA_ERP_leads');
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) return deduplicateLeads(parsed);
         }
       } catch (_) {}
     }
-    return INITIAL_LEADS;
+    return deduplicateLeads(INITIAL_LEADS);
   });
   const [customers, setCustomers] = useState<Customer[]>(() => {
     if (typeof window !== 'undefined') {
@@ -1155,11 +1499,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         const stored = localStorage.getItem('UMA_ERP_customers');
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) return deduplicateCustomers(parsed);
         }
       } catch (_) {}
     }
-    return INITIAL_CUSTOMERS;
+    return deduplicateCustomers(INITIAL_CUSTOMERS);
   });
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [enquiries, setEnquiries] = useState<Enquiry[]>(() => {
@@ -1218,28 +1562,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         if (stored) {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            const uniqueMap = new Map<string, Quotation>();
-            parsed.forEach((q: any) => {
-              const qId = String(q.id || q.quotationNumber || '').trim();
-              if (qId && !uniqueMap.has(qId)) {
-                const revs = Array.isArray(q.revisions) ? q.revisions : [];
-                const lastRev = revs[revs.length - 1] || {};
-                const firstItem = (lastRev.items || [{}])[0];
-                const summary = q.latestSummary || {
-                  machineProduct: firstItem?.productName || 'Process Equipment',
-                  grandTotal: Number(lastRev?.grandTotal) || 0,
-                  status: lastRev?.status || 'draft',
-                };
-                uniqueMap.set(qId, { ...q, id: qId, latestSummary: summary });
-              }
-            });
-            const cleaned = Array.from(uniqueMap.values());
+            const cleaned = deduplicateQuotations(parsed);
             if (cleaned.length > 0) return cleaned;
           }
         }
       } catch (_) {}
     }
-    return INITIAL_QUOTATIONS;
+    return deduplicateQuotations(INITIAL_QUOTATIONS);
   });
   const [customerPOs, setCustomerPOs] = useState<CustomerPO[]>(() => {
     if (typeof window !== 'undefined') {
@@ -1248,20 +1577,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         if (stored) {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            const uniqueMap = new Map<string, CustomerPO>();
-            parsed.forEach((p: any) => {
-              const pId = String(p.id || p.poNumber || '').trim();
-              if (pId && !uniqueMap.has(pId)) {
-                uniqueMap.set(pId, p);
-              }
-            });
-            const cleaned = Array.from(uniqueMap.values());
+            const cleaned = deduplicateCustomerPOs(parsed);
             if (cleaned.length > 0) return cleaned;
           }
         }
       } catch (_) {}
     }
-    return INITIAL_CUSTOMER_POS;
+    return deduplicateCustomerPOs(INITIAL_CUSTOMER_POS);
   });
   const [salesOrders, setSalesOrders] = useState<SalesOrder[]>(() => {
     if (typeof window !== 'undefined') {
@@ -1269,11 +1591,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         const stored = localStorage.getItem('UMA_ERP_salesOrders');
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) return deduplicateSalesOrders(parsed);
         }
       } catch (_) {}
     }
-    return INITIAL_SALES_ORDERS;
+    return deduplicateSalesOrders(INITIAL_SALES_ORDERS);
   });
   const [projectJobs, setProjectJobs] = useState<ProjectJobMaster[]>(() => {
     if (typeof window !== 'undefined') {
@@ -1281,11 +1603,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         const stored = localStorage.getItem('UMA_ERP_projectJobs');
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) return deduplicateProjects(parsed);
         }
       } catch (_) {}
     }
-    return INITIAL_PROJECT_JOBS;
+    return deduplicateProjects(INITIAL_PROJECT_JOBS);
   });
   const [projectTasks, setProjectTasks] = useState<ProjectTask[]>(MOCK_PROJECT_TASKS);
   const [projectPlanningStages, setProjectPlanningStages] = useState<ProjectPlanningStage[]>(MOCK_PLANNING_STAGES);
@@ -1726,6 +2048,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             if (Array.isArray(data) && data.length > 0) {
               if (key === 'employees') {
                 setter(deduplicateEmployees(data));
+              } else if (key === 'leads') {
+                setter(deduplicateLeads(data));
+              } else if (key === 'customers') {
+                setter(deduplicateCustomers(data));
+              } else if (key === 'customerPOs') {
+                setter(deduplicateCustomerPOs(data));
+              } else if (key === 'salesOrders') {
+                setter(deduplicateSalesOrders(data));
+              } else if (key === 'projectJobs') {
+                setter(deduplicateProjects(data));
+              } else if (key === 'quotations') {
+                setter(deduplicateQuotations(data));
               } else if (key === 'itemCategories') {
                 const normalized = data.map((c: any) => ({
                   ...c,
@@ -1921,100 +2255,63 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        applyLive<Lead>(val(results[0]), setLeads, 'leads');
-        applyLive<Customer>(val(results[1]), setCustomers, 'customers');
+        const rawLeads = val<any[]>(results[0]);
+        if (rawLeads && Array.isArray(rawLeads) && rawLeads.length > 0) {
+          setLeads((prev) => {
+            const combined = deduplicateLeads([...prev, ...rawLeads]);
+            if (typeof window !== 'undefined') {
+              try { localStorage.setItem('UMA_ERP_leads', JSON.stringify(combined)); } catch (_) {}
+            }
+            return combined;
+          });
+        }
+
+        const rawCustomers = val<any[]>(results[1]);
+        if (rawCustomers && Array.isArray(rawCustomers) && rawCustomers.length > 0) {
+          setCustomers((prev) => {
+            const combined = deduplicateCustomers([...prev, ...rawCustomers]);
+            if (typeof window !== 'undefined') {
+              try { localStorage.setItem('UMA_ERP_customers', JSON.stringify(combined)); } catch (_) {}
+            }
+            return combined;
+          });
+        }
+
         applyLive<Contact>(val(results[2]), setContacts, 'contacts');
         applyLive<Enquiry>(val(results[3]), setEnquiries, 'enquiries');
         applyLive<Opportunity>(val(results[4]), setOpportunities, 'opportunities');
+
         const rawQuotations = val<any[]>(results[5]);
         if (rawQuotations && Array.isArray(rawQuotations) && rawQuotations.length > 0) {
-          const uniqueMap = new Map<string, Quotation>();
-          rawQuotations.forEach((q: any) => {
-            const qId = String(q.id || q.quotationNumber || q.quotation_number || '').trim();
-            if (!qId) return;
-            const revs = Array.isArray(q.revisions) ? q.revisions : [];
-            const lastRev = revs[revs.length - 1] || {};
-            const firstItem = (lastRev.items || [{}])[0];
-            const summary = q.latestSummary || {
-              machineProduct: firstItem?.productName || 'Process Equipment',
-              grandTotal: Number(lastRev?.grandTotal) || 0,
-              status: lastRev?.status || 'draft',
-            };
-            const normalized: Quotation = {
-              ...q,
-              id: qId,
-              quotationNumber: q.quotationNumber || q.quotation_number || qId,
-              currentRevision: q.currentRevision || q.current_revision || 'Rev-00',
-              date: q.date || '',
-              validUntil: q.validUntil || q.valid_until || '',
-              customerId: q.customerId || q.customer_id || '',
-              customerName: q.customerName || q.customer_name || '',
-              contactPerson: q.contactPerson || q.contact_person || '',
-              contactMobile: q.contactMobile || q.contact_mobile || '',
-              contactEmail: q.contactEmail || q.contact_email || '',
-              enquiryId: q.enquiryId || q.enquiry_id || '',
-              opportunityId: q.opportunityId || q.opportunity_id || '',
-              salesPersonId: q.salesPersonId || q.sales_person_id || '',
-              salesPersonName: q.salesPersonName || q.sales_person_name || '',
-              revisions: revs,
-              notes: q.notes || '',
-              latestSummary: summary,
-            };
-            uniqueMap.set(qId, normalized);
+          setQuotations((prev) => {
+            const combined = deduplicateQuotations([...prev, ...rawQuotations]);
+            if (typeof window !== 'undefined') {
+              try { localStorage.setItem('UMA_ERP_quotations', JSON.stringify(combined)); } catch (_) {}
+            }
+            return combined;
           });
-          const normalizedQuotations = Array.from(uniqueMap.values());
-          setQuotations(normalizedQuotations);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_quotations', JSON.stringify(normalizedQuotations)); } catch (_) {}
-          }
         }
+
         const rawCustomerPOs = val<any[]>(results[6]);
         if (rawCustomerPOs && Array.isArray(rawCustomerPOs) && rawCustomerPOs.length > 0) {
-          const normalizedPOs: CustomerPO[] = rawCustomerPOs.map((po: any) => ({
-            ...po,
-            id: String(po.id),
-            poNumber: po.poNumber || po.po_number || po.id,
-            poDate: po.poDate || po.po_date || '',
-            customerId: po.customerId || po.customer_id || '',
-            customerName: po.customerName || po.customer_name || '',
-            quotationId: po.quotationId || po.quotation_id || '',
-            quotationNumber: po.quotationNumber || po.quotation_number || '',
-            salesOrderId: po.salesOrderId || po.sales_order_id || po.converted_so_id || '',
-            poAmount: Number(po.poAmount) || Number(po.po_value) || Number(po.po_amount) || 0,
-            paymentTerms: po.paymentTerms || po.payment_terms || '',
-            deliveryDate: po.deliveryDate || po.delivery_date || '',
-            status: po.status || 'received',
-          }));
-          applyLive<CustomerPO>(normalizedPOs, setCustomerPOs, 'customerPOs');
-        } else {
-          applyLive<CustomerPO>(val(results[6]), setCustomerPOs, 'customerPOs');
+          setCustomerPOs((prev) => {
+            const combined = deduplicateCustomerPOs([...prev, ...rawCustomerPOs]);
+            if (typeof window !== 'undefined') {
+              try { localStorage.setItem('UMA_ERP_customerPOs', JSON.stringify(combined)); } catch (_) {}
+            }
+            return combined;
+          });
         }
+
         const rawSalesOrders = val<any[]>(results[7]);
         if (rawSalesOrders && Array.isArray(rawSalesOrders) && rawSalesOrders.length > 0) {
-          const normalizedSalesOrders: SalesOrder[] = rawSalesOrders.map((so: any) => ({
-            ...so,
-            id: String(so.id),
-            salesOrderNumber: so.salesOrderNumber || so.sales_order_number || so.id,
-            customerId: so.customerId || so.customer_id || '',
-            customerName: so.customerName || so.customer_name || '',
-            customerPoId: so.customerPoId || so.customer_po_id || '',
-            customerPoNumber: so.customerPoNumber || so.customer_po_number || '',
-            quotationId: so.quotationId || so.quotation_id || '',
-            quotationNumber: so.quotationNumber || so.quotation_number || '',
-            orderDate: so.orderDate || so.order_date || '',
-            deliveryDate: so.deliveryDate || so.target_delivery_date || so.targetDeliveryDate || '',
-            items: Array.isArray(so.items) ? so.items : [],
-            orderValue: Number(so.orderValue) || Number(so.grand_total) || Number(so.total_amount) || 0,
-            paymentTerms: so.paymentTerms || so.payment_terms || '',
-            assignedProjectManager: so.assignedProjectManager || so.assigned_project_manager || so.created_by || 'Unassigned',
-            status: so.status || 'confirmed',
-            projectId: so.projectId || so.project_id || undefined,
-            jobNumber: so.jobNumber || so.job_number || undefined,
-          }));
-          setSalesOrders(normalizedSalesOrders);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_salesOrders', JSON.stringify(normalizedSalesOrders)); } catch (_) {}
-          }
+          setSalesOrders((prev) => {
+            const combined = deduplicateSalesOrders([...prev, ...rawSalesOrders]);
+            if (typeof window !== 'undefined') {
+              try { localStorage.setItem('UMA_ERP_salesOrders', JSON.stringify(combined)); } catch (_) {}
+            }
+            return combined;
+          });
         }
 
         const rawFollowUps = val<any>(results[8]);
@@ -2140,8 +2437,16 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             return merged;
           });
         }
-        applyLive<Role>(val(results[13]), setRoles, 'roles');
-        applyLive<ProjectJobMaster>(val(results[14]), setProjectJobs, 'projectJobs');
+        const rawProjects = val<any[]>(results[14]);
+        if (rawProjects && Array.isArray(rawProjects) && rawProjects.length > 0) {
+          setProjectJobs((prev) => {
+            const combined = deduplicateProjects([...prev, ...rawProjects]);
+            if (typeof window !== 'undefined') {
+              try { localStorage.setItem('UMA_ERP_projectJobs', JSON.stringify(combined)); } catch (_) {}
+            }
+            return combined;
+          });
+        }
         applyLive<ProjectTask>(val(results[15]), setProjectTasks, 'projectTasks');
         applyLive<ProjectMilestone>(val(results[16]), setProjectMilestones, 'projectMilestones');
         applyLive<ProjectPlanningStage>(val(results[17]), setProjectPlanningStages, 'projectPlanningStages');
@@ -3656,46 +3961,6 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     api.roles.update(id, role).catch((err) => console.warn('Failed to update role:', err));
   };
 
-  // Helper to deduplicate employees by ID / username / email and sanitize invalid records
-  const deduplicateEmployees = (list: Employee[]): Employee[] => {
-    if (!Array.isArray(list)) return [];
-    const map = new Map<string, Employee>();
-    for (const emp of list) {
-      if (!emp) continue;
-      // Determine canonical key
-      let key = (emp.id && emp.id.trim() && emp.id.trim() !== '-') ? emp.id.trim() : '';
-      if (!key) {
-        if (emp.username && emp.username.trim()) {
-          key = `USER-${emp.username.trim().toLowerCase()}`;
-        } else if (emp.email && emp.email.trim()) {
-          key = `EMAIL-${emp.email.trim().toLowerCase()}`;
-        } else {
-          key = `NAME-${((emp.firstName || '') + (emp.lastName || '') + (emp.name || '')).trim() || 'staff'}`;
-        }
-      }
-
-      if (map.has(key)) {
-        const existing = map.get(key)!;
-        map.set(key, {
-          ...existing,
-          ...emp,
-          id: existing.id && existing.id !== '-' ? existing.id : (emp.id && emp.id !== '-' ? emp.id : key),
-          name: emp.name || `${emp.firstName || existing.firstName || ''} ${emp.lastName || existing.lastName || ''}`.trim() || existing.name,
-        });
-      } else {
-        const assignedId = (emp.id && emp.id.trim() && emp.id.trim() !== '-')
-          ? emp.id.trim()
-          : (key.startsWith('EMP-') ? key : `EMP-${String(map.size + 1).padStart(3, '0')}`);
-
-        map.set(key, {
-          ...emp,
-          id: assignedId,
-          name: emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || 'Staff',
-        });
-      }
-    }
-    return Array.from(map.values());
-  };
 
   // Employee CRUD
   const addEmployee = (emp: Omit<Employee, 'id'> & { id?: string }) => {
@@ -3855,7 +4120,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       createdDate: new Date().toISOString().split('T')[0],
     };
     setLeads((prev) => {
-      const updated = [newLead, ...prev.filter((l) => l.id !== leadNo && l.leadNo !== leadNo)];
+      const updated = deduplicateLeads([newLead, ...prev]);
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_leads', JSON.stringify(updated)); } catch (_) {}
       }
@@ -3902,9 +4167,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
     // Sync to PythonAnywhere Backend
     api.crm.leads.create(newLead).then((res) => {
-      if (res && res.id) {
+      if (res && (res.id || (res as any).lead_no || (res as any).leadNo)) {
         setLeads((prev) => {
-          const updated = prev.map((l) => (l.id === leadNo ? { ...l, ...res } : l));
+          const updated = deduplicateLeads(prev.map((l) => (l.id === leadNo || l.leadNo === leadNo ? { ...l, ...res } : l)));
           if (typeof window !== 'undefined') {
             try { localStorage.setItem('UMA_ERP_leads', JSON.stringify(updated)); } catch (_) {}
           }
@@ -3917,7 +4182,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
   const updateLead = (id: string, leadData: Partial<Lead>) => {
     setLeads((prev) => {
-      const updated = prev.map((l) => (l.id === id || l.leadNo === id ? { ...l, ...leadData } : l));
+      const updated = deduplicateLeads(prev.map((l) => (l.id === id || l.leadNo === id ? { ...l, ...leadData } : l)));
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_leads', JSON.stringify(updated)); } catch (_) {}
       }
@@ -3940,7 +4205,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const convertLeadToCustomer = (leadId: string): { customer: Customer; enquiry?: Enquiry; opportunity?: Opportunity } => {
-    const lead = leads.find((l) => l.id === leadId);
+    const lead = leads.find((l) => l.id === leadId || l.leadNo === leadId);
     if (!lead) throw new Error('Lead not found');
 
     // Create Customer
@@ -3972,7 +4237,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       assignedSalesPerson: lead.assignedSalesPersonName,
       createdDate: new Date().toISOString().split('T')[0],
     };
-    setCustomers((prev) => [newCustomer, ...prev]);
+    setCustomers((prev) => {
+      const updated = deduplicateCustomers([newCustomer, ...prev]);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_customers', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
 
     // Create Enquiry
     const enqNo = getNextDocNumber('enquiry');
@@ -4037,25 +4308,49 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       customerCode: `CUST-${String(customers.length + 1).padStart(3, '0')}`,
       createdDate: new Date().toISOString().split('T')[0],
     };
-    setCustomers((prev) => [newCust, ...prev]);
+    setCustomers((prev) => {
+      const updated = deduplicateCustomers([newCust, ...prev]);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_customers', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'CRM', 'Customers', custId, `Added Customer ${newCust.companyName}`);
     // Sync to PythonAnywhere Backend
     api.crm.customers.create(newCust).then((res) => {
       if (res && res.id) {
-        setCustomers((prev) => prev.map((c) => (c.id === custId ? { ...c, ...res } : c)));
+        setCustomers((prev) => {
+          const updated = deduplicateCustomers(prev.map((c) => (c.id === custId || c.customerCode === newCust.customerCode ? { ...c, ...res } : c)));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_customers', JSON.stringify(updated)); } catch (_) {}
+          }
+          return updated;
+        });
       }
     }).catch((err) => console.warn('Failed to sync customer to backend:', err));
     return newCust;
   };
 
   const updateCustomer = (id: string, custData: Partial<Customer>) => {
-    setCustomers((prev) => prev.map((c) => (c.id === id ? { ...c, ...custData } : c)));
+    setCustomers((prev) => {
+      const updated = deduplicateCustomers(prev.map((c) => (c.id === id || c.customerCode === id ? { ...c, ...custData } : c)));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_customers', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'CRM', 'Customers', id, `Updated Customer ${id}`);
     api.crm.customers.update(id, custData).catch((err) => console.warn('Failed to update customer on backend:', err));
   };
 
   const deleteCustomer = (id: string) => {
-    setCustomers((prev) => prev.filter((c) => c.id !== id));
+    setCustomers((prev) => {
+      const updated = prev.filter((c) => c.id !== id && c.customerCode !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_customers', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('DELETE', 'CRM', 'Customers', id, `Deleted Customer ${id}`);
     api.crm.customers.delete(id).catch((err) => console.warn('Failed to delete customer on backend:', err));
   };
@@ -4425,7 +4720,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       id: poId,
     };
     setCustomerPOs((prev) => {
-      const updated = [newPO, ...prev];
+      const updated = deduplicateCustomerPOs([newPO, ...prev]);
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_customerPOs', JSON.stringify(updated)); } catch (_) {}
       }
@@ -4449,7 +4744,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     api.crm.customerPos.create(poPayload).then((res) => {
       if (res && res.id) {
         setCustomerPOs((prev) => {
-          const updated = prev.map((p) => (p.id === poId ? { ...p, ...res } : p));
+          const updated = deduplicateCustomerPOs(prev.map((p) => (p.id === poId || p.poNumber === newPO.poNumber ? { ...p, ...res } : p)));
           if (typeof window !== 'undefined') {
             try { localStorage.setItem('UMA_ERP_customerPOs', JSON.stringify(updated)); } catch (_) {}
           }
@@ -4461,7 +4756,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const convertCustomerPOToSalesOrder = (poId: string): SalesOrder => {
-    const po = customerPOs.find((p) => p.id === poId);
+    const po = customerPOs.find((p) => p.id === poId || p.poNumber === poId);
     if (!po) throw new Error('Customer PO not found');
 
     const soNo = getNextDocNumber('sales_order');
@@ -4494,14 +4789,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
 
     setSalesOrders((prev) => {
-      const updated = [newSO, ...prev];
+      const updated = deduplicateSalesOrders([newSO, ...prev]);
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_salesOrders', JSON.stringify(updated)); } catch (_) {}
       }
       return updated;
     });
     setCustomerPOs((prev) => {
-      const updated = prev.map((p) => (p.id === poId ? { ...p, status: 'sales_order_created' as const, salesOrderId: soNo } : p));
+      const updated = deduplicateCustomerPOs(prev.map((p) => (p.id === poId || p.poNumber === po.poNumber ? { ...p, status: 'sales_order_created' as const, salesOrderId: soNo } : p)));
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_customerPOs', JSON.stringify(updated)); } catch (_) {}
       }
@@ -4525,7 +4820,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     api.crm.salesOrders.create(soPayload).then((res) => {
       if (res && res.id) {
         setSalesOrders((prev) => {
-          const updated = prev.map((s) => (s.id === soNo ? { ...s, ...res } : s));
+          const updated = deduplicateSalesOrders(prev.map((s) => (s.id === soNo || s.salesOrderNumber === soNo ? { ...s, ...res } : s)));
           if (typeof window !== 'undefined') {
             try { localStorage.setItem('UMA_ERP_salesOrders', JSON.stringify(updated)); } catch (_) {}
           }
@@ -4547,7 +4842,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       salesOrderNumber: soNo,
     };
     setSalesOrders((prev) => {
-      const updated = [newSO, ...prev];
+      const updated = deduplicateSalesOrders([newSO, ...prev]);
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_salesOrders', JSON.stringify(updated)); } catch (_) {}
       }
@@ -4563,7 +4858,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     api.crm.salesOrders.create(soPayload).then((res) => {
       if (res && res.id) {
         setSalesOrders((prev) => {
-          const updated = prev.map((s) => (s.id === soNo ? { ...s, ...res } : s));
+          const updated = deduplicateSalesOrders(prev.map((s) => (s.id === soNo || s.salesOrderNumber === soNo ? { ...s, ...res } : s)));
           if (typeof window !== 'undefined') {
             try { localStorage.setItem('UMA_ERP_salesOrders', JSON.stringify(updated)); } catch (_) {}
           }
@@ -4576,11 +4871,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
   // CRM → PROJECT INTEGRATION (THE CENTRAL LINK!)
   const createProjectFromSalesOrder = (salesOrderId: string): ProjectJobMaster => {
-    const so = salesOrders.find((s) => s.id === salesOrderId);
+    const so = salesOrders.find((s) => s.id === salesOrderId || s.salesOrderNumber === salesOrderId);
     if (!so) throw new Error('Sales order not found');
 
     const prjNo = getNextDocNumber('project');
     const jobNo = getNextDocNumber('job');
+
+    const qtn = quotations.find((q) => q.quotationNumber === so.quotationNumber || q.id === so.quotationId);
+    const po = customerPOs.find((p) => p.poNumber === so.customerPoNumber || p.id === so.customerPoId);
+    const cust = customers.find((c) => c.id === so.customerId || c.companyName === so.customerName);
+    const contactPerson = (so as any).contactPerson || (so as any).customerContact || qtn?.contactPerson || (po as any)?.contactPerson || cust?.contactPerson || '';
+    const contactEmail = (so as any).contactEmail || qtn?.contactEmail || (po as any)?.contactEmail || cust?.email || '';
+    const contactMobile = (so as any).contactMobile || (so as any).contactPhone || qtn?.contactMobile || (po as any)?.contactMobile || cust?.mobile || (cust as any)?.phone || '';
 
     const newProject: ProjectJobMaster = {
       id: prjNo,
@@ -4592,6 +4894,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       quotationNumber: so.quotationNumber,
       customerId: so.customerId,
       customerName: so.customerName,
+      customerContact: contactPerson,
+      contactEmail: contactEmail,
+      contactMobile: contactMobile,
       productName: so.items[0]?.productName || 'Custom Manufacturing Unit',
       specification: so.items[0]?.specification || 'As per Sales Order',
       quantity: so.items[0]?.quantity || 1,
@@ -4621,7 +4926,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     setProjectMilestones((prev) => [...prev, ...newMilestones]);
     setDepartmentAssignments((prev) => [...prev, ...newDeptAssignments]);
     setProjectJobs((prev) => {
-      const updated = [newProject, ...prev];
+      const updated = deduplicateProjects([newProject, ...prev]);
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_projectJobs', JSON.stringify(updated)); } catch (_) {}
       }
@@ -4630,7 +4935,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
     // Update Sales Order with Project Link
     setSalesOrders((prev) => {
-      const updated = prev.map((s) => (s.id === salesOrderId ? { ...s, status: 'project_created' as const, projectId: prjNo, jobNumber: jobNo } : s));
+      const updated = deduplicateSalesOrders(prev.map((s) => (s.id === salesOrderId || s.salesOrderNumber === so.salesOrderNumber ? { ...s, status: 'project_created' as const, projectId: prjNo, jobNumber: jobNo } : s)));
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_salesOrders', JSON.stringify(updated)); } catch (_) {}
       }
@@ -4646,7 +4951,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     api.projects.create(prjPayload).then((res) => {
       if (res && res.id) {
         setProjectJobs((prev) => {
-          const updated = prev.map((p) => (p.id === prjNo ? { ...p, ...res } : p));
+          const updated = deduplicateProjects(prev.map((p) => (p.id === prjNo || p.projectNumber === prjNo ? { ...p, ...res } : p)));
           if (typeof window !== 'undefined') {
             try { localStorage.setItem('UMA_ERP_projectJobs', JSON.stringify(updated)); } catch (_) {}
           }
@@ -4731,7 +5036,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   // PROJECT MODULE MANAGEMENT FUNCTIONS
   const updateProject = (id: string, prj: Partial<ProjectJobMaster>) => {
     setProjectJobs((prev) => {
-      const updated = prev.map((p) => (p.id === id || p.projectNumber === id ? { ...p, ...prj } : p));
+      const updated = deduplicateProjects(prev.map((p) => (p.id === id || p.projectNumber === id ? { ...p, ...prj } : p)));
       try { localStorage.setItem('UMA_ERP_projectJobs', JSON.stringify(updated)); } catch (_) {}
       return updated;
     });
@@ -6568,7 +6873,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
 
     logAction('CREATE', 'Store', 'Material Issue', newIssue.id, `Issued material slip ${newIssue.issueNumber} for Job ${newIssue.jobId}`);
-    api.post('/material-issues/', newIssue).catch((err) => console.warn('Failed to add material issue:', err));
+    api.post('/material-issues/', newIssue).catch(() => {});
+    api.production.materialRequests.create(newIssue).catch(() => {});
   };
 
   const addMaterialReturn = (data: Omit<MaterialReturn, 'id' | 'returnNumber' | 'createdAt'>) => {
@@ -8746,12 +9052,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         updateEmployee,
         deleteEmployee,
         resetEmployeePassword,
-        leads,
+        leads: deduplicateLeads(leads),
         addLead,
         updateLead,
         deleteLead,
         convertLeadToCustomer,
-        customers,
+        customers: deduplicateCustomers(customers),
         addCustomer,
         updateCustomer,
         deleteCustomer,
@@ -8774,17 +9080,17 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         addExhibition,
         updateExhibition,
         deleteExhibition,
-        quotations,
+        quotations: deduplicateQuotations(quotations),
         addQuotation,
         addQuotationRevision,
         updateQuotationStatus,
-        customerPOs,
+        customerPOs: deduplicateCustomerPOs(customerPOs),
         addCustomerPO,
         convertCustomerPOToSalesOrder,
-        salesOrders,
+        salesOrders: deduplicateSalesOrders(salesOrders),
         addSalesOrder,
         createProjectFromSalesOrder,
-        projectJobs,
+        projectJobs: deduplicateProjects(projectJobs),
         updateProject,
         deleteProject,
         projectTasks,

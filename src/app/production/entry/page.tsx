@@ -5,7 +5,7 @@ import { useERP } from '../../../context/ERPContext';
 import { PlayCircle, Plus, CheckCircle2, AlertTriangle, Clock, Activity } from 'lucide-react';
 
 export default function ProductionEntryPage() {
-  const { productionEntries, workOrders, workCenters, recordProductionEntry, availableEmployees } = useERP();
+  const { productionEntries, workOrders, workCenters, recordProductionEntry, availableEmployees, isInitialLoading } = useERP();
   const [showModal, setShowModal] = useState(false);
 
   const [selectedWo, setSelectedWo] = useState(workOrders[0]?.workOrderNumber || 'WO-2026-001-A');
@@ -125,7 +125,20 @@ export default function ProductionEntryPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB]">
-              {productionEntries.length === 0 ? (
+              {isInitialLoading && productionEntries.length === 0 ? (
+                Array.from({ length: 6 }).map((_, rIdx) => (
+                  <tr key={`shimmer-pentry-${rIdx}`}>
+                    {Array.from({ length: 9 }).map((_, cIdx) => (
+                      <td key={cIdx} className="p-4">
+                        <div
+                          className="h-3.5 rounded-md animate-shimmer"
+                          style={{ width: `${Math.max(30, Math.min(95, 45 + ((rIdx * 23 + cIdx * 37) % 50)))}%` }}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : productionEntries.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="p-8 text-center text-[#70665F]">
                     No shift production entries recorded yet in database. Click &quot;Log Shift Production Entry&quot; to submit an operator entry.

@@ -169,12 +169,12 @@ export function DataTable<T extends Record<string, any>>({
           <tbody className="divide-y divide-[#EFE8DE]">
             {isLoading && paginatedData.length === 0 ? (
               Array.from({ length: 6 }).map((_, rIdx) => (
-                <tr key={`skel-row-${rIdx}`} className="animate-pulse">
+                <tr key={`skel-row-${rIdx}`}>
                   {columns.map((col, cIdx) => (
                     <td key={`skel-col-${cIdx}`} className="py-4 px-4">
                       <div
-                        className="h-3.5 bg-[#EFE8DE] rounded-md"
-                        style={{ width: `${55 + ((rIdx * 19 + cIdx * 23) % 40)}%` }}
+                        className="h-3.5 rounded-md animate-shimmer"
+                        style={{ width: `${Math.max(30, Math.min(95, 45 + ((rIdx * 23 + cIdx * 37) % 50)))}%` }}
                       />
                     </td>
                   ))}

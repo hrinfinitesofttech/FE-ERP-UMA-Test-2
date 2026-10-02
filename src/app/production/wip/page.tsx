@@ -5,7 +5,7 @@ import { useERP } from '../../../context/ERPContext';
 import { Layers, Clock, AlertTriangle, CheckCircle2, ChevronRight, Search } from 'lucide-react';
 
 export default function WIPTrackingPage() {
-  const { wipRecords, openJobModal } = useERP();
+  const { wipRecords, openJobModal, isInitialLoading } = useERP();
 
   return (
     <div className="p-6 space-y-6 bg-[#090D1A]  text-[#544B45]">
@@ -31,77 +31,108 @@ export default function WIPTrackingPage() {
 
       {/* WIP Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {wipRecords.map((wip) => {
-          const progressPercent = Math.round((wip.completedOperationsCount / wip.totalOperationsCount) * 100);
-
-          return (
-            <div
-              key={wip.id}
-              className="p-5 rounded-2xl bg-white border border-[#EBE3DB] hover:border-crm-brand-600/50 transition space-y-4 shadow-xl"
-            >
+        {isInitialLoading && wipRecords.length === 0 ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={`shimmer-wip-${i}`} className="p-5 rounded-2xl bg-white border border-[#EBE3DB] space-y-4 shadow-xl">
               <div className="flex justify-between items-start">
-                <div>
-                  <span className="font-mono font-bold text-sky-400 text-base">{wip.jobNumber}</span>
-                  <div className="text-xs font-mono text-indigo-300">{wip.workOrderNumber}</div>
+                <div className="space-y-1.5">
+                  <div className="h-5 w-28 rounded animate-shimmer" />
+                  <div className="h-3.5 w-20 rounded animate-shimmer" />
                 </div>
-
-                <span
-                  className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
-                    wip.status === 'In Progress'
-                      ? 'bg-crm-brand-600/20 text-crm-brand- border-crm-brand-600/30'
-                      : wip.status === 'Delayed'
-                      ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
-                      : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-                  }`}
-                >
-                  {wip.status}
-                </span>
+                <div className="h-6 w-20 rounded-full animate-shimmer" />
               </div>
-
-              <div className="p-3 rounded-xl bg-[#FAF7F2]/60 border border-[#EBE3DB] space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-[#70665F]">Current Operation:</span>
-                  <span className="font-semibold text-amber-300">{wip.currentOperationName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#70665F]">Responsible Bay / Dept:</span>
-                  <span className="font-medium text-[#544B45]">{wip.responsibleDepartment} ({wip.location})</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#70665F]">WIP Quantity:</span>
-                  <span className="font-bold text-[#211B17]">{wip.wipQuantity} {wip.uom}</span>
-                </div>
+              <div className="p-3 rounded-xl bg-[#FAF7F2]/60 border border-[#EBE3DB] space-y-2">
+                <div className="h-4 w-full rounded animate-shimmer" />
+                <div className="h-4 w-3/4 rounded animate-shimmer" />
+                <div className="h-4 w-1/2 rounded animate-shimmer" />
               </div>
-
-              {/* Operations Progress */}
               <div className="space-y-1.5">
-                <div className="flex justify-between text-xs font-semibold">
-                  <span className="text-[#70665F]">
-                    Operations Progress ({wip.completedOperationsCount} / {wip.totalOperationsCount} Ops)
-                  </span>
-                  <span className="text-crm-brand-500 font-bold">{progressPercent}%</span>
-                </div>
-                <div className="w-full bg-[#FAF7F2] h-2.5 rounded-full overflow-hidden p-0.5 border border-[#EBE3DB]">
-                  <div
-                    className="bg-gradient-to-r from-crm-brand-600 to-crm-brand-700 h-full rounded-full transition-all duration-500"
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
+                <div className="h-3 w-32 rounded animate-shimmer" />
+                <div className="h-2.5 w-full rounded-full animate-shimmer" />
               </div>
-
-              {/* Footer */}
-              <div className="pt-2 border-t border-[#EBE3DB] flex justify-between items-center text-xs">
-                <span className="text-[#70665F]">Expected: {wip.expectedCompletionDate}</span>
-                <button
-                  onClick={() => openJobModal(wip.jobNumber)}
-                  className="px-3 py-1 rounded bg-crm-brand-700/20 text-crm-brand- font-bold border border-crm-brand-600/30 hover:bg-crm-brand-700/30 transition text-[11px]"
-                >
-                  360° Job Trace
-                </button>
+              <div className="pt-2 border-t border-[#EBE3DB] flex justify-between items-center">
+                <div className="h-3.5 w-24 rounded animate-shimmer" />
+                <div className="h-6 w-20 rounded animate-shimmer" />
               </div>
             </div>
-          );
-        })}
+          ))
+        ) : wipRecords.length === 0 ? (
+          <div className="col-span-2 p-12 text-center text-[#70665F] bg-white rounded-2xl border border-[#EBE3DB]">
+            No WIP records found in database.
+          </div>
+        ) : (
+          wipRecords.map((wip) => {
+            const progressPercent = Math.round((wip.completedOperationsCount / wip.totalOperationsCount) * 100);
+
+            return (
+              <div
+                key={wip.id}
+                className="p-5 rounded-2xl bg-white border border-[#EBE3DB] hover:border-crm-brand-600/50 transition space-y-4 shadow-xl"
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="font-mono font-bold text-sky-400 text-base">{wip.jobNumber}</span>
+                    <div className="text-xs font-mono text-indigo-300">{wip.workOrderNumber}</div>
+                  </div>
+
+                  <span
+                    className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
+                      wip.status === 'In Progress'
+                        ? 'bg-crm-brand-600/20 text-crm-brand- border-crm-brand-600/30'
+                        : wip.status === 'Delayed'
+                        ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
+                        : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                    }`}
+                  >
+                    {wip.status}
+                  </span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-[#FAF7F2]/60 border border-[#EBE3DB] space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-[#70665F]">Current Operation:</span>
+                    <span className="font-semibold text-amber-300">{wip.currentOperationName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#70665F]">Responsible Bay / Dept:</span>
+                    <span className="font-medium text-[#544B45]">{wip.responsibleDepartment} ({wip.location})</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#70665F]">WIP Quantity:</span>
+                    <span className="font-bold text-[#211B17]">{wip.wipQuantity} {wip.uom}</span>
+                  </div>
+                </div>
+
+                {/* Operations Progress */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-[#70665F]">
+                      Operations Progress ({wip.completedOperationsCount} / {wip.totalOperationsCount} Ops)
+                    </span>
+                    <span className="text-crm-brand-500 font-bold">{progressPercent}%</span>
+                  </div>
+                  <div className="w-full bg-[#FAF7F2] h-2.5 rounded-full overflow-hidden p-0.5 border border-[#EBE3DB]">
+                    <div
+                      className="bg-gradient-to-r from-crm-brand-600 to-crm-brand-700 h-full rounded-full transition-all duration-500"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="pt-2 border-t border-[#EBE3DB] flex justify-between items-center text-xs">
+                  <span className="text-[#70665F]">Expected: {wip.expectedCompletionDate}</span>
+                  <button
+                    onClick={() => openJobModal(wip.jobNumber)}
+                    className="px-3 py-1 rounded bg-crm-brand-700/20 text-crm-brand- font-bold border border-crm-brand-600/30 hover:bg-crm-brand-700/30 transition text-[11px]"
+                  >
+                    360° Job Trace
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

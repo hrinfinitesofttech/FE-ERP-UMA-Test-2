@@ -14,7 +14,8 @@ export default function ProductionSchedulePage() {
     routingOperations,
     availableEmployees,
     addProductionSchedule,
-    openJobModal
+    openJobModal,
+    isInitialLoading,
   } = useERP();
 
   const [showModal, setShowModal] = useState(false);
@@ -156,7 +157,20 @@ export default function ProductionSchedulePage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB]">
-              {productionSchedules.length === 0 ? (
+              {isInitialLoading && productionSchedules.length === 0 ? (
+                Array.from({ length: 6 }).map((_, rIdx) => (
+                  <tr key={`shimmer-sch-${rIdx}`}>
+                    {Array.from({ length: 9 }).map((_, cIdx) => (
+                      <td key={cIdx} className="p-4">
+                        <div
+                          className="h-3.5 rounded-md animate-shimmer"
+                          style={{ width: `${Math.max(30, Math.min(95, 45 + ((rIdx * 23 + cIdx * 37) % 50)))}%` }}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : productionSchedules.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="p-8 text-center text-[#70665F]">
                     No production schedules found in database. Click &quot;Schedule Operation Slot&quot; to reserve a new machine slot.

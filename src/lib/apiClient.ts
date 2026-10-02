@@ -328,9 +328,110 @@ function normalizePayload(endpoint: string, body: any): any {
   return d;
 }
 
+// High-performance API cache & request deduplication store
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+const memoryCache = new Map<string, CacheEntry<any>>();
+const inflightRequests = new Map<string, Promise<any>>();
+
+// Cache TTL: 30 seconds fresh, 5 minutes stale-while-revalidate
+const FRESH_TTL_MS = 30 * 1000;
+const STALE_TTL_MS = 5 * 60 * 1000;
+
+export function invalidateApiCache(endpointPrefix?: string) {
+  if (!endpointPrefix) {
+    memoryCache.clear();
+    return;
+  }
+  const prefix = endpointPrefix.toLowerCase();
+  for (const key of memoryCache.keys()) {
+    if (key.toLowerCase().includes(prefix)) {
+      memoryCache.delete(key);
+    }
+  }
+  if (typeof window !== 'undefined') {
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('UMA_CACHE_') && key.toLowerCase().includes(prefix)) {
+          localStorage.removeItem(key);
+        }
+      }
+    } catch (_) {}
+  }
+}
+
 export async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const method = (options.method || 'GET').toUpperCase();
   const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
-  
+  const cacheKey = `GET:${endpoint}`;
+
+  // 1. Invalidate cache on mutations (POST, PUT, PATCH, DELETE)
+  if (method !== 'GET') {
+    const basePrefix = endpoint.split('/')[1] || endpoint;
+    invalidateApiCache(basePrefix);
+  }
+
+  // 2. High-speed cache lookup for GET requests
+  if (method === 'GET' && !options.headers) {
+    // Check in-memory cache first (instant 0ms)
+    const memCached = memoryCache.get(cacheKey);
+    const now = Date.now();
+
+    if (memCached) {
+      const age = now - memCached.timestamp;
+      if (age < FRESH_TTL_MS) {
+        return memCached.data as T;
+      }
+      // If stale but within 5 mins, return cached instantly and revalidate in background
+      if (age < STALE_TTL_MS) {
+        // Trigger background revalidation
+        fetchNetworkRequest<T>(url, endpoint, options, cacheKey).catch(() => {});
+        return memCached.data as T;
+      }
+    }
+
+    // Check localStorage fallback for offline/cold-start instant recovery
+    if (typeof window !== 'undefined') {
+      try {
+        const localRaw = localStorage.getItem(`UMA_CACHE_${cacheKey}`);
+        if (localRaw) {
+          const parsed = JSON.parse(localRaw) as CacheEntry<T>;
+          if (now - parsed.timestamp < STALE_TTL_MS) {
+            memoryCache.set(cacheKey, parsed);
+            // Trigger background revalidation
+            fetchNetworkRequest<T>(url, endpoint, options, cacheKey).catch(() => {});
+            return parsed.data;
+          }
+        }
+      } catch (_) {}
+    }
+
+    // Inflight Request Deduplication: avoid duplicate network requests for same endpoint
+    if (inflightRequests.has(cacheKey)) {
+      return inflightRequests.get(cacheKey)! as Promise<T>;
+    }
+  }
+
+  // 3. Execute network request
+  const fetchPromise = fetchNetworkRequest<T>(url, endpoint, options, method === 'GET' ? cacheKey : undefined);
+
+  if (method === 'GET') {
+    inflightRequests.set(cacheKey, fetchPromise);
+    fetchPromise.finally(() => inflightRequests.delete(cacheKey));
+  }
+
+  return fetchPromise;
+}
+
+async function fetchNetworkRequest<T>(
+  url: string,
+  endpoint: string,
+  options: RequestInit,
+  cacheKey?: string
+): Promise<T> {
   let token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
   if (!token && typeof window !== 'undefined') {
     token = await getOrRefreshToken();
@@ -388,11 +489,18 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
   }
 
   const json = await response.json();
-  // Unwrap paginated results if applicable
-  if (json && typeof json === 'object' && Array.isArray(json.results)) {
-    return json.results as T;
+  const resultData = (json && typeof json === 'object' && Array.isArray(json.results)) ? json.results : json;
+
+  // Store in cache for GET requests
+  if (cacheKey && typeof window !== 'undefined') {
+    const entry: CacheEntry<T> = { data: resultData as T, timestamp: Date.now() };
+    memoryCache.set(cacheKey, entry);
+    try {
+      localStorage.setItem(`UMA_CACHE_${cacheKey}`, JSON.stringify(entry));
+    } catch (_) {}
   }
-  return json;
+
+  return resultData as T;
 }
 
 export const api = {
@@ -405,6 +513,7 @@ export const api = {
   patch: <T = any>(endpoint: string, data?: any) =>
     request<T>(endpoint, { method: 'PATCH', body: data ? JSON.stringify(data) : undefined }),
   delete: <T = any>(endpoint: string) => request<T>(endpoint, { method: 'DELETE' }),
+  invalidateCache: invalidateApiCache,
 
   // Authentication
   auth: {
@@ -1002,6 +1111,12 @@ export const api = {
       create: (data: any) => request<any>('/finished-goods/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/finished-goods/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       qcPass: (id: string) => request<any>(`/finished-goods/${id}/qc-pass/`, { method: 'POST' }),
+    },
+    materialRequests: {
+      list: () => request<any[]>('/production-material-requests/'),
+      create: (data: any) => request<any>('/production-material-requests/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/production-material-requests/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/production-material-requests/${id}/`, { method: 'DELETE' }),
     },
   },
 

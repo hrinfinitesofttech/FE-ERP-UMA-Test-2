@@ -59,6 +59,7 @@ export default function ProductionDashboardPage() {
     finishedGoods,
     productionCosts,
     openJobModal,
+    isInitialLoading,
   } = useERP();
 
   const [dateFilter, setDateFilter] = useState('All');
@@ -247,16 +248,29 @@ export default function ProductionDashboardPage() {
 
       {/* 13 KPI Cards Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-        <div className="p-4 rounded-xl bg-white border border-[#E7DED5] shadow-md">
-          <div className="flex justify-between items-center text-[#70665F] text-[11px]">
-            <span>Total Jobs</span>
-            <Briefcase className="w-4 h-4 text-sky-400" />
-          </div>
-          <div className="text-xl font-bold text-[#211B17] mt-1">{totalJobs}</div>
-          <div className="text-[10px] text-sky-400 mt-1 flex items-center gap-1">
-            <ArrowUpRight className="w-3 h-3" /> 100% Active MTO
-          </div>
-        </div>
+        {isInitialLoading && manufacturingJobs.length === 0 ? (
+          Array.from({ length: 7 }).map((_, i) => (
+            <div key={`shimmer-kpi-${i}`} className="p-4 rounded-xl bg-white border border-[#E7DED5] shadow-xs space-y-2">
+              <div className="flex justify-between items-center">
+                <div className="h-3 w-16 rounded animate-shimmer" />
+                <div className="h-4 w-4 rounded animate-shimmer" />
+              </div>
+              <div className="h-7 w-12 rounded animate-shimmer" />
+              <div className="h-2.5 w-20 rounded animate-shimmer" />
+            </div>
+          ))
+        ) : (
+          <>
+            <div className="p-4 rounded-xl bg-white border border-[#E7DED5] shadow-md">
+              <div className="flex justify-between items-center text-[#70665F] text-[11px]">
+                <span>Total Jobs</span>
+                <Briefcase className="w-4 h-4 text-sky-400" />
+              </div>
+              <div className="text-xl font-bold text-[#211B17] mt-1">{totalJobs}</div>
+              <div className="text-[10px] text-sky-400 mt-1 flex items-center gap-1">
+                <ArrowUpRight className="w-3 h-3" /> 100% Active MTO
+              </div>
+            </div>
 
         <div className="p-4 rounded-xl bg-white border border-[#E7DED5] shadow-md">
           <div className="flex justify-between items-center text-[#70665F] text-[11px]">
@@ -376,7 +390,9 @@ export default function ProductionDashboardPage() {
           <div className="text-lg font-bold text-emerald-400 mt-1">-₹2.5 Lacs</div>
           <div className="text-[10px] text-emerald-400 mt-1">Under Estimated Cost</div>
         </div>
-      </div>
+      </>
+      )}
+    </div>
 
       {/* 6 High-Contrast Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

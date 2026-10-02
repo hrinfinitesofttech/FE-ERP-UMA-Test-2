@@ -44,6 +44,8 @@ export default function ProjectDetailPage() {
     salesOrders,
     quotations,
     customerPOs,
+    customers,
+    leads,
     projectTasks,
     projectPlanningStages,
     projectMilestones,
@@ -97,9 +99,46 @@ export default function ProjectDetailPage() {
 
   // Related CRM & Job Traceability records
   const salesOrder = salesOrders.find((s) => s.id === project.salesOrderId || s.salesOrderNumber === project.salesOrderNumber);
-  const customerPO = customerPOs.find((p) => p.poNumber === project.customerPoNumber);
-  const quotation = quotations.find((q) => q.quotationNumber === project.quotationNumber);
+  const customerPO = customerPOs.find((p) => p.poNumber === project.customerPoNumber || p.id === project.customerPoNumber);
+  const quotation = quotations.find((q) => q.quotationNumber === project.quotationNumber || q.id === project.quotationNumber || q.id === salesOrder?.quotationId || q.quotationNumber === salesOrder?.quotationNumber);
+  const linkedCustomer = customers.find((c) => c.id === project.customerId || c.companyName?.toLowerCase() === project.customerName?.toLowerCase());
+  const linkedLead = leads.find((l) => l.companyName?.toLowerCase() === project.customerName?.toLowerCase() || l.id === project.customerId);
   const traceableJob = jobs.find((j) => j.jobNumber === project.jobNumber);
+
+  // Dynamic Contact Information Resolution (Priority: Quotation entered data -> SO -> PO -> Customer -> Lead)
+  const displayContactPerson =
+    (project.customerContact && project.customerContact !== 'Harish Trivedi' ? project.customerContact : null) ||
+    quotation?.contactPerson ||
+    (salesOrder as any)?.contactPerson ||
+    (customerPO as any)?.contactPerson ||
+    linkedCustomer?.contactPerson ||
+    linkedLead?.contactPerson ||
+    project.customerContact ||
+    '-';
+
+  const displayContactEmail =
+    (project.contactEmail && project.contactEmail !== 'harish.trivedi@gacl.co.in' ? project.contactEmail : null) ||
+    quotation?.contactEmail ||
+    (salesOrder as any)?.contactEmail ||
+    (customerPO as any)?.contactEmail ||
+    linkedCustomer?.email ||
+    linkedLead?.email ||
+    project.contactEmail ||
+    '-';
+
+  const displayContactMobile =
+    (project.contactMobile && project.contactMobile !== '+91 98251 99881' ? project.contactMobile : null) ||
+    quotation?.contactMobile ||
+    (quotation as any)?.contactPhone ||
+    (salesOrder as any)?.contactMobile ||
+    (salesOrder as any)?.contactPhone ||
+    (customerPO as any)?.contactMobile ||
+    linkedCustomer?.mobile ||
+    (linkedCustomer as any)?.phone ||
+    linkedLead?.mobile ||
+    (linkedLead as any)?.phone ||
+    project.contactMobile ||
+    '-';
 
   // Filtered sub-records for this project
   const tasks = projectTasks.filter((t) => t.projectId === project.id || t.jobNumber === project.jobNumber);
@@ -257,9 +296,9 @@ export default function ProjectDetailPage() {
                 </h3>
                 <div className="space-y-1.5 text-slate-700 dark:text-[#544B45]">
                   <div><span className="text-[#70665F]">Company:</span> <strong className="text-slate-900 dark:text-[#211B17]">{project.customerName}</strong></div>
-                  <div><span className="text-[#70665F]">Contact Person:</span> {project.customerContact || 'Harish Trivedi'}</div>
-                  <div><span className="text-[#70665F]">Email:</span> {project.contactEmail || 'harish.trivedi@gacl.co.in'}</div>
-                  <div><span className="text-[#70665F]">Mobile:</span> {project.contactMobile || '+91 98251 99881'}</div>
+                  <div><span className="text-[#70665F]">Contact Person:</span> <strong className="text-slate-900 dark:text-[#211B17]">{displayContactPerson}</strong></div>
+                  <div><span className="text-[#70665F]">Email:</span> {displayContactEmail}</div>
+                  <div><span className="text-[#70665F]">Mobile:</span> {displayContactMobile}</div>
                 </div>
               </div>
 

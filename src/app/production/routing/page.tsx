@@ -5,7 +5,7 @@ import { useERP } from '../../../context/ERPContext';
 import { GitBranch, Plus, ShieldCheck, Clock, Wrench, ChevronRight } from 'lucide-react';
 
 export default function RoutingOperationsPage() {
-  const { routingOperations, workCenters, addRoutingOperation } = useERP();
+  const { routingOperations, workCenters, addRoutingOperation, isInitialLoading } = useERP();
   const [showModal, setShowModal] = useState(false);
 
   const [opName, setOpName] = useState('');
@@ -89,7 +89,20 @@ export default function RoutingOperationsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB]">
-              {routingOperations.length === 0 ? (
+              {isInitialLoading && routingOperations.length === 0 ? (
+                Array.from({ length: 6 }).map((_, rIdx) => (
+                  <tr key={`shimmer-${rIdx}`}>
+                    {Array.from({ length: 9 }).map((_, cIdx) => (
+                      <td key={cIdx} className="p-4">
+                        <div
+                          className="h-3.5 rounded-md animate-shimmer"
+                          style={{ width: `${Math.max(30, Math.min(95, 45 + ((rIdx * 23 + cIdx * 37) % 50)))}%` }}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : routingOperations.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="p-8 text-center text-[#70665F]">
                     No routing operations found in database. Click &quot;+ Add Operation Step&quot; to configure production sequence.

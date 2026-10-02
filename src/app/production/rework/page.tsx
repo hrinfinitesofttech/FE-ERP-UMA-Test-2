@@ -5,7 +5,7 @@ import { useERP } from '../../../context/ERPContext';
 import { RotateCcw, Plus, AlertTriangle, CheckCircle2, Clock, Wrench } from 'lucide-react';
 
 export default function ReworkOrderPage() {
-  const { reworkOrders, workOrders, availableEmployees, addReworkOrder } = useERP();
+  const { reworkOrders, workOrders, availableEmployees, addReworkOrder, isInitialLoading } = useERP();
   const [showModal, setShowModal] = useState(false);
 
   const [selectedWo, setSelectedWo] = useState(workOrders[0]?.workOrderNumber || 'WO-2026-001-A');
@@ -89,7 +89,22 @@ export default function ReworkOrderPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB]">
-              {reworkOrders.length === 0 ? (
+              {isInitialLoading && reworkOrders.length === 0 ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={`shimmer-rework-${i}`} className="border-b border-[#EBE3DB]">
+                    <td className="p-3"><div className="h-4 w-24 rounded animate-shimmer" /></td>
+                    <td className="p-3 space-y-1">
+                      <div className="h-3.5 w-20 rounded animate-shimmer" />
+                      <div className="h-3 w-16 rounded animate-shimmer" />
+                    </td>
+                    <td className="p-3"><div className="h-4 w-36 rounded animate-shimmer" /></td>
+                    <td className="p-3"><div className="h-5 w-24 rounded-full animate-shimmer" /></td>
+                    <td className="p-3"><div className="h-3.5 w-48 rounded animate-shimmer" /></td>
+                    <td className="p-3"><div className="h-4 w-28 rounded animate-shimmer" /></td>
+                    <td className="p-3"><div className="h-5 w-16 rounded-full animate-shimmer" /></td>
+                  </tr>
+                ))
+              ) : reworkOrders.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="p-8 text-center text-[#70665F]">
                     No rework orders found in database. Click &quot;Issue Rework Order&quot; to log defect corrections.

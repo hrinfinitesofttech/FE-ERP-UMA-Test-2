@@ -5,7 +5,7 @@ import { useERP } from '../../../context/ERPContext';
 import { PackageCheck, ShieldCheck, Truck, Building, Search, ChevronRight } from 'lucide-react';
 
 export default function FinishedGoodsPage() {
-  const { finishedGoods, openJobModal } = useERP();
+  const { finishedGoods, openJobModal, isInitialLoading } = useERP();
 
   return (
     <div className="p-6 space-y-6 bg-[#090D1A]  text-[#544B45]">
@@ -46,37 +46,64 @@ export default function FinishedGoodsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB]">
-              {finishedGoods.map((fg) => (
-                <tr key={fg.id} className="hover:bg-[#FAF7F2]/40 transition">
-                  <td className="p-3 font-mono font-bold text-sky-400">{fg.finishedGoodsNumber}</td>
-                  <td className="p-3">
-                    <div className="font-mono font-bold text-emerald-400">{fg.jobNumber}</div>
-                    <div className="font-mono text-indigo-300 text-[11px]">{fg.workOrderNumber}</div>
-                  </td>
-                  <td className="p-3 font-semibold text-[#211B17] max-w-xs">{fg.productName}</td>
-                  <td className="p-3 text-[#544B45]">
-                    <div className="font-bold text-[#544B45]">{fg.warehouseName}</div>
-                    <div className="text-[11px] font-mono text-crm-brand-">{fg.locationBin}</div>
-                  </td>
-                  <td className="p-3 text-right font-bold text-[#211B17]">
-                    {fg.quantity} {fg.uom}
-                  </td>
-                  <td className="p-3 text-[#70665F]">{fg.completionDate}</td>
-                  <td className="p-3">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 w-fit">
-                      <ShieldCheck className="w-3 h-3" /> {fg.qcStatus}
-                    </span>
-                  </td>
-                  <td className="p-3 text-right">
-                    <button
-                      onClick={() => openJobModal(fg.jobNumber)}
-                      className="px-2.5 py-1 rounded bg-crm-brand-700/20 text-crm-brand- hover:bg-crm-brand-700/30 border border-crm-brand-600/30 text-[11px] font-bold transition"
-                    >
-                      360° Trace
-                    </button>
+              {isInitialLoading && finishedGoods.length === 0 ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={`shimmer-fg-${i}`} className="border-b border-[#EBE3DB]">
+                    <td className="p-3"><div className="h-4 w-28 rounded animate-shimmer" /></td>
+                    <td className="p-3 space-y-1">
+                      <div className="h-3.5 w-20 rounded animate-shimmer" />
+                      <div className="h-3 w-16 rounded animate-shimmer" />
+                    </td>
+                    <td className="p-3"><div className="h-4 w-48 rounded animate-shimmer" /></td>
+                    <td className="p-3 space-y-1">
+                      <div className="h-3.5 w-32 rounded animate-shimmer" />
+                      <div className="h-3 w-16 rounded animate-shimmer" />
+                    </td>
+                    <td className="p-3 text-right"><div className="h-4 w-12 ml-auto rounded animate-shimmer" /></td>
+                    <td className="p-3"><div className="h-4 w-24 rounded animate-shimmer" /></td>
+                    <td className="p-3"><div className="h-5 w-24 rounded-full animate-shimmer" /></td>
+                    <td className="p-3 text-right"><div className="h-6 w-16 ml-auto rounded-lg animate-shimmer" /></td>
+                  </tr>
+                ))
+              ) : finishedGoods.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="p-8 text-center text-[#70665F]">
+                    No finished goods in warehouse yet.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                finishedGoods.map((fg) => (
+                  <tr key={fg.id} className="hover:bg-[#FAF7F2]/40 transition">
+                    <td className="p-3 font-mono font-bold text-sky-400">{fg.finishedGoodsNumber}</td>
+                    <td className="p-3">
+                      <div className="font-mono font-bold text-emerald-400">{fg.jobNumber}</div>
+                      <div className="font-mono text-indigo-300 text-[11px]">{fg.workOrderNumber}</div>
+                    </td>
+                    <td className="p-3 font-semibold text-[#211B17] max-w-xs">{fg.productName}</td>
+                    <td className="p-3 text-[#544B45]">
+                      <div className="font-bold text-[#544B45]">{fg.warehouseName}</div>
+                      <div className="text-[11px] font-mono text-crm-brand-">{fg.locationBin}</div>
+                    </td>
+                    <td className="p-3 text-right font-bold text-[#211B17]">
+                      {fg.quantity} {fg.uom}
+                    </td>
+                    <td className="p-3 text-[#70665F]">{fg.completionDate}</td>
+                    <td className="p-3">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 w-fit">
+                        <ShieldCheck className="w-3 h-3" /> {fg.qcStatus}
+                      </span>
+                    </td>
+                    <td className="p-3 text-right">
+                      <button
+                        onClick={() => openJobModal(fg.jobNumber)}
+                        className="px-2.5 py-1 rounded bg-crm-brand-700/20 text-crm-brand- hover:bg-crm-brand-700/30 border border-crm-brand-600/30 text-[11px] font-bold transition"
+                      >
+                        360° Trace
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

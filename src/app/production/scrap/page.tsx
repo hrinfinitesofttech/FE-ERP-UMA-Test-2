@@ -6,7 +6,7 @@ import { AlertTriangle, Plus, DollarSign, Box, UserCheck } from 'lucide-react';
 import { ProductionScrapType } from '../../../types/production';
 
 export default function ProductionScrapPage() {
-  const { productionScraps, workOrders, availableEmployees, addProductionScrap } = useERP();
+  const { productionScraps, workOrders, availableEmployees, addProductionScrap, isInitialLoading } = useERP();
   const [showModal, setShowModal] = useState(false);
 
   const [selectedWo, setSelectedWo] = useState(workOrders[0]?.workOrderNumber || 'WO-2026-001-A');
@@ -89,7 +89,22 @@ export default function ProductionScrapPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB]">
-              {productionScraps.length === 0 ? (
+              {isInitialLoading && productionScraps.length === 0 ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={`shimmer-scrap-${i}`} className="border-b border-[#EBE3DB]">
+                    <td className="p-3"><div className="h-4 w-28 rounded animate-shimmer" /></td>
+                    <td className="p-3 space-y-1">
+                      <div className="h-3.5 w-20 rounded animate-shimmer" />
+                      <div className="h-3 w-16 rounded animate-shimmer" />
+                    </td>
+                    <td className="p-3"><div className="h-4 w-44 rounded animate-shimmer" /></td>
+                    <td className="p-3"><div className="h-5 w-20 rounded-full animate-shimmer" /></td>
+                    <td className="p-3 text-right"><div className="h-4 w-12 ml-auto rounded animate-shimmer" /></td>
+                    <td className="p-3 text-right"><div className="h-4 w-16 ml-auto rounded animate-shimmer" /></td>
+                    <td className="p-3"><div className="h-4 w-24 rounded animate-shimmer" /></td>
+                  </tr>
+                ))
+              ) : productionScraps.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="p-8 text-center text-[#70665F]">
                     No production scrap entries recorded yet in database. Click &quot;Log Production Scrap&quot; to log scrap materials.
