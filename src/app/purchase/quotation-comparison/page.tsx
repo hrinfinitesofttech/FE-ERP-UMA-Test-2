@@ -128,10 +128,10 @@ export default function QuotationComparisonPage() {
         const lowestSupId = idx === 0 ? 'SUP-002' : 'SUP-003';
         return {
           id: `CSI-${idx + 1}`,
-          itemCode: itm.itemCode,
-          itemName: itm.itemName,
-          requiredQuantity: itm.requiredQuantity,
-          unitOfMeasure: itm.unitOfMeasure,
+          itemCode: itm.itemCode || `ITEM-${idx + 1}`,
+          itemName: itm.itemName || 'Engineering Material',
+          requiredQuantity: Number(itm.requiredQuantity || 1),
+          unitOfMeasure: itm.unitOfMeasure || 'NOS',
           supplierRates: rates,
           lowestSupplierId: lowestSupId,
         };

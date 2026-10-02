@@ -365,6 +365,8 @@ export interface QuotationComparison {
     supplierId: string;
     supplierName: string;
     grandTotal: number;
+    deliveryTerms?: string;
+    paymentTerms?: string;
   }[];
   items: {
     id: string;

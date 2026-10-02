@@ -4640,6 +4640,49 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
       return updated;
     });
+
+    // Automatically link & update matching Enquiry
+    setEnquiries((prev) => {
+      const updated = prev.map((e) => {
+        const isMatch =
+          (quoData.enquiryId && (e.id === quoData.enquiryId || e.enquiryNo === quoData.enquiryId)) ||
+          (quoData.customerId && e.customerId === quoData.customerId && !e.quotationId);
+        if (isMatch) {
+          return {
+            ...e,
+            quotationId: quoNo,
+            status: 'quotation_sent' as any,
+          };
+        }
+        return e;
+      });
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_enquiries', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
+    // Automatically update matching Lead
+    setLeads((prev) => {
+      const updated = prev.map((l) => {
+        const isMatch =
+          (quoData.enquiryId && l.convertedEnquiryId === quoData.enquiryId) ||
+          (quoData.customerId && l.convertedCustomerId === quoData.customerId);
+        if (isMatch) {
+          return {
+            ...l,
+            convertedQuotationId: quoNo,
+            status: 'quotation_sent' as any,
+          };
+        }
+        return l;
+      });
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_leads', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
     logAction('CREATE', 'CRM', 'Quotations', quoNo, `Generated Quotation ${quoNo} (Rev-00) for ₹${newQuo.latestSummary?.grandTotal || 0}`);
     sendNotification({
       title: 'Quotation Ready for Approval',

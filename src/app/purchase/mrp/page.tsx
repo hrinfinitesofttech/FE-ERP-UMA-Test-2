@@ -53,7 +53,8 @@ export default function MRPPage() {
       if (!jobAlreadyInMRP && bom.items && bom.items.length > 0) {
         bom.items.forEach((bItem, idx) => {
           const reqQty = Number(bItem.quantity || 1);
-          const stock = stockBalances.find((s) => s.itemCode === bItem.itemCode || s.itemName === bItem.itemName);
+          const itemCd = (bItem as any).itemCode || bItem.partNumber || `ITEM-${idx + 1}`;
+          const stock = stockBalances.find((s) => s.itemCode === itemCd || s.itemName === bItem.itemName);
           const avail = Number(stock?.availableQty || stock?.usableQty || 0);
           const shortage = Math.max(0, reqQty - avail);
 
@@ -62,13 +63,14 @@ export default function MRPPage() {
             projectId: bom.projectId || 'PRJ-2026-0001',
             jobId: jId,
             bomId: bom.id,
-            bomRevision: bom.revisionNumber || 'Rev-01',
-            partNumber: bItem.itemCode || `PART-${idx + 1}`,
+            bomRevision: (bom as any).revisionNumber || 'Rev-01',
+            partNumber: bItem.partNumber || itemCd,
+            itemCode: itemCd,
             itemName: bItem.itemName || 'Engineering Component',
-            specification: bItem.materialGrade || bItem.specification || 'Standard Spec',
-            category: bItem.category || 'Raw Material',
+            specification: bItem.specification || bItem.material || 'Standard Spec',
+            category: (bItem as any).category || bItem.itemType || 'Raw Material',
             requiredQuantity: reqQty,
-            unitOfMeasure: bItem.unitOfMeasure || bItem.uom || 'NOS',
+            unitOfMeasure: bItem.unit || 'NOS',
             availableStock: avail,
             reservedStock: Number(stock?.reservedQty || 0),
             onOrderQuantity: 0,
@@ -76,7 +78,7 @@ export default function MRPPage() {
             requiredByDate: new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0],
             procurementType: 'Purchase',
             procurementStatus: shortage > 0 ? 'Action Needed' : 'Stock Available',
-            drawingNumber: bItem.drawingNumber || '',
+            drawingNumber: '',
             status: shortage > 0 ? 'shortage' : 'covered',
           });
         });
@@ -121,8 +123,8 @@ export default function MRPPage() {
   const handleAutoGenerateForJob = (jobId: string) => {
     const jobObj = projectJobs.find((j) => j.id === jobId || j.jobNumber === jobId);
     const jNumber = jobObj?.jobNumber || jobId;
-    const pId = jobObj?.projectId || 'PRJ-2026-0001';
-    const prodName = jobObj?.productName || 'Industrial Equipment';
+    const pId = (jobObj as any)?.projectId || 'PRJ-2026-0001';
+    const prodName = (jobObj as any)?.productName || 'Industrial Equipment';
 
     const generated: MaterialRequirement[] = [
       {
@@ -132,6 +134,7 @@ export default function MRPPage() {
         bomId: `BOM-${jNumber}`,
         bomRevision: 'Rev-01',
         partNumber: 'RM-SS-PLATE-10MM',
+        itemCode: 'RM-SS-PLATE-10MM',
         itemName: `SS 316L Shell Plate 10mm (for ${prodName})`,
         specification: 'ASTM A240 Gr. 316L, 10mm x 1500mm x 6000mm',
         category: 'Raw Material',
@@ -154,6 +157,7 @@ export default function MRPPage() {
         bomId: `BOM-${jNumber}`,
         bomRevision: 'Rev-01',
         partNumber: 'RM-FLANGE-ANSI150',
+        itemCode: 'RM-FLANGE-ANSI150',
         itemName: '100NB ANSI Class 150 SORF Flange SS316',
         specification: 'ASTM A182 F316 / ASME B16.5 Class 150',
         category: 'Raw Material',
@@ -176,6 +180,7 @@ export default function MRPPage() {
         bomId: `BOM-${jNumber}`,
         bomRevision: 'Rev-01',
         partNumber: 'BO-VALVE-BALL-2IN',
+        itemCode: 'BO-VALVE-BALL-2IN',
         itemName: '2 Inch 3-Piece Ball Valve SS316 Flanged',
         specification: 'Class 150 PTFE Seat, Fire-Safe API 607',
         category: 'Bought-out Item',
@@ -198,6 +203,7 @@ export default function MRPPage() {
         bomId: `BOM-${jNumber}`,
         bomRevision: 'Rev-01',
         partNumber: 'FAST-HEX-M16X65',
+        itemCode: 'FAST-HEX-M16X65',
         itemName: 'M16 x 65mm Hex Head Stud Bolt & Nut Set',
         specification: 'ASTM A193 Gr. B8M / A194 Gr. 8M Stainless Steel',
         category: 'Hardware',

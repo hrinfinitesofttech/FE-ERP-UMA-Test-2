@@ -3,7 +3,7 @@ import { cn } from '../../lib/utils';
 import { JobStatus } from '../../types/erp';
 
 interface StatusBadgeProps {
-  status: JobStatus | 'completed' | 'in_progress' | 'pending' | 'delayed' | 'urgent' | 'high' | 'medium' | 'low' | 'approved' | 'rejected' | 'draft' | 'won' | 'lost' | 'new' | 'contacted' | 'converted';
+  status: JobStatus | 'completed' | 'in_progress' | 'pending' | 'delayed' | 'urgent' | 'high' | 'medium' | 'low' | 'approved' | 'rejected' | 'draft' | 'won' | 'lost' | 'new' | 'contacted' | 'converted' | 'quotation_sent' | 'quotation_generated' | 'technical_review' | string;
   className?: string;
 }
 
@@ -14,10 +14,18 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
       case 'approved':
       case 'won':
       case 'converted':
+      case 'quotation_sent':
+      case 'quotation_generated':
         return {
-          label: status === 'won' ? 'WON (ORDER BOOKED)' : status === 'converted' ? 'CONVERTED' : 'COMPLETED / APPROVED',
+          label: status === 'won' ? 'WON (ORDER BOOKED)' : status === 'converted' ? 'CONVERTED' : (status === 'quotation_sent' || status === 'quotation_generated') ? 'QUOTATION GENERATED' : 'COMPLETED / APPROVED',
           bg: 'bg-[#DCFCE7] text-[#15803D] border-[#BBF7D0]',
           dot: 'bg-[#15803D]',
+        };
+      case 'technical_review':
+        return {
+          label: 'TECHNICAL REVIEW',
+          bg: 'bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]',
+          dot: 'bg-[#D97706]',
         };
       case 'production':
       case 'in_progress':
