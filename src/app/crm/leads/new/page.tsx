@@ -88,6 +88,7 @@ export default function NewLeadPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Email regex for valid standard emails (e.g. user@domain.com)
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -200,6 +201,7 @@ export default function NewLeadPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setSubmitAttempted(true);
 
     if (!validateAll()) {
@@ -210,27 +212,34 @@ export default function NewLeadPage() {
       return;
     }
 
-    const assignedPerson = allEmployees.find((emp) => emp.id === formData.assignedSalesPersonId);
-    const assignedName = assignedPerson
-      ? assignedPerson.name ||
-        (assignedPerson as any).employeeName ||
-        `${assignedPerson.firstName || ''} ${assignedPerson.lastName || ''}`.trim() ||
-        'Pravin Patel'
-      : 'Pravin Patel';
+    setIsSubmitting(true);
 
-    const created = addLead({
-      ...formData,
-      companyName: formData.companyName.trim(),
-      contactPerson: formData.contactPerson.trim(),
-      mobile: formData.mobile.trim(),
-      email: formData.email.trim(),
-      productName: formData.productName.trim(),
-      quantity: Number(formData.quantity) || 1,
-      budget: Number(formData.budget) || 0,
-      assignedSalesPersonName: assignedName,
-    });
+    try {
+      const assignedPerson = allEmployees.find((emp) => emp.id === formData.assignedSalesPersonId);
+      const assignedName = assignedPerson
+        ? assignedPerson.name ||
+          (assignedPerson as any).employeeName ||
+          `${assignedPerson.firstName || ''} ${assignedPerson.lastName || ''}`.trim() ||
+          'Pravin Patel'
+        : 'Pravin Patel';
 
-    router.push('/crm/leads');
+      addLead({
+        ...formData,
+        companyName: formData.companyName.trim(),
+        contactPerson: formData.contactPerson.trim(),
+        mobile: formData.mobile.trim(),
+        email: formData.email.trim(),
+        productName: formData.productName.trim(),
+        quantity: Number(formData.quantity) || 1,
+        budget: Number(formData.budget) || 0,
+        assignedSalesPersonName: assignedName,
+      });
+
+      router.push('/crm/leads');
+    } catch (err) {
+      console.error('Failed to create lead:', err);
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -743,9 +752,19 @@ export default function NewLeadPage() {
             </Link>
             <button
               type="submit"
-              className="px-6 py-2.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-xl font-bold shadow-md transition transform active:scale-95"
+              disabled={isSubmitting}
+              className={`px-6 py-2.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-xl font-bold shadow-md transition transform active:scale-95 flex items-center gap-2 ${
+                isSubmitting ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''
+              }`}
             >
-              Register & Save Lead
+              {isSubmitting ? (
+                <>
+                  <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Saving Lead...
+                </>
+              ) : (
+                'Register & Save Lead'
+              )}
             </button>
           </div>
         </form>

@@ -65,10 +65,23 @@ function normalizePayload(endpoint: string, body: any): any {
   }
   // CRM
   else if (ep.includes('/leads')) {
+    d.lead_no = d.lead_no || d.leadNo || d.id;
+    d.leadNo = d.lead_no;
+    d.company_name = d.company_name || d.companyName || 'Prospect Co';
+    d.companyName = d.company_name;
+    d.contact_person = d.contact_person || d.contactPerson || 'Contact';
+    d.contactPerson = d.contact_person;
+    d.product_name = d.product_name || d.productName || d.requirementDescription || 'Equipment';
+    d.productName = d.product_name;
     d.mobile = d.mobile || d.phone || '9999999999';
-    d.productName = d.productName || d.product_name || d.requirementDescription || 'Equipment';
-    d.companyName = d.companyName || d.company_name || 'Prospect Co';
-    d.contactPerson = d.contactPerson || d.contact_person || 'Contact';
+    d.alt_mobile = d.alt_mobile || d.altMobile || '';
+    d.machine_type = d.machine_type || d.machineType || '';
+    d.requirement_description = d.requirement_description || d.requirementDescription || '';
+    d.expected_delivery = d.expected_delivery || d.expectedDelivery || null;
+    d.next_follow_up_date = d.next_follow_up_date || d.nextFollowUpDate || null;
+    d.assigned_sales_person_id = d.assigned_sales_person_id || d.assignedSalesPersonId || '';
+    d.assigned_sales_person_name = d.assigned_sales_person_name || d.assignedSalesPersonName || '';
+    d.created_date = d.created_date || d.createdDate || nowStr;
   } else if (ep.includes('/customers')) {
     d.companyName = d.companyName || d.company_name || d.name || 'Customer Co';
     d.contactPerson = d.contactPerson || d.contact_person || d.name || 'Contact';
