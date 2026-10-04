@@ -287,9 +287,8 @@ export default function MasterBOMPage() {
       totalItemsCount: formattedItems.length,
       totalEstimatedCost: totalNewBOMCost,
       estimatedTotalCost: totalNewBOMCost,
-      total_estimated_cost: totalNewBOMCost,
       items: formattedItems,
-    });
+    } as any);
 
     setSelectedJobNumber(desJob.jobNumber);
     setIsCreateBOMModalOpen(false);
@@ -586,7 +585,7 @@ export default function MasterBOMPage() {
 
                 const rawMat = item.material || '';
                 const matParts = rawMat.split(' - ');
-                const defaultPartNo = matParts.length > 1 ? matParts[0].trim() : (item.partNumber || item.itemCode || `MAT-${String(item.itemNo || idx + 1).padStart(3, '0')}`);
+                const defaultPartNo = matParts.length > 1 ? matParts[0].trim() : (item.partNumber || (item as any).itemCode || `MAT-${String(item.itemNo || idx + 1).padStart(3, '0')}`);
                 const defaultItemName = item.itemName || (matParts.length > 1 ? matParts.slice(1).join(' - ').trim() : rawMat) || `Item ${idx + 1}`;
 
                 return (

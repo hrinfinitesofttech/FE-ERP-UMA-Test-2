@@ -33,53 +33,134 @@ export default function MRPPage() {
   const [generatedPRSuccess, setGeneratedPRSuccess] = useState<string | null>(null);
   const [customGeneratedItems, setCustomGeneratedItems] = useState<Record<string, MaterialRequirement[]>>({});
 
-  // Dynamic MRP items synthesis
+  // Dynamic MRP items synthesis with Rate and Cost from BOM
   const allComputedRequirements = useMemo(() => {
-    const list: MaterialRequirement[] = [...materialRequirements];
+    const list: MaterialRequirement[] = [];
 
-    // For any project job that has custom generated items, add them
+    // Helper to find BOM item rate
+    const findBOMRate = (jId: string, partNo: string, iName: string) => {
+      const matchedBom = boms.find((b) => b.jobNumber === jId || b.id === jId || (b as any).bomNumber === jId);
+      if (matchedBom && matchedBom.items) {
+        const found = matchedBom.items.find(
+          (bi) =>
+            bi.partNumber === partNo ||
+            (bi as any).itemCode === partNo ||
+            bi.itemName === iName ||
+            (bi as any).material === iName ||
+            (bi as any).material?.includes(partNo)
+        );
+        if (found) {
+          return Number(
+            (found as any).estimatedRate ??
+            (found as any).estimated_rate ??
+            (found as any).rate ??
+            (found as any).unitPrice ??
+            (found as any).unitCost ??
+            0
+          );
+        }
+      }
+      return 0;
+    };
+
+    // 1. Process static materialRequirements with enrichment
+    materialRequirements.forEach((req) => {
+      const rate = Number((req as any).estimatedRate || (req as any).unitPrice || findBOMRate(req.jobId, req.partNumber, req.itemName) || 350);
+      const shortage = Number(req.shortageQuantity ?? Math.max(0, req.requiredQuantity - req.availableStock - req.onOrderQuantity));
+      list.push({
+        ...req,
+        estimatedRate: rate,
+        unitPrice: rate,
+        rate: rate,
+        totalEstimatedAmount: req.requiredQuantity * rate,
+        estimatedCost: req.requiredQuantity * rate,
+        shortageCost: shortage * rate,
+      });
+    });
+
+    // 2. Process customGeneratedItems
     Object.values(customGeneratedItems).forEach((items) => {
       items.forEach((itm) => {
         if (!list.some((existing) => existing.id === itm.id || (existing.jobId === itm.jobId && existing.partNumber === itm.partNumber))) {
-          list.push(itm);
+          const rate = Number((itm as any).estimatedRate || (itm as any).unitPrice || findBOMRate(itm.jobId, itm.partNumber, itm.itemName) || 500);
+          const shortage = Number(itm.shortageQuantity ?? Math.max(0, itm.requiredQuantity - itm.availableStock - itm.onOrderQuantity));
+          list.push({
+            ...itm,
+            estimatedRate: rate,
+            unitPrice: rate,
+            rate: rate,
+            totalEstimatedAmount: itm.requiredQuantity * rate,
+            estimatedCost: itm.requiredQuantity * rate,
+            shortageCost: shortage * rate,
+          });
         }
       });
     });
 
-    // For any BOM in boms without static MRP entries, dynamically compute
+    // 3. For any BOM in boms without static MRP entries, dynamically compute
     boms.forEach((bom) => {
       const jId = bom.jobNumber || bom.id;
       const jobAlreadyInMRP = list.some((m) => m.jobId === jId);
       if (!jobAlreadyInMRP && bom.items && bom.items.length > 0) {
         bom.items.forEach((bItem, idx) => {
-          const reqQty = Number(bItem.quantity || 1);
-          const itemCd = (bItem as any).itemCode || bItem.partNumber || `ITEM-${idx + 1}`;
-          const stock = stockBalances.find((s) => s.itemCode === itemCd || s.itemName === bItem.itemName);
+          const reqQty = Number(bItem.quantity || (bItem as any).qty || 1);
+          const itemCd = bItem.partNumber || (bItem as any).itemCode || `MAT-${String(idx + 1).padStart(3, '0')}`;
+          const rawMat = (bItem as any).material || '';
+          const matParts = rawMat.split(' - ');
+          const itemName = bItem.itemName || (matParts.length > 1 ? matParts.slice(1).join(' - ').trim() : rawMat) || `Component ${idx + 1}`;
+
+          const stock = stockBalances.find((s) => s.itemCode === itemCd || s.itemName === itemName || s.itemName === bItem.itemName);
           const avail = Number(stock?.availableQty || stock?.usableQty || 0);
           const shortage = Math.max(0, reqQty - avail);
+
+          const rate = Number(
+            (bItem as any).estimatedRate ??
+            (bItem as any).estimated_rate ??
+            (bItem as any).rate ??
+            (bItem as any).unitCost ??
+            (bItem as any).unitPrice ??
+            (bItem as any).unit_price ??
+            (bItem as any).estRate ??
+            (bItem as any).costPerUnit ??
+            0
+          );
+          const totalAmt = Number(
+            (bItem as any).totalEstimatedAmount ??
+            (bItem as any).total_estimated_amount ??
+            (bItem as any).total_amount ??
+            (bItem as any).totalAmount ??
+            (reqQty * rate)
+          );
+          const shortageCost = shortage * rate;
 
           list.push({
             id: `MRP-AUTO-${bom.id}-${idx}`,
             projectId: bom.projectId || 'PRJ-2026-0001',
             jobId: jId,
-            bomId: bom.id,
-            bomRevision: (bom as any).revisionNumber || 'Rev-01',
-            partNumber: bItem.partNumber || itemCd,
+            bomId: bom.id || bom.bomNumber || `BOM-${jId}`,
+            bomRevision: (bom as any).revisionNumber || (bom as any).active_revision || 'Rev-01',
+            partNumber: itemCd,
             itemCode: itemCd,
-            itemName: bItem.itemName || 'Engineering Component',
-            specification: bItem.specification || bItem.material || 'Standard Spec',
-            category: (bItem as any).category || bItem.itemType || 'Raw Material',
+            itemName: itemName,
+            specification: bItem.specification || bItem.description || rawMat || 'Standard Spec',
+            category: (bItem as any).category || (bItem as any).item_type || bItem.itemType || 'RAW_MATERIAL',
             requiredQuantity: reqQty,
-            unitOfMeasure: bItem.unit || 'NOS',
+            unitOfMeasure: bItem.unit || 'PCS',
             availableStock: avail,
             reservedStock: Number(stock?.reservedQty || 0),
             onOrderQuantity: 0,
             shortageQuantity: shortage,
             requiredByDate: new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0],
-            procurementType: 'Purchase',
+            procurementType: (bItem.procurement === 'FABRICATE' ? 'Fabrication' : 'Purchase') as any,
             procurementStatus: shortage > 0 ? 'Action Needed' : 'Stock Available',
             drawingNumber: '',
             status: shortage > 0 ? 'shortage' : 'covered',
+            estimatedRate: rate,
+            unitPrice: rate,
+            rate: rate,
+            totalEstimatedAmount: totalAmt,
+            estimatedCost: totalAmt,
+            shortageCost: shortageCost,
           });
         });
       }
@@ -149,6 +230,9 @@ export default function MRPPage() {
         procurementStatus: 'Action Needed',
         drawingNumber: 'DWG-SH-001',
         status: 'shortage',
+        estimatedRate: 4500,
+        unitPrice: 4500,
+        shortageCost: 3 * 4500,
       },
       {
         id: `MRP-GEN-${jNumber}-02`,
@@ -172,6 +256,9 @@ export default function MRPPage() {
         procurementStatus: 'Action Needed',
         drawingNumber: 'DWG-FL-004',
         status: 'shortage',
+        estimatedRate: 1850,
+        unitPrice: 1850,
+        shortageCost: 6 * 1850,
       },
       {
         id: `MRP-GEN-${jNumber}-03`,
@@ -195,6 +282,9 @@ export default function MRPPage() {
         procurementStatus: 'Action Needed',
         drawingNumber: 'DWG-VLV-002',
         status: 'shortage',
+        estimatedRate: 8500,
+        unitPrice: 8500,
+        shortageCost: 4 * 8500,
       },
       {
         id: `MRP-GEN-${jNumber}-04`,
@@ -218,6 +308,9 @@ export default function MRPPage() {
         procurementStatus: 'Action Needed',
         drawingNumber: 'DWG-FAST-01',
         status: 'shortage',
+        estimatedRate: 120,
+        unitPrice: 120,
+        shortageCost: 28 * 120,
       },
     ];
 
@@ -233,22 +326,27 @@ export default function MRPPage() {
     const itemsToPR = allComputedRequirements.filter(item => selectedItems.includes(item.id));
     const firstItem = itemsToPR[0];
 
-    const prItems = itemsToPR.map((item, idx) => ({
-      id: `PRI-GEN-${Date.now()}-${idx}`,
-      prId: '',
-      itemCode: item.partNumber,
-      itemName: item.itemName,
-      specification: item.specification,
-      category: item.category,
-      unitOfMeasure: item.unitOfMeasure,
-      requiredQuantity: item.shortageQuantity,
-      estimatedUnitPrice: 1200,
-      estimatedTotalPrice: item.shortageQuantity * 1200,
-      requiredByDate: item.requiredByDate,
-      drawingNumber: item.drawingNumber,
-      bomReference: `${item.bomId} Rev-${item.bomRevision}`,
-      remarks: 'Auto-generated from MRP Shortage Engine',
-    }));
+    const prItems = itemsToPR.map((item, idx) => {
+      const rate = Number(item.estimatedRate || item.unitPrice || (item as any).rate || 0);
+      const shortageQty = Number(item.shortageQuantity || 0);
+      const totalAmount = shortageQty * rate;
+      return {
+        id: `PRI-GEN-${Date.now()}-${idx}`,
+        prId: '',
+        itemCode: item.partNumber || item.itemCode,
+        itemName: item.itemName,
+        specification: item.specification,
+        category: item.category,
+        unitOfMeasure: item.unitOfMeasure,
+        requiredQuantity: shortageQty,
+        estimatedUnitPrice: rate,
+        estimatedTotalPrice: totalAmount,
+        requiredByDate: item.requiredByDate,
+        drawingNumber: item.drawingNumber || '',
+        bomReference: `${item.bomId} ${item.bomRevision ? 'Rev-' + item.bomRevision : ''}`.trim(),
+        remarks: 'Auto-generated from MRP Shortage Engine',
+      };
+    });
 
     const totalEst = prItems.reduce((sum, item) => sum + item.estimatedTotalPrice, 0);
 
@@ -274,7 +372,7 @@ export default function MRPPage() {
     };
 
     addPurchaseRequisition(newPR);
-    setGeneratedPRSuccess(`PR generated successfully: ${newPR.prNumber} with ${prItems.length} items!`);
+    setGeneratedPRSuccess(`PR generated successfully: ${newPR.prNumber} with ${prItems.length} items (Total: ₹ ${totalEst.toLocaleString('en-IN')})!`);
     setSelectedItems([]);
     setTimeout(() => setGeneratedPRSuccess(null), 6000);
   };
@@ -283,6 +381,10 @@ export default function MRPPage() {
   const totalReqCount = allComputedRequirements.length;
   const totalShortageCount = allComputedRequirements.filter((m) => m.shortageQuantity > 0).length;
   const fullyCoveredCount = allComputedRequirements.filter((m) => m.shortageQuantity <= 0).length;
+  const totalShortageFinancialValue = allComputedRequirements.reduce(
+    (sum, m) => sum + Number((m as any).shortageCost || (m.shortageQuantity * (Number(m.estimatedRate || m.unitPrice || 0)))),
+    0
+  );
 
   return (
     <div className="p-6 space-y-6 bg-[#FAF7F2] text-[#544B45]">
@@ -315,7 +417,7 @@ export default function MRPPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white border border-[#EBE3DB] p-4 rounded-2xl shadow-xs flex items-center justify-between">
           <div>
             <div className="text-xs text-[#70665F] font-semibold">Total Material Lines</div>
@@ -333,6 +435,16 @@ export default function MRPPage() {
           </div>
           <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center border border-rose-200">
             <AlertTriangle className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white border border-amber-200 p-4 rounded-2xl shadow-xs flex items-center justify-between bg-amber-50/30">
+          <div>
+            <div className="text-xs text-amber-800 font-semibold">Shortage Purchase Cost</div>
+            <div className="text-2xl font-black text-amber-700 mt-0.5">₹ {totalShortageFinancialValue.toLocaleString('en-IN')}</div>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center border border-amber-200">
+            <ShoppingCart className="w-5 h-5" />
           </div>
         </div>
 
@@ -497,18 +609,22 @@ export default function MRPPage() {
                   <th className="p-3 text-right text-emerald-700">Available (B)</th>
                   <th className="p-3 text-right text-sky-700">On Order (C)</th>
                   <th className="p-3 text-right text-rose-700">Shortage (A - B - C)</th>
+                  <th className="p-3 text-right">Est. Rate</th>
+                  <th className="p-3 text-right font-bold text-amber-800">Shortage Cost (₹)</th>
                   <th className="p-3">Required By</th>
                   <th className="p-3">PR Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EBE3DB]">
-                {filteredRequirements.map(item => {
+                {filteredRequirements.map((item, idx) => {
                   const isSelected = selectedItems.includes(item.id);
                   const isShort = item.shortageQuantity > 0;
+                  const rate = Number(item.estimatedRate || item.unitPrice || (item as any).rate || 0);
+                  const shortageCost = Number((item as any).shortageCost || (item.shortageQuantity * rate));
 
                   return (
                     <tr
-                      key={item.id}
+                      key={item.id || `mrp-item-${idx}`}
                       className={`hover:bg-[#FAF7F2]/50 transition ${
                         isSelected ? 'bg-amber-50/50' : ''
                       }`}
@@ -560,6 +676,12 @@ export default function MRPPage() {
                         ) : (
                           <span className="text-emerald-700">0 (Fully Covered)</span>
                         )}
+                      </td>
+                      <td className="p-3 text-right font-mono text-[#544B45]">
+                        ₹ {rate.toLocaleString('en-IN')}
+                      </td>
+                      <td className="p-3 text-right font-mono font-bold text-amber-800">
+                        ₹ {shortageCost.toLocaleString('en-IN')}
                       </td>
                       <td className="p-3 text-[#544B45] font-mono text-[11px]">{item.requiredByDate}</td>
                       <td className="p-3">

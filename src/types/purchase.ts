@@ -174,6 +174,12 @@ export interface MaterialRequirement {
   procurementStatus: string;
   drawingNumber?: string;
   status?: 'shortage' | 'sufficient' | 'ordered' | 'pr_created' | string;
+  estimatedRate?: number;
+  unitPrice?: number;
+  rate?: number;
+  totalEstimatedAmount?: number;
+  estimatedCost?: number;
+  shortageCost?: number;
 }
 
 export interface PRItem {
