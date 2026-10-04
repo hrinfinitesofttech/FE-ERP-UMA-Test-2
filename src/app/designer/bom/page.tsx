@@ -38,7 +38,13 @@ export default function MasterBOMPage() {
   const [mounted, setMounted] = useState(false);
   const { boms, addBOM, updateBOM, designJobs, projectJobs, itemMasters, currentUser } = useERP();
 
-  const [selectedJobNumber, setSelectedJobNumber] = useState(boms[0]?.jobNumber || 'JOB-2026-001');
+  const [selectedJobNumber, setSelectedJobNumber] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('UMA_ERP_activeBOMJob');
+      if (saved) return saved;
+    }
+    return boms[0]?.jobNumber || 'JOB-2026-001';
+  });
   const [itemTypeFilter, setItemTypeFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
@@ -46,8 +52,22 @@ export default function MasterBOMPage() {
   const [showJsonPreview, setShowJsonPreview] = useState(false);
   const [successToast, setSuccessToast] = useState('');
 
+  useEffect(() => {
+    if (selectedJobNumber && typeof window !== 'undefined') {
+      localStorage.setItem('UMA_ERP_activeBOMJob', selectedJobNumber);
+    }
+  }, [selectedJobNumber]);
+
   // Active BOM
-  const activeBOM = boms.find((b) => b.jobNumber === selectedJobNumber) || boms[0];
+  const activeBOM =
+    boms.find(
+      (b) =>
+        b.jobNumber === selectedJobNumber ||
+        b.id === selectedJobNumber ||
+        b.bomNumber === selectedJobNumber ||
+        (b as any).bom_name === selectedJobNumber ||
+        b.machineName === selectedJobNumber
+    ) || boms[0];
 
   // ---------------------------------------------------------------------------
   // NEW MASTER BOM FORM STATE (matches Developer JSON schema exactly)
@@ -166,10 +186,15 @@ export default function MasterBOMPage() {
     quantity: newProductQuantity,
     items: bomItemsList.map((itm) => ({
       material: itm.material,
-      quantity: itm.quantity,
+      quantity: Number(itm.quantity) || 1,
       unit: itm.unit,
       procurement: itm.procurement,
       item_type: itm.item_type,
+      estimatedRate: Number(itm.estimatedRate) || 0,
+      estimated_rate: Number(itm.estimatedRate) || 0,
+      rate: Number(itm.estimatedRate) || 0,
+      totalEstimatedAmount: (Number(itm.quantity) || 1) * (Number(itm.estimatedRate) || 0),
+      total_amount: (Number(itm.quantity) || 1) * (Number(itm.estimatedRate) || 0),
     })),
   };
 
@@ -188,34 +213,43 @@ export default function MasterBOMPage() {
       productName: newBomName,
     };
 
-    const formattedItems: BOMItem[] = bomItemsList.map((itm, idx) => ({
-      id: `bi-${Date.now()}-${idx + 1}`,
-      itemNo: idx + 1,
-      partNumber: `MAT-${String(idx + 1).padStart(3, '0')}`,
-      itemName: itm.material || `Material Item ${idx + 1}`,
-      description: `${itm.item_type} for ${newBomName}`,
-      itemType: (itm.item_type === 'RAW_MATERIAL'
-        ? 'Raw Material'
-        : itm.item_type === 'FABRICATED'
-        ? 'Fabricated'
-        : itm.item_type === 'BOUGHT_OUT'
-        ? 'Bought-Out'
-        : itm.item_type === 'CONSUMABLE'
-        ? 'Consumable'
-        : itm.item_type === 'HARDWARE'
-        ? 'Hardware'
-        : 'Electrical') as BOMItemType,
-      material: itm.material || 'Standard Grade',
-      specification: `Procurement: ${itm.procurement}`,
-      quantity: Number(itm.quantity) || 1,
-      unit: itm.unit || 'PCS',
-      makeBrand: itm.procurement === 'PURCHASE' ? 'Standard Supplier' : 'In-House Shopfloor',
-      procurementType: (itm.procurement === 'FABRICATE' ? 'In-House' : 'Purchase') as ProcurementType,
-      procurement: itm.procurement,
-      item_type: itm.item_type,
-      estimatedRate: Number(itm.estimatedRate) || 100,
-      totalEstimatedAmount: (Number(itm.quantity) || 1) * (Number(itm.estimatedRate) || 100),
-    }));
+    const formattedItems: BOMItem[] = bomItemsList.map((itm, idx) => {
+      const rate = Number(itm.estimatedRate ?? (itm as any).estimated_rate ?? (itm as any).rate ?? 0);
+      const qty = Number(itm.quantity) || 1;
+      const totalAmount = qty * rate;
+      return {
+        id: `bi-${Date.now()}-${idx + 1}`,
+        itemNo: idx + 1,
+        partNumber: `MAT-${String(idx + 1).padStart(3, '0')}`,
+        itemName: itm.material || `Material Item ${idx + 1}`,
+        description: `${itm.item_type} for ${newBomName}`,
+        itemType: (itm.item_type === 'RAW_MATERIAL'
+          ? 'Raw Material'
+          : itm.item_type === 'FABRICATED'
+          ? 'Fabricated'
+          : itm.item_type === 'BOUGHT_OUT'
+          ? 'Bought-Out'
+          : itm.item_type === 'CONSUMABLE'
+          ? 'Consumable'
+          : itm.item_type === 'HARDWARE'
+          ? 'Hardware'
+          : 'Electrical') as BOMItemType,
+        material: itm.material || 'Standard Grade',
+        specification: `Procurement: ${itm.procurement}`,
+        quantity: qty,
+        unit: itm.unit || 'PCS',
+        makeBrand: itm.procurement === 'PURCHASE' ? 'Standard Supplier' : 'In-House Shopfloor',
+        procurementType: (itm.procurement === 'FABRICATE' ? 'In-House' : 'Purchase') as ProcurementType,
+        procurement: itm.procurement,
+        item_type: itm.item_type,
+        estimatedRate: rate,
+        estimated_rate: rate,
+        rate: rate,
+        totalEstimatedAmount: totalAmount,
+        total_estimated_amount: totalAmount,
+        total_amount: totalAmount,
+      } as any;
+    });
 
     const bomId = `BOM-${desJob.jobNumber}`;
     addBOM({
@@ -239,6 +273,7 @@ export default function MasterBOMPage() {
       totalItemsCount: formattedItems.length,
       totalEstimatedCost: totalNewBOMCost,
       estimatedTotalCost: totalNewBOMCost,
+      total_estimated_cost: totalNewBOMCost,
       items: formattedItems,
     });
 
@@ -321,7 +356,12 @@ export default function MasterBOMPage() {
       return matchSearch && matchType;
     });
 
-  const totalBOMCost = (activeBOM?.items || []).reduce((sum, item) => sum + (Number(item.totalEstimatedAmount) || 0), 0) || 0;
+  const totalBOMCost = (activeBOM?.items || []).reduce((sum, item: any) => {
+    const rate = Number(item.estimatedRate ?? item.estimated_rate ?? item.rate ?? item.estRate ?? item.unitPrice ?? item.unit_price ?? item.costPerUnit ?? item.cost_per_unit ?? 0);
+    const qty = Number(item.quantity ?? item.qty ?? 1);
+    const amt = Number(item.totalEstimatedAmount ?? item.total_estimated_amount ?? item.total_amount ?? item.totalAmount ?? item.amount ?? (qty * rate));
+    return sum + amt;
+  }, 0) || Number(activeBOM?.totalEstimatedCost || (activeBOM as any)?.estimatedTotalCost || (activeBOM as any)?.total_estimated_cost || 0);
 
   if (!mounted) {
     return null;
@@ -551,10 +591,10 @@ export default function MasterBOMPage() {
                       {item.quantity} {item.unit}
                     </td>
                     <td className="p-3.5 text-right font-mono text-[#544B45]">
-                      ₹ {(item.estimatedRate || 0).toLocaleString('en-IN')}
+                      ₹ {Number(item.estimatedRate ?? (item as any).estimated_rate ?? (item as any).rate ?? (item as any).estRate ?? (item as any).unitPrice ?? (item as any).costPerUnit ?? 0).toLocaleString('en-IN')}
                     </td>
                     <td className="p-3.5 text-right font-mono font-bold text-emerald-700">
-                      ₹ {(item.totalEstimatedAmount || 0).toLocaleString('en-IN')}
+                      ₹ {Number(item.totalEstimatedAmount ?? (item as any).total_estimated_amount ?? (item as any).total_amount ?? (item as any).totalAmount ?? ((Number(item.quantity) || 1) * Number(item.estimatedRate ?? (item as any).estimated_rate ?? (item as any).rate ?? 0))).toLocaleString('en-IN')}
                     </td>
                   </tr>
                 );

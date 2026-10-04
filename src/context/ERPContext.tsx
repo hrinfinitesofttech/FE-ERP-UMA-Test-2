@@ -2747,9 +2747,46 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         });
       }
 
-      applyLive<Drawing2D>(val(results[1]), setDrawings2D, 'drawings2D');
-      applyLive<Design3DModel>(val(results[2]), setDesigns3D, 'designs3D');
-      applyLive<BOMHeader>(val(results[3]), setBoms, 'boms');
+      const rawBoms = val<any[]>(results[3]);
+      if (rawBoms && Array.isArray(rawBoms) && rawBoms.length > 0) {
+        const normalizedBoms: BOMHeader[] = rawBoms.map((b: any) => {
+          let calcTotal = 0;
+          const items = (b.items || []).map((itm: any, idx: number) => {
+            const rate = Number(itm.estimatedRate ?? itm.estimated_rate ?? itm.rate ?? itm.estRate ?? itm.unitPrice ?? itm.costPerUnit ?? 0);
+            const qty = Number(itm.quantity ?? itm.qty ?? 1);
+            const amt = Number(itm.totalEstimatedAmount ?? itm.total_estimated_amount ?? itm.total_amount ?? itm.totalAmount ?? (qty * rate));
+            calcTotal += amt;
+            return {
+              ...itm,
+              itemNo: itm.itemNo || idx + 1,
+              quantity: qty,
+              estimatedRate: rate,
+              estimated_rate: rate,
+              rate: rate,
+              totalEstimatedAmount: amt,
+              total_amount: amt,
+              total_estimated_amount: amt,
+            };
+          });
+          const totalCost = Number(b.totalEstimatedCost || b.estimatedTotalCost || b.total_estimated_cost || calcTotal);
+          return {
+            ...b,
+            id: String(b.id || b.bomNumber || b.bom_number),
+            bomNumber: b.bomNumber || b.bom_number || b.id,
+            jobNumber: b.jobNumber || b.job_number || '',
+            items,
+            totalItemsCount: items.length,
+            totalEstimatedCost: totalCost,
+            estimatedTotalCost: totalCost,
+          };
+        });
+        setBoms(normalizedBoms);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_boms', JSON.stringify(normalizedBoms)); } catch (_) {}
+        }
+      } else {
+        applyLive<BOMHeader>(val(results[3]), setBoms, 'boms');
+      }
 
       const rawReqs = val<any[]>(results[4]);
       if (rawReqs && Array.isArray(rawReqs)) {
@@ -6254,8 +6291,44 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
   const addBOM = (data: Omit<BOMHeader, 'id'>) => {
     const id = `BOM-${data.jobNumber}`;
-    const newBom: BOMHeader = { ...data, id };
-    setBoms((prev) => [newBom, ...prev]);
+    const rawItems = data.items || [];
+    let calcTotal = 0;
+    const normalizedItems = rawItems.map((itm: any, idx: number) => {
+      const rate = Number(itm.estimatedRate ?? itm.estimated_rate ?? itm.rate ?? itm.estRate ?? itm.unitPrice ?? itm.costPerUnit ?? 0);
+      const qty = Number(itm.quantity ?? itm.qty ?? 1);
+      const amt = Number(itm.totalEstimatedAmount ?? itm.total_estimated_amount ?? itm.total_amount ?? itm.totalAmount ?? (qty * rate));
+      calcTotal += amt;
+      return {
+        ...itm,
+        itemNo: itm.itemNo || idx + 1,
+        quantity: qty,
+        estimatedRate: rate,
+        estimated_rate: rate,
+        rate: rate,
+        totalEstimatedAmount: amt,
+        total_amount: amt,
+        total_estimated_amount: amt,
+      };
+    });
+
+    const finalTotalCost = Number(data.totalEstimatedCost || (data as any).estimatedTotalCost || (data as any).total_estimated_cost || calcTotal);
+    const newBom: BOMHeader = {
+      ...data,
+      id,
+      items: normalizedItems,
+      totalItemsCount: normalizedItems.length,
+      totalEstimatedCost: finalTotalCost,
+      estimatedTotalCost: finalTotalCost,
+    };
+
+    setBoms((prev) => {
+      const updated = [newBom, ...prev.filter((b) => b.id !== id && b.jobNumber !== data.jobNumber)];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_boms', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
     logAction('CREATE', 'Designer', 'BOM Management', id, `Created Master BOM for ${data.jobNumber}`);
     const bomPayload = {
       ...newBom,
@@ -6263,24 +6336,35 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       jobNumber: newBom.jobNumber || 'JOB-2026-0042',
       designJobId: (newBom as any).designJobId || newBom.jobNumber || 'DJOB-DEFAULT',
       preparedBy: (newBom as any).preparedBy || `${currentUser.firstName} ${currentUser.lastName}`.trim() || 'Design Engineer',
-      items: newBom.items || [],
+      items: normalizedItems,
+      total_estimated_cost: finalTotalCost,
       status: newBom.status || 'draft',
     };
     api.designer.boms.create(bomPayload).then((res) => {
       if (res && res.id) {
-        setBoms((prev) => prev.map((b) => (b.id === id ? { ...b, ...res } : b)));
+        setBoms((prev) => {
+          const synced = prev.map((b) => (b.id === id ? { ...b, ...res, items: normalizedItems, totalEstimatedCost: finalTotalCost } : b));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_boms', JSON.stringify(synced)); } catch (_) {}
+          }
+          return synced;
+        });
       }
     }).catch((err) => console.warn('Failed to sync BOM to backend:', err));
   };
 
   const updateBOM = (id: string, updates: Partial<BOMHeader>) => {
-    setBoms((prev) =>
-      prev.map((b) =>
+    setBoms((prev) => {
+      const updated = prev.map((b) =>
         b.id === id
           ? { ...b, ...updates }
           : b
-      )
-    );
+      );
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_boms', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     api.designer.boms.update(id, updates).catch((err) => console.warn('Failed to update BOM on backend:', err));
   };
 
