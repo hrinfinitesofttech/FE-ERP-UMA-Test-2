@@ -2092,6 +2092,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ['workCenters', setWorkCenters],
         ['workOrders', setWorkOrders],
         ['finishedGoods', setFinishedGoods],
+        ['dispatchOrders', setDispatchOrders],
         ['internalAssets', setInternalAssets],
         ['customerMachines', setCustomerMachines],
         ['serviceRequests', setServiceRequests],
