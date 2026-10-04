@@ -214,14 +214,23 @@ export default function MasterBOMPage() {
     };
 
     const formattedItems: BOMItem[] = bomItemsList.map((itm, idx) => {
-      const rate = Number(itm.estimatedRate ?? (itm as any).estimated_rate ?? (itm as any).rate ?? 0);
+      const rate = Number(itm.estimatedRate ?? (itm as any).estimated_rate ?? (itm as any).rate ?? (itm as any).unitPrice ?? (itm as any).unitCost ?? 0);
       const qty = Number(itm.quantity) || 1;
       const totalAmount = qty * rate;
+      const matStr = itm.material || `Material Item ${idx + 1}`;
+      const matParts = matStr.split(' - ');
+      const partNum = matParts.length > 1 ? matParts[0].trim() : `MAT-${String(idx + 1).padStart(3, '0')}`;
+      const itemName = matParts.length > 1 ? matParts.slice(1).join(' - ').trim() : matStr;
+
       return {
         id: `bi-${Date.now()}-${idx + 1}`,
         itemNo: idx + 1,
-        partNumber: `MAT-${String(idx + 1).padStart(3, '0')}`,
-        itemName: itm.material || `Material Item ${idx + 1}`,
+        itemNumber: `ITM-${String(idx + 1).padStart(3, '0')}`,
+        partNumber: partNum,
+        part_number: partNum,
+        itemName: itemName,
+        item_name: itemName,
+        partName: itemName,
         description: `${itm.item_type} for ${newBomName}`,
         itemType: (itm.item_type === 'RAW_MATERIAL'
           ? 'Raw Material'
@@ -234,9 +243,10 @@ export default function MasterBOMPage() {
           : itm.item_type === 'HARDWARE'
           ? 'Hardware'
           : 'Electrical') as BOMItemType,
-        material: itm.material || 'Standard Grade',
+        material: matStr,
         specification: `Procurement: ${itm.procurement}`,
         quantity: qty,
+        qty: qty,
         unit: itm.unit || 'PCS',
         makeBrand: itm.procurement === 'PURCHASE' ? 'Standard Supplier' : 'In-House Shopfloor',
         procurementType: (itm.procurement === 'FABRICATE' ? 'In-House' : 'Purchase') as ProcurementType,
@@ -245,9 +255,13 @@ export default function MasterBOMPage() {
         estimatedRate: rate,
         estimated_rate: rate,
         rate: rate,
+        unitCost: rate,
+        unit_price: rate,
         totalEstimatedAmount: totalAmount,
         total_estimated_amount: totalAmount,
         total_amount: totalAmount,
+        totalAmount: totalAmount,
+        extendedCost: totalAmount,
       } as any;
     });
 
@@ -543,21 +557,47 @@ export default function MasterBOMPage() {
                 </td>
               </tr>
             ) : (
-              filteredItems.map((item) => {
+              filteredItems.map((item, idx) => {
                 const isFabricate =
                   item.procurement === 'FABRICATE' ||
                   item.procurementType === 'In-House' ||
                   item.itemType === 'Fabricated';
 
+                const rate = Number(
+                  item.estimatedRate ??
+                  (item as any).estimated_rate ??
+                  (item as any).rate ??
+                  (item as any).estRate ??
+                  (item as any).unitPrice ??
+                  (item as any).unitCost ??
+                  (item as any).unit_cost ??
+                  (item as any).costPerUnit ??
+                  0
+                );
+                const qty = Number(item.quantity ?? (item as any).qty ?? 1);
+                const totalAmt = Number(
+                  item.totalEstimatedAmount ??
+                  (item as any).total_estimated_amount ??
+                  (item as any).total_amount ??
+                  (item as any).totalAmount ??
+                  (item as any).extendedCost ??
+                  (qty * rate)
+                );
+
+                const rawMat = item.material || '';
+                const matParts = rawMat.split(' - ');
+                const defaultPartNo = matParts.length > 1 ? matParts[0].trim() : (item.partNumber || item.itemCode || `MAT-${String(item.itemNo || idx + 1).padStart(3, '0')}`);
+                const defaultItemName = item.itemName || (matParts.length > 1 ? matParts.slice(1).join(' - ').trim() : rawMat) || `Item ${idx + 1}`;
+
                 return (
-                  <tr key={item.id} className="hover:bg-[#FAF7F2]/60 transition">
-                    <td className="p-3.5 text-center font-mono font-bold text-[#70665F]">{item.itemNo}</td>
+                  <tr key={item.id || `bi-${idx}`} className="hover:bg-[#FAF7F2]/60 transition">
+                    <td className="p-3.5 text-center font-mono font-bold text-[#70665F]">{item.itemNo || idx + 1}</td>
                     <td className="p-3.5 font-mono font-bold text-amber-800">
-                      {item.partNumber || item.material}
+                      {defaultPartNo}
                     </td>
                     <td className="p-3.5">
-                      <div className="font-bold text-[#211B17]">{item.itemName}</div>
-                      <div className="text-[10px] text-[#70665F]">{item.specification || item.description}</div>
+                      <div className="font-bold text-[#211B17]">{defaultItemName}</div>
+                      <div className="text-[10px] text-[#70665F]">{item.specification || item.description || (item.procurement ? `Procurement: ${item.procurement}` : '')}</div>
                     </td>
                     <td className="p-3.5">
                       <span
@@ -573,7 +613,7 @@ export default function MasterBOMPage() {
                             : 'bg-slate-100 text-slate-700 border-slate-300'
                         }`}
                       >
-                        {item.item_type || item.itemType}
+                        {item.item_type || item.itemType || 'RAW_MATERIAL'}
                       </span>
                     </td>
                     <td className="p-3.5 text-center">
@@ -588,13 +628,13 @@ export default function MasterBOMPage() {
                       </span>
                     </td>
                     <td className="p-3.5 text-center font-mono font-bold text-[#211B17]">
-                      {item.quantity} {item.unit}
+                      {qty} {item.unit || 'PCS'}
                     </td>
                     <td className="p-3.5 text-right font-mono text-[#544B45]">
-                      ₹ {Number(item.estimatedRate ?? (item as any).estimated_rate ?? (item as any).rate ?? (item as any).estRate ?? (item as any).unitPrice ?? (item as any).costPerUnit ?? 0).toLocaleString('en-IN')}
+                      ₹ {rate.toLocaleString('en-IN')}
                     </td>
                     <td className="p-3.5 text-right font-mono font-bold text-emerald-700">
-                      ₹ {Number(item.totalEstimatedAmount ?? (item as any).total_estimated_amount ?? (item as any).total_amount ?? (item as any).totalAmount ?? ((Number(item.quantity) || 1) * Number(item.estimatedRate ?? (item as any).estimated_rate ?? (item as any).rate ?? 0))).toLocaleString('en-IN')}
+                      ₹ {totalAmt.toLocaleString('en-IN')}
                     </td>
                   </tr>
                 );
