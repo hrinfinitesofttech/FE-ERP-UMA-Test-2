@@ -35,7 +35,8 @@ interface NewBOMFormItem {
 }
 
 export default function MasterBOMPage() {
-  const { boms, addBOM, updateBOM, designJobs, itemMasters, currentUser } = useERP();
+  const [mounted, setMounted] = useState(false);
+  const { boms, addBOM, updateBOM, designJobs, projectJobs, itemMasters, currentUser } = useERP();
 
   const [selectedJobNumber, setSelectedJobNumber] = useState(boms[0]?.jobNumber || 'JOB-2026-001');
   const [itemTypeFilter, setItemTypeFilter] = useState('all');
@@ -109,6 +110,10 @@ export default function MasterBOMPage() {
   const [makeBrand, setMakeBrand] = useState('');
   const [procurementType, setProcurementType] = useState<ProcurementType>('Purchase');
   const [estimatedRate, setEstimatedRate] = useState(5000);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Close modals on ESC key
   useEffect(() => {
@@ -304,7 +309,7 @@ export default function MasterBOMPage() {
   };
 
   const filteredItems =
-    activeBOM?.items.filter((item) => {
+    (activeBOM?.items || []).filter((item) => {
       const q = searchQuery?.toLowerCase() || '';
       const matchSearch =
         !q ||
@@ -314,9 +319,13 @@ export default function MasterBOMPage() {
         (item.makeBrand && item.makeBrand?.toLowerCase().includes(q));
       const matchType = itemTypeFilter === 'all' || item.itemType === itemTypeFilter;
       return matchSearch && matchType;
-    }) || [];
+    });
 
-  const totalBOMCost = activeBOM?.items.reduce((sum, item) => sum + (Number(item.totalEstimatedAmount) || 0), 0) || 0;
+  const totalBOMCost = (activeBOM?.items || []).reduce((sum, item) => sum + (Number(item.totalEstimatedAmount) || 0), 0) || 0;
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div className="p-6 space-y-6 text-[#211B17]">
@@ -390,11 +399,15 @@ export default function MasterBOMPage() {
               onChange={(e) => setSelectedJobNumber(e.target.value)}
               className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
             >
-              {boms.map((b) => (
-                <option key={b.id} value={b.jobNumber}>
-                  {b.jobNumber} — {b.bomName || b.machineName || b.bomNumber} ({b.revisionNumber || 'V1'})
-                </option>
-              ))}
+              {boms.map((b) => {
+                const matchedJob = designJobs.find((j) => j.jobNumber === b.jobNumber) || (projectJobs || []).find((p) => p.jobNumber === b.jobNumber);
+                const cust = matchedJob?.customerName;
+                return (
+                  <option key={b.id} value={b.jobNumber}>
+                    {b.jobNumber} — {cust ? `[${cust}] ` : ''}{b.bomName || b.machineName || b.bomNumber} ({b.revisionNumber || 'V1'})
+                  </option>
+                );
+              })}
             </select>
           </div>
 
@@ -621,7 +634,7 @@ export default function MasterBOMPage() {
                     >
                       {designJobs.map((j) => (
                         <option key={j.id} value={j.id}>
-                          {j.jobNumber} — {j.productName}
+                          {j.jobNumber} — {j.customerName ? `[${j.customerName}] ` : ''}{j.productName}
                         </option>
                       ))}
                       <option value="101">101 - Steel Table (Standard Item)</option>

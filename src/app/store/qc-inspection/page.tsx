@@ -24,12 +24,17 @@ import {
 
 export default function QualityInspectionPage() {
   const { qcInspections, approveQCInspection, addQCInspection, goodsReceipts } = useERP();
+  const [mounted, setMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<'inspections' | 'pending_grns'>('inspections');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Pending' | 'Pass' | 'Fail' | 'Conditional Approval'>('All');
   const [selectedInspection, setSelectedInspection] = useState<QCInspection | null>(null);
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Modal State
   const [inspectorName, setInspectorName] = useState('Suresh Patel (Sr. QC Lead)');
@@ -71,21 +76,51 @@ export default function QualityInspectionPage() {
     return grn || null;
   }, [searchTerm, goodsReceipts]);
 
+  const urlParamProcessed = React.useRef(false);
+
+  const handleStartInspectionForGrnNumber = (grnNumber: string) => {
+    const matchingGrn = (goodsReceipts || []).find((g) => g.grnNumber === grnNumber || g.id === grnNumber);
+    if (matchingGrn) {
+      handleStartInspectionForGrn(matchingGrn);
+      return;
+    }
+    const qcNumber = `QC-${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`;
+    const tempQc: QCInspection = {
+      id: qcNumber,
+      inspectionNumber: qcNumber,
+      inspectionDate: new Date().toISOString().split('T')[0],
+      grnId: grnNumber,
+      grnNumber: grnNumber,
+      itemId: 'ITM-001',
+      itemCode: 'RM-MS-12MM',
+      itemName: 'IS 2062 Grade E250 MS Plate 12mm',
+      jobId: 'General Stock',
+      supplierName: 'Jindal Stainless Limited',
+      requiredSpecification: 'Standard Technical Delivery Conditions (TDC)',
+      actualSpecification: 'Inspected OK as per ASTM standard',
+      inspectionParameters: 'Spectro PMI Chemical, Ultrasonic Flaw Check, Dimension Verification',
+      sampleQuantity: 1,
+      acceptedQuantity: 1,
+      rejectedQuantity: 0,
+      qcResult: 'Pass',
+      inspectorName: 'Suresh Patel (Sr. QC Lead)',
+      remarks: 'Clearance verified on physical inward arrival.',
+    };
+    openInspectionModal(tempQc);
+  };
+
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && !urlParamProcessed.current) {
       const params = new URLSearchParams(window.location.search);
       const grnParam = params.get('grn');
       if (grnParam) {
+        urlParamProcessed.current = true;
         setSearchTerm(grnParam);
-        // If there's an existing inspection for this GRN, auto-select it, else if GRN exists, open modal
         const existing = (qcInspections || []).find((q) => q.grnNumber === grnParam || q.grnId === grnParam);
         if (existing) {
           openInspectionModal(existing);
         } else {
-          const targetGrn = (goodsReceipts || []).find((g) => g.grnNumber === grnParam || g.id === grnParam);
-          if (targetGrn) {
-            handleStartInspectionForGrn(targetGrn);
-          }
+          handleStartInspectionForGrnNumber(grnParam);
         }
       }
     }
@@ -183,12 +218,17 @@ export default function QualityInspectionPage() {
       rejectedQty,
       remarks,
       actualSpec,
-      parameters
+      parameters,
+      selectedInspection
     );
 
     const inspName = selectedInspection.inspectionNumber || selectedInspection.id || selectedInspection.grnNumber;
     setSelectedInspection(null);
-    setToastMessage(`QC Inspection ${inspName} cleared with result: ${result}!`);
+    setSearchTerm('');
+    if (typeof window !== 'undefined') {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    setToastMessage(`✓ QC Inspection ${inspName} cleared with result: ${result}! GRN status updated & stock synced.`);
     setTimeout(() => setToastMessage(''), 5000);
   };
 
@@ -200,8 +240,24 @@ export default function QualityInspectionPage() {
     return { total, passed, failed, pending };
   }, [allInspections, pendingGrns]);
 
+  if (!mounted) {
+    return (
+      <div className="p-6 space-y-6 bg-[#FAF7F2] min-h-screen text-[#544B45]">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-md">
+          <div>
+            <span className="px-2.5 py-0.5 rounded-md bg-amber-500/20 text-amber-800 border border-amber-500/30 text-xs font-mono font-semibold">
+              QUALITY ASSURANCE
+            </span>
+            <h1 className="text-2xl font-black text-[#211B17] tracking-tight">Quality Inspection Manager</h1>
+          </div>
+        </div>
+        <div className="p-12 text-center text-sm text-[#70665F]">Loading Quality Inspections...</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6 space-y-6 bg-[#FAF7F2] min-h-screen text-[#544B45]">
+    <div className="p-6 space-y-6 bg-[#FAF7F2] min-h-screen text-[#544B45]" suppressHydrationWarning>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-md">
         <div>
@@ -243,31 +299,31 @@ export default function QualityInspectionPage() {
       )}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4" suppressHydrationWarning>
         <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
           <div className="text-[11px] font-medium text-[#70665F]">Total Inspections Done</div>
-          <div className="text-2xl font-black text-[#211B17] mt-1 font-mono">{stats.total}</div>
+          <div className="text-2xl font-black text-[#211B17] mt-1 font-mono" suppressHydrationWarning>{stats.total}</div>
         </div>
         <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
           <div className="text-[11px] font-medium text-amber-700 flex items-center gap-1">
             <Clock className="w-3.5 h-3.5" />
             Pending Clearance
           </div>
-          <div className="text-2xl font-black text-amber-700 mt-1 font-mono">{stats.pending}</div>
+          <div className="text-2xl font-black text-amber-700 mt-1 font-mono" suppressHydrationWarning>{stats.pending}</div>
         </div>
         <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
           <div className="text-[11px] font-medium text-emerald-700 flex items-center gap-1">
             <CheckCircle className="w-3.5 h-3.5" />
             Passed (Usable Stock)
           </div>
-          <div className="text-2xl font-black text-emerald-700 mt-1 font-mono">{stats.passed}</div>
+          <div className="text-2xl font-black text-emerald-700 mt-1 font-mono" suppressHydrationWarning>{stats.passed}</div>
         </div>
         <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
           <div className="text-[11px] font-medium text-rose-700 flex items-center gap-1">
             <XCircle className="w-3.5 h-3.5" />
             Rejected (Quarantine)
           </div>
-          <div className="text-2xl font-black text-rose-700 mt-1 font-mono">{stats.failed}</div>
+          <div className="text-2xl font-black text-rose-700 mt-1 font-mono" suppressHydrationWarning>{stats.failed}</div>
         </div>
       </div>
 

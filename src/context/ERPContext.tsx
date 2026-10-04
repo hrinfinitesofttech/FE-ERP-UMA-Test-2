@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import {
   Job360Full,
   ApprovalItem,
@@ -334,6 +335,7 @@ import {
   ProductionScrap,
   ProductionCompletion,
   FinishedGoodsItem,
+  DispatchOrder,
   ProductionCostSummary,
 } from '../types/production';
 import {
@@ -607,9 +609,13 @@ interface ERPContextType {
   addRFQ: (rfq: Omit<RequestForQuotation, 'id' | 'rfqDate'>) => void;
   supplierQuotations: SupplierQuotation[];
   addSupplierQuotation: (sq: Omit<SupplierQuotation, 'id'>) => void;
+  updateSupplierQuotation: (id: string, data: Partial<SupplierQuotation>) => void;
+  deleteSupplierQuotation: (id: string) => void;
   approveSupplierQuotation: (id: string, approvedBy: string) => void;
   quotationComparisons: QuotationComparison[];
   addQuotationComparison: (comp: Omit<QuotationComparison, 'id' | 'comparisonDate'>) => void;
+  updateQuotationComparison: (id: string, data: Partial<QuotationComparison>) => void;
+  deleteQuotationComparison: (id: string) => void;
   approveQuotationComparison: (id: string, approvedBy: string) => void;
   purchaseOrders: PurchaseOrder[];
   addPurchaseOrder: (po: Omit<PurchaseOrder, 'id' | 'poDate'>) => void;
@@ -649,7 +655,8 @@ interface ERPContextType {
     rejectedQty: number,
     remarks?: string,
     actualSpecification?: string,
-    parameters?: string
+    parameters?: string,
+    extraDetails?: Partial<QCInspection>
   ) => void;
   stockBalances: StockBalance[];
   updateStockBalance: (id: string, updates: Partial<StockBalance>) => void;
@@ -692,6 +699,8 @@ interface ERPContextType {
   mrpRequirements: MRPItemRequirement[];
   productionEntries: ProductionEntry[];
   recordProductionEntry: (entry: Omit<ProductionEntry, 'id' | 'productionEntryNumber' | 'goodQuantity'>) => void;
+  updateProductionEntry: (id: string, updates: Partial<ProductionEntry>) => void;
+  deleteProductionEntry: (id: string) => void;
   wipRecords: WIPRecord[];
   productionHolds: ProductionHold[];
   addProductionHold: (hold: Omit<ProductionHold, 'id' | 'holdNumber'>) => void;
@@ -704,6 +713,14 @@ interface ERPContextType {
   completeWorkOrder: (comp: Omit<ProductionCompletion, 'id' | 'completionNumber'>) => void;
   finishedGoods: FinishedGoodsItem[];
   addFinishedGoods: (fg: Omit<FinishedGoodsItem, 'id' | 'finishedGoodsNumber' | 'createdAt'>) => void;
+  updateFinishedGoods: (id: string, updates: Partial<FinishedGoodsItem>) => void;
+  deleteFinishedGoods: (id: string) => void;
+  dispatchOrders: DispatchOrder[];
+  addDispatchOrder: (data: Omit<DispatchOrder, 'id' | 'dispatchNumber' | 'createdAt'>) => void;
+  updateDispatchOrder: (id: string, updates: Partial<DispatchOrder>) => void;
+  deleteDispatchOrder: (id: string) => void;
+  markDispatchInTransit: (id: string) => void;
+  markDispatchDelivered: (id: string) => void;
   productionCosts: ProductionCostSummary[];
 
   // Module 7: Accounting & Finance Entities
@@ -971,6 +988,8 @@ interface ERPContextType {
 const ERPContext = createContext<ERPContextType | undefined>(undefined);
 
 export function ERPProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const lastSyncTimes = useRef<Record<string, number>>({});
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
 
   // Master state initialized with deep relational seed
@@ -1802,7 +1821,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
     return MOCK_SUPPLIER_QUOTATIONS;
   });
-  const [quotationComparisons, setQuotationComparisons] = useState<QuotationComparison[]>(MOCK_QUOTATION_COMPARISONS);
+  const [quotationComparisons, setQuotationComparisons] = useState<QuotationComparison[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_quotationComparisons');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return MOCK_QUOTATION_COMPARISONS;
+  });
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(MOCK_PURCHASE_ORDERS);
   const [poRevisions, setPoRevisions] = useState<PORevision[]>(MOCK_PO_REVISIONS);
   const [purchaseFollowUps, setPurchaseFollowUps] = useState<PurchaseFollowUp[]>(MOCK_PURCHASE_FOLLOWUPS);
@@ -1841,8 +1871,30 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   });
   const [stockBalances, setStockBalances] = useState<StockBalance[]>(INITIAL_STOCK_BALANCES);
   const [stockReservations, setStockReservations] = useState<StockReservation[]>(INITIAL_STOCK_RESERVATIONS);
-  const [materialIssues, setMaterialIssues] = useState<MaterialIssue[]>(INITIAL_MATERIAL_ISSUES);
-  const [materialReturns, setMaterialReturns] = useState<MaterialReturn[]>(INITIAL_MATERIAL_RETURNS);
+  const [materialIssues, setMaterialIssues] = useState<MaterialIssue[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_materialIssues');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_MATERIAL_ISSUES;
+  });
+  const [materialReturns, setMaterialReturns] = useState<MaterialReturn[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_materialReturns');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_MATERIAL_RETURNS;
+  });
   const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>(INITIAL_STOCK_TRANSFERS);
   const [stockAdjustments, setStockAdjustments] = useState<StockAdjustment[]>(INITIAL_STOCK_ADJUSTMENTS);
   const [scrapEntries, setScrapEntries] = useState<ScrapEntry[]>(INITIAL_SCRAP_ENTRIES);
@@ -1902,7 +1954,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const [workCenters, setWorkCenters] = useState<WorkCenter[]>(INITIAL_WORK_CENTERS);
   const [productionSchedules, setProductionSchedules] = useState<ProductionScheduleItem[]>(INITIAL_PRODUCTION_SCHEDULES);
   const [mrpRequirements, setMrpRequirements] = useState<MRPItemRequirement[]>(INITIAL_MRP_REQUIREMENTS);
-  const [productionEntries, setProductionEntries] = useState<ProductionEntry[]>(INITIAL_PRODUCTION_ENTRIES);
+  const [productionEntries, setProductionEntries] = useState<ProductionEntry[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_productionEntries');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_PRODUCTION_ENTRIES;
+  });
   const [wipRecords, setWipRecords] = useState<WIPRecord[]>(INITIAL_WIP_RECORDS);
   const [productionHolds, setProductionHolds] = useState<ProductionHold[]>(() => {
     if (typeof window !== 'undefined') {
@@ -1919,7 +1982,30 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const [reworkOrders, setReworkOrders] = useState<ReworkOrder[]>(INITIAL_REWORK_ORDERS);
   const [productionScraps, setProductionScraps] = useState<ProductionScrap[]>(INITIAL_PRODUCTION_SCRAPS);
   const [productionCompletions, setProductionCompletions] = useState<ProductionCompletion[]>([]);
-  const [finishedGoods, setFinishedGoods] = useState<FinishedGoodsItem[]>(INITIAL_FINISHED_GOODS);
+  const [finishedGoods, setFinishedGoods] = useState<FinishedGoodsItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_finishedGoods');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_FINISHED_GOODS;
+  });
+  const [dispatchOrders, setDispatchOrders] = useState<DispatchOrder[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_dispatchOrders');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return [];
+  });
   const [productionCosts, setProductionCosts] = useState<ProductionCostSummary[]>(INITIAL_PRODUCTION_COSTS);
 
   // Module 7: Accounting & Finance States
@@ -2139,1308 +2225,1639 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Live Backend Data Fetching from PythonAnywhere
-  useEffect(() => {
-    let isMounted = true;
+  // =========================================================================
+  // MODULAR ON-DEMAND API ARCHITECTURE (Page-Level Fetching & Smart Caching)
+  // =========================================================================
+  function val<T>(res: PromiseSettledResult<any>): T | null {
+    return res.status === 'fulfilled' && res.value !== undefined ? (res.value as T) : null;
+  }
 
-    async function loadLiveData() {
-      try {
-        const results = await Promise.allSettled([
-          api.crm.leads.list(),
-          api.crm.customers.list(),
-          api.crm.contacts.list(),
-          api.crm.enquiries.list(),
-          api.crm.opportunities.list(),
-          api.crm.quotations.list(),
-          api.crm.customerPos.list(),
-          api.crm.salesOrders.list(),
-          api.crm.followUps.list(),
-          api.crm.siteVisits.list(),
-          api.crm.exhibitions.list(),
-          api.employees.list(),
-          api.departments.list(),
-          api.roles.list(),
-          api.projects.list(),
-          api.projects.tasks(),
-          api.projects.milestones(),
-          api.projects.planningStages(),
-          api.designer.jobs.list(),
-          api.designer.drawings2d(),
-          api.designer.models3d(),
-          api.designer.boms.list(),
-          api.purchase.suppliers.list(),
-          api.purchase.requisitions.list(),
-          api.purchase.orders.list(),
-          api.store.items.list(),
-          api.store.categories(),
-          api.store.uoms(),
-          api.store.warehouses.list(),
-          api.store.grns.list(),
-          api.store.stock(),
-          api.store.materialIssues.list(),
-          api.store.materialReturns.list(),
-          api.production.jobs(),
-          api.production.workCenters.list(),
-          api.production.workOrders.list(),
-          api.production.finishedGoods.list(),
-          api.maintenance.internalAssets(),
-          api.maintenance.customerMachines(),
-          api.maintenance.serviceRequests.list(),
-          api.maintenance.breakdowns(),
-          api.maintenance.serviceVisits(),
-          api.maintenance.servicePartIssues.list(),
-          api.maintenance.servicePartReturns.list(),
-          api.maintenance.serviceReports.list(),
-          api.hr.designations(),
-          api.hr.shifts(),
-          api.hr.attendance(),
-          api.hr.leaves.list(),
-          api.hr.payroll.list(),
-          api.hr.onboardings.list(),
-          api.accounting.financialYears(),
-          api.accounting.chartOfAccounts(),
-          api.accounting.salesInvoices.list(),
-          api.accounting.purchaseInvoices.list(),
-          api.accounting.receipts(),
-          api.accounting.payments(),
-          api.accounting.journalEntries.list(),
-          api.accounting.creditNotes.list(),
-          api.accounting.debitNotes.list(),
-          api.accounting.contraEntries.list(),
-          api.accounting.bankAccounts.list(),
-          api.accounting.expenses.list(),
-          api.accounting.fixedAssets.list(),
-          api.hr.holidays.list(),
-          api.hr.overtimeRecords.list(),
-          api.hr.earlyCheckouts.list(),
-          api.hr.appraisals.list(),
-          api.integration.approvals.list(),
-          api.integration.alerts.list(),
-          api.store.qcInspections(),
-          api.auth.me(),
-          api.projects.departmentAssignments(),
-          api.projects.documents(),
-          api.projects.changeRequests(),
-          api.designer.requirements.list(),
-          api.designer.tasks.list(),
-          api.purchase.mrp.list(),
-          api.purchase.rfqs.list(),
-          api.purchase.supplierQuotations.list(),
-          api.purchase.quotationComparisons.list(),
-          api.production.orders.list(),
-          api.designer.technicalDocuments.list(),
-          api.production.schedules.list(),
-          api.production.entries.list(),
-          api.production.reworkOrders.list(),
-          api.production.scraps.list(),
-          api.production.holds.list(),
-          api.production.wip.list(),
-          api.production.routingOperations.list(),
-        ]);
+  function applyLive<T>(res: T[] | null, setter: React.Dispatch<React.SetStateAction<T[]>>, cacheKey?: string) {
+    if (res && Array.isArray(res)) {
+      setter(res);
+      if (cacheKey && typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('UMA_ERP_' + cacheKey, JSON.stringify(res));
+        } catch (_) {}
+      }
+    }
+  }
 
-        if (!isMounted) return;
+  const STALE_TIME_MS = 60000; // 1 minute smart cache window
 
-        function val<T>(res: PromiseSettledResult<any>): T | null {
-          return res.status === 'fulfilled' && res.value !== undefined ? (res.value as T) : null;
-        }
+  // 1. Initial Application Shell Bootstrap (Only Core Authentication, Company, Numbers, Departments, Roles, Employees)
+  const syncBootstrap = useCallback(async (force = false) => {
+    const now = Date.now();
+    if (!force && lastSyncTimes.current['bootstrap'] && now - lastSyncTimes.current['bootstrap'] < STALE_TIME_MS) return;
+    try {
+      const results = await Promise.allSettled([
+        api.auth.me(),
+        api.company.get(),
+        api.numbering.list(),
+        api.departments.list(),
+        api.roles.list(),
+        api.employees.list(),
+        api.hr.designations(),
+      ]);
 
-        function applyLive<T>(res: T[] | null, setter: React.Dispatch<React.SetStateAction<T[]>>, cacheKey?: string) {
-          if (res && Array.isArray(res)) {
-            setter(res);
-            if (cacheKey && typeof window !== 'undefined') {
-              try {
-                localStorage.setItem('UMA_ERP_' + cacheKey, JSON.stringify(res));
-              } catch (_) {}
-            }
-          }
-        }
+      const meRes = val<any>(results[0]);
+      if (meRes && meRes.username) {
+        setCurrentUser((prev) => ({
+          ...prev,
+          ...meRes,
+          name: meRes.name || `${meRes.firstName || ''} ${meRes.lastName || ''}`.trim() || meRes.username,
+          role: meRes.role || meRes.roleName || 'Super Admin',
+          roleName: meRes.roleName || meRes.role || 'Super Admin',
+          department: meRes.department || meRes.departmentName || 'Management',
+        }));
+      }
 
-        const rawLeads = val<any[]>(results[0]);
-        if (rawLeads && Array.isArray(rawLeads) && rawLeads.length > 0) {
-          setLeads((prev) => {
-            const combined = deduplicateLeads([...prev, ...rawLeads]);
-            if (typeof window !== 'undefined') {
-              try { localStorage.setItem('UMA_ERP_leads', JSON.stringify(combined)); } catch (_) {}
-            }
-            return combined;
-          });
-        }
+      const rawCompany = val<any>(results[1]);
+      if (rawCompany && (rawCompany.companyName || rawCompany.company_name || rawCompany.name)) {
+        setCompany((prev) => ({
+          ...prev,
+          ...rawCompany,
+          companyName: rawCompany.companyName || rawCompany.company_name || rawCompany.name || prev.companyName,
+        }));
+      }
 
-        const rawCustomers = val<any[]>(results[1]);
-        if (rawCustomers && Array.isArray(rawCustomers) && rawCustomers.length > 0) {
-          setCustomers((prev) => {
-            const combined = deduplicateCustomers([...prev, ...rawCustomers]);
-            if (typeof window !== 'undefined') {
-              try { localStorage.setItem('UMA_ERP_customers', JSON.stringify(combined)); } catch (_) {}
-            }
-            return combined;
-          });
-        }
+      const rawNumbering = val<any[]>(results[2]);
+      if (rawNumbering && Array.isArray(rawNumbering) && rawNumbering.length > 0) {
+        setNumbering(rawNumbering);
+      }
 
-        applyLive<Contact>(val(results[2]), setContacts, 'contacts');
-        applyLive<Enquiry>(val(results[3]), setEnquiries, 'enquiries');
-        applyLive<Opportunity>(val(results[4]), setOpportunities, 'opportunities');
-
-        const rawQuotations = val<any[]>(results[5]);
-        if (rawQuotations && Array.isArray(rawQuotations) && rawQuotations.length > 0) {
-          setQuotations((prev) => {
-            const combined = deduplicateQuotations([...prev, ...rawQuotations]);
-            if (typeof window !== 'undefined') {
-              try { localStorage.setItem('UMA_ERP_quotations', JSON.stringify(combined)); } catch (_) {}
-            }
-            return combined;
-          });
-        }
-
-        const rawCustomerPOs = val<any[]>(results[6]);
-        if (rawCustomerPOs && Array.isArray(rawCustomerPOs) && rawCustomerPOs.length > 0) {
-          setCustomerPOs((prev) => {
-            const combined = deduplicateCustomerPOs([...prev, ...rawCustomerPOs]);
-            if (typeof window !== 'undefined') {
-              try { localStorage.setItem('UMA_ERP_customerPOs', JSON.stringify(combined)); } catch (_) {}
-            }
-            return combined;
-          });
-        }
-
-        const rawSalesOrders = val<any[]>(results[7]);
-        if (rawSalesOrders && Array.isArray(rawSalesOrders) && rawSalesOrders.length > 0) {
-          setSalesOrders((prev) => {
-            const combined = deduplicateSalesOrders([...prev, ...rawSalesOrders]);
-            if (typeof window !== 'undefined') {
-              try { localStorage.setItem('UMA_ERP_salesOrders', JSON.stringify(combined)); } catch (_) {}
-            }
-            return combined;
-          });
-        }
-
-        const rawFollowUps = val<any>(results[8]);
-        if (rawFollowUps) {
-          const followUpsList: any[] = Array.isArray(rawFollowUps)
-            ? rawFollowUps
-            : Array.isArray(rawFollowUps?.results)
-            ? rawFollowUps.results
-            : Array.isArray(rawFollowUps?.data)
-            ? rawFollowUps.data
-            : [];
-          if (followUpsList.length > 0) {
-            const normalizedFollowUps: FollowUp[] = followUpsList.map((f: any) => ({
-              ...f,
-              id: String(f.id || f.follow_up_no || f.followUpNo),
-              followUpNo: f.followUpNo || f.follow_up_no || f.id,
-              leadOrCustomerId: f.leadOrCustomerId || f.lead_or_customer_id || f.customer_id || f.lead_id || '',
-              leadOrCustomerName: f.leadOrCustomerName || f.lead_or_customer_name || f.customer_name || '',
-              entityType: f.entityType || f.entity_type || 'lead',
-              type: f.type || 'call',
-              assignedToId: f.assignedToId || f.assigned_to_id || f.sales_person_id || '',
-              assignedToName: f.assignedToName || f.assigned_to_name || f.sales_person_name || '',
-              date: f.date || f.scheduled_date || '',
-              time: f.time || f.scheduled_time || '',
-              priority: f.priority || 'medium',
-              purpose: f.purpose || f.discussion_purpose || '',
-              notes: f.notes || f.discussion_notes || '',
-              nextFollowUpDate: f.nextFollowUpDate || f.next_follow_up_date || '',
-              status: f.status || 'pending',
-              completedNotes: f.completedNotes || f.completed_notes || '',
-            }));
-            setFollowUps(normalizedFollowUps);
-            if (typeof window !== 'undefined') {
-              try { localStorage.setItem('UMA_ERP_followUps', JSON.stringify(normalizedFollowUps)); } catch (_) {}
-            }
-          }
-        }
-
-        const rawVisits = val<any[]>(results[9]);
-        if (rawVisits && Array.isArray(rawVisits) && rawVisits.length > 0) {
-          const normalizedVisits: SiteVisit[] = rawVisits.map((v: any) => ({
-            ...v,
-            id: String(v.id || v.visit_no || v.visitNo),
-            visitNo: v.visitNo || v.visit_no || v.id,
-            customerId: v.customerId || v.customer_id || '',
-            customerName: v.customerName || v.customer_name || '',
-            contactPerson: v.contactPerson || v.contact_person || '',
-            contactMobile: v.contactMobile || v.contact_mobile || '',
-            visitDate: v.visitDate || v.visit_date || '',
-            location: v.location || '',
-            employeeId: v.employeeId || v.employee_id || '',
-            employeeName: v.employeeName || v.employee_name || '',
-            purpose: v.purpose || '',
-            discussionNotes: v.discussionNotes || v.discussion_notes || v.discussionSummary || v.discussion_summary || '',
-            requirementDetails: v.requirementDetails || v.requirement_details || '',
-            outcome: v.outcome || 'positive',
-            nextAction: v.nextAction || v.next_action || '',
-            nextFollowUpDate: v.nextFollowUpDate || v.next_follow_up_date || '',
-          }));
-          setSiteVisits(normalizedVisits);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_siteVisits', JSON.stringify(normalizedVisits)); } catch (_) {}
-          }
-        }
-
-        const rawExhibitions = val<any[]>(results[10]);
-        if (rawExhibitions && Array.isArray(rawExhibitions) && rawExhibitions.length > 0) {
-          const normalizedExhibitions: Exhibition[] = rawExhibitions.map((e: any) => ({
-            id: String(e.id),
-            expoName: e.expoName || e.expo_name || 'Exhibition',
-            organizer: e.organizer || '',
-            location: e.location || '',
-            startDate: e.startDate || e.start_date || '',
-            endDate: e.endDate || e.end_date || '',
-            stallNumber: e.stallNumber || e.stall_number || '',
-            contactPerson: e.contactPerson || e.contact_person || '',
-            budget: Number(e.budget) || 0,
-            assignedTeam: Array.isArray(e.assignedTeam) ? e.assignedTeam : (Array.isArray(e.assigned_team) ? e.assigned_team : []),
-            productsDisplayed: e.productsDisplayed || e.products_displayed || '',
-            notes: e.notes || '',
-            totalContacts: Number(e.totalContacts) || Number(e.total_contacts) || 0,
-            qualifiedLeads: Number(e.qualifiedLeads) || Number(e.qualified_leads) || 0,
-            quotationsSent: Number(e.quotationsSent) || Number(e.quotations_sent) || 0,
-            convertedCustomers: Number(e.convertedCustomers) || Number(e.converted_customers) || 0,
-          }));
-          setExhibitions(normalizedExhibitions);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_exhibitions', JSON.stringify(normalizedExhibitions)); } catch (_) {}
-          }
-        }
-        const rawDepts = val<any[]>(results[12]);
-        if (rawDepts && Array.isArray(rawDepts) && rawDepts.length > 0) {
-          setDepartments((prev) => {
-            const map = new Map<string, Department>();
-            // Keep local state first
-            (prev || []).forEach((d) => {
-              if (d && d.id) map.set(d.id, d);
+      const rawDepts = val<any[]>(results[3]);
+      if (rawDepts && Array.isArray(rawDepts) && rawDepts.length > 0) {
+        setDepartments((prev) => {
+          const map = new Map<string, Department>();
+          (prev || []).forEach((d) => { if (d && d.id) map.set(d.id, d); });
+          rawDepts.forEach((d: any) => {
+            const name = d.name || d.departmentName || d.department_name || '';
+            const code = d.code || '';
+            const id = String(d.id || `dept-${code.toLowerCase() || name.toLowerCase()}`);
+            const existing = map.get(id);
+            map.set(id, {
+              ...existing,
+              ...d,
+              id,
+              name: name || existing?.name || '',
+              departmentName: name || existing?.departmentName || '',
+              code: code || existing?.code || '',
+              managerId: d.managerId || d.manager_id || existing?.managerId || '',
+              managerName: d.managerName || d.manager_name || existing?.managerName || '',
+              description: d.description || existing?.description || 'Core Operational Department',
+              status: d.status || existing?.status || 'active',
+              employeeCount: Number(d.employeeCount ?? d.employee_count ?? existing?.employeeCount ?? 0),
             });
-            // Merge/update from backend
-            rawDepts.forEach((d: any) => {
-              const name = d.name || d.departmentName || d.department_name || '';
-              const code = d.code || '';
-              const id = String(d.id || `dept-${code.toLowerCase() || name.toLowerCase()}`);
-              const existing = map.get(id);
-              map.set(id, {
-                ...existing,
-                ...d,
-                id,
-                name: name || existing?.name || '',
-                departmentName: name || existing?.departmentName || '',
-                code: code || existing?.code || '',
-                managerId: d.managerId || d.manager_id || existing?.managerId || '',
-                managerName: d.managerName || d.manager_name || existing?.managerName || '',
-                description: d.description || existing?.description || 'Core Operational Department',
-                status: d.status || existing?.status || 'active',
-                employeeCount: Number(d.employeeCount ?? d.employee_count ?? existing?.employeeCount ?? 0),
-              });
+          });
+          const merged = Array.from(map.values());
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_departments', JSON.stringify(merged)); } catch (_) {}
+          }
+          return merged;
+        });
+      }
+
+      const rawRoles = val<Role[]>(results[4]);
+      if (rawRoles && Array.isArray(rawRoles) && rawRoles.length > 0) {
+        setRoles(rawRoles);
+      }
+
+      const rawEmployees = val<any[]>(results[5]);
+      if (rawEmployees && Array.isArray(rawEmployees) && rawEmployees.length > 0) {
+        setEmployees(deduplicateEmployees(rawEmployees));
+      }
+
+      const rawDesgs = val<any[]>(results[6]);
+      if (rawDesgs && Array.isArray(rawDesgs) && rawDesgs.length > 0) {
+        setDesignations((prev) => {
+          const map = new Map<string, Designation>();
+          (prev || []).forEach((d) => { if (d && d.id) map.set(d.id, d); });
+          rawDesgs.forEach((d: any) => {
+            const name = d.designationName || d.designation_name || d.name || '';
+            const code = d.designationCode || d.designation_code || d.code || '';
+            const id = String(d.id || (code ? `DESG-${code}` : `DESG-${Date.now().toString().slice(-4)}`));
+            const existing = map.get(id);
+            map.set(id, {
+              ...existing,
+              ...d,
+              id,
+              designationCode: code || existing?.designationCode || id,
+              designationName: name || existing?.designationName || '',
+              department: d.department || d.department_name || existing?.department || 'Production & Shop Floor',
+              level: Number(d.level) || existing?.level || 4,
+              reportingDesignation: d.reportingDesignation || d.reporting_designation || existing?.reportingDesignation || 'General Manager',
+              jobDescription: d.jobDescription || d.job_description || existing?.jobDescription || '',
+              responsibilities: Array.isArray(d.responsibilities) ? d.responsibilities : (existing?.responsibilities || []),
+              status: d.status || existing?.status || 'Active',
             });
-            const merged = Array.from(map.values());
-            if (typeof window !== 'undefined') {
-              try { localStorage.setItem('UMA_ERP_departments', JSON.stringify(merged)); } catch (_) {}
-            }
-            return merged;
           });
+          const merged = Array.from(map.values());
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_designations', JSON.stringify(merged)); } catch (_) {}
+          }
+          return merged;
+        });
+      }
+
+      lastSyncTimes.current['bootstrap'] = Date.now();
+    } catch (err) {
+      console.warn('Bootstrap load error:', err);
+    } finally {
+      setIsInitialLoading(false);
+    }
+  }, []);
+
+  // 2. CRM Module Sync (Leads, Customers, Enquiries, Opportunities, Quotations, Customer POs, Sales Orders, FollowUps, SiteVisits, Exhibitions)
+  const syncCRM = useCallback(async (force = false) => {
+    const now = Date.now();
+    if (!force && lastSyncTimes.current['crm'] && now - lastSyncTimes.current['crm'] < STALE_TIME_MS) return;
+    try {
+      const results = await Promise.allSettled([
+        api.crm.leads.list(),
+        api.crm.customers.list(),
+        api.crm.contacts.list(),
+        api.crm.enquiries.list(),
+        api.crm.opportunities.list(),
+        api.crm.quotations.list(),
+        api.crm.customerPos.list(),
+        api.crm.salesOrders.list(),
+        api.crm.followUps.list(),
+        api.crm.siteVisits.list(),
+        api.crm.exhibitions.list(),
+      ]);
+
+      const rawLeads = val<any[]>(results[0]);
+      if (rawLeads && Array.isArray(rawLeads) && rawLeads.length > 0) {
+        setLeads((prev) => {
+          const combined = deduplicateLeads([...prev, ...rawLeads]);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_leads', JSON.stringify(combined)); } catch (_) {}
+          }
+          return combined;
+        });
+      }
+
+      const rawCustomers = val<any[]>(results[1]);
+      if (rawCustomers && Array.isArray(rawCustomers) && rawCustomers.length > 0) {
+        setCustomers((prev) => {
+          const combined = deduplicateCustomers([...prev, ...rawCustomers]);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_customers', JSON.stringify(combined)); } catch (_) {}
+          }
+          return combined;
+        });
+      }
+
+      applyLive<Contact>(val(results[2]), setContacts, 'contacts');
+      applyLive<Enquiry>(val(results[3]), setEnquiries, 'enquiries');
+      applyLive<Opportunity>(val(results[4]), setOpportunities, 'opportunities');
+
+      const rawQuotations = val<any[]>(results[5]);
+      if (rawQuotations && Array.isArray(rawQuotations) && rawQuotations.length > 0) {
+        setQuotations((prev) => {
+          const combined = deduplicateQuotations([...prev, ...rawQuotations]);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_quotations', JSON.stringify(combined)); } catch (_) {}
+          }
+          return combined;
+        });
+      }
+
+      const rawCustomerPOs = val<any[]>(results[6]);
+      if (rawCustomerPOs && Array.isArray(rawCustomerPOs) && rawCustomerPOs.length > 0) {
+        setCustomerPOs((prev) => {
+          const combined = deduplicateCustomerPOs([...prev, ...rawCustomerPOs]);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_customerPOs', JSON.stringify(combined)); } catch (_) {}
+          }
+          return combined;
+        });
+      }
+
+      const rawSalesOrders = val<any[]>(results[7]);
+      if (rawSalesOrders && Array.isArray(rawSalesOrders) && rawSalesOrders.length > 0) {
+        setSalesOrders((prev) => {
+          const combined = deduplicateSalesOrders([...prev, ...rawSalesOrders]);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_salesOrders', JSON.stringify(combined)); } catch (_) {}
+          }
+          return combined;
+        });
+      }
+
+      const rawFollowUps = val<any>(results[8]);
+      if (rawFollowUps) {
+        const followUpsList: any[] = Array.isArray(rawFollowUps)
+          ? rawFollowUps
+          : Array.isArray(rawFollowUps?.results)
+          ? rawFollowUps.results
+          : Array.isArray(rawFollowUps?.data)
+          ? rawFollowUps.data
+          : [];
+        if (followUpsList.length > 0) {
+          const normalizedFollowUps: FollowUp[] = followUpsList.map((f: any) => ({
+            ...f,
+            id: String(f.id || f.follow_up_no || f.followUpNo),
+            followUpNo: f.followUpNo || f.follow_up_no || f.id,
+            leadOrCustomerId: f.leadOrCustomerId || f.lead_or_customer_id || f.customer_id || f.lead_id || '',
+            leadOrCustomerName: f.leadOrCustomerName || f.lead_or_customer_name || f.customer_name || '',
+            entityType: f.entityType || f.entity_type || 'lead',
+            type: f.type || 'call',
+            assignedToId: f.assignedToId || f.assigned_to_id || f.sales_person_id || '',
+            assignedToName: f.assignedToName || f.assigned_to_name || f.sales_person_name || '',
+            date: f.date || f.scheduled_date || '',
+            time: f.time || f.scheduled_time || '',
+            priority: f.priority || 'medium',
+            purpose: f.purpose || f.discussion_purpose || '',
+            notes: f.notes || f.discussion_notes || '',
+            nextFollowUpDate: f.nextFollowUpDate || f.next_follow_up_date || '',
+            status: f.status || 'pending',
+            completedNotes: f.completedNotes || f.completed_notes || '',
+          }));
+          setFollowUps(normalizedFollowUps);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_followUps', JSON.stringify(normalizedFollowUps)); } catch (_) {}
+          }
         }
-        const rawProjects = val<any[]>(results[14]);
-        if (rawProjects && Array.isArray(rawProjects) && rawProjects.length > 0) {
-          setProjectJobs((prev) => {
-            const combined = deduplicateProjects([...prev, ...rawProjects]);
-            if (typeof window !== 'undefined') {
-              try { localStorage.setItem('UMA_ERP_projectJobs', JSON.stringify(combined)); } catch (_) {}
-            }
-            return combined;
-          });
+      }
+
+      const rawVisits = val<any[]>(results[9]);
+      if (rawVisits && Array.isArray(rawVisits) && rawVisits.length > 0) {
+        const normalizedVisits: SiteVisit[] = rawVisits.map((v: any) => ({
+          ...v,
+          id: String(v.id || v.visit_no || v.visitNo),
+          visitNo: v.visitNo || v.visit_no || v.id,
+          customerId: v.customerId || v.customer_id || '',
+          customerName: v.customerName || v.customer_name || '',
+          contactPerson: v.contactPerson || v.contact_person || '',
+          contactMobile: v.contactMobile || v.contact_mobile || '',
+          visitDate: v.visitDate || v.visit_date || '',
+          location: v.location || '',
+          employeeId: v.employeeId || v.employee_id || '',
+          employeeName: v.employeeName || v.employee_name || '',
+          purpose: v.purpose || '',
+          discussionNotes: v.discussionNotes || v.discussion_notes || v.discussionSummary || v.discussion_summary || '',
+          requirementDetails: v.requirementDetails || v.requirement_details || '',
+          outcome: v.outcome || 'positive',
+          nextAction: v.nextAction || v.next_action || '',
+          nextFollowUpDate: v.nextFollowUpDate || v.next_follow_up_date || '',
+        }));
+        setSiteVisits(normalizedVisits);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_siteVisits', JSON.stringify(normalizedVisits)); } catch (_) {}
         }
-        applyLive<ProjectTask>(val(results[15]), setProjectTasks, 'projectTasks');
-        applyLive<ProjectMilestone>(val(results[16]), setProjectMilestones, 'projectMilestones');
-        applyLive<ProjectPlanningStage>(val(results[17]), setProjectPlanningStages, 'projectPlanningStages');
-        const rawDesignJobs = val<any[]>(results[18]);
-        if (rawDesignJobs && Array.isArray(rawDesignJobs) && rawDesignJobs.length > 0) {
-          setDesignJobs((prev) => {
-            const localMap = new Map<string, DesignJob>();
-            if (typeof window !== 'undefined') {
-              try {
-                const stored = localStorage.getItem('UMA_ERP_designJobs');
-                if (stored) {
-                  const parsed = JSON.parse(stored);
-                  if (Array.isArray(parsed)) {
-                    parsed.forEach((j: any) => {
-                      if (j.id) localMap.set(j.id, j);
-                      if (j.designJobNumber) localMap.set(j.designJobNumber, j);
-                      if (j.jobNumber) localMap.set(j.jobNumber, j);
-                    });
-                  }
+      }
+
+      const rawExhibitions = val<any[]>(results[10]);
+      if (rawExhibitions && Array.isArray(rawExhibitions) && rawExhibitions.length > 0) {
+        const normalizedExhibitions: Exhibition[] = rawExhibitions.map((e: any) => ({
+          id: String(e.id),
+          expoName: e.expoName || e.expo_name || 'Exhibition',
+          organizer: e.organizer || '',
+          location: e.location || '',
+          startDate: e.startDate || e.start_date || '',
+          endDate: e.endDate || e.end_date || '',
+          stallNumber: e.stallNumber || e.stall_number || '',
+          contactPerson: e.contactPerson || e.contact_person || '',
+          budget: Number(e.budget) || 0,
+          assignedTeam: Array.isArray(e.assignedTeam) ? e.assignedTeam : (Array.isArray(e.assigned_team) ? e.assigned_team : []),
+          productsDisplayed: e.productsDisplayed || e.products_displayed || '',
+          notes: e.notes || '',
+          totalContacts: Number(e.totalContacts) || Number(e.total_contacts) || 0,
+          qualifiedLeads: Number(e.qualifiedLeads) || Number(e.qualified_leads) || 0,
+          quotationsSent: Number(e.quotationsSent) || Number(e.quotations_sent) || 0,
+          convertedCustomers: Number(e.convertedCustomers) || Number(e.converted_customers) || 0,
+        }));
+        setExhibitions(normalizedExhibitions);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_exhibitions', JSON.stringify(normalizedExhibitions)); } catch (_) {}
+        }
+      }
+
+      lastSyncTimes.current['crm'] = Date.now();
+    } catch (err) {
+      console.warn('CRM sync error:', err);
+    }
+  }, []);
+
+  // 3. Projects Module Sync
+  const syncProjects = useCallback(async (force = false) => {
+    const now = Date.now();
+    if (!force && lastSyncTimes.current['projects'] && now - lastSyncTimes.current['projects'] < STALE_TIME_MS) return;
+    try {
+      const results = await Promise.allSettled([
+        api.projects.list(),
+        api.projects.tasks(),
+        api.projects.milestones(),
+        api.projects.planningStages(),
+        api.projects.departmentAssignments(),
+        api.projects.documents(),
+        api.projects.changeRequests(),
+      ]);
+
+      const rawProjects = val<any[]>(results[0]);
+      if (rawProjects && Array.isArray(rawProjects) && rawProjects.length > 0) {
+        setProjectJobs((prev) => {
+          const combined = deduplicateProjects([...prev, ...rawProjects]);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_projectJobs', JSON.stringify(combined)); } catch (_) {}
+          }
+          return combined;
+        });
+      }
+
+      applyLive<ProjectTask>(val(results[1]), setProjectTasks, 'projectTasks');
+      applyLive<ProjectMilestone>(val(results[2]), setProjectMilestones, 'projectMilestones');
+      applyLive<ProjectPlanningStage>(val(results[3]), setProjectPlanningStages, 'projectPlanningStages');
+
+      const rawDeptAssignments = val<any[]>(results[4]);
+      if (rawDeptAssignments && Array.isArray(rawDeptAssignments)) {
+        const normalizedDAs: DepartmentAssignment[] = rawDeptAssignments.map((da: any) => ({
+          ...da,
+          id: String(da.id),
+          projectId: da.projectId || da.project_id || '',
+          projectNumber: da.projectNumber || da.project_number || da.projectId || da.project_id || '',
+          jobNumber: da.jobNumber || da.job_number || '',
+          department: da.department || '',
+          manager: da.manager || da.lead_person_name || 'Unassigned',
+          assignedEmployee: da.assignedEmployee || da.lead_person_name || 'Unassigned',
+          responsibility: da.responsibility || da.notes || '',
+          startDate: da.startDate || da.start_date || '',
+          dueDate: da.dueDate || da.due_date || '',
+          status: da.status || 'in_progress',
+          priority: da.priority || 'high',
+          remarks: da.remarks || da.notes || '',
+        }));
+        setDepartmentAssignments(normalizedDAs);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_departmentAssignments', JSON.stringify(normalizedDAs)); } catch (_) {}
+        }
+      }
+
+      const rawDocs = val<any[]>(results[5]);
+      if (rawDocs && Array.isArray(rawDocs)) {
+        const normalizedDocs: ProjectDocument[] = rawDocs.map((d: any) => ({
+          ...d,
+          id: String(d.id),
+          documentName: d.documentName || d.document_name || d.name || 'Project Document',
+          type: d.type || d.docType || 'Drawing',
+          version: d.version || 'v1.0',
+          uploadedBy: d.uploadedBy || d.uploaded_by || 'Super Admin',
+          uploadDate: d.uploadDate || d.upload_date || (d.created_at ? d.created_at.split('T')[0] : new Date().toISOString().split('T')[0]),
+          department: d.department || '',
+          relatedRecord: d.relatedRecord || d.related_record || '',
+          description: d.description || '',
+          fileSize: d.fileSize || d.file_size || '1.5 MB',
+          fileUrl: d.fileUrl || d.file_url || '',
+          projectId: d.projectId || d.project_id || '',
+          jobNumber: d.jobNumber || d.job_number || '',
+        }));
+        setProjectDocuments(normalizedDocs);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_projectDocuments', JSON.stringify(normalizedDocs)); } catch (_) {}
+        }
+      }
+
+      const rawCRs = val<any[]>(results[6]);
+      if (rawCRs && Array.isArray(rawCRs)) {
+        const normalizedCRs: CustomerChangeRequest[] = rawCRs.map((cr: any) => ({
+          ...cr,
+          id: String(cr.id),
+          changeRequestNo: cr.changeRequestNo || cr.change_request_no || cr.request_no || cr.id,
+          projectId: cr.projectId || cr.project_id || '',
+          projectNumber: cr.projectNumber || cr.project_number || cr.projectId || cr.project_id || '',
+          jobNumber: cr.jobNumber || cr.job_number || '',
+          customerName: cr.customerName || cr.customer_name || '',
+          requestedBy: cr.requestedBy || cr.requested_by || 'Customer Representative',
+          requestDate: cr.requestDate || cr.request_date || (cr.created_at ? cr.created_at.split('T')[0] : new Date().toISOString().split('T')[0]),
+          changeDescription: cr.changeDescription || cr.change_description || cr.description || cr.title || '',
+          reason: cr.reason || '',
+          designImpact: cr.designImpact || cr.design_impact || '',
+          materialImpact: cr.materialImpact || cr.material_impact || '',
+          costImpact: Number(cr.costImpact ?? cr.cost_impact ?? cr.impact_on_cost ?? 0),
+          timelineImpactDays: Number(cr.timelineImpactDays ?? cr.timeline_impact_days ?? cr.impact_on_timeline_days ?? 0),
+          approvalStatus: cr.approvalStatus || cr.approval_status || cr.status || 'requested',
+          approvedBy: cr.approvedBy || cr.approved_by || '',
+          approvedDate: cr.approvedDate || cr.approved_date || '',
+        }));
+        setChangeRequests(normalizedCRs);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_changeRequests', JSON.stringify(normalizedCRs)); } catch (_) {}
+        }
+      }
+
+      lastSyncTimes.current['projects'] = Date.now();
+    } catch (err) {
+      console.warn('Projects sync error:', err);
+    }
+  }, []);
+
+  // 4. Designer & Engineering Module Sync
+  const syncDesigner = useCallback(async (force = false) => {
+    const now = Date.now();
+    if (!force && lastSyncTimes.current['designer'] && now - lastSyncTimes.current['designer'] < STALE_TIME_MS) return;
+    try {
+      const results = await Promise.allSettled([
+        api.designer.jobs.list(),
+        api.designer.drawings2d(),
+        api.designer.models3d(),
+        api.designer.boms.list(),
+        api.designer.requirements.list(),
+        api.designer.tasks.list(),
+        api.designer.technicalDocuments.list(),
+      ]);
+
+      const rawDesignJobs = val<any[]>(results[0]);
+      if (rawDesignJobs && Array.isArray(rawDesignJobs) && rawDesignJobs.length > 0) {
+        setDesignJobs((prev) => {
+          const localMap = new Map<string, DesignJob>();
+          if (typeof window !== 'undefined') {
+            try {
+              const stored = localStorage.getItem('UMA_ERP_designJobs');
+              if (stored) {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) {
+                  parsed.forEach((j: any) => {
+                    if (j.id) localMap.set(j.id, j);
+                    if (j.designJobNumber) localMap.set(j.designJobNumber, j);
+                    if (j.jobNumber) localMap.set(j.jobNumber, j);
+                  });
                 }
-              } catch (_) {}
-            }
-            (prev || []).forEach((j) => {
-              if (j.id) localMap.set(j.id, j);
-              if (j.designJobNumber) localMap.set(j.designJobNumber, j);
-              if (j.jobNumber) localMap.set(j.jobNumber, j);
-            });
-
-            const mergedList: DesignJob[] = [];
-            const seenIds = new Set<string>();
-
-            rawDesignJobs.forEach((j: any) => {
-              const local = localMap.get(j.id) || localMap.get(j.designJobNumber) || localMap.get(j.design_job_number) || localMap.get(j.job_number) || localMap.get(j.jobNumber);
-              const isReleased =
-                String(j.status || '').toLowerCase() === 'released_to_production' ||
-                String(j.status || '').toLowerCase() === 'approved' ||
-                String(j.status || '').toLowerCase() === 'released' ||
-                String(local?.status || '').toLowerCase() === 'released_to_production' ||
-                String(local?.status || '').toLowerCase() === 'approved' ||
-                String(local?.status || '').toLowerCase() === 'released' ||
-                String(j.remarks || '').toLowerCase().includes('released to shop floor') ||
-                String(local?.remarks || '').toLowerCase().includes('released to shop floor');
-              const effectiveStatus = isReleased ? 'released_to_production' : (j.status || local?.status || 'in_progress');
-              const effectiveRemarks = j.remarks || local?.remarks || (isReleased ? 'Released to shop floor' : '');
-              const jobObj: DesignJob = {
-                ...local,
-                ...j,
-                id: String(j.id || j.designJobNumber || j.design_job_number),
-                designJobNumber: j.designJobNumber || j.design_job_number || j.id,
-                projectId: j.projectId || j.project_id || local?.projectId || 'PRJ-2026-0001',
-                jobNumber: j.jobNumber || j.job_number || local?.jobNumber || 'JOB-2026-001',
-                customerId: j.customerId || j.customer_id || local?.customerId || '',
-                customerName: j.customerName || j.customer_name || local?.customerName || 'Customer',
-                productName: j.productName || j.product_name || local?.productName || 'Custom Equipment',
-                status: effectiveStatus,
-                remarks: effectiveRemarks,
-                activeRevision: j.activeRevision || j.active_revision || local?.activeRevision || 'REV-00',
-                deliveryDate: j.deliveryDate || j.delivery_date || local?.deliveryDate || '',
-                assignedDesigner: j.assignedDesigner || j.assigned_designer || local?.assignedDesigner || 'Dharmesh Joshi',
-                designManager: j.designManager || j.design_manager || local?.designManager || 'Ketan Patel',
-              };
-              seenIds.add(jobObj.id);
-              if (jobObj.designJobNumber) seenIds.add(jobObj.designJobNumber);
-              mergedList.push(jobObj);
-            });
-
-            localMap.forEach((localJob) => {
-              if (localJob && localJob.id && !seenIds.has(localJob.id) && !seenIds.has(localJob.designJobNumber)) {
-                seenIds.add(localJob.id);
-                if (localJob.designJobNumber) seenIds.add(localJob.designJobNumber);
-                mergedList.push(localJob);
               }
-            });
+            } catch (_) {}
+          }
+          (prev || []).forEach((j) => {
+            if (j.id) localMap.set(j.id, j);
+            if (j.designJobNumber) localMap.set(j.designJobNumber, j);
+            if (j.jobNumber) localMap.set(j.jobNumber, j);
+          });
 
-            if (typeof window !== 'undefined') {
-              try { localStorage.setItem('UMA_ERP_designJobs', JSON.stringify(mergedList)); } catch (_) {}
+          const mergedList: DesignJob[] = [];
+          const seenIds = new Set<string>();
+
+          rawDesignJobs.forEach((j: any) => {
+            const local = localMap.get(j.id) || localMap.get(j.designJobNumber) || localMap.get(j.design_job_number) || localMap.get(j.job_number) || localMap.get(j.jobNumber);
+            const isReleased =
+              String(j.status || '').toLowerCase() === 'released_to_production' ||
+              String(j.status || '').toLowerCase() === 'approved' ||
+              String(j.status || '').toLowerCase() === 'released' ||
+              String(local?.status || '').toLowerCase() === 'released_to_production' ||
+              String(local?.status || '').toLowerCase() === 'approved' ||
+              String(local?.status || '').toLowerCase() === 'released' ||
+              String(j.remarks || '').toLowerCase().includes('released to shop floor') ||
+              String(local?.remarks || '').toLowerCase().includes('released to shop floor');
+            const effectiveStatus = isReleased ? 'released_to_production' : (j.status || local?.status || 'in_progress');
+            const effectiveRemarks = j.remarks || local?.remarks || (isReleased ? 'Released to shop floor' : '');
+            const jobObj: DesignJob = {
+              ...local,
+              ...j,
+              id: String(j.id || j.designJobNumber || j.design_job_number),
+              designJobNumber: j.designJobNumber || j.design_job_number || j.id,
+              projectId: j.projectId || j.project_id || local?.projectId || 'PRJ-2026-0001',
+              jobNumber: j.jobNumber || j.job_number || local?.jobNumber || 'JOB-2026-001',
+              customerId: j.customerId || j.customer_id || local?.customerId || '',
+              customerName: j.customerName || j.customer_name || local?.customerName || 'Customer',
+              productName: j.productName || j.product_name || local?.productName || 'Custom Equipment',
+              status: effectiveStatus,
+              remarks: effectiveRemarks,
+              activeRevision: j.activeRevision || j.active_revision || local?.activeRevision || 'REV-00',
+              deliveryDate: j.deliveryDate || j.delivery_date || local?.deliveryDate || '',
+              assignedDesigner: j.assignedDesigner || j.assigned_designer || local?.assignedDesigner || 'Dharmesh Joshi',
+              designManager: j.designManager || j.design_manager || local?.designManager || 'Ketan Patel',
+            };
+            seenIds.add(jobObj.id);
+            if (jobObj.designJobNumber) seenIds.add(jobObj.designJobNumber);
+            mergedList.push(jobObj);
+          });
+
+          localMap.forEach((localJob) => {
+            if (localJob && localJob.id && !seenIds.has(localJob.id) && !seenIds.has(localJob.designJobNumber)) {
+              seenIds.add(localJob.id);
+              if (localJob.designJobNumber) seenIds.add(localJob.designJobNumber);
+              mergedList.push(localJob);
             }
-            return mergedList;
           });
-        }
-        applyLive<Drawing2D>(val(results[19]), setDrawings2D, 'drawings2D');
-        applyLive<Design3DModel>(val(results[20]), setDesigns3D, 'designs3D');
-        applyLive<BOMHeader>(val(results[21]), setBoms, 'boms');
-        const rawSuppliers = val<any[]>(results[22]);
-        if (rawSuppliers && Array.isArray(rawSuppliers) && rawSuppliers.length > 0) {
-          const normalizedSuppliers: Supplier[] = rawSuppliers.map((s: any) => {
-            const sName = s.name || s.supplierName || s.supplier_name || (s as any).companyName || 'Supplier';
-            const vCode = s.vendorCode || s.vendor_code || s.supplierCode || s.supplier_code || s.id;
-            return {
-              ...s,
-              id: String(s.id),
-              name: sName,
-              supplierName: sName,
-              vendorCode: vCode,
-              supplierCode: vCode,
-              contactPerson: s.contactPerson || s.contact_person || '',
-              phone: s.phone || s.mobile || '',
-              email: s.email || '',
-              gstin: s.gstin || '',
-              paymentTerms: s.paymentTerms || s.payment_terms || '30 Days Credit',
-            };
-          });
-          setSuppliers(normalizedSuppliers);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_suppliers', JSON.stringify(normalizedSuppliers)); } catch (_) {}
-          }
-        }
-        const rawPRs = val<any[]>(results[23]);
-        if (rawPRs && Array.isArray(rawPRs) && rawPRs.length > 0) {
-          const normalizedPRs: PurchaseRequisition[] = rawPRs.map((pr: any) => ({
-            ...pr,
-            id: String(pr.id || pr.pr_number || pr.prNumber),
-            prNumber: pr.prNumber || pr.pr_number || pr.id,
-            projectId: pr.projectId || pr.project_id || 'PRJ-2026-0001',
-            jobId: pr.jobId || pr.job_code || pr.jobNumber || 'JOB-2026-001',
-            bomId: pr.bomId || pr.bom_id || `BOM-${pr.jobId || pr.job_code || 'JOB-2026-001'}`,
-            bomRevision: pr.bomRevision || pr.bom_revision || 'REV-01',
-            requisitionDate: pr.requisitionDate || pr.request_date || pr.prDate || new Date().toISOString().split('T')[0],
-            requiredByDate: pr.requiredByDate || pr.required_by_date || '',
-            priority: pr.priority || 'High',
-            requestedBy: pr.requestedBy || pr.requested_by || 'Super Admin',
-            department: pr.department || 'Purchase / Planning',
-            status: pr.status || 'Submitted',
-            items: Array.isArray(pr.items) ? pr.items : [],
-            totalItems: Array.isArray(pr.items) ? pr.items.length : Number(pr.totalItems || 0),
-            estimatedCost: Number(pr.estimatedCost ?? pr.total_estimated_cost ?? 0),
-            remarks: pr.remarks || '',
-            createdAt: pr.createdAt || pr.created_at || new Date().toISOString(),
-            updatedAt: pr.updatedAt || pr.updated_at || new Date().toISOString(),
-          }));
-          setPurchaseRequisitions(normalizedPRs);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_purchaseRequisitions', JSON.stringify(normalizedPRs)); } catch (_) {}
-          }
-        } else {
-          applyLive<PurchaseRequisition>(val(results[23]), setPurchaseRequisitions, 'purchaseRequisitions');
-        }
-        const rawItems = val<any[]>(results[25]);
-        if (rawItems && Array.isArray(rawItems) && rawItems.length > 0) {
-          const normalizedItems: ItemMaster[] = rawItems.map((i: any) => ({
-            ...i,
-            id: String(i.id),
-            itemCode: i.itemCode || i.item_code || i.id,
-            itemName: i.itemName || i.item_name || '',
-            itemType: i.itemType || i.item_type || 'Raw Material',
-            category: i.category || i.categoryName || i.category_name || '',
-            subCategory: i.subCategory || i.sub_category || '',
-            specification: i.specification || '',
-            description: i.description || '',
-            brandMake: i.brandMake || i.brand_make || '',
-            hsnSac: i.hsnSac || i.hsn_sac || '72193200',
-            gstRate: Number(i.gstRate ?? i.gst_rate ?? 18),
-            uom: i.uom || i.uomCode || 'Kg',
-            minimumStock: Number(i.minimumStock ?? i.minimum_stock ?? 0),
-            maximumStock: Number(i.maximumStock ?? i.maximum_stock ?? 0),
-            reorderLevel: Number(i.reorderLevel ?? i.reorder_level ?? 0),
-            standardCost: Number(i.standardCost ?? i.unit_cost ?? i.standard_cost ?? 0),
-            status: i.status || 'Active',
-            batchTracking: Boolean(i.batchTracking ?? i.batch_tracking ?? true),
-            serialTracking: Boolean(i.serialTracking ?? i.serial_tracking ?? false),
-            lotTracking: Boolean(i.lotTracking ?? i.lot_tracking ?? true),
-          }));
-          setItemMasters(normalizedItems);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_itemMasters', JSON.stringify(normalizedItems)); } catch (_) {}
-          }
-        }
 
-        const rawCats = val<any[]>(results[26]);
-        if (rawCats && Array.isArray(rawCats) && rawCats.length > 0) {
-          const normalizedCats: ItemCategory[] = rawCats.map((c: any) => ({
-            ...c,
-            id: String(c.id),
-            categoryCode: c.categoryCode || c.code || c.id,
-            categoryName: c.categoryName || c.name || 'Category',
-            description: c.description || '',
-            parentCategory: c.parentCategory || c.parent_category || 'Top Level',
-            status: c.status || 'Active',
-          }));
-          setItemCategories(normalizedCats);
           if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_itemCategories', JSON.stringify(normalizedCats)); } catch (_) {}
+            try { localStorage.setItem('UMA_ERP_designJobs', JSON.stringify(mergedList)); } catch (_) {}
           }
-        }
+          return mergedList;
+        });
+      }
 
-        const rawUoms = val<any[]>(results[27]);
-        if (rawUoms && Array.isArray(rawUoms) && rawUoms.length > 0) {
-          const normalizedUoms: UOMMaster[] = rawUoms.map((u: any) => ({
-            ...u,
-            id: String(u.id),
-            uomCode: u.uomCode || u.code || u.id,
-            uomName: u.uomName || u.name || u.uomCode || u.code || 'Unit',
-            baseUom: u.baseUom || u.base_uom || u.uomCode || u.code || 'Unit',
-            conversionFactor: Number(u.conversionFactor || u.conversion_factor || 1),
-            description: u.description || '',
-          }));
-          setUoms(normalizedUoms);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_uoms', JSON.stringify(normalizedUoms)); } catch (_) {}
-          }
-        }
-        const rawWh = val<any[]>(results[28]);
-        if (rawWh && Array.isArray(rawWh) && rawWh.length > 0) {
-          const normalizedWh: Warehouse[] = rawWh.map((w: any) => ({
-            ...w,
-            id: String(w.id || w.warehouseCode || w.warehouse_code),
-            warehouseCode: w.warehouseCode || w.warehouse_code || w.id,
-            warehouseName: w.warehouseName || w.name || w.warehouse_name || w.warehouseCode || w.id,
-            warehouseType: w.warehouseType || w.warehouse_type || 'Raw Material',
-            address: w.address || '',
-            managerName: w.managerName || w.incharge || 'Store Incharge',
-            contactPhone: w.contactPhone || w.contact_phone || '',
-            contactEmail: w.contactEmail || w.contact_email || '',
-            status: w.status || 'Active',
-          }));
-          setWarehouses(normalizedWh);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_warehouses', JSON.stringify(normalizedWh)); } catch (_) {}
-          }
-        } else {
-          applyLive<Warehouse>(val(results[28]), setWarehouses, 'warehouses');
-        }
-        applyLive<GoodsReceiptNote>(val(results[29]), setGoodsReceipts, 'goodsReceipts');
-        const rawStock = val<any[]>(results[30]);
-        if (rawStock && Array.isArray(rawStock) && rawStock.length > 0) {
-          const normalizedStock: StockBalance[] = rawStock.map((s: any) => {
-            const available = Number(s.availableQty ?? s.available_quantity ?? s.quantity ?? s.currentQuantity ?? 0);
-            const reserved = Number(s.reservedQty ?? s.reserved_quantity ?? 0);
-            const usable = Number(s.usableQty ?? s.usable_quantity ?? (available - reserved));
-            const rate = Number(s.averageRate ?? s.average_unit_cost ?? s.unit_rate ?? s.rate ?? s.standardCost ?? 0);
-            const valuation = Number(s.stockValue ?? s.total_value ?? (usable * rate));
-            return {
-              ...s,
-              id: String(s.id || s.item_id || s.itemCode || `stk-${Math.random().toString(36).slice(2, 6)}`),
-              itemId: s.itemId || s.item_id || '',
-              itemCode: s.itemCode || s.item_code || '',
-              itemName: s.itemName || s.item_name || '',
-              category: s.category || s.category_name || '',
-              warehouseId: s.warehouseId || s.warehouse_id || '',
-              warehouseName: s.warehouseName || s.warehouse_name || 'Main Raw Material & Plate Yard',
-              locationCode: s.locationCode || s.location_code || s.bin_location || 'W1-ZA-R1-S1-B01',
-              batchLot: s.batchLot || s.batch_lot || s.heat_number || s.lot_number || '-',
-              availableQty: isNaN(available) ? 0 : available,
-              reservedQty: isNaN(reserved) ? 0 : reserved,
-              allocatedQty: Number(s.allocatedQty ?? s.allocated_quantity ?? 0),
-              inTransitQty: Number(s.inTransitQty ?? s.in_transit_quantity ?? 0),
-              damagedQty: Number(s.damagedQty ?? s.damaged_quantity ?? 0),
-              rejectedQty: Number(s.rejectedQty ?? s.rejected_quantity ?? 0),
-              usableQty: isNaN(usable) ? 0 : usable,
-              averageRate: isNaN(rate) ? 0 : rate,
-              stockValue: isNaN(valuation) ? 0 : valuation,
-              lastUpdatedDate: s.lastUpdatedDate || s.last_updated_date || s.updated_at || new Date().toISOString().split('T')[0],
-            };
-          });
-          setStockBalances(normalizedStock);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_stockBalances', JSON.stringify(normalizedStock)); } catch (_) {}
-          }
-        }
+      applyLive<Drawing2D>(val(results[1]), setDrawings2D, 'drawings2D');
+      applyLive<Design3DModel>(val(results[2]), setDesigns3D, 'designs3D');
+      applyLive<BOMHeader>(val(results[3]), setBoms, 'boms');
 
-        const rawIssues = val<any[]>(results[31]);
-        if (rawIssues && Array.isArray(rawIssues) && rawIssues.length > 0) {
-          const normalizedIssues: MaterialIssue[] = rawIssues.map((i: any) => ({
-            ...i,
-            id: String(i.id || i.issue_number || i.issueNumber),
-            issueNumber: i.issueNumber || i.issue_number || i.id,
-            issueDate: i.issueDate || i.issue_date || new Date().toISOString().split('T')[0],
-            projectId: i.projectId || i.project_id || 'PRJ-2026-0001',
-            jobId: i.jobId || i.job_number || i.jobNumber || '',
-            workOrderNumber: i.workOrderNumber || i.work_order_number || '',
-            bomNumber: i.bomNumber || i.bom_number || '',
-            bomRevision: i.bomRevision || i.bom_revision || 'Rev-01',
-            productionStage: i.productionStage || i.production_stage || 'Shell & Dish End Cutting / Rolling',
-            requestedBy: i.requestedBy || i.requested_by || i.issued_to || '',
-            issuedBy: i.issuedBy || i.issued_by || 'Hitesh Rawal (Store Head)',
-            warehouseId: i.warehouseId || i.warehouse_id || 'wh-main',
-            warehouseName: i.warehouseName || i.warehouse_name || 'Main Raw Material & Plate Yard',
-            status: i.status || 'Fully Issued',
-            totalIssueValue: Number(i.totalIssueValue ?? i.total_issue_value ?? 0),
-            remarks: i.remarks || i.notes || '',
-            items: Array.isArray(i.items) ? i.items : [],
-          }));
-          setMaterialIssues(normalizedIssues);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_materialIssues', JSON.stringify(normalizedIssues)); } catch (_) {}
-          }
+      const rawReqs = val<any[]>(results[4]);
+      if (rawReqs && Array.isArray(rawReqs)) {
+        const normalizedReqs: CustomerRequirement[] = rawReqs.map((r: any) => ({
+          ...r,
+          id: String(r.id),
+          designJobId: r.designJobId || r.design_job_id || '',
+          projectId: r.projectId || r.project_id || '',
+          jobNumber: r.jobNumber || r.job_number || '',
+          customerName: r.customerName || r.customer_name || '',
+          contactPerson: r.contactPerson || r.contact_person || '',
+          contactMobile: r.contactMobile || r.contact_mobile || '',
+          machineName: r.machineName || r.machine_name || '',
+          machineType: r.machineType || r.machine_type || '',
+          model: r.model || '',
+          quantity: Number(r.quantity || 1),
+          capacity: r.capacity || '',
+          application: r.application || '',
+          productionRequirement: r.productionRequirement || r.production_requirement || '',
+          dimensions: r.dimensions || '',
+          material: r.material || '',
+          powerRequirement: r.powerRequirement || r.power_requirement || '',
+          speed: r.speed || '',
+          output: r.output || '',
+          automationLevel: r.automationLevel || r.automation_level || '',
+          controlSystem: r.controlSystem || r.control_system || '',
+          safetyRequirements: r.safetyRequirements || r.safety_requirements || '',
+          specialRequirements: r.specialRequirements || r.special_requirements || '',
+          customerDrawingUrl: r.customerDrawingUrl || r.customer_drawing_url || '',
+          customerNotes: r.customerNotes || r.customer_notes || '',
+          designerNotes: r.designerNotes || r.designer_notes || '',
+          status: r.status || 'approved',
+          createdAt: r.createdAt || r.created_at || '',
+        }));
+        setCustomerRequirements(normalizedReqs);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_customerRequirements', JSON.stringify(normalizedReqs)); } catch (_) {}
         }
+      }
 
-        const rawReturns = val<any[]>(results[32]);
-        if (rawReturns && Array.isArray(rawReturns) && rawReturns.length > 0) {
-          const normalizedReturns: MaterialReturn[] = rawReturns.map((r: any) => ({
-            ...r,
-            id: String(r.id || r.return_number || r.returnNumber),
-            returnNumber: r.returnNumber || r.return_number || r.id,
-            returnDate: r.returnDate || r.return_date || new Date().toISOString().split('T')[0],
-            projectId: r.projectId || r.project_id || 'PRJ-2026-0001',
-            jobId: r.jobId || r.job_number || r.jobNumber || '',
-            workOrderNumber: r.workOrderNumber || r.work_order_number || '',
-            materialIssueNumber: r.materialIssueNumber || r.material_issue_number || r.issueNo || '',
-            warehouseId: r.warehouseId || r.warehouse_id || 'wh-main',
-            warehouseName: r.warehouseName || r.warehouse_name || 'Main Raw Material & Plate Yard',
-            returnedBy: r.returnedBy || r.returned_by || 'Ketan Parmar (Shop Supervisor)',
-            receivedBy: r.receivedBy || r.received_by || 'Hitesh Rawal (Store Head)',
-            totalReturnValue: Number(r.totalReturnValue ?? r.total_return_value ?? 0),
-            remarks: r.remarks || r.notes || '',
-            items: Array.isArray(r.items) ? r.items : [],
-          }));
-          setMaterialReturns(normalizedReturns);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_materialReturns', JSON.stringify(normalizedReturns)); } catch (_) {}
-          }
+      const rawTasks = val<any[]>(results[5]);
+      if (rawTasks && Array.isArray(rawTasks)) {
+        const normalizedTasks: DesignTask[] = rawTasks.map((t: any) => ({
+          ...t,
+          id: String(t.id),
+          designJobId: t.designJobId || t.design_job_id || '',
+          projectId: t.projectId || t.project_id || '',
+          jobNumber: t.jobNumber || t.job_number || '',
+          taskName: t.taskName || t.task_name || '',
+          customerName: t.customerName || t.customer_name || '',
+          machineName: t.machineName || t.machine_name || '',
+          designer: t.designer || 'Dharmesh Joshi',
+          startDate: t.startDate || t.start_date || '',
+          targetDate: t.targetDate || t.target_date || '',
+          dueDate: t.dueDate || t.due_date || '',
+          priority: t.priority || 'high',
+          estimatedHours: Number(t.estimatedHours || t.estimated_hours || 16),
+          actualHours: Number(t.actualHours || t.actual_hours || 0),
+          progressPercent: Number(t.progressPercent || t.progress_percent || 0),
+          status: t.status || 'pending',
+          remarks: t.remarks || '',
+          createdAt: t.createdAt || t.created_at || '',
+        }));
+        setDesignTasks(normalizedTasks);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_designTasks', JSON.stringify(normalizedTasks)); } catch (_) {}
         }
-        applyLive<ManufacturingJob>(val(results[33]), setManufacturingJobs, 'manufacturingJobs');
-        applyLive<WorkCenter>(val(results[34]), setWorkCenters, 'workCenters');
+      }
 
-        const woRes = val<WorkOrder[]>(results[35]);
-        if (woRes && Array.isArray(woRes) && woRes.length > 0) {
-          const normalized = woRes.map((w: any) => ({
-            ...w,
-            workOrderNumber: w.workOrderNumber || w.work_order_number || w.id,
-            jobNumber: w.jobNumber || w.job_number || '',
-            productName: w.productName || w.product_name || '',
-            bomRevision: w.bomRevision || w.bom_revision || 'REV-00',
-            designRevision: w.designRevision || w.design_revision || 'REV-00',
-            plannedEndDate: w.plannedEndDate || w.planned_end_date || '',
-            status: w.status || 'Planned',
-          }));
-          setWorkOrders(normalized);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_workOrders', JSON.stringify(normalized)); } catch (_) {}
-          }
+      const rawTechDocs = val<any[]>(results[6]);
+      if (rawTechDocs && Array.isArray(rawTechDocs) && rawTechDocs.length > 0) {
+        const normalizedDocs: TechnicalDocumentItem[] = rawTechDocs.map((td: any) => ({
+          ...td,
+          id: String(td.id || td.document_number || td.documentNumber),
+          documentName: td.documentName || td.document_name || td.title || 'Technical Document',
+          category: td.category || td.document_type || 'Calculation',
+          version: td.version || 'v1.0',
+          revision: td.revision || 'REV-00',
+          projectId: td.projectId || td.project_id || '',
+          jobNumber: td.jobNumber || td.job_number || '',
+          uploadedBy: td.uploadedBy || td.uploaded_by || 'Engineering Team',
+          uploadDate: td.uploadDate || td.upload_date || td.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+          fileUrl: td.fileUrl || td.file_url || '#',
+          fileSize: td.fileSize || td.file_size || '5.2 MB',
+          accessPermission: td.accessPermission || td.access_permission || 'public',
+        }));
+        setTechnicalDocuments(normalizedDocs);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_technicalDocuments', JSON.stringify(normalizedDocs)); } catch (_) {}
         }
+      }
 
-        applyLive<FinishedGoodsItem>(val(results[36]), setFinishedGoods, 'finishedGoods');
-        applyLive<InternalAsset>(val(results[37]), setInternalAssets, 'internalAssets');
-        applyLive<CustomerMachine>(val(results[38]), setCustomerMachines, 'customerMachines');
-        applyLive<ServiceRequest>(val(results[39]), setServiceRequests, 'serviceRequests');
-        applyLive<BreakdownRecord>(val(results[40]), setBreakdowns, 'breakdowns');
-        applyLive<ServiceVisit>(val(results[41]), setServiceVisits, 'serviceVisits');
-        applyLive<ServicePartIssue>(val(results[42]), setServicePartIssues, 'servicePartIssues');
-        applyLive<ServicePartReturn>(val(results[43]), setServicePartReturns, 'servicePartReturns');
-        const rawDesgs = val<any[]>(results[45]);
-        if (rawDesgs && Array.isArray(rawDesgs) && rawDesgs.length > 0) {
-          setDesignations((prev) => {
-            const map = new Map<string, Designation>();
-            (prev || []).forEach((d) => {
-              if (d && d.id) map.set(d.id, d);
-            });
-            rawDesgs.forEach((d: any) => {
-              const name = d.designationName || d.designation_name || d.name || '';
-              const code = d.designationCode || d.designation_code || d.code || '';
-              const id = String(d.id || (code ? `DESG-${code}` : `DESG-${Date.now().toString().slice(-4)}`));
-              const existing = map.get(id);
-              map.set(id, {
-                ...existing,
-                ...d,
-                id,
-                designationCode: code || existing?.designationCode || id,
-                designationName: name || existing?.designationName || '',
-                department: d.department || d.department_name || existing?.department || 'Production & Shop Floor',
-                level: Number(d.level) || existing?.level || 4,
-                reportingDesignation: d.reportingDesignation || d.reporting_designation || existing?.reportingDesignation || 'General Manager',
-                jobDescription: d.jobDescription || d.job_description || existing?.jobDescription || '',
-                responsibilities: Array.isArray(d.responsibilities) ? d.responsibilities : (existing?.responsibilities || []),
-                status: d.status || existing?.status || 'Active',
-              });
-            });
-            const merged = Array.from(map.values());
-            if (typeof window !== 'undefined') {
-              try { localStorage.setItem('UMA_ERP_designations', JSON.stringify(merged)); } catch (_) {}
-            }
-            return merged;
-          });
-        }
-        applyLive<ShiftMaster>(val(results[46]), setShiftMasters, 'shifts');
-        applyLive<AttendanceRecord>(val(results[47]), setAttendanceRecords, 'attendance');
-        applyLive<LeaveRequest>(val(results[48]), setLeaveRequests, 'leaves');
-        applyLive<PayrollRecord>(val(results[49]), setPayrollRecords, 'payroll');
-        applyLive<EmployeeOnboardingItem>(val(results[50]), setEmployeeOnboardings, 'employeeOnboardings');
-        applyLive<FinancialYear>(val(results[51]), setFinancialYears, 'financialYears');
-        applyLive<ChartOfAccount>(val(results[52]), setChartOfAccounts, 'chartOfAccounts');
-        const siRes = val<any[]>(results[53]);
-        if (siRes && Array.isArray(siRes) && siRes.length > 0) {
-          const normalizedSI: SalesInvoice[] = siRes.map((inv: any) => {
-            const grandTotal = Number(inv.grandTotal ?? inv.grand_total ?? 0);
-            const items = inv.items || [];
-            const subTotal = Number(
-              inv.subTotal ??
-              inv.subtotal ??
-              inv.taxableAmount ??
-              inv.taxable_amount ??
-              (items.length > 0 ? items.reduce((s: number, it: any) => s + (Number(it.unitPrice || it.rate || 0) * Number(it.quantity || 1)), 0) : grandTotal / 1.18)
-            );
-            const taxTotal = Number(
-              inv.taxTotal ??
-              (
-                (Number(inv.cgstAmount ?? inv.cgst_amount ?? 0) + Number(inv.sgstAmount ?? inv.sgst_amount ?? 0) + Number(inv.igstAmount ?? inv.igst_amount ?? 0)) ||
-                (grandTotal - subTotal)
-              )
-            );
-            return {
-              ...inv,
-              id: String(inv.id || inv.invoiceNumber || inv.invoice_number),
-              invoiceNumber: inv.invoiceNumber || inv.invoice_number || inv.id,
-              invoiceDate: inv.invoiceDate || inv.invoice_date || '',
-              customerId: inv.customerId || inv.customer_id || '',
-              customerName: inv.customerName || inv.customer_name || 'Customer',
-              salesOrderNumber: inv.salesOrderNumber || inv.sales_order_number || '',
-              jobNumber: inv.jobNumber || inv.job_number || '',
-              subTotal,
-              taxTotal,
-              grandTotal,
-              status: inv.status || 'Draft',
-              paymentStatus: inv.paymentStatus || inv.payment_status || 'Unpaid',
-            };
-          });
-          setSalesInvoices(normalizedSI);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_salesInvoices', JSON.stringify(normalizedSI)); } catch (_) {}
-          }
-        }
+      lastSyncTimes.current['designer'] = Date.now();
+    } catch (err) {
+      console.warn('Designer sync error:', err);
+    }
+  }, []);
 
-        const piRes = val<any[]>(results[54]);
-        if (piRes && Array.isArray(piRes) && piRes.length > 0) {
-          const normalizedPI: PurchaseInvoice[] = piRes.map((inv: any) => ({
+  // 5. Purchase & Procurement Module Sync
+  const syncPurchase = useCallback(async (force = false) => {
+    const now = Date.now();
+    if (!force && lastSyncTimes.current['purchase'] && now - lastSyncTimes.current['purchase'] < STALE_TIME_MS) return;
+    try {
+      const results = await Promise.allSettled([
+        api.purchase.suppliers.list(),
+        api.purchase.requisitions.list(),
+        api.purchase.orders.list(),
+        api.purchase.mrp.list(),
+        api.purchase.rfqs.list(),
+        api.purchase.supplierQuotations.list(),
+        api.purchase.quotationComparisons.list(),
+        api.store.items.list(),
+        api.store.uoms(),
+      ]);
+
+      const rawSuppliers = val<any[]>(results[0]);
+      if (rawSuppliers && Array.isArray(rawSuppliers) && rawSuppliers.length > 0) {
+        const normalizedSuppliers: Supplier[] = rawSuppliers.map((s: any) => {
+          const sName = s.name || s.supplierName || s.supplier_name || (s as any).companyName || 'Supplier';
+          const vCode = s.vendorCode || s.vendor_code || s.supplierCode || s.supplier_code || s.id;
+          return {
+            ...s,
+            id: String(s.id),
+            name: sName,
+            supplierName: sName,
+            vendorCode: vCode,
+            supplierCode: vCode,
+            contactPerson: s.contactPerson || s.contact_person || '',
+            phone: s.phone || s.mobile || '',
+            email: s.email || '',
+            gstin: s.gstin || '',
+            paymentTerms: s.paymentTerms || s.payment_terms || '30 Days Credit',
+          };
+        });
+        setSuppliers(normalizedSuppliers);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_suppliers', JSON.stringify(normalizedSuppliers)); } catch (_) {}
+        }
+      }
+
+      const rawPRs = val<any[]>(results[1]);
+      if (rawPRs && Array.isArray(rawPRs) && rawPRs.length > 0) {
+        const normalizedPRs: PurchaseRequisition[] = rawPRs.map((pr: any) => ({
+          ...pr,
+          id: String(pr.id || pr.pr_number || pr.prNumber),
+          prNumber: pr.prNumber || pr.pr_number || pr.id,
+          projectId: pr.projectId || pr.project_id || 'PRJ-2026-0001',
+          jobId: pr.jobId || pr.job_code || pr.jobNumber || 'JOB-2026-001',
+          bomId: pr.bomId || pr.bom_id || `BOM-${pr.jobId || pr.job_code || 'JOB-2026-001'}`,
+          bomRevision: pr.bomRevision || pr.bom_revision || 'REV-01',
+          requisitionDate: pr.requisitionDate || pr.request_date || pr.prDate || new Date().toISOString().split('T')[0],
+          requiredByDate: pr.requiredByDate || pr.required_by_date || '',
+          priority: pr.priority || 'High',
+          requestedBy: pr.requestedBy || pr.requested_by || 'Super Admin',
+          department: pr.department || 'Purchase / Planning',
+          status: pr.status || 'Submitted',
+          items: Array.isArray(pr.items) ? pr.items : [],
+          totalItems: Array.isArray(pr.items) ? pr.items.length : Number(pr.totalItems || 0),
+          estimatedCost: Number(pr.estimatedCost ?? pr.total_estimated_cost ?? 0),
+          remarks: pr.remarks || '',
+          createdAt: pr.createdAt || pr.created_at || new Date().toISOString(),
+          updatedAt: pr.updatedAt || pr.updated_at || new Date().toISOString(),
+        }));
+        setPurchaseRequisitions(normalizedPRs);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_purchaseRequisitions', JSON.stringify(normalizedPRs)); } catch (_) {}
+        }
+      }
+
+      const rawPOs = val<PurchaseOrder[]>(results[2]);
+      if (rawPOs && Array.isArray(rawPOs) && rawPOs.length > 0) {
+        setPurchaseOrders(rawPOs);
+      }
+
+      const rawMRP = val<any[]>(results[3]);
+      if (rawMRP && Array.isArray(rawMRP)) {
+        const normalizedMRP: MaterialRequirement[] = rawMRP.map((m: any) => ({
+          ...m,
+          id: String(m.id),
+          projectId: m.projectId || m.project_id || '',
+          jobId: m.jobId || m.job_id || '',
+          jobNumber: m.jobNumber || m.job_number || m.jobId || m.job_id || '',
+          customerName: m.customerName || m.customer_name || '',
+          designJobId: m.designJobId || m.design_job_id || '',
+          bomId: m.bomId || m.bom_id || '',
+          bomNumber: m.bomNumber || m.bom_number || '',
+          bomRevision: m.bomRevision || m.bom_revision || 'REV-01',
+          partNumber: m.partNumber || m.part_number || '',
+          itemCode: m.itemCode || m.item_code || '',
+          itemName: m.itemName || m.item_name || '',
+          materialName: m.materialName || m.material_name || '',
+          specification: m.specification || '',
+          category: m.category || 'Raw Material',
+          requiredQuantity: Number(m.requiredQuantity || m.required_quantity || 0),
+          unitOfMeasure: m.unitOfMeasure || m.unit_of_measure || 'NOS',
+          availableStock: Number(m.availableStock || m.available_stock || 0),
+          reservedStock: Number(m.reservedStock || m.reserved_stock || 0),
+          onOrderQuantity: Number(m.onOrderQuantity || m.on_order_quantity || 0),
+          shortageQuantity: Number(m.shortageQuantity || m.shortage_quantity || 0),
+          requiredByDate: m.requiredByDate || m.required_by_date || '',
+          procurementType: m.procurementType || m.procurement_type || 'Purchase',
+          procurementStatus: m.procurementStatus || m.procurement_status || 'Pending',
+          drawingNumber: m.drawingNumber || m.drawing_number || '',
+          status: m.status || 'shortage',
+        }));
+        setMaterialRequirements(normalizedMRP);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_materialRequirements', JSON.stringify(normalizedMRP)); } catch (_) {}
+        }
+      }
+
+      const rawRfqs = val<any[]>(results[4]);
+      if (rawRfqs && Array.isArray(rawRfqs)) {
+        const normalizedRfqs: RequestForQuotation[] = rawRfqs.map((r: any) => ({
+          ...r,
+          id: String(r.id || r.rfqNumber || r.rfq_number),
+          rfqNumber: r.rfqNumber || r.rfq_number || r.id,
+          prId: r.prId || r.pr_id || '',
+          prNumber: r.prNumber || r.pr_id || '',
+          rfqDate: r.rfqDate || r.rfq_date || '',
+          dueDate: r.dueDate || r.due_date || '',
+          invitedSuppliers: r.invitedSuppliers || r.suppliers || [],
+          suppliers: r.suppliers || r.invitedSuppliers || [],
+          items: r.items || [],
+          status: r.status || 'Sent to Suppliers',
+          termsAndConditions: r.termsAndConditions || r.terms_and_conditions || '',
+          issuedBy: r.issuedBy || 'Purchase Team',
+          createdAt: r.createdAt || r.created_at || '',
+        }));
+        setRfqs(normalizedRfqs);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_rfqs', JSON.stringify(normalizedRfqs)); } catch (_) {}
+        }
+      }
+
+      const rawSQs = val<any[]>(results[5]);
+      if (rawSQs && Array.isArray(rawSQs) && rawSQs.length > 0) {
+        const normalizedSQs: SupplierQuotation[] = rawSQs.map((q: any) => ({
+          ...q,
+          id: String(q.id || q.quotationNumber || q.quotation_number),
+          quotationNumber: q.quotationNumber || q.quotation_number || q.id,
+          rfqId: q.rfqId || q.rfq_id || '',
+          rfqNumber: q.rfqNumber || q.rfq_id || '',
+          supplierId: q.supplierId || q.supplier_id || '',
+          supplierName: q.supplierName || q.supplier_name || '',
+          supplierQuotationRef: q.supplierQuotationRef || q.quotationNumber || q.quotation_number || '',
+          quotationDate: q.quotationDate || q.date || '',
+          validityDate: q.validityDate || q.valid_until || '',
+          items: q.items || [],
+          subTotal: Number(q.subTotal || q.sub_total || 0),
+          taxTotal: Number(q.taxTotal || q.tax_amount || 0),
+          grandTotal: Number(q.grandTotal || q.grand_total || 0),
+          paymentTerms: q.paymentTerms || q.payment_terms || '',
+          deliveryTerms: q.deliveryTerms || 'FOR Destination',
+          leadTimeDays: Number(q.leadTimeDays || 7),
+          status: q.status || 'Received',
+          technicalStatus: q.technicalStatus || 'Compliant',
+          recordedBy: q.recordedBy || 'Purchase Officer',
+          createdAt: q.createdAt || q.created_at || '',
+        }));
+        setSupplierQuotations(normalizedSQs);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_supplierQuotations', JSON.stringify(normalizedSQs)); } catch (_) {}
+        }
+      }
+
+      applyLive<QuotationComparison>(val(results[6]), setQuotationComparisons, 'quotationComparisons');
+
+      // Sync items & UOMs for purchase drop-downs
+      const rawItems = val<any[]>(results[7]);
+      if (rawItems && Array.isArray(rawItems) && rawItems.length > 0) {
+        const normalizedItems: ItemMaster[] = rawItems.map((i: any) => ({
+          ...i,
+          id: String(i.id),
+          itemCode: i.itemCode || i.item_code || i.id,
+          itemName: i.itemName || i.item_name || '',
+          itemType: i.itemType || i.item_type || 'Raw Material',
+          category: i.category || i.categoryName || i.category_name || '',
+          subCategory: i.subCategory || i.sub_category || '',
+          specification: i.specification || '',
+          description: i.description || '',
+          brandMake: i.brandMake || i.brand_make || '',
+          hsnSac: i.hsnSac || i.hsn_sac || '72193200',
+          gstRate: Number(i.gstRate ?? i.gst_rate ?? 18),
+          uom: i.uom || i.uomCode || 'Kg',
+          minimumStock: Number(i.minimumStock ?? i.minimum_stock ?? 0),
+          maximumStock: Number(i.maximumStock ?? i.maximum_stock ?? 0),
+          reorderLevel: Number(i.reorderLevel ?? i.reorder_level ?? 0),
+          standardCost: Number(i.standardCost ?? i.unit_cost ?? i.standard_cost ?? 0),
+          status: i.status || 'Active',
+          batchTracking: Boolean(i.batchTracking ?? i.batch_tracking ?? true),
+          serialTracking: Boolean(i.serialTracking ?? i.serial_tracking ?? false),
+          lotTracking: Boolean(i.lotTracking ?? i.lot_tracking ?? true),
+        }));
+        setItemMasters(normalizedItems);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_itemMasters', JSON.stringify(normalizedItems)); } catch (_) {}
+        }
+      }
+
+      const rawUoms = val<any[]>(results[8]);
+      if (rawUoms && Array.isArray(rawUoms) && rawUoms.length > 0) {
+        const normalizedUoms: UOMMaster[] = rawUoms.map((u: any) => ({
+          ...u,
+          id: String(u.id),
+          uomCode: u.uomCode || u.code || u.id,
+          uomName: u.uomName || u.name || u.uomCode || u.code || 'Unit',
+          baseUom: u.baseUom || u.base_uom || u.uomCode || u.code || 'Unit',
+          conversionFactor: Number(u.conversionFactor || u.conversion_factor || 1),
+          description: u.description || '',
+        }));
+        setUoms(normalizedUoms);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_uoms', JSON.stringify(normalizedUoms)); } catch (_) {}
+        }
+      }
+
+      lastSyncTimes.current['purchase'] = Date.now();
+    } catch (err) {
+      console.warn('Purchase sync error:', err);
+    }
+  }, []);
+
+  // 6. Store & Warehouse Module Sync
+  const syncStore = useCallback(async (force = false) => {
+    const now = Date.now();
+    if (!force && lastSyncTimes.current['store'] && now - lastSyncTimes.current['store'] < STALE_TIME_MS) return;
+    try {
+      const results = await Promise.allSettled([
+        api.store.items.list(),
+        api.store.categories(),
+        api.store.uoms(),
+        api.store.warehouses.list(),
+        api.store.grns.list(),
+        api.store.stock(),
+        api.store.materialIssues.list(),
+        api.store.materialReturns.list(),
+        api.store.qcInspections(),
+      ]);
+
+      const rawItems = val<any[]>(results[0]);
+      if (rawItems && Array.isArray(rawItems) && rawItems.length > 0) {
+        const normalizedItems: ItemMaster[] = rawItems.map((i: any) => ({
+          ...i,
+          id: String(i.id),
+          itemCode: i.itemCode || i.item_code || i.id,
+          itemName: i.itemName || i.item_name || '',
+          itemType: i.itemType || i.item_type || 'Raw Material',
+          category: i.category || i.categoryName || i.category_name || '',
+          subCategory: i.subCategory || i.sub_category || '',
+          specification: i.specification || '',
+          description: i.description || '',
+          brandMake: i.brandMake || i.brand_make || '',
+          hsnSac: i.hsnSac || i.hsn_sac || '72193200',
+          gstRate: Number(i.gstRate ?? i.gst_rate ?? 18),
+          uom: i.uom || i.uomCode || 'Kg',
+          minimumStock: Number(i.minimumStock ?? i.minimum_stock ?? 0),
+          maximumStock: Number(i.maximumStock ?? i.maximum_stock ?? 0),
+          reorderLevel: Number(i.reorderLevel ?? i.reorder_level ?? 0),
+          standardCost: Number(i.standardCost ?? i.unit_cost ?? i.standard_cost ?? 0),
+          status: i.status || 'Active',
+          batchTracking: Boolean(i.batchTracking ?? i.batch_tracking ?? true),
+          serialTracking: Boolean(i.serialTracking ?? i.serial_tracking ?? false),
+          lotTracking: Boolean(i.lotTracking ?? i.lot_tracking ?? true),
+        }));
+        setItemMasters(normalizedItems);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_itemMasters', JSON.stringify(normalizedItems)); } catch (_) {}
+        }
+      }
+
+      const rawCats = val<any[]>(results[1]);
+      if (rawCats && Array.isArray(rawCats) && rawCats.length > 0) {
+        const normalizedCats: ItemCategory[] = rawCats.map((c: any) => ({
+          ...c,
+          id: String(c.id),
+          categoryCode: c.categoryCode || c.code || c.id,
+          categoryName: c.categoryName || c.name || 'Category',
+          description: c.description || '',
+          parentCategory: c.parentCategory || c.parent_category || 'Top Level',
+          status: c.status || 'Active',
+        }));
+        setItemCategories(normalizedCats);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_itemCategories', JSON.stringify(normalizedCats)); } catch (_) {}
+        }
+      }
+
+      const rawUoms = val<any[]>(results[2]);
+      if (rawUoms && Array.isArray(rawUoms) && rawUoms.length > 0) {
+        const normalizedUoms: UOMMaster[] = rawUoms.map((u: any) => ({
+          ...u,
+          id: String(u.id),
+          uomCode: u.uomCode || u.code || u.id,
+          uomName: u.uomName || u.name || u.uomCode || u.code || 'Unit',
+          baseUom: u.baseUom || u.base_uom || u.uomCode || u.code || 'Unit',
+          conversionFactor: Number(u.conversionFactor || u.conversion_factor || 1),
+          description: u.description || '',
+        }));
+        setUoms(normalizedUoms);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_uoms', JSON.stringify(normalizedUoms)); } catch (_) {}
+        }
+      }
+
+      const rawWh = val<any[]>(results[3]);
+      if (rawWh && Array.isArray(rawWh) && rawWh.length > 0) {
+        const normalizedWh: Warehouse[] = rawWh.map((w: any) => ({
+          ...w,
+          id: String(w.id || w.warehouseCode || w.warehouse_code),
+          warehouseCode: w.warehouseCode || w.warehouse_code || w.id,
+          warehouseName: w.warehouseName || w.name || w.warehouse_name || w.warehouseCode || w.id,
+          warehouseType: w.warehouseType || w.warehouse_type || 'Raw Material',
+          address: w.address || '',
+          managerName: w.managerName || w.incharge || 'Store Incharge',
+          contactPhone: w.contactPhone || w.contact_phone || '',
+          contactEmail: w.contactEmail || w.contact_email || '',
+          status: w.status || 'Active',
+        }));
+        setWarehouses(normalizedWh);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_warehouses', JSON.stringify(normalizedWh)); } catch (_) {}
+        }
+      }
+
+      applyLive<GoodsReceiptNote>(val(results[4]), setGoodsReceipts, 'goodsReceipts');
+
+      const rawStock = val<any[]>(results[5]);
+      if (rawStock && Array.isArray(rawStock) && rawStock.length > 0) {
+        const normalizedStock: StockBalance[] = rawStock.map((s: any) => {
+          const available = Number(s.availableQty ?? s.available_quantity ?? s.quantity ?? s.currentQuantity ?? 0);
+          const reserved = Number(s.reservedQty ?? s.reserved_quantity ?? 0);
+          const usable = Number(s.usableQty ?? s.usable_quantity ?? (available - reserved));
+          const rate = Number(s.averageRate ?? s.average_unit_cost ?? s.unit_rate ?? s.rate ?? s.standardCost ?? 0);
+          const valuation = Number(s.stockValue ?? s.total_value ?? (usable * rate));
+          return {
+            ...s,
+            id: String(s.id || s.item_id || s.itemCode || `stk-${Math.random().toString(36).slice(2, 6)}`),
+            itemId: s.itemId || s.item_id || '',
+            itemCode: s.itemCode || s.item_code || '',
+            itemName: s.itemName || s.item_name || '',
+            category: s.category || s.category_name || '',
+            warehouseId: s.warehouseId || s.warehouse_id || '',
+            warehouseName: s.warehouseName || s.warehouse_name || 'Main Raw Material & Plate Yard',
+            locationCode: s.locationCode || s.location_code || s.bin_location || 'W1-ZA-R1-S1-B01',
+            batchLot: s.batchLot || s.batch_lot || s.heat_number || s.lot_number || '-',
+            availableQty: isNaN(available) ? 0 : available,
+            reservedQty: isNaN(reserved) ? 0 : reserved,
+            allocatedQty: Number(s.allocatedQty ?? s.allocated_quantity ?? 0),
+            inTransitQty: Number(s.inTransitQty ?? s.in_transit_quantity ?? 0),
+            damagedQty: Number(s.damagedQty ?? s.damaged_quantity ?? 0),
+            rejectedQty: Number(s.rejectedQty ?? s.rejected_quantity ?? 0),
+            usableQty: isNaN(usable) ? 0 : usable,
+            averageRate: isNaN(rate) ? 0 : rate,
+            stockValue: isNaN(valuation) ? 0 : valuation,
+            lastUpdatedDate: s.lastUpdatedDate || s.last_updated_date || s.updated_at || new Date().toISOString().split('T')[0],
+          };
+        });
+        setStockBalances(normalizedStock);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_stockBalances', JSON.stringify(normalizedStock)); } catch (_) {}
+        }
+      }
+
+      const rawIssues = val<any[]>(results[6]);
+      if (rawIssues && Array.isArray(rawIssues) && rawIssues.length > 0) {
+        const normalizedIssues: MaterialIssue[] = rawIssues.map((i: any) => ({
+          ...i,
+          id: String(i.id || i.issue_number || i.issueNumber),
+          issueNumber: i.issueNumber || i.issue_number || i.id,
+          issueDate: i.issueDate || i.issue_date || new Date().toISOString().split('T')[0],
+          projectId: i.projectId || i.project_id || 'PRJ-2026-0001',
+          jobId: i.jobId || i.job_number || i.jobNumber || '',
+          workOrderNumber: i.workOrderNumber || i.work_order_number || '',
+          bomNumber: i.bomNumber || i.bom_number || '',
+          bomRevision: i.bomRevision || i.bom_revision || 'Rev-01',
+          productionStage: i.productionStage || i.production_stage || 'Shell & Dish End Cutting / Rolling',
+          requestedBy: i.requestedBy || i.requested_by || i.issued_to || '',
+          issuedBy: i.issuedBy || i.issued_by || 'Hitesh Rawal (Store Head)',
+          warehouseId: i.warehouseId || i.warehouse_id || 'wh-main',
+          warehouseName: i.warehouseName || i.warehouse_name || 'Main Raw Material & Plate Yard',
+          status: i.status || 'Fully Issued',
+          totalIssueValue: Number(i.totalIssueValue ?? i.total_issue_value ?? 0),
+          remarks: i.remarks || i.notes || '',
+          items: Array.isArray(i.items) ? i.items : [],
+        }));
+        setMaterialIssues(normalizedIssues);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_materialIssues', JSON.stringify(normalizedIssues)); } catch (_) {}
+        }
+      }
+
+      const rawReturns = val<any[]>(results[7]);
+      if (rawReturns && Array.isArray(rawReturns) && rawReturns.length > 0) {
+        const normalizedReturns: MaterialReturn[] = rawReturns.map((r: any) => ({
+          ...r,
+          id: String(r.id || r.return_number || r.returnNumber),
+          returnNumber: r.returnNumber || r.return_number || r.id,
+          returnDate: r.returnDate || r.return_date || new Date().toISOString().split('T')[0],
+          projectId: r.projectId || r.project_id || 'PRJ-2026-0001',
+          jobId: r.jobId || r.job_number || r.jobNumber || '',
+          workOrderNumber: r.workOrderNumber || r.work_order_number || '',
+          materialIssueNumber: r.materialIssueNumber || r.material_issue_number || r.issueNo || '',
+          warehouseId: r.warehouseId || r.warehouse_id || 'wh-main',
+          warehouseName: r.warehouseName || r.warehouse_name || 'Main Raw Material & Plate Yard',
+          returnedBy: r.returnedBy || r.returned_by || 'Ketan Parmar (Shop Supervisor)',
+          receivedBy: r.receivedBy || r.received_by || 'Hitesh Rawal (Store Head)',
+          totalReturnValue: Number(r.totalReturnValue ?? r.total_return_value ?? 0),
+          remarks: r.remarks || r.notes || '',
+          items: Array.isArray(r.items) ? r.items : [],
+        }));
+        setMaterialReturns(normalizedReturns);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_materialReturns', JSON.stringify(normalizedReturns)); } catch (_) {}
+        }
+      }
+
+      const qcRes = val<any[]>(results[8]);
+      if (qcRes && Array.isArray(qcRes) && qcRes.length > 0) {
+        const normalizedQc: QCInspection[] = qcRes.map((q: any) => {
+          const firstItm = (q.items && Array.isArray(q.items) && q.items[0]) || {};
+          return {
+            id: String(q.id || q.inspectionNumber || q.inspection_number || 'QC'),
+            inspectionNumber: q.inspectionNumber || q.inspection_number || q.id || 'QC',
+            inspectionDate: q.inspectionDate || q.inspection_date || '',
+            grnId: q.grnId || q.grn_id || '',
+            grnNumber: q.grnNumber || q.grn_number || '',
+            itemId: q.itemId || q.item_id || firstItm.itemId || 'ITM-01',
+            itemCode: q.itemCode || q.item_code || firstItm.itemCode || firstItm.item_code || 'RAW-MAT',
+            itemName: q.itemName || q.item_name || firstItm.itemName || firstItm.item_name || 'Material Item',
+            jobId: q.jobId || q.job_id || 'General Stock',
+            supplierName: q.supplierName || q.supplier_name || firstItm.supplierName || 'Supplier',
+            requiredSpecification: q.requiredSpecification || q.required_specification || 'Standard Spec',
+            actualSpecification: q.actualSpecification || q.actual_specification || 'Passed Inspection',
+            inspectionParameters: q.inspectionParameters || q.inspection_parameters || 'Visual, Dimension, Spec Verification',
+            sampleQuantity: Number(q.sampleQuantity || q.sample_quantity || 1),
+            acceptedQuantity: Number(q.acceptedQuantity ?? q.accepted_quantity ?? firstItm.acceptedQuantity ?? firstItm.acceptedQty ?? 1),
+            rejectedQuantity: Number(q.rejectedQuantity ?? q.rejected_quantity ?? firstItm.rejectedQuantity ?? firstItm.rejectedQty ?? 0),
+            rejectionReason: q.rejectionReason || q.rejection_reason || '',
+            qcResult: (q.qcResult || q.overall_result || 'Pass') as any,
+            inspectorName: q.inspectorName || q.inspector || 'Suresh Patel (Sr. QC Lead)',
+            remarks: q.remarks || '',
+          };
+        });
+        setQcInspections(normalizedQc);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_qcInspections', JSON.stringify(normalizedQc)); } catch (_) {}
+        }
+      }
+
+      lastSyncTimes.current['store'] = Date.now();
+    } catch (err) {
+      console.warn('Store sync error:', err);
+    }
+  }, []);
+
+  // 7. Production & Manufacturing Module Sync
+  const syncProduction = useCallback(async (force = false) => {
+    const now = Date.now();
+    if (!force && lastSyncTimes.current['production'] && now - lastSyncTimes.current['production'] < STALE_TIME_MS) return;
+    try {
+      const results = await Promise.allSettled([
+        api.production.jobs(),
+        api.production.workCenters.list(),
+        api.production.workOrders.list(),
+        api.production.finishedGoods.list(),
+        api.production.orders.list(),
+        api.production.schedules.list(),
+        api.production.entries.list(),
+        api.production.reworkOrders.list(),
+        api.production.scraps.list(),
+        api.production.holds.list(),
+        api.production.wip.list(),
+        api.production.routingOperations.list(),
+      ]);
+
+      applyLive<ManufacturingJob>(val(results[0]), setManufacturingJobs, 'manufacturingJobs');
+      applyLive<WorkCenter>(val(results[1]), setWorkCenters, 'workCenters');
+
+      const woRes = val<WorkOrder[]>(results[2]);
+      if (woRes && Array.isArray(woRes) && woRes.length > 0) {
+        const normalized = woRes.map((w: any) => ({
+          ...w,
+          workOrderNumber: w.workOrderNumber || w.work_order_number || w.id,
+          jobNumber: w.jobNumber || w.job_number || '',
+          productName: w.productName || w.product_name || '',
+          bomRevision: w.bomRevision || w.bom_revision || 'REV-00',
+          designRevision: w.designRevision || w.design_revision || 'REV-00',
+          plannedEndDate: w.plannedEndDate || w.planned_end_date || '',
+          status: w.status || 'Planned',
+        }));
+        setWorkOrders(normalized);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_workOrders', JSON.stringify(normalized)); } catch (_) {}
+        }
+      }
+
+      applyLive<FinishedGoodsItem>(val(results[3]), setFinishedGoods, 'finishedGoods');
+
+      const rawProdOrders = val<any[]>(results[4]);
+      if (rawProdOrders && Array.isArray(rawProdOrders) && rawProdOrders.length > 0) {
+        const normalizedPO: ProductionOrder[] = rawProdOrders.map((p: any) => ({
+          ...p,
+          id: String(p.id || p.productionOrderNumber || p.production_order_number),
+          productionOrderNumber: p.productionOrderNumber || p.production_order_number || p.id,
+          workOrderId: p.workOrderId || p.work_order_id || '',
+          workOrderNumber: p.workOrderNumber || p.work_order_number || '',
+          jobId: p.jobId || p.job_id || '',
+          jobNumber: p.jobNumber || p.job_number || '',
+          productName: p.productName || p.product_name || 'Manufactured Assembly',
+          quantity: Number(p.quantity || 1),
+          bomRevision: p.bomRevision || p.bom_revision || 'REV-01',
+          designRevision: p.designRevision || p.design_revision || 'REV-01',
+          plannedStartDate: p.plannedStartDate || p.planned_start_date || '',
+          plannedEndDate: p.plannedEndDate || p.planned_end_date || '',
+          actualStartDate: p.actualStartDate || p.actual_start_date || '',
+          actualEndDate: p.actualEndDate || p.actual_end_date || '',
+          productionManager: p.productionManager || p.production_manager || 'Bhavin Shah',
+          status: p.status || 'In Progress',
+          createdAt: p.createdAt || p.created_at || new Date().toISOString(),
+        }));
+        setProductionOrders(normalizedPO);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_productionOrders', JSON.stringify(normalizedPO)); } catch (_) {}
+        }
+      }
+
+      const rawSchedules = val<any[]>(results[5]);
+      if (rawSchedules && Array.isArray(rawSchedules) && rawSchedules.length > 0) {
+        const normalizedSchedules: ProductionScheduleItem[] = rawSchedules.map((s: any) => ({
+          ...s,
+          id: String(s.id || s.scheduleNumber || s.schedule_number),
+          scheduleNumber: s.scheduleNumber || s.schedule_number || s.id,
+          jobId: s.jobId || s.job_id || '',
+          jobNumber: s.jobNumber || s.job_number || s.jobId || '',
+          workOrderNumber: s.workOrderNumber || s.work_order_number || '',
+          operationName: s.operationName || s.operation_name || '',
+          workCenterCode: s.workCenterCode || s.work_center_code || '',
+          workCenterName: s.workCenterName || s.work_center_name || '',
+          machineName: s.machineName || s.machine_name || '',
+          assignedOperator: s.assignedOperator || s.assigned_operator || '',
+          plannedStart: s.plannedStart || s.planned_start || '',
+          plannedEnd: s.plannedEnd || s.planned_end || '',
+          actualStart: s.actualStart || s.actual_start || '',
+          actualEnd: s.actualEnd || s.actual_end || '',
+          delayHours: Number(s.delayHours ?? s.delay_hours ?? 0),
+          status: s.status || 'Scheduled',
+        }));
+        setProductionSchedules(normalizedSchedules);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_productionSchedules', JSON.stringify(normalizedSchedules)); } catch (_) {}
+        }
+      }
+
+      const rawEntries = val<any[]>(results[6]);
+      if (rawEntries && Array.isArray(rawEntries) && rawEntries.length > 0) {
+        const normalizedEntries: ProductionEntry[] = rawEntries.map((e: any) => ({
+          ...e,
+          id: String(e.id || e.productionEntryNumber || e.production_entry_number),
+          productionEntryNumber: e.productionEntryNumber || e.production_entry_number || e.id,
+          entryDate: e.entryDate || e.entry_date || new Date().toISOString().split('T')[0],
+          jobId: e.jobId || e.job_id || '',
+          jobNumber: e.jobNumber || e.job_number || e.jobId || '',
+          workOrderNumber: e.workOrderNumber || e.work_order_number || '',
+          productionOrderNumber: e.productionOrderNumber || e.production_order_number || '',
+          operationName: e.operationName || e.operation_name || '',
+          workCenterName: e.workCenterName || e.work_center_name || '',
+          machineName: e.machineName || e.machine_name || '',
+          operatorName: e.operatorName || e.operator_name || '',
+          startTime: e.startTime || e.start_time || '08:00 AM',
+          endTime: e.endTime || e.end_time || '05:00 PM',
+          plannedQuantity: Number(e.plannedQuantity ?? e.planned_quantity ?? 0),
+          producedQuantity: Number(e.producedQuantity ?? e.produced_quantity ?? 0),
+          rejectedQuantity: Number(e.rejectedQuantity ?? e.rejected_quantity ?? 0),
+          reworkQuantity: Number(e.reworkQuantity ?? e.rework_quantity ?? 0),
+          scrapQuantity: Number(e.scrapQuantity ?? e.scrap_quantity ?? 0),
+          goodQuantity: Number(e.goodQuantity ?? e.good_quantity ?? (Number(e.producedQuantity || 0) - Number(e.rejectedQuantity || 0) - Number(e.scrapQuantity || 0))),
+          downtimeMinutes: Number(e.downtimeMinutes ?? e.downtime_minutes ?? 0),
+          downtimeReason: e.downtimeReason || e.downtime_reason || '',
+          remarks: e.remarks || '',
+          createdBy: e.createdBy || e.created_by || '',
+        }));
+        setProductionEntries(normalizedEntries);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_productionEntries', JSON.stringify(normalizedEntries)); } catch (_) {}
+        }
+      }
+
+      const rawRework = val<any[]>(results[7]);
+      if (rawRework && Array.isArray(rawRework) && rawRework.length > 0) {
+        const normalizedRework: ReworkOrder[] = rawRework.map((r: any) => ({
+          ...r,
+          id: String(r.id || r.reworkNumber || r.rework_number),
+          reworkNumber: r.reworkNumber || r.rework_number || r.id,
+          jobId: r.jobId || r.job_id || '',
+          jobNumber: r.jobNumber || r.job_number || r.jobId || '',
+          workOrderNumber: r.workOrderNumber || r.work_order_number || '',
+          productionEntryNumber: r.productionEntryNumber || r.production_entry_number || '',
+          operationName: r.operationName || r.operation_name || '',
+          itemCode: r.itemCode || r.item_code || '',
+          itemName: r.itemName || r.item_name || '',
+          quantity: Number(r.quantity || 1),
+          uom: r.uom || 'Set',
+          reason: r.reason || 'Welding Defect',
+          responsibleDepartment: r.responsibleDepartment || r.responsible_department || 'Production',
+          reworkInstructions: r.reworkInstructions || r.rework_instructions || '',
+          assignedOperator: r.assignedOperator || r.assigned_operator || '',
+          startDate: r.startDate || r.start_date || new Date().toISOString().split('T')[0],
+          completionDate: r.completionDate || r.completion_date || '',
+          status: r.status || 'Open',
+        }));
+        setReworkOrders(normalizedRework);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_reworkOrders', JSON.stringify(normalizedRework)); } catch (_) {}
+        }
+      }
+
+      const rawScraps = val<any[]>(results[8]);
+      if (rawScraps && Array.isArray(rawScraps) && rawScraps.length > 0) {
+        const normalizedScraps: ProductionScrap[] = rawScraps.map((s: any) => ({
+          ...s,
+          id: String(s.id || s.scrapNumber || s.scrap_number),
+          scrapNumber: s.scrapNumber || s.scrap_number || s.id,
+          entryDate: s.entryDate || s.entry_date || new Date().toISOString().split('T')[0],
+          jobId: s.jobId || s.job_id || '',
+          jobNumber: s.jobNumber || s.job_number || s.jobId || '',
+          workOrderNumber: s.workOrderNumber || s.work_order_number || '',
+          productionOrderNumber: s.productionOrderNumber || s.production_order_number || '',
+          operationName: s.operationName || s.operation_name || '',
+          materialCode: s.materialCode || s.material_code || '',
+          materialName: s.materialName || s.material_name || '',
+          quantity: Number(s.quantity || 0),
+          uom: s.uom || 'Kg',
+          reason: s.reason || '',
+          scrapType: s.scrapType || s.scrap_type || 'Cutting Scrap',
+          operatorName: s.operatorName || s.operator_name || '',
+          estimatedValue: Number(s.estimatedValue ?? s.estimated_value ?? 0),
+          remarks: s.remarks || '',
+        }));
+        setProductionScraps(normalizedScraps);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_productionScraps', JSON.stringify(normalizedScraps)); } catch (_) {}
+        }
+      }
+
+      const rawHolds = val<any[]>(results[9]);
+      if (rawHolds && Array.isArray(rawHolds) && rawHolds.length > 0) {
+        const normalizedHolds: ProductionHold[] = rawHolds.map((h: any) => ({
+          ...h,
+          id: String(h.id || h.holdNumber || h.hold_number),
+          holdNumber: h.holdNumber || h.hold_number || h.id,
+          jobId: h.jobId || h.job_id || '',
+          jobNumber: h.jobNumber || h.job_number || h.jobId || '',
+          workOrderNumber: h.workOrderNumber || h.work_order_number || '',
+          operationName: h.operationName || h.operation_name || '',
+          reason: h.reason || '',
+          description: h.description || '',
+          startDate: h.startDate || h.start_date || new Date().toISOString().split('T')[0],
+          expectedResumeDate: h.expectedResumeDate || h.expected_resume_date || '',
+          approvedBy: h.approvedBy || h.approved_by || '',
+          resumeDate: h.resumeDate || h.resume_date || '',
+          status: h.status || 'Active Hold',
+          remarks: h.remarks || '',
+        }));
+        setProductionHolds(normalizedHolds);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_productionHolds', JSON.stringify(normalizedHolds)); } catch (_) {}
+        }
+      }
+
+      const rawWip = val<any[]>(results[10]);
+      if (rawWip && Array.isArray(rawWip) && rawWip.length > 0) {
+        const normalizedWip: WIPRecord[] = rawWip.map((w: any) => ({
+          ...w,
+          id: String(w.id),
+          jobId: w.jobId || w.job_id || '',
+          jobNumber: w.jobNumber || w.job_number || w.jobId || '',
+          workOrderNumber: w.workOrderNumber || w.work_order_number || '',
+          productionOrderNumber: w.productionOrderNumber || w.production_order_number || '',
+          currentOperationName: w.currentOperationName || w.current_operation_name || '',
+          completedOperationsCount: Number(w.completedOperationsCount ?? w.completed_operations_count ?? 0),
+          totalOperationsCount: Number(w.totalOperationsCount ?? w.total_operations_count ?? 0),
+          wipQuantity: Number(w.wipQuantity ?? w.wip_quantity ?? 0),
+          uom: w.uom || 'Nos',
+          location: w.location || '',
+          responsibleDepartment: w.responsibleDepartment || w.responsible_department || '',
+          startDate: w.startDate || w.start_date || '',
+          expectedCompletionDate: w.expectedCompletionDate || w.expected_completion_date || '',
+          delayDays: Number(w.delayDays ?? w.delay_days ?? 0),
+          status: w.status || 'In Progress',
+        }));
+        setWipRecords(normalizedWip);
+      }
+
+      const rawRoutingOps = val<any[]>(results[11]);
+      if (rawRoutingOps && Array.isArray(rawRoutingOps) && rawRoutingOps.length > 0) {
+        const normalizedOps: RoutingOperation[] = rawRoutingOps.map((o: any) => ({
+          ...o,
+          id: String(o.id),
+          operationNumber: Number(o.operationNumber ?? o.operation_number ?? 10),
+          operationName: o.operationName || o.operation_name || '',
+          sequence: Number(o.sequence || 1),
+          workCenterCode: o.workCenterCode || o.work_center_code || '',
+          workCenterName: o.workCenterName || o.work_center_name || '',
+          machineName: o.machineName || o.machine_name || '',
+          department: o.department || '',
+          plannedSetupMinutes: Number(o.plannedSetupMinutes ?? o.planned_setup_minutes ?? 0),
+          plannedProcessingMinutes: Number(o.plannedProcessingMinutes ?? o.planned_processing_minutes ?? 0),
+          totalPlannedMinutes: Number(o.totalPlannedMinutes ?? o.total_planned_minutes ?? 0),
+          assignedOperator: o.assignedOperator || o.assigned_operator || '',
+          qcRequired: o.qcRequired ?? o.qc_required ?? true,
+          instructions: o.instructions || '',
+          status: o.status || 'Pending',
+        }));
+        setRoutingOperations(normalizedOps);
+      }
+
+      lastSyncTimes.current['production'] = Date.now();
+    } catch (err) {
+      console.warn('Production sync error:', err);
+    }
+  }, []);
+
+  // 8. Maintenance & Service Module Sync
+  const syncMaintenance = useCallback(async (force = false) => {
+    const now = Date.now();
+    if (!force && lastSyncTimes.current['maintenance'] && now - lastSyncTimes.current['maintenance'] < STALE_TIME_MS) return;
+    try {
+      const results = await Promise.allSettled([
+        api.maintenance.internalAssets(),
+        api.maintenance.customerMachines(),
+        api.maintenance.serviceRequests.list(),
+        api.maintenance.breakdowns(),
+        api.maintenance.serviceVisits(),
+        api.maintenance.servicePartIssues.list(),
+        api.maintenance.servicePartReturns.list(),
+        api.maintenance.serviceReports.list(),
+        api.maintenance.pmPlans(),
+        api.maintenance.amcContracts(),
+        api.maintenance.downtimeRecords(),
+        api.maintenance.warrantyRecords(),
+        api.maintenance.serviceContracts(),
+        api.maintenance.serviceWorkOrders.list(),
+      ]);
+
+      applyLive<InternalAsset>(val(results[0]), setInternalAssets, 'internalAssets');
+      applyLive<CustomerMachine>(val(results[1]), setCustomerMachines, 'customerMachines');
+      applyLive<ServiceRequest>(val(results[2]), setServiceRequests, 'serviceRequests');
+      applyLive<BreakdownRecord>(val(results[3]), setBreakdowns, 'breakdowns');
+      applyLive<ServiceVisit>(val(results[4]), setServiceVisits, 'serviceVisits');
+      applyLive<ServicePartIssue>(val(results[5]), setServicePartIssues, 'servicePartIssues');
+      applyLive<ServicePartReturn>(val(results[6]), setServicePartReturns, 'servicePartReturns');
+      applyLive<PreventiveMaintenancePlan>(val(results[8]), setPreventivePlans, 'preventivePlans');
+      applyLive<AMCContract>(val(results[9]), setAmcContracts, 'amcContracts');
+      applyLive<DowntimeRecord>(val(results[10]), setDowntimeRecords, 'downtimeRecords');
+      applyLive<WarrantyRecord>(val(results[11]), setWarranties, 'warranties');
+      applyLive<ServiceContract>(val(results[12]), setServiceContracts, 'serviceContracts');
+      applyLive<ServiceWorkOrder>(val(results[13]), setServiceWorkOrders, 'serviceWorkOrders');
+
+      lastSyncTimes.current['maintenance'] = Date.now();
+    } catch (err) {
+      console.warn('Maintenance sync error:', err);
+    }
+  }, []);
+
+  // 9. HR & Payroll Module Sync
+  const syncHR = useCallback(async (force = false) => {
+    const now = Date.now();
+    if (!force && lastSyncTimes.current['hr'] && now - lastSyncTimes.current['hr'] < STALE_TIME_MS) return;
+    try {
+      const results = await Promise.allSettled([
+        api.hr.shifts(),
+        api.hr.attendance(),
+        api.hr.leaves.list(),
+        api.hr.payroll.list(),
+        api.hr.onboardings.list(),
+        api.hr.holidays.list(),
+        api.hr.overtimeRecords.list(),
+        api.hr.earlyCheckouts.list(),
+        api.hr.appraisals.list(),
+        api.hr.transfers.list(),
+        api.hr.promotions.list(),
+        api.hr.exits.list(),
+        api.hr.wfhRequests.list(),
+        api.hr.missedPunches.list(),
+      ]);
+
+      applyLive<ShiftMaster>(val(results[0]), setShiftMasters, 'shifts');
+      applyLive<AttendanceRecord>(val(results[1]), setAttendanceRecords, 'attendance');
+      applyLive<LeaveRequest>(val(results[2]), setLeaveRequests, 'leaves');
+      applyLive<PayrollRecord>(val(results[3]), setPayrollRecords, 'payroll');
+      applyLive<EmployeeOnboardingItem>(val(results[4]), setEmployeeOnboardings, 'employeeOnboardings');
+      applyLive<HolidayItem>(val(results[5]), setHolidays, 'holidays');
+      applyLive<OvertimeRecord>(val(results[6]), setOvertimeRecords, 'overtimeRecords');
+      applyLive<EarlyCheckoutRequest>(val(results[7]), setEarlyCheckoutRequests, 'earlyCheckoutRequests');
+      applyLive<EmployeeAppraisal>(val(results[8]), setEmployeeAppraisals, 'employeeAppraisals');
+      applyLive<EmployeeTransferItem>(val(results[9]), setEmployeeTransfers, 'employeeTransfers');
+      applyLive<EmployeePromotionItem>(val(results[10]), setEmployeePromotions, 'employeePromotions');
+      applyLive<EmployeeExitItem>(val(results[11]), setEmployeeExits, 'employeeExits');
+      applyLive<WFHRequest>(val(results[12]), setWFHRequests, 'wfhRequests');
+      applyLive<MissedPunchRequest>(val(results[13]), setMissedPunchRequests, 'missedPunchRequests');
+
+      lastSyncTimes.current['hr'] = Date.now();
+    } catch (err) {
+      console.warn('HR sync error:', err);
+    }
+  }, []);
+
+  // 10. Accounting & Finance Module Sync
+  const syncAccounting = useCallback(async (force = false) => {
+    const now = Date.now();
+    if (!force && lastSyncTimes.current['accounting'] && now - lastSyncTimes.current['accounting'] < STALE_TIME_MS) return;
+    try {
+      const results = await Promise.allSettled([
+        api.accounting.financialYears(),
+        api.accounting.chartOfAccounts(),
+        api.accounting.salesInvoices.list(),
+        api.accounting.purchaseInvoices.list(),
+        api.accounting.receipts(),
+        api.accounting.payments(),
+        api.accounting.journalEntries.list(),
+        api.accounting.creditNotes.list(),
+        api.accounting.debitNotes.list(),
+        api.accounting.contraEntries.list(),
+        api.accounting.bankAccounts.list(),
+        api.accounting.expenses.list(),
+        api.accounting.fixedAssets.list(),
+      ]);
+
+      applyLive<FinancialYear>(val(results[0]), setFinancialYears, 'financialYears');
+      applyLive<ChartOfAccount>(val(results[1]), setChartOfAccounts, 'chartOfAccounts');
+
+      const siRes = val<any[]>(results[2]);
+      if (siRes && Array.isArray(siRes) && siRes.length > 0) {
+        const normalizedSI: SalesInvoice[] = siRes.map((inv: any) => {
+          const grandTotal = Number(inv.grandTotal ?? inv.grand_total ?? 0);
+          const items = inv.items || [];
+          const subTotal = Number(
+            inv.subTotal ??
+            inv.subtotal ??
+            inv.taxableAmount ??
+            inv.taxable_amount ??
+            (items.length > 0 ? items.reduce((s: number, it: any) => s + (Number(it.unitPrice || it.rate || 0) * Number(it.quantity || 1)), 0) : grandTotal / 1.18)
+          );
+          const taxTotal = Number(
+            inv.taxTotal ??
+            (
+              (Number(inv.cgstAmount ?? inv.cgst_amount ?? 0) + Number(inv.sgstAmount ?? inv.sgst_amount ?? 0) + Number(inv.igstAmount ?? inv.igst_amount ?? 0)) ||
+              (grandTotal - subTotal)
+            )
+          );
+          return {
             ...inv,
             id: String(inv.id || inv.invoiceNumber || inv.invoice_number),
             invoiceNumber: inv.invoiceNumber || inv.invoice_number || inv.id,
-            vendorInvoiceNumber: inv.vendorInvoiceNumber || inv.vendor_invoice_number || '',
             invoiceDate: inv.invoiceDate || inv.invoice_date || '',
-            supplierId: inv.supplierId || inv.supplier_id || '',
-            supplierName: inv.supplierName || inv.supplier_name || 'Supplier',
-            subTotal: Number(inv.subTotal ?? inv.subtotal ?? inv.taxable_amount ?? 0),
-            grandTotal: Number(inv.grandTotal ?? inv.grand_total ?? 0),
+            customerId: inv.customerId || inv.customer_id || '',
+            customerName: inv.customerName || inv.customer_name || 'Customer',
+            salesOrderNumber: inv.salesOrderNumber || inv.sales_order_number || '',
+            jobNumber: inv.jobNumber || inv.job_number || '',
+            subTotal,
+            taxTotal,
+            grandTotal,
             status: inv.status || 'Draft',
             paymentStatus: inv.paymentStatus || inv.payment_status || 'Unpaid',
-          }));
-          setPurchaseInvoices(normalizedPI);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_purchaseInvoices', JSON.stringify(normalizedPI)); } catch (_) {}
-          }
-        }
-        applyLive<CustomerReceipt>(val(results[55]), setCustomerReceipts, 'customerReceipts');
-        applyLive<SupplierPayment>(val(results[56]), setSupplierPayments, 'supplierPayments');
-        applyLive<JournalEntry>(val(results[57]), setJournalEntries, 'journalEntries');
-        applyLive<CreditNote>(val(results[58]), setCreditNotes, 'creditNotes');
-        applyLive<DebitNote>(val(results[59]), setDebitNotes, 'debitNotes');
-        applyLive<ContraEntry>(val(results[60]), setContraEntries, 'contraEntries');
-        applyLive<BankAccount>(val(results[61]), setBankAccounts, 'bankAccounts');
-        applyLive<ExpenseEntry>(val(results[62]), setExpenseEntries, 'expenseEntries');
-        applyLive<FixedAsset>(val(results[63]), setFixedAssets, 'fixedAssets');
-        applyLive<HolidayItem>(val(results[64]), setHolidays, 'holidays');
-        applyLive<OvertimeRecord>(val(results[65]), setOvertimeRecords, 'overtimeRecords');
-        applyLive<EarlyCheckoutRequest>(val(results[66]), setEarlyCheckoutRequests, 'earlyCheckoutRequests');
-        applyLive<EmployeeAppraisal>(val(results[67]), setEmployeeAppraisals, 'employeeAppraisals');
-        applyLive<ApprovalItem>(val(results[68]), setCentralApprovals, 'approvals');
-        applyLive<ERPAlertItem>(val(results[69]), setCentralAlerts, 'alerts');
-
-        const qcRes = val<any[]>(results[70]);
-        if (qcRes && Array.isArray(qcRes) && qcRes.length > 0) {
-          const normalizedQc: QCInspection[] = qcRes.map((q: any) => {
-            const firstItm = (q.items && Array.isArray(q.items) && q.items[0]) || {};
-            return {
-              id: String(q.id || q.inspectionNumber || q.inspection_number || 'QC'),
-              inspectionNumber: q.inspectionNumber || q.inspection_number || q.id || 'QC',
-              inspectionDate: q.inspectionDate || q.inspection_date || '',
-              grnId: q.grnId || q.grn_id || '',
-              grnNumber: q.grnNumber || q.grn_number || '',
-              itemId: q.itemId || q.item_id || firstItm.itemId || 'ITM-01',
-              itemCode: q.itemCode || q.item_code || firstItm.itemCode || firstItm.item_code || 'RAW-MAT',
-              itemName: q.itemName || q.item_name || firstItm.itemName || firstItm.item_name || 'Material Item',
-              jobId: q.jobId || q.job_id || 'General Stock',
-              supplierName: q.supplierName || q.supplier_name || firstItm.supplierName || 'Supplier',
-              requiredSpecification: q.requiredSpecification || q.required_specification || 'Standard Spec',
-              actualSpecification: q.actualSpecification || q.actual_specification || 'Passed Inspection',
-              inspectionParameters: q.inspectionParameters || q.inspection_parameters || 'Visual, Dimension, Spec Verification',
-              sampleQuantity: Number(q.sampleQuantity || q.sample_quantity || 1),
-              acceptedQuantity: Number(q.acceptedQuantity ?? q.accepted_quantity ?? firstItm.acceptedQuantity ?? firstItm.acceptedQty ?? 1),
-              rejectedQuantity: Number(q.rejectedQuantity ?? q.rejected_quantity ?? firstItm.rejectedQuantity ?? firstItm.rejectedQty ?? 0),
-              rejectionReason: q.rejectionReason || q.rejection_reason || '',
-              qcResult: (q.qcResult || q.overall_result || 'Pass') as any,
-              inspectorName: q.inspectorName || q.inspector || 'Suresh Patel (Sr. QC Lead)',
-              remarks: q.remarks || '',
-            };
-          });
-          setQcInspections(normalizedQc);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_qcInspections', JSON.stringify(normalizedQc)); } catch (_) {}
-          }
-        }
-
-        const meRes = val<any>(results[71]);
-        if (meRes && meRes.username) {
-          setCurrentUser((prev) => ({
-            ...prev,
-            ...meRes,
-            name: meRes.name || `${meRes.firstName || ''} ${meRes.lastName || ''}`.trim() || meRes.username,
-            role: meRes.role || meRes.roleName || 'Super Admin',
-            roleName: meRes.roleName || meRes.role || 'Super Admin',
-            department: meRes.department || meRes.departmentName || 'Management',
-          }));
-        }
-
-        const rawDeptAssignments = val<any[]>(results[72]);
-        if (rawDeptAssignments && Array.isArray(rawDeptAssignments)) {
-          const normalizedDAs: DepartmentAssignment[] = rawDeptAssignments.map((da: any) => ({
-            ...da,
-            id: String(da.id),
-            projectId: da.projectId || da.project_id || '',
-            projectNumber: da.projectNumber || da.project_number || da.projectId || da.project_id || '',
-            jobNumber: da.jobNumber || da.job_number || '',
-            department: da.department || '',
-            manager: da.manager || da.lead_person_name || 'Unassigned',
-            assignedEmployee: da.assignedEmployee || da.lead_person_name || 'Unassigned',
-            responsibility: da.responsibility || da.notes || '',
-            startDate: da.startDate || da.start_date || '',
-            dueDate: da.dueDate || da.due_date || '',
-            status: da.status || 'in_progress',
-            priority: da.priority || 'high',
-            remarks: da.remarks || da.notes || '',
-          }));
-          setDepartmentAssignments(normalizedDAs);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_departmentAssignments', JSON.stringify(normalizedDAs)); } catch (_) {}
-          }
-        }
-
-        const rawDocs = val<any[]>(results[73]);
-        if (rawDocs && Array.isArray(rawDocs)) {
-          const normalizedDocs: ProjectDocument[] = rawDocs.map((d: any) => ({
-            ...d,
-            id: String(d.id),
-            documentName: d.documentName || d.document_name || d.name || 'Project Document',
-            type: d.type || d.docType || 'Drawing',
-            version: d.version || 'v1.0',
-            uploadedBy: d.uploadedBy || d.uploaded_by || 'Super Admin',
-            uploadDate: d.uploadDate || d.upload_date || (d.created_at ? d.created_at.split('T')[0] : new Date().toISOString().split('T')[0]),
-            department: d.department || '',
-            relatedRecord: d.relatedRecord || d.related_record || '',
-            description: d.description || '',
-            fileSize: d.fileSize || d.file_size || '1.5 MB',
-            fileUrl: d.fileUrl || d.file_url || '',
-            projectId: d.projectId || d.project_id || '',
-            jobNumber: d.jobNumber || d.job_number || '',
-          }));
-          setProjectDocuments(normalizedDocs);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_projectDocuments', JSON.stringify(normalizedDocs)); } catch (_) {}
-          }
-        }
-
-        const rawCRs = val<any[]>(results[74]);
-        if (rawCRs && Array.isArray(rawCRs)) {
-          const normalizedCRs: CustomerChangeRequest[] = rawCRs.map((cr: any) => ({
-            ...cr,
-            id: String(cr.id),
-            changeRequestNo: cr.changeRequestNo || cr.change_request_no || cr.request_no || cr.id,
-            projectId: cr.projectId || cr.project_id || '',
-            projectNumber: cr.projectNumber || cr.project_number || cr.projectId || cr.project_id || '',
-            jobNumber: cr.jobNumber || cr.job_number || '',
-            customerName: cr.customerName || cr.customer_name || '',
-            requestedBy: cr.requestedBy || cr.requested_by || 'Customer Representative',
-            requestDate: cr.requestDate || cr.request_date || (cr.created_at ? cr.created_at.split('T')[0] : new Date().toISOString().split('T')[0]),
-            changeDescription: cr.changeDescription || cr.change_description || cr.description || cr.title || '',
-            reason: cr.reason || '',
-            designImpact: cr.designImpact || cr.design_impact || '',
-            materialImpact: cr.materialImpact || cr.material_impact || '',
-            costImpact: Number(cr.costImpact ?? cr.cost_impact ?? cr.impact_on_cost ?? 0),
-            timelineImpactDays: Number(cr.timelineImpactDays ?? cr.timeline_impact_days ?? cr.impact_on_timeline_days ?? 0),
-            approvalStatus: cr.approvalStatus || cr.approval_status || cr.status || 'requested',
-            approvedBy: cr.approvedBy || cr.approved_by || '',
-            approvedDate: cr.approvedDate || cr.approved_date || '',
-          }));
-          setChangeRequests(normalizedCRs);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_changeRequests', JSON.stringify(normalizedCRs)); } catch (_) {}
-          }
-        }
-
-        const rawReqs = val<any[]>(results[75]);
-        if (rawReqs && Array.isArray(rawReqs)) {
-          const normalizedReqs: CustomerRequirement[] = rawReqs.map((r: any) => ({
-            ...r,
-            id: String(r.id),
-            designJobId: r.designJobId || r.design_job_id || '',
-            projectId: r.projectId || r.project_id || '',
-            jobNumber: r.jobNumber || r.job_number || '',
-            customerName: r.customerName || r.customer_name || '',
-            contactPerson: r.contactPerson || r.contact_person || '',
-            contactMobile: r.contactMobile || r.contact_mobile || '',
-            machineName: r.machineName || r.machine_name || '',
-            machineType: r.machineType || r.machine_type || '',
-            model: r.model || '',
-            quantity: Number(r.quantity || 1),
-            capacity: r.capacity || '',
-            application: r.application || '',
-            productionRequirement: r.productionRequirement || r.production_requirement || '',
-            dimensions: r.dimensions || '',
-            material: r.material || '',
-            powerRequirement: r.powerRequirement || r.power_requirement || '',
-            speed: r.speed || '',
-            output: r.output || '',
-            automationLevel: r.automationLevel || r.automation_level || '',
-            controlSystem: r.controlSystem || r.control_system || '',
-            safetyRequirements: r.safetyRequirements || r.safety_requirements || '',
-            specialRequirements: r.specialRequirements || r.special_requirements || '',
-            customerDrawingUrl: r.customerDrawingUrl || r.customer_drawing_url || '',
-            customerNotes: r.customerNotes || r.customer_notes || '',
-            designerNotes: r.designerNotes || r.designer_notes || '',
-            status: r.status || 'approved',
-            createdAt: r.createdAt || r.created_at || '',
-          }));
-          setCustomerRequirements(normalizedReqs);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_customerRequirements', JSON.stringify(normalizedReqs)); } catch (_) {}
-          }
-        }
-
-        const rawTasks = val<any[]>(results[76]);
-        if (rawTasks && Array.isArray(rawTasks)) {
-          const normalizedTasks: DesignTask[] = rawTasks.map((t: any) => ({
-            ...t,
-            id: String(t.id),
-            designJobId: t.designJobId || t.design_job_id || '',
-            projectId: t.projectId || t.project_id || '',
-            jobNumber: t.jobNumber || t.job_number || '',
-            taskName: t.taskName || t.task_name || '',
-            customerName: t.customerName || t.customer_name || '',
-            machineName: t.machineName || t.machine_name || '',
-            designer: t.designer || 'Dharmesh Joshi',
-            startDate: t.startDate || t.start_date || '',
-            targetDate: t.targetDate || t.target_date || '',
-            dueDate: t.dueDate || t.due_date || '',
-            priority: t.priority || 'high',
-            estimatedHours: Number(t.estimatedHours || t.estimated_hours || 16),
-            actualHours: Number(t.actualHours || t.actual_hours || 0),
-            progressPercent: Number(t.progressPercent || t.progress_percent || 0),
-            status: t.status || 'pending',
-            remarks: t.remarks || '',
-            createdAt: t.createdAt || t.created_at || '',
-          }));
-          setDesignTasks(normalizedTasks);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_designTasks', JSON.stringify(normalizedTasks)); } catch (_) {}
-          }
-        }
-
-        const rawMRP = val<any[]>(results[77]);
-        if (rawMRP && Array.isArray(rawMRP)) {
-          const normalizedMRP: MaterialRequirement[] = rawMRP.map((m: any) => ({
-            ...m,
-            id: String(m.id),
-            projectId: m.projectId || m.project_id || '',
-            jobId: m.jobId || m.job_id || '',
-            jobNumber: m.jobNumber || m.job_number || m.jobId || m.job_id || '',
-            customerName: m.customerName || m.customer_name || '',
-            designJobId: m.designJobId || m.design_job_id || '',
-            bomId: m.bomId || m.bom_id || '',
-            bomNumber: m.bomNumber || m.bom_number || '',
-            bomRevision: m.bomRevision || m.bom_revision || 'REV-01',
-            partNumber: m.partNumber || m.part_number || '',
-            itemCode: m.itemCode || m.item_code || '',
-            itemName: m.itemName || m.item_name || '',
-            materialName: m.materialName || m.material_name || '',
-            specification: m.specification || '',
-            category: m.category || 'Raw Material',
-            requiredQuantity: Number(m.requiredQuantity || m.required_quantity || 0),
-            unitOfMeasure: m.unitOfMeasure || m.unit_of_measure || 'NOS',
-            availableStock: Number(m.availableStock || m.available_stock || 0),
-            reservedStock: Number(m.reservedStock || m.reserved_stock || 0),
-            onOrderQuantity: Number(m.onOrderQuantity || m.on_order_quantity || 0),
-            shortageQuantity: Number(m.shortageQuantity || m.shortage_quantity || 0),
-            requiredByDate: m.requiredByDate || m.required_by_date || '',
-            procurementType: m.procurementType || m.procurement_type || 'Purchase',
-            procurementStatus: m.procurementStatus || m.procurement_status || 'Pending',
-            drawingNumber: m.drawingNumber || m.drawing_number || '',
-            status: m.status || 'shortage',
-          }));
-          setMaterialRequirements(normalizedMRP);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_materialRequirements', JSON.stringify(normalizedMRP)); } catch (_) {}
-          }
-        }
-
-        const rawRfqs = val<any[]>(results[78]);
-        if (rawRfqs && Array.isArray(rawRfqs)) {
-          const normalizedRfqs: RequestForQuotation[] = rawRfqs.map((r: any) => ({
-            ...r,
-            id: String(r.id || r.rfqNumber || r.rfq_number),
-            rfqNumber: r.rfqNumber || r.rfq_number || r.id,
-            prId: r.prId || r.pr_id || '',
-            prNumber: r.prNumber || r.pr_id || '',
-            rfqDate: r.rfqDate || r.rfq_date || '',
-            dueDate: r.dueDate || r.due_date || '',
-            invitedSuppliers: r.invitedSuppliers || r.suppliers || [],
-            suppliers: r.suppliers || r.invitedSuppliers || [],
-            items: r.items || [],
-            status: r.status || 'Sent to Suppliers',
-            termsAndConditions: r.termsAndConditions || r.terms_and_conditions || '',
-            issuedBy: r.issuedBy || 'Purchase Team',
-            createdAt: r.createdAt || r.created_at || '',
-          }));
-          setRfqs(normalizedRfqs);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_rfqs', JSON.stringify(normalizedRfqs)); } catch (_) {}
-          }
-        }
-
-        const rawSQs = val<any[]>(results[79]);
-        if (rawSQs && Array.isArray(rawSQs)) {
-          const normalizedSQs: SupplierQuotation[] = rawSQs.map((q: any) => ({
-            ...q,
-            id: String(q.id || q.quotationNumber || q.quotation_number),
-            quotationNumber: q.quotationNumber || q.quotation_number || q.id,
-            rfqId: q.rfqId || q.rfq_id || '',
-            rfqNumber: q.rfqNumber || q.rfq_id || '',
-            supplierId: q.supplierId || q.supplier_id || '',
-            supplierName: q.supplierName || q.supplier_name || '',
-            supplierQuotationRef: q.supplierQuotationRef || q.quotationNumber || q.quotation_number || '',
-            quotationDate: q.quotationDate || q.date || '',
-            validityDate: q.validityDate || q.valid_until || '',
-            items: q.items || [],
-            subTotal: Number(q.subTotal || q.sub_total || 0),
-            taxTotal: Number(q.taxTotal || q.tax_amount || 0),
-            grandTotal: Number(q.grandTotal || q.grand_total || 0),
-            paymentTerms: q.paymentTerms || q.payment_terms || '',
-            deliveryTerms: q.deliveryTerms || 'FOR Destination',
-            leadTimeDays: Number(q.leadTimeDays || 7),
-            status: q.status || 'Received',
-            technicalStatus: q.technicalStatus || 'Compliant',
-            recordedBy: q.recordedBy || 'Purchase Officer',
-            createdAt: q.createdAt || q.created_at || '',
-          }));
-          setSupplierQuotations(normalizedSQs);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_supplierQuotations', JSON.stringify(normalizedSQs)); } catch (_) {}
-          }
-        }
-
-        const rawProdOrders = val<any[]>(results[81]);
-        if (rawProdOrders && Array.isArray(rawProdOrders) && rawProdOrders.length > 0) {
-          const normalizedPO: ProductionOrder[] = rawProdOrders.map((p: any) => ({
-            ...p,
-            id: String(p.id || p.productionOrderNumber || p.production_order_number),
-            productionOrderNumber: p.productionOrderNumber || p.production_order_number || p.id,
-            workOrderId: p.workOrderId || p.work_order_id || '',
-            workOrderNumber: p.workOrderNumber || p.work_order_number || '',
-            jobId: p.jobId || p.job_id || '',
-            jobNumber: p.jobNumber || p.job_number || '',
-            productName: p.productName || p.product_name || 'Manufactured Assembly',
-            quantity: Number(p.quantity || 1),
-            bomRevision: p.bomRevision || p.bom_revision || 'REV-01',
-            designRevision: p.designRevision || p.design_revision || 'REV-01',
-            plannedStartDate: p.plannedStartDate || p.planned_start_date || '',
-            plannedEndDate: p.plannedEndDate || p.planned_end_date || '',
-            actualStartDate: p.actualStartDate || p.actual_start_date || '',
-            actualEndDate: p.actualEndDate || p.actual_end_date || '',
-            productionManager: p.productionManager || p.production_manager || 'Bhavin Shah',
-            status: p.status || 'In Progress',
-            createdAt: p.createdAt || p.created_at || new Date().toISOString(),
-          }));
-          setProductionOrders(normalizedPO);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_productionOrders', JSON.stringify(normalizedPO)); } catch (_) {}
-          }
-        }
-
-        const rawTechDocs = val<any[]>(results[82]);
-        if (rawTechDocs && Array.isArray(rawTechDocs) && rawTechDocs.length > 0) {
-          const normalizedDocs: TechnicalDocumentItem[] = rawTechDocs.map((td: any) => ({
-            ...td,
-            id: String(td.id || td.document_number || td.documentNumber),
-            documentName: td.documentName || td.document_name || td.title || 'Technical Document',
-            category: td.category || td.document_type || 'Calculation',
-            version: td.version || 'v1.0',
-            revision: td.revision || 'REV-00',
-            projectId: td.projectId || td.project_id || '',
-            jobNumber: td.jobNumber || td.job_number || '',
-            uploadedBy: td.uploadedBy || td.uploaded_by || 'Engineering Team',
-            uploadDate: td.uploadDate || td.upload_date || td.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-            fileUrl: td.fileUrl || td.file_url || '#',
-            fileSize: td.fileSize || td.file_size || '5.2 MB',
-            accessPermission: td.accessPermission || td.access_permission || 'public',
-          }));
-          setTechnicalDocuments(normalizedDocs);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_technicalDocuments', JSON.stringify(normalizedDocs)); } catch (_) {}
-          }
-        }
-
-        const rawSchedules = val<any[]>(results[83]);
-        if (rawSchedules && Array.isArray(rawSchedules) && rawSchedules.length > 0) {
-          const normalizedSchedules: ProductionScheduleItem[] = rawSchedules.map((s: any) => ({
-            ...s,
-            id: String(s.id || s.scheduleNumber || s.schedule_number),
-            scheduleNumber: s.scheduleNumber || s.schedule_number || s.id,
-            jobId: s.jobId || s.job_id || '',
-            jobNumber: s.jobNumber || s.job_number || s.jobId || '',
-            workOrderNumber: s.workOrderNumber || s.work_order_number || '',
-            operationName: s.operationName || s.operation_name || '',
-            workCenterCode: s.workCenterCode || s.work_center_code || '',
-            workCenterName: s.workCenterName || s.work_center_name || '',
-            machineName: s.machineName || s.machine_name || '',
-            assignedOperator: s.assignedOperator || s.assigned_operator || '',
-            plannedStart: s.plannedStart || s.planned_start || '',
-            plannedEnd: s.plannedEnd || s.planned_end || '',
-            actualStart: s.actualStart || s.actual_start || '',
-            actualEnd: s.actualEnd || s.actual_end || '',
-            delayHours: Number(s.delayHours ?? s.delay_hours ?? 0),
-            status: s.status || 'Scheduled',
-          }));
-          setProductionSchedules(normalizedSchedules);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_productionSchedules', JSON.stringify(normalizedSchedules)); } catch (_) {}
-          }
-        }
-
-        const rawEntries = val<any[]>(results[84]);
-        if (rawEntries && Array.isArray(rawEntries) && rawEntries.length > 0) {
-          const normalizedEntries: ProductionEntry[] = rawEntries.map((e: any) => ({
-            ...e,
-            id: String(e.id || e.productionEntryNumber || e.production_entry_number),
-            productionEntryNumber: e.productionEntryNumber || e.production_entry_number || e.id,
-            entryDate: e.entryDate || e.entry_date || new Date().toISOString().split('T')[0],
-            jobId: e.jobId || e.job_id || '',
-            jobNumber: e.jobNumber || e.job_number || e.jobId || '',
-            workOrderNumber: e.workOrderNumber || e.work_order_number || '',
-            productionOrderNumber: e.productionOrderNumber || e.production_order_number || '',
-            operationName: e.operationName || e.operation_name || '',
-            workCenterName: e.workCenterName || e.work_center_name || '',
-            machineName: e.machineName || e.machine_name || '',
-            operatorName: e.operatorName || e.operator_name || '',
-            startTime: e.startTime || e.start_time || '08:00 AM',
-            endTime: e.endTime || e.end_time || '05:00 PM',
-            plannedQuantity: Number(e.plannedQuantity ?? e.planned_quantity ?? 0),
-            producedQuantity: Number(e.producedQuantity ?? e.produced_quantity ?? 0),
-            rejectedQuantity: Number(e.rejectedQuantity ?? e.rejected_quantity ?? 0),
-            reworkQuantity: Number(e.reworkQuantity ?? e.rework_quantity ?? 0),
-            scrapQuantity: Number(e.scrapQuantity ?? e.scrap_quantity ?? 0),
-            goodQuantity: Number(e.goodQuantity ?? e.good_quantity ?? (Number(e.producedQuantity || 0) - Number(e.rejectedQuantity || 0) - Number(e.scrapQuantity || 0))),
-            downtimeMinutes: Number(e.downtimeMinutes ?? e.downtime_minutes ?? 0),
-            downtimeReason: e.downtimeReason || e.downtime_reason || '',
-            remarks: e.remarks || '',
-            createdBy: e.createdBy || e.created_by || '',
-          }));
-          setProductionEntries(normalizedEntries);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_productionEntries', JSON.stringify(normalizedEntries)); } catch (_) {}
-          }
-        }
-
-        const rawRework = val<any[]>(results[85]);
-        if (rawRework && Array.isArray(rawRework) && rawRework.length > 0) {
-          const normalizedRework: ReworkOrder[] = rawRework.map((r: any) => ({
-            ...r,
-            id: String(r.id || r.reworkNumber || r.rework_number),
-            reworkNumber: r.reworkNumber || r.rework_number || r.id,
-            jobId: r.jobId || r.job_id || '',
-            jobNumber: r.jobNumber || r.job_number || r.jobId || '',
-            workOrderNumber: r.workOrderNumber || r.work_order_number || '',
-            productionEntryNumber: r.productionEntryNumber || r.production_entry_number || '',
-            operationName: r.operationName || r.operation_name || '',
-            itemCode: r.itemCode || r.item_code || '',
-            itemName: r.itemName || r.item_name || '',
-            quantity: Number(r.quantity || 1),
-            uom: r.uom || 'Set',
-            reason: r.reason || 'Welding Defect',
-            responsibleDepartment: r.responsibleDepartment || r.responsible_department || 'Production',
-            reworkInstructions: r.reworkInstructions || r.rework_instructions || '',
-            assignedOperator: r.assignedOperator || r.assigned_operator || '',
-            startDate: r.startDate || r.start_date || new Date().toISOString().split('T')[0],
-            completionDate: r.completionDate || r.completion_date || '',
-            status: r.status || 'Open',
-          }));
-          setReworkOrders(normalizedRework);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_reworkOrders', JSON.stringify(normalizedRework)); } catch (_) {}
-          }
-        }
-
-        const rawScraps = val<any[]>(results[86]);
-        if (rawScraps && Array.isArray(rawScraps) && rawScraps.length > 0) {
-          const normalizedScraps: ProductionScrap[] = rawScraps.map((s: any) => ({
-            ...s,
-            id: String(s.id || s.scrapNumber || s.scrap_number),
-            scrapNumber: s.scrapNumber || s.scrap_number || s.id,
-            entryDate: s.entryDate || s.entry_date || new Date().toISOString().split('T')[0],
-            jobId: s.jobId || s.job_id || '',
-            jobNumber: s.jobNumber || s.job_number || s.jobId || '',
-            workOrderNumber: s.workOrderNumber || s.work_order_number || '',
-            productionOrderNumber: s.productionOrderNumber || s.production_order_number || '',
-            operationName: s.operationName || s.operation_name || '',
-            materialCode: s.materialCode || s.material_code || '',
-            materialName: s.materialName || s.material_name || '',
-            quantity: Number(s.quantity || 0),
-            uom: s.uom || 'Kg',
-            reason: s.reason || '',
-            scrapType: s.scrapType || s.scrap_type || 'Cutting Scrap',
-            operatorName: s.operatorName || s.operator_name || '',
-            estimatedValue: Number(s.estimatedValue ?? s.estimated_value ?? 0),
-            remarks: s.remarks || '',
-          }));
-          setProductionScraps(normalizedScraps);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_productionScraps', JSON.stringify(normalizedScraps)); } catch (_) {}
-          }
-        }
-
-        const rawHolds = val<any[]>(results[87]);
-        if (rawHolds && Array.isArray(rawHolds) && rawHolds.length > 0) {
-          const normalizedHolds: ProductionHold[] = rawHolds.map((h: any) => ({
-            ...h,
-            id: String(h.id || h.holdNumber || h.hold_number),
-            holdNumber: h.holdNumber || h.hold_number || h.id,
-            jobId: h.jobId || h.job_id || '',
-            jobNumber: h.jobNumber || h.job_number || h.jobId || '',
-            workOrderNumber: h.workOrderNumber || h.work_order_number || '',
-            operationName: h.operationName || h.operation_name || '',
-            reason: h.reason || '',
-            description: h.description || '',
-            startDate: h.startDate || h.start_date || new Date().toISOString().split('T')[0],
-            expectedResumeDate: h.expectedResumeDate || h.expected_resume_date || '',
-            approvedBy: h.approvedBy || h.approved_by || '',
-            resumeDate: h.resumeDate || h.resume_date || '',
-            status: h.status || 'Active Hold',
-            remarks: h.remarks || '',
-          }));
-          setProductionHolds(normalizedHolds);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_productionHolds', JSON.stringify(normalizedHolds)); } catch (_) {}
-          }
-        }
-
-        const rawWip = val<any[]>(results[88]);
-        if (rawWip && Array.isArray(rawWip) && rawWip.length > 0) {
-          const normalizedWip: WIPRecord[] = rawWip.map((w: any) => ({
-            ...w,
-            id: String(w.id),
-            jobId: w.jobId || w.job_id || '',
-            jobNumber: w.jobNumber || w.job_number || w.jobId || '',
-            workOrderNumber: w.workOrderNumber || w.work_order_number || '',
-            productionOrderNumber: w.productionOrderNumber || w.production_order_number || '',
-            currentOperationName: w.currentOperationName || w.current_operation_name || '',
-            completedOperationsCount: Number(w.completedOperationsCount ?? w.completed_operations_count ?? 0),
-            totalOperationsCount: Number(w.totalOperationsCount ?? w.total_operations_count ?? 0),
-            wipQuantity: Number(w.wipQuantity ?? w.wip_quantity ?? 0),
-            uom: w.uom || 'Nos',
-            location: w.location || '',
-            responsibleDepartment: w.responsibleDepartment || w.responsible_department || '',
-            startDate: w.startDate || w.start_date || '',
-            expectedCompletionDate: w.expectedCompletionDate || w.expected_completion_date || '',
-            delayDays: Number(w.delayDays ?? w.delay_days ?? 0),
-            status: w.status || 'In Progress',
-          }));
-          setWipRecords(normalizedWip);
-        }
-
-        const rawRoutingOps = val<any[]>(results[89]);
-        if (rawRoutingOps && Array.isArray(rawRoutingOps) && rawRoutingOps.length > 0) {
-          const normalizedOps: RoutingOperation[] = rawRoutingOps.map((o: any) => ({
-            ...o,
-            id: String(o.id),
-            operationNumber: Number(o.operationNumber ?? o.operation_number ?? 10),
-            operationName: o.operationName || o.operation_name || '',
-            sequence: Number(o.sequence || 1),
-            workCenterCode: o.workCenterCode || o.work_center_code || '',
-            workCenterName: o.workCenterName || o.work_center_name || '',
-            machineName: o.machineName || o.machine_name || '',
-            department: o.department || '',
-            plannedSetupMinutes: Number(o.plannedSetupMinutes ?? o.planned_setup_minutes ?? 0),
-            plannedProcessingMinutes: Number(o.plannedProcessingMinutes ?? o.planned_processing_minutes ?? 0),
-            totalPlannedMinutes: Number(o.totalPlannedMinutes ?? o.total_planned_minutes ?? 0),
-            assignedOperator: o.assignedOperator || o.assigned_operator || '',
-            qcRequired: o.qcRequired ?? o.qc_required ?? true,
-            instructions: o.instructions || '',
-            status: o.status || 'Pending',
-          }));
-          setRoutingOperations(normalizedOps);
-        }
-      } catch (err) {
-        console.warn('Initial live data load warning:', err);
-      } finally {
-        if (isMounted) {
-          setIsInitialLoading(false);
+          };
+        });
+        setSalesInvoices(normalizedSI);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_salesInvoices', JSON.stringify(normalizedSI)); } catch (_) {}
         }
       }
+
+      const piRes = val<any[]>(results[3]);
+      if (piRes && Array.isArray(piRes) && piRes.length > 0) {
+        const normalizedPI: PurchaseInvoice[] = piRes.map((inv: any) => ({
+          ...inv,
+          id: String(inv.id || inv.invoiceNumber || inv.invoice_number),
+          invoiceNumber: inv.invoiceNumber || inv.invoice_number || inv.id,
+          vendorInvoiceNumber: inv.vendorInvoiceNumber || inv.vendor_invoice_number || '',
+          invoiceDate: inv.invoiceDate || inv.invoice_date || '',
+          supplierId: inv.supplierId || inv.supplier_id || '',
+          supplierName: inv.supplierName || inv.supplier_name || 'Supplier',
+          subTotal: Number(inv.subTotal ?? inv.subtotal ?? inv.taxable_amount ?? 0),
+          grandTotal: Number(inv.grandTotal ?? inv.grand_total ?? 0),
+          status: inv.status || 'Draft',
+          paymentStatus: inv.paymentStatus || inv.payment_status || 'Unpaid',
+        }));
+        setPurchaseInvoices(normalizedPI);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_purchaseInvoices', JSON.stringify(normalizedPI)); } catch (_) {}
+        }
+      }
+
+      applyLive<CustomerReceipt>(val(results[4]), setCustomerReceipts, 'customerReceipts');
+      applyLive<SupplierPayment>(val(results[5]), setSupplierPayments, 'supplierPayments');
+      applyLive<JournalEntry>(val(results[6]), setJournalEntries, 'journalEntries');
+      applyLive<CreditNote>(val(results[7]), setCreditNotes, 'creditNotes');
+      applyLive<DebitNote>(val(results[8]), setDebitNotes, 'debitNotes');
+      applyLive<ContraEntry>(val(results[9]), setContraEntries, 'contraEntries');
+      applyLive<BankAccount>(val(results[10]), setBankAccounts, 'bankAccounts');
+      applyLive<ExpenseEntry>(val(results[11]), setExpenseEntries, 'expenseEntries');
+      applyLive<FixedAsset>(val(results[12]), setFixedAssets, 'fixedAssets');
+
+      lastSyncTimes.current['accounting'] = Date.now();
+    } catch (err) {
+      console.warn('Accounting sync error:', err);
     }
-
-    loadLiveData();
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
+
+  // 11. Integration & Central Workflow Sync
+  const syncIntegration = useCallback(async (force = false) => {
+    const now = Date.now();
+    if (!force && lastSyncTimes.current['integration'] && now - lastSyncTimes.current['integration'] < STALE_TIME_MS) return;
+    try {
+      const results = await Promise.allSettled([
+        api.integration.approvals.list(),
+        api.integration.alerts.list(),
+      ]);
+
+      applyLive<ApprovalItem>(val(results[0]), setCentralApprovals, 'approvals');
+      applyLive<ERPAlertItem>(val(results[1]), setCentralAlerts, 'alerts');
+
+      lastSyncTimes.current['integration'] = Date.now();
+    } catch (err) {
+      console.warn('Integration sync error:', err);
+    }
+  }, []);
+
+  // Universal module dispatcher
+  const syncModule = useCallback((moduleName: string, force = false) => {
+    switch (moduleName.toLowerCase()) {
+      case 'crm':
+      case 'sales':
+      case 'leads':
+      case 'customers':
+      case 'quotations':
+        return syncCRM(force);
+      case 'projects':
+      case 'project':
+        return syncProjects(force);
+      case 'designer':
+      case 'design':
+      case 'engineering':
+      case 'bom':
+        return syncDesigner(force);
+      case 'purchase':
+      case 'procurement':
+        return syncPurchase(force);
+      case 'store':
+      case 'warehouse':
+      case 'inventory':
+      case 'items':
+        return syncStore(force);
+      case 'production':
+      case 'manufacturing':
+      case 'workorders':
+        return syncProduction(force);
+      case 'maintenance':
+      case 'service':
+        return syncMaintenance(force);
+      case 'hr':
+      case 'payroll':
+      case 'employees':
+        return syncHR(force);
+      case 'accounting':
+      case 'accounts':
+      case 'finance':
+      case 'invoices':
+        return syncAccounting(force);
+      case 'integration':
+      case 'admin':
+      case 'dashboard':
+        return syncIntegration(force);
+      default:
+        return Promise.resolve();
+    }
+  }, [syncCRM, syncProjects, syncDesigner, syncPurchase, syncStore, syncProduction, syncMaintenance, syncHR, syncAccounting, syncIntegration]);
+
+  // Initial Mount: FAST BOOTSTRAP ONLY (Only core session and masters)
+  useEffect(() => {
+    syncBootstrap();
+  }, [syncBootstrap]);
+
+  // Route-Aware On-Demand Module Fetching (Triggered ONLY when user visits a module's routes)
+  useEffect(() => {
+    if (!pathname) return;
+    if (pathname.startsWith('/crm') || pathname === '/sales') {
+      syncCRM();
+    } else if (pathname.startsWith('/projects') || pathname.startsWith('/project')) {
+      syncProjects();
+    } else if (pathname.startsWith('/designer') || pathname.startsWith('/engineering') || pathname.startsWith('/design')) {
+      syncDesigner();
+    } else if (pathname.startsWith('/purchase') || pathname.startsWith('/procurement')) {
+      syncPurchase();
+    } else if (pathname.startsWith('/store') || pathname.startsWith('/inventory') || pathname.startsWith('/warehouse')) {
+      syncStore();
+    } else if (pathname.startsWith('/production') || pathname.startsWith('/manufacturing')) {
+      syncProduction();
+    } else if (pathname.startsWith('/maintenance') || pathname.startsWith('/service')) {
+      syncMaintenance();
+    } else if (pathname.startsWith('/hr') || pathname.startsWith('/payroll')) {
+      syncHR();
+    } else if (pathname.startsWith('/accounting') || pathname.startsWith('/accounts') || pathname.startsWith('/finance')) {
+      syncAccounting();
+    } else if (pathname.startsWith('/integration') || pathname.startsWith('/admin') || pathname === '/' || pathname === '/dashboard') {
+      syncIntegration();
+    }
+  }, [pathname, syncCRM, syncProjects, syncDesigner, syncPurchase, syncStore, syncProduction, syncMaintenance, syncHR, syncAccounting, syncIntegration]);
 
   // Cross-Department Automatic Synchronization:
   // When a project is created or planned, it automatically creates/syncs:
@@ -6368,25 +6785,88 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     api.purchase.supplierQuotations.update(id, { status: 'Approved', approvedBy }).catch((err: any) => console.warn('Failed to approve supplier quotation on backend:', err));
   };
 
+  const updateSupplierQuotation = (id: string, data: Partial<SupplierQuotation>) => {
+    setSupplierQuotations((prev) => {
+      const updated = prev.map((q) =>
+        q.id === id || q.quotationNumber === id || (q as any).quotation_number === id
+          ? { ...q, ...data, updatedAt: new Date().toISOString() }
+          : q
+      );
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_supplierQuotations', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('UPDATE', 'Purchase', 'Supplier Quotations', id, `Updated Supplier Quotation ${id}`);
+    api.purchase.supplierQuotations.update(id, data).catch((err: any) => console.warn('Failed to update supplier quotation on backend:', err));
+  };
+
+  const deleteSupplierQuotation = (id: string) => {
+    setSupplierQuotations((prev) => {
+      const updated = prev.filter((q) => q.id !== id && q.quotationNumber !== id && (q as any).quotation_number !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_supplierQuotations', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'Purchase', 'Supplier Quotations', id, `Deleted Supplier Quotation ${id}`);
+    api.purchase.supplierQuotations.delete(id).catch((err: any) => console.warn('Failed to delete supplier quotation on backend:', err));
+  };
+
   const addQuotationComparison = (data: Omit<QuotationComparison, 'id' | 'comparisonDate'>) => {
-    const id = `COMP-${Date.now().toString().slice(-5)}`;
+    const id = (data as any).id || `COMP-${Date.now().toString().slice(-5)}`;
     const newComp: QuotationComparison = {
       ...data,
       id,
-      comparisonDate: new Date().toISOString().split('T')[0],
+      comparisonDate: (data as any).comparisonDate || new Date().toISOString().split('T')[0],
     };
-    setQuotationComparisons((prev) => [newComp, ...prev]);
+    setQuotationComparisons((prev) => {
+      const updated = [newComp, ...prev.filter((c) => c.id !== id && c.rfqId !== newComp.rfqId && c.rfqNumber !== newComp.rfqNumber)];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_quotationComparisons', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Purchase', 'Quotation Comparison', id, `Created comparison matrix for RFQ ${data.rfqNumber}`);
     api.post('/quotation-comparisons/', newComp).catch((err) => console.warn('Failed to add quotation comparison:', err));
   };
 
+  const updateQuotationComparison = (id: string, data: Partial<QuotationComparison>) => {
+    setQuotationComparisons((prev) => {
+      const updated = prev.map((c) => (c.id === id || c.comparisonNumber === id ? { ...c, ...data } : c));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_quotationComparisons', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('UPDATE', 'Purchase', 'Quotation Comparison', id, `Updated comparison matrix ${id}`);
+    api.patch(`/quotation-comparisons/${id}/`, data).catch((err) => console.warn('Failed to update comparison:', err));
+  };
+
+  const deleteQuotationComparison = (id: string) => {
+    setQuotationComparisons((prev) => {
+      const updated = prev.filter((c) => c.id !== id && c.comparisonNumber !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_quotationComparisons', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'Purchase', 'Quotation Comparison', id, `Deleted comparison matrix ${id}`);
+    api.delete(`/quotation-comparisons/${id}/`).catch((err) => console.warn('Failed to delete comparison:', err));
+  };
+
   const approveQuotationComparison = (id: string, approvedBy: string) => {
-    setQuotationComparisons((prev) =>
-      prev.map((c) =>
-        c.id === id ? { ...c, approvalStatus: 'approved', approvedBy } : c
-      )
-    );
-    api.patch(`/quotation-comparisons/${id}/`, { approvalStatus: 'approved', approvedBy }).catch((err) => console.warn('Failed to approve comparison:', err));
+    setQuotationComparisons((prev) => {
+      const updated = prev.map((c) =>
+        c.id === id || c.comparisonNumber === id ? { ...c, approvalStatus: 'approved', status: 'Approved', approvedBy } : c
+      );
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_quotationComparisons', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('APPROVE', 'Purchase', 'Quotation Comparison', id, `Approved Comparison Matrix ${id} by ${approvedBy}`);
+    api.patch(`/quotation-comparisons/${id}/`, { approvalStatus: 'approved', status: 'Approved', approvedBy }).catch((err) => console.warn('Failed to approve comparison:', err));
   };
 
   const addPurchaseOrder = (data: Omit<PurchaseOrder, 'id' | 'poDate'>) => {
@@ -6778,33 +7258,37 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     rejectedQty: number,
     remarks?: string,
     actualSpecification?: string,
-    parameters?: string
+    parameters?: string,
+    extraDetails?: Partial<QCInspection>
   ) => {
     let targetQc = qcInspections.find((q) => q.id === id || q.inspectionNumber === id || q.grnNumber === id || q.grnId === id);
     if (!targetQc) {
-      const matchingGrn = goodsReceipts.find((g) => g.id === id || g.grnNumber === id);
+      const grnTargetId = extraDetails?.grnNumber || extraDetails?.grnId || id;
+      const matchingGrn = goodsReceipts.find((g) => g.id === grnTargetId || g.grnNumber === grnTargetId || g.id === id || g.grnNumber === id);
       const firstItem = matchingGrn?.items?.[0];
       targetQc = {
         id: id && id.startsWith('QC-') ? id : `QC-${new Date().getFullYear()}-${String(qcInspections.length + 1).padStart(4, '0')}`,
         inspectionNumber: id && id.startsWith('QC-') ? id : `QC-${new Date().getFullYear()}-${String(qcInspections.length + 1).padStart(4, '0')}`,
         inspectionDate: new Date().toISOString().split('T')[0],
-        grnId: matchingGrn?.id || id,
-        grnNumber: matchingGrn?.grnNumber || id,
-        itemId: firstItem?.itemId || 'ITM-001',
-        itemCode: firstItem?.itemCode || 'RAW-MAT',
-        itemName: firstItem?.itemName || 'Raw Material',
-        jobId: matchingGrn?.jobId || 'General Stock',
-        supplierName: matchingGrn?.supplierName || 'Supplier',
-        requiredSpecification: 'Standard Technical Delivery Conditions (TDC)',
-        actualSpecification: actualSpecification || 'Inspected OK',
-        inspectionParameters: parameters || 'Dimension & PMI Verification',
-        sampleQuantity: acceptedQty + rejectedQty > 0 ? acceptedQty + rejectedQty : 1,
+        grnId: matchingGrn?.id || extraDetails?.grnId || extraDetails?.grnNumber || id,
+        grnNumber: matchingGrn?.grnNumber || extraDetails?.grnNumber || id,
+        itemId: extraDetails?.itemId || firstItem?.itemId || 'ITM-001',
+        itemCode: extraDetails?.itemCode || firstItem?.itemCode || 'RAW-MAT',
+        itemName: extraDetails?.itemName || firstItem?.itemName || 'Raw Material',
+        jobId: extraDetails?.jobId || matchingGrn?.jobId || 'General Stock',
+        supplierName: extraDetails?.supplierName || matchingGrn?.supplierName || 'Supplier',
+        requiredSpecification: extraDetails?.requiredSpecification || 'Standard Technical Delivery Conditions (TDC)',
+        actualSpecification: actualSpecification || extraDetails?.actualSpecification || 'Inspected OK',
+        inspectionParameters: parameters || extraDetails?.inspectionParameters || 'Dimension & PMI Verification',
+        sampleQuantity: acceptedQty + rejectedQty > 0 ? acceptedQty + rejectedQty : (extraDetails?.sampleQuantity || 1),
         acceptedQuantity: acceptedQty,
         rejectedQuantity: rejectedQty,
         qcResult,
-        inspectorName: inspectorName || 'Suresh Patel (Sr. QC Lead)',
-        remarks: remarks || '',
+        inspectorName: inspectorName || extraDetails?.inspectorName || 'Suresh Patel (Sr. QC Lead)',
+        remarks: remarks || extraDetails?.remarks || '',
       };
+    } else if (extraDetails) {
+      targetQc = { ...targetQc, ...extraDetails };
     }
 
     setQcInspections((prev) => {
@@ -6946,14 +7430,43 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addMaterialIssue = (data: Omit<MaterialIssue, 'id' | 'issueNumber' | 'createdAt'>) => {
-    const issueNumber = `ISS-${new Date().getFullYear()}-${String(materialIssues.length + 1).padStart(4, '0')}`;
+    const issueNumber = (data as any).issueNumber || `ISS-${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`;
     const newIssue: MaterialIssue = {
       ...data,
-      id: issueNumber,
+      id: (data as any).id || issueNumber,
       issueNumber,
       createdAt: new Date().toISOString().split('T')[0],
     };
-    setMaterialIssues((prev) => [newIssue, ...prev]);
+    setMaterialIssues((prev) => {
+      const updated = [newIssue, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_materialIssues', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
+    // Reduce usable stock balance
+    if (newIssue.items && newIssue.items.length > 0) {
+      newIssue.items.forEach((it) => {
+        const qty = Number(it.issuedQuantity || it.requiredQuantity || 0);
+        if (qty > 0) {
+          setStockBalances((prev) => {
+            const updated = prev.map((s) => {
+              if (s.itemCode === it.itemCode || s.itemId === it.itemId) {
+                const newAvail = Math.max(0, (s.availableQty || 0) - qty);
+                const newUsable = Math.max(0, (s.usableQty || 0) - qty);
+                return { ...s, availableQty: newAvail, usableQty: newUsable, stockValue: newUsable * (s.averageRate || 150) };
+              }
+              return s;
+            });
+            if (typeof window !== 'undefined') {
+              try { localStorage.setItem('UMA_ERP_stockBalances', JSON.stringify(updated)); } catch (_) {}
+            }
+            return updated;
+          });
+        }
+      });
+    }
 
     if (newIssue.jobId) {
       updateJobStatus(newIssue.jobId, 'step-6', 'completed');
@@ -6966,14 +7479,20 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addMaterialReturn = (data: Omit<MaterialReturn, 'id' | 'returnNumber' | 'createdAt'>) => {
-    const returnNumber = `RET-${new Date().getFullYear()}-${String(materialReturns.length + 1).padStart(4, '0')}`;
+    const returnNumber = (data as any).returnNumber || `RET-${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`;
     const newRet: MaterialReturn = {
       ...data,
-      id: returnNumber,
+      id: (data as any).id || returnNumber,
       returnNumber,
       createdAt: new Date().toISOString().split('T')[0],
     };
-    setMaterialReturns((prev) => [newRet, ...prev]);
+    setMaterialReturns((prev) => {
+      const updated = [newRet, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_materialReturns', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Store', 'Material Return', newRet.id, `Returned material ${newRet.returnNumber} from Job ${newRet.jobId}`);
     api.post('/material-returns/', newRet).catch((err) => console.warn('Failed to add material return:', err));
   };
@@ -7169,17 +7688,63 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const recordProductionEntry = (data: Omit<ProductionEntry, 'id' | 'productionEntryNumber' | 'goodQuantity'>) => {
-    const productionEntryNumber = `PENTRY-${new Date().getFullYear()}-${String(productionEntries.length + 1).padStart(4, '0')}`;
-    const goodQuantity = Math.max(0, data.producedQuantity - data.rejectedQuantity - data.scrapQuantity);
+    const productionEntryNumber = (data as any).productionEntryNumber || `PENTRY-${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`;
+    const produced = Number(data.producedQuantity) || 0;
+    const rejected = Number(data.rejectedQuantity) || 0;
+    const scrap = Number(data.scrapQuantity) || 0;
+    const goodQuantity = Math.max(0, produced - rejected - scrap);
     const newEntry: ProductionEntry = {
       ...data,
-      id: productionEntryNumber,
+      id: (data as any).id || productionEntryNumber,
       productionEntryNumber,
       goodQuantity,
     };
-    setProductionEntries((prev) => [newEntry, ...prev]);
+    setProductionEntries((prev) => {
+      const updated = [newEntry, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_productionEntries', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Production', 'Production Entry', newEntry.id, `Recorded entry ${newEntry.productionEntryNumber}: Good Qty = ${goodQuantity} for ${newEntry.workOrderNumber}`);
     api.production.entries.create(newEntry).catch((err) => console.warn('Failed to record production entry:', err));
+  };
+
+  const updateProductionEntry = (id: string, updates: Partial<ProductionEntry>) => {
+    setProductionEntries((prev) => {
+      const updated = prev.map((entry) => {
+        if (entry.id === id || entry.productionEntryNumber === id) {
+          const produced = updates.producedQuantity !== undefined ? Number(updates.producedQuantity) : entry.producedQuantity;
+          const rejected = updates.rejectedQuantity !== undefined ? Number(updates.rejectedQuantity) : entry.rejectedQuantity;
+          const scrap = updates.scrapQuantity !== undefined ? Number(updates.scrapQuantity) : entry.scrapQuantity;
+          const goodQuantity = Math.max(0, produced - rejected - scrap);
+          return {
+            ...entry,
+            ...updates,
+            goodQuantity,
+          };
+        }
+        return entry;
+      });
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_productionEntries', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('UPDATE', 'Production', 'Production Entry', id, `Updated production entry ${id}`);
+    api.production.entries.update(id, updates).catch((err) => console.warn('Failed to update production entry:', err));
+  };
+
+  const deleteProductionEntry = (id: string) => {
+    setProductionEntries((prev) => {
+      const updated = prev.filter((entry) => entry.id !== id && entry.productionEntryNumber !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_productionEntries', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'Production', 'Production Entry', id, `Deleted production entry ${id}`);
+    api.production.entries.delete(id).catch((err) => console.warn('Failed to delete production entry:', err));
   };
 
   const addProductionHold = (data: Omit<ProductionHold, 'id' | 'holdNumber'>) => {
@@ -7241,16 +7806,122 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addFinishedGoods = (data: Omit<FinishedGoodsItem, 'id' | 'finishedGoodsNumber' | 'createdAt'>) => {
-    const finishedGoodsNumber = `FG-${new Date().getFullYear()}-${String(finishedGoods.length + 1).padStart(3, '0')}`;
+    const finishedGoodsNumber = (data as any).finishedGoodsNumber || `FG-${new Date().getFullYear()}-${String(finishedGoods.length + 1).padStart(3, '0')}`;
     const newFg: FinishedGoodsItem = {
       ...data,
-      id: finishedGoodsNumber,
+      id: (data as any).id || finishedGoodsNumber,
       finishedGoodsNumber,
       createdAt: new Date().toISOString().split('T')[0],
+      status: data.status || 'Ready for Dispatch',
+      qcStatus: data.qcStatus || 'QC Passed',
     };
-    setFinishedGoods((prev) => [newFg, ...prev]);
+    setFinishedGoods((prev) => {
+      const updated = [newFg, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_finishedGoods', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'Production', 'Finished Goods', newFg.id, `Transferred ${newFg.productName} to Finished Goods Warehouse (${newFg.warehouseName})`);
-    api.post('/finished-goods/', newFg).catch((err) => console.warn('Failed to add finished goods:', err));
+    api.production.finishedGoods.create(newFg).catch((err) => console.warn('Failed to add finished goods:', err));
+  };
+
+  const updateFinishedGoods = (id: string, updates: Partial<FinishedGoodsItem>) => {
+    setFinishedGoods((prev) => {
+      const updated = prev.map((fg) => (fg.id === id || fg.finishedGoodsNumber === id ? { ...fg, ...updates } : fg));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_finishedGoods', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('UPDATE', 'Production', 'Finished Goods', id, `Updated Finished Goods ${id}`);
+    api.production.finishedGoods.update(id, updates).catch((err) => console.warn('Failed to update finished goods:', err));
+  };
+
+  const deleteFinishedGoods = (id: string) => {
+    setFinishedGoods((prev) => {
+      const updated = prev.filter((fg) => fg.id !== id && fg.finishedGoodsNumber !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_finishedGoods', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'Production', 'Finished Goods', id, `Deleted Finished Goods record ${id}`);
+    api.production.finishedGoods.delete(id).catch((err) => console.warn('Failed to delete finished goods:', err));
+  };
+
+  const addDispatchOrder = (data: Omit<DispatchOrder, 'id' | 'dispatchNumber' | 'createdAt'>) => {
+    const dispatchNumber = (data as any).dispatchNumber || `DISP-${new Date().getFullYear()}-${String(dispatchOrders.length + 1).padStart(3, '0')}`;
+    const newDisp: DispatchOrder = {
+      ...data,
+      id: (data as any).id || dispatchNumber,
+      dispatchNumber,
+      dispatchDate: data.dispatchDate || new Date().toISOString().split('T')[0],
+      createdAt: new Date().toISOString().split('T')[0],
+      status: data.status || 'Ready for Dispatch',
+    };
+    setDispatchOrders((prev) => {
+      const updated = [newDisp, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_dispatchOrders', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
+    if (newDisp.finishedGoodsNumber) {
+      updateFinishedGoods(newDisp.finishedGoodsNumber, { status: 'Dispatched' });
+    }
+
+    if (newDisp.jobNumber) {
+      updateJobStatus(newDisp.jobNumber, 'step-8', 'completed');
+      updateJobStatus(newDisp.jobNumber, 'step-9', 'in_progress');
+    }
+
+    logAction('CREATE', 'Production', 'Dispatch & Delivery Challan', newDisp.id, `Created Dispatch Note ${newDisp.dispatchNumber} for ${newDisp.customerName} (Vehicle: ${newDisp.vehicleNumber})`);
+    sendNotification({
+      title: `🚛 Dispatch Challan Issued: ${newDisp.dispatchNumber}`,
+      message: `${newDisp.productName} for ${newDisp.customerName} cleared for dispatch via ${newDisp.transporterName} (${newDisp.vehicleNumber}).`,
+      type: 'success',
+      department: 'project',
+      priority: 'high',
+      linkUrl: `/production/dispatch`,
+    });
+
+    api.production.dispatch.create(newDisp).catch((err) => console.warn('Failed to sync dispatch order to backend:', err));
+  };
+
+  const updateDispatchOrder = (id: string, updates: Partial<DispatchOrder>) => {
+    setDispatchOrders((prev) => {
+      const updated = prev.map((disp) => (disp.id === id || disp.dispatchNumber === id ? { ...disp, ...updates } : disp));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_dispatchOrders', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('UPDATE', 'Production', 'Dispatch Order', id, `Updated Dispatch Record ${id}`);
+    api.production.dispatch.update(id, updates).catch((err) => console.warn('Failed to update dispatch order:', err));
+  };
+
+  const deleteDispatchOrder = (id: string) => {
+    setDispatchOrders((prev) => {
+      const updated = prev.filter((disp) => disp.id !== id && disp.dispatchNumber !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_dispatchOrders', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'Production', 'Dispatch Order', id, `Deleted Dispatch Record ${id}`);
+    api.production.dispatch.delete(id).catch((err) => console.warn('Failed to delete dispatch order:', err));
+  };
+
+  const markDispatchInTransit = (id: string) => {
+    updateDispatchOrder(id, { status: 'In Transit' });
+    api.production.dispatch.markDispatched(id).catch(() => {});
+  };
+
+  const markDispatchDelivered = (id: string) => {
+    updateDispatchOrder(id, { status: 'Delivered to Site' });
+    api.production.dispatch.markDelivered(id).catch(() => {});
   };
 
   // Traceability Modal Helpers
@@ -7786,35 +8457,262 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Module 8 Maintenance & Services State
-  const [internalAssets, setInternalAssets] = useState<InternalAsset[]>(mockInternalAssets);
-  const [customerMachines, setCustomerMachines] = useState<CustomerMachine[]>(mockCustomerMachines);
-  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>(mockServiceRequests);
-  const [breakdowns, setBreakdowns] = useState<BreakdownRecord[]>(mockBreakdowns);
-  const [preventivePlans, setPreventivePlans] = useState<PreventiveMaintenancePlan[]>(mockPreventiveMaintenancePlans);
-  const [servicePlanningItems, setServicePlanningItems] = useState<ServicePlanningItem[]>(mockServicePlanningItems);
-  const [serviceVisits, setServiceVisits] = useState<ServiceVisit[]>(mockServiceVisits);
-  const [serviceWorkOrders, setServiceWorkOrders] = useState<ServiceWorkOrder[]>(mockServiceWorkOrders);
-  const [servicePartIssues, setServicePartIssues] = useState<ServicePartIssue[]>(mockServicePartIssues);
-  const [servicePartReturns, setServicePartReturns] = useState<ServicePartReturn[]>(mockServicePartReturns);
-  const [serviceReports, setServiceReports] = useState<ServiceReport[]>(mockServiceReports);
-  const [warranties, setWarranties] = useState<WarrantyRecord[]>(mockWarranties);
-  const [amcContracts, setAmcContracts] = useState<AMCContract[]>(mockAMCContracts);
-  const [serviceContracts, setServiceContracts] = useState<ServiceContract[]>(mockServiceContracts);
-  const [downtimeRecords, setDowntimeRecords] = useState<DowntimeRecord[]>(mockDowntimeRecords);
-  const [maintenanceCosts, setMaintenanceCosts] = useState<MaintenanceCostRecord[]>(mockMaintenanceCosts);
-  const [checklistTemplates, setChecklistTemplates] = useState<ServiceChecklistTemplate[]>(mockChecklistTemplates);
-  const [technicians, setTechnicians] = useState<TechnicianProfile[]>(mockTechnicians);
+  const [internalAssets, setInternalAssets] = useState<InternalAsset[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_internalAssets');
+        if (stored) {
+          const p = JSON.parse(stored);
+          if (Array.isArray(p)) return p;
+        }
+      } catch (_) {}
+    }
+    return mockInternalAssets;
+  });
+
+  const [customerMachines, setCustomerMachines] = useState<CustomerMachine[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_customerMachines');
+        if (stored) {
+          const p = JSON.parse(stored);
+          if (Array.isArray(p)) return p;
+        }
+      } catch (_) {}
+    }
+    return mockCustomerMachines;
+  });
+
+  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_serviceRequests');
+        if (stored) {
+          const p = JSON.parse(stored);
+          if (Array.isArray(p)) return p;
+        }
+      } catch (_) {}
+    }
+    return mockServiceRequests;
+  });
+
+  const [breakdowns, setBreakdowns] = useState<BreakdownRecord[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_breakdowns');
+        if (stored) {
+          const p = JSON.parse(stored);
+          if (Array.isArray(p)) return p;
+        }
+      } catch (_) {}
+    }
+    return mockBreakdowns;
+  });
+
+  const [preventivePlans, setPreventivePlans] = useState<PreventiveMaintenancePlan[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_preventivePlans');
+        if (stored) {
+          const p = JSON.parse(stored);
+          if (Array.isArray(p)) return p;
+        }
+      } catch (_) {}
+    }
+    return mockPreventiveMaintenancePlans;
+  });
+
+  const [servicePlanningItems, setServicePlanningItems] = useState<ServicePlanningItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_servicePlanningItems');
+        if (stored) {
+          const p = JSON.parse(stored);
+          if (Array.isArray(p)) return p;
+        }
+      } catch (_) {}
+    }
+    return mockServicePlanningItems;
+  });
+
+  const [serviceVisits, setServiceVisits] = useState<ServiceVisit[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_serviceVisits');
+        if (stored) {
+          const p = JSON.parse(stored);
+          if (Array.isArray(p)) return p;
+        }
+      } catch (_) {}
+    }
+    return mockServiceVisits;
+  });
+
+  const [serviceWorkOrders, setServiceWorkOrders] = useState<ServiceWorkOrder[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_serviceWorkOrders');
+        if (stored) {
+          const p = JSON.parse(stored);
+          if (Array.isArray(p)) return p;
+        }
+      } catch (_) {}
+    }
+    return mockServiceWorkOrders;
+  });
+
+  const [servicePartIssues, setServicePartIssues] = useState<ServicePartIssue[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_servicePartIssues');
+        if (stored) {
+          const p = JSON.parse(stored);
+          if (Array.isArray(p)) return p;
+        }
+      } catch (_) {}
+    }
+    return mockServicePartIssues;
+  });
+
+  const [servicePartReturns, setServicePartReturns] = useState<ServicePartReturn[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_servicePartReturns');
+        if (stored) {
+          const p = JSON.parse(stored);
+          if (Array.isArray(p)) return p;
+        }
+      } catch (_) {}
+    }
+    return mockServicePartReturns;
+  });
+
+  const [serviceReports, setServiceReports] = useState<ServiceReport[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_serviceReports');
+        if (stored) {
+          const p = JSON.parse(stored);
+          if (Array.isArray(p)) return p;
+        }
+      } catch (_) {}
+    }
+    return mockServiceReports;
+  });
+
+  const [warranties, setWarranties] = useState<WarrantyRecord[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_warranties');
+        if (stored) {
+          const p = JSON.parse(stored);
+          if (Array.isArray(p)) return p;
+        }
+      } catch (_) {}
+    }
+    return mockWarranties;
+  });
+
+  const [amcContracts, setAmcContracts] = useState<AMCContract[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_amcContracts');
+        if (stored) {
+          const p = JSON.parse(stored);
+          if (Array.isArray(p)) return p;
+        }
+      } catch (_) {}
+    }
+    return mockAMCContracts;
+  });
+
+  const [serviceContracts, setServiceContracts] = useState<ServiceContract[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_serviceContracts');
+        if (stored) {
+          const p = JSON.parse(stored);
+          if (Array.isArray(p)) return p;
+        }
+      } catch (_) {}
+    }
+    return mockServiceContracts;
+  });
+
+  const [downtimeRecords, setDowntimeRecords] = useState<DowntimeRecord[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_downtimeRecords');
+        if (stored) {
+          const p = JSON.parse(stored);
+          if (Array.isArray(p)) return p;
+        }
+      } catch (_) {}
+    }
+    return mockDowntimeRecords;
+  });
+
+  const [maintenanceCosts, setMaintenanceCosts] = useState<MaintenanceCostRecord[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_maintenanceCosts');
+        if (stored) {
+          const p = JSON.parse(stored);
+          if (Array.isArray(p)) return p;
+        }
+      } catch (_) {}
+    }
+    return mockMaintenanceCosts;
+  });
+
+  const [checklistTemplates, setChecklistTemplates] = useState<ServiceChecklistTemplate[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_checklistTemplates');
+        if (stored) {
+          const p = JSON.parse(stored);
+          if (Array.isArray(p)) return p;
+        }
+      } catch (_) {}
+    }
+    return mockChecklistTemplates;
+  });
+
+  const [technicians, setTechnicians] = useState<TechnicianProfile[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_technicians');
+        if (stored) {
+          const p = JSON.parse(stored);
+          if (Array.isArray(p)) return p;
+        }
+      } catch (_) {}
+    }
+    return mockTechnicians;
+  });
 
   const addInternalAsset = (asset: Omit<InternalAsset, 'id'>) => {
     const newId = `AST-${100 + internalAssets.length + 1}`;
     const newAsset: InternalAsset = { ...asset, id: newId };
-    setInternalAssets((prev) => [newAsset, ...prev]);
+    setInternalAssets((prev) => {
+      const updated = [newAsset, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_internalAssets', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'maintenance', 'assets', newId, `Created asset ${newAsset.assetName}`);
     api.post('/internal-assets/', newAsset).catch((err) => console.warn('Failed to add internal asset:', err));
   };
 
   const updateInternalAsset = (id: string, assetData: Partial<InternalAsset>) => {
-    setInternalAssets((prev) => prev.map((a) => (a.id === id ? { ...a, ...assetData } : a)));
+    setInternalAssets((prev) => {
+      const updated = prev.map((a) => (a.id === id ? { ...a, ...assetData } : a));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_internalAssets', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'maintenance', 'assets', id, `Updated asset ${id}`);
     api.patch(`/internal-assets/${id}/`, assetData).catch((err) => console.warn('Failed to update internal asset:', err));
   };
@@ -7873,8 +8771,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateServiceRequestStatus = (id: string, status: ServiceRequestStatus, assignedTechId?: string, assignedTechName?: string) => {
-    setServiceRequests((prev) =>
-      prev.map((sr) => {
+    setServiceRequests((prev) => {
+      const updated = prev.map((sr) => {
         if (sr.id === id || sr.requestNumber === id) {
           return {
             ...sr,
@@ -7884,15 +8782,25 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           };
         }
         return sr;
-      })
-    );
+      });
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_serviceRequests', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'maintenance', 'service-requests', id, `Updated SR status to ${status}`);
   };
 
   const addBreakdown = (bd: Omit<BreakdownRecord, 'id' | 'breakdownNumber'>) => {
     const bdNo = `BD-2026-00${breakdowns.length + 1}`;
     const newBd: BreakdownRecord = { ...bd, id: bdNo, breakdownNumber: bdNo };
-    setBreakdowns((prev) => [newBd, ...prev]);
+    setBreakdowns((prev) => {
+      const updated = [newBd, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_breakdowns', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'maintenance', 'breakdowns', bdNo, `Reported breakdown ${bdNo} on ${newBd.assetName}`);
     if (newBd.severity === 'Critical') {
       sendNotification({
@@ -7907,16 +8815,26 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateBreakdownStatus = (id: string, status: BreakdownRecord['status'], remarks?: string) => {
-    setBreakdowns((prev) =>
-      prev.map((bd) => (bd.id === id || bd.breakdownNumber === id ? { ...bd, status, ...(remarks ? { remarks } : {}) } : bd))
-    );
+    setBreakdowns((prev) => {
+      const updated = prev.map((bd) => (bd.id === id || bd.breakdownNumber === id ? { ...bd, status, ...(remarks ? { remarks } : {}) } : bd));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_breakdowns', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'maintenance', 'breakdowns', id, `Updated breakdown status to ${status}`);
   };
 
   const addPreventivePlan = (plan: Omit<PreventiveMaintenancePlan, 'id' | 'planNumber'>) => {
     const planNo = `PM-PLAN-00${preventivePlans.length + 1}`;
     const newPlan: PreventiveMaintenancePlan = { ...plan, id: planNo, planNumber: planNo };
-    setPreventivePlans((prev) => [newPlan, ...prev]);
+    setPreventivePlans((prev) => {
+      const updated = [newPlan, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_preventivePlans', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'maintenance', 'preventive', planNo, `Created PM plan ${planNo}`);
     api.post('/pm-plans/', newPlan).catch((err) => console.warn('Failed to add PM plan:', err));
   };
@@ -7924,26 +8842,52 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addServiceVisit = (visit: Omit<ServiceVisit, 'id' | 'visitNumber'>) => {
     const vNo = `VISIT-2026-00${serviceVisits.length + 1}`;
     const newVisit: ServiceVisit = { ...visit, id: vNo, visitNumber: vNo };
-    setServiceVisits((prev) => [newVisit, ...prev]);
+    setServiceVisits((prev) => {
+      const updated = [newVisit, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_serviceVisits', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'maintenance', 'service-visits', vNo, `Created service visit ${vNo}`);
     api.post('/service-visits/', newVisit).catch((err) => console.warn('Failed to add service visit:', err));
   };
 
   const updateServiceVisitStatus = (id: string, status: ServiceVisitStatus) => {
-    setServiceVisits((prev) => prev.map((v) => (v.id === id || v.visitNumber === id ? { ...v, status } : v)));
+    setServiceVisits((prev) => {
+      const updated = prev.map((v) => (v.id === id || v.visitNumber === id ? { ...v, status } : v));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_serviceVisits', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'maintenance', 'service-visits', id, `Updated visit status to ${status}`);
   };
 
   const addServiceWorkOrder = (swo: Omit<ServiceWorkOrder, 'id' | 'workOrderNumber'>) => {
-    const swoNo = `SWO-2026-00${serviceWorkOrders.length + 1}`;
-    const newSwo: ServiceWorkOrder = { ...swo, id: swoNo, workOrderNumber: swoNo };
-    setServiceWorkOrders((prev) => [newSwo, ...prev]);
+    const swoNo = (swo as any).workOrderNumber || `SWO-2026-${Date.now().toString().slice(-4)}`;
+    const newSwo: ServiceWorkOrder = { ...swo, id: (swo as any).id || swoNo, workOrderNumber: swoNo };
+    setServiceWorkOrders((prev) => {
+      const updated = [newSwo, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_serviceWorkOrders', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'maintenance', 'work-orders', swoNo, `Created service work order ${swoNo}`);
+    api.maintenance.serviceWorkOrders.create(newSwo).catch((err) => console.warn('Failed to add service work order:', err));
   };
 
   const updateWorkOrderStatus = (id: string, status: WorkOrderStatus) => {
-    setServiceWorkOrders((prev) => prev.map((swo) => (swo.id === id || swo.workOrderNumber === id ? { ...swo, status } : swo)));
+    setServiceWorkOrders((prev) => {
+      const updated = prev.map((swo) => (swo.id === id || swo.workOrderNumber === id ? { ...swo, status } : swo));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_serviceWorkOrders', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'maintenance', 'work-orders', id, `Updated work order status to ${status}`);
+    api.maintenance.serviceWorkOrders.update(id, { status }).catch((err) => console.warn('Failed to update work order status:', err));
   };
 
   const addServicePartIssue = (issue: Omit<ServicePartIssue, 'id' | 'issueNumber' | 'createdAt'>) => {
@@ -7954,7 +8898,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       issueNumber: issueNo,
       createdAt: new Date().toISOString(),
     };
-    setServicePartIssues((prev) => [newIssue, ...prev]);
+    setServicePartIssues((prev) => {
+      const updated = [newIssue, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_servicePartIssues', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'maintenance', 'parts-issue', issueNo, `Created service part issue ${issueNo}`);
     api.maintenance.servicePartIssues.create(newIssue).catch((err) => console.warn('Failed to add service part issue:', err));
   };
@@ -7962,7 +8912,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addServicePartReturn = (ret: Omit<ServicePartReturn, 'id' | 'returnNumber'>) => {
     const retNo = `SPR-2026-00${servicePartReturns.length + 1}`;
     const newRet: ServicePartReturn = { ...ret, id: retNo, returnNumber: retNo };
-    setServicePartReturns((prev) => [newRet, ...prev]);
+    setServicePartReturns((prev) => {
+      const updated = [newRet, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_servicePartReturns', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'maintenance', 'parts-return', retNo, `Created service part return ${retNo}`);
     api.maintenance.servicePartReturns.create(newRet).catch((err) => console.warn('Failed to add service part return:', err));
   };
@@ -7970,7 +8926,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addServiceReport = (rep: Omit<ServiceReport, 'id' | 'reportNumber'>) => {
     const repNo = `SREP-2026-00${serviceReports.length + 1}`;
     const newRep: ServiceReport = { ...rep, id: repNo, reportNumber: repNo };
-    setServiceReports((prev) => [newRep, ...prev]);
+    setServiceReports((prev) => {
+      const updated = [newRep, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_serviceReports', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'maintenance', 'service-reports', repNo, `Created service report ${repNo}`);
     api.maintenance.serviceReports.create(newRep).catch((err) => console.warn('Failed to add service report:', err));
   };
@@ -7978,7 +8940,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addAMCContract = (amc: Omit<AMCContract, 'id' | 'amcNumber'>) => {
     const amcNo = `AMC-2026-00${amcContracts.length + 1}`;
     const newAmc: AMCContract = { ...amc, id: amcNo, amcNumber: amcNo };
-    setAmcContracts((prev) => [newAmc, ...prev]);
+    setAmcContracts((prev) => {
+      const updated = [newAmc, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_amcContracts', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('CREATE', 'maintenance', 'amc', amcNo, `Created AMC ${amcNo}`);
     api.post('/amc-contracts/', newAmc).catch((err) => console.warn('Failed to add AMC contract:', err));
   };
@@ -7986,6 +8954,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addDowntimeRecord = (dt: Omit<DowntimeRecord, 'id' | 'downtimeNumber'>) => {
     const dtNo = `DT-2026-00${downtimeRecords.length + 1}`;
     const newDt: DowntimeRecord = { ...dt, id: dtNo, downtimeNumber: dtNo };
+    setDowntimeRecords((prev) => {
+      const updated = [newDt, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_downtimeRecords', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     setDowntimeRecords((prev) => [newDt, ...prev]);
     logAction('CREATE', 'maintenance', 'downtime', dtNo, `Logged downtime ${dtNo} for ${newDt.machineName}`);
   };
@@ -9107,7 +10082,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       value={{
         currentUser,
         setCurrentUser,
-        availableEmployees: deduplicateEmployees(employees && employees.length > 0 ? employees : INITIAL_EMPLOYEES),
+        availableEmployees: deduplicateEmployees(employees || []),
         isAuthenticated,
         login,
         logout,
@@ -9264,9 +10239,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         addRFQ,
         supplierQuotations,
         addSupplierQuotation,
+        updateSupplierQuotation,
+        deleteSupplierQuotation,
         approveSupplierQuotation,
         quotationComparisons,
         addQuotationComparison,
+        updateQuotationComparison,
+        deleteQuotationComparison,
         approveQuotationComparison,
         purchaseOrders,
         addPurchaseOrder,
@@ -9336,6 +10315,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         mrpRequirements,
         productionEntries,
         recordProductionEntry,
+        updateProductionEntry,
+        deleteProductionEntry,
         wipRecords,
         productionHolds,
         addProductionHold,
@@ -9348,6 +10329,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         completeWorkOrder,
         finishedGoods,
         addFinishedGoods,
+        updateFinishedGoods,
+        deleteFinishedGoods,
+        dispatchOrders,
+        addDispatchOrder,
+        updateDispatchOrder,
+        deleteDispatchOrder,
+        markDispatchInTransit,
+        markDispatchDelivered,
         productionCosts,
 
         // Module 7 Accounting exports

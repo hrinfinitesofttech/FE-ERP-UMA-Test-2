@@ -254,7 +254,7 @@ export default function DesignPlanningPage() {
                   <option value="">-- Choose Job --</option>
                   {designJobs.map((j) => (
                     <option key={j.id} value={j.id}>
-                      {j.designJobNumber} ({j.jobNumber}) - {j.productName}
+                      {j.jobNumber} — {j.customerName ? `[${j.customerName}] ` : ''}{j.productName} ({j.designJobNumber})
                     </option>
                   ))}
                 </select>

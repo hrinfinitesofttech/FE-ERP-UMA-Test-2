@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import { Drawing2D } from '../../../types/designer';
+import CADBlueprintViewerModal from '@/components/designer/CADBlueprintViewerModal';
 import {
   FileCheck,
   Plus,
@@ -20,12 +21,17 @@ import {
 } from 'lucide-react';
 
 export default function Drawings2DPage() {
+  const [mounted, setMounted] = useState(false);
   const { drawings2D, addDrawing2D, designJobs, currentUser } = useERP();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [selectedDrawing, setSelectedDrawing] = useState<Drawing2D | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Upload Form
   const [selectedDesignJobId, setSelectedDesignJobId] = useState('');
@@ -133,6 +139,10 @@ export default function Drawings2DPage() {
 
     closeModal();
   };
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div className="p-6 space-y-6 text-[#211B17]">
@@ -243,69 +253,12 @@ export default function Drawings2DPage() {
         })}
       </div>
 
-      {/* CAD Viewer Simulation Modal */}
+      {/* Enhanced Interactive CAD Blueprint Viewer Modal */}
       {selectedDrawing && (
-        <div
-          onClick={() => setSelectedDrawing(null)}
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl space-y-4 p-6 text-xs"
-          >
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <div>
-                <span className="font-mono font-bold text-crm-brand-500 text-sm">
-                  {selectedDrawing.drawingNumber || selectedDrawing.id} ({selectedDrawing.revisionNumber || selectedDrawing.revision || 'REV-00'})
-                </span>
-                <h3 className="text-base font-extrabold text-[#211B17] mt-0.5">
-                  {selectedDrawing.drawingTitle || (selectedDrawing as any).title}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedDrawing(null)}
-                className="text-[#70665F] hover:text-[#211B17] cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Simulated Technical CAD Viewer Canvas */}
-            <div className="w-full h-80 bg-[#060A14] border-2 border-crm-brand-600/30 rounded-xl relative flex flex-col items-center justify-center p-6 text-center overflow-hidden">
-              <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:24px_24px] opacity-30" />
-              <FileCode className="w-16 h-16 text-crm-brand-500/60 mb-3 animate-pulse" />
-              <div className="relative z-10 space-y-1">
-                <h4 className="font-mono font-bold text-white text-sm">AUTOCAD 2D VECTOR BLUEPRINT PREVIEW</h4>
-                <p className="text-slate-400 text-xs font-mono">
-                  Drawing No: {selectedDrawing.drawingNumber || selectedDrawing.id} | Format: {selectedDrawing.fileFormat || 'DWG'} | Sheet: {selectedDrawing.sheetSize || 'A1'}
-                </p>
-                <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-crm-brand-600/20 text-crm-brand- border border-crm-brand-600/30 font-mono text-[10px]">
-                  <span>Checked & Verified for ASME Sec VIII Compliance</span>
-                </div>
-              </div>
-
-              {/* Title Block Box Bottom Right */}
-              <div className="absolute bottom-2 right-2 bg-[#FAF7F2]/90 border border-[#EBE3DB] p-2 rounded text-left font-mono text-[9px] text-[#544B45]">
-                <div>UMA TECHNO FAB MFG ERP</div>
-                <div className="text-crm-brand-500 font-bold">DRW: {selectedDrawing.drawingNumber || selectedDrawing.id}</div>
-                <div>SCALE: {selectedDrawing.scale || '1:10'} | REV: {selectedDrawing.revisionNumber || selectedDrawing.revision || 'REV-00'}</div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-2">
-              <span className="text-[#70665F] font-mono">Job Ref: {selectedDrawing.jobNumber}</span>
-              <button
-                type="button"
-                onClick={() => alert(`Downloading CAD Vector Blueprint ${selectedDrawing.drawingNumber || selectedDrawing.id}.${(selectedDrawing.fileFormat || 'DWG').toLowerCase()}...`)}
-                className="px-4 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-600 text-[#211B17] font-bold flex items-center gap-2 cursor-pointer"
-              >
-                <Download className="w-4 h-4" />
-                Download {selectedDrawing.fileFormat || 'DWG'} File ({selectedDrawing.fileSize || '5.2 MB'})
-              </button>
-            </div>
-          </div>
-        </div>
+        <CADBlueprintViewerModal
+          drawing={selectedDrawing}
+          onClose={() => setSelectedDrawing(null)}
+        />
       )}
 
       {/* Modal: Upload 2D Drawing */}
@@ -344,7 +297,7 @@ export default function Drawings2DPage() {
                   <option value="">-- Select Job --</option>
                   {designJobs.map((j) => (
                     <option key={j.id} value={j.id}>
-                      {j.designJobNumber} ({j.jobNumber}) - {j.productName}
+                      {j.jobNumber} — {j.customerName ? `[${j.customerName}] ` : ''}{j.productName} ({j.designJobNumber})
                     </option>
                   ))}
                 </select>

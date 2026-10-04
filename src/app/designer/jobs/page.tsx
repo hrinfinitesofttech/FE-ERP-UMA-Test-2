@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 
 export default function DesignJobsPage() {
+  const [mounted, setMounted] = useState(false);
   const {
     designJobs,
     addDesignJob,
@@ -49,6 +50,10 @@ export default function DesignJobsPage() {
   // Drawer / View Modal State
   const [selectedJob, setSelectedJob] = useState<DesignJob | null>(null);
 
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Close modals on ESC key
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -60,6 +65,20 @@ export default function DesignJobsPage() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isModalOpen, selectedJob]);
+
+  const isJobApproved = (job: DesignJob) => {
+    if (!job) return false;
+    const st = String(job.status || '').toLowerCase();
+    const rm = String(job.remarks || '').toLowerCase();
+    return (
+      st === 'released_to_production' ||
+      st === 'released' ||
+      st === 'approved' ||
+      st === 'bom_approved' ||
+      rm.includes('released to production') ||
+      rm.includes('bom approved')
+    );
+  };
 
   const closeCreateModal = () => {
     setIsModalOpen(false);
@@ -116,6 +135,10 @@ export default function DesignJobsPage() {
 
     closeCreateModal();
   };
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div className="p-6 space-y-6  text-[#211B17] ">
@@ -268,18 +291,29 @@ export default function DesignJobsPage() {
               <div className="flex items-center gap-1.5">
                 <Link
                   href={`/designer/bom?job=${j.jobNumber}`}
-                  className="p-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-semibold transition"
+                  className="p-1.5 rounded-lg bg-[#FEF3C7] hover:bg-[#FDE68A] text-[#B45309] border border-[#FDE68A] text-xs font-semibold transition"
                   title="View / Create Master BOM"
                 >
                   <FileSpreadsheet className="w-4 h-4" />
                 </Link>
-                <Link
-                  href={`/designer/approval?job=${j.jobNumber}`}
-                  className="px-3 py-1.5 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-600 text-[#211B17] text-xs font-bold transition flex items-center gap-1"
-                >
-                  Approval
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </Link>
+                {isJobApproved(j) ? (
+                  <Link
+                    href={`/designer/approval?job=${j.jobNumber}`}
+                    className="px-2.5 py-1.5 rounded-xl bg-[#DCFCE7] hover:bg-[#BBF7D0] text-[#15803D] border border-[#BBF7D0] text-xs font-bold transition flex items-center gap-1 shadow-xs"
+                    title="Design Job is Released & Approved to Production"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#169B62]" />
+                    <span>Already Approved</span>
+                  </Link>
+                ) : (
+                  <Link
+                    href={`/designer/approval?job=${j.jobNumber}`}
+                    className="px-3 py-1.5 rounded-xl bg-[#3E2723] hover:bg-[#2C1810] text-white text-xs font-bold transition flex items-center gap-1 shadow-xs"
+                  >
+                    <span>Approval</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -322,7 +356,7 @@ export default function DesignJobsPage() {
                   <option value="">-- Choose Project --</option>
                   {projectJobs.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.id} ({p.jobNumber}) - {p.customerName} ({p.productName})
+                      {p.jobNumber || p.projectNumber || p.id} — {p.customerName ? `[${p.customerName}] ` : ''}{p.productName} ({p.id})
                     </option>
                   ))}
                 </select>

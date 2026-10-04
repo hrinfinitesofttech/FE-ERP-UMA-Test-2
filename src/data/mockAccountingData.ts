@@ -22,16 +22,7 @@ import {
   PayableAging,
 } from '../types/accounting';
 
-export const INITIAL_FINANCIAL_YEARS: FinancialYear[] = [
-  {
-    id: 'FY-2026-27',
-    name: 'FY 2026-2027',
-    fyCode: 'FY-2026-27',
-    startDate: '2026-04-01',
-    endDate: '2027-03-31',
-    status: 'Active',
-  },
-];
+export const INITIAL_FINANCIAL_YEARS: FinancialYear[] = [];
 
 export const INITIAL_ACCOUNT_GROUPS: AccountGroup[] = [];
 export const INITIAL_CHART_OF_ACCOUNTS: ChartOfAccount[] = [];

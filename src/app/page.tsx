@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useERP } from '../context/ERPContext';
 import {
@@ -17,9 +17,14 @@ import {
 import { cn } from '../lib/utils';
 
 export default function DashboardPage() {
+  const [mounted, setMounted] = useState(false);
   const { projectJobs, salesOrders, manufacturingJobs, openJobModal } = useERP();
   const [stageFilter, setStageFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Dynamic KPIs derived 100% from live backend API state
   const activeBacklog =
@@ -90,6 +95,10 @@ export default function DashboardPage() {
     return matchesStage && matchesSearch;
   });
 
+  if (!mounted) {
+    return null;
+  }
+
   return (
     <div className="space-y-4 md:space-y-5">
       {/* 1. Hero Banner */}
@@ -128,7 +137,7 @@ export default function DashboardPage() {
             </div>
             <div className="min-w-0">
               <div className="text-[11px] text-[#70665F] font-semibold">Active Order Backlog</div>
-              <div className="text-xl font-bold text-[#211B17] font-mono tracking-tight truncate">
+              <div className="text-xl font-bold text-[#211B17] font-mono tracking-tight truncate" suppressHydrationWarning>
                 ₹ {activeBacklog?.toLocaleString('en-IN')}
               </div>
             </div>

@@ -402,7 +402,7 @@ export default function WorkOrdersPage() {
                 >
                   {manufacturingJobs.map((j) => (
                     <option key={j.id} value={j.jobNumber}>
-                      {j.jobNumber} — {j.customerName}
+                      {j.jobNumber} — {j.customerName ? `[${j.customerName}] ` : ''}{j.productName}
                     </option>
                   ))}
                 </select>

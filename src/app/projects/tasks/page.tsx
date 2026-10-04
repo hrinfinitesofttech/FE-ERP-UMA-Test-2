@@ -142,7 +142,9 @@ export default function TasksPage() {
           >
             <option value="all">All Projects</option>
             {projectJobs.map((p) => (
-              <option key={p.id} value={p.id}>{p.projectNumber} ({p.jobNumber})</option>
+              <option key={p.id} value={p.id}>
+                {p.projectNumber} ({p.jobNumber}) — {p.customerName ? `[${p.customerName}] ` : ''}{p.productName}
+              </option>
             ))}
           </select>
 

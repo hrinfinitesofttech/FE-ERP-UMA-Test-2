@@ -20,13 +20,13 @@ import {
   Smartphone,
   Hash,
 } from 'lucide-react';
-import { LeadSource, LeadStatus, PriorityLevel } from '../../../../types/crm';
+import { LeadSource, LeadStatus, PriorityLevel, Employee } from '../../../../types/crm';
 
 export default function NewLeadPage() {
   const router = useRouter();
   const { addLead, employees, availableEmployees } = useERP();
 
-  const allEmployees =
+  const allEmployees: Employee[] =
     availableEmployees && availableEmployees.length > 0
       ? availableEmployees
       : employees && employees.length > 0
@@ -39,7 +39,7 @@ export default function NewLeadPage() {
       (e.department && (e.department.includes('CRM') || e.department.includes('Sales') || e.department.includes('Project')))
   );
 
-  const defaultSalesPersonId = salesEngineers[0]?.id || allEmployees[0]?.id || 'EMP-003';
+  const defaultSalesPersonId = salesEngineers[0]?.id || allEmployees[0]?.id || '';
 
   // Current today date in YYYY-MM-DD
   const todayStr = new Date().toISOString().split('T')[0];
@@ -683,6 +683,9 @@ export default function NewLeadPage() {
                       : 'border-[#EBE3DB]'
                   } rounded-xl text-[#211B17] font-medium`}
                 >
+                  {allEmployees.length === 0 && (
+                    <option value="">No sales engineers loaded (Add staff in Users module)</option>
+                  )}
                   {allEmployees.map((emp) => {
                     const name =
                       emp.name ||

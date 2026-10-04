@@ -127,8 +127,8 @@ export default function ProductionMaterialIssuePage() {
                   </td>
                 </tr>
               ) : (
-                materialIssues.map((issue: any) => (
-                  <tr key={issue.id} className="hover:bg-[#FAF7F2]/40 transition">
+                materialIssues.map((issue: any, idx: number) => (
+                  <tr key={`${issue.id || 'iss'}-${idx}`} className="hover:bg-[#FAF7F2]/40 transition">
                     <td className="p-3 font-mono font-bold text-emerald-600">{issue.issueNumber || issue.issue_number || issue.id}</td>
                     <td className="p-3 font-mono text-sky-600 font-bold">{issue.jobNumber || issue.job_number || issue.jobId || 'PRJ-2026-0001'}</td>
                     <td className="p-3 font-mono text-indigo-600 font-bold">{issue.workOrderNumber || issue.work_order_number || issue.workOrderId || 'WO-2026-001-A'}</td>

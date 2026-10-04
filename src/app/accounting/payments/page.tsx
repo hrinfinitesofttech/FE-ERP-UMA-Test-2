@@ -4,20 +4,18 @@ import React, { useState } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import { Banknote, Plus, Search, Landmark, CheckCircle2 } from 'lucide-react';
 import { BankAccount } from '../../../types/accounting';
-import { INITIAL_BANK_ACCOUNTS } from '../../../data/mockAccountingData';
 
 export default function SupplierPaymentsPage() {
   const { supplierPayments, addSupplierPayment, suppliers, purchaseInvoices, bankAccounts } = useERP();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const activeBankAccounts: BankAccount[] =
-    bankAccounts && bankAccounts.length > 0 ? bankAccounts : INITIAL_BANK_ACCOUNTS;
+  const activeBankAccounts: BankAccount[] = bankAccounts || [];
 
   const [supplierId, setSupplierId] = useState(suppliers[0]?.id || '');
-  const [invoiceNumber, setInvoiceNumber] = useState(purchaseInvoices[0]?.invoiceNumber || 'PINV-2026-0001');
+  const [invoiceNumber, setInvoiceNumber] = useState(purchaseInvoices[0]?.invoiceNumber || '');
   const [paymentMode, setPaymentMode] = useState<any>('RTGS');
-  const [bankAccountId, setBankAccountId] = useState(activeBankAccounts[0]?.id || 'BANK-01');
+  const [bankAccountId, setBankAccountId] = useState(activeBankAccounts[0]?.id || '');
   const [amountPaid, setAmountPaid] = useState<number | string>('');
   const [referenceNo, setReferenceNo] = useState('');
 

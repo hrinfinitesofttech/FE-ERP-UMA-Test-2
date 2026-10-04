@@ -158,7 +158,7 @@ export default function ProductionPlanningPage() {
                 <option value="">-- Choose Job Number --</option>
                 {manufacturingJobs.map((j) => (
                   <option key={j.id} value={j.id}>
-                    {j.jobNumber} — {j.customerName?.slice(0, 18)} ({j.productName?.slice(0, 22)})
+                    {j.jobNumber} — {j.customerName ? `[${j.customerName}] ` : ''}{j.productName}
                   </option>
                 ))}
               </select>

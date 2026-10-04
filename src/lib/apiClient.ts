@@ -1123,6 +1123,7 @@ export const api = {
       list: () => request<any[]>('/finished-goods/'),
       create: (data: any) => request<any>('/finished-goods/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/finished-goods/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/finished-goods/${id}/`, { method: 'DELETE' }),
       qcPass: (id: string) => request<any>(`/finished-goods/${id}/qc-pass/`, { method: 'POST' }),
     },
     materialRequests: {
@@ -1130,6 +1131,14 @@ export const api = {
       create: (data: any) => request<any>('/production-material-requests/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/production-material-requests/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: string) => request<any>(`/production-material-requests/${id}/`, { method: 'DELETE' }),
+    },
+    dispatch: {
+      list: () => request<any[]>('/dispatch-orders/'),
+      create: (data: any) => request<any>('/dispatch-orders/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/dispatch-orders/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/dispatch-orders/${id}/`, { method: 'DELETE' }),
+      markDispatched: (id: string) => request<any>(`/dispatch-orders/${id}/mark-dispatched/`, { method: 'POST' }),
+      markDelivered: (id: string) => request<any>(`/dispatch-orders/${id}/mark-delivered/`, { method: 'POST' }),
     },
   },
 

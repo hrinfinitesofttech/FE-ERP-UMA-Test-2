@@ -407,7 +407,7 @@ export default function PurchaseRequisitionPage() {
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl p-2 text-[#211B17]"
                   >
                     {projectJobs.map(job => (
-                      <option key={job.id} value={job.id}>{job.jobNumber} - {job.productName}</option>
+                      <option key={job.id} value={job.id}>{job.jobNumber} — {job.customerName ? `[${job.customerName}] ` : ''}{job.productName}</option>
                     ))}
                   </select>
                 </div>

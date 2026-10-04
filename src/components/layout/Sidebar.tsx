@@ -822,6 +822,10 @@ export function Sidebar() {
                 <PackageCheck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Finished Goods Warehouse</span>}
               </Link>
+              <Link href="/production/dispatch" className={subNavItemClass('/production/dispatch')}>
+                <Truck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                {!sidebarCollapsed && <span>Dispatch & Delivery Challan</span>}
+              </Link>
               <Link href="/production/cost" className={subNavItemClass('/production/cost')}>
                 <DollarSign className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Job Production Costing</span>}

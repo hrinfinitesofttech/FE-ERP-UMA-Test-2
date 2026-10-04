@@ -444,3 +444,46 @@ export interface ProductionCostSummary {
   totalActualCost: number;
   costVariance: number; // Formula: totalActualCost - totalEstimatedCost
 }
+
+export type DispatchStatus =
+  | 'Ready for Dispatch'
+  | 'Vehicle Loading'
+  | 'In Transit'
+  | 'Delivered to Site'
+  | 'Handover Complete';
+
+export interface DispatchOrder {
+  id: string;
+  dispatchNumber: string;
+  dispatchDate: string;
+  jobId: string;
+  jobNumber: string;
+  workOrderNumber: string;
+  finishedGoodsNumber?: string;
+  customerId: string;
+  customerName: string;
+  customerAddress?: string;
+  destinationCity?: string;
+  productName: string;
+  specification?: string;
+  quantity: number;
+  uom: string;
+  serialNumber?: string;
+  batchNumber?: string;
+  weightMT?: number;
+  transporterName: string;
+  vehicleNumber: string;
+  lrNumber?: string;
+  driverName?: string;
+  driverMobile?: string;
+  eWayBillNumber?: string;
+  invoiceNumber?: string;
+  packagingType?: string;
+  dispatchType?: string;
+  qcClearanceBy?: string;
+  dispatchedBy?: string;
+  status: DispatchStatus;
+  remarks?: string;
+  createdAt?: string;
+}
+

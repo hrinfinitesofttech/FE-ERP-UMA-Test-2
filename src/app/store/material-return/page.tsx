@@ -199,7 +199,7 @@ export default function MaterialReturnPage() {
                   >
                     {projectJobs.map((j) => (
                       <option key={j.id} value={j.jobNumber}>
-                        {j.jobNumber} - {j.productName}
+                        {j.jobNumber} — {j.customerName ? `[${j.customerName}] ` : ''}{j.productName}
                       </option>
                     ))}
                   </select>
