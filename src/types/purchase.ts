@@ -417,13 +417,16 @@ export interface POItem {
 export interface PurchaseOrder {
   id: string;
   poNumber: string;
-  revisionNumber: number;
+  revisionNumber?: number;
   activeRevision?: string;
   poDate: string;
   supplierId: string;
   supplierName: string;
   supplierGstin?: string;
   supplierContact?: string;
+  supplierContactPerson?: string;
+  supplierPhone?: string;
+  supplierEmail?: string;
   projectId?: string;
   jobId: string;
   jobNumber?: string;
@@ -435,7 +438,7 @@ export interface PurchaseOrder {
   bomNumber?: string;
   bomRevision?: string;
   buyer?: string;
-  createdBy: string;
+  createdBy?: string;
   expectedDeliveryDate: string;
   requiredDeliveryDate?: string;
   status: POStatus;
@@ -458,6 +461,11 @@ export interface PurchaseOrder {
   warranty?: string;
   billingAddress?: string;
   deliveryAddress?: string;
+  shippingAddress?: string;
+  approvedBy?: string;
+  approvedAt?: string;
+  approvedDate?: string;
+  createdByUser?: string;
   items: POItem[];
   createdAt?: string;
   updatedAt?: string;

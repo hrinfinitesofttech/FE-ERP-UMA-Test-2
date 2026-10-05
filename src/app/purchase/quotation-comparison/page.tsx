@@ -518,9 +518,11 @@ export default function QuotationComparisonPage() {
     const newPO: PurchaseOrder = {
       id: poNumber,
       poNumber,
+      revisionNumber: 0,
+      createdBy: currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'Purchase Lead',
       quotationId: recommendedQuote?.id || '',
       rfqNumber: matrix.rfqNumber,
-      supplierId: matrix.recommendedSupplierId,
+      supplierId: matrix.recommendedSupplierId || 'SUPP-001',
       supplierName: matrix.recommendedSupplierName,
       supplierContactPerson: 'Sales & Commercial Lead',
       supplierPhone: '+91 98250 12345',

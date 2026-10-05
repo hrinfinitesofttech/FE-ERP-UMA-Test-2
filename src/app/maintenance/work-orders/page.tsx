@@ -592,7 +592,7 @@ export default function WorkOrdersPage() {
                     onChange={(e) => {
                       setTechnicianName(e.target.value);
                       const t = technicians.find((tech) => tech.technicianName === e.target.value);
-                      if (t) setTechnicianId(t.id);
+                      if (t) setTechnicianId(t.id || t.employeeId || 'TECH-001');
                     }}
                     className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] focus:outline-none focus:border-emerald-600 font-medium"
                   >

@@ -1008,8 +1008,10 @@ export const api = {
     },
     orders: {
       list: () => request<any[]>('/purchase-orders/'),
+      get: (id: string) => request<any>(`/purchase-orders/${id}/`),
       create: (data: any) => request<any>('/purchase-orders/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/purchase-orders/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/purchase-orders/${id}/`, { method: 'DELETE' }),
     },
     returns: () => request<any[]>('/purchase-returns/'),
   },

@@ -687,9 +687,12 @@ export interface ProjectActivityLog {
 
 export interface ProjectJobMaster {
   id: string; // e.g. PRJ-2026-001
+  projectId?: string;
   projectNumber: string;
   projectCode?: string;
   projectName?: string;
+  jobId?: string;
+  jobCode?: string;
   jobNumber: string; // e.g. JOB-2026-001
   salesOrderId: string;
   salesOrderNumber: string;

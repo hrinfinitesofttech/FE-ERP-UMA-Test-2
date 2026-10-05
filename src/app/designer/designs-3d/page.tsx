@@ -25,10 +25,10 @@ import {
   Sparkles,
 } from 'lucide-react';
 
-const DEFAULT_DESIGN_JOBS = [
-  { id: 'DJ-001', designJobNumber: 'DES-2026-0001', jobNumber: 'JOB-2026-0042', productName: 'Heavy SS 316L Chemical Reactor Vessel (10 KL)' },
-  { id: 'DJ-002', designJobNumber: 'DES-2026-0002', jobNumber: 'JOB-2026-0056', productName: 'Custom Equipment (Ref QT-2026-0132)' },
-  { id: 'DJ-003', designJobNumber: 'DES-2026-0003', jobNumber: 'JOB-2026-0078', productName: 'Pressure Vessel ASME Sec VIII Div 1' },
+const DEFAULT_DESIGN_JOBS: { id: string; designJobNumber: string; jobNumber: string; productName: string; customerName?: string }[] = [
+  { id: 'DJ-001', designJobNumber: 'DES-2026-0001', jobNumber: 'JOB-2026-0042', productName: 'Heavy SS 316L Chemical Reactor Vessel (10 KL)', customerName: 'Reliance Industries' },
+  { id: 'DJ-002', designJobNumber: 'DES-2026-0002', jobNumber: 'JOB-2026-0056', productName: 'Custom Equipment (Ref QT-2026-0132)', customerName: 'L&T Heavy Engineering' },
+  { id: 'DJ-003', designJobNumber: 'DES-2026-0003', jobNumber: 'JOB-2026-0078', productName: 'Pressure Vessel ASME Sec VIII Div 1', customerName: 'Adani Chemical Port' },
 ];
 
 export default function Designs3DPage() {

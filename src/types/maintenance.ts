@@ -57,6 +57,7 @@ export type ServiceVisitStatus =
 
 export type WorkOrderStatus =
   | 'Draft'
+  | 'Pending'
   | 'Approved'
   | 'Assigned'
   | 'In Progress'
@@ -104,6 +105,7 @@ export interface InternalAsset {
 export interface CustomerMachine {
   id: string;
   customerMachineId: string;
+  machineCode?: string;
   customerId: string;
   customerName: string;
   projectId?: string;
@@ -155,6 +157,7 @@ export interface ServiceRequest {
   email: string;
   complaintType: string;
   description: string;
+  problemDescription?: string;
   priority: CriticalityLevel;
   warrantyStatus: 'Under Warranty' | 'Out of Warranty' | 'N/A';
   amcStatus: 'Active AMC' | 'No AMC' | 'Expired';
@@ -509,6 +512,9 @@ export interface ServiceChecklistTemplate {
 }
 
 export interface TechnicianProfile {
+  id?: string;
+  technicianName?: string;
+  skillLevel?: string;
   employeeId: string;
   employeeName: string;
   department: string;

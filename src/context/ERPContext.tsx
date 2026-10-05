@@ -618,7 +618,9 @@ interface ERPContextType {
   deleteQuotationComparison: (id: string) => void;
   approveQuotationComparison: (id: string, approvedBy: string) => void;
   purchaseOrders: PurchaseOrder[];
-  addPurchaseOrder: (po: Omit<PurchaseOrder, 'id' | 'poDate'>) => void;
+  addPurchaseOrder: (po: Omit<PurchaseOrder, 'id' | 'poDate'> | PurchaseOrder) => void;
+  updatePurchaseOrder: (id: string, data: Partial<PurchaseOrder>) => void;
+  deletePurchaseOrder: (id: string) => void;
   approvePurchaseOrder: (id: string, approvedBy: string) => void;
   poRevisions: PORevision[];
   addPORevision: (rev: Omit<PORevision, 'id' | 'revisedDate'>) => void;
@@ -1833,7 +1835,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
     return MOCK_QUOTATION_COMPARISONS;
   });
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(MOCK_PURCHASE_ORDERS);
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_purchaseOrders');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return MOCK_PURCHASE_ORDERS;
+  });
   const [poRevisions, setPoRevisions] = useState<PORevision[]>(MOCK_PO_REVISIONS);
   const [purchaseFollowUps, setPurchaseFollowUps] = useState<PurchaseFollowUp[]>(MOCK_PURCHASE_FOLLOWUPS);
   const [purchaseReturns, setPurchaseReturns] = useState<PurchaseReturn[]>(MOCK_PURCHASE_RETURNS);
@@ -2956,9 +2969,47 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      const rawPOs = val<PurchaseOrder[]>(results[2]);
+      const rawPOs = val<any[]>(results[2]);
       if (rawPOs && Array.isArray(rawPOs) && rawPOs.length > 0) {
-        setPurchaseOrders(rawPOs);
+        const normalizedPOs: PurchaseOrder[] = rawPOs.map((po: any) => ({
+          ...po,
+          id: String(po.id || po.poNumber || po.po_number),
+          poNumber: po.poNumber || po.po_number || po.id,
+          revisionNumber: po.revisionNumber ?? (typeof po.revision_number === 'number' ? `Rev-${String(po.revision_number).padStart(2, '0')}` : (po.revision_number || 'Rev-00')),
+          poDate: po.poDate || po.date || new Date().toISOString().split('T')[0],
+          date: po.poDate || po.date || new Date().toISOString().split('T')[0],
+          supplierId: po.supplierId || po.supplier_id || 'SUP-001',
+          supplierName: po.supplierName || po.supplier_name || 'Supplier',
+          supplierGstin: po.supplierGstin || po.supplier_gstin || '24AAAAA0000A1Z5',
+          supplierAddress: po.supplierAddress || po.supplier_address || '',
+          contactPerson: po.contactPerson || po.contact_person || '',
+          projectId: po.projectId || po.project_id || 'PRJ-2026-0001',
+          jobId: po.jobId || po.job_code || po.jobNumber || 'JOB-2026-001',
+          jobCode: po.jobCode || po.job_code || po.jobId || 'JOB-2026-001',
+          expectedDeliveryDate: po.expectedDeliveryDate || po.deliveryDate || po.delivery_date || '2026-10-25',
+          deliveryDate: po.expectedDeliveryDate || po.deliveryDate || po.delivery_date || '2026-10-25',
+          paymentTerms: po.paymentTerms || po.payment_terms || '30 Days Credit after GRN',
+          deliveryTerms: po.deliveryTerms || 'FOR Destination (Uma Techno Fab GIDC Works)',
+          dispatchMode: po.dispatchMode || 'By Road Truck',
+          currency: po.currency || 'INR',
+          items: Array.isArray(po.items) ? po.items : [],
+          subTotal: Number(po.subTotal ?? po.sub_total ?? 0),
+          taxTotal: Number(po.taxTotal ?? po.tax_amount ?? po.taxAmount ?? 0),
+          freightCharges: Number(po.freightCharges || 0),
+          grandTotal: Number(po.grandTotal ?? po.grand_total ?? po.totalAmount ?? 0),
+          status: po.status || 'Submitted',
+          approvalTier: po.approvalTier || 'Tier 1 - Executive',
+          specialInstructions: po.specialInstructions || 'Test certificates (MTC) required along with material delivery.',
+          createdBy: po.createdBy || po.prepared_by || po.preparedBy || 'Super Admin',
+          preparedBy: po.preparedBy || po.prepared_by || po.createdBy || 'Super Admin',
+          approvedBy: po.approvedBy || po.approved_by,
+          createdAt: po.createdAt || po.created_at || new Date().toISOString(),
+          updatedAt: po.updatedAt || po.updated_at || new Date().toISOString(),
+        }));
+        setPurchaseOrders(normalizedPOs);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_purchaseOrders', JSON.stringify(normalizedPOs)); } catch (_) {}
+        }
       }
 
       const rawMRP = val<any[]>(results[3]);
@@ -6954,22 +7005,42 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     api.patch(`/quotation-comparisons/${id}/`, { approvalStatus: 'approved', status: 'Approved', approvedBy }).catch((err) => console.warn('Failed to approve comparison:', err));
   };
 
-  const addPurchaseOrder = (data: Omit<PurchaseOrder, 'id' | 'poDate'>) => {
-    const poNumber = `PO-${new Date().getFullYear()}-${String(purchaseOrders.length + 1).padStart(3, '0')}`;
+  const addPurchaseOrder = (data: Omit<PurchaseOrder, 'id' | 'poDate'> | PurchaseOrder) => {
+    const poNumber = (data as any).poNumber || `PO-${new Date().getFullYear()}-${String(purchaseOrders.length + 1).padStart(3, '0')}`;
+    const poId = (data as any).id || poNumber;
     const newPo: PurchaseOrder = {
       ...data,
-      id: poNumber,
-      poNumber,
-      poDate: new Date().toISOString().split('T')[0],
+      id: poId,
+      poNumber: poNumber,
+      poDate: (data as any).poDate || (data as any).date || new Date().toISOString().split('T')[0],
+      items: (data as any).items || [],
+      grandTotal: Number((data as any).grandTotal || (data as any).totalAmount || 0),
+      subTotal: Number((data as any).subTotal || 0),
+      taxTotal: Number((data as any).taxTotal || (data as any).taxAmount || 0),
+      status: (data as any).status || 'Submitted',
+      supplierName: (data as any).supplierName || 'Supplier',
+      supplierId: (data as any).supplierId || 'SUP-001',
+      supplierGstin: (data as any).supplierGstin || '24AAAAA0000A1Z5',
+      projectId: (data as any).projectId || 'PRJ-2026-0001',
+      jobId: (data as any).jobId || (data as any).jobNumber || 'JOB-2026-001',
+      expectedDeliveryDate: (data as any).expectedDeliveryDate || (data as any).deliveryDate || '2026-10-25',
+      paymentTerms: (data as any).paymentTerms || '30 Days Credit after GRN',
     };
-    setPurchaseOrders((prev) => [newPo, ...prev]);
+
+    setPurchaseOrders((prev) => {
+      const updated = [newPo, ...prev.filter((p) => p.id !== poId && p.poNumber !== poNumber)];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_purchaseOrders', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
 
     addPORevision({
       poId: newPo.id,
       poNumber: newPo.poNumber,
-      revisionNumber: newPo.activeRevision || 'Rev-00',
+      revisionNumber: (newPo as any).revisionNumber ? (typeof (newPo as any).revisionNumber === 'number' ? `Rev-${String((newPo as any).revisionNumber).padStart(2, '0')}` : (newPo as any).revisionNumber) : 'Rev-00',
       revisionDate: new Date().toISOString().split('T')[0],
-      revisedBy: data.buyer || `${currentUser.firstName} ${currentUser.lastName}`,
+      revisedBy: (data as any).buyer || (data as any).createdBy || `${currentUser?.firstName || 'Admin'} ${currentUser?.lastName || 'User'}`,
       reason: 'Initial PO Issuance',
       reasonForRevision: 'Initial PO Issuance',
       previousGrandTotal: 0,
@@ -6977,35 +7048,84 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       newGrandTotal: newPo.grandTotal,
     });
 
-    logAction('CREATE', 'Purchase', 'Purchase Orders', newPo.id, `Created PO ${newPo.poNumber} for supplier ${data.supplierName}`);
+    logAction('CREATE', 'Purchase', 'Purchase Orders', newPo.id, `Created PO ${newPo.poNumber} for supplier ${newPo.supplierName}`);
+
     const poPayload = {
       ...newPo,
-      poNumber: newPo.poNumber || poNumber,
-      expectedDeliveryDate: (newPo as any).expectedDeliveryDate || (newPo as any).deliveryDate || '2026-12-31',
+      id: poId,
+      poNumber: poNumber,
+      po_number: poNumber,
+      supplierId: newPo.supplierId,
+      supplier_id: newPo.supplierId,
+      supplierName: newPo.supplierName,
+      supplier_name: newPo.supplierName,
+      supplierGstin: newPo.supplierGstin,
+      supplier_gstin: newPo.supplierGstin,
+      deliveryDate: (newPo as any).expectedDeliveryDate || (newPo as any).deliveryDate || '2026-10-25',
+      delivery_date: (newPo as any).expectedDeliveryDate || (newPo as any).deliveryDate || '2026-10-25',
+      date: newPo.poDate || new Date().toISOString().split('T')[0],
       items: newPo.items || [],
-      totalAmount: Number((newPo as any).totalAmount || (newPo as any).grandTotal || 0),
-      grandTotal: Number((newPo as any).grandTotal || (newPo as any).totalAmount || 0),
-      status: newPo.status || 'draft',
+      subTotal: newPo.subTotal || 0,
+      taxAmount: newPo.taxTotal || 0,
+      grandTotal: Number(newPo.grandTotal || 0),
+      totalAmount: Number(newPo.grandTotal || 0),
+      status: newPo.status || 'Submitted',
+      preparedBy: (newPo as any).createdBy || `${currentUser?.firstName || 'Admin'} ${currentUser?.lastName || 'User'}`,
     };
+
     api.purchase.orders.create(poPayload).then((res) => {
-      if (res && res.id) {
-        setPurchaseOrders((prev) => prev.map((p) => (p.id === poNumber ? { ...p, ...res } : p)));
+      if (res && (res.id || res.poNumber || res.po_number)) {
+        setPurchaseOrders((prev) => {
+          const synced = prev.map((p) => (p.id === poId || p.poNumber === poNumber ? { ...p, ...res } : p));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_purchaseOrders', JSON.stringify(synced)); } catch (_) {}
+          }
+          return synced;
+        });
       }
     }).catch((err) => console.warn('Failed to sync PO to backend:', err));
   };
 
+  const updatePurchaseOrder = (id: string, data: Partial<PurchaseOrder>) => {
+    setPurchaseOrders((prev) => {
+      const updated = prev.map((p) => (p.id === id || p.poNumber === id ? { ...p, ...data, updatedAt: new Date().toISOString() } : p));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_purchaseOrders', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('UPDATE', 'Purchase', 'Purchase Orders', id, `Updated PO ${id}`);
+    api.purchase.orders.update(id, data).catch((err) => console.warn('Failed to update PO on backend:', err));
+  };
+
+  const deletePurchaseOrder = (id: string) => {
+    setPurchaseOrders((prev) => {
+      const updated = prev.filter((p) => p.id !== id && p.poNumber !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_purchaseOrders', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'Purchase', 'Purchase Orders', id, `Deleted PO ${id}`);
+    api.purchase.orders.delete(id).catch((err) => console.warn('Failed to delete PO on backend:', err));
+  };
+
   const approvePurchaseOrder = (id: string, approvedBy: string) => {
-    const targetPo = purchaseOrders.find((p) => p.id === id);
+    const targetPo = purchaseOrders.find((p) => p.id === id || p.poNumber === id);
     if (!targetPo) return;
 
-    setPurchaseOrders((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? { ...p, status: 'approved' }
+    setPurchaseOrders((prev) => {
+      const updated = prev.map((p) =>
+        p.id === id || p.poNumber === id
+          ? { ...p, status: 'Approved' as any, approvedBy }
           : p
-      )
-    );
-    api.purchase.orders.update(id, { status: 'approved' }).catch((err) => console.warn('Failed to approve PO on backend:', err));
+      );
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_purchaseOrders', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    api.purchase.orders.update(id, { status: 'Approved', approvedBy }).catch((err) => console.warn('Failed to approve PO on backend:', err));
 
     const jobKey = targetPo.jobNumber || targetPo.jobId || '';
     if (jobKey) {
@@ -10334,6 +10454,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         approveQuotationComparison,
         purchaseOrders,
         addPurchaseOrder,
+        updatePurchaseOrder,
+        deletePurchaseOrder,
         approvePurchaseOrder,
         poRevisions,
         addPORevision,
