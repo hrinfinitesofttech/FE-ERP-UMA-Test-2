@@ -106,7 +106,45 @@ export default function CADBlueprintViewerModal({
   const currentTheme = getThemeStyles();
 
   const handleDownload = () => {
-    alert(`Downloading AutoCAD Vector Blueprint: ${drawingNum}.${format.toLowerCase()} (${drawing.fileSize || '4.8 MB'})`);
+    // 1. If drawing has a real fileUrl uploaded
+    if (drawing.fileUrl) {
+      const a = document.createElement('a');
+      a.href = drawing.fileUrl;
+      a.download = `${drawingNum}.${format.toLowerCase()}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    }
+
+    // 2. Export the live technical 2D vector CAD blueprint from SVG
+    const svgEl = document.getElementById('cad-blueprint-svg');
+    if (svgEl) {
+      const serializer = new XMLSerializer();
+      let source = serializer.serializeToString(svgEl);
+      if (!source.match(/^<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)) {
+        source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+      }
+      const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${drawingNum}_Blueprint_${rev}.svg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } else {
+      const blob = new Blob([`AutoCAD Technical Blueprint: ${drawingNum}\nTitle: ${drawingTitle}\nJob: ${jobRef}\nRev: ${rev}`], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${drawingNum}.${format.toLowerCase()}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
   };
 
   const handlePrint = () => {
@@ -361,6 +399,7 @@ export default function CADBlueprintViewerModal({
                   style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center center' }}
                 >
                   <svg
+                    id="cad-blueprint-svg"
                     width="880"
                     height="460"
                     viewBox="0 0 880 460"

@@ -705,9 +705,14 @@ async function fetchNetworkRequest<T>(
   if (!response.ok) {
     let errData: any;
     try {
-      errData = await response.json();
+      const text = await response.text();
+      try {
+        errData = JSON.parse(text);
+      } catch {
+        errData = text;
+      }
     } catch {
-      errData = await response.text();
+      errData = 'Unknown error';
     }
     throw new ApiError(response.status, `API Error: ${response.status} ${response.statusText}`, errData);
   }
@@ -716,8 +721,14 @@ async function fetchNetworkRequest<T>(
     return {} as T;
   }
 
-  const json = await response.json();
-  const resultData = (json && typeof json === 'object' && Array.isArray(json.results)) ? json.results : json;
+  let resultData: any;
+  try {
+    const json = await response.json();
+    resultData = (json && typeof json === 'object' && Array.isArray(json.results)) ? json.results : json;
+  } catch (err) {
+    console.warn(`Failed to parse JSON response from ${endpoint}:`, err);
+    resultData = {} as T;
+  }
 
   // Store in cache for GET requests
   if (cacheKey && typeof window !== 'undefined') {
