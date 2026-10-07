@@ -53,7 +53,7 @@ export default function RoleMatrixPage() {
     { name: 'Production & MRP', route: '/production/work-orders', superAdmin: true, plantDir: true, sales: false, design: false, purchase: false, store: true, prod: true, acc: false, hr: false, service: false },
     { name: 'Accounting & GST', route: '/accounting/vouchers', superAdmin: true, plantDir: true, sales: false, design: false, purchase: false, store: false, prod: false, acc: true, hr: false, service: false },
     { name: 'HR & Payroll', route: '/hr/monthly-payroll', superAdmin: true, plantDir: true, sales: false, design: false, purchase: false, store: false, prod: false, acc: false, hr: true, service: false },
-    { name: 'Maintenance & Service', route: '/maintenance/service-reports', superAdmin: true, plantDir: true, sales: false, design: false, purchase: false, store: false, prod: false, acc: false, hr: false, service: true },
+    { name: 'Maintenance & Service', route: '/maintenance/amc', superAdmin: true, plantDir: true, sales: false, design: false, purchase: false, store: false, prod: false, acc: false, hr: false, service: true },
   ];
 
   const handleRunPermissionSimulation = () => {
@@ -163,7 +163,7 @@ export default function RoleMatrixPage() {
               <option value="/production/work-orders" className="bg-white">/production/work-orders (Production & Shop Floor)</option>
               <option value="/crm/leads" className="bg-white">/crm/leads (CRM & Sales)</option>
               <option value="/projects/jobs" className="bg-white">/projects/jobs (Project & Job 360°)</option>
-              <option value="/maintenance/service-reports" className="bg-white">/maintenance/service-reports (Maintenance)</option>
+              <option value="/maintenance/amc" className="bg-white">/maintenance/amc (Maintenance)</option>
               <option value="/users" className="bg-white">/users (ERP Foundation / System Admin)</option>
             </select>
           </div>

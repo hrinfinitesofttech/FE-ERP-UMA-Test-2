@@ -8,6 +8,7 @@ import {
   Users,
   Briefcase,
   UserCheck,
+  Award,
   LayoutDashboard,
   Settings,
   ShieldCheck,
@@ -81,9 +82,12 @@ export function Sidebar() {
     sidebarCollapsed,
     setSidebarCollapsed,
     leads,
+    enquiries,
+    customers,
     quotations,
     salesOrders,
     projectJobs,
+    isProjectsLoading,
     designJobs,
     purchaseOrders,
     purchaseRequisitions,
@@ -215,27 +219,15 @@ export function Sidebar() {
                 {!sidebarCollapsed && <span>CRM Dashboard</span>}
               </Link>
               <Link href="/crm/leads" className={subNavItemClass('/crm/leads')}>
-                <UserPlus className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
-                    <span>Leads (360° View)</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="font-bold text-[#3E2723]">Leads, Enquiries & Customers</span>
+                    <span suppressHydrationWarning className="px-1.5 py-0.2 rounded-full bg-crm-brand-100 text-crm-brand-800 font-mono text-[9px] font-bold border border-crm-brand-200">
                       {leads.length}
                     </span>
                   </div>
                 )}
-              </Link>
-              <Link href="/crm/enquiries" className={subNavItemClass('/crm/enquiries')}>
-                <FileText className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Enquiries</span>}
-              </Link>
-              <Link href="/crm/customers" className={subNavItemClass('/crm/customers')}>
-                <Building className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Customers Master</span>}
-              </Link>
-              <Link href="/crm/opportunities" className={subNavItemClass('/crm/opportunities')}>
-                <Sparkles className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Opportunities</span>}
               </Link>
               <Link href="/crm/follow-ups" className={subNavItemClass('/crm/follow-ups')}>
                 <PhoneCall className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
@@ -275,10 +267,7 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/crm/reports" className={subNavItemClass('/crm/reports')}>
-                <TrendingUp className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Commercial Reports</span>}
-              </Link>
+
             </div>
           )}
         </div>
@@ -320,7 +309,7 @@ export function Sidebar() {
                   <div className="flex items-center justify-between w-full">
                     <span>Projects</span>
                     <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
-                      {projectJobs.length}
+                      {isProjectsLoading && projectJobs.length === 0 ? '...' : projectJobs.length}
                     </span>
                   </div>
                 )}
@@ -337,10 +326,7 @@ export function Sidebar() {
                 <CheckSquare className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Tasks & Dependencies</span>}
               </Link>
-              <Link href="/projects/milestones" className={subNavItemClass('/projects/milestones')}>
-                <Flag className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Milestones</span>}
-              </Link>
+
               <Link href="/projects/department-assignments" className={subNavItemClass('/projects/department-assignments')}>
                 <Users className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Dept Assignments</span>}
@@ -357,26 +343,8 @@ export function Sidebar() {
                 <DollarSign className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Project Cost</span>}
               </Link>
-              <Link href="/projects/issues" className={subNavItemClass('/projects/issues')}>
-                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Project Issues</span>}
-              </Link>
-              <Link href="/projects/delays" className={subNavItemClass('/projects/delays')}>
-                <Clock className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Project Delays</span>}
-              </Link>
-              <Link href="/projects/change-requests" className={subNavItemClass('/projects/change-requests')}>
-                <RotateCcw className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Change Requests</span>}
-              </Link>
-              <Link href="/projects/activity" className={subNavItemClass('/projects/activity')}>
-                <ActivityIcon className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Project Activity</span>}
-              </Link>
-              <Link href="/projects/reports" className={subNavItemClass('/projects/reports')}>
-                <BarChart3 className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Project Reports</span>}
-              </Link>
+
+
             </div>
           )}
         </div>
@@ -408,10 +376,6 @@ export function Sidebar() {
 
           {(designerOpen || sidebarCollapsed) && (
             <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[#E5DCD3] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
-              <Link href="/designer/dashboard" className={subNavItemClass('/designer/dashboard')}>
-                <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Dashboard</span>}
-              </Link>
               <Link href="/designer/jobs" className={subNavItemClass('/designer/jobs')}>
                 <Palette className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && (
@@ -423,57 +387,13 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/designer/customer-requirements" className={subNavItemClass('/designer/customer-requirements')}>
-                <FileText className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Customer Requirements</span>}
-              </Link>
-              <Link href="/designer/planning" className={subNavItemClass('/designer/planning')}>
-                <Compass className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Design Planning</span>}
-              </Link>
-              <Link href="/designer/drawings-2d" className={subNavItemClass('/designer/drawings-2d')}>
-                <FileCheck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>2D Drawings</span>}
-              </Link>
-              <Link href="/designer/designs-3d" className={subNavItemClass('/designer/designs-3d')}>
-                <Box className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>3D Designs</span>}
-              </Link>
-              <Link href="/designer/assembly-drawings" className={subNavItemClass('/designer/assembly-drawings')}>
-                <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Assembly Drawings</span>}
-              </Link>
-              <Link href="/designer/part-drawings" className={subNavItemClass('/designer/part-drawings')}>
-                <CheckSquare className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Part Drawings</span>}
-              </Link>
               <Link href="/designer/bom" className={subNavItemClass('/designer/bom')}>
                 <FileSpreadsheet className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>BOM</span>}
               </Link>
-              <Link href="/designer/bom-revisions" className={subNavItemClass('/designer/bom-revisions')}>
-                <GitBranch className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>BOM Revisions</span>}
-              </Link>
-              <Link href="/designer/revisions" className={subNavItemClass('/designer/revisions')}>
-                <RotateCcw className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Design Revisions</span>}
-              </Link>
-              <Link href="/designer/review" className={subNavItemClass('/designer/review')}>
-                <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Design Review</span>}
-              </Link>
               <Link href="/designer/approval" className={subNavItemClass('/designer/approval')}>
                 <Zap className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Approval & Release</span>}
-              </Link>
-              <Link href="/designer/technical-documents" className={subNavItemClass('/designer/technical-documents')}>
-                <FolderOpen className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Technical Documents</span>}
-              </Link>
-              <Link href="/designer/reports" className={subNavItemClass('/designer/reports')}>
-                <BarChart3 className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Designer Reports</span>}
               </Link>
             </div>
           )}
@@ -545,6 +465,17 @@ export function Sidebar() {
                 <FileSpreadsheet className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Quotation Comparison</span>}
               </Link>
+              <Link href="/purchase/quotation-verify" className={subNavItemClass('/purchase/quotation-verify')}>
+                <Award className="w-3.5 h-3.5 flex-shrink-0 text-amber-600 group-hover:text-[#3E2723] transition-colors" />
+                {!sidebarCollapsed && (
+                  <div className="flex items-center justify-between w-full">
+                    <span>Quotation Verify</span>
+                    <span className="px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 font-mono text-[9px] font-bold border border-emerald-300">
+                      L1 Compare
+                    </span>
+                  </div>
+                )}
+              </Link>
               <Link href="/purchase/po" className={subNavItemClass('/purchase/po')}>
                 <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && (
@@ -572,10 +503,7 @@ export function Sidebar() {
                 <CornerUpLeft className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Purchase Returns</span>}
               </Link>
-              <Link href="/purchase/reports" className={subNavItemClass('/purchase/reports')}>
-                <BarChart3 className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Purchase Reports</span>}
-              </Link>
+
             </div>
           )}
         </div>
@@ -661,6 +589,17 @@ export function Sidebar() {
                 <Box className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Stock Matrix (Usable)</span>}
               </Link>
+              <Link href="/store/bom-verification" className={subNavItemClass('/store/bom-verification')}>
+                <FileSpreadsheet className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                {!sidebarCollapsed && (
+                  <div className="flex items-center justify-between w-full">
+                    <span>BOM Material Verify</span>
+                    <span className="px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 font-mono text-[9px] font-bold border border-emerald-300">
+                      Stock Check
+                    </span>
+                  </div>
+                )}
+              </Link>
               <Link href="/store/reservations" className={subNavItemClass('/store/reservations')}>
                 <Lock className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Stock Reservation</span>}
@@ -697,10 +636,7 @@ export function Sidebar() {
                 <Zap className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Low Stock / Reorder</span>}
               </Link>
-              <Link href="/store/reports" className={subNavItemClass('/store/reports')}>
-                <BarChart3 className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Store Reports (21)</span>}
-              </Link>
+
             </div>
           )}
         </div>
@@ -830,10 +766,7 @@ export function Sidebar() {
                 <DollarSign className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Job Production Costing</span>}
               </Link>
-              <Link href="/production/reports" className={subNavItemClass('/production/reports')}>
-                <BarChart3 className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Production Reports (18)</span>}
-              </Link>
+
             </div>
           )}
         </div>
@@ -969,10 +902,7 @@ export function Sidebar() {
                 <History className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Depreciation Schedule</span>}
               </Link>
-              <Link href="/accounting/financial-reports" className={subNavItemClass('/accounting/financial-reports')}>
-                <FileBarChart className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Financial Reports (35)</span>}
-              </Link>
+
               <Link href="/accounting/settings" className={subNavItemClass('/accounting/settings')}>
                 <Settings className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Accounting Settings</span>}
@@ -1064,10 +994,7 @@ export function Sidebar() {
                 <CornerUpLeft className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Service Parts Return</span>}
               </Link>
-              <Link href="/maintenance/service-reports" className={subNavItemClass('/maintenance/service-reports')}>
-                <FileCheck2 className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Service Reports</span>}
-              </Link>
+
               <Link href="/maintenance/warranty" className={subNavItemClass('/maintenance/warranty')}>
                 <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Warranty Management</span>}
@@ -1096,10 +1023,7 @@ export function Sidebar() {
                 <DollarSign className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Maintenance Costs</span>}
               </Link>
-              <Link href="/maintenance/reports" className={subNavItemClass('/maintenance/reports')}>
-                <BarChart3 className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Maintenance Reports (17)</span>}
-              </Link>
+
             </div>
           )}
         </div>
@@ -1255,10 +1179,7 @@ export function Sidebar() {
                 <FileText className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>29. Payslips</span>}
               </Link>
-              <Link href="/hr/payroll-reports" className={subNavItemClass('/hr/payroll-reports')}>
-                <FileBarChart className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>30. Payroll Reports</span>}
-              </Link>
+
 
               {/* Performance & Development */}
               {!sidebarCollapsed && <div className="px-3 pt-2 text-[9px] font-semibold text-slate-500 uppercase tracking-wider">Performance</div>}
@@ -1368,14 +1289,7 @@ export function Sidebar() {
                 <ActivityIcon className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>9. Global Activity Trail</span>}
               </Link>
-              <Link href="/reports/center" className={subNavItemClass('/reports/center')}>
-                <FileBarChart className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>10. ERP Reports Center</span>}
-              </Link>
-              <Link href="/reports/job-profitability" className={subNavItemClass('/reports/job-profitability')}>
-                <Calculator className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>11. Job Profitability</span>}
-              </Link>
+
             </div>
           )}
         </div>

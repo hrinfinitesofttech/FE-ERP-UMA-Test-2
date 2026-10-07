@@ -235,7 +235,7 @@ export default function NewLeadPage() {
         assignedSalesPersonName: assignedName,
       });
 
-      router.push('/crm/leads');
+      router.push(`/crm/leads?tab=leads&created=${encodeURIComponent(formData.companyName.trim())}`);
     } catch (err) {
       console.error('Failed to create lead:', err);
       setIsSubmitting(false);

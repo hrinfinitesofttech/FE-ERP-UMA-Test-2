@@ -97,24 +97,7 @@ export const ERP_PAGES_MASTER: PageItem[] = [
     description: 'User details, role access, and account settings.',
     keywords: ['profile', 'account', 'user', 'settings', 'password'],
   },
-  {
-    id: 'page-reports-center',
-    title: 'Executive Reports Central',
-    category: 'Core',
-    path: '/reports/center',
-    icon: FileSpreadsheet,
-    description: 'Unified reporting center across all business, production, and financial modules.',
-    keywords: ['reports', 'analytics', 'center', 'export', 'charts', 'summary'],
-  },
-  {
-    id: 'page-job-profitability',
-    title: 'Job Profitability & Margins',
-    category: 'Core',
-    path: '/reports/job-profitability',
-    icon: TrendingUp,
-    description: 'Job-wise revenue, material cost, labor cost, and profit margin analysis.',
-    keywords: ['job', 'profitability', 'margins', 'costing', 'revenue', 'profit'],
-  },
+
 
   // 1. CRM & Sales
   {
@@ -161,15 +144,6 @@ export const ERP_PAGES_MASTER: PageItem[] = [
     icon: Building,
     description: 'Client corporate directory, credit terms, GSTIN numbers, and contact points.',
     keywords: ['customers', 'clients', 'companies', 'customer master', 'directory', 'gst'],
-  },
-  {
-    id: 'page-crm-opportunities',
-    title: 'Sales Opportunities & Deals',
-    category: 'CRM',
-    path: '/crm/opportunities',
-    icon: Sparkles,
-    description: 'High-value equipment bids, stage-wise deal probabilities, and closures.',
-    keywords: ['opportunities', 'deals', 'prospects', 'pipeline', 'bids'],
   },
   {
     id: 'page-crm-followups',
@@ -234,15 +208,7 @@ export const ERP_PAGES_MASTER: PageItem[] = [
     description: 'Pricing gaps, lost reasons, competitor insights, and win-loss ratios.',
     keywords: ['lost analysis', 'lost deals', 'competitors', 'reasons'],
   },
-  {
-    id: 'page-crm-reports',
-    title: 'CRM Analytics & Sales Reports',
-    category: 'CRM',
-    path: '/crm/reports',
-    icon: FileSpreadsheet,
-    description: 'Sales representative performance, conversion ratios, and lead sources.',
-    keywords: ['crm reports', 'sales analytics', 'conversion rates'],
-  },
+
   {
     id: 'page-crm-pricing',
     title: 'Machine Pricing Matrix',
@@ -290,15 +256,7 @@ export const ERP_PAGES_MASTER: PageItem[] = [
     description: 'Gantt execution, timeline progress, and committed dispatch dates.',
     keywords: ['timeline', 'gantt', 'schedule', 'delivery dates', 'dispatch'],
   },
-  {
-    id: 'page-projects-milestones',
-    title: 'Project Milestones & Billing',
-    category: 'Projects',
-    path: '/projects/milestones',
-    icon: Flag,
-    description: 'Design approval, raw material inward, hydro test, and dispatch milestones.',
-    keywords: ['milestones', 'billing milestones', 'project stages', 'deliverables'],
-  },
+
   {
     id: 'page-projects-tasks',
     title: 'Project Tasks & Action Items',
@@ -308,24 +266,7 @@ export const ERP_PAGES_MASTER: PageItem[] = [
     description: 'Engineer task assignments, completion status, and priority Kanban board.',
     keywords: ['tasks', 'action items', 'todo', 'kanban', 'assignments'],
   },
-  {
-    id: 'page-projects-cr',
-    title: 'Engineering Change Requests (ECR)',
-    category: 'Projects',
-    path: '/projects/change-requests',
-    icon: RotateCcw,
-    description: 'Client modification requests, cost impact, and engineering change approvals.',
-    keywords: ['change requests', 'ecr', 'modifications', 'scope change', 'cost impact'],
-  },
-  {
-    id: 'page-projects-delays',
-    title: 'Project Delay Bottlenecks',
-    category: 'Projects',
-    path: '/projects/delays',
-    icon: AlertTriangle,
-    description: 'Critical path bottlenecks, vendor delays, and mitigation logs.',
-    keywords: ['delays', 'bottlenecks', 'blockers', 'late items', 'risks'],
-  },
+
   {
     id: 'page-projects-cost',
     title: 'Project Budget & Cost Control',
@@ -344,24 +285,7 @@ export const ERP_PAGES_MASTER: PageItem[] = [
     description: 'Fabrication drawings, approved QAP, test certificates, and client approvals.',
     keywords: ['project documents', 'drawings', 'qap', 'datasheets', 'certificates'],
   },
-  {
-    id: 'page-projects-issues',
-    title: 'Project Issues & Risk Register',
-    category: 'Projects',
-    path: '/projects/issues',
-    icon: AlertTriangle,
-    description: 'Shop floor escalations, welding defects, material shortages, and fixes.',
-    keywords: ['issues', 'risks', 'problems', 'escalations', 'defect log'],
-  },
-  {
-    id: 'page-projects-activity',
-    title: 'Project Activity & Audit Trail',
-    category: 'Projects',
-    path: '/projects/activity',
-    icon: Clock,
-    description: 'Timestamped timeline of every project event, milestone, and update.',
-    keywords: ['activity', 'audit log', 'timeline', 'history', 'events'],
-  },
+
   {
     id: 'page-projects-assignments',
     title: 'Department Project Assignments',
@@ -371,26 +295,9 @@ export const ERP_PAGES_MASTER: PageItem[] = [
     description: 'Design, Purchase, Production, Quality, and Dispatch engineer assignments.',
     keywords: ['department assignments', 'team allocation', 'engineers', 'roles'],
   },
-  {
-    id: 'page-projects-reports',
-    title: 'Project Execution Reports',
-    category: 'Projects',
-    path: '/projects/reports',
-    icon: FileSpreadsheet,
-    description: 'Execution velocity, milestone completion rates, and delay reports.',
-    keywords: ['project reports', 'project analytics', 'velocity', 'completion rate'],
-  },
+
 
   // 3. Designer & Engineering
-  {
-    id: 'page-designer-dash',
-    title: 'Designer & Engineering Dashboard',
-    category: 'Design',
-    path: '/designer',
-    icon: Compass,
-    description: 'CAD drawings queue, BOM release status, and design engineering metrics.',
-    keywords: ['designer', 'engineering', 'cad', 'drawings', 'bom', 'design dash'],
-  },
   {
     id: 'page-designer-jobs',
     title: 'Design Engineering Jobs Master',
@@ -410,15 +317,6 @@ export const ERP_PAGES_MASTER: PageItem[] = [
     keywords: ['bom', 'bill of materials', 'ebom', 'parts list', 'raw material specs'],
   },
   {
-    id: 'page-designer-revisions',
-    title: 'Drawing Revisions & Delta Log',
-    category: 'Design',
-    path: '/designer/revisions',
-    icon: RotateCcw,
-    description: 'Rev 00, Rev 01 engineering revisions, nozzle orientation changes, and client comments.',
-    keywords: ['revisions', 'drawing revisions', 'rev 01', 'changes', 'deltas'],
-  },
-  {
     id: 'page-designer-approval',
     title: 'Design Approvals & Sign-Offs',
     category: 'Design',
@@ -427,69 +325,7 @@ export const ERP_PAGES_MASTER: PageItem[] = [
     description: 'Client sign-off, internal QA approval, and drawing release to shop floor.',
     keywords: ['design approval', 'sign off', 'client drawing approval', 'qa approval'],
   },
-  {
-    id: 'page-designer-cad',
-    title: 'CAD 3D Models & Drawing Repository',
-    category: 'Design',
-    path: '/designer/cad',
-    icon: Box,
-    description: 'STEP files, DWG drawings, PDF fabrication blueprints, and 3D renders.',
-    keywords: ['cad files', '3d models', 'step files', 'dwg', 'autocad', 'solidworks'],
-  },
-  {
-    id: 'page-designer-history',
-    title: 'Design Version History',
-    category: 'Design',
-    path: '/designer/history',
-    icon: Clock,
-    description: 'Complete engineering change archive and historical drawings.',
-    keywords: ['design history', 'versioning', 'drawing history', 'archive'],
-  },
-  {
-    id: 'page-designer-standards',
-    title: 'Technical Standards & ASME Codes',
-    category: 'Design',
-    path: '/designer/standards',
-    icon: BookOpen,
-    description: 'ASME Sec VIII Div 1, IS 2825, cGMP, TEMA, and welding codes.',
-    keywords: ['standards', 'asme', 'codes', 'cgmp', 'tema', 'is 2825', 'welding standards'],
-  },
-  {
-    id: 'page-designer-cr',
-    title: 'Design Change Requests (DCR)',
-    category: 'Design',
-    path: '/designer/change-requests',
-    icon: RotateCcw,
-    description: 'Engineering change notifications (ECN) and nozzle revision requests.',
-    keywords: ['dcr', 'ecn', 'design changes', 'engineering notices'],
-  },
-  {
-    id: 'page-designer-documents',
-    title: 'Design Documents & Calculations',
-    category: 'Design',
-    path: '/designer/documents',
-    icon: FolderOpen,
-    description: 'Pressure vessel thickness calculations, nozzle reinforcement sheets, and FEA reports.',
-    keywords: ['design calculations', 'thickness calculation', 'fea report', 'design sheets'],
-  },
-  {
-    id: 'page-designer-team',
-    title: 'Engineering Team Allocation',
-    category: 'Design',
-    path: '/designer/team',
-    icon: Users,
-    description: 'CAD draftsperson workload, job allocation, and design turnaround times.',
-    keywords: ['design team', 'cad engineers', 'workload', 'capacity'],
-  },
-  {
-    id: 'page-designer-reports',
-    title: 'Engineering Design Reports',
-    category: 'Design',
-    path: '/designer/reports',
-    icon: FileSpreadsheet,
-    description: 'Drawing release velocity, revision frequency, and approval turnaround.',
-    keywords: ['design reports', 'engineering metrics', 'drawing turnaround'],
-  },
+
 
   // 4. Purchase Management
   {
@@ -609,15 +445,7 @@ export const ERP_PAGES_MASTER: PageItem[] = [
     description: 'Automated procurement forecasting based on active job BOMs and stock.',
     keywords: ['mrp', 'material planning', 'shortage calculator', 'procurement planning'],
   },
-  {
-    id: 'page-purchase-reports',
-    title: 'Procurement Reports & Spend Analysis',
-    category: 'Purchase',
-    path: '/purchase/reports',
-    icon: FileSpreadsheet,
-    description: 'Vendor OTIF rating, material price trends, and total procurement spend.',
-    keywords: ['purchase reports', 'spend analysis', 'vendor rating', 'otif'],
-  },
+
 
   // 5. Store & Inventory Warehouse
   {
@@ -791,15 +619,7 @@ export const ERP_PAGES_MASTER: PageItem[] = [
     description: 'Complete chronological inward/outward card ledger with weighted average cost.',
     keywords: ['stock ledger', 'bin card', 'movement history', 'inward outward'],
   },
-  {
-    id: 'page-store-reports',
-    title: 'Inventory Valuation & Aging Reports',
-    category: 'Store',
-    path: '/store/reports',
-    icon: FileSpreadsheet,
-    description: 'Fast/slow moving items, non-moving stock, and total store value.',
-    keywords: ['store reports', 'inventory valuation', 'aging report', 'slow moving'],
-  },
+
 
   // 6. Production & Shop Floor
   {
@@ -982,15 +802,7 @@ export const ERP_PAGES_MASTER: PageItem[] = [
     description: 'Browse all active manufacturing job orders on the shop floor.',
     keywords: ['production jobs', 'shop jobs', 'active manufacturing'],
   },
-  {
-    id: 'page-prod-reports',
-    title: 'Shop Productivity & OEE Reports',
-    category: 'Production',
-    path: '/production/reports',
-    icon: FileSpreadsheet,
-    description: 'Welder productivity, machine uptime, rejection rates, and output tons.',
-    keywords: ['production reports', 'oee reports', 'productivity', 'tons manufactured'],
-  },
+
 
   // 7. Accounting & Finance
   {
@@ -1083,24 +895,8 @@ export const ERP_PAGES_MASTER: PageItem[] = [
     description: '30 / 60 / 90 / 180+ days payment overdue reports and recovery follow-up.',
     keywords: ['aging', 'debtors aging', 'creditors aging', 'overdue payments', 'outstanding'],
   },
-  {
-    id: 'page-acc-pnl',
-    title: 'Profit & Loss Statement (P&L)',
-    category: 'Accounts',
-    path: '/accounting/pnl',
-    icon: TrendingUp,
-    description: 'Gross manufacturing margin, overhead costs, and operational EBITDA.',
-    keywords: ['pnl', 'profit and loss', 'income statement', 'ebitda', 'gross margin'],
-  },
-  {
-    id: 'page-acc-reports',
-    title: 'Financial Balance Sheet & Tax Reports',
-    category: 'Accounts',
-    path: '/accounting/reports',
-    icon: FileSpreadsheet,
-    description: 'Audited balance sheet, trial balance, and cash flow statements.',
-    keywords: ['financial reports', 'balance sheet', 'trial balance', 'cash flow'],
-  },
+
+
 
   // 8. Maintenance & Services
   {
@@ -1330,15 +1126,7 @@ export const ERP_PAGES_MASTER: PageItem[] = [
     description: 'Declared factory holidays, national festivals, and annual calendar.',
     keywords: ['holidays', 'calendar', 'festival holidays', 'company holidays'],
   },
-  {
-    id: 'page-hr-reports',
-    title: 'HR Compliance & Statutory Reports',
-    category: 'HR',
-    path: '/hr/reports',
-    icon: FileSpreadsheet,
-    description: 'Form 16, PF ECR return statements, ESIC returns, and headcount reports.',
-    keywords: ['hr reports', 'statutory compliance', 'pf return', 'esic return'],
-  },
+
 
   // 10. Integration & 360° Traceability
   {

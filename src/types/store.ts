@@ -111,6 +111,7 @@ export interface ItemMaster {
   defaultPurchaseRate: number;
   lastPurchaseRate: number;
   standardCost: number;
+  currentStock?: number;
   createdAt?: string;
   updatedAt?: string;
 }

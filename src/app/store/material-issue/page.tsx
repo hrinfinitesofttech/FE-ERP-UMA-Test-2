@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import {
   Truck,
@@ -17,20 +18,48 @@ import {
   ShieldCheck,
   Printer,
   X,
+  Loader2,
 } from 'lucide-react';
 
-export default function MaterialIssuePage() {
+function MaterialIssueContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const jobParam = searchParams.get('jobId') || '';
+  const bomParam = searchParams.get('bomId') || '';
+  const itemParam = searchParams.get('itemId') || '';
+
   const { materialIssues, addMaterialIssue, projectJobs, itemMasters, warehouses, stockBalances, openJobModal } = useERP();
-  
+
   const [mounted, setMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterJob, setFilterJob] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [hasDismissedParam, setHasDismissedParam] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [viewVoucher, setViewVoucher] = useState<any | null>(null);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (jobParam && !hasDismissedParam) {
+      setJobId(jobParam);
+      if (bomParam) setBomNo(bomParam);
+      setWoNo(`WO-${jobParam.replace('JOB-', '')}-A`);
+      if (itemParam) {
+        const found = itemMasters.find(
+          (i) =>
+            i.id === itemParam ||
+            i.itemCode === itemParam ||
+            i.itemCode?.toLowerCase() === itemParam.toLowerCase() ||
+            i.itemName?.toLowerCase().includes(itemParam.toLowerCase())
+        );
+        if (found) {
+          setItemId(found.id);
+        }
+      }
+      setIsModalOpen(true);
+    }
+  }, [jobParam, bomParam, itemParam, itemMasters, hasDismissedParam]);
 
   // Form State
   const [jobId, setJobId] = useState('JOB-2026-001');
@@ -100,49 +129,77 @@ export default function MaterialIssuePage() {
   const activeJobsSet = new Set(materialIssues.map((i) => i.jobId).filter(Boolean));
   const uniqueJobsCount = activeJobsSet.size;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const closeModal = () => {
+    setHasDismissedParam(true);
+    setIsModalOpen(false);
+    if (jobParam || bomParam || itemParam) {
+      router.replace('/store/material-issue');
+    }
+  };
+
+  const openNewModal = () => {
+    setHasDismissedParam(false);
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedItem || !selectedWh) return;
 
-    const rate = selectedItem.standardCost || (selectedItem as any).unitPrice || 150;
-    const totalCost = issueQty * rate;
+    try {
+      setIsSubmitting(true);
+      const rate = selectedItem.standardCost || (selectedItem as any).unitPrice || (selectedItem as any).defaultPurchaseRate || 150;
+      const totalCost = issueQty * rate;
 
-    addMaterialIssue({
-      issueDate: new Date().toISOString().split('T')[0],
-      projectId: selectedJob?.id || 'PRJ-2026-0001',
-      jobId: selectedJob?.jobNumber || jobId,
-      workOrderNumber: woNo,
-      bomNumber: bomNo,
-      bomRevision: bomRev,
-      productionStage: stage,
-      requestedBy,
-      issuedBy,
-      warehouseId: selectedWh.id,
-      warehouseName: selectedWh.warehouseName,
-      status: 'Fully Issued',
-      totalIssueValue: totalCost,
-      remarks,
-      items: [
-        {
-          id: `iss-item-${Date.now().toString().slice(-4)}`,
-          issueId: '',
-          itemId: selectedItem.id,
-          itemCode: selectedItem.itemCode,
-          itemName: selectedItem.itemName,
-          requiredQuantity: issueQty,
-          reservedQuantity: issueQty,
-          issuedQuantity: issueQty,
-          uom: selectedItem.uom,
-          unitPrice: rate,
-          totalCost: totalCost,
-          batchLot: batchLot || `HEAT-${Math.floor(10000 + Math.random() * 90000)}`,
-          locationCode: selectedWh.warehouseCode || 'STORE-BAY-01',
-          remarks: remarks || 'Issued for production execution',
-        },
-      ],
-    });
+      await addMaterialIssue({
+        issueDate: new Date().toISOString().split('T')[0],
+        projectId: selectedJob?.id || 'PRJ-2026-0001',
+        jobId: selectedJob?.jobNumber || jobId,
+        workOrderNumber: woNo,
+        bomNumber: bomNo,
+        bomRevision: bomRev,
+        productionStage: stage,
+        requestedBy,
+        issuedBy,
+        warehouseId: selectedWh.id,
+        warehouseName: selectedWh.warehouseName,
+        status: 'Fully Issued',
+        totalIssueValue: totalCost,
+        remarks,
+        items: [
+          {
+            id: `iss-item-${Date.now().toString().slice(-4)}`,
+            issueId: '',
+            itemId: selectedItem.id,
+            itemCode: selectedItem.itemCode,
+            itemName: selectedItem.itemName,
+            requiredQuantity: issueQty,
+            reservedQuantity: issueQty,
+            issuedQuantity: issueQty,
+            uom: selectedItem.uom,
+            unitPrice: rate,
+            totalCost: totalCost,
+            batchLot: batchLot || `HEAT-${Math.floor(10000 + Math.random() * 90000)}`,
+            locationCode: selectedWh.warehouseCode || 'STORE-BAY-01',
+            remarks: remarks || 'Issued for production execution',
+          },
+        ],
+      });
 
-    setIsModalOpen(false);
+      setSuccessMessage(`Material issue slip successfully created & stock deducted for Job ${selectedJob?.jobNumber || jobId}!`);
+      setHasDismissedParam(true);
+      setIsModalOpen(false);
+      router.replace('/store/material-issue');
+
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 6000);
+    } catch (err: any) {
+      console.error('Error creating material issue:', err);
+      alert(`Error creating material issue: ${err.message || 'Please check input data'}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!mounted) {
@@ -171,7 +228,7 @@ export default function MaterialIssuePage() {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={openNewModal}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition active:scale-95"
           >
             <Plus className="w-4 h-4" />
@@ -179,6 +236,22 @@ export default function MaterialIssuePage() {
           </button>
         </div>
       </div>
+
+      {/* Success Notification Banner */}
+      {successMessage && (
+        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between text-emerald-800 text-xs font-medium animate-in fade-in duration-200 shadow-sm">
+          <div className="flex items-center gap-2.5">
+            <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+            <span className="font-semibold">{successMessage}</span>
+          </div>
+          <button
+            onClick={() => setSuccessMessage(null)}
+            className="text-emerald-600 hover:text-emerald-800 p-1 rounded-lg hover:bg-emerald-100 transition"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -392,7 +465,8 @@ export default function MaterialIssuePage() {
                 <p className="text-[11px] text-[#70665F]">Deduct raw material from store stock and allocate directly to job work order.</p>
               </div>
               <button
-                onClick={() => setIsModalOpen(false)}
+                type="button"
+                onClick={closeModal}
                 className="p-1.5 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] transition"
               >
                 <X className="w-4 h-4" />
@@ -409,6 +483,9 @@ export default function MaterialIssuePage() {
                     onChange={(e) => handleJobChange(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-mono"
                   >
+                    {!projectJobs.some((j) => j.jobNumber === jobId || j.id === jobId) && (
+                      <option value={jobId}>{jobId}</option>
+                    )}
                     {projectJobs.map((j) => (
                       <option key={`modal-job-${j.id}`} value={j.jobNumber}>
                         {j.jobNumber} — {j.customerName ? `[${j.customerName}] ` : ''}{j.productName}
@@ -475,6 +552,11 @@ export default function MaterialIssuePage() {
                       onChange={(e) => setItemId(e.target.value)}
                       className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500"
                     >
+                      {!itemMasters.some((i) => i.id === itemId || i.itemCode === itemId) && (
+                        <option value={itemId}>
+                          {selectedItem?.itemCode || itemId} - {selectedItem?.itemName || itemId} ({selectedItem?.uom || 'Unit'})
+                        </option>
+                      )}
                       {itemMasters.map((i) => (
                         <option key={`modal-item-${i.id}`} value={i.id}>
                           {i.itemCode} - {i.itemName} ({i.uom})
@@ -522,6 +604,11 @@ export default function MaterialIssuePage() {
                     onChange={(e) => setWarehouseId(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500"
                   >
+                    {!warehouses.some((w) => w.id === warehouseId) && (
+                      <option value={warehouseId}>
+                        {selectedWh?.warehouseName || warehouseId}
+                      </option>
+                    )}
                     {warehouses.map((w) => (
                       <option key={`modal-wh-${w.id}`} value={w.id}>
                         {w.warehouseName} ({w.warehouseCode})
@@ -579,16 +666,28 @@ export default function MaterialIssuePage() {
               <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] hover:bg-[#EBE3DB] text-xs font-semibold transition"
+                  onClick={closeModal}
+                  disabled={isSubmitting}
+                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] hover:bg-[#EBE3DB] text-xs font-semibold transition disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-semibold shadow-lg shadow-emerald-600/20 transition active:scale-95"
+                  disabled={isSubmitting}
+                  className="px-5 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-semibold shadow-lg shadow-emerald-600/20 transition active:scale-95 disabled:opacity-50 flex items-center gap-2"
                 >
-                  Confirm & Deduct Stock
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Saving & Deducting Stock...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      <span>Confirm & Deduct Stock</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -738,5 +837,13 @@ export default function MaterialIssuePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function MaterialIssuePage() {
+  return (
+    <React.Suspense fallback={<div className="p-8 text-center text-xs text-[#70665F]">Loading Material Issue...</div>}>
+      <MaterialIssueContent />
+    </React.Suspense>
   );
 }

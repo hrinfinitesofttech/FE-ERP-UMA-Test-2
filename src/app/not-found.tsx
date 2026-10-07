@@ -22,7 +22,7 @@ export default function NotFound() {
           Executive Command Center
         </Link>
         <Link
-          href="/designer/dashboard"
+          href="/designer/jobs"
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-[#F3ECE4] text-[#75401F] font-bold text-xs border border-[#E7DED5] transition shadow-sm"
         >
           <ArrowLeft className="w-4 h-4" />

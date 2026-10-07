@@ -7,14 +7,14 @@ export default function DesignerPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router?.replace('/designer/dashboard');
+    router?.replace('/designer/jobs');
   }, [router]);
 
   return (
     <div className="bg-[#FAF7F2] flex items-center justify-center">
       <div className="flex items-center gap-3 text-crm-brand-500 font-medium">
         <div className="w-5 h-5 border-2 border-crm-brand-500 border-t-transparent rounded-full animate-spin"></div>
-        <span>Redirecting to Designer Dashboard...</span>
+        <span>Redirecting to Design Jobs...</span>
       </div>
     </div>
   );

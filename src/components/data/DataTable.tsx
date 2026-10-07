@@ -5,6 +5,8 @@ import { Search, Download, Printer, ChevronLeft, ChevronRight, SlidersHorizontal
 import { cn } from '../../lib/utils';
 import { useERP } from '@/context/ERPContext';
 
+import { sortByLatestDesc } from '@/lib/sortHelper';
+
 export interface Column<T> {
   header: string;
   accessorKey?: keyof T;
@@ -51,8 +53,11 @@ export function DataTable<T extends Record<string, any>>({
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(pageSizeDefault);
 
+  // Sort records descending by latest entry (ORDER BY 1 DESC)
+  const sortedData = React.useMemo(() => sortByLatestDesc(data), [data]);
+
   // Filter rows based on search query
-  const filteredData = data.filter((row) => {
+  const filteredData = sortedData.filter((row) => {
     const query = (searchQuery || '').trim().toLowerCase();
     if (!query) return true;
     return Object.values(row).some((val) => {

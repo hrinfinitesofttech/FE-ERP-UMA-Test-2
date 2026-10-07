@@ -22,6 +22,7 @@ import {
   Boxes,
   Code2,
   Check,
+  Edit2,
 } from 'lucide-react';
 
 interface NewBOMFormItem {
@@ -43,8 +44,9 @@ export default function MasterBOMPage() {
       const saved = localStorage.getItem('UMA_ERP_activeBOMJob');
       if (saved) return saved;
     }
-    return boms[0]?.jobNumber || 'JOB-2026-001';
+    return boms[0]?.id || boms[0]?.bomNumber || boms[0]?.jobNumber || 'BOM-JOB-TEST-6-V1';
   });
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [itemTypeFilter, setItemTypeFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
@@ -58,14 +60,32 @@ export default function MasterBOMPage() {
     }
   }, [selectedJobNumber]);
 
+  // Ensure active selected job is valid when boms populate
+  useEffect(() => {
+    if (boms && boms.length > 0) {
+      const match = boms.some(
+        (b) =>
+          b.id === selectedJobNumber ||
+          b.jobNumber === selectedJobNumber ||
+          b.bomNumber === selectedJobNumber ||
+          (b as any).bom_name === selectedJobNumber ||
+          (b as any).bomName === selectedJobNumber
+      );
+      if (!match) {
+        setSelectedJobNumber(boms[0].id || boms[0].bomNumber || boms[0].jobNumber || 'BOM-JOB-TEST-6-V1');
+      }
+    }
+  }, [boms, selectedJobNumber]);
+
   // Active BOM
   const activeBOM =
     boms.find(
       (b) =>
-        b.jobNumber === selectedJobNumber ||
         b.id === selectedJobNumber ||
+        b.jobNumber === selectedJobNumber ||
         b.bomNumber === selectedJobNumber ||
         (b as any).bom_name === selectedJobNumber ||
+        (b as any).bomName === selectedJobNumber ||
         b.machineName === selectedJobNumber
     ) || boms[0];
 
@@ -296,14 +316,53 @@ export default function MasterBOMPage() {
     setTimeout(() => setSuccessToast(''), 5000);
   };
 
-  // Add Item to Active BOM
+  // Add or Update Item in Active BOM
   const handleAddItem = (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeBOM || activeBOM.isLocked) return;
 
-    const newNo = activeBOM.items.length + 1;
     const rate = Number(estimatedRate);
     const qty = Number(quantity);
+
+    if (editingItemId) {
+      const updatedItems = (activeBOM.items || []).map((i) =>
+        i.id === editingItemId
+          ? {
+              ...i,
+              partNumber: partNumber || i.partNumber,
+              itemName,
+              partName: itemName,
+              description,
+              itemType,
+              material,
+              specification,
+              quantity: qty,
+              qty,
+              unit,
+              makeBrand,
+              procurementType,
+              procurement: (procurementType === 'In-House' ? 'FABRICATE' : 'PURCHASE') as any,
+              estimatedRate: rate,
+              rate,
+              totalEstimatedAmount: rate * qty,
+              total_estimated_amount: rate * qty,
+            }
+          : i
+      );
+      const newTotal = updatedItems.reduce((s, i) => s + (i.totalEstimatedAmount || 0), 0);
+      updateBOM(activeBOM.id, {
+        items: updatedItems,
+        totalItemsCount: updatedItems.length,
+        estimatedTotalCost: newTotal,
+      });
+      setIsAddItemModalOpen(false);
+      setEditingItemId(null);
+      setSuccessToast(`Item "${itemName}" updated successfully!`);
+      setTimeout(() => setSuccessToast(''), 4000);
+      return;
+    }
+
+    const newNo = activeBOM.items.length + 1;
     const newItem: BOMItem = {
       id: `bi-${Date.now()}`,
       itemNo: newNo,
@@ -332,7 +391,7 @@ export default function MasterBOMPage() {
     };
 
     const updatedItems = [...activeBOM.items, newItem];
-    const newTotal = updatedItems.reduce((s, i) => s + i.totalEstimatedAmount, 0);
+    const newTotal = updatedItems.reduce((s, i) => s + (i.totalEstimatedAmount || (Number(i.quantity || 1) * Number(i.estimatedRate || 0))), 0);
 
     updateBOM(activeBOM.id, {
       items: updatedItems,
@@ -342,6 +401,42 @@ export default function MasterBOMPage() {
 
     setIsAddItemModalOpen(false);
     setSuccessToast(`Item "${itemName}" added to BOM ${activeBOM.bomNumber}!`);
+    setTimeout(() => setSuccessToast(''), 4000);
+  };
+
+  const handleOpenEditItem = (item: BOMItem) => {
+    if (!activeBOM || activeBOM.isLocked) return;
+    setEditingItemId(item.id);
+    setPartNumber(item.partNumber || '');
+    setItemName(item.itemName || item.partName || (item as any).part_name || '');
+    setDescription(item.description || '');
+    setItemType(item.itemType || 'Raw Material');
+    setMaterial(item.material || '');
+    setSpecification(item.specification || '');
+    setQuantity(item.quantity || (item as any).qty || 1);
+    setUnit(item.unit || 'PCS');
+    setMakeBrand(item.makeBrand || '');
+    setProcurementType(item.procurementType || (item.procurement === 'FABRICATE' ? 'In-House' : 'Purchase'));
+    setEstimatedRate(Number(item.estimatedRate ?? (item as any).rate ?? 0));
+    setIsAddItemModalOpen(true);
+  };
+
+  const handleDeleteItem = (itemId: string) => {
+    if (!activeBOM || activeBOM.isLocked) return;
+    const itemToDelete = activeBOM.items.find((i) => i.id === itemId);
+    if (!confirm(`Are you sure you want to remove "${itemToDelete?.itemName || 'this item'}" from the BOM?`)) return;
+    const updatedItems = activeBOM.items.filter((i) => i.id !== itemId);
+    const newTotal = updatedItems.reduce((s, i) => {
+      const r = Number(i.estimatedRate || (i as any).rate || 0);
+      const q = Number(i.quantity || (i as any).qty || 1);
+      return s + (i.totalEstimatedAmount || (q * r));
+    }, 0);
+    updateBOM(activeBOM.id, {
+      items: updatedItems,
+      totalItemsCount: updatedItems.length,
+      estimatedTotalCost: newTotal,
+    });
+    setSuccessToast(`Item removed from BOM ${activeBOM.bomNumber}!`);
     setTimeout(() => setSuccessToast(''), 4000);
   };
 
@@ -356,18 +451,22 @@ export default function MasterBOMPage() {
     setTimeout(() => setSuccessToast(''), 4000);
   };
 
-  const filteredItems =
-    (activeBOM?.items || []).filter((item) => {
-      const q = searchQuery?.toLowerCase() || '';
-      const matchSearch =
-        !q ||
-        item.partNumber?.toLowerCase().includes(q) ||
-        item.itemName?.toLowerCase().includes(q) ||
-        item.material?.toLowerCase().includes(q) ||
-        (item.makeBrand && item.makeBrand?.toLowerCase().includes(q));
-      const matchType = itemTypeFilter === 'all' || item.itemType === itemTypeFilter;
-      return matchSearch && matchType;
-    });
+  const filteredItems = (activeBOM?.items || []).filter((item) => {
+    const q = searchQuery?.toLowerCase() || '';
+    const matchSearch =
+      !q ||
+      item.partNumber?.toLowerCase().includes(q) ||
+      item.itemName?.toLowerCase().includes(q) ||
+      item.material?.toLowerCase().includes(q) ||
+      (item.makeBrand && item.makeBrand?.toLowerCase().includes(q));
+
+    if (!matchSearch) return false;
+    if (itemTypeFilter === 'all') return true;
+
+    const filterNormalized = itemTypeFilter.toLowerCase().replace(/[-_\s]/g, '');
+    const itemTypeNormalized = String(item.itemType || (item as any).item_type || '').toLowerCase().replace(/[-_\s]/g, '');
+    return itemTypeNormalized.includes(filterNormalized) || filterNormalized.includes(itemTypeNormalized);
+  });
 
   const totalBOMCost = (activeBOM?.items || []).reduce((sum, item: any) => {
     const rate = Number(item.estimatedRate ?? item.estimated_rate ?? item.rate ?? item.estRate ?? item.unitPrice ?? item.unit_price ?? item.costPerUnit ?? item.cost_per_unit ?? 0);
@@ -426,12 +525,22 @@ export default function MasterBOMPage() {
               <ShieldCheck className="w-4 h-4" />
               Approve & Lock BOM
             </button>
-          ) : (
-            <span className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-mono font-bold">
+          ) : activeBOM?.isLocked ? (
+            <button
+              onClick={() => {
+                if (activeBOM) {
+                  updateBOM(activeBOM.id, { isLocked: false, approvalStatus: 'draft' });
+                  setSuccessToast(`BOM ${activeBOM.bomNumber} unlocked for editing.`);
+                  setTimeout(() => setSuccessToast(''), 3000);
+                }
+              }}
+              title="Click to Unlock BOM for editing"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-mono font-bold cursor-pointer transition shadow-xs"
+            >
               <Lock className="w-4 h-4 text-emerald-600" />
-              BOM Locked ({activeBOM?.revisionNumber})
-            </span>
-          )}
+              BOM Locked ({activeBOM.revisionNumber || activeBOM.version || 'V1'}) - Click to Unlock
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -455,9 +564,10 @@ export default function MasterBOMPage() {
               {boms.map((b) => {
                 const matchedJob = designJobs.find((j) => j.jobNumber === b.jobNumber) || (projectJobs || []).find((p) => p.jobNumber === b.jobNumber);
                 const cust = matchedJob?.customerName;
+                const optVal = b.id || b.bomNumber || b.jobNumber;
                 return (
-                  <option key={b.id} value={b.jobNumber}>
-                    {b.jobNumber} — {cust ? `[${cust}] ` : ''}{b.bomName || b.machineName || b.bomNumber} ({b.revisionNumber || 'V1'})
+                  <option key={b.id || b.bomNumber} value={optVal}>
+                    {b.jobNumber || b.bomNumber} — {cust ? `[${cust}] ` : ''}{b.bomName || b.machineName || b.bomNumber} ({b.revisionNumber || b.version || 'V1'})
                   </option>
                 );
               })}
@@ -523,7 +633,21 @@ export default function MasterBOMPage() {
 
           {activeBOM && !activeBOM.isLocked && (
             <button
-              onClick={() => setIsAddItemModalOpen(true)}
+              onClick={() => {
+                setEditingItemId(null);
+                setPartNumber('');
+                setItemName('');
+                setDescription('');
+                setItemType('Raw Material');
+                setMaterial('SS 316L');
+                setSpecification('');
+                setQuantity(1);
+                setUnit('PCS');
+                setMakeBrand('');
+                setProcurementType('Purchase');
+                setEstimatedRate(500);
+                setIsAddItemModalOpen(true);
+              }}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition shadow-sm whitespace-nowrap shrink-0"
             >
               <PlusCircle className="w-4 h-4" />
@@ -546,12 +670,13 @@ export default function MasterBOMPage() {
               <th className="p-3.5 text-center">Qty / Unit</th>
               <th className="p-3.5 text-right">Est. Rate</th>
               <th className="p-3.5 text-right">Total Amount (₹)</th>
+              <th className="p-3.5 w-20 text-center">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#EBE3DB]">
             {filteredItems.length === 0 ? (
               <tr>
-                <td colSpan={8} className="p-8 text-center text-[#70665F]">
+                <td colSpan={9} className="p-8 text-center text-[#70665F]">
                   No BOM items match the selected filter. Click &quot;Add Material Line&quot; to populate.
                 </td>
               </tr>
@@ -634,6 +759,30 @@ export default function MasterBOMPage() {
                     </td>
                     <td className="p-3.5 text-right font-mono font-bold text-emerald-700">
                       ₹ {totalAmt.toLocaleString('en-IN')}
+                    </td>
+                    <td className="p-3.5 text-center">
+                      {!activeBOM?.isLocked ? (
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditItem(item)}
+                            title="Edit this line item"
+                            className="p-1.5 rounded-lg text-amber-700 hover:text-amber-900 hover:bg-amber-100 transition"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteItem(item.id)}
+                            title="Remove this line item"
+                            className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-[10px] text-slate-400 font-mono">Locked</span>
+                      )}
                     </td>
                   </tr>
                 );
@@ -930,7 +1079,9 @@ export default function MasterBOMPage() {
             <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
               <h3 className="text-base font-extrabold text-[#211B17] flex items-center gap-2">
                 <FileSpreadsheet className="w-5 h-5 text-amber-600" />
-                Add Item to Master BOM ({activeBOM?.jobNumber})
+                {editingItemId
+                  ? `Edit Item in BOM (${activeBOM?.jobNumber || activeBOM?.bomNumber})`
+                  : `Add Item to Master BOM (${activeBOM?.jobNumber || activeBOM?.bomNumber})`}
               </h3>
               <button
                 onClick={() => setIsAddItemModalOpen(false)}
@@ -1059,7 +1210,7 @@ export default function MasterBOMPage() {
                   type="submit"
                   className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold shadow-md transition"
                 >
-                  Add Item to BOM
+                  {editingItemId ? 'Update Material Line' : 'Add Item to BOM'}
                 </button>
               </div>
             </form>

@@ -80,8 +80,25 @@ export interface DesignJob {
   disapprovedBy?: string;
   disapprovedDate?: string;
   rejectionReason?: string;
+  disapprovalReason?: string;
   approvalNotes?: string;
   createdDate: string;
+  drawingFileName?: string;
+  drawingTitle?: string;
+  drawingNumber?: string;
+  drawingCategory?: string;
+  drawingFormat?: string;
+  fileSize?: string;
+  fileUrl?: string;
+  attachments?: {
+    id?: string;
+    name: string;
+    size?: string;
+    type?: string;
+    category?: string;
+    url?: string;
+    uploadedAt?: string;
+  }[];
 }
 
 export interface CustomerRequirement {
@@ -267,22 +284,33 @@ export interface PartDrawing {
 export interface BOMItem {
   id: string;
   itemNo: number; // 1, 2, 3...
+  itemNumber?: string;
+  item_number?: string;
   partNumber: string;
+  part_number?: string;
   itemName: string;
+  partName?: string;
+  part_name?: string;
   description: string;
   itemType: BOMItemType;
   material: string;
+  materialGrade?: string;
+  material_grade?: string;
+  grade?: string;
   specification: string;
   quantity: number;
+  qty?: number;
   unit: string;
   makeBrand?: string;
   procurementType: ProcurementType;
   procurement?: 'PURCHASE' | 'FABRICATE';
   item_type?: 'RAW_MATERIAL' | 'FABRICATED' | 'BOUGHT_OUT' | 'CONSUMABLE' | 'HARDWARE' | 'ELECTRICAL';
   estimatedRate: number;
+  rate?: number;
   totalEstimatedAmount: number;
   parentItemId?: string; // For Multi-level hierarchy
   remarks?: string;
+  [key: string]: any;
 }
 
 export interface BOMHeader {
@@ -303,8 +331,8 @@ export interface BOMHeader {
   checkedBy?: string;
   approvedBy?: string;
   approvedDate?: string;
-  status: 'draft' | 'under_review' | 'approved' | 'released_to_production';
-  approvalStatus?: 'draft' | 'under_review' | 'approved' | 'released' | 'released_to_production';
+  status: 'draft' | 'under_review' | 'approved' | 'released_to_production' | string;
+  approvalStatus?: 'draft' | 'under_review' | 'approved' | 'released' | 'released_to_production' | string;
   isLocked?: boolean;
   totalItemCount: number;
   totalItemsCount?: number;
@@ -313,6 +341,7 @@ export interface BOMHeader {
   createdDate?: string;
   updatedDate?: string;
   items: BOMItem[];
+  [key: string]: any;
 }
 
 export interface BOMRevision {

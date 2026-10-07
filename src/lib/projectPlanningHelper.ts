@@ -1,4 +1,4 @@
-import { ProjectJobMaster, ProjectPlanningStage, ProjectMilestone, DepartmentAssignment, PlanningStageAssignee } from '../types/crm';
+import { ProjectJobMaster, ProjectPlanningStage, ProjectMilestone, DepartmentAssignment, PlanningStageAssignee, ProjectTask, TaskStatus } from '../types/crm';
 
 export interface StageTemplate {
   num: number;
@@ -25,8 +25,8 @@ export const STANDARD_16_STAGES: StageTemplate[] = [
     ],
     startPct: 0.0,
     endPct: 0.02,
-    defaultStatus: 'completed',
-    defaultProgress: 100,
+    defaultStatus: 'pending',
+    defaultProgress: 0,
     description: 'Sales Order confirmed, commercial terms agreed, customer PO received and internal kickoff.',
   },
   {
@@ -39,13 +39,13 @@ export const STANDARD_16_STAGES: StageTemplate[] = [
     ],
     startPct: 0.0,
     endPct: 0.04,
-    defaultStatus: 'completed',
-    defaultProgress: 100,
+    defaultStatus: 'pending',
+    defaultProgress: 0,
     description: 'Job Number and Project File created. PM, Design lead and Shop supervisor assigned.',
   },
   {
     num: 3,
-    name: 'Design CAD 3D & GA Drawings',
+    name: 'Design CAD 3D & GA Drawings (Engineering Design)',
     dept: 'designer',
     defaultEmployee: 'Dharmesh Joshi, Ketan Patel',
     defaultAssignees: [
@@ -54,8 +54,8 @@ export const STANDARD_16_STAGES: StageTemplate[] = [
     ],
     startPct: 0.04,
     endPct: 0.16,
-    defaultStatus: 'in_progress',
-    defaultProgress: 35,
+    defaultStatus: 'pending',
+    defaultProgress: 0,
     description: 'Mechanical 3D modeling, General Arrangement (GA) drawing and nozzle orientation details.',
   },
   {
@@ -134,7 +134,7 @@ export const STANDARD_16_STAGES: StageTemplate[] = [
   },
   {
     num: 9,
-    name: 'Production Planning & Routing Card',
+    name: 'Production Planning & Routing Card (CNC Cutting & WPS)',
     dept: 'production',
     defaultEmployee: 'Bhavin Shah, Suresh Chauhan',
     defaultAssignees: [
@@ -145,11 +145,11 @@ export const STANDARD_16_STAGES: StageTemplate[] = [
     endPct: 0.58,
     defaultStatus: 'pending',
     defaultProgress: 0,
-    description: 'Fabrication bay allocation, CNC cutting plans, welding procedure specification (WPS).',
+    description: 'Fabrication bay allocation, CNC cutting plans, plate nesting and welding procedure specification (WPS).',
   },
   {
     num: 10,
-    name: 'Shop Floor Fabrication & Assembly',
+    name: 'Shop Floor Fabrication & Assembly (Cutting, Fit-up & Welding)',
     dept: 'production',
     defaultEmployee: 'Bhavin Shah, Suresh Chauhan',
     defaultAssignees: [
@@ -160,7 +160,7 @@ export const STANDARD_16_STAGES: StageTemplate[] = [
     endPct: 0.78,
     defaultStatus: 'pending',
     defaultProgress: 0,
-    description: 'Rolling, shell fit-up, dish end welding, nozzle attachment, internal lining and structure.',
+    description: 'Rolling, shell fit-up, dish end welding, nozzle attachment, internal lining and structure fabrication.',
   },
   {
     num: 11,
@@ -179,7 +179,7 @@ export const STANDARD_16_STAGES: StageTemplate[] = [
   },
   {
     num: 12,
-    name: 'Surface Finishing & Painting/Packing',
+    name: 'Surface Finishing & Painting/Packing (Color Work & Coating)',
     dept: 'store',
     defaultEmployee: 'Dispatch Supervisor, Store Manager',
     defaultAssignees: [
@@ -190,7 +190,7 @@ export const STANDARD_16_STAGES: StageTemplate[] = [
     endPct: 0.89,
     defaultStatus: 'pending',
     defaultProgress: 0,
-    description: 'Shot blasting (Sa 2.5), primer and epoxy coating, wooden crating and packing.',
+    description: 'Shot blasting (Sa 2.5), primer and epoxy coating painting, wooden crating and packing.',
   },
   {
     num: 13,
@@ -351,6 +351,85 @@ export function movePlanningStage(
   return renumberPlanningStages(newStages);
 }
 
+/**
+ * Deduplicates planning stages for a project or across all projects.
+ * Ensures that each stage number (1..16) or name appears only once per project.
+ */
+export function deduplicatePlanningStages(stages: ProjectPlanningStage[]): ProjectPlanningStage[] {
+  if (!Array.isArray(stages)) return [];
+  const map = new Map<string, ProjectPlanningStage>();
+
+  const normalizeProjectKey = (stg: any): string => {
+    const raw = String(stg.projectId || stg.project_id || stg.jobNumber || stg.job_number || '').trim();
+    const digits = raw.replace(/^(PRJ|JOB|PROJECT)-/i, '').trim().toLowerCase();
+    return digits || raw.toLowerCase() || 'default_prj';
+  };
+
+  const cleanStageName = (name: any): string => {
+    return String(name || '')
+      .toLowerCase()
+      .replace(/^stage\s*\d+\s*:\s*/i, '')
+      .replace(/[^a-z0-9]/g, '')
+      .slice(0, 25);
+  };
+
+  for (const rawStg of stages) {
+    if (!rawStg) continue;
+    const stg = { ...rawStg };
+    // Normalize field names across frontend & backend DRF
+    stg.stageName = stg.stageName || (stg as any).name || '';
+    stg.stageNumber = Number(stg.stageNumber || (stg as any).stage_number || (stg as any).num || 0);
+    stg.progressPercent = Number(stg.progressPercent ?? (stg as any).progress ?? 0);
+    stg.responsibleDepartment = stg.responsibleDepartment || (stg as any).department || 'production';
+    stg.responsibleEmployee = stg.responsibleEmployee || (stg as any).assignedEmployeeName || (stg as any).assigned_employee_name || '';
+    stg.plannedStart = stg.plannedStart || (stg as any).startDate || (stg as any).start_date || '';
+    stg.plannedEnd = stg.plannedEnd || (stg as any).endDate || (stg as any).end_date || '';
+    stg.remarks = stg.remarks || (stg as any).description || '';
+
+    const prjKey = normalizeProjectKey(stg);
+    const stageNum = stg.stageNumber;
+    const nameKey = cleanStageName(stg.stageName);
+
+    // Primary unique key: by stage number if valid (1..16), or fallback to name
+    const primaryKey = stageNum > 0 ? `${prjKey}__num_${stageNum}` : `${prjKey}__name_${nameKey}`;
+
+    if (!map.has(primaryKey)) {
+      map.set(primaryKey, stg);
+    } else {
+      const existing = map.get(primaryKey)!;
+      const isStgBetter =
+        (stg.progressPercent || 0) > (existing.progressPercent || 0) ||
+        stg.status === 'completed' ||
+        (stg.assignedEmployees?.length || 0) > (existing.assignedEmployees?.length || 0);
+      if (isStgBetter) {
+        map.set(primaryKey, { ...existing, ...stg });
+      }
+    }
+  }
+
+  // Secondary deduplication: ensure no duplicate stageName for the same project
+  const byNameMap = new Map<string, ProjectPlanningStage>();
+  for (const stg of map.values()) {
+    const prjKey = normalizeProjectKey(stg);
+    const nameKey = cleanStageName(stg.stageName);
+    const secondaryKey = nameKey ? `${prjKey}__name_${nameKey}` : `${prjKey}__id_${stg.id}`;
+
+    if (!byNameMap.has(secondaryKey)) {
+      byNameMap.set(secondaryKey, stg);
+    } else {
+      const existing = byNameMap.get(secondaryKey)!;
+      const isStgBetter =
+        (stg.progressPercent || 0) > (existing.progressPercent || 0) ||
+        stg.status === 'completed';
+      if (isStgBetter) {
+        byNameMap.set(secondaryKey, { ...existing, ...stg });
+      }
+    }
+  }
+
+  return Array.from(byNameMap.values()).sort((a, b) => (a.stageNumber || 0) - (b.stageNumber || 0));
+}
+
 export function createDefaultMilestonesForProject(prj: {
   id: string;
   projectNumber: string;
@@ -402,3 +481,58 @@ export function createDefaultDepartmentAssignments(prj: {
 }): DepartmentAssignment[] {
   return [];
 }
+
+/**
+ * Automatically converts all 16 Project Planning Stages into corresponding Project Tasks
+ * with sequential prerequisite dependencies (Stage N depends on Stage N-1), assignees,
+ * departments, dates, and percentage completed.
+ */
+export function convertPlanningStagesToTasks(
+  stages: ProjectPlanningStage[],
+  prj: { id: string; projectNumber?: string; jobNumber: string; deliveryDate?: string; startDate?: string }
+): ProjectTask[] {
+  // Sort stages by stageNumber
+  const sorted = [...stages].sort((a, b) => (a.stageNumber || 0) - (b.stageNumber || 0));
+
+  return sorted.map((stg, idx) => {
+    const taskId = `TSK-${stg.id}`;
+    const prevStage = idx > 0 ? sorted[idx - 1] : null;
+    const depTaskId = prevStage ? `TSK-${prevStage.id}` : undefined;
+
+    const taskStatus: TaskStatus =
+      stg.status === 'completed'
+        ? 'completed'
+        : stg.status === 'in_progress'
+        ? 'in_progress'
+        : stg.status === 'delayed'
+        ? 'waiting'
+        : 'pending';
+
+    const assignees =
+      stg.assignedEmployees && stg.assignedEmployees.length > 0
+        ? stg.assignedEmployees.map((a) => a.name).join(', ')
+        : stg.responsibleEmployee || 'Unassigned';
+
+    return {
+      id: taskId,
+      taskNumber: `TSK-${String(stg.stageNumber || idx + 1).padStart(2, '0')}`,
+      projectId: prj.id,
+      projectNumber: prj.projectNumber || prj.id,
+      jobNumber: prj.jobNumber,
+      taskName: stg.stageName,
+      description: stg.remarks || stg.deliverables || `${stg.stageName} execution step for ${prj.jobNumber}`,
+      department: stg.responsibleDepartment,
+      assignedTo: assignees,
+      priority: (stg.stageNumber || idx + 1) <= 4 ? 'high' : (stg.stageNumber || idx + 1) <= 10 ? 'urgent' : 'medium',
+      startDate: stg.plannedStart || prj.startDate || new Date().toISOString().split('T')[0],
+      dueDate: stg.plannedEnd || prj.deliveryDate || new Date().toISOString().split('T')[0],
+      estimatedHours: 40,
+      actualHours: Math.round(((stg.progressPercent || 0) / 100) * 40),
+      status: taskStatus,
+      completionPercent: stg.progressPercent ?? (stg.status === 'completed' ? 100 : 0),
+      dependentTaskId: depTaskId,
+      remarks: stg.deliverables,
+    };
+  });
+}
+

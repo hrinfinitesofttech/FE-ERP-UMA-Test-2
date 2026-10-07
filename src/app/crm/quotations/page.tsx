@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
@@ -26,11 +26,33 @@ export default function QuotationsListPage() {
     };
   };
 
-  const filteredQuotations = quotations.filter((q) => {
-    const summary = getSummary(q);
-    if (statusFilter !== 'all' && summary.status !== statusFilter) return false;
-    return true;
-  });
+  const filteredQuotations = useMemo(() => {
+    const list = quotations.filter((q) => {
+      const summary = getSummary(q);
+      if (statusFilter !== 'all' && summary.status !== statusFilter) return false;
+      return true;
+    });
+
+    const seenNumbers = new Set<string>();
+    const seenSemantic = new Set<string>();
+    return list.filter((q) => {
+      const qNo = String(q.quotationNumber || q.id || '').trim();
+      if (!qNo || seenNumbers.has(qNo)) return false;
+      seenNumbers.add(qNo);
+
+      const summary = getSummary(q);
+      const cust = (q.customerName || '').toLowerCase().trim();
+      const prod = (summary.machineProduct || '').toLowerCase().trim();
+      const amt = Math.round(Number(summary.grandTotal) || 0);
+
+      if (cust && cust !== 'customer' && prod && prod !== 'process equipment' && amt > 0) {
+        const semKey = `${cust}__${prod}__${amt}`;
+        if (seenSemantic.has(semKey)) return false;
+        seenSemantic.add(semKey);
+      }
+      return true;
+    });
+  }, [quotations, statusFilter]);
 
   const columns: Column<Quotation>[] = [
     {

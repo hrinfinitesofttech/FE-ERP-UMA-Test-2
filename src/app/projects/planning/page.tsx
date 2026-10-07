@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import { useERP } from '../../../context/ERPContext';
 import { formatDate } from '../../../lib/utils';
 import { ProjectPlanningStage, PlanningStageAssignee } from '../../../types/crm';
-import { movePlanningStage } from '../../../lib/projectPlanningHelper';
+import { movePlanningStage, deduplicatePlanningStages } from '../../../lib/projectPlanningHelper';
 import {
   Workflow,
   CheckCircle2,
@@ -25,6 +26,7 @@ import {
   RotateCcw,
   Check,
   ArrowRight,
+  ArrowLeft,
   ShieldCheck,
   ChevronUp,
   ChevronDown,
@@ -34,6 +36,8 @@ import {
   FileCheck2,
   Tag,
   ArrowUpDown,
+  Database,
+  RefreshCw,
 } from 'lucide-react';
 
 export default function ProjectPlanningPage() {
@@ -45,6 +49,9 @@ export default function ProjectPlanningPage() {
     deletePlanningStage,
     reorderPlanningStages,
     markPlanningStageCompleted,
+    savePlanningStagesToDatabase,
+    clearAndResetPlanningStages,
+    syncProjects,
     projectJobs,
     availableEmployees,
     currentUser,
@@ -54,16 +61,28 @@ export default function ProjectPlanningPage() {
   const [selectedProjectId, setSelectedProjectId] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      const qId = params.get('id') || params.get('projectId');
-      if (qId && projectJobs.some((p) => p.id === qId || p.projectNumber === qId)) {
-        return qId;
+      const qId = params.get('id') || params.get('projectId') || params.get('projectNumber');
+      if (qId && projectJobs.some((p) => p.id === qId || p.projectNumber === qId || p.jobNumber === qId)) {
+        const found = projectJobs.find((p) => p.id === qId || p.projectNumber === qId || p.jobNumber === qId);
+        if (found) return found.id;
       }
     }
     return projectJobs[0]?.id || 'PRJ-2026-0001';
   });
 
-  // Ensure selectedProjectId is valid if projectJobs loads/changes
+  // Ensure selectedProjectId is valid if projectJobs loads/changes or query param changes
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const qId = params.get('id') || params.get('projectId') || params.get('projectNumber');
+      if (qId) {
+        const found = projectJobs.find((p) => p.id === qId || p.projectNumber === qId || p.jobNumber === qId);
+        if (found) {
+          setSelectedProjectId(found.id);
+          return;
+        }
+      }
+    }
     if (projectJobs.length > 0 && !projectJobs.some((p) => p.id === selectedProjectId)) {
       setSelectedProjectId(projectJobs[0].id);
     }
@@ -98,6 +117,14 @@ export default function ProjectPlanningPage() {
   // Quick Handover / Completion Notes
   const [completionNotes, setCompletionNotes] = useState('');
 
+  // Auto-sync fresh data from database / API on initial load
+  useEffect(() => {
+    syncProjects(true).catch(() => {});
+  }, [syncProjects]);
+
+  const [isSavingToDb, setIsSavingToDb] = useState(false);
+  const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
+
   // Active Project & Stages
   const activeProject =
     projectJobs.find((p) => p.id === selectedProjectId) ||
@@ -106,9 +133,10 @@ export default function ProjectPlanningPage() {
 
   const activeStages = useMemo(() => {
     if (!activeProject) return [];
-    return projectPlanningStages.filter(
+    const list = projectPlanningStages.filter(
       (s) => s.projectId === activeProject.id || s.jobNumber === activeProject.jobNumber
     );
+    return deduplicatePlanningStages(list);
   }, [projectPlanningStages, activeProject]);
 
   // Filtered Stages
@@ -158,6 +186,55 @@ export default function ProjectPlanningPage() {
       }
     }
     generateDefaultPlanningStages(prjId);
+  };
+
+  const handleSaveToDatabase = async () => {
+    if (!activeProject) return;
+    setIsSavingToDb(true);
+    setSaveSuccessMessage(null);
+    try {
+      const ok = await savePlanningStagesToDatabase(activeProject.id);
+      if (ok) {
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem(`UMA_ERP_planning_saved_${activeProject.id}`, 'true');
+            localStorage.setItem(`UMA_ERP_planning_saved_${activeProject.projectNumber}`, 'true');
+            if (activeProject.jobNumber) {
+              localStorage.setItem(`UMA_ERP_planning_saved_${activeProject.jobNumber}`, 'true');
+            }
+          } catch (_) {}
+        }
+        setSaveSuccessMessage(`All ${activeStages.length} planning stages and tasks successfully saved to database!`);
+        setTimeout(() => setSaveSuccessMessage(null), 6000);
+      } else {
+        alert('Could not save stages to database. Please check your network connection.');
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert('Error saving to database: ' + err?.message);
+    } finally {
+      setIsSavingToDb(false);
+    }
+  };
+
+  const handleClearAndResetAll = async () => {
+    if (!activeProject) return;
+    const confirmReset = window.confirm(
+      `Are you sure you want to clear all stages and reset to the standard 16 MTO steps for ${activeProject.projectNumber} (${activeProject.jobNumber})?\n\nThis will clear any custom changes and reset the 16 standard execution steps in the database.`
+    );
+    if (!confirmReset) return;
+    setIsSavingToDb(true);
+    setSaveSuccessMessage(null);
+    try {
+      await clearAndResetPlanningStages(activeProject.id);
+      setSaveSuccessMessage('All stages cleared and reset to 16 standard stages in database!');
+      setTimeout(() => setSaveSuccessMessage(null), 6000);
+    } catch (err: any) {
+      console.error(err);
+      alert('Error resetting stages: ' + err?.message);
+    } finally {
+      setIsSavingToDb(false);
+    }
   };
 
   const handleOpenAddModal = () => {
@@ -422,6 +499,15 @@ export default function ProjectPlanningPage() {
 
         {/* Project Selector & Actions */}
         <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href="/projects"
+            className="px-3 py-2 bg-white hover:bg-[#FAF7F2] text-[#75401F] border border-[#E7DED5] rounded-xl font-bold flex items-center gap-1.5 shadow-xs transition"
+            title="Back to Projects List"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 text-[#75401F]" />
+            <span>Projects List</span>
+          </Link>
+
           <div className="flex items-center gap-2 bg-[#FAF7F2] p-2 rounded-xl border border-[#E7DED5] shadow-xs">
             <span className="text-[#70665F] font-bold pl-1 whitespace-nowrap">Select Project:</span>
             <select
@@ -438,19 +524,45 @@ export default function ProjectPlanningPage() {
           </div>
 
           {activeProject && (
-            <button
-              onClick={() => handleGenerateStages(activeProject.id)}
-              title="Reset or load 16 standard execution stages"
-              className="px-3 py-2 bg-white hover:bg-[#FAF7F2] text-[#75401F] border border-[#E7DED5] rounded-xl font-bold flex items-center gap-1.5 shadow-xs transition cursor-pointer"
-            >
-              <Sparkles className="w-4 h-4 text-[#75401F]" />
-              <span className="hidden sm:inline">Load 16 MTO Template</span>
-            </button>
+            <>
+              {/* Clear / Reset All Button */}
+              <button
+                type="button"
+                onClick={handleClearAndResetAll}
+                disabled={isSavingToDb}
+                title="Clear duplicates and reset to 16 standard stages"
+                className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl font-bold flex items-center gap-1.5 shadow-xs transition cursor-pointer disabled:opacity-50"
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-rose-600" />
+                <span className="hidden md:inline">Clear & Reset</span>
+              </button>
+
+              {/* Save to Database Button */}
+              <button
+                type="button"
+                onClick={handleSaveToDatabase}
+                disabled={isSavingToDb}
+                title="Save all planning stages and tasks to database"
+                className="px-3.5 py-2 bg-[#75401F] hover:bg-[#5C3318] text-white rounded-xl font-bold flex items-center gap-1.5 shadow-xs transition cursor-pointer disabled:opacity-50"
+              >
+                {isSavingToDb ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-white" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Database className="w-3.5 h-3.5 text-white" />
+                    <span>Save to Database</span>
+                  </>
+                )}
+              </button>
+            </>
           )}
 
           <button
             onClick={handleOpenAddModal}
-            className="px-3.5 py-2 bg-[#75401F] hover:bg-[#5C3318] text-[#211B17] rounded-xl font-bold flex items-center gap-1.5 shadow-xs transition cursor-pointer"
+            className="px-3.5 py-2 bg-white hover:bg-[#FAF7F2] text-[#75401F] border border-[#E7DED5] rounded-xl font-bold flex items-center gap-1.5 shadow-xs transition cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Add Custom Stage</span>
@@ -895,6 +1007,88 @@ export default function ProjectPlanningPage() {
           </div>
         )}
       </div>
+
+      {/* Bottom Sticky Action Bar: Save to Database & Clear All Steps */}
+      {activeProject && (
+        <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-[#FAF3EA] border border-[#E7DED5] flex items-center justify-center text-[#75401F] shrink-0 shadow-xs">
+              <Database className="w-5 h-5 text-[#75401F]" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-mono font-bold text-sm text-[#211B17]">
+                  {activeProject.projectNumber} ({activeProject.jobNumber})
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  Total {activeStages.length} Unique Stages
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
+                  Completed: {completedStagesCount}
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                  In Progress: {inProgressStagesCount}
+                </span>
+              </div>
+              <p className="text-[11px] text-[#70665F] mt-1">
+                All stages and progress sync directly to the backend database & API. Use Clear & Reset if you wish to restore standard steps.
+              </p>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+            {/* Clear All Steps & Reset */}
+            <button
+              type="button"
+              onClick={handleClearAndResetAll}
+              disabled={isSavingToDb}
+              title="Clear all steps and reset to 16 standard stages"
+              className="px-4 py-2.5 rounded-xl border border-rose-200 bg-rose-50/70 hover:bg-rose-100 text-rose-700 font-bold text-xs flex items-center gap-2 transition active:scale-95 cursor-pointer disabled:opacity-50 shadow-xs"
+            >
+              <RotateCcw className="w-4 h-4 text-rose-600" />
+              <span>Clear & Reset Stages</span>
+            </button>
+
+            {/* Save to Database */}
+            <button
+              type="button"
+              onClick={handleSaveToDatabase}
+              disabled={isSavingToDb}
+              title="Save all planning stages and tasks to database"
+              className="px-5 py-2.5 rounded-xl bg-[#75401F] hover:bg-[#5C3318] text-white font-bold text-xs flex items-center gap-2 shadow-md transition active:scale-95 cursor-pointer disabled:opacity-50"
+            >
+              {isSavingToDb ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                  <span>Saving to Database...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 text-white" />
+                  <span>Save to Database</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Save Notification Banner */}
+      {saveSuccessMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#2D1810] text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-[#4E2B1E] flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-200">
+          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+          <div className="text-xs font-bold leading-snug">
+            {saveSuccessMessage}
+          </div>
+          <button
+            onClick={() => setSaveSuccessMessage(null)}
+            className="p-1 hover:bg-[#4E2B1E] rounded-lg text-stone-300"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Modal: Quick Handover / Mark Stage Completed */}
       {quickCompleteModalStage && (

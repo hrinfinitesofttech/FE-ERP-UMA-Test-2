@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useERP } from '../../../context/ERPContext';
 import {
   FileText,
@@ -30,6 +31,7 @@ export default function PurchaseRequisitionPage() {
   // Modals
   const [viewPR, setViewPR] = useState<PurchaseRequisition | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [approvedPrModal, setApprovedPrModal] = useState<PurchaseRequisition | null>(null);
 
   // Form State for Create PR Modal
   const [newJobId, setNewJobId] = useState(projectJobs[0]?.id || 'JOB-2026-001');
@@ -286,11 +288,24 @@ export default function PurchaseRequisitionPage() {
                       </button>
                       {pr.status === 'Submitted' && (
                         <button
-                          onClick={() => approvePurchaseRequisition(pr.id, `${currentUser.firstName} ${currentUser.lastName}`)}
+                          onClick={() => {
+                            approvePurchaseRequisition(pr.id, `${currentUser.firstName} ${currentUser.lastName}`);
+                            setApprovedPrModal(pr);
+                          }}
                           className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] transition"
                         >
-                          Approve
+                          Approve & Send RFQ
                         </button>
+                      )}
+                      {(pr.status === 'Approved' || pr.status === 'Converted to RFQ' || pr.status === 'Submitted') && (
+                        <Link
+                          href={`/purchase/quotation-verify?prNumber=${pr.prNumber}`}
+                          className="px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 font-bold text-[10px] border border-amber-500/30 transition flex items-center gap-1"
+                          title="Verify Vendor Quotations & Compare L1"
+                        >
+                          <span>Verify Quotes</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </Link>
                       )}
                     </div>
                   </td>
@@ -300,6 +315,65 @@ export default function PurchaseRequisitionPage() {
           </table>
         </div>
       </div>
+
+      {/* APPROVE & RFQ DISPATCHED MODAL */}
+      {approvedPrModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-xl w-full overflow-hidden shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                <div>
+                  <h3 className="text-base font-black text-[#211B17]">
+                    PR Approved & RFQ Dispatched to 4 Vendors!
+                  </h3>
+                  <span className="text-[11px] font-mono text-emerald-700 font-bold">
+                    {approvedPrModal.prNumber} • {approvedPrModal.jobId}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setApprovedPrModal(null)}
+                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] space-y-2 text-xs">
+              <div className="text-[#70665F]">
+                RFQ enquiry emails have been dispatched to 4 approved vendors for <strong className="text-[#211B17]">{approvedPrModal.items?.length || 2} shortage line items</strong>:
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-[11px] font-semibold text-[#211B17]">
+                <div className="p-2 bg-white rounded-lg border border-[#EBE3DB]">1. Tata Steel BSL Ltd.</div>
+                <div className="p-2 bg-white rounded-lg border border-[#EBE3DB]">2. Jindal Stainless Ltd.</div>
+                <div className="p-2 bg-white rounded-lg border border-[#EBE3DB]">3. Apex Fasteners & Flanges</div>
+                <div className="p-2 bg-white rounded-lg border border-[#EBE3DB]">4. Steel Authority of India (SAIL)</div>
+              </div>
+            </div>
+
+            <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-900 font-medium">
+              Quotes from all 4 vendors are available for verification. Review their bids, select the L1 lowest rate, and issue the PO.
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#EBE3DB]">
+              <button
+                onClick={() => setApprovedPrModal(null)}
+                className="px-4 py-2 bg-white border border-[#EBE3DB] text-[#211B17] font-bold text-xs rounded-xl hover:bg-[#FAF7F2]"
+              >
+                Close
+              </button>
+              <Link
+                href={`/purchase/quotation-verify?prNumber=${approvedPrModal.prNumber}`}
+                className="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5"
+              >
+                <span>Go to Vendor Quotation Verify</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* VIEW PR DETAIL MODAL */}
       {viewPR && (

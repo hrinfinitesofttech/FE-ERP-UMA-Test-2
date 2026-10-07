@@ -31,17 +31,21 @@ import {
   ArrowUpRight,
   ShieldCheck,
   Check,
+  RefreshCw,
 } from 'lucide-react';
 
 export default function ProjectListPage() {
   const router = useRouter();
   const {
     projectJobs,
+    isProjectsLoading,
+    syncProjects,
     salesOrders,
     createProjectFromSalesOrder,
     updateProject,
     deleteProject,
     openJobModal,
+    projectPlanningStages,
     availableEmployees,
     employees,
     can,
@@ -86,6 +90,20 @@ export default function ProjectListPage() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
+  // Manual Live Refresh State
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await syncProjects(true);
+      showToast('Projects refreshed live from cloud API!');
+    } catch (_) {
+      showToast('Failed to refresh projects.');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   // Confirmed Sales Orders available for Project creation
   const confirmedSalesOrders = salesOrders.filter((s) => s.status === 'confirmed');
 
@@ -97,11 +115,19 @@ export default function ProjectListPage() {
       if (managerFilter !== 'all' && p.projectManager !== managerFilter) return false;
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
+        const linkedSo = salesOrders.find(
+          (s) =>
+            (p.salesOrderNumber && (s.salesOrderNumber === p.salesOrderNumber || s.id === p.salesOrderNumber)) ||
+            (p.salesOrderId && (s.id === p.salesOrderId || s.salesOrderNumber === p.salesOrderId)) ||
+            (p.customerPoNumber && s.customerPoNumber === p.customerPoNumber)
+        );
+        const custName = (p.customerName && p.customerName !== 'Customer') ? p.customerName : (linkedSo?.customerName || p.customerName || '');
+        const prodName = (p.productName && p.productName !== 'Project Work' && p.productName !== 'Process Equipment') ? p.productName : (linkedSo?.items?.[0]?.productName || p.productName || '');
         return (
           p.projectNumber?.toLowerCase().includes(q) ||
           p.jobNumber?.toLowerCase().includes(q) ||
-          p.customerName?.toLowerCase().includes(q) ||
-          p.productName?.toLowerCase().includes(q) ||
+          custName.toLowerCase().includes(q) ||
+          prodName.toLowerCase().includes(q) ||
           p.salesOrderNumber?.toLowerCase().includes(q) ||
           p.specification?.toLowerCase().includes(q) ||
           p.projectManager?.toLowerCase().includes(q)
@@ -109,7 +135,7 @@ export default function ProjectListPage() {
       }
       return true;
     });
-  }, [projectJobs, statusFilter, priorityFilter, managerFilter, searchQuery]);
+  }, [projectJobs, salesOrders, statusFilter, priorityFilter, managerFilter, searchQuery]);
 
   // Statistics
   const totalCount = projectJobs.length;
@@ -217,25 +243,53 @@ export default function ProjectListPage() {
     },
     {
       header: 'Customer & References',
-      cell: (p) => (
-        <div className="space-y-0.5">
-          <span className="font-bold text-[#211B17] block truncate max-w-[200px]">{p.customerName}</span>
-          <div className="text-[10px] text-[#70665F] font-mono flex items-center gap-1.5">
-            <span>SO: <strong>{p.salesOrderNumber || 'N/A'}</strong></span>
-            <span>•</span>
-            <span>PO: <strong>{p.customerPoNumber || 'N/A'}</strong></span>
+      cell: (p) => {
+        const linkedSo = salesOrders.find(
+          (s) =>
+            (p.salesOrderNumber && (s.salesOrderNumber === p.salesOrderNumber || s.id === p.salesOrderNumber)) ||
+            (p.salesOrderId && (s.id === p.salesOrderId || s.salesOrderNumber === p.salesOrderId)) ||
+            (p.customerPoNumber && s.customerPoNumber && s.customerPoNumber === p.customerPoNumber)
+        );
+        const displayName = (p.customerName && p.customerName !== 'Customer')
+          ? p.customerName
+          : (linkedSo?.customerName || (linkedSo as any)?.customer_name || p.customerName || 'Customer');
+
+        return (
+          <div className="space-y-0.5">
+            <span className="font-bold text-[#211B17] block truncate max-w-[200px]">{displayName}</span>
+            <div className="text-[10px] text-[#70665F] font-mono flex items-center gap-1.5">
+              <span>SO: <strong>{p.salesOrderNumber || linkedSo?.salesOrderNumber || 'N/A'}</strong></span>
+              <span>•</span>
+              <span>PO: <strong>{p.customerPoNumber || linkedSo?.customerPoNumber || 'N/A'}</strong></span>
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       header: 'Machine / Equipment Scope',
-      cell: (p) => (
-        <div className="max-w-[220px]">
-          <span className="font-semibold text-[#211B17] block truncate">{p.productName}</span>
-          <span className="text-[11px] text-[#70665F] block truncate">{p.specification || 'As per Sales Order'}</span>
-        </div>
-      ),
+      cell: (p) => {
+        const linkedSo = salesOrders.find(
+          (s) =>
+            (p.salesOrderNumber && (s.salesOrderNumber === p.salesOrderNumber || s.id === p.salesOrderNumber)) ||
+            (p.salesOrderId && (s.id === p.salesOrderId || s.salesOrderNumber === p.salesOrderId)) ||
+            (p.customerPoNumber && s.customerPoNumber && s.customerPoNumber === p.customerPoNumber)
+        );
+        const displayProduct = (p.productName && p.productName !== 'Project Work' && p.productName !== 'Process Equipment')
+          ? p.productName
+          : (linkedSo?.items?.[0]?.productName || (linkedSo as any)?.machineProduct || (linkedSo as any)?.machine_product || p.productName || 'Process Equipment');
+
+        const displaySpec = (p.specification && p.specification !== 'As per Sales Order' && p.specification !== 'Standard Specification')
+          ? p.specification
+          : (linkedSo?.items?.[0]?.specification || (linkedSo as any)?.specification || p.specification || 'As per approved Quotation & Customer PO specs');
+
+        return (
+          <div className="max-w-[220px]">
+            <span className="font-semibold text-[#211B17] block truncate">{displayProduct}</span>
+            <span className="text-[11px] text-[#70665F] block truncate">{displaySpec}</span>
+          </div>
+        );
+      },
     },
     {
       header: 'Project Manager',
@@ -248,18 +302,29 @@ export default function ProjectListPage() {
     },
     {
       header: 'Delivery Target',
-      cell: (p) => (
-        <div className="space-y-0.5">
-          <span className="text-[#211B17] font-mono text-[11px] font-semibold block">
-            {formatDate(p.deliveryDate)}
-          </span>
-          {p.expectedDeliveryDate && new Date(p.expectedDeliveryDate) > new Date(p.deliveryDate) && (
-            <span className="text-[10px] text-rose-600 font-semibold block">
-              Rev: {formatDate(p.expectedDeliveryDate)}
+      cell: (p) => {
+        const linkedSo = salesOrders.find(
+          (s) =>
+            (p.salesOrderNumber && (s.salesOrderNumber === p.salesOrderNumber || s.id === p.salesOrderNumber)) ||
+            (p.salesOrderId && (s.id === p.salesOrderId || s.salesOrderNumber === p.salesOrderId))
+        );
+        const targetDate = p.deliveryDate && p.deliveryDate !== p.startDate
+          ? p.deliveryDate
+          : (linkedSo?.deliveryDate || (linkedSo as any)?.target_delivery_date || p.deliveryDate);
+
+        return (
+          <div className="space-y-0.5">
+            <span className="text-[#211B17] font-mono text-[11px] font-semibold block">
+              {formatDate(targetDate)}
             </span>
-          )}
-        </div>
-      ),
+            {p.expectedDeliveryDate && new Date(p.expectedDeliveryDate) > new Date(targetDate) && (
+              <span className="text-[10px] text-rose-600 font-semibold block">
+                Rev: {formatDate(p.expectedDeliveryDate)}
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       header: 'Progress %',
@@ -316,66 +381,104 @@ export default function ProjectListPage() {
     },
     {
       header: 'Actions',
-      cell: (p) => (
-        <div
-          className="flex items-center gap-1.5 whitespace-nowrap min-w-[190px]"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Edit Project Button */}
-          <button
-            onClick={(e) => handleOpenEditModal(e, p)}
-            title="Edit Project Details"
-            className="p-1.5 text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition"
-          >
-            <Edit3 className="w-3.5 h-3.5" />
-          </button>
+      cell: (p) => {
+        const isPlanningSaved = Boolean(
+          (p as any).isPlanningSaved ||
+          (p as any).is_planning_saved ||
+          (typeof window !== 'undefined' && (
+            localStorage.getItem(`UMA_ERP_planning_saved_${p.id}`) === 'true' ||
+            localStorage.getItem(`UMA_ERP_planning_saved_${p.projectNumber}`) === 'true' ||
+            localStorage.getItem(`UMA_ERP_planning_saved_${p.jobNumber}`) === 'true'
+          )) ||
+          projectPlanningStages?.some(
+            (s) =>
+              (s.projectId === p.id || s.projectId === p.projectNumber || s.jobNumber === p.jobNumber) &&
+              (s.status === 'completed' || s.status === 'in_progress' || (s.progressPercent && s.progressPercent > 0))
+          )
+        );
 
-          {/* View 360 Detail */}
-          <Link
-            href={`/projects/${p.id}`}
-            title="View Project 360° Detail"
-            className="p-1.5 text-crm-brand-700 hover:text-crm-brand-900 bg-crm-brand-50 hover:bg-crm-brand-100 border border-crm-brand-200 rounded-lg transition"
+        return (
+          <div
+            className="flex items-center gap-1.5 whitespace-nowrap min-w-[280px]"
+            onClick={(e) => e.stopPropagation()}
           >
-            <Eye className="w-3.5 h-3.5" />
-          </Link>
+            {/* Edit Project Button */}
+            <button
+              onClick={(e) => handleOpenEditModal(e, p)}
+              title="Edit Project Details"
+              className="p-1.5 text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+            </button>
 
-          {/* 360 Traceability Modal */}
-          <button
-            onClick={() => openJobModal(p.jobNumber)}
-            title="Launch 360° Traceability Modal"
-            className="p-1.5 text-amber-700 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition"
-          >
-            <Cpu className="w-3.5 h-3.5" />
-          </button>
+            {/* View 360 Detail */}
+            <Link
+              href={`/projects/${p.id}`}
+              title="View Project 360° Detail"
+              className="p-1.5 text-crm-brand-700 hover:text-crm-brand-900 bg-crm-brand-50 hover:bg-crm-brand-100 border border-crm-brand-200 rounded-lg transition"
+            >
+              <Eye className="w-3.5 h-3.5" />
+            </Link>
 
-          {/* Manage Tasks */}
-          <Link
-            href={`/projects/tasks?projectId=${p.id}`}
-            title="Manage Tasks"
-            className="p-1.5 text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition"
-          >
-            <CheckSquare className="w-3.5 h-3.5" />
-          </Link>
+            {/* 360 Traceability Modal */}
+            <button
+              onClick={() => openJobModal(p.jobNumber)}
+              title="Launch 360° Traceability Modal"
+              className="p-1.5 text-amber-700 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition"
+            >
+              <Cpu className="w-3.5 h-3.5" />
+            </button>
 
-          {/* Assign Department */}
-          <Link
-            href={`/projects/department-assignments?projectId=${p.id}`}
-            title="Assign Department"
-            className="p-1.5 text-purple-700 hover:text-purple-900 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg transition"
-          >
-            <Users className="w-3.5 h-3.5" />
-          </Link>
+            {/* Manage Tasks */}
+            <Link
+              href={`/projects/tasks?projectId=${p.id}`}
+              title="Manage Tasks"
+              className="p-1.5 text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition"
+            >
+              <CheckSquare className="w-3.5 h-3.5" />
+            </Link>
 
-          {/* Delete Button */}
-          <button
-            onClick={() => setDeletingProject(p)}
-            title="Delete Project"
-            className="p-1.5 text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      ),
+            {/* Assign Department */}
+            <Link
+              href={`/projects/department-assignments?projectId=${p.id}`}
+              title="Assign Department"
+              className="p-1.5 text-purple-700 hover:text-purple-900 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg transition"
+            >
+              <Users className="w-3.5 h-3.5" />
+            </Link>
+
+            {/* Delete Button */}
+            <button
+              onClick={() => setDeletingProject(p)}
+              title="Delete Project"
+              className="p-1.5 text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+
+            {/* Project Planning Button: Create Planning vs View Planning */}
+            {isPlanningSaved ? (
+              <Link
+                href={`/projects/planning?projectId=${p.id}&projectNumber=${p.projectNumber}&mode=view`}
+                title="View Project Planning"
+                className="px-2.5 py-1 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg inline-flex items-center gap-1.5 transition shadow-xs"
+              >
+                <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+                <span>View Planning</span>
+              </Link>
+            ) : (
+              <Link
+                href={`/projects/planning?projectId=${p.id}&projectNumber=${p.projectNumber}&mode=create`}
+                title="Create Project Planning"
+                className="px-2.5 py-1 text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg inline-flex items-center gap-1.5 transition shadow-xs"
+              >
+                <Plus className="w-3.5 h-3.5 text-amber-600" />
+                <span>Create Planning</span>
+              </Link>
+            )}
+          </div>
+        );
+      },
     },
   ];
 
@@ -406,15 +509,27 @@ export default function ProjectListPage() {
           </p>
         </div>
 
-        {can('project', 'projects', 'create') && (
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="px-4 py-2.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold rounded-xl flex items-center gap-2 shadow-md transition transform active:scale-95 cursor-pointer text-xs"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            title="Refresh projects from live API"
+            className="px-3 py-2.5 bg-white hover:bg-slate-50 text-[#544B45] font-semibold rounded-xl flex items-center gap-1.5 border border-[#EBE3DB] shadow-sm transition transform active:scale-95 cursor-pointer text-xs disabled:opacity-50"
           >
-            <Plus className="w-4 h-4" />
-            <span>Create Project (From SO)</span>
+            <RefreshCw className={`w-3.5 h-3.5 text-crm-brand-700 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span>{isRefreshing ? 'Syncing...' : 'Sync Live'}</span>
           </button>
-        )}
+
+          {can('project', 'projects', 'create') && (
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="px-4 py-2.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold rounded-xl flex items-center gap-2 shadow-md transition transform active:scale-95 cursor-pointer text-xs"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create Project (From SO)</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* KPI Stats Cards */}
@@ -424,7 +539,11 @@ export default function ProjectListPage() {
             <span className="text-xs font-semibold uppercase tracking-wider">Total Projects</span>
             <Layers className="w-4 h-4 text-crm-brand-700" />
           </div>
-          <div className="text-2xl font-black text-[#211B17]">{totalCount}</div>
+          {isProjectsLoading && projectJobs.length === 0 ? (
+            <div className="h-8 w-16 bg-[#EBE3DB]/60 rounded animate-pulse" />
+          ) : (
+            <div className="text-2xl font-black text-[#211B17]">{totalCount}</div>
+          )}
           <div className="text-xs text-[#70665F]">All registered MTO jobs</div>
         </div>
 
@@ -433,7 +552,11 @@ export default function ProjectListPage() {
             <span className="text-xs font-semibold uppercase tracking-wider">In Planning</span>
             <Clock className="w-4 h-4 text-amber-500" />
           </div>
-          <div className="text-2xl font-black text-amber-600">{planningCount}</div>
+          {isProjectsLoading && projectJobs.length === 0 ? (
+            <div className="h-8 w-16 bg-[#EBE3DB]/60 rounded animate-pulse" />
+          ) : (
+            <div className="text-2xl font-black text-amber-600">{planningCount}</div>
+          )}
           <div className="text-xs text-[#70665F]">Pre-production & scope stages</div>
         </div>
 
@@ -442,7 +565,11 @@ export default function ProjectListPage() {
             <span className="text-xs font-semibold uppercase tracking-wider">In Execution</span>
             <Activity className="w-4 h-4 text-blue-600" />
           </div>
-          <div className="text-2xl font-black text-blue-600">{inProgressCount}</div>
+          {isProjectsLoading && projectJobs.length === 0 ? (
+            <div className="h-8 w-16 bg-[#EBE3DB]/60 rounded animate-pulse" />
+          ) : (
+            <div className="text-2xl font-black text-blue-600">{inProgressCount}</div>
+          )}
           <div className="text-xs text-[#70665F]">Design, purchase & shop floor</div>
         </div>
 
@@ -451,7 +578,11 @@ export default function ProjectListPage() {
             <span className="text-xs font-semibold uppercase tracking-wider">Completed</span>
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="text-2xl font-black text-emerald-600">{completedCount}</div>
+          {isProjectsLoading && projectJobs.length === 0 ? (
+            <div className="h-8 w-16 bg-[#EBE3DB]/60 rounded animate-pulse" />
+          ) : (
+            <div className="text-2xl font-black text-emerald-600">{completedCount}</div>
+          )}
           <div className="text-xs text-[#70665F]">Delivered / QC passed</div>
         </div>
       </div>
@@ -506,6 +637,7 @@ export default function ProjectListPage() {
           subtitle={`Total ${filteredProjects.length} Projects found`}
           columns={columns}
           data={filteredProjects}
+          isLoading={isProjectsLoading || isRefreshing}
           onRowClick={(p) => router.push(`/projects/${p.id}`)}
         />
       </div>

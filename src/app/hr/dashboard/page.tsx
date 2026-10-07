@@ -318,17 +318,6 @@ export default function HRDashboardPage() {
               </div>
               <ArrowRight className="w-4 h-4 text-[#70665F]" />
             </Link>
-
-            <Link
-              href="/hr/payroll-reports"
-              className="flex items-center justify-between p-3 bg-white/80 hover:bg-[#FAF7F2]/60 border border-[#EBE3DB]/60 rounded-lg text-sm text-[#3E2723] transition"
-            >
-              <div className="flex items-center gap-3">
-                <BarChart3 className="w-4 h-4 text-crm-brand-500" />
-                <span>PF / ESI / Statutory Reports</span>
-              </div>
-              <ArrowRight className="w-4 h-4 text-[#70665F]" />
-            </Link>
           </div>
         </div>
       </div>

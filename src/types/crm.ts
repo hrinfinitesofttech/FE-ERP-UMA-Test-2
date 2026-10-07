@@ -726,4 +726,8 @@ export interface ProjectJobMaster {
   status: ProjectStatus;
   progressPercent: number;
   currentStage?: string;
+  isPlanningSaved?: boolean;
+  is_planning_saved?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }

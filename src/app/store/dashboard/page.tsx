@@ -425,7 +425,7 @@ export default function StoreDashboardPage() {
       {/* Quick Access Matrix Links */}
       <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-md">
         <h3 className="text-sm font-bold text-[#211B17] mb-3">Store Quick Operations</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
           <Link
             href="/store/items"
             className="p-3 bg-white/60 rounded-xl border border-[#EBE3DB]/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
@@ -469,15 +469,6 @@ export default function StoreDashboardPage() {
             <AlertTriangle className="w-5 h-5 text-red-400 mb-1.5 group-hover:scale-110 transition-transform" />
             <span className="text-xs font-bold text-[#544B45]">Low Stock Reorder</span>
             <span className="text-[10px] text-[#70665F] mt-0.5">1-Click PR</span>
-          </Link>
-
-          <Link
-            href="/store/reports"
-            className="p-3 bg-white/60 rounded-xl border border-[#EBE3DB]/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
-          >
-            <FileSpreadsheet className="w-5 h-5 text-teal-400 mb-1.5 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-[#544B45]">Store Reports</span>
-            <span className="text-[10px] text-[#70665F] mt-0.5">21 Export Formats</span>
           </Link>
         </div>
       </div>

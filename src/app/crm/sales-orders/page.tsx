@@ -19,21 +19,26 @@ export default function SalesOrdersPage() {
   }, []);
 
   const handleCreateProject = (soId: string) => {
-    const newPrj = createProjectFromSalesOrder(soId);
-    setSuccessInfo({ prj: newPrj.projectNumber, job: newPrj.jobNumber });
-    setTimeout(() => {
-      router.push('/projects');
-    }, 1800);
+    try {
+      const newPrj = createProjectFromSalesOrder(soId);
+      setSuccessInfo({ prj: newPrj.projectNumber, job: newPrj.jobNumber });
+      setTimeout(() => {
+        router.push('/projects');
+      }, 1200);
+    } catch (err: any) {
+      console.error('Project creation failed:', err);
+      alert('Project creation failed: ' + (err?.message || err));
+    }
   };
 
   const getLinkedProject = (so: SalesOrder) => {
     return (projectJobs || []).find(
       (pj) =>
+        (so.projectId && (pj.id === so.projectId || pj.projectNumber === so.projectId)) ||
         (pj.salesOrderId && (pj.salesOrderId === so.id || pj.salesOrderId === so.salesOrderNumber)) ||
         (pj.salesOrderNumber && (pj.salesOrderNumber === so.salesOrderNumber || pj.salesOrderNumber === so.id)) ||
-        (so.customerPoNumber && pj.customerPoNumber && pj.customerPoNumber === so.customerPoNumber) ||
-        (so.projectId && (pj.id === so.projectId || pj.projectNumber === so.projectId)) ||
-        (so.jobNumber && (pj.jobNumber === so.jobNumber || pj.id === so.jobNumber))
+        (so.customerPoNumber && pj.customerPoNumber && pj.customerPoNumber === so.customerPoNumber && (pj.customerName === so.customerName || pj.salesOrderNumber === so.salesOrderNumber)) ||
+        (so.jobNumber && pj.jobNumber === so.jobNumber && (pj.customerName === so.customerName || pj.salesOrderId === so.id))
     );
   };
 

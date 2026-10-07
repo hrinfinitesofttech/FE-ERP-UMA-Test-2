@@ -194,8 +194,10 @@ export default function LeadDetailPage() {
 
   const handleConvert = () => {
     const res = convertLeadToCustomer(lead.id);
-    setConvertSuccess(`Successfully converted to Customer: ${res.customer.companyName}!`);
-    setTimeout(() => setConvertSuccess(''), 4000);
+    setConvertSuccess(`Successfully converted to Customer: ${res.customer.companyName}! Redirecting to Technical Enquiries...`);
+    setTimeout(() => {
+      router.push('/crm/leads?tab=enquiries');
+    }, 1200);
   };
 
   const handleAddFollowUp = (e: React.FormEvent) => {

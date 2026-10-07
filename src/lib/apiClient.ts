@@ -3,8 +3,11 @@
  * Connects Next.js frontend to Django REST Framework backend on PythonAnywhere.
  */
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || 'https://umaERP.pythonanywhere.com/api';
+export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:8000/api'
+    : 'https://umaERP.pythonanywhere.com/api');
 
 export class ApiError extends Error {
   constructor(public status: number, message: string, public data?: any) {
@@ -13,39 +16,66 @@ export class ApiError extends Error {
   }
 }
 
-// Auto-authentication helper
+// Auto-authentication helper with Inflight Deduplication & Fast Failure Cooldown
+let inflightAuthPromise: Promise<string | null> | null = null;
+let lastAuthFailureTime = 0;
+const AUTH_FAILURE_COOLDOWN_MS = 30000; // 30s cooldown on login failure to prevent hammering backend
+
 async function getOrRefreshToken(): Promise<string | null> {
   if (typeof window === 'undefined') return null;
-  let token = localStorage.getItem('access_token');
+  const token = localStorage.getItem('access_token');
   if (token) return token;
 
-  try {
-    const res = await fetch(`${API_BASE_URL}/auth/login/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'admin', password: '123456' }),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.access) {
-        localStorage.setItem('access_token', data.access);
-        if (data.refresh) localStorage.setItem('refresh_token', data.refresh);
-        return data.access;
-      }
-    }
-  } catch (err) {
-    console.warn('Auto-authentication failed:', err);
+  // Don't hammer backend repeatedly if recent attempt failed
+  if (Date.now() - lastAuthFailureTime < AUTH_FAILURE_COOLDOWN_MS) {
+    return null;
   }
-  return null;
+
+  // Deduplicate concurrent authentication requests
+  if (inflightAuthPromise) {
+    return inflightAuthPromise;
+  }
+
+  inflightAuthPromise = (async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/login/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: 'admin', password: 'admin123' }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.access) {
+          localStorage.setItem('access_token', data.access);
+          if (data.refresh) localStorage.setItem('refresh_token', data.refresh);
+          return data.access;
+        }
+      } else {
+        lastAuthFailureTime = Date.now();
+      }
+    } catch (err) {
+      console.warn('Auto-authentication failed:', err);
+      lastAuthFailureTime = Date.now();
+    } finally {
+      inflightAuthPromise = null;
+    }
+    return null;
+  })();
+
+  return inflightAuthPromise;
 }
 
-function normalizePayload(endpoint: string, body: any): any {
+function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
   if (!body || typeof body !== 'object') return body;
   const d = { ...body };
   const ep = endpoint.toLowerCase();
   const nowStr = new Date().toISOString().split('T')[0];
+  const isPatchOrPut = method === 'PATCH' || method === 'PUT';
 
-  d.id = d.id || d.code || d.departmentCode || d.department_code || d.leadNumber || d.leadNo || d.customerCode || d.enquiryNo || d.opportunityNo || d.quotationNumber || d.poNumber || d.soNumber || d.job_number || d.designJobNumber || d.bomNumber || d.supplierCode || d.vendorCode || d.requisitionNumber || d.rfqNumber || d.itemCode || d.warehouseCode || d.grnNumber || d.inspectionNumber || d.issueNumber || d.transferNumber || d.workCenterCode || d.planNumber || d.workOrderNumber || d.assetCode || d.requestNumber || d.designationCode || d.leaveNumber || d.loanNumber || d.invoiceNumber || d.receiptNumber || d.paymentNumber || d.expenseNumber || `DOC-${Date.now().toString().slice(-6)}`;
+  // Only assign fallback ID for POST (creation) requests, NEVER for PATCH/PUT updates!
+  if (!isPatchOrPut) {
+    d.id = d.id || d.salesOrderNumber || d.sales_order_number || d.code || d.departmentCode || d.department_code || d.leadNumber || d.leadNo || d.customerCode || d.enquiryNo || d.opportunityNo || d.quotationNumber || d.poNumber || d.soNumber || d.job_number || d.designJobNumber || d.bomNumber || d.supplierCode || d.vendorCode || d.requisitionNumber || d.rfqNumber || d.itemCode || d.warehouseCode || d.grnNumber || d.inspectionNumber || d.issueNumber || d.transferNumber || d.workCenterCode || d.planNumber || d.workOrderNumber || d.assetCode || d.requestNumber || d.designationCode || d.leaveNumber || d.loanNumber || d.invoiceNumber || d.receiptNumber || d.paymentNumber || d.expenseNumber || `DOC-${Date.now().toString().slice(-6)}`;
+  }
 
   // Organization & Employees
   if (ep.includes('/departments')) {
@@ -97,12 +127,77 @@ function normalizePayload(endpoint: string, body: any): any {
     d.customerName = d.customerName || d.customer_name || 'Customer';
     d.machineProduct = d.machineProduct || d.productName || d.title || 'Equipment';
     d.expectedValue = d.expectedValue || d.estimatedValue || 10000;
+  } else if (ep.includes('/sales-orders')) {
+    if (d.salesOrderNumber || d.sales_order_number || d.soNumber) {
+      d.sales_order_number = d.sales_order_number || d.salesOrderNumber || d.soNumber;
+      d.salesOrderNumber = d.sales_order_number;
+    }
+    if (!isPatchOrPut && !d.id && d.sales_order_number) {
+      d.id = d.sales_order_number;
+    }
+    if (d.deliveryDate && !d.target_delivery_date) {
+      d.target_delivery_date = d.deliveryDate;
+    }
+    if (d.orderValue !== undefined && d.grand_total === undefined) {
+      d.grand_total = Number(d.orderValue);
+      d.total_amount = Number(d.orderValue);
+    }
+  } else if (ep.includes('/customer-pos')) {
+    if (d.poNumber || d.po_number) {
+      d.po_number = d.po_number || d.poNumber;
+      d.poNumber = d.po_number;
+    }
+    if (!isPatchOrPut && !d.id && d.po_number) {
+      d.id = d.po_number;
+    }
+    if (d.poAmount !== undefined && d.po_value === undefined) {
+      d.po_value = Number(d.poAmount);
+    }
   }
   // Projects
   else if (ep.includes('/projects')) {
     d.customerId = d.customerId || d.customer_id || 'CUST-001';
-    d.customerName = d.customerName || d.customer_name || 'Customer';
-    d.productName = d.productName || d.product_name || d.title || 'Project Work';
+    d.customer_id = d.customerId;
+    const resolvedCustName = d.customerName || d.customer_name || d.client_name || d.clientName || '';
+    if (resolvedCustName && resolvedCustName !== 'Customer') {
+      d.customerName = resolvedCustName;
+      d.customer_name = resolvedCustName;
+    } else {
+      d.customerName = d.customerName || d.customer_name || 'Customer';
+      d.customer_name = d.customerName;
+    }
+    const resolvedProdName = d.productName || d.product_name || d.title || d.machineProduct || d.machine_product || '';
+    if (resolvedProdName && resolvedProdName !== 'Project Work') {
+      d.productName = resolvedProdName;
+      d.product_name = resolvedProdName;
+    } else {
+      d.productName = d.productName || d.product_name || d.title || 'Process Equipment';
+      d.product_name = d.productName;
+    }
+    d.startDate = d.startDate || d.start_date || nowStr;
+    d.start_date = d.startDate;
+    d.targetDeliveryDate = d.targetDeliveryDate || d.target_delivery_date || d.deliveryDate || d.delivery_date || nowStr;
+    d.target_delivery_date = d.targetDeliveryDate;
+    if (d.projectNumber || d.project_number) {
+      d.projectNumber = d.projectNumber || d.project_number;
+      d.project_number = d.projectNumber;
+    }
+    if (d.jobNumber || d.job_number) {
+      d.jobNumber = d.jobNumber || d.job_number;
+      d.job_number = d.jobNumber;
+    }
+    if (d.salesOrderId || d.sales_order_id) {
+      d.salesOrderId = d.salesOrderId || d.sales_order_id;
+      d.sales_order_id = d.salesOrderId;
+    }
+    if (d.salesOrderNumber || d.sales_order_number) {
+      d.salesOrderNumber = d.salesOrderNumber || d.sales_order_number;
+      d.sales_order_number = d.salesOrderNumber;
+    }
+    if (d.customerPoNumber || d.customer_po_number) {
+      d.customerPoNumber = d.customerPoNumber || d.customer_po_number;
+      d.customer_po_number = d.customerPoNumber;
+    }
   }
   // Purchase
   else if (ep.includes('/suppliers')) {
@@ -150,7 +245,22 @@ function normalizePayload(endpoint: string, body: any): any {
     d.date = d.date || d.returnDate || nowStr;
   }
   // Store
-  else if (ep.includes('/warehouses')) {
+  else if (ep.includes('/grns')) {
+    d.grnNumber = d.grnNumber || d.grn_number || d.id || `GRN-2026-${Date.now().toString().slice(-4)}`;
+    d.grn_number = d.grnNumber;
+    d.id = d.id || d.grnNumber;
+    d.date = d.date || d.grnDate || d.receiptDate || nowStr;
+    d.po_id = d.po_id || d.poId || '';
+    d.po_number = d.po_number || d.poNumber || '';
+    d.supplier_id = d.supplier_id || d.supplierId || 'SUP-001';
+    d.supplier_name = d.supplier_name || d.supplierName || 'Supplier';
+    d.challan_number = d.challan_number || d.deliveryChallanNumber || d.challanNumber || '';
+    d.invoice_number = d.invoice_number || d.invoiceNumber || '';
+    d.vehicle_number = d.vehicle_number || d.vehicleNumber || '';
+    d.warehouse_id = d.warehouse_id || d.warehouseId || 'WH-001';
+    d.received_by = d.received_by || d.receivedBy || 'Store Officer';
+    d.items = d.items || [];
+  } else if (ep.includes('/warehouses')) {
     d.warehouseCode = d.warehouseCode || d.warehouse_code || d.code || d.id || 'WH-001';
     d.warehouse_code = d.warehouseCode;
     d.name = d.name || 'Main Warehouse';
@@ -158,6 +268,68 @@ function normalizePayload(endpoint: string, body: any): any {
     d.grnId = d.grnId || d.grn_id || 'GRN-001';
     d.grnNumber = d.grnNumber || d.grn_number || 'GRN-2026-0001';
     d.date = d.date || d.inspectionDate || nowStr;
+  } else if (ep.includes('/material-issues')) {
+    d.id = d.id || d.issueNumber || d.issue_number || `ISS-2026-${Date.now().toString().slice(-4)}`;
+    d.issue_number = d.issue_number || d.issueNumber || d.id;
+    d.issueNumber = d.issue_number;
+    d.issue_date = d.issue_date || d.issueDate || d.date || nowStr;
+    d.issueDate = d.issue_date;
+    d.project_id = d.project_id || d.projectId || 'PRJ-2026-0001';
+    d.projectId = d.project_id;
+    d.job_number = d.job_number || d.jobId || d.jobNumber || '';
+    d.jobId = d.job_number;
+    d.work_order_id = d.work_order_id || d.workOrderNumber || d.workOrderId || '';
+    d.workOrderNumber = d.work_order_id;
+    d.bom_number = d.bom_number || d.bomNumber || '';
+    d.bomNumber = d.bom_number;
+    d.bom_revision = d.bom_revision || d.bomRevision || 'Rev-01';
+    d.bomRevision = d.bom_revision;
+    d.production_stage = d.production_stage || d.productionStage || 'Shell & Dish End Cutting / Rolling';
+    d.productionStage = d.production_stage;
+    d.department = d.department || 'Production';
+    d.issued_to = d.issued_to || d.requestedBy || 'Bhavin Shah (Production Head)';
+    d.requestedBy = d.issued_to;
+    d.issued_by = d.issued_by || d.issuedBy || 'Hitesh Rawal (Store Incharge)';
+    d.issuedBy = d.issued_by;
+    d.warehouse_id = d.warehouse_id || d.warehouseId || 'WH-001';
+    d.warehouseId = d.warehouse_id;
+    d.warehouse_name = d.warehouse_name || d.warehouseName || 'Main Raw Material Warehouse';
+    d.warehouseName = d.warehouse_name;
+    d.total_issue_value = Number(d.total_issue_value ?? d.totalIssueValue ?? 0);
+    d.totalIssueValue = d.total_issue_value;
+    d.notes = d.notes || d.remarks || '';
+    d.remarks = d.notes;
+    d.status = d.status || 'Fully Issued';
+    d.items = d.items || [];
+  } else if (ep.includes('/material-returns')) {
+    d.id = d.id || d.returnNumber || d.return_number || `RET-2026-${Date.now().toString().slice(-4)}`;
+    d.return_number = d.return_number || d.returnNumber || d.id;
+    d.returnNumber = d.return_number;
+    d.return_date = d.return_date || d.returnDate || d.date || nowStr;
+    d.returnDate = d.return_date;
+    d.project_id = d.project_id || d.projectId || 'PRJ-2026-0001';
+    d.projectId = d.project_id;
+    d.job_number = d.job_number || d.jobId || d.jobNumber || '';
+    d.jobId = d.job_number;
+    d.work_order_number = d.work_order_number || d.workOrderNumber || '';
+    d.workOrderNumber = d.work_order_number;
+    d.material_issue_number = d.material_issue_number || d.materialIssueNumber || '';
+    d.materialIssueNumber = d.material_issue_number;
+    d.department = d.department || 'Production';
+    d.returned_by = d.returned_by || d.returnedBy || 'Shop Floor Supervisor';
+    d.returnedBy = d.returned_by;
+    d.received_by = d.received_by || d.receivedBy || 'Hitesh Rawal (Store Incharge)';
+    d.receivedBy = d.received_by;
+    d.warehouse_id = d.warehouse_id || d.warehouseId || 'WH-001';
+    d.warehouseId = d.warehouse_id;
+    d.warehouse_name = d.warehouse_name || d.warehouseName || 'Main Raw Material Warehouse';
+    d.warehouseName = d.warehouse_name;
+    d.total_return_value = Number(d.total_return_value ?? d.totalReturnValue ?? 0);
+    d.totalReturnValue = d.total_return_value;
+    d.notes = d.notes || d.remarks || '';
+    d.remarks = d.notes;
+    d.status = d.status || 'Completed';
+    d.items = d.items || [];
   }
   // Production
   else if (ep.includes('/work-centers')) {
@@ -406,16 +578,18 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
       }
     }
 
-    // Check localStorage fallback for offline/cold-start instant recovery
+    // Check localStorage fallback for offline/cold-start instant recovery (instant 0ms)
     if (typeof window !== 'undefined') {
       try {
         const localRaw = localStorage.getItem(`UMA_CACHE_${cacheKey}`);
         if (localRaw) {
           const parsed = JSON.parse(localRaw) as CacheEntry<T>;
-          if (now - parsed.timestamp < STALE_TTL_MS) {
+          if (parsed && parsed.data !== undefined) {
             memoryCache.set(cacheKey, parsed);
-            // Trigger background revalidation
-            fetchNetworkRequest<T>(url, endpoint, options, cacheKey).catch(() => {});
+            // If stale, trigger background revalidation silently
+            if (now - parsed.timestamp >= FRESH_TTL_MS) {
+              fetchNetworkRequest<T>(url, endpoint, options, cacheKey).catch(() => {});
+            }
             return parsed.data;
           }
         }
@@ -433,7 +607,9 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
 
   if (method === 'GET') {
     inflightRequests.set(cacheKey, fetchPromise);
-    fetchPromise.finally(() => inflightRequests.delete(cacheKey));
+    fetchPromise
+      .finally(() => inflightRequests.delete(cacheKey))
+      .catch(() => {});
   }
 
   return fetchPromise;
@@ -447,7 +623,13 @@ async function fetchNetworkRequest<T>(
 ): Promise<T> {
   let token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
   if (!token && typeof window !== 'undefined') {
-    token = await getOrRefreshToken();
+    // For non-GET requests (mutations), await authentication token
+    if (options.method && options.method !== 'GET') {
+      token = await getOrRefreshToken();
+    } else {
+      // For GET requests, trigger background login without blocking data fetch
+      getOrRefreshToken().catch(() => {});
+    }
   }
 
   const headers: HeadersInit = {
@@ -461,29 +643,62 @@ async function fetchNetworkRequest<T>(
   if (body && typeof body === 'string' && (options.method === 'POST' || options.method === 'PATCH' || options.method === 'PUT')) {
     try {
       const parsed = JSON.parse(body);
-      const normalized = normalizePayload(endpoint, parsed);
+      const normalized = normalizePayload(endpoint, parsed, (options.method || 'GET').toUpperCase());
       body = JSON.stringify(normalized);
     } catch (_) {}
   }
 
-  let response = await fetch(url, {
-    ...options,
-    body,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      body,
+      headers,
+    });
+  } catch (netErr: any) {
+    // Network failure (Django backend offline, connection refused, CORS, network down)
+    console.warn(`[apiClient] Network request failed for ${url}:`, netErr?.message || netErr);
+
+    // If cached data exists in localStorage, return it as offline recovery
+    if (cacheKey && typeof window !== 'undefined') {
+      try {
+        const localRaw = localStorage.getItem(`UMA_CACHE_${cacheKey}`);
+        if (localRaw) {
+          const parsed = JSON.parse(localRaw) as CacheEntry<T>;
+          if (parsed && parsed.data !== undefined) {
+            return parsed.data;
+          }
+        }
+      } catch (_) {}
+    }
+
+    // For GET list endpoints, return empty array fallback to prevent UI crash when backend is offline
+    const method = (options.method || 'GET').toUpperCase();
+    if (method === 'GET' && (endpoint.endsWith('/') || endpoint.includes('list'))) {
+      return [] as unknown as T;
+    }
+
+    throw new ApiError(
+      0,
+      `Backend unreachable at ${url}. Please ensure Django server is running (python manage.py runserver 8000).`,
+      netErr
+    );
+  }
 
   // If 401, attempt token refresh/re-login once and retry
   if (response.status === 401 && typeof window !== 'undefined') {
     localStorage.removeItem('access_token');
     const newToken = await getOrRefreshToken();
     if (newToken) {
-      response = await fetch(url, {
-        ...options,
-        headers: {
-          ...headers,
-          Authorization: `Bearer ${newToken}`,
-        },
-      });
+      try {
+        response = await fetch(url, {
+          ...options,
+          headers: {
+            ...headers,
+            Authorization: `Bearer ${newToken}`,
+          },
+        });
+      } catch (_) {}
     }
   }
 
@@ -864,15 +1079,15 @@ export const api = {
     jobs: {
       list: () => request<any[]>('/designer/jobs/'),
       create: (data: any) => request<any>('/designer/jobs/', { method: 'POST', body: JSON.stringify(data) }),
-      update: (id: string, data: any) => request<any>(`/designer/jobs/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/designer/jobs/${encodeURIComponent(id)}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       releaseToProduction: (id: string, data?: any) =>
-        request<any>(`/designer/jobs/${id}/release-to-production/`, { method: 'POST', body: JSON.stringify(data || {}) }),
+        request<any>(`/designer/jobs/${encodeURIComponent(id)}/release-to-production/`, { method: 'POST', body: JSON.stringify(data || {}) }),
       revokeRelease: (id: string, data?: any) =>
-        request<any>(`/designer/jobs/${id}/revoke-release/`, { method: 'POST', body: JSON.stringify(data || {}) }),
+        request<any>(`/designer/jobs/${encodeURIComponent(id)}/revoke-release/`, { method: 'POST', body: JSON.stringify(data || {}) }),
       approve: (id: string, data?: any) =>
-        request<any>(`/designer/jobs/${id}/approve/`, { method: 'POST', body: JSON.stringify(data || {}) }),
+        request<any>(`/designer/jobs/${encodeURIComponent(id)}/approve/`, { method: 'POST', body: JSON.stringify(data || {}) }),
       disapprove: (id: string, data?: any) =>
-        request<any>(`/designer/jobs/${id}/disapprove/`, { method: 'POST', body: JSON.stringify(data || {}) }),
+        request<any>(`/designer/jobs/${encodeURIComponent(id)}/disapprove/`, { method: 'POST', body: JSON.stringify(data || {}) }),
     },
     requirements: {
       list: () => request<any[]>('/designer/requirements/'),
@@ -886,14 +1101,22 @@ export const api = {
         try {
           return await request<any[]>('/designer/tasks/');
         } catch {
-          return await request<any[]>('/designer/design-tasks/');
+          try {
+            return await request<any[]>('/designer/design-tasks/');
+          } catch {
+            return [];
+          }
         }
       },
       get: async (id: string) => {
         try {
           return await request<any>(`/designer/tasks/${id}/`);
         } catch {
-          return await request<any>(`/designer/design-tasks/${id}/`);
+          try {
+            return await request<any>(`/designer/design-tasks/${id}/`);
+          } catch {
+            return null;
+          }
         }
       },
       create: async (data: any) => {
@@ -923,21 +1146,29 @@ export const api = {
     boms: {
       list: () => request<any[]>('/designer/boms/'),
       create: (data: any) => request<any>('/designer/boms/', { method: 'POST', body: JSON.stringify(data) }),
-      update: (id: string, data: any) => request<any>(`/designer/boms/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/designer/boms/${encodeURIComponent(id)}/`, { method: 'PATCH', body: JSON.stringify(data) }),
     },
     technicalDocuments: {
       list: async () => {
         try {
           return await request<any[]>('/designer/technical-documents/');
         } catch {
-          return await request<any[]>('/technical-documents/');
+          try {
+            return await request<any[]>('/technical-documents/');
+          } catch {
+            return [];
+          }
         }
       },
       get: async (id: string) => {
         try {
           return await request<any>(`/designer/technical-documents/${id}/`);
         } catch {
-          return await request<any>(`/technical-documents/${id}/`);
+          try {
+            return await request<any>(`/technical-documents/${id}/`);
+          } catch {
+            return null;
+          }
         }
       },
       create: async (data: any) => {
