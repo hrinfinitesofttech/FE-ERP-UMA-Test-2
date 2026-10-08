@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useERP } from '../../../context/ERPContext';
+import { api } from '../../../lib/apiClient';
 import { formatCurrency, formatDate } from '../../../lib/utils';
 import {
   Briefcase,
@@ -82,51 +83,35 @@ export default function ProjectDashboardPage() {
     { name: 'Completed', value: completedCount, color: '#64748B' },
   ].filter((d) => d.value > 0);
 
-  // Chart 2 Data: Projects by Department (Task distribution)
-  const departmentChartData = [
-    { name: 'CRM', count: 4, hours: 25 },
-    { name: 'Design', count: 8, hours: 140 },
-    { name: 'Purchase', count: 6, hours: 90 },
-    { name: 'Store', count: 5, hours: 45 },
-    { name: 'Production', count: 12, hours: 320 },
-    { name: 'QC', count: 4, hours: 60 },
-    { name: 'Maintenance', count: 3, hours: 50 },
-  ];
+  const [summary, setSummary] = useState<any>(null);
 
-  // Chart 3 Data: Projects by Priority
-  const priorityChartData = [
-    { name: 'Low', count: filteredProjects.filter((p) => p.priority === 'low').length, fill: '#94A3B8' },
-    { name: 'Medium', count: filteredProjects.filter((p) => p.priority === 'medium').length, fill: '#3B82F6' },
-    { name: 'High', count: filteredProjects.filter((p) => p.priority === 'high').length, fill: '#F59E0B' },
-    { name: 'Urgent', count: filteredProjects.filter((p) => p.priority === 'urgent').length, fill: '#EF4444' },
-  ];
+  useEffect(() => {
+    let isMounted = true;
+    api.projects.dashboardSummary().then((res) => {
+      if (isMounted && res) {
+        setSummary(res);
+      }
+    }).catch((err) => {
+      console.warn("Failed to fetch live projects dashboard summary:", err);
+    });
+    return () => { isMounted = false; };
+  }, []);
 
-  // Chart 4 Data: Monthly Project Creation
-  const monthlyCreationData = [
-    { month: 'Apr 2026', count: 2, value: 85 },
-    { month: 'May 2026', count: 3, value: 120 },
-    { month: 'Jun 2026', count: 4, value: 160 },
-    { month: 'Jul 2026', count: 5, value: 210 },
-    { month: 'Aug 2026', count: 6, value: 280 },
-    { month: 'Sep 2026', count: 4, value: 190 },
-  ];
+  // Live API-driven Chart Data (Zero static/mock datasets)
+  const departmentChartData = summary?.departmentChartData || [];
 
-  // Chart 5 Data: Project Completion Rate
-  const completionTrendData = [
-    { month: 'May', planned: 2, actual: 2 },
-    { month: 'Jun', planned: 3, actual: 3 },
-    { month: 'Jul', planned: 4, actual: 4 },
-    { month: 'Aug', planned: 5, actual: 4 },
-    { month: 'Sep', planned: 3, actual: 2 },
-  ];
+  const priorityChartData = (summary?.priorityChartData && summary.priorityChartData.length > 0)
+    ? summary.priorityChartData
+    : [
+        { name: 'Low', count: filteredProjects.filter((p) => p.priority === 'low').length, fill: '#94A3B8' },
+        { name: 'Medium', count: filteredProjects.filter((p) => p.priority === 'medium').length, fill: '#3B82F6' },
+        { name: 'High', count: filteredProjects.filter((p) => p.priority === 'high').length, fill: '#F59E0B' },
+        { name: 'Urgent', count: filteredProjects.filter((p) => p.priority === 'urgent').length, fill: '#EF4444' },
+      ];
 
-  // Chart 6 Data: Delayed Projects Breakdown
-  const delayBreakdownData = [
-    { reason: 'Customer Approval', days: 3 },
-    { reason: 'Supplier Material', days: 5 },
-    { reason: 'Design Revisions', days: 2 },
-    { reason: 'Machine Maintenance', days: 1 },
-  ];
+  const monthlyCreationData = summary?.monthlyCreationData || [];
+  const completionTrendData = summary?.completionTrendData || [];
+  const delayBreakdownData = summary?.delayBreakdownData || [];
 
   // Unique lists for filters
   const managers = Array.from(new Set(projectJobs.map((p) => p.projectManager)));

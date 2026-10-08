@@ -39,19 +39,26 @@ export default function CRMDashboardPage() {
   const wonLeads = leads.filter((l) => l.status === 'won').length;
   const lostLeads = leads.filter((l) => l.status === 'lost').length;
 
-  const todayFollowUps = followUps.filter((f) => f.date === '2026-09-23' && f.status === 'pending');
-  const overdueFollowUps = followUps.filter((f) => f.date < '2026-09-23' && f.status === 'pending');
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayFollowUps = followUps.filter((f) => f.date === todayStr && f.status === 'pending');
+  const overdueFollowUps = followUps.filter((f) => f.date < todayStr && f.status === 'pending');
 
-  const totalPipelineValue = opportunities.reduce((sum, opp) => sum + opp.estimatedValue, 0);
-  const totalWonValue = salesOrders.reduce((sum, so) => sum + so.orderValue, 0);
+  const totalPipelineValue = opportunities.reduce((sum, opp) => sum + (Number(opp.estimatedValue) || 0), 0);
+  const totalWonValue = salesOrders.reduce((sum, so) => sum + (Number(so.orderValue) || 0), 0);
 
-  // Pipeline Data for Recharts
+  const getStageValue = (stage: string) => {
+    const opps = opportunities.filter((o) => o.stage === stage);
+    const sum = opps.reduce((acc, o) => acc + (Number(o.estimatedValue) || 0), 0);
+    return Math.round(sum / 100000);
+  };
+
+  // Pipeline Data for Recharts (100% dynamic calculations)
   const pipelineData = [
-    { stage: 'Qualification', count: opportunities.filter((o) => o.stage === 'qualification').length, value: 38 },
-    { stage: 'Requirement', count: opportunities.filter((o) => o.stage === 'requirement').length, value: 92 },
-    { stage: 'Technical', count: opportunities.filter((o) => o.stage === 'technical_discussion').length, value: 65 },
-    { stage: 'Quotation', count: opportunities.filter((o) => o.stage === 'quotation').length, value: 145 },
-    { stage: 'Negotiation', count: opportunities.filter((o) => o.stage === 'negotiation').length, value: 138 },
+    { stage: 'Qualification', count: opportunities.filter((o) => o.stage === 'qualification').length, value: getStageValue('qualification') },
+    { stage: 'Requirement', count: opportunities.filter((o) => o.stage === 'requirement').length, value: getStageValue('requirement') },
+    { stage: 'Technical', count: opportunities.filter((o) => o.stage === 'technical_discussion').length, value: getStageValue('technical_discussion') },
+    { stage: 'Quotation', count: opportunities.filter((o) => o.stage === 'quotation').length, value: getStageValue('quotation') },
+    { stage: 'Negotiation', count: opportunities.filter((o) => o.stage === 'negotiation').length, value: getStageValue('negotiation') },
     { stage: 'Won Orders', count: salesOrders.length, value: Math.round(totalWonValue / 100000) },
   ];
 

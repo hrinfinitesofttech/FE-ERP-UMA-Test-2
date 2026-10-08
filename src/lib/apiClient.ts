@@ -1038,6 +1038,7 @@ export const api = {
 
   // Project Management
   projects: {
+    dashboardSummary: () => request<any>('/projects/dashboard-summary/'),
     list: () => request<any[]>('/projects/'),
     get: (id: string) => request<any>(`/projects/${id}/`),
     create: (data: any) => request<any>('/projects/', { method: 'POST', body: JSON.stringify(data) }),
@@ -1298,6 +1299,7 @@ export const api = {
 
   // Production Execution
   production: {
+    dashboardStats: () => request<any>('/production/dashboard-stats/'),
     jobs: () => request<any[]>('/manufacturing-jobs/'),
     workCenters: {
       list: () => request<any[]>('/work-centers/'),
@@ -1383,12 +1385,27 @@ export const api = {
       markDispatched: (id: string) => request<any>(`/dispatch-orders/${id}/mark-dispatched/`, { method: 'POST' }),
       markDelivered: (id: string) => request<any>(`/dispatch-orders/${id}/mark-delivered/`, { method: 'POST' }),
     },
+    packingOrders: {
+      list: () => request<any[]>('/packing-orders/'),
+      get: (id: string) => request<any>(`/packing-orders/${id}/`),
+      create: (data: any) => request<any>('/packing-orders/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/packing-orders/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/packing-orders/${id}/`, { method: 'DELETE' }),
+      markInspected: (id: string) => request<any>(`/packing-orders/${id}/mark-inspected/`, { method: 'POST' }),
+    },
   },
 
   // Plant Maintenance & Field Service
   maintenance: {
     internalAssets: () => request<any[]>('/internal-assets/'),
     customerMachines: () => request<any[]>('/customer-machines/'),
+    installations: {
+      list: () => request<any[]>('/installations/'),
+      get: (id: string) => request<any>(`/installations/${id}/`),
+      create: (data: any) => request<any>('/installations/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/installations/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/installations/${id}/`, { method: 'DELETE' }),
+    },
     serviceRequests: {
       list: () => request<any[]>('/service-requests/'),
       create: (data: any) => request<any>('/service-requests/', { method: 'POST', body: JSON.stringify(data) }),
@@ -1520,6 +1537,7 @@ export const api = {
 
   // Accounting & Finance
   accounting: {
+    dashboardMetrics: () => request<any>('/accounting/dashboard-metrics/'),
     financialYears: () => request<any[]>('/financial-years/'),
     chartOfAccounts: () => request<any[]>('/chart-of-accounts/'),
     taxes: () => request<any[]>('/taxes/'),

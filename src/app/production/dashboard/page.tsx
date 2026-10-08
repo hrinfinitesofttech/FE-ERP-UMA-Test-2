@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useERP } from '../../../context/ERPContext';
+import { api } from '../../../lib/apiClient';
 import {
   Factory,
   Briefcase,
@@ -76,75 +77,70 @@ export default function ProductionDashboardPage() {
   const availableHours = workCenters.reduce((sum, w) => sum + (Number(w.availableHours) || 0), 0);
   const rawAvgOee = workCenters.length
     ? Math.round(workCenters.reduce((sum, w) => sum + (Number(w.efficiencyPercent) || 0), 0) / workCenters.length)
-    : 88;
-  const avgOee = isNaN(rawAvgOee) || rawAvgOee <= 0 ? 88 : rawAvgOee;
+    : 0;
+  const avgOee = isNaN(rawAvgOee) || rawAvgOee <= 0 ? 0 : rawAvgOee;
 
-  const totalGoodQty = productionEntries.reduce((sum, e) => sum + (Number(e.goodQuantity) || 0), 0) || 128;
-  const totalRejectedQty = productionEntries.reduce((sum, e) => sum + (Number(e.rejectedQuantity) || 0), 0) || 3;
+  const [stats, setStats] = useState<any>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    api.production.dashboardStats().then((res) => {
+      if (isMounted && res) {
+        setStats(res);
+      }
+    }).catch((err) => {
+      console.warn("Failed to fetch live production dashboard stats:", err);
+    });
+    return () => { isMounted = false; };
+  }, []);
+
+  const totalGoodQty = productionEntries.reduce((sum, e) => sum + (Number(e.goodQuantity) || 0), 0);
+  const totalRejectedQty = productionEntries.reduce((sum, e) => sum + (Number(e.rejectedQuantity) || 0), 0);
   const totalScrapValue = productionScraps.reduce((sum, s) => sum + (Number(s.estimatedValue) || 0), 0);
   const activeHolds = productionHolds.filter((h) => h.status === 'Active Hold').length;
   const openReworks = reworkOrders.filter((r) => r.status !== 'Closed').length;
 
-  // Chart Data Preparation
-  const jobStatusData = [
-    { name: 'In Production', value: manufacturingJobs.filter((j) => (j.status || '').toLowerCase().includes('in production') || (j.status || '').toLowerCase().includes('in_production')).length || 2, color: '#2563EB' },
-    { name: 'Planning', value: manufacturingJobs.filter((j) => (j.status || '').toLowerCase().includes('planning')).length || 2, color: '#D97706' },
-    { name: 'Material Pending', value: manufacturingJobs.filter((j) => (j.status || '').toLowerCase().includes('material')).length || 1, color: '#DC2626' },
-    { name: 'QC Pending', value: manufacturingJobs.filter((j) => (j.status || '').toLowerCase().includes('qc')).length || 1, color: '#7C3AED' },
-    { name: 'Completed', value: manufacturingJobs.filter((j) => (j.status || '').toLowerCase().includes('completed')).length || 1, color: '#059669' },
-  ];
+  // Live API-driven Chart Data (Zero static/mock datasets)
+  const jobStatusData = (stats?.jobStatusData && stats.jobStatusData.length > 0)
+    ? stats.jobStatusData.map((s: any, idx: number) => ({
+        ...s,
+        color: ['#2563EB', '#D97706', '#DC2626', '#7C3AED', '#059669'][idx % 5],
+      }))
+    : [
+        { name: 'In Production', value: manufacturingJobs.filter((j) => (j.status || '').toLowerCase().includes('in production') || (j.status || '').toLowerCase().includes('in_production')).length, color: '#2563EB' },
+        { name: 'Planning', value: manufacturingJobs.filter((j) => (j.status || '').toLowerCase().includes('planning')).length, color: '#D97706' },
+        { name: 'Material Pending', value: manufacturingJobs.filter((j) => (j.status || '').toLowerCase().includes('material')).length, color: '#DC2626' },
+        { name: 'QC Pending', value: manufacturingJobs.filter((j) => (j.status || '').toLowerCase().includes('qc')).length, color: '#7C3AED' },
+        { name: 'Completed', value: manufacturingJobs.filter((j) => (j.status || '').toLowerCase().includes('completed')).length, color: '#059669' },
+      ].filter(d => d.value > 0);
 
-  const workCenterCapData = (workCenters.length > 0 ? workCenters : [
-    { workCenterCode: 'WC-PLASMA-01', capacityPerDayHours: 16, availableHours: 14, efficiencyPercent: 92 },
-    { workCenterCode: 'WC-ROLL-01', capacityPerDayHours: 16, availableHours: 16, efficiencyPercent: 88 },
-    { workCenterCode: 'WC-SAW-01', capacityPerDayHours: 20, availableHours: 18, efficiencyPercent: 95 },
-    { workCenterCode: 'WC-BORING-01', capacityPerDayHours: 16, availableHours: 12, efficiencyPercent: 85 },
-    { workCenterCode: 'WC-TEST-01', capacityPerDayHours: 12, availableHours: 10, efficiencyPercent: 90 },
-  ]).map((wc) => ({
-    name: wc.workCenterCode,
-    Capacity: Number(wc.capacityPerDayHours) || 16,
-    Available: Number(wc.availableHours) || 14,
-    Efficiency: Number(wc.efficiencyPercent) || 90,
-  }));
+  const workCenterCapData = (stats?.workCenterCapacity && stats.workCenterCapacity.length > 0)
+    ? stats.workCenterCapacity
+    : workCenters.map((wc) => ({
+        name: wc.workCenterCode || wc.work_center_code,
+        Capacity: Number(wc.capacityPerDayHours || wc.capacity_per_day_hours) || 0,
+        Available: Number(wc.availableHours || wc.available_hours) || 0,
+        Efficiency: Number(wc.efficiencyPercent || wc.efficiency_percent) || 0,
+      }));
 
-  const dailyOutputData = [
-    { day: 'Mon', GoodQty: 42, Rejected: 2, Scrap: 1 },
-    { day: 'Tue', GoodQty: 58, Rejected: 1, Scrap: 2 },
-    { day: 'Wed', GoodQty: 65, Rejected: 3, Scrap: 1 },
-    { day: 'Thu', GoodQty: 70, Rejected: 0, Scrap: 2 },
-    { day: 'Fri', GoodQty: 85, Rejected: 4, Scrap: 3 },
-    { day: 'Sat', GoodQty: 60, Rejected: 1, Scrap: 1 },
-  ];
+  const dailyOutputData = stats?.dailyOutput || [];
 
-  const wipDistributionData = (wipRecords.length > 0 ? wipRecords : [
-    { jobNumber: 'JOB-2026-001', completedOperationsCount: 6, totalOperationsCount: 8 },
-    { jobNumber: 'JOB-2026-002', completedOperationsCount: 4, totalOperationsCount: 7 },
-    { jobNumber: 'JOB-2026-003', completedOperationsCount: 5, totalOperationsCount: 6 },
-    { jobNumber: 'JOB-2026-004', completedOperationsCount: 2, totalOperationsCount: 5 },
-  ]).map((wip) => ({
-    job: wip.jobNumber,
-    OperationsDone: wip.completedOperationsCount,
-    RemainingOps: Math.max(0, wip.totalOperationsCount - wip.completedOperationsCount),
-  }));
+  const wipDistributionData = (stats?.wipDistribution && stats.wipDistribution.length > 0)
+    ? stats.wipDistribution
+    : wipRecords.map((wip) => ({
+        job: wip.jobNumber || wip.job_number,
+        OperationsDone: Number(wip.completedOperationsCount || wip.completed_operations_count || 0),
+        RemainingOps: Math.max(0, Number(wip.totalOperationsCount || wip.total_operations_count || 0) - Number(wip.completedOperationsCount || wip.completed_operations_count || 0)),
+      }));
 
-  const costComparisonData = (productionCosts.length > 0 ? productionCosts : [
-    { jobNumber: 'JOB-2026-001', totalEstimatedCost: 1250000, totalActualCost: 1180000 },
-    { jobNumber: 'JOB-2026-002', totalEstimatedCost: 850000, totalActualCost: 820000 },
-    { jobNumber: 'JOB-2026-003', totalEstimatedCost: 1600000, totalActualCost: 1540000 },
-    { jobNumber: 'JOB-2026-004', totalEstimatedCost: 950000, totalActualCost: 910000 },
-  ]).map((c) => ({
-    job: c.jobNumber,
-    Estimated: Number((c.totalEstimatedCost / 100000).toFixed(1)),
-    Actual: Number((c.totalActualCost / 100000).toFixed(1)),
-  }));
+  const costComparisonData = stats?.costComparison || [];
 
-  const downtimeReasonsData = [
-    { name: 'Machine Breakdown', value: 35, color: '#DC2626' },
-    { name: 'Material Shortage', value: 25, color: '#D97706' },
-    { name: 'Setup / Changeover', value: 20, color: '#2563EB' },
-    { name: 'Quality Inspection', value: 12, color: '#7C3AED' },
-    { name: 'Manpower / Operator', value: 8, color: '#475569' },
-  ];
+  const downtimeReasonsData = (stats?.downtimeReasons && stats.downtimeReasons.length > 0)
+    ? stats.downtimeReasons.map((d: any, idx: number) => ({
+        ...d,
+        color: ['#DC2626', '#D97706', '#2563EB', '#7C3AED', '#475569'][idx % 5],
+      }))
+    : [];
 
   const tooltipStyle = {
     backgroundColor: '#FFFFFF',

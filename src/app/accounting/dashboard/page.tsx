@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useERP } from '../../../context/ERPContext';
+import { api } from '../../../lib/apiClient';
 import {
   Landmark,
   TrendingUp,
@@ -101,46 +102,26 @@ export default function AccountingDashboardPage() {
   const inputTaxCredit = (purchaseInvoices || []).reduce((acc, inv) => acc + (inv.cgstAmount ?? inv.cgstTotal ?? 0) + (inv.sgstAmount ?? inv.sgstTotal ?? 0) + (inv.igstAmount ?? inv.igstTotal ?? 0), 0);
   const netGSTPayable = Math.max(0, totalGSTLiability - inputTaxCredit);
 
-  // Recharts Mock Data
-  const monthlyRevenueExpenseData = [
-    { month: 'Apr', Revenue: 14500000, Expense: 9800000, Profit: 4700000 },
-    { month: 'May', Revenue: 16800000, Expense: 11200000, Profit: 5600000 },
-    { month: 'Jun', Revenue: 18200000, Expense: 12400000, Profit: 5800000 },
-    { month: 'Jul', Revenue: 15900000, Expense: 10500000, Profit: 5400000 },
-    { month: 'Aug', Revenue: 21000000, Expense: 13800000, Profit: 7200000 },
-    { month: 'Sep', Revenue: 24500000, Expense: 15600000, Profit: 8900000 },
-  ];
+  const [metrics, setMetrics] = useState<any>(null);
 
-  const arAgingData = [
-    { name: '0-30 Days', amount: 14200000, color: '#10B981' },
-    { name: '31-60 Days', amount: 8500000, color: '#3B82F6' },
-    { name: '61-90 Days', amount: 4100000, color: '#F59E0B' },
-    { name: '90+ Days', amount: 2800000, color: '#EF4444' },
-  ];
+  useEffect(() => {
+    let isMounted = true;
+    api.accounting.dashboardMetrics().then((res) => {
+      if (isMounted && res) {
+        setMetrics(res);
+      }
+    }).catch((err) => {
+      console.warn("Failed to fetch live accounting dashboard metrics:", err);
+    });
+    return () => { isMounted = false; };
+  }, []);
 
-  const apAgingData = [
-    { name: '0-30 Days', amount: 9400000, color: '#10B981' },
-    { name: '31-60 Days', amount: 5200000, color: '#3B82F6' },
-    { name: '61-90 Days', amount: 2100000, color: '#F59E0B' },
-    { name: '90+ Days', amount: 1100000, color: '#EF4444' },
-  ];
-
-  const expenseBreakdownData = [
-    { name: 'Raw Material & Components', value: 42500000, color: '#3B82F6' },
-    { name: 'Direct Labour & Subcontract', value: 14800000, color: '#10B981' },
-    { name: 'Power & Fuel', value: 5200000, color: '#F59E0B' },
-    { name: 'Factory Overheads', value: 3900000, color: '#8B5CF6' },
-    { name: 'Admin & Logistics', value: 2400000, color: '#EC4899' },
-  ];
-
-  const cashFlowData = [
-    { month: 'Apr', Inflow: 13800000, Outflow: 10200000, NetBalance: 3600000 },
-    { month: 'May', Inflow: 15900000, Outflow: 11800000, NetBalance: 4100000 },
-    { month: 'Jun', Inflow: 17400000, Outflow: 12900000, NetBalance: 4500000 },
-    { month: 'Jul', Inflow: 16200000, Outflow: 11100000, NetBalance: 5100000 },
-    { month: 'Aug', Inflow: 20500000, Outflow: 14200000, NetBalance: 6300000 },
-    { month: 'Sep', Inflow: 23800000, Outflow: 16100000, NetBalance: 7700000 },
-  ];
+  // Live API-driven Chart Data (Zero static/mock datasets)
+  const monthlyRevenueExpenseData = metrics?.monthlyRevenueExpense || [];
+  const arAgingData = metrics?.arAging || [];
+  const apAgingData = metrics?.apAging || [];
+  const expenseBreakdownData = metrics?.expenseBreakdown || [];
+  const cashFlowData = metrics?.cashFlow || [];
 
   const gstBreakdownData = [
     { type: 'CGST Collected', amount: totalGSTLiability / 2 },

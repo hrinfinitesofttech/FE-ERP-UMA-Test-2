@@ -83,15 +83,27 @@ export default function PurchaseDashboardPage() {
 
   const totalMRPShortages = materialRequirements.filter(mr => mr.shortageQuantity > 0).length;
 
-  // Chart 1: Monthly Purchase Spending Trend
-  const spendTrendData = [
-    { month: 'Apr', spend: 420000 },
-    { month: 'May', spend: 580000 },
-    { month: 'Jun', spend: 750000 },
-    { month: 'Jul', spend: 620000 },
-    { month: 'Aug', spend: 890000 },
-    { month: 'Sep', spend: currentMonthValue > 0 ? currentMonthValue : 1250000 },
-  ];
+  // Chart 1: Monthly Purchase Spending Trend (Calculated from real POs)
+  const monthNames = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'];
+  const spendByMonth: Record<string, number> = {};
+  monthNames.forEach(m => { spendByMonth[m] = 0; });
+  (purchaseOrders || []).forEach(po => {
+    if (po.status !== 'Cancelled') {
+      const dt = po.date || po.orderDate || po.createdAt;
+      if (dt) {
+        try {
+          const m = new Date(dt).toLocaleString('default', { month: 'short' });
+          if (spendByMonth[m] !== undefined) {
+            spendByMonth[m] += Number(po.grandTotal) || 0;
+          }
+        } catch (_) {}
+      }
+    }
+  });
+  const spendTrendData = monthNames.map(m => ({
+    month: m,
+    spend: spendByMonth[m] || 0,
+  }));
 
   // Chart 2: PO Status Distribution
   const poStatusCounts = filteredPOs.reduce((acc: any, po) => {
@@ -107,40 +119,38 @@ export default function PurchaseDashboardPage() {
 
   // Chart 3: Supplier Rating Breakdown
   const supplierRatingData = [
-    { category: 'Class A (90-100%)', count: suppliers.filter(s => s.performanceRating >= 90).length },
-    { category: 'Class B (75-89%)', count: suppliers.filter(s => s.performanceRating >= 75 && s.performanceRating < 90).length },
-    { category: 'Class C (60-74%)', count: suppliers.filter(s => s.performanceRating >= 60 && s.performanceRating < 75).length },
-    { category: 'Under Evaluation', count: suppliers.filter(s => s.performanceRating < 60).length },
+    { category: 'Class A (90-100%)', count: suppliers.filter(s => (Number(s.performanceRating) || 0) >= 90).length },
+    { category: 'Class B (75-89%)', count: suppliers.filter(s => (Number(s.performanceRating) || 0) >= 75 && (Number(s.performanceRating) || 0) < 90).length },
+    { category: 'Class C (60-74%)', count: suppliers.filter(s => (Number(s.performanceRating) || 0) >= 60 && (Number(s.performanceRating) || 0) < 75).length },
+    { category: 'Under Evaluation', count: suppliers.filter(s => (Number(s.performanceRating) || 0) < 60).length },
   ];
 
-  // Chart 4: Job-wise Purchase Spend
+  // Chart 4: Job-wise Purchase Spend (100% real calculations, zero Math.random)
   const jobSpendData = projectJobs.map(job => {
-    const jobPOs = purchaseOrders.filter(po => po.jobId === job.id);
-    const totalCost = jobPOs.reduce((sum, po) => sum + po.grandTotal, 0);
+    const jobPOs = purchaseOrders.filter(po => po.jobId === job.id || po.jobNumber === job.jobNumber);
+    const totalCost = jobPOs.reduce((sum, po) => sum + (Number(po.grandTotal) || 0), 0);
     return {
       jobNo: job.jobNumber,
-      cost: totalCost > 0 ? totalCost / 100000 : Math.floor(Math.random() * 5) + 1, // in Lakhs
+      cost: totalCost > 0 ? Number((totalCost / 100000).toFixed(2)) : 0, // in Lakhs
     };
   });
 
-  // Chart 5: Material Shortage Category Split
-  const shortageCategoryData = [
-    { category: 'Raw Plates / Beams', count: 14 },
-    { category: 'Motors & Gearboxes', count: 8 },
-    { category: 'Fasteners & Hardware', count: 22 },
-    { category: 'Electrical Panels', count: 5 },
-    { category: 'Hydraulic Seals', count: 11 },
-  ];
+  // Chart 5: Material Shortage Category Split (From real MRP shortages)
+  const shortageCategories: Record<string, number> = {};
+  materialRequirements.filter(mr => (Number(mr.shortageQuantity) || 0) > 0).forEach(mr => {
+    const cat = mr.category || mr.itemCategory || 'General Materials';
+    shortageCategories[cat] = (shortageCategories[cat] || 0) + 1;
+  });
+  const shortageCategoryData = Object.entries(shortageCategories).map(([category, count]) => ({ category, count }));
 
-  // Chart 6: Delivery On-Time Performance Trend (%)
-  const deliveryPerfData = [
-    { month: 'Apr', rate: 92 },
-    { month: 'May', rate: 88 },
-    { month: 'Jun', rate: 95 },
-    { month: 'Jul', rate: 91 },
-    { month: 'Aug', rate: 96 },
-    { month: 'Sep', rate: 94 },
-  ];
+  // Chart 6: Delivery On-Time Performance Trend (%) (From real supplier ratings)
+  const avgSupplierRating = suppliers.length > 0
+    ? Math.round(suppliers.reduce((acc, s) => acc + (Number(s.performanceRating) || 0), 0) / suppliers.length)
+    : 0;
+  const deliveryPerfData = monthNames.map(m => ({
+    month: m,
+    rate: avgSupplierRating,
+  }));
 
   return (
     <div className="space-y-5 text-xs pb-12 text-[#211B17]">
