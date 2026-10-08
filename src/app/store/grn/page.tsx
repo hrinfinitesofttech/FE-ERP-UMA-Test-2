@@ -606,8 +606,16 @@ function GoodsReceiptContent() {
                 )}
                 <button
                   type="button"
+                  onClick={() => window.print()}
+                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] hover:bg-[#EFE8DF] text-[#211B17] font-semibold text-xs border border-[#E5DCD3] flex items-center gap-1.5 transition cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Print GRN Slip</span>
+                </button>
+                <button
+                  type="button"
                   onClick={() => setSelectedGrnForDetails(null)}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200 text-xs font-semibold cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-amber-800 text-white hover:bg-amber-700 text-xs font-semibold cursor-pointer"
                 >
                   Close
                 </button>

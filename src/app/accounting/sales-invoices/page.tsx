@@ -3,13 +3,14 @@
 import React, { useState } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import { SalesInvoice } from '../../../types/accounting';
-import { Receipt, Search, Plus, Filter, CheckCircle2, Clock, Eye, Download, FileSpreadsheet, Building, Users } from 'lucide-react';
+import { Receipt, Search, Plus, Filter, CheckCircle2, Clock, Eye, Download, FileSpreadsheet, Building, Users, Printer, X } from 'lucide-react';
 
 export default function SalesInvoicesPage() {
   const { salesInvoices, addSalesInvoice, approveSalesInvoice, customers, salesOrders } = useERP();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedInvoiceForPrint, setSelectedInvoiceForPrint] = useState<SalesInvoice | null>(null);
 
   // Form state
   const [selectedSoId, setSelectedSoId] = useState<string>(salesOrders[0]?.id || salesOrders[0]?.salesOrderNumber || '');
@@ -262,19 +263,29 @@ export default function SalesInvoicesPage() {
                   </span>
                 </td>
                 <td className="py-3 px-4 text-center font-sans">
-                  {inv.status === 'Draft' || (inv.status as string)?.toLowerCase() === 'draft' ? (
+                  <div className="flex items-center justify-center gap-1.5">
+                    {inv.status === 'Draft' || (inv.status as string)?.toLowerCase() === 'draft' ? (
+                      <button
+                        type="button"
+                        onClick={() => approveSalesInvoice(inv.id || inv.invoiceNumber || (inv as any).invoice_number)}
+                        className="px-2 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-semibold rounded-lg transition shadow-xs cursor-pointer"
+                      >
+                        Approve
+                      </button>
+                    ) : (
+                      <span className="inline-flex items-center gap-0.5 text-emerald-600 font-semibold text-[10px]">
+                        <CheckCircle2 className="w-3 h-3" /> Approved
+                      </span>
+                    )}
                     <button
                       type="button"
-                      onClick={() => approveSalesInvoice(inv.id || inv.invoiceNumber || (inv as any).invoice_number)}
-                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-semibold rounded-lg transition shadow-sm cursor-pointer"
+                      onClick={() => setSelectedInvoiceForPrint(inv)}
+                      className="p-1.5 text-[#544B45] hover:text-amber-800 hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                      title="View & Print Official GST Tax Invoice"
                     >
-                      Approve Invoice
+                      <Printer className="w-3.5 h-3.5" />
                     </button>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold text-[10px]">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Approved
-                    </span>
-                  )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -521,6 +532,210 @@ export default function SalesInvoicesPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* VIEW & PRINT OFFICIAL GST TAX INVOICE MODAL */}
+      {selectedInvoiceForPrint && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150"
+          onClick={() => setSelectedInvoiceForPrint(null)}
+        >
+          <div
+            className="bg-white border border-[#EBE3DB] rounded-2xl max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-2xl max-h-[92vh] overflow-y-auto text-[#211B17]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Action Bar (Hidden when printed) */}
+            <div className="flex items-center justify-between pb-4 border-b border-[#EBE3DB] print:hidden">
+              <div className="flex items-center gap-2">
+                <Receipt className="w-5 h-5 text-emerald-600" />
+                <h3 className="text-base font-bold text-[#211B17]">
+                  Tax Invoice Preview: <span className="font-mono text-emerald-700">{selectedInvoiceForPrint.invoiceNumber}</span>
+                </h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Print Tax Invoice</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedInvoiceForPrint(null)}
+                  className="p-2 rounded-xl text-[#70665F] hover:bg-[#FAF7F2] hover:text-[#211B17] transition cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Printable Invoice Document Body */}
+            <div className="space-y-6 font-sans">
+              {/* Header Letterhead */}
+              <div className="flex justify-between items-start border-b-2 border-emerald-800 pb-4">
+                <div>
+                  <h1 className="text-xl font-black text-emerald-950 uppercase tracking-tight">UMA TECHNO FAB PVT. LTD.</h1>
+                  <p className="text-[11px] text-[#544B45] font-medium leading-relaxed">
+                    Plot No. 42-45, GIDC Industrial Estate, Manjusar, Savli, Vadodara - 391775, Gujarat, India<br />
+                    GSTIN: <span className="font-mono font-bold text-[#211B17]">24AAACU1234F1Z5</span> • PAN: <span className="font-mono font-bold text-[#211B17]">AAACU1234F</span> • State Code: 24<br />
+                    Email: accounts@umatechnofab.com • Phone: +91 265 2984110
+                  </p>
+                </div>
+                <div className="text-right">
+                  <span className="inline-block px-3 py-1 bg-emerald-800 text-white text-xs font-black uppercase rounded tracking-wider">
+                    TAX INVOICE
+                  </span>
+                  <div className="text-[11px] font-mono text-[#544B45] mt-1.5">
+                    Original for Recipient
+                  </div>
+                </div>
+              </div>
+
+              {/* Invoice Meta Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB] text-xs">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-[#70665F] block">Invoice Number</span>
+                  <span className="font-mono font-bold text-emerald-800 text-sm">{selectedInvoiceForPrint.invoiceNumber}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-[#70665F] block">Invoice Date</span>
+                  <span className="font-mono font-semibold text-[#211B17]">{selectedInvoiceForPrint.invoiceDate}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-[#70665F] block">Sales Order Ref</span>
+                  <span className="font-mono font-semibold text-[#211B17]">{selectedInvoiceForPrint.salesOrderNumber || 'SO-DIRECT'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-[#70665F] block">Due Date</span>
+                  <span className="font-mono font-semibold text-[#211B17]">{selectedInvoiceForPrint.dueDate || selectedInvoiceForPrint.invoiceDate}</span>
+                </div>
+              </div>
+
+              {/* Bill To & Ship To */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div className="p-4 rounded-xl border border-[#EBE3DB] bg-white">
+                  <span className="text-[10px] uppercase font-bold text-emerald-800 block mb-1">Details of Receiver (Billed To)</span>
+                  <h4 className="font-bold text-[#211B17] text-sm">{selectedInvoiceForPrint.customerName}</h4>
+                  <div className="text-[#544B45] text-[11px] space-y-0.5 mt-1">
+                    <p>Customer ID: <span className="font-mono">{selectedInvoiceForPrint.customerId || 'CUST-001'}</span></p>
+                    <p>GSTIN: <span className="font-mono font-semibold text-[#211B17]">{(selectedInvoiceForPrint as any).customerGstin || '24AAACC9876D1Z2'}</span></p>
+                    <p>Place of Supply: <span className="font-semibold">{selectedInvoiceForPrint.placeOfSupply || 'Gujarat (24)'}</span></p>
+                  </div>
+                </div>
+                <div className="p-4 rounded-xl border border-[#EBE3DB] bg-white">
+                  <span className="text-[10px] uppercase font-bold text-emerald-800 block mb-1">Dispatched From (Factory Site)</span>
+                  <h4 className="font-bold text-[#211B17] text-sm">UMA Techno Fab Work Center 01</h4>
+                  <div className="text-[#544B45] text-[11px] space-y-0.5 mt-1">
+                    <p>Job / Project Ref: <span className="font-mono font-semibold">{selectedInvoiceForPrint.jobNumber || 'PROJECT MTO'}</span></p>
+                    <p>Payment Terms: 30 Days Net from Delivery</p>
+                    <p>Status: <span className="font-bold text-emerald-700">{selectedInvoiceForPrint.status}</span></p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Line Items Table */}
+              <div className="border border-[#EBE3DB] rounded-xl overflow-hidden">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#FAF7F2] text-[#544B45] uppercase text-[10px] font-bold border-b border-[#EBE3DB]">
+                    <tr>
+                      <th className="p-2.5">#</th>
+                      <th className="p-2.5">Item Description</th>
+                      <th className="p-2.5">HSN/SAC</th>
+                      <th className="p-2.5 text-right">Qty</th>
+                      <th className="p-2.5 text-right">Rate (₹)</th>
+                      <th className="p-2.5 text-right">Taxable Value (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#EBE3DB]">
+                    {(selectedInvoiceForPrint.items && selectedInvoiceForPrint.items.length > 0
+                      ? selectedInvoiceForPrint.items
+                      : [
+                          {
+                            description: 'Fabricated Process Equipment / Industrial Tank (MTO)',
+                            hsnSac: '8462',
+                            quantity: 1,
+                            rate: Number(selectedInvoiceForPrint.subTotal ?? (selectedInvoiceForPrint as any).taxable_amount ?? 0),
+                            amount: Number(selectedInvoiceForPrint.subTotal ?? (selectedInvoiceForPrint as any).taxable_amount ?? 0),
+                          },
+                        ]
+                    ).map((itm: any, idx: number) => (
+                      <tr key={idx} className="hover:bg-[#FAF7F2]/50">
+                        <td className="p-2.5 text-[#70665F] font-mono">{idx + 1}</td>
+                        <td className="p-2.5 font-semibold text-[#211B17]">{itm.description || itm.item_description || itm.itemName || 'Engineering Equipment'}</td>
+                        <td className="p-2.5 font-mono text-[#544B45]">{itm.hsnSac || itm.hsn_sac || '8462'}</td>
+                        <td className="p-2.5 text-right font-mono">{itm.quantity ?? itm.qty ?? 1}</td>
+                        <td className="p-2.5 text-right font-mono">₹{Number(itm.rate || itm.unitPrice || 0).toLocaleString('en-IN')}</td>
+                        <td className="p-2.5 text-right font-mono font-bold text-[#211B17]">
+                          ₹{Number(itm.amount || (itm.quantity * itm.rate) || selectedInvoiceForPrint.subTotal || 0).toLocaleString('en-IN')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Tax & Total Summary */}
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] text-xs flex-1 space-y-1">
+                  <span className="font-bold text-[#211B17] block text-[11px]">Bank Remittance Details:</span>
+                  <p className="text-[11px] text-[#544B45]">Bank Name: <span className="font-semibold text-[#211B17]">HDFC Bank Ltd</span></p>
+                  <p className="text-[11px] text-[#544B45]">A/C No: <span className="font-mono font-bold text-[#211B17]">50200088991234</span> (Current)</p>
+                  <p className="text-[11px] text-[#544B45]">IFSC Code: <span className="font-mono font-bold text-[#211B17]">HDFC0000288</span> (Vadodara Branch)</p>
+                </div>
+
+                <div className="w-full sm:w-72 bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB] space-y-2 text-xs">
+                  <div className="flex justify-between text-[#544B45]">
+                    <span>Taxable Subtotal:</span>
+                    <span className="font-mono font-semibold text-[#211B17]">
+                      ₹{Number(selectedInvoiceForPrint.subTotal ?? (selectedInvoiceForPrint as any).taxable_amount ?? 0).toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-[#544B45]">
+                    <span>CGST (9%):</span>
+                    <span className="font-mono font-semibold text-[#211B17]">
+                      ₹{Number((selectedInvoiceForPrint as any).cgst_amount || selectedInvoiceForPrint.cgstAmount || 0).toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-[#544B45]">
+                    <span>SGST (9%):</span>
+                    <span className="font-mono font-semibold text-[#211B17]">
+                      ₹{Number((selectedInvoiceForPrint as any).sgst_amount || selectedInvoiceForPrint.sgstAmount || 0).toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                  {(Number((selectedInvoiceForPrint as any).igst_amount || selectedInvoiceForPrint.igstAmount || 0) > 0) && (
+                    <div className="flex justify-between text-[#544B45]">
+                      <span>IGST (18%):</span>
+                      <span className="font-mono font-semibold text-[#211B17]">
+                        ₹{Number((selectedInvoiceForPrint as any).igst_amount || selectedInvoiceForPrint.igstAmount || 0).toLocaleString('en-IN')}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between pt-2 border-t border-[#EBE3DB] text-sm">
+                    <span className="font-black text-emerald-950">Grand Total:</span>
+                    <span className="font-mono font-black text-emerald-800 text-base">
+                      ₹{Number(selectedInvoiceForPrint.grandTotal ?? (selectedInvoiceForPrint as any).grand_total ?? 0).toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Authorized Signatory */}
+              <div className="pt-8 border-t border-[#EBE3DB] flex justify-between items-end text-[11px] text-[#70665F]">
+                <div>
+                  <p>Declaration: Certified that all particulars are true and correct.</p>
+                  <p>Subject to Vadodara Jurisdiction.</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-[#211B17]">For UMA TECHNO FAB PRIVATE LIMITED</p>
+                  <div className="h-10"></div>
+                  <p className="font-semibold text-[#211B17]">Authorized Signatory</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
