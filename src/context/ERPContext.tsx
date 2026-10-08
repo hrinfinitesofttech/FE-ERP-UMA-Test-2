@@ -508,7 +508,11 @@ interface ERPContextType {
 
   salesOrders: SalesOrder[];
   addSalesOrder: (soData: Omit<SalesOrder, 'id' | 'salesOrderNumber'>) => SalesOrder;
+  updateSalesOrder: (id: string, soData: Partial<SalesOrder>) => Promise<SalesOrder | null>;
+  deleteSalesOrder: (id: string) => Promise<boolean>;
+  refreshSalesOrders: () => Promise<void>;
   createProjectFromSalesOrder: (salesOrderId: string) => ProjectJobMaster;
+  createProjectFromSalesOrderAsync: (salesOrderId: string) => Promise<ProjectJobMaster>;
 
   projectJobs: ProjectJobMaster[];
   isProjectsLoading: boolean;
@@ -6446,6 +6450,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       ...soData,
       id: soNo,
       salesOrderNumber: soNo,
+      status: soData.status || 'confirmed',
+      items: soData.items || [],
+      orderDate: soData.orderDate || new Date().toISOString().split('T')[0],
+      deliveryDate: soData.deliveryDate || '',
+      orderValue: Number(soData.orderValue) || 0,
+      paymentTerms: soData.paymentTerms || '',
+      assignedProjectManager: soData.assignedProjectManager || 'Bhavin Shah',
     };
     setSalesOrders((prev) => {
       const updated = deduplicateSalesOrders([newSO, ...prev]);
@@ -6457,12 +6468,38 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     logAction('CREATE', 'CRM', 'Sales Orders', soNo, `Created Sales Order ${soNo}`);
     const soPayload = {
       ...newSO,
+      id: soNo,
+      sales_order_number: soNo,
+      salesOrderNumber: soNo,
+      target_delivery_date: newSO.deliveryDate || '2026-12-31',
       targetDeliveryDate: newSO.deliveryDate || '2026-12-31',
+      delivery_date: newSO.deliveryDate || '2026-12-31',
+      grand_total: Number(newSO.orderValue || 0),
       grandTotal: Number(newSO.orderValue || 0),
+      total_amount: Number(newSO.orderValue || 0),
       totalAmount: Number(newSO.orderValue || 0),
+      order_value: Number(newSO.orderValue || 0),
+      orderValue: Number(newSO.orderValue || 0),
+      customer_id: newSO.customerId || 'CUST-001',
+      customerId: newSO.customerId || 'CUST-001',
+      customer_name: newSO.customerName,
+      customerName: newSO.customerName,
+      customer_po_number: newSO.customerPoNumber || '',
+      customerPoNumber: newSO.customerPoNumber || '',
+      customer_po_id: newSO.customerPoId || '',
+      customerPoId: newSO.customerPoId || '',
+      quotation_number: newSO.quotationNumber || '',
+      quotationNumber: newSO.quotationNumber || '',
+      quotation_id: newSO.quotationId || '',
+      quotationId: newSO.quotationId || '',
+      order_date: newSO.orderDate,
+      orderDate: newSO.orderDate,
+      payment_terms: newSO.paymentTerms,
+      paymentTerms: newSO.paymentTerms,
+      status: newSO.status || 'confirmed',
     };
     api.crm.salesOrders.create(soPayload).then((res) => {
-      if (res && res.id) {
+      if (res && (res.id || res.salesOrderNumber || res.sales_order_number)) {
         setSalesOrders((prev) => {
           const updated = deduplicateSalesOrders(prev.map((s) => (s.id === soNo || s.salesOrderNumber === soNo ? { ...s, ...res } : s)));
           if (typeof window !== 'undefined') {
@@ -6473,6 +6510,103 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
     }).catch((err) => console.warn('Failed to sync sales order to backend:', err));
     return newSO;
+  };
+
+  const updateSalesOrder = async (id: string, soData: Partial<SalesOrder>): Promise<SalesOrder | null> => {
+    let updatedSO: SalesOrder | null = null;
+    setSalesOrders((prev) => {
+      const updated = prev.map((s) => {
+        if (s.id === id || s.salesOrderNumber === id) {
+          updatedSO = { ...s, ...soData };
+          return updatedSO;
+        }
+        return s;
+      });
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_salesOrders', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
+    logAction('UPDATE', 'CRM', 'Sales Orders', id, `Updated Sales Order ${id}`);
+
+    try {
+      const payload: any = { ...soData };
+      if (soData.deliveryDate) {
+        payload.targetDeliveryDate = soData.deliveryDate;
+        payload.target_delivery_date = soData.deliveryDate;
+      }
+      if (soData.orderValue !== undefined) {
+        payload.grandTotal = Number(soData.orderValue);
+        payload.grand_total = Number(soData.orderValue);
+        payload.totalAmount = Number(soData.orderValue);
+        payload.total_amount = Number(soData.orderValue);
+      }
+      if (soData.customerName) {
+        payload.customer_name = soData.customerName;
+      }
+      if (soData.customerPoNumber) {
+        payload.customer_po_number = soData.customerPoNumber;
+      }
+      if (soData.paymentTerms) {
+        payload.payment_terms = soData.paymentTerms;
+      }
+      const res = await api.crm.salesOrders.update(id, payload);
+      if (res && res.id) {
+        setSalesOrders((prev) => {
+          const updated = deduplicateSalesOrders(prev.map((s) => (s.id === id || s.salesOrderNumber === id ? { ...s, ...res } : s)));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_salesOrders', JSON.stringify(updated)); } catch (_) {}
+          }
+          return updated;
+        });
+      }
+      return updatedSO;
+    } catch (err) {
+      console.warn('Failed to update sales order on backend:', err);
+      return updatedSO;
+    }
+  };
+
+  const deleteSalesOrder = async (id: string): Promise<boolean> => {
+    setSalesOrders((prev) => {
+      const updated = prev.filter((s) => s.id !== id && s.salesOrderNumber !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_salesOrders', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'CRM', 'Sales Orders', id, `Deleted Sales Order ${id}`);
+    try {
+      await api.crm.salesOrders.delete(id);
+      return true;
+    } catch (err) {
+      console.warn('Failed to delete sales order on backend:', err);
+      return false;
+    }
+  };
+
+  const refreshSalesOrders = async (): Promise<void> => {
+    try {
+      const [rawSOs, rawPrjs] = await Promise.all([
+        api.crm.salesOrders.list(),
+        api.projects.list(),
+      ]);
+      if (Array.isArray(rawSOs)) {
+        setSalesOrders(deduplicateSalesOrders(rawSOs));
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_salesOrders', JSON.stringify(rawSOs)); } catch (_) {}
+        }
+      }
+      if (Array.isArray(rawPrjs)) {
+        setProjectJobs(deduplicateProjects(rawPrjs));
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_projectJobs', JSON.stringify(rawPrjs)); } catch (_) {}
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to refresh sales orders:', err);
+    }
   };
 
   // CRM → PROJECT INTEGRATION (THE CENTRAL LINK!)
@@ -6680,9 +6814,20 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }).catch((err) => console.warn('Failed to sync project to backend:', err));
 
     const targetSoId = (so.id && !so.id.startsWith('DOC-')) ? so.id : (so.salesOrderNumber || so.id);
-    api.crm.salesOrders.update(targetSoId, { status: 'project_created', projectId: prjNo }).catch((err) =>
+    api.crm.salesOrders.update(targetSoId, {
+      status: 'project_created',
+      projectId: prjNo,
+      project_id: prjNo,
+      jobNumber: jobNo,
+      job_number: jobNo,
+    }).catch((err) =>
       console.warn('Failed to update sales order status on backend:', err)
     );
+
+    if (so.customerPoId || so.customerPoNumber) {
+      const targetPo = so.customerPoId || so.customerPoNumber;
+      api.crm.customerPos.update(targetPo, { status: 'project_created' }).catch(() => {});
+    }
 
     // Also inject into Master Job Traceability
     const newTraceableJob: JobTraceabilityRecord = {
@@ -6752,6 +6897,71 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     });
 
     return newProject;
+  };
+
+  const createProjectFromSalesOrderAsync = async (salesOrderId: string): Promise<ProjectJobMaster> => {
+    const prj = createProjectFromSalesOrder(salesOrderId);
+    const so = salesOrders.find((s) => s.id === salesOrderId || s.salesOrderNumber === salesOrderId);
+    if (!so) return prj;
+
+    const targetSoId = (so.id && !so.id.startsWith('DOC-')) ? so.id : (so.salesOrderNumber || so.id);
+    const prjPayload = {
+      ...prj,
+      id: prj.projectNumber,
+      project_number: prj.projectNumber,
+      projectNumber: prj.projectNumber,
+      job_number: prj.jobNumber,
+      jobNumber: prj.jobNumber,
+      customer_id: prj.customerId || 'CUST-001',
+      customerId: prj.customerId || 'CUST-001',
+      customer_name: prj.customerName,
+      customerName: prj.customerName,
+      sales_order_id: so.id,
+      salesOrderId: so.id,
+      sales_order_number: so.salesOrderNumber,
+      salesOrderNumber: so.salesOrderNumber,
+      customer_po_number: so.customerPoNumber || '',
+      customerPoNumber: so.customerPoNumber || '',
+      product_name: prj.productName,
+      productName: prj.productName,
+      start_date: prj.startDate,
+      startDate: prj.startDate,
+      target_delivery_date: prj.deliveryDate || '2026-12-31',
+      targetDeliveryDate: prj.deliveryDate || '2026-12-31',
+      deliveryDate: prj.deliveryDate || '2026-12-31',
+      order_value: Number(prj.orderValue) || 0,
+      orderValue: Number(prj.orderValue) || 0,
+      project_manager_name: prj.projectManager || 'Bhavin Shah',
+      projectManager: prj.projectManager || 'Bhavin Shah',
+      current_status: prj.status || 'planning',
+      currentStatus: prj.status || 'planning',
+      status: prj.status || 'planning',
+      progress_percent: 0,
+      progressPercent: 0,
+    };
+
+    try {
+      const createdPrj = await api.projects.create(prjPayload);
+      const finalPrjId = createdPrj?.id || createdPrj?.project_number || prj.projectNumber;
+      const finalJobNo = createdPrj?.job_number || prj.jobNumber;
+
+      await api.crm.salesOrders.update(targetSoId, {
+        status: 'project_created',
+        projectId: finalPrjId,
+        project_id: finalPrjId,
+        jobNumber: finalJobNo,
+        job_number: finalJobNo,
+      });
+
+      if (so.customerPoId || so.customerPoNumber) {
+        const poTarget = so.customerPoId || so.customerPoNumber;
+        await api.crm.customerPos.update(poTarget, { status: 'project_created' }).catch(() => {});
+      }
+    } catch (err) {
+      console.warn('Backend sync for project creation finished with notice:', err);
+    }
+
+    return prj;
   };
 
   // PROJECT MODULE MANAGEMENT FUNCTIONS
@@ -12425,7 +12635,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         convertCustomerPOToSalesOrder,
         salesOrders: deduplicateSalesOrders(salesOrders),
         addSalesOrder,
+        updateSalesOrder,
+        deleteSalesOrder,
+        refreshSalesOrders,
         createProjectFromSalesOrder,
+        createProjectFromSalesOrderAsync,
         projectJobs: deduplicateProjects(projectJobs),
         isProjectsLoading,
         updateProject,

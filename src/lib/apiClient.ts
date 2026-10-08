@@ -854,8 +854,10 @@ export const api = {
     },
     salesOrders: {
       list: () => request<any[]>('/sales-orders/'),
+      get: (id: string) => request<any>(`/sales-orders/${id}/`),
       create: (data: any) => request<any>('/sales-orders/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/sales-orders/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/sales-orders/${id}/`, { method: 'DELETE' }),
     },
     followUps: {
       list: async () => {
