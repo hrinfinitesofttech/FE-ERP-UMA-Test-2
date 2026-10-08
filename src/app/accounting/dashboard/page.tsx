@@ -53,9 +53,23 @@ import {
 
 export default function AccountingDashboardPage() {
   const [hasMounted, setHasMounted] = React.useState(false);
+  const [selectedFY, setSelectedFY] = useState('FY 2025-26');
+  const [metrics, setMetrics] = useState<any>(null);
 
   React.useEffect(() => {
     setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    api.accounting.dashboardMetrics().then((res) => {
+      if (isMounted && res) {
+        setMetrics(res);
+      }
+    }).catch((err) => {
+      console.warn("Failed to fetch live accounting dashboard metrics:", err);
+    });
+    return () => { isMounted = false; };
   }, []);
 
   const {
@@ -70,8 +84,6 @@ export default function AccountingDashboardPage() {
     journalEntries,
     expenseEntries,
   } = useERP();
-
-  const [selectedFY, setSelectedFY] = useState('FY 2025-26');
 
   if (!hasMounted) {
     return (
@@ -101,20 +113,6 @@ export default function AccountingDashboardPage() {
   const totalGSTLiability = (salesInvoices || []).reduce((acc, inv) => acc + (inv.cgstAmount ?? inv.cgstTotal ?? 0) + (inv.sgstAmount ?? inv.sgstTotal ?? 0) + (inv.igstAmount ?? inv.igstTotal ?? 0), 0);
   const inputTaxCredit = (purchaseInvoices || []).reduce((acc, inv) => acc + (inv.cgstAmount ?? inv.cgstTotal ?? 0) + (inv.sgstAmount ?? inv.sgstTotal ?? 0) + (inv.igstAmount ?? inv.igstTotal ?? 0), 0);
   const netGSTPayable = Math.max(0, totalGSTLiability - inputTaxCredit);
-
-  const [metrics, setMetrics] = useState<any>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-    api.accounting.dashboardMetrics().then((res) => {
-      if (isMounted && res) {
-        setMetrics(res);
-      }
-    }).catch((err) => {
-      console.warn("Failed to fetch live accounting dashboard metrics:", err);
-    });
-    return () => { isMounted = false; };
-  }, []);
 
   // Live API-driven Chart Data (Zero static/mock datasets)
   const monthlyRevenueExpenseData = metrics?.monthlyRevenueExpense || [];
