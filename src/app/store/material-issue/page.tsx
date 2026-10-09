@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import {
@@ -28,7 +28,17 @@ function MaterialIssueContent() {
   const bomParam = searchParams.get('bomId') || '';
   const itemParam = searchParams.get('itemId') || '';
 
-  const { materialIssues, addMaterialIssue, projectJobs, itemMasters, warehouses, stockBalances, openJobModal } = useERP();
+  const {
+    materialIssues,
+    addMaterialIssue,
+    projectJobs,
+    itemMasters,
+    warehouses,
+    stockBalances,
+    boms,
+    purchaseRequisitions,
+    openJobModal,
+  } = useERP();
 
   const [mounted, setMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,11 +49,160 @@ function MaterialIssueContent() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [viewVoucher, setViewVoucher] = useState<any | null>(null);
 
+  // Form State
+  const [jobId, setJobId] = useState(projectJobs[0]?.jobNumber || projectJobs[0]?.id || '');
+  const [woNo, setWoNo] = useState('');
+  const [bomNo, setBomNo] = useState('');
+  const [bomRev, setBomRev] = useState('Rev-01');
+  const [stage, setStage] = useState('Shell & Dish End Cutting / Rolling');
+  const [itemId, setItemId] = useState(itemMasters[0]?.id || '');
+  const [issueQty, setIssueQty] = useState(0);
+  const [warehouseId, setWarehouseId] = useState(warehouses[0]?.id || '');
+  const [requestedBy, setRequestedBy] = useState('');
+  const [issuedBy, setIssuedBy] = useState('');
+  const [batchLot, setBatchLot] = useState('');
+  const [remarks, setRemarks] = useState('');
+  const [showAllCatalog, setShowAllCatalog] = useState(false);
+
+  // Find BOM matching current job or bomNo
+  const currentJobBom = useMemo(() => {
+    if (!boms || boms.length === 0) return null;
+    const cleanJob = String(jobId || '').trim().toLowerCase();
+    const cleanBom = String(bomNo || '').trim().toLowerCase();
+
+    return (
+      boms.find((b) => {
+        const bJob = String(b.jobNumber || '').trim().toLowerCase();
+        const bBom = String(b.bomNumber || '').trim().toLowerCase();
+        const bId = String(b.id || '').trim().toLowerCase();
+        const bProj = String(b.projectId || '').trim().toLowerCase();
+
+        return (
+          (cleanBom && (bBom === cleanBom || bId === cleanBom)) ||
+          (cleanJob && (bJob === cleanJob || bId === cleanJob || bProj === cleanJob))
+        );
+      }) || null
+    );
+  }, [boms, jobId, bomNo]);
+
+  // Find PRs matching current job
+  const jobPRs = useMemo(() => {
+    if (!purchaseRequisitions || purchaseRequisitions.length === 0 || !jobId) return [];
+    const cleanJob = String(jobId || '').trim().toLowerCase();
+    return purchaseRequisitions.filter((pr) => {
+      const prJob = String(pr.jobNumber || pr.jobId || '').trim().toLowerCase();
+      return prJob === cleanJob;
+    });
+  }, [purchaseRequisitions, jobId]);
+
+  // Compute items allocated to this Job / BOM
+  const jobAllocatedItems = useMemo(() => {
+    if (showAllCatalog) return itemMasters;
+
+    const bomItems = currentJobBom?.items || [];
+    const prItems = jobPRs.flatMap((pr) => pr.items || []);
+
+    if (!jobId || (bomItems.length === 0 && prItems.length === 0)) {
+      return itemMasters;
+    }
+
+    const targetCodes = new Set<string>();
+    const targetNames = new Set<string>();
+
+    bomItems.forEach((bi: any) => {
+      const code = String(bi.partNumber || bi.itemCode || bi.itemNumber || '').trim().toLowerCase();
+      if (code) targetCodes.add(code);
+      const name = String(bi.itemName || bi.partName || '').trim().toLowerCase();
+      if (name) targetNames.add(name);
+    });
+
+    prItems.forEach((pi: any) => {
+      const code = String(pi.itemCode || (pi as any).item_code || '').trim().toLowerCase();
+      if (code) targetCodes.add(code);
+      const name = String(pi.itemName || (pi as any).item_name || '').trim().toLowerCase();
+      if (name) targetNames.add(name);
+    });
+
+    const matched: typeof itemMasters = [];
+    const addedKeys = new Set<string>();
+
+    // 1. Match from itemMasters
+    itemMasters.forEach((im) => {
+      const code = String(im.itemCode || '').trim().toLowerCase();
+      const id = String(im.id || '').trim().toLowerCase();
+      const name = String(im.itemName || '').trim().toLowerCase();
+
+      const isMatch =
+        targetCodes.has(code) ||
+        targetCodes.has(id) ||
+        targetNames.has(name) ||
+        Array.from(targetNames).some((tn) => tn && (name.includes(tn) || tn.includes(name)));
+
+      if (isMatch && !addedKeys.has(im.id)) {
+        addedKeys.add(im.id);
+        matched.push(im);
+      }
+    });
+
+    // 2. If an item is declared in BOM but not yet in itemMasters, include dynamically
+    bomItems.forEach((bi: any) => {
+      const code = String(bi.partNumber || bi.itemCode || bi.itemNumber || '').trim();
+      const name = String(bi.itemName || bi.partName || code).trim();
+      const key = code || name;
+
+      const alreadyAdded = matched.some(
+        (m) =>
+          (code && m.itemCode?.toLowerCase() === code.toLowerCase()) ||
+          (name && m.itemName?.toLowerCase() === name.toLowerCase())
+      );
+
+      if (!alreadyAdded && key) {
+        matched.push({
+          id: bi.id || `bom-${code || key}`,
+          itemCode: code || 'BOM-ITEM',
+          itemName: name,
+          itemType: bi.itemType || 'Raw Material',
+          category: 'BOM Material',
+          subCategory: '',
+          description: bi.description || bi.specification || '',
+          specification: bi.specification || '',
+          drawingNumber: '',
+          brandMake: bi.makeBrand || '',
+          hsnSac: '7219',
+          gstRate: 18.0,
+          uom: bi.unit || 'KG',
+          minimumStock: 0,
+          maximumStock: 0,
+          reorderLevel: 0,
+          unitCost: bi.rate || bi.estimatedRate || bi.unitCost || 150,
+          standardCost: bi.rate || bi.estimatedRate || bi.unitCost || 150,
+          status: 'Active',
+          createdAt: '',
+          updatedAt: '',
+        } as any);
+      }
+    });
+
+    return matched.length > 0 ? matched : itemMasters;
+  }, [showAllCatalog, currentJobBom, jobPRs, jobId, itemMasters]);
+
   useEffect(() => {
     setMounted(true);
     if (jobParam && !hasDismissedParam) {
       setJobId(jobParam);
-      if (bomParam) setBomNo(bomParam);
+      if (bomParam) {
+        setBomNo(bomParam);
+      } else {
+        const matchingB = boms.find(
+          (b) => b.jobNumber === jobParam || b.id === jobParam || b.projectId === jobParam
+        );
+        if (matchingB) {
+          setBomNo(matchingB.bomNumber || matchingB.id);
+          if (matchingB.activeRevision || matchingB.revision) {
+            setBomRev(matchingB.activeRevision || matchingB.revision);
+          }
+        }
+      }
       setWoNo(`WO-${jobParam.replace('JOB-', '')}-A`);
       if (itemParam) {
         const found = itemMasters.find(
@@ -59,23 +218,49 @@ function MaterialIssueContent() {
       }
       setIsModalOpen(true);
     }
-  }, [jobParam, bomParam, itemParam, itemMasters, hasDismissedParam]);
+  }, [jobParam, bomParam, itemParam, itemMasters, boms, hasDismissedParam]);
 
-  // Form State
-  const [jobId, setJobId] = useState(projectJobs[0]?.jobNumber || projectJobs[0]?.id || '');
-  const [woNo, setWoNo] = useState('');
-  const [bomNo, setBomNo] = useState('');
-  const [bomRev, setBomRev] = useState('Rev-01');
-  const [stage, setStage] = useState('Shell & Dish End Cutting / Rolling');
-  const [itemId, setItemId] = useState(itemMasters[0]?.id || '');
-  const [issueQty, setIssueQty] = useState(0);
-  const [warehouseId, setWarehouseId] = useState(warehouses[0]?.id || '');
-  const [requestedBy, setRequestedBy] = useState('');
-  const [issuedBy, setIssuedBy] = useState('');
-  const [batchLot, setBatchLot] = useState('');
-  const [remarks, setRemarks] = useState('');
+  // Auto-select first allocated item when job items change
+  useEffect(() => {
+    if (jobAllocatedItems.length > 0) {
+      const exists = jobAllocatedItems.some((i) => i.id === itemId || i.itemCode === itemId);
+      if (!exists) {
+        const first = jobAllocatedItems[0];
+        setItemId(first.id);
+        const bomMatch = currentJobBom?.items?.find((bi: any) =>
+          (bi.partNumber && (bi.partNumber === first.itemCode || bi.partNumber === first.id)) ||
+          (bi.itemCode && (bi.itemCode === first.itemCode || bi.itemCode === first.id)) ||
+          (bi.itemName && first.itemName && bi.itemName.trim().toLowerCase() === first.itemName.trim().toLowerCase())
+        );
+        if (bomMatch && (bomMatch.quantity || bomMatch.qty)) {
+          setIssueQty(Number(bomMatch.quantity || bomMatch.qty));
+        }
+      }
+    }
+  }, [jobAllocatedItems, currentJobBom]);
 
-  const selectedItem = itemMasters.find((i) => i.id === itemId) || itemMasters[0] || null;
+  const handleItemSelect = (newId: string) => {
+    setItemId(newId);
+    const selected = jobAllocatedItems.find((i) => i.id === newId || i.itemCode === newId);
+    if (selected && currentJobBom) {
+      const bomMatch = currentJobBom.items?.find((bi: any) =>
+        (bi.partNumber && (bi.partNumber === selected.itemCode || bi.partNumber === selected.id)) ||
+        (bi.itemCode && (bi.itemCode === selected.itemCode || bi.itemCode === selected.id)) ||
+        (bi.itemName && selected.itemName && bi.itemName.trim().toLowerCase() === selected.itemName.trim().toLowerCase())
+      );
+      if (bomMatch && (bomMatch.quantity || bomMatch.qty)) {
+        setIssueQty(Number(bomMatch.quantity || bomMatch.qty));
+      }
+    }
+  };
+
+  const selectedItem =
+    jobAllocatedItems.find((i) => i.id === itemId || i.itemCode === itemId) ||
+    itemMasters.find((i) => i.id === itemId || i.itemCode === itemId) ||
+    jobAllocatedItems[0] ||
+    itemMasters[0] ||
+    null;
+
   const selectedWh = warehouses.find((w) => w.id === warehouseId) || warehouses[0] || null;
   const selectedJob = projectJobs.find((j) => j.jobNumber === jobId || j.id === jobId) || projectJobs[0] || null;
 
@@ -86,10 +271,24 @@ function MaterialIssueContent() {
   // Auto-populate work order and BOM when job changes
   const handleJobChange = (newJobCode: string) => {
     setJobId(newJobCode);
+    setItemId('');
     const job = projectJobs.find((j) => j.jobNumber === newJobCode || j.id === newJobCode);
     if (job) {
       setWoNo(`WO-${job.jobNumber.replace('JOB-', '')}-A`);
-      setBomNo(`BOM-${job.jobNumber.replace('JOB-', '')}`);
+      const matchedB = boms.find(
+        (b) =>
+          b.jobNumber === job.jobNumber ||
+          b.projectId === job.id ||
+          b.projectId === (job as any).projectId
+      );
+      if (matchedB) {
+        setBomNo(matchedB.bomNumber || `BOM-${job.jobNumber.replace('JOB-', '')}`);
+        if (matchedB.activeRevision || matchedB.revision) {
+          setBomRev(matchedB.activeRevision || matchedB.revision);
+        }
+      } else {
+        setBomNo(`BOM-${job.jobNumber.replace('JOB-', '')}`);
+      }
     }
   };
 
@@ -526,24 +725,67 @@ function MaterialIssueContent() {
 
               {/* Item, Qty, Live Stock */}
               <div className="p-3.5 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] space-y-3">
+                {/* Job Allocation Indicator Badge */}
+                {currentJobBom && !showAllCatalog && (
+                  <div className="flex items-center justify-between text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <CheckCircle className="w-4 h-4 text-emerald-600" />
+                      Showing {jobAllocatedItems.length} BOM Allocated Item{jobAllocatedItems.length > 1 ? 's' : ''} for {jobId} ({currentJobBom.bomNumber || bomNo})
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowAllCatalog(true)}
+                      className="text-xs text-emerald-700 underline hover:text-emerald-900 font-semibold cursor-pointer"
+                    >
+                      Show All Store Catalog
+                    </button>
+                  </div>
+                )}
+                {showAllCatalog && (
+                  <div className="flex items-center justify-between text-xs text-amber-800 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg">
+                    <span className="font-medium">Showing all store catalog items (Unfiltered)</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowAllCatalog(false)}
+                      className="text-xs text-amber-700 underline hover:text-amber-900 font-semibold cursor-pointer"
+                    >
+                      Filter to Job BOM Items Only
+                    </button>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div className="md:col-span-2">
-                    <label className="block text-[#70665F] font-semibold mb-1">Item to Issue *</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[#70665F] font-semibold">Item to Issue *</label>
+                      <span className="text-[10px] text-emerald-700 font-mono font-medium">
+                        {jobAllocatedItems.length} Item{jobAllocatedItems.length !== 1 ? 's' : ''} Available
+                      </span>
+                    </div>
                     <select
                       value={itemId}
-                      onChange={(e) => setItemId(e.target.value)}
-                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500"
+                      onChange={(e) => handleItemSelect(e.target.value)}
+                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-medium"
                     >
-                      {!itemMasters.some((i) => i.id === itemId || i.itemCode === itemId) && (
+                      {!jobAllocatedItems.some((i) => i.id === itemId || i.itemCode === itemId) && (
                         <option value={itemId}>
                           {selectedItem?.itemCode || itemId} - {selectedItem?.itemName || itemId} ({selectedItem?.uom || 'Unit'})
                         </option>
                       )}
-                      {itemMasters.map((i) => (
-                        <option key={`modal-item-${i.id}`} value={i.id}>
-                          {i.itemCode} - {i.itemName} ({i.uom})
-                        </option>
-                      ))}
+                      {jobAllocatedItems.map((i) => {
+                        const bomMatch = currentJobBom?.items?.find((bi: any) =>
+                          (bi.partNumber && (bi.partNumber === i.itemCode || bi.partNumber === i.id)) ||
+                          (bi.itemCode && (bi.itemCode === i.itemCode || bi.itemCode === i.id)) ||
+                          (bi.itemName && i.itemName && bi.itemName.trim().toLowerCase() === i.itemName.trim().toLowerCase())
+                        );
+                        const bomQtyInfo = bomMatch ? ` [BOM Req: ${bomMatch.quantity || bomMatch.qty} ${bomMatch.unit || i.uom}]` : '';
+
+                        return (
+                          <option key={`modal-item-${i.id}`} value={i.id}>
+                            {i.itemCode} - {i.itemName} ({i.uom}){bomQtyInfo}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
 
@@ -553,7 +795,8 @@ function MaterialIssueContent() {
                     </label>
                     <input
                       type="number"
-                      min="1"
+                      min="0.01"
+                      step="any"
                       value={issueQty}
                       onChange={(e) => setIssueQty(Number(e.target.value))}
                       className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-emerald-700 font-bold font-mono focus:outline-none focus:border-emerald-500"
