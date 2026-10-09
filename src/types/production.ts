@@ -399,6 +399,17 @@ export interface ProductionCompletion {
   completedBy: string;
   qcStatus: 'Pending' | 'Passed' | 'Failed';
   remarks?: string;
+  // Detailed Quality Clearance Fields
+  hydroTestPressure?: string | number;
+  hydroHoldingDuration?: string;
+  hydroTestStatus?: 'Passed' | 'Failed' | 'Waived';
+  dpTestJoints?: string;
+  dpTestStatus?: 'Accepted' | 'Defects Found' | 'Waived';
+  dimensionReportNo?: string;
+  dimensionStatus?: 'Within Tolerance' | 'Within ASME Tolerance (±2mm)' | 'Deviation Approved' | string;
+  qcInspectorName?: string;
+  certificateNumber?: string;
+  equipmentSerialNumber?: string;
 }
 
 export interface FinishedGoodsItem {

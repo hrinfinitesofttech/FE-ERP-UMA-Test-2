@@ -9520,9 +9520,32 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
       return updated;
     });
-    logAction('CREATE', 'Store', 'Material Return', newRet.id, `Returned material ${newRet.returnNumber} from Job ${newRet.jobId}`);
+
+    // Inward stock back to Store Inventory
+    if (newRet.items && newRet.items.length > 0) {
+      setItemMasters((prevItems) => {
+        const updatedItems = prevItems.map((itm) => {
+          const match = newRet.items.find((ri) => ri.itemId === itm.id || ri.itemCode === itm.itemCode);
+          if (match && Number(match.returnQuantity) > 0) {
+            const retQty = Number(match.returnQuantity);
+            return {
+              ...itm,
+              currentStock: (Number(itm.currentStock) || 0) + retQty,
+            };
+          }
+          return itm;
+        });
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_itemMasters', JSON.stringify(updatedItems)); } catch (_) {}
+        }
+        return updatedItems;
+      });
+    }
+
+    logAction('CREATE', 'Store', 'Material Return', newRet.id, `Returned material ${newRet.returnNumber} from Job ${newRet.jobId} into warehouse stock`);
     api.post('/material-returns/', newRet).catch((err) => console.warn('Failed to add material return:', err));
   };
+
 
   const addStockTransfer = (data: Omit<StockTransfer, 'id' | 'transferNumber' | 'createdAt'>) => {
     const transferNumber = `TRN-${new Date().getFullYear()}-${String(stockTransfers.length + 1).padStart(4, '0')}`;
@@ -9733,6 +9756,67 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
       return updated;
     });
+
+    // 1. Advance Work Order status to In Progress
+    setWorkOrders((prev) =>
+      prev.map((w) => {
+        if (w.workOrderNumber === newEntry.workOrderNumber) {
+          return {
+            ...w,
+            status: w.status === 'Completed' ? 'Completed' : 'In Progress',
+          };
+        }
+        return w;
+      })
+    );
+
+    // 2. Synchronize WIP Tracking Matrix
+    setWipRecords((prev) => {
+      const existingIdx = prev.findIndex((w) => w.workOrderNumber === newEntry.workOrderNumber);
+      const matchedWo = workOrders.find((w) => w.workOrderNumber === newEntry.workOrderNumber);
+      const totalOps = 6;
+      let updatedWip: WIPRecord[];
+
+      if (existingIdx >= 0) {
+        const cur = prev[existingIdx];
+        const nextCount = Math.min(totalOps, (cur.completedOperationsCount || 0) + 1);
+        const updatedItem: WIPRecord = {
+          ...cur,
+          currentOperationName: newEntry.operationName,
+          completedOperationsCount: nextCount,
+          location: newEntry.workCenterName || cur.location,
+          responsibleDepartment: newEntry.workCenterName || cur.responsibleDepartment,
+          status: nextCount >= totalOps ? 'QC Pending' : 'In Progress',
+        };
+        updatedWip = prev.map((item, idx) => (idx === existingIdx ? updatedItem : item));
+      } else {
+        const newWip: WIPRecord = {
+          id: `WIP-${newEntry.workOrderNumber}`,
+          jobId: newEntry.jobId,
+          jobNumber: newEntry.jobNumber || matchedWo?.jobNumber || '',
+          workOrderNumber: newEntry.workOrderNumber,
+          productionOrderNumber: newEntry.productionOrderNumber || 'PO-PROD-2026-001',
+          currentOperationName: newEntry.operationName,
+          completedOperationsCount: 1,
+          totalOperationsCount: totalOps,
+          wipQuantity: matchedWo?.productionQuantity || Number(newEntry.plannedQuantity) || 1,
+          uom: matchedWo?.uom || 'Unit',
+          location: newEntry.workCenterName || 'Fabrication Bay 01',
+          responsibleDepartment: 'Fabrication & Welding Division',
+          startDate: newEntry.entryDate,
+          expectedCompletionDate: matchedWo?.plannedEndDate || new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
+          delayDays: 0,
+          status: 'In Progress',
+        };
+        updatedWip = [newWip, ...prev];
+      }
+
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_wipRecords', JSON.stringify(updatedWip)); } catch (_) {}
+      }
+      return updatedWip;
+    });
+
     logAction('CREATE', 'Production', 'Production Entry', newEntry.id, `Recorded entry ${newEntry.productionEntryNumber}: Good Qty = ${goodQuantity} for ${newEntry.workOrderNumber}`);
     api.production.entries.create(newEntry).catch((err) => console.warn('Failed to record production entry:', err));
   };
@@ -9819,17 +9903,37 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const completeWorkOrder = (data: Omit<ProductionCompletion, 'id' | 'completionNumber'>) => {
     const completionNumber = `CMP-${new Date().getFullYear()}-${String(productionCompletions.length + 1).padStart(3, '0')}`;
     const newComp: ProductionCompletion = { ...data, id: completionNumber, completionNumber };
-    setProductionCompletions((prev) => [newComp, ...prev]);
+    setProductionCompletions((prev) => {
+      const updated = [newComp, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_productionCompletions', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
 
-    // Update Work Order status to Completed
+    // 1. Update Work Order status to Completed
     setWorkOrders((prev) => prev.map((w) => (w.workOrderNumber === data.workOrderNumber ? { ...w, status: 'Completed' } : w)));
 
+    // 2. Mark WIP as Completed & Cleared
+    setWipRecords((prev) => {
+      const updatedWip = prev.map((w) =>
+        w.workOrderNumber === data.workOrderNumber
+          ? { ...w, status: 'Completed' as any, completedOperationsCount: w.totalOperationsCount, currentOperationName: 'Completed & QC Cleared' }
+          : w
+      );
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_wipRecords', JSON.stringify(updatedWip)); } catch (_) {}
+      }
+      return updatedWip;
+    });
+
+    // 3. Update Job Traceability Steps
     if (data.jobNumber) {
       updateJobStatus(data.jobNumber, 'step-7', 'completed');
       updateJobStatus(data.jobNumber, 'step-8', 'in_progress');
     }
 
-    logAction('CREATE', 'Production', 'Work Order Completion', newComp.id, `Completed Work Order ${newComp.workOrderNumber}`);
+    logAction('CREATE', 'Production', 'Work Order Completion', newComp.id, `Completed & QC Cleared Work Order ${newComp.workOrderNumber}`);
   };
 
   const addFinishedGoods = (data: Omit<FinishedGoodsItem, 'id' | 'finishedGoodsNumber' | 'createdAt'>) => {

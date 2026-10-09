@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { ProductionEntry } from '../../../types/production';
 import {
@@ -21,9 +22,27 @@ import {
   Cpu,
   User,
   ShieldCheck,
+  Building,
+  Sparkles,
+  ArrowRight,
 } from 'lucide-react';
 
-export default function ProductionEntryPage() {
+const STANDARD_FAB_STAGES = [
+  '1. Plate Cutting & CNC Edge Prep',
+  '2. Shell Plate Rolling & Forming',
+  '3. Longitudinal SAW Automatic Welding',
+  '4. Circumferential Seam Auto Welding',
+  '5. Dish End Crown & Petal Fitting',
+  '6. Nozzle Hole Drilling & Flange Fit-up',
+  '7. Limpet Coil Pitch Bending & Welding',
+  '8. Post-Weld Heat Treatment (PWHT) & Grinding',
+  '9. Final Assembly & Ready for QC',
+];
+
+function ProductionEntryContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const {
     productionEntries,
     workOrders,
@@ -44,30 +63,45 @@ export default function ProductionEntryPage() {
   const [viewVoucher, setViewVoucher] = useState<ProductionEntry | null>(null);
   const [isManualOperator, setIsManualOperator] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   // Form State
   const defaultWo = workOrders[0]?.workOrderNumber || '';
   const defaultWc = workCenters[0]?.workCenterName || 'Fabrication & Rolling Bay 01';
 
   const [selectedWo, setSelectedWo] = useState(defaultWo);
-  const [opName, setOpName] = useState('Plate Rolling & Shell Forming');
+  const [opName, setOpName] = useState(STANDARD_FAB_STAGES[1]);
   const [wcName, setWcName] = useState(defaultWc);
+  const [machineName, setMachineName] = useState('Heavy 3-Roll Plate Bending M/C (40mm)');
   const [operator, setOperator] = useState('Mahesh Solanki (Machine Operator)');
-  const [produced, setProduced] = useState<number | string>(10);
+  const [shiftType, setShiftType] = useState<'Day Shift' | 'Night Shift'>('Day Shift');
+  const [shiftHours, setShiftHours] = useState<number | string>(8.5);
+  const [produced, setProduced] = useState<number | string>(1);
   const [rejected, setRejected] = useState<number | string>(0);
   const [rework, setRework] = useState<number | string>(0);
   const [scrap, setScrap] = useState<number | string>(0);
   const [downtime, setDowntime] = useState<number | string>(0);
   const [downtimeReason, setDowntimeReason] = useState('');
-  const [remarks, setRemarks] = useState('Completed shift target without defects.');
+  const [remarks, setRemarks] = useState('Shift fabrication target completed within tolerance.');
 
   const computedGood = Math.max(
     0,
     (Number(produced) || 0) - (Number(rejected) || 0) - (Number(scrap) || 0)
   );
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Handle URL query parameters (e.g. ?woNumber=WO-2026-0001)
+  useEffect(() => {
+    const paramWo = searchParams.get('woNumber');
+    if (paramWo) {
+      const match = workOrders.find((w) => w.workOrderNumber === paramWo || w.id === paramWo);
+      if (match) {
+        setSelectedWo(match.workOrderNumber);
+        setShowModal(true);
+      }
+    }
+  }, [searchParams, workOrders]);
 
   // Close modal on ESC key
   useEffect(() => {
@@ -85,20 +119,23 @@ export default function ProductionEntryPage() {
   const openCreateModal = () => {
     setEditingEntry(null);
     setSelectedWo(workOrders[0]?.workOrderNumber || '');
-    setOpName('Plate Rolling & Shell Forming');
+    setOpName(STANDARD_FAB_STAGES[1]);
     setWcName(workCenters[0]?.workCenterName || 'Fabrication & Rolling Bay 01');
+    setMachineName('Heavy 3-Roll Plate Bending M/C (40mm)');
     setOperator(
       availableEmployees[0]?.name ||
         `${availableEmployees[0]?.firstName || 'Mahesh'} ${availableEmployees[0]?.lastName || 'Solanki'}`.trim() ||
         'Mahesh Solanki (Machine Operator)'
     );
-    setProduced(10);
+    setShiftType('Day Shift');
+    setShiftHours(8.5);
+    setProduced(1);
     setRejected(0);
     setRework(0);
     setScrap(0);
     setDowntime(0);
     setDowntimeReason('');
-    setRemarks('Completed shift target without defects.');
+    setRemarks('Shift fabrication target completed within tolerance.');
     setShowModal(true);
   };
 
@@ -107,6 +144,7 @@ export default function ProductionEntryPage() {
     setSelectedWo(entry.workOrderNumber || defaultWo);
     setOpName(entry.operationName || '');
     setWcName(entry.workCenterName || defaultWc);
+    setMachineName(entry.machineName || 'SAW Automatic Manipulator M/C-01');
     setOperator(entry.operatorName || '');
     setProduced(entry.producedQuantity || 0);
     setRejected(entry.rejectedQuantity || 0);
@@ -134,7 +172,7 @@ export default function ProductionEntryPage() {
     }
     const finalOperator = operator.trim() || 'Mahesh Solanki (Machine Operator)';
     const matchedWo = workOrders.find((w) => w.workOrderNumber === selectedWo);
-    const matchedJob = projectJobs?.find((j) => j.jobNumber === matchedWo?.jobNumber);
+    const matchedJob = projectJobs?.find((j) => j.jobNumber === matchedWo?.jobNumber || j.id === matchedWo?.jobId);
 
     const entryPayload = {
       entryDate: new Date().toISOString().split('T')[0],
@@ -144,18 +182,18 @@ export default function ProductionEntryPage() {
       productionOrderNumber: `PO-PROD-${new Date().getFullYear()}-001`,
       operationName: opName.trim(),
       workCenterName: wcName || defaultWc,
-      machineName: 'SAW Automatic Manipulator M/C-01',
+      machineName: machineName || 'Heavy Plate Rolling M/C',
       operatorName: finalOperator,
-      startTime: '08:00 AM',
-      endTime: '05:00 PM',
-      plannedQuantity: 10,
+      startTime: shiftType === 'Day Shift' ? '08:00 AM' : '08:00 PM',
+      endTime: shiftType === 'Day Shift' ? '05:00 PM' : '05:00 AM',
+      plannedQuantity: matchedWo?.productionQuantity || 1,
       producedQuantity: Number(produced) || 0,
       rejectedQuantity: Number(rejected) || 0,
       reworkQuantity: Number(rework) || 0,
       scrapQuantity: Number(scrap) || 0,
       downtimeMinutes: Number(downtime) || 0,
       downtimeReason: downtimeReason || undefined,
-      remarks: remarks || 'Recorded on shift completion.',
+      remarks: remarks || `Logged in ${shiftType} (${shiftHours} Hrs).`,
       createdBy: finalOperator,
     };
 
@@ -205,68 +243,84 @@ export default function ProductionEntryPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 bg-[#FAF7F2] text-[#544B45]" suppressHydrationWarning>
+    <div className="p-4 sm:p-6 space-y-6 bg-[#FAF7F2] text-[#544B45]">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-sm">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
-            <PlayCircle className="w-6 h-6" />
+          <div className="p-3 bg-emerald-50 rounded-xl text-emerald-700 border border-emerald-100">
+            <PlayCircle className="w-7 h-7" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs px-2.5 py-0.5 rounded bg-emerald-500/10 text-emerald-800 font-mono font-bold border border-emerald-500/20">
+              <span className="text-xs px-2.5 py-0.5 rounded bg-emerald-50 text-emerald-800 font-mono font-bold border border-emerald-200">
                 SHOP FLOOR EXECUTION
               </span>
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-lime-500/20 text-lime-800 font-bold border border-lime-500/30">
-                Formula Enforced
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-lime-50 text-lime-800 font-bold border border-lime-200">
+                WIP Auto-Sync
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-[#211B17] tracking-tight mt-1">
-              Operator Production Entry Form
+              Operator Production Entry Portal
             </h1>
             <p className="text-xs text-[#70665F]">
-              Formula: <b className="text-emerald-700 font-mono">Good Qty = Produced Qty - Rejected Qty - Scrap Qty</b>
+              Shift Hours & Machine Logging • Formula-enforced: <b className="text-emerald-700 font-mono">Good = Produced - Rejected - Scrap</b>
             </p>
           </div>
         </div>
 
-        <button
-          onClick={openCreateModal}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-700 text-white font-bold text-xs shadow-lg shadow-emerald-700/20 hover:bg-emerald-800 transition active:scale-95"
-        >
-          <Plus className="w-4 h-4" /> Log Shift Production Entry
-        </button>
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => router.push('/production/wip')}
+            className="flex items-center gap-1.5 bg-[#FAF7F2] hover:bg-[#EFE8DF] text-[#544B45] text-xs font-bold px-3.5 py-2.5 rounded-xl border border-[#E5DCD3] transition cursor-pointer"
+          >
+            <Layers className="w-4 h-4 text-indigo-700" />
+            <span>View WIP Matrix</span>
+          </button>
+          <button
+            onClick={() => router.push('/production/completion')}
+            className="flex items-center gap-1.5 bg-[#FAF7F2] hover:bg-[#EFE8DF] text-[#544B45] text-xs font-bold px-3.5 py-2.5 rounded-xl border border-[#E5DCD3] transition cursor-pointer"
+          >
+            <ShieldCheck className="w-4 h-4 text-emerald-700" />
+            <span>QC Clearance</span>
+          </button>
+          <button
+            onClick={openCreateModal}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#8B2500] hover:bg-[#701E00] text-white font-bold text-xs shadow-xs transition active:scale-95 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" /> Log Shift Entry
+          </button>
+        </div>
       </div>
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-sm">
-          <div className="text-[11px] font-bold text-[#70665F] uppercase">Shift Entries</div>
+        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
+          <div className="text-[11px] font-bold text-[#70665F] uppercase">Shift Entries Logged</div>
           <div className="text-2xl font-black text-[#211B17] font-mono mt-1">{totalEntriesCount}</div>
-          <div className="text-[11px] text-[#70665F] mt-0.5">Logged in database</div>
+          <div className="text-[11px] text-[#70665F] mt-0.5">Live shop floor database</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-sm">
+        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
           <div className="text-[11px] font-bold text-emerald-700 uppercase">Good Output Produced</div>
           <div className="text-2xl font-black text-emerald-700 font-mono mt-1">{totalGoodQty} Units</div>
-          <div className="text-[11px] text-emerald-600 mt-0.5">QC Passed Quality</div>
+          <div className="text-[11px] text-emerald-600 mt-0.5">Advanced to next stage</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-sm">
+        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
           <div className="text-[11px] font-bold text-rose-700 uppercase">Rejected & Scrap</div>
           <div className="text-2xl font-black text-rose-700 font-mono mt-1">{totalRejectedQty} Units</div>
           <div className="text-[11px] text-rose-600 mt-0.5">Defect / Offcut</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-sm">
+        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
           <div className="text-[11px] font-bold text-amber-700 uppercase">Recorded Downtime</div>
           <div className="text-2xl font-black text-amber-700 font-mono mt-1">{totalDowntime} Min</div>
-          <div className="text-[11px] text-amber-600 mt-0.5">Maintenance / Tooling</div>
+          <div className="text-[11px] text-amber-600 mt-0.5">Tooling / Maintenance delay</div>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-sm">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
@@ -275,14 +329,14 @@ export default function ProductionEntryPage() {
               placeholder="Search entry #, job #, WO, operator..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-xs bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] placeholder-[#70665F] focus:outline-none focus:border-emerald-600"
+              className="w-full pl-9 pr-4 py-2 text-xs bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] placeholder-[#70665F] focus:outline-hidden focus:border-[#8B2500]"
             />
           </div>
 
           <select
             value={filterWo}
             onChange={(e) => setFilterWo(e.target.value)}
-            className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] focus:outline-none focus:border-emerald-600 font-mono"
+            className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] focus:outline-hidden focus:border-[#8B2500] font-mono"
           >
             <option value="ALL">All Work Orders</option>
             {workOrders.map((w) => (
@@ -300,80 +354,93 @@ export default function ProductionEntryPage() {
       </div>
 
       {/* Production Entries Table */}
-      <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-[#544B45]">
-            <thead className="bg-[#FAF7F2] text-[#70665F] font-mono uppercase text-[10px] tracking-wider border-b border-[#EBE3DB]">
+            <thead className="bg-[#FAF7F2] text-[#70665F] uppercase font-bold text-[10px] tracking-wider border-b border-[#EBE3DB]">
               <tr>
-                <th className="p-3.5">Entry # & Date</th>
-                <th className="p-3.5">Job & Work Order</th>
-                <th className="p-3.5">Operation & Bay</th>
-                <th className="p-3.5">Operator Name</th>
-                <th className="p-3.5 text-right">Produced</th>
-                <th className="p-3.5 text-right text-rose-700">Rejected</th>
-                <th className="p-3.5 text-right text-amber-700">Scrap</th>
-                <th className="p-3.5 text-right text-emerald-800">Good Qty</th>
-                <th className="p-3.5 text-right">Downtime</th>
-                <th className="p-3.5 text-right">Actions</th>
+                <th className="py-3 px-4">Entry # & Date</th>
+                <th className="py-3 px-4">Job & WO #</th>
+                <th className="py-3 px-4">Fabrication Stage / Operation</th>
+                <th className="py-3 px-4">Machine & Bay</th>
+                <th className="py-3 px-4">Operator</th>
+                <th className="py-3 px-4 text-center">Good / Produced</th>
+                <th className="py-3 px-4 text-center">Downtime</th>
+                <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB]">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="p-8 text-center text-[#70665F]">
-                    No shift production entries recorded yet in database. Click &quot;Log Shift Production Entry&quot; to submit an operator entry.
+                  <td colSpan={8} className="py-12 text-center text-[#8C827A]">
+                    <PlayCircle className="w-8 h-8 mx-auto mb-2 text-[#C8B8A6] opacity-50" />
+                    <p className="font-semibold text-sm">No production entries recorded yet</p>
+                    <p className="text-xs text-[#8C827A] mt-1">Click &quot;Log Shift Entry&quot; to log daily shift operator work.</p>
                   </td>
                 </tr>
               ) : (
-                filtered.map((entry, idx) => (
-                  <tr key={`${entry.id || 'pentry'}-${idx}`} className="hover:bg-[#FAF7F2]/60 transition">
-                    <td className="p-3.5 font-medium">
-                      <div className="font-mono font-bold text-emerald-700">{entry.productionEntryNumber || entry.id}</div>
-                      <div className="text-[10px] text-[#70665F] mt-0.5">{entry.entryDate || '2026-10-04'}</div>
+                filtered.map((entry) => (
+                  <tr key={entry.id} className="hover:bg-[#FAF7F2]/60 transition">
+                    <td className="py-3 px-4">
+                      <div className="font-mono font-bold text-[#8B2500]">{entry.productionEntryNumber}</div>
+                      <div className="text-[10px] text-[#70665F] mt-0.5">{entry.entryDate}</div>
                     </td>
-                    <td className="p-3.5">
-                      <div className="font-mono font-bold text-sky-700 flex items-center gap-1">
-                        <Cpu className="w-3.5 h-3.5 text-sky-600" />
+                    <td className="py-3 px-4">
+                      <div className="font-mono font-bold text-[#211B17] flex items-center gap-1">
+                        <Cpu className="w-3.5 h-3.5 text-[#8B2500]" />
                         {entry.jobNumber}
                       </div>
-                      <div className="font-mono text-indigo-700 text-[11px] mt-0.5">{entry.workOrderNumber}</div>
+                      <div className="text-[11px] font-mono text-[#70665F]">{entry.workOrderNumber}</div>
                     </td>
-                    <td className="p-3.5 max-w-xs">
-                      <div className="font-semibold text-[#211B17]">{entry.operationName}</div>
-                      <div className="text-[11px] text-[#70665F] font-mono mt-0.5">{entry.workCenterName}</div>
+                    <td className="py-3 px-4">
+                      <span className="font-bold text-[#211B17] bg-[#FAF7F2] px-2 py-0.5 rounded border border-[#E5DCD3]">
+                        {entry.operationName}
+                      </span>
                     </td>
-                    <td className="p-3.5 font-medium text-[#211B17]">{entry.operatorName}</td>
-                    <td className="p-3.5 text-right font-bold text-[#211B17] font-mono">{entry.producedQuantity}</td>
-                    <td className="p-3.5 text-right font-mono text-rose-700 font-bold">{entry.rejectedQuantity}</td>
-                    <td className="p-3.5 text-right font-mono text-amber-700 font-bold">{entry.scrapQuantity}</td>
-                    <td className="p-3.5 text-right font-mono font-extrabold text-emerald-800 text-sm">
-                      {entry.goodQuantity}
+                    <td className="py-3 px-4">
+                      <div className="font-semibold text-[#211B17]">{entry.machineName || 'Bay Equipment'}</div>
+                      <div className="text-[10px] text-[#70665F]">{entry.workCenterName}</div>
                     </td>
-                    <td className="p-3.5 text-right font-mono text-[#70665F]">
-                      {entry.downtimeMinutes > 0 ? `${entry.downtimeMinutes}m` : '0m'}
+                    <td className="py-3 px-4 font-semibold text-[#211B17]">
+                      {entry.operatorName}
                     </td>
-                    <td className="p-3.5 text-right">
+                    <td className="py-3 px-4 text-center">
+                      <span className="font-mono font-black text-emerald-800 text-sm">
+                        {entry.goodQuantity}
+                      </span>
+                      <span className="text-[#8C827A] text-[11px]"> / {entry.producedQuantity} Units</span>
+                    </td>
+                    <td className="py-3 px-4 text-center font-mono">
+                      {entry.downtimeMinutes > 0 ? (
+                        <span className="text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                          {entry.downtimeMinutes}m
+                        </span>
+                      ) : (
+                        <span className="text-[#8C827A]">0m</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => setViewVoucher(entry)}
-                          className="p-1.5 rounded-lg bg-[#FAF7F2] hover:bg-emerald-50 text-emerald-800 border border-[#EBE3DB] hover:border-emerald-300 transition"
-                          title="View Shift Voucher"
+                          className="p-1.5 hover:bg-[#FAF7F2] rounded-lg text-emerald-800 transition cursor-pointer"
+                          title="View Official Shift Log Slip"
                         >
-                          <Eye className="w-3.5 h-3.5" />
+                          <Eye className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => openEditModal(entry)}
-                          className="p-1.5 rounded-lg bg-[#FAF7F2] hover:bg-sky-50 text-sky-800 border border-[#EBE3DB] hover:border-sky-300 transition"
+                          className="p-1.5 hover:bg-[#FAF7F2] rounded-lg text-blue-700 transition cursor-pointer"
                           title="Edit Entry"
                         >
-                          <Edit className="w-3.5 h-3.5" />
+                          <Edit className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDelete(entry.id, entry.productionEntryNumber || entry.id)}
-                          className="p-1.5 rounded-lg bg-[#FAF7F2] hover:bg-rose-50 text-rose-700 border border-[#EBE3DB] hover:border-rose-300 transition"
+                          onClick={() => handleDelete(entry.id, entry.productionEntryNumber)}
+                          className="p-1.5 hover:bg-[#FAF7F2] rounded-lg text-rose-700 transition cursor-pointer"
                           title="Delete Entry"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
@@ -385,161 +452,144 @@ export default function ProductionEntryPage() {
         </div>
       </div>
 
-      {/* Entry Modal */}
+      {/* Record Shift Modal */}
       {showModal && (
-        <div
-          onClick={() => setShowModal(false)}
-          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl text-[#544B45] max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-150"
-          >
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-xl p-6 space-y-4 shadow-2xl text-[#544B45] max-h-[92vh] overflow-y-auto">
             <div className="flex justify-between items-center border-b border-[#EBE3DB] pb-3">
               <div>
-                <h3 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+                <h3 className="text-base font-black text-[#211B17] flex items-center gap-2">
                   <PlayCircle className="w-5 h-5 text-emerald-700" />
-                  {editingEntry ? 'Edit Shift Production Entry' : 'Log Shift Production Entry'}
+                  {editingEntry ? 'Edit Production Entry' : 'Log Shift Production Entry'}
                 </h3>
                 <p className="text-[11px] text-[#70665F]">
-                  Formula-enforced real-time shop floor entry.
+                  Updates live shop floor WIP matrix & fabrication completion %
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="text-[#70665F] hover:text-[#211B17] font-bold text-lg p-1 rounded-lg hover:bg-gray-100"
+                className="text-[#8C827A] hover:text-[#211B17] font-bold text-lg p-1 rounded-lg hover:bg-[#FAF7F2] cursor-pointer"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
+              {/* Target Work Order */}
               <div>
-                <label className="block font-semibold text-[#70665F] mb-1">Target Work Order *</label>
+                <label className="block font-bold text-[#70665F] mb-1">Select Work Order & Job *</label>
                 <select
                   required
                   value={selectedWo}
                   onChange={(e) => setSelectedWo(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-600 font-mono font-medium"
+                  className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-mono font-bold"
                 >
-                  {workOrders.length > 0 ? (
-                    workOrders.map((w) => (
-                      <option key={w.id} value={w.workOrderNumber}>
-                        {w.workOrderNumber} — {w.jobNumber} ({w.productName ? w.productName.slice(0, 30) : 'Chemical Equipment'})
-                      </option>
-                    ))
-                  ) : (
-                    <option value="">Select Work Order</option>
-                  )}
+                  {workOrders.map((w) => (
+                    <option key={w.id} value={w.workOrderNumber}>
+                      {w.workOrderNumber} — {w.jobNumber} | {w.productName ? w.productName.slice(0, 32) : 'Equipment'} ({w.customerName || 'Client'})
+                    </option>
+                  ))}
                 </select>
               </div>
 
+              {/* Fabrication Stage */}
               <div>
-                <label className="block font-semibold text-[#70665F] mb-1">
-                  Operation Name *
+                <label className="block font-bold text-[#70665F] mb-1">
+                  Fabrication Stage / Operation Name *
                 </label>
-                <input
-                  type="text"
+                <select
                   required
-                  minLength={2}
-                  placeholder="e.g. CNC Plasma Cutting, SAW Welding, Dish Forming"
-                  list="operationSuggestions"
                   value={opName}
                   onChange={(e) => setOpName(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-600 font-medium"
-                />
-                <datalist id="operationSuggestions">
-                  <option value="CNC Plasma Cutting & Edge Prep" />
-                  <option value="Plate Rolling & Shell Forming" />
-                  <option value="Dish End Pressing & Crown Forming" />
-                  <option value="Longitudinal SAW Automatic Welding" />
-                  <option value="Circumferential Seam Welding" />
-                  <option value="Nozzle Hole Drilling & Flange Fit-up" />
-                  <option value="Limpet Coil Pitch Bending & Welding" />
-                  <option value="Jacket Hydrostatic Pressure Testing" />
-                  <option value="Post-Weld Heat Treatment (PWHT)" />
-                  <option value="Internal Surface Pickling & Passivation" />
-                  <option value="External Sand Blasting & Epoxy Primer" />
-                  <option value="Final Assembly & FAT Clearance" />
-                </datalist>
+                  className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-bold text-xs"
+                >
+                  {STANDARD_FAB_STAGES.map((stg) => (
+                    <option key={stg} value={stg}>
+                      {stg}
+                    </option>
+                  ))}
+                  <option value="Limpet Coil Pitch Bending & Welding">7. Limpet Coil Pitch Bending & Welding</option>
+                  <option value="Internal Pickling & Passivation">8. Internal Pickling & Passivation</option>
+                  <option value="Final Hydro Pressure Test & FAT">9. Final Hydro Pressure Test & FAT</option>
+                </select>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Work Center & Machine */}
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-[#70665F] mb-1">Work Center Bay</label>
+                  <label className="block font-bold text-[#70665F] mb-1">Work Center Bay *</label>
                   <select
                     value={wcName}
                     onChange={(e) => setWcName(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-600"
+                    className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-semibold"
                   >
-                    {workCenters.length > 0 ? (
-                      workCenters.map((w) => (
-                        <option key={w.id} value={w.workCenterName}>
-                          {w.workCenterCode} - {w.workCenterName}
-                        </option>
-                      ))
-                    ) : (
-                      <>
-                        <option value="Fabrication & Rolling Bay 01">WC-FAB-01 - Fabrication & Rolling Bay 01</option>
-                        <option value="SAW & TIG Welding Bay 02">WC-WELD-02 - SAW & TIG Welding Bay 02</option>
-                        <option value="Heavy Machining & Flange Bay 03">WC-MACH-03 - Heavy Machining & Flange Bay 03</option>
-                        <option value="Sandblasting & Painting Bay 04">WC-SURF-04 - Sandblasting & Painting Bay 04</option>
-                      </>
-                    )}
+                    <option value="Fabrication & Rolling Bay 01">WC-FAB-01 - Fabrication & Rolling Bay 01</option>
+                    <option value="SAW & TIG Welding Bay 02">WC-WELD-02 - SAW & TIG Welding Bay 02</option>
+                    <option value="Heavy Machining & Flange Bay 03">WC-MACH-03 - Heavy Machining & Flange Bay 03</option>
+                    <option value="Sandblasting & Painting Bay 04">WC-SURF-04 - Sandblasting & Painting Bay 04</option>
                   </select>
                 </div>
-
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block font-semibold text-[#70665F]">Operator Name *</label>
-                    <button
-                      type="button"
-                      onClick={() => setIsManualOperator(!isManualOperator)}
-                      className="text-[10px] text-emerald-700 font-bold hover:underline"
-                    >
-                      {isManualOperator ? 'Select from list' : '+ Enter custom'}
-                    </button>
-                  </div>
+                  <label className="block font-bold text-[#70665F] mb-1">Machine / Equipment Used</label>
+                  <input
+                    type="text"
+                    value={machineName}
+                    onChange={(e) => setMachineName(e.target.value)}
+                    placeholder="e.g. 40mm Plate Rolling M/C"
+                    className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17]"
+                  />
+                </div>
+              </div>
 
-                  {isManualOperator ? (
-                    <input
-                      type="text"
-                      required
-                      value={operator}
-                      placeholder="e.g. Mahesh Solanki"
-                      onChange={(e) => setOperator(e.target.value)}
-                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-600"
-                    />
-                  ) : (
-                    <select
-                      required
-                      value={operator}
-                      onChange={(e) => setOperator(e.target.value)}
-                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-600"
-                    >
-                      <option value="Mahesh Solanki (Machine Operator)">Mahesh Solanki (Machine Operator)</option>
-                      <option value="Ketan Parmar (Sr. SAW Welder)">Ketan Parmar (Sr. SAW Welder)</option>
-                      <option value="Dinesh Vaghela (Fitter & Rigger)">Dinesh Vaghela (Fitter & Rigger)</option>
-                      <option value="Suresh Rathod (CNC Plasma Operator)">Suresh Rathod (CNC Plasma Operator)</option>
-                      {availableEmployees.map((emp) => {
-                        const name = emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim();
-                        return (
-                          <option key={emp.id} value={name}>
-                            {name} — {emp.department || emp.departmentName || 'Shop Floor'}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  )}
+              {/* Shift, Hours & Operator */}
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block font-bold text-[#70665F] mb-1">Shift Type</label>
+                  <select
+                    value={shiftType}
+                    onChange={(e) => setShiftType(e.target.value as any)}
+                    className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-bold"
+                  >
+                    <option value="Day Shift">Day Shift (08 AM - 05 PM)</option>
+                    <option value="Night Shift">Night Shift (08 PM - 05 AM)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-bold text-[#70665F] mb-1">Shift Hours Worked</label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    value={shiftHours}
+                    onChange={(e) => setShiftHours(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-[#70665F] mb-1">Operator *</label>
+                  <select
+                    value={operator}
+                    onChange={(e) => setOperator(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-semibold"
+                  >
+                    <option value="Mahesh Solanki (Machine Operator)">Mahesh Solanki (Machine Operator)</option>
+                    <option value="Ketan Parmar (Sr. SAW Welder)">Ketan Parmar (Sr. SAW Welder)</option>
+                    <option value="Dinesh Vaghela (Fitter & Rigger)">Dinesh Vaghela (Fitter & Rigger)</option>
+                    <option value="Suresh Rathod (CNC Plasma Operator)">Suresh Rathod (CNC Plasma Operator)</option>
+                    {availableEmployees.map((emp) => (
+                      <option key={emp.id} value={emp.name || emp.firstName}>
+                        {emp.name || emp.firstName}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
               {/* Quantities Grid with Auto Formula Calculation */}
-              <div className="p-4 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] space-y-3">
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-[#E5DCD3] space-y-2">
                 <div className="text-xs font-bold text-[#211B17] flex justify-between">
-                  <span>Quantity Breakdown</span>
-                  <span className="text-emerald-700 font-mono">Good Qty Auto Formula</span>
+                  <span>Output Quantity Breakdown</span>
+                  <span className="text-emerald-800 font-mono text-[11px]">Good = Produced - Rejected - Scrap</span>
                 </div>
 
                 <div className="grid grid-cols-4 gap-2 text-center">
@@ -550,7 +600,7 @@ export default function ProductionEntryPage() {
                       min="0"
                       value={produced}
                       onChange={(e) => setProduced(e.target.value === '' ? '' : Number(e.target.value))}
-                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-[#211B17] text-center font-bold font-mono focus:border-emerald-600 focus:outline-none"
+                      className="w-full bg-white border border-[#E5DCD3] rounded-lg px-2 py-1.5 text-[#211B17] text-center font-bold font-mono focus:border-emerald-600 focus:outline-hidden"
                     />
                   </div>
                   <div>
@@ -560,7 +610,7 @@ export default function ProductionEntryPage() {
                       min="0"
                       value={rejected}
                       onChange={(e) => setRejected(e.target.value === '' ? '' : Number(e.target.value))}
-                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-rose-700 text-center font-bold font-mono focus:border-rose-600 focus:outline-none"
+                      className="w-full bg-white border border-[#E5DCD3] rounded-lg px-2 py-1.5 text-rose-700 text-center font-bold font-mono focus:border-rose-600 focus:outline-hidden"
                     />
                   </div>
                   <div>
@@ -570,55 +620,69 @@ export default function ProductionEntryPage() {
                       min="0"
                       value={scrap}
                       onChange={(e) => setScrap(e.target.value === '' ? '' : Number(e.target.value))}
-                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-amber-700 text-center font-bold font-mono focus:border-amber-600 focus:outline-none"
+                      className="w-full bg-white border border-[#E5DCD3] rounded-lg px-2 py-1.5 text-amber-700 text-center font-bold font-mono focus:border-amber-600 focus:outline-hidden"
                     />
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-emerald-800 mb-1">Calculated Good</label>
-                    <div className="w-full bg-emerald-50 border border-emerald-300 rounded-lg py-1.5 text-emerald-800 font-black text-sm text-center font-mono">
+                    <div className="w-full bg-emerald-50 border border-emerald-300 rounded-lg py-1.5 text-emerald-900 font-black text-sm text-center font-mono">
                       {computedGood}
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Downtime */}
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-[#70665F] mb-1">Downtime Minutes</label>
+                  <label className="block font-bold text-[#70665F] mb-1">Downtime (Minutes)</label>
                   <input
                     type="number"
                     min="0"
                     placeholder="0"
                     value={downtime}
                     onChange={(e) => setDowntime(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-600 font-mono"
+                    className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#70665F] mb-1">Downtime Reason (if any)</label>
+                  <label className="block font-bold text-[#70665F] mb-1">Downtime Reason</label>
                   <input
                     type="text"
                     value={downtimeReason}
                     onChange={(e) => setDowntimeReason(e.target.value)}
-                    placeholder="e.g. SAW electrode replacement"
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-600"
+                    placeholder="e.g. Electrode replacement / Fit-up alignment"
+                    className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17]"
                   />
                 </div>
               </div>
 
-              <div className="pt-2 flex justify-end gap-2 border-t border-[#EBE3DB]">
+              {/* Remarks */}
+              <div>
+                <label className="block font-bold text-[#70665F] mb-1">Remarks / Shift Notes</label>
+                <input
+                  type="text"
+                  value={remarks}
+                  onChange={(e) => setRemarks(e.target.value)}
+                  className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17]"
+                />
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="pt-3 flex justify-end gap-2 border-t border-[#EBE3DB]">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] font-semibold hover:bg-[#EBE3DB] transition"
+                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] font-semibold hover:bg-[#EBE3DB] transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-emerald-700 font-bold text-white hover:bg-emerald-800 shadow-lg shadow-emerald-700/20 transition active:scale-95"
+                  className="px-5 py-2 rounded-xl bg-[#8B2500] hover:bg-[#701E00] font-bold text-white shadow-xs transition active:scale-95 cursor-pointer flex items-center gap-1.5"
                 >
-                  {editingEntry ? 'Update Entry' : 'Submit Production Entry'}
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>{editingEntry ? 'Update Entry' : 'Log Shift Entry & Sync WIP'}</span>
                 </button>
               </div>
             </form>
@@ -626,98 +690,84 @@ export default function ProductionEntryPage() {
         </div>
       )}
 
-      {/* Voucher Modal */}
+      {/* Official Shift Log Slip Preview Modal */}
       {viewVoucher && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div className="flex items-start justify-between border-b border-[#EBE3DB] pb-3">
               <div>
-                <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-800 font-mono text-[10px] font-bold">
-                  SHIFT PRODUCTION LOG SLIP
+                <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 font-mono text-[10px] font-bold">
+                  OFFICIAL PRODUCTION SHIFT VOUCHER
                 </span>
-                <h3 className="text-lg font-black text-[#211B17] mt-1">
+                <h3 className="text-xl font-black text-[#8B2500] font-mono mt-1">
                   {viewVoucher.productionEntryNumber || viewVoucher.id}
                 </h3>
-                <p className="text-xs text-[#70665F]">
-                  Job: <span className="font-bold text-[#211B17]">{viewVoucher.jobNumber}</span> • WO:{' '}
-                  <span className="font-bold text-[#211B17]">{viewVoucher.workOrderNumber}</span>
-                </p>
               </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => window.print()}
-                  className="p-2 rounded-xl bg-[#FAF7F2] hover:bg-emerald-50 text-emerald-800 border border-[#EBE3DB] text-xs font-bold transition flex items-center gap-1.5"
-                >
-                  <Printer className="w-4 h-4" />
-                  Print
-                </button>
-                <button
-                  onClick={() => setViewVoucher(null)}
-                  className="p-2 rounded-xl text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB] text-xs">
-              <div>
-                <span className="text-[10px] text-[#70665F] uppercase font-bold block">Operation</span>
-                <span className="font-bold text-[#211B17]">{viewVoucher.operationName}</span>
-              </div>
-              <div>
-                <span className="text-[10px] text-[#70665F] uppercase font-bold block">Work Center Bay</span>
-                <span className="font-semibold text-[#211B17]">{viewVoucher.workCenterName}</span>
-              </div>
-              <div>
-                <span className="text-[10px] text-[#70665F] uppercase font-bold block">Operator</span>
-                <span className="font-semibold text-[#211B17]">{viewVoucher.operatorName}</span>
-              </div>
-              <div>
-                <span className="text-[10px] text-[#70665F] uppercase font-bold block">Downtime</span>
-                <span className="font-mono font-bold text-amber-700">
-                  {viewVoucher.downtimeMinutes ? `${viewVoucher.downtimeMinutes} Min` : '0 Min'}
-                </span>
-              </div>
-            </div>
-
-            <div className="p-4 bg-emerald-50/50 rounded-xl border border-emerald-200 grid grid-cols-4 gap-2 text-center text-xs">
-              <div>
-                <span className="text-[10px] text-[#70665F] uppercase block">Total Produced</span>
-                <span className="text-lg font-bold text-[#211B17] font-mono">{viewVoucher.producedQuantity}</span>
-              </div>
-              <div>
-                <span className="text-[10px] text-rose-700 uppercase block">Rejected</span>
-                <span className="text-lg font-bold text-rose-700 font-mono">{viewVoucher.rejectedQuantity}</span>
-              </div>
-              <div>
-                <span className="text-[10px] text-amber-700 uppercase block">Scrap</span>
-                <span className="text-lg font-bold text-amber-700 font-mono">{viewVoucher.scrapQuantity}</span>
-              </div>
-              <div>
-                <span className="text-[10px] text-emerald-800 uppercase font-bold block">Good Output</span>
-                <span className="text-xl font-black text-emerald-800 font-mono">{viewVoucher.goodQuantity}</span>
-              </div>
-            </div>
-
-            {viewVoucher.downtimeReason && (
-              <div className="text-xs p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
-                <span className="font-bold text-[#70665F]">Downtime Reason:</span> {viewVoucher.downtimeReason}
-              </div>
-            )}
-
-            <div className="flex justify-end pt-2">
               <button
                 onClick={() => setViewVoucher(null)}
-                className="px-5 py-2 rounded-xl bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#211B17] text-xs font-semibold"
+                className="p-1 rounded-lg text-[#8C827A] hover:bg-[#FAF7F2]"
               >
-                Close Slip
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="bg-[#FAF7F2] p-4 rounded-xl border border-[#E5DCD3] space-y-2.5 text-xs">
+              <div className="flex justify-between">
+                <span className="text-[#70665F]">Job Number:</span>
+                <span className="font-mono font-bold text-[#211B17]">{viewVoucher.jobNumber}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#70665F]">Work Order:</span>
+                <span className="font-mono font-bold text-[#8B2500]">{viewVoucher.workOrderNumber}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#70665F]">Stage / Operation:</span>
+                <span className="font-bold text-[#211B17]">{viewVoucher.operationName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#70665F]">Machine & Bay:</span>
+                <span className="font-semibold text-[#211B17]">{viewVoucher.machineName || 'Bay Equipment'} ({viewVoucher.workCenterName})</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#70665F]">Operator Name:</span>
+                <span className="font-bold text-[#211B17]">{viewVoucher.operatorName}</span>
+              </div>
+              <div className="flex justify-between pt-2 border-t border-[#E5DCD3]">
+                <span className="font-bold text-[#211B17]">Good Output Cleared:</span>
+                <span className="font-mono font-black text-emerald-800 text-base">{viewVoucher.goodQuantity} Units</span>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                onClick={() => window.print()}
+                className="px-4 py-2 rounded-xl bg-[#FAF7F2] hover:bg-[#EFE8DF] text-[#211B17] text-xs font-bold border border-[#E5DCD3] flex items-center gap-1.5 cursor-pointer"
+              >
+                <Printer className="w-4 h-4 text-[#8B2500]" />
+                <span>Print Slip</span>
+              </button>
+              <button
+                onClick={() => setViewVoucher(null)}
+                className="px-4 py-2 rounded-xl bg-[#8B2500] hover:bg-[#701E00] text-white text-xs font-bold cursor-pointer"
+              >
+                Close
               </button>
             </div>
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+export default function ProductionEntryPage() {
+  return (
+    <Suspense fallback={
+      <div className="p-8 text-center text-stone-500 font-semibold bg-[#FAF7F2] min-h-screen flex items-center justify-center">
+        Loading Production Entry Portal...
+      </div>
+    }>
+      <ProductionEntryContent />
+    </Suspense>
   );
 }
