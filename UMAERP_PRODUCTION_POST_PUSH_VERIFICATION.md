@@ -78,6 +78,7 @@ All tests executed against an **isolated in-memory test database** via Django's 
 | **DEF-PROD-04** | Duplicate serial numbers allowed on retries | Added serial number deduplication in `FinishedGoodsItemViewSet` and `ERPContext.tsx:addFinishedGoods`. | **RESOLVED** |
 | **DEF-PROD-05** | Backend did not update WIP on production entry | `ProductionEntryViewSet.create` now automatically synchronizes `WIPRecord` and `WorkOrder` status in database. | **RESOLVED** |
 | **DEF-PROD-06** | Hardcoded hydro pressure defaults | Dynamically derives design pressure and test pressure (1.5x) from Job / Work Order description. | **RESOLVED** |
+| **DEF-PROD-07** | Modal loop on `?woNumber` param & missing completed guard | Fixed `useEffect` dependency loop, added `useRef` guard, auto-clears URL param on submit/cancel, added Already Completed guard banner, and added prominent success toast/alert. | **RESOLVED** |
 
 ---
 
