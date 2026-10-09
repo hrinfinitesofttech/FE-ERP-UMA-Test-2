@@ -19,7 +19,21 @@ import {
   Printer,
   X,
   Loader2,
+  Trash2,
+  Sparkles,
 } from 'lucide-react';
+
+export interface IssueLineItem {
+  lineId: string;
+  itemId: string;
+  itemCode: string;
+  itemName: string;
+  uom: string;
+  bomReqQty: number;
+  issueQty: number;
+  unitPrice: number;
+  batchLot: string;
+}
 
 function MaterialIssueContent() {
   const router = useRouter();
@@ -55,8 +69,7 @@ function MaterialIssueContent() {
   const [bomNo, setBomNo] = useState('');
   const [bomRev, setBomRev] = useState('Rev-01');
   const [stage, setStage] = useState('Shell & Dish End Cutting / Rolling');
-  const [itemId, setItemId] = useState(itemMasters[0]?.id || '');
-  const [issueQty, setIssueQty] = useState(0);
+  const [issueLines, setIssueLines] = useState<IssueLineItem[]>([]);
   const [warehouseId, setWarehouseId] = useState(warehouses[0]?.id || '');
   const [requestedBy, setRequestedBy] = useState('');
   const [issuedBy, setIssuedBy] = useState('');
@@ -64,26 +77,42 @@ function MaterialIssueContent() {
   const [remarks, setRemarks] = useState('');
   const [showAllCatalog, setShowAllCatalog] = useState(false);
 
-  // Find BOM matching current job or bomNo
+  // Find all BOMs belonging to current Job / Project
+  const availableJobBoms = useMemo(() => {
+    if (!boms || boms.length === 0 || !jobId) return [];
+    const cleanJob = String(jobId || '').trim().toLowerCase();
+    const matchedJob = projectJobs.find(
+      (j) => j.jobNumber?.toLowerCase() === cleanJob || j.id?.toLowerCase() === cleanJob
+    );
+    const pjProj = String(matchedJob?.id || (matchedJob as any)?.projectId || '').trim().toLowerCase();
+
+    return boms.filter((b) => {
+      const bJob = String(b.jobNumber || (b as any).job_number || '').trim().toLowerCase();
+      const bProj = String(b.projectId || (b as any).project_id || '').trim().toLowerCase();
+      const bId = String(b.id || '').trim().toLowerCase();
+
+      return (
+        (bJob && (bJob === cleanJob || bJob.includes(cleanJob))) ||
+        (bProj && (bProj === cleanJob || (pjProj && bProj === pjProj))) ||
+        bId === cleanJob
+      );
+    });
+  }, [boms, jobId, projectJobs]);
+
+  // Find currently active BOM
   const currentJobBom = useMemo(() => {
     if (!boms || boms.length === 0) return null;
-    const cleanJob = String(jobId || '').trim().toLowerCase();
     const cleanBom = String(bomNo || '').trim().toLowerCase();
-
-    return (
-      boms.find((b) => {
-        const bJob = String(b.jobNumber || '').trim().toLowerCase();
-        const bBom = String(b.bomNumber || '').trim().toLowerCase();
+    if (cleanBom) {
+      const found = boms.find((b) => {
+        const bBom = String(b.bomNumber || (b as any).bom_number || '').trim().toLowerCase();
         const bId = String(b.id || '').trim().toLowerCase();
-        const bProj = String(b.projectId || '').trim().toLowerCase();
-
-        return (
-          (cleanBom && (bBom === cleanBom || bId === cleanBom)) ||
-          (cleanJob && (bJob === cleanJob || bId === cleanJob || bProj === cleanJob))
-        );
-      }) || null
-    );
-  }, [boms, jobId, bomNo]);
+        return bBom === cleanBom || bId === cleanBom;
+      });
+      if (found) return found;
+    }
+    return availableJobBoms[0] || null;
+  }, [boms, bomNo, availableJobBoms]);
 
   // Find PRs matching current job
   const jobPRs = useMemo(() => {
@@ -194,95 +223,168 @@ function MaterialIssueContent() {
         setBomNo(bomParam);
       } else {
         const matchingB = boms.find(
-          (b) => b.jobNumber === jobParam || b.id === jobParam || b.projectId === jobParam
+          (b) => b.jobNumber === jobParam || (b as any).job_number === jobParam || b.id === jobParam || b.projectId === jobParam
         );
         if (matchingB) {
-          setBomNo(matchingB.bomNumber || matchingB.id);
+          setBomNo(matchingB.bomNumber || (matchingB as any).bom_number || matchingB.id);
           if (matchingB.activeRevision || matchingB.revision) {
             setBomRev(matchingB.activeRevision || matchingB.revision);
           }
         }
       }
       setWoNo(`WO-${jobParam.replace('JOB-', '')}-A`);
-      if (itemParam) {
-        const found = itemMasters.find(
-          (i) =>
-            i.id === itemParam ||
-            i.itemCode === itemParam ||
-            i.itemCode?.toLowerCase() === itemParam.toLowerCase() ||
-            i.itemName?.toLowerCase().includes(itemParam.toLowerCase())
-        );
-        if (found) {
-          setItemId(found.id);
-        }
-      }
       setIsModalOpen(true);
     }
-  }, [jobParam, bomParam, itemParam, itemMasters, boms, hasDismissedParam]);
+  }, [jobParam, bomParam, boms, hasDismissedParam]);
 
-  // Auto-select first allocated item when job items change
+  // Auto-sync BOM number and revision when job or availableJobBoms change
   useEffect(() => {
-    if (jobAllocatedItems.length > 0) {
-      const exists = jobAllocatedItems.some((i) => i.id === itemId || i.itemCode === itemId);
+    if (availableJobBoms.length > 0) {
+      const exists = availableJobBoms.some(
+        (b) => (b.bomNumber && b.bomNumber === bomNo) || ((b as any).bom_number && (b as any).bom_number === bomNo) || b.id === bomNo
+      );
       if (!exists) {
-        const first = jobAllocatedItems[0];
-        setItemId(first.id);
-        const bomMatch = currentJobBom?.items?.find((bi: any) =>
-          (bi.partNumber && (bi.partNumber === first.itemCode || bi.partNumber === first.id)) ||
-          (bi.itemCode && (bi.itemCode === first.itemCode || bi.itemCode === first.id)) ||
-          (bi.itemName && first.itemName && bi.itemName.trim().toLowerCase() === first.itemName.trim().toLowerCase())
-        );
-        if (bomMatch && (bomMatch.quantity || bomMatch.qty)) {
-          setIssueQty(Number(bomMatch.quantity || bomMatch.qty));
+        const first = availableJobBoms[0];
+        const newNo = first.bomNumber || (first as any).bom_number || first.id;
+        setBomNo(newNo);
+        if (first.activeRevision || first.revision) {
+          setBomRev(first.activeRevision || first.revision);
         }
       }
+    } else if (jobId && !bomNo) {
+      setBomNo(`BOM-${jobId.replace('JOB-', '')}`);
+    }
+  }, [availableJobBoms, jobId, bomNo]);
+
+  // Helper to convert an item into an IssueLineItem
+  const makeLineFromItem = (item: any, customLot = ''): IssueLineItem => {
+    const bomMatch = currentJobBom?.items?.find((bi: any) =>
+      (bi.partNumber && (bi.partNumber === item.itemCode || bi.partNumber === item.id)) ||
+      (bi.itemCode && (bi.itemCode === item.itemCode || bi.itemCode === item.id)) ||
+      (bi.itemName && item.itemName && bi.itemName.trim().toLowerCase() === item.itemName.trim().toLowerCase())
+    );
+    const reqQty = Number(bomMatch?.quantity || bomMatch?.qty || 1);
+    const rate = Number(item.standardCost || (item as any).unitPrice || item.defaultPurchaseRate || 150);
+
+    return {
+      lineId: `line-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      itemId: item.id,
+      itemCode: item.itemCode || 'ITEM',
+      itemName: item.itemName || 'Material Item',
+      uom: item.uom || 'KG',
+      bomReqQty: reqQty,
+      issueQty: reqQty,
+      unitPrice: rate,
+      batchLot: customLot || batchLot || `HEAT-${Math.floor(10000 + Math.random() * 90000)}`,
+    };
+  };
+
+  // Keep issueLines initialized with jobAllocatedItems
+  useEffect(() => {
+    if (jobAllocatedItems.length > 0) {
+      setIssueLines((prev) => {
+        if (prev.length === 0) {
+          return [makeLineFromItem(jobAllocatedItems[0])];
+        }
+        const hasValid = prev.some((l) =>
+          jobAllocatedItems.some((a) => a.id === l.itemId || a.itemCode === l.itemCode)
+        );
+        if (!hasValid) {
+          return [makeLineFromItem(jobAllocatedItems[0])];
+        }
+        return prev;
+      });
     }
   }, [jobAllocatedItems, currentJobBom]);
 
-  const handleItemSelect = (newId: string) => {
-    setItemId(newId);
-    const selected = jobAllocatedItems.find((i) => i.id === newId || i.itemCode === newId);
-    if (selected && currentJobBom) {
-      const bomMatch = currentJobBom.items?.find((bi: any) =>
-        (bi.partNumber && (bi.partNumber === selected.itemCode || bi.partNumber === selected.id)) ||
-        (bi.itemCode && (bi.itemCode === selected.itemCode || bi.itemCode === selected.id)) ||
-        (bi.itemName && selected.itemName && bi.itemName.trim().toLowerCase() === selected.itemName.trim().toLowerCase())
-      );
-      if (bomMatch && (bomMatch.quantity || bomMatch.qty)) {
-        setIssueQty(Number(bomMatch.quantity || bomMatch.qty));
-      }
-    }
+  const handleAddLine = () => {
+    if (jobAllocatedItems.length === 0) return;
+    const unadded = jobAllocatedItems.find(
+      (a) => !issueLines.some((l) => l.itemId === a.id || l.itemCode === a.itemCode)
+    );
+    const itemToAdd = unadded || jobAllocatedItems[0];
+    setIssueLines((prev) => [...prev, makeLineFromItem(itemToAdd)]);
   };
 
-  const selectedItem =
-    jobAllocatedItems.find((i) => i.id === itemId || i.itemCode === itemId) ||
-    itemMasters.find((i) => i.id === itemId || i.itemCode === itemId) ||
-    jobAllocatedItems[0] ||
-    itemMasters[0] ||
-    null;
+  const handleLoadAllBomItems = () => {
+    if (jobAllocatedItems.length === 0) return;
+    setIssueLines(jobAllocatedItems.map((itm) => makeLineFromItem(itm)));
+  };
+
+  const handleRemoveLine = (lineId: string) => {
+    if (issueLines.length <= 1) return;
+    setIssueLines((prev) => prev.filter((l) => l.lineId !== lineId));
+  };
+
+  const handleLineItemChange = (lineId: string, newItemId: string) => {
+    const item =
+      jobAllocatedItems.find((i) => i.id === newItemId || i.itemCode === newItemId) ||
+      itemMasters.find((i) => i.id === newItemId || i.itemCode === newItemId);
+    if (!item) return;
+
+    const bomMatch = currentJobBom?.items?.find((bi: any) =>
+      (bi.partNumber && (bi.partNumber === item.itemCode || bi.partNumber === item.id)) ||
+      (bi.itemCode && (bi.itemCode === item.itemCode || bi.itemCode === item.id)) ||
+      (bi.itemName && item.itemName && bi.itemName.trim().toLowerCase() === item.itemName.trim().toLowerCase())
+    );
+    const reqQty = Number(bomMatch?.quantity || bomMatch?.qty || 1);
+    const rate = Number(item.standardCost || (item as any).unitPrice || item.defaultPurchaseRate || 150);
+
+    setIssueLines((prev) =>
+      prev.map((l) =>
+        l.lineId === lineId
+          ? {
+              ...l,
+              itemId: item.id,
+              itemCode: item.itemCode || 'ITEM',
+              itemName: item.itemName || 'Material Item',
+              uom: item.uom || 'KG',
+              bomReqQty: reqQty,
+              issueQty: reqQty,
+              unitPrice: rate,
+            }
+          : l
+      )
+    );
+  };
+
+  const handleLineQtyChange = (lineId: string, qty: number) => {
+    setIssueLines((prev) =>
+      prev.map((l) => (l.lineId === lineId ? { ...l, issueQty: Math.max(0, qty) } : l))
+    );
+  };
+
+  const handleLineLotChange = (lineId: string, lot: string) => {
+    setIssueLines((prev) =>
+      prev.map((l) => (l.lineId === lineId ? { ...l, batchLot: lot } : l))
+    );
+  };
+
+  const getItemUsableStock = (itemIdOrCode: string) => {
+    const stock = stockBalances.find(
+      (s) => s.itemId === itemIdOrCode || s.itemCode?.toLowerCase() === itemIdOrCode?.toLowerCase()
+    );
+    return stock?.usableQty ?? stock?.availableQty ?? 0;
+  };
 
   const selectedWh = warehouses.find((w) => w.id === warehouseId) || warehouses[0] || null;
   const selectedJob = projectJobs.find((j) => j.jobNumber === jobId || j.id === jobId) || projectJobs[0] || null;
 
-  // Find live stock balance for selected item
-  const currentStock = stockBalances.find((s) => s.itemId === itemId || s.itemCode === selectedItem?.itemCode);
-  const availableUsableQty = currentStock?.usableQty ?? currentStock?.availableQty ?? 0;
-
   // Auto-populate work order and BOM when job changes
   const handleJobChange = (newJobCode: string) => {
     setJobId(newJobCode);
-    setItemId('');
     const job = projectJobs.find((j) => j.jobNumber === newJobCode || j.id === newJobCode);
     if (job) {
       setWoNo(`WO-${job.jobNumber.replace('JOB-', '')}-A`);
       const matchedB = boms.find(
         (b) =>
           b.jobNumber === job.jobNumber ||
+          (b as any).job_number === job.jobNumber ||
           b.projectId === job.id ||
           b.projectId === (job as any).projectId
       );
       if (matchedB) {
-        setBomNo(matchedB.bomNumber || `BOM-${job.jobNumber.replace('JOB-', '')}`);
+        setBomNo(matchedB.bomNumber || (matchedB as any).bom_number || `BOM-${job.jobNumber.replace('JOB-', '')}`);
         if (matchedB.activeRevision || matchedB.revision) {
           setBomRev(matchedB.activeRevision || matchedB.revision);
         }
@@ -291,6 +393,21 @@ function MaterialIssueContent() {
       }
     }
   };
+
+  const handleBomChange = (selectedBomNo: string) => {
+    setBomNo(selectedBomNo);
+    const targetBom = boms.find(
+      (b) => b.bomNumber === selectedBomNo || (b as any).bom_number === selectedBomNo || b.id === selectedBomNo
+    );
+    if (targetBom) {
+      if (targetBom.activeRevision || targetBom.revision) {
+        setBomRev(targetBom.activeRevision || targetBom.revision);
+      }
+    }
+  };
+
+  const totalIssueSlipQty = issueLines.reduce((sum, l) => sum + (Number(l.issueQty) || 0), 0);
+  const totalIssueSlipValue = issueLines.reduce((sum, l) => sum + (Number(l.issueQty) || 0) * (l.unitPrice || 150), 0);
 
   const filtered = materialIssues.filter((i) => {
     const matchesSearch =
@@ -325,13 +442,16 @@ function MaterialIssueContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedItem || !selectedWh) return;
+    if (issueLines.length === 0 || !selectedWh) return;
+
+    const validLines = issueLines.filter((l) => Number(l.issueQty) > 0);
+    if (validLines.length === 0) {
+      alert('Please enter an issue quantity greater than 0 for at least one item.');
+      return;
+    }
 
     try {
       setIsSubmitting(true);
-      const rate = selectedItem.standardCost || (selectedItem as any).unitPrice || (selectedItem as any).defaultPurchaseRate || 150;
-      const totalCost = issueQty * rate;
-
       await addMaterialIssue({
         issueDate: new Date().toISOString().split('T')[0],
         projectId: selectedJob?.id || 'PRJ-2026-0001',
@@ -345,29 +465,27 @@ function MaterialIssueContent() {
         warehouseId: selectedWh.id,
         warehouseName: selectedWh.warehouseName,
         status: 'Fully Issued',
-        totalIssueValue: totalCost,
+        totalIssueValue: totalIssueSlipValue,
         remarks,
-        items: [
-          {
-            id: `iss-item-${Date.now().toString().slice(-4)}`,
-            issueId: '',
-            itemId: selectedItem.id,
-            itemCode: selectedItem.itemCode,
-            itemName: selectedItem.itemName,
-            requiredQuantity: issueQty,
-            reservedQuantity: issueQty,
-            issuedQuantity: issueQty,
-            uom: selectedItem.uom,
-            unitPrice: rate,
-            totalCost: totalCost,
-            batchLot: batchLot || `HEAT-${Math.floor(10000 + Math.random() * 90000)}`,
-            locationCode: selectedWh.warehouseCode || 'STORE-BAY-01',
-            remarks: remarks || 'Issued for production execution',
-          },
-        ],
+        items: validLines.map((line) => ({
+          id: `iss-item-${Date.now().toString().slice(-4)}-${Math.random().toString(36).substring(2, 6)}`,
+          issueId: '',
+          itemId: line.itemId,
+          itemCode: line.itemCode,
+          itemName: line.itemName,
+          requiredQuantity: line.bomReqQty || line.issueQty,
+          reservedQuantity: line.issueQty,
+          issuedQuantity: line.issueQty,
+          uom: line.uom,
+          unitPrice: line.unitPrice,
+          totalCost: line.issueQty * line.unitPrice,
+          batchLot: line.batchLot || batchLot || `HEAT-${Math.floor(10000 + Math.random() * 90000)}`,
+          locationCode: selectedWh.warehouseCode || 'STORE-BAY-01',
+          remarks: remarks || `Issued for ${stage}`,
+        })),
       });
 
-      setSuccessMessage(`Material issue slip successfully created & stock deducted for Job ${selectedJob?.jobNumber || jobId}!`);
+      setSuccessMessage(`Material issue slip successfully created & stock deducted for ${validLines.length} item(s) on Job ${selectedJob?.jobNumber || jobId}!`);
       setHasDismissedParam(true);
       setIsModalOpen(false);
       router.replace('/store/material-issue');
@@ -636,7 +754,7 @@ function MaterialIssueContent() {
       {/* Modal: Issue Material Slip */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-4xl w-full max-h-[92vh] overflow-y-auto p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
               <div>
                 <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
@@ -689,14 +807,35 @@ function MaterialIssueContent() {
               {/* BOM & Stage */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">BOM Number</label>
-                  <input
-                    type="text"
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[#70665F] font-semibold">BOM Number *</label>
+                    <span className="text-[10px] text-emerald-700 font-mono font-medium">
+                      {availableJobBoms.length} BOM{availableJobBoms.length !== 1 ? 's' : ''} Linked
+                    </span>
+                  </div>
+                  <select
                     value={bomNo}
-                    onChange={(e) => setBomNo(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-mono"
-                  />
+                    onChange={(e) => handleBomChange(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-mono font-medium"
+                  >
+                    {availableJobBoms.map((b) => {
+                      const bCode = b.bomNumber || (b as any).bom_number || b.id;
+                      const bRev = b.activeRevision || b.revision ? ` (${b.activeRevision || b.revision})` : '';
+                      const bProd = b.productName ? ` — ${b.productName}` : '';
+                      return (
+                        <option key={`bom-sel-${b.id}`} value={bCode}>
+                          {bCode}{bRev}{bProd}
+                        </option>
+                      );
+                    })}
+                    {availableJobBoms.length === 0 && (
+                      <option value={bomNo || `BOM-${jobId.replace('JOB-', '')}`}>
+                        {bomNo || `BOM-${jobId.replace('JOB-', '')}`} (Default BOM)
+                      </option>
+                    )}
+                  </select>
                 </div>
+
                 <div>
                   <label className="block text-[#70665F] font-semibold mb-1">BOM Revision</label>
                   <input
@@ -706,6 +845,7 @@ function MaterialIssueContent() {
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-mono"
                   />
                 </div>
+
                 <div>
                   <label className="block text-[#70665F] font-semibold mb-1">Production Stage</label>
                   <select
@@ -723,99 +863,184 @@ function MaterialIssueContent() {
                 </div>
               </div>
 
-              {/* Item, Qty, Live Stock */}
-              <div className="p-3.5 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] space-y-3">
-                {/* Job Allocation Indicator Badge */}
-                {currentJobBom && !showAllCatalog && (
-                  <div className="flex items-center justify-between text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
-                    <span className="flex items-center gap-1.5 font-medium">
-                      <CheckCircle className="w-4 h-4 text-emerald-600" />
-                      Showing {jobAllocatedItems.length} BOM Allocated Item{jobAllocatedItems.length > 1 ? 's' : ''} for {jobId} ({currentJobBom.bomNumber || bomNo})
+              {/* Multi-Item Issue Table Section */}
+              <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] space-y-3">
+                {/* Header of Section */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-[#211B17] text-xs flex items-center gap-1.5">
+                      <Layers className="w-4 h-4 text-emerald-600" />
+                      Items to Issue ({issueLines.length} Item{issueLines.length !== 1 ? 's' : ''} in Slip)
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => setShowAllCatalog(true)}
-                      className="text-xs text-emerald-700 underline hover:text-emerald-900 font-semibold cursor-pointer"
-                    >
-                      Show All Store Catalog
-                    </button>
-                  </div>
-                )}
-                {showAllCatalog && (
-                  <div className="flex items-center justify-between text-xs text-amber-800 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg">
-                    <span className="font-medium">Showing all store catalog items (Unfiltered)</span>
-                    <button
-                      type="button"
-                      onClick={() => setShowAllCatalog(false)}
-                      className="text-xs text-amber-700 underline hover:text-amber-900 font-semibold cursor-pointer"
-                    >
-                      Filter to Job BOM Items Only
-                    </button>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div className="md:col-span-2">
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="block text-[#70665F] font-semibold">Item to Issue *</label>
-                      <span className="text-[10px] text-emerald-700 font-mono font-medium">
-                        {jobAllocatedItems.length} Item{jobAllocatedItems.length !== 1 ? 's' : ''} Available
+                    {currentJobBom && !showAllCatalog && (
+                      <span className="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md font-medium">
+                        BOM: {currentJobBom.bomNumber || bomNo} ({jobAllocatedItems.length} Allocated)
                       </span>
-                    </div>
-                    <select
-                      value={itemId}
-                      onChange={(e) => handleItemSelect(e.target.value)}
-                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-medium"
-                    >
-                      {!jobAllocatedItems.some((i) => i.id === itemId || i.itemCode === itemId) && (
-                        <option value={itemId}>
-                          {selectedItem?.itemCode || itemId} - {selectedItem?.itemName || itemId} ({selectedItem?.uom || 'Unit'})
-                        </option>
-                      )}
-                      {jobAllocatedItems.map((i) => {
-                        const bomMatch = currentJobBom?.items?.find((bi: any) =>
-                          (bi.partNumber && (bi.partNumber === i.itemCode || bi.partNumber === i.id)) ||
-                          (bi.itemCode && (bi.itemCode === i.itemCode || bi.itemCode === i.id)) ||
-                          (bi.itemName && i.itemName && bi.itemName.trim().toLowerCase() === i.itemName.trim().toLowerCase())
-                        );
-                        const bomQtyInfo = bomMatch ? ` [BOM Req: ${bomMatch.quantity || bomMatch.qty} ${bomMatch.unit || i.uom}]` : '';
-
-                        return (
-                          <option key={`modal-item-${i.id}`} value={i.id}>
-                            {i.itemCode} - {i.itemName} ({i.uom}){bomQtyInfo}
-                          </option>
-                        );
-                      })}
-                    </select>
+                    )}
                   </div>
 
-                  <div>
-                    <label className="block text-[#70665F] font-semibold mb-1">
-                      Issue Quantity ({selectedItem?.uom || 'Unit'})
-                    </label>
-                    <input
-                      type="number"
-                      min="0.01"
-                      step="any"
-                      value={issueQty}
-                      onChange={(e) => setIssueQty(Number(e.target.value))}
-                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-emerald-700 font-bold font-mono focus:outline-none focus:border-emerald-500"
-                    />
+                  <div className="flex items-center gap-2">
+                    {jobAllocatedItems.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={handleLoadAllBomItems}
+                        className="text-xs text-emerald-700 bg-white hover:bg-emerald-50 border border-emerald-300 px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1 cursor-pointer"
+                        title="Load all items from this BOM into the slip"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                        + Load All BOM Items ({jobAllocatedItems.length})
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setShowAllCatalog(!showAllCatalog)}
+                      className="text-xs text-[#70665F] underline hover:text-[#211B17] font-semibold cursor-pointer"
+                    >
+                      {showAllCatalog ? 'Filter to Job BOM Only' : 'Show All Store Catalog'}
+                    </button>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between text-[11px] pt-1 border-t border-[#EBE3DB]">
-                  <div className="text-[#70665F]">
-                    Available Usable Stock in Store:{' '}
-                    <span className="font-bold text-emerald-700 font-mono">
-                      {availableUsableQty.toLocaleString('en-IN')} {selectedItem?.uom}
-                    </span>
-                  </div>
-                  <div className="text-[#70665F]">
-                    Estimated Value:{' '}
-                    <span className="font-bold text-emerald-700 font-mono">
-                      ₹{((issueQty || 0) * (selectedItem?.standardCost || 150)).toLocaleString('en-IN')}
-                    </span>
+                {/* Table of items */}
+                <div className="border border-[#EBE3DB] rounded-xl overflow-hidden bg-white shadow-sm">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#F6F1EC] text-[#70665F] font-mono text-[10px] uppercase border-b border-[#EBE3DB]">
+                      <tr>
+                        <th className="p-2.5 pl-3">Item to Issue *</th>
+                        <th className="p-2.5 text-center w-28">Store Stock</th>
+                        <th className="p-2.5 text-center w-32">Issue Qty *</th>
+                        <th className="p-2.5 w-36">Heat / Batch Lot</th>
+                        <th className="p-2.5 text-right w-24">Est. Value (₹)</th>
+                        <th className="p-2.5 pr-3 text-center w-12">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#EBE3DB]">
+                      {issueLines.map((line) => {
+                        const stockQty = getItemUsableStock(line.itemCode || line.itemId);
+                        const isStockLow = stockQty < Number(line.issueQty);
+                        const lineVal = (Number(line.issueQty) || 0) * (line.unitPrice || 150);
+
+                        return (
+                          <tr key={line.lineId} className="hover:bg-[#FAF7F2]/50 transition">
+                            {/* Item Select */}
+                            <td className="p-2 pl-3">
+                              <select
+                                value={line.itemId}
+                                onChange={(e) => handleLineItemChange(line.lineId, e.target.value)}
+                                className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-[#211B17] font-medium focus:outline-none focus:border-emerald-500 text-xs"
+                              >
+                                {!jobAllocatedItems.some((i) => i.id === line.itemId || i.itemCode === line.itemCode) && (
+                                  <option value={line.itemId}>
+                                    {line.itemCode} - {line.itemName} ({line.uom})
+                                  </option>
+                                )}
+                                {jobAllocatedItems.map((itm) => {
+                                  const bomMatch = currentJobBom?.items?.find((bi: any) =>
+                                    (bi.partNumber && (bi.partNumber === itm.itemCode || bi.partNumber === itm.id)) ||
+                                    (bi.itemCode && (bi.itemCode === itm.itemCode || bi.itemCode === itm.id)) ||
+                                    (bi.itemName && itm.itemName && bi.itemName.trim().toLowerCase() === itm.itemName.trim().toLowerCase())
+                                  );
+                                  const reqText = bomMatch ? ` [BOM Req: ${bomMatch.quantity || bomMatch.qty} ${bomMatch.unit || itm.uom}]` : '';
+
+                                  return (
+                                    <option key={`row-${line.lineId}-itm-${itm.id}`} value={itm.id}>
+                                      {itm.itemCode} - {itm.itemName} ({itm.uom}){reqText}
+                                    </option>
+                                  );
+                                })}
+                              </select>
+                            </td>
+
+                            {/* Stock in Store */}
+                            <td className="p-2 text-center">
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                                  stockQty > 0
+                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                    : 'bg-amber-50 text-amber-700 border border-amber-200'
+                                }`}
+                              >
+                                {stockQty.toLocaleString('en-IN')} {line.uom}
+                              </span>
+                              {isStockLow && stockQty > 0 && (
+                                <div className="text-[9px] text-amber-600 mt-0.5 font-medium">Exceeds stock</div>
+                              )}
+                            </td>
+
+                            {/* Issue Qty */}
+                            <td className="p-2">
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  min="0.01"
+                                  step="any"
+                                  value={line.issueQty}
+                                  onChange={(e) => handleLineQtyChange(line.lineId, Number(e.target.value))}
+                                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-emerald-700 font-bold font-mono text-right focus:outline-none focus:border-emerald-500 text-xs"
+                                />
+                                <span className="text-[10px] text-[#70665F] font-mono shrink-0">{line.uom}</span>
+                              </div>
+                            </td>
+
+                            {/* Heat / Batch Lot */}
+                            <td className="p-2">
+                              <input
+                                type="text"
+                                value={line.batchLot}
+                                onChange={(e) => handleLineLotChange(line.lineId, e.target.value)}
+                                placeholder="e.g. HEAT-98421"
+                                className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-[#211B17] font-mono focus:outline-none focus:border-emerald-500 text-xs"
+                              />
+                            </td>
+
+                            {/* Value */}
+                            <td className="p-2 text-right font-mono font-bold text-[#211B17]">
+                              ₹{lineVal.toLocaleString('en-IN')}
+                            </td>
+
+                            {/* Remove */}
+                            <td className="p-2 pr-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveLine(line.lineId)}
+                                disabled={issueLines.length <= 1}
+                                className="p-1 rounded text-red-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-20 disabled:hover:bg-transparent transition cursor-pointer"
+                                title={issueLines.length <= 1 ? 'Minimum 1 item required' : 'Remove item'}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Add Row Button & Grand Total summary */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleAddLine}
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 text-xs font-bold transition shadow-sm cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    + Add Another Material Item
+                  </button>
+
+                  <div className="flex items-center gap-4 text-xs font-medium text-[#70665F]">
+                    <div>
+                      Items: <span className="font-bold text-[#211B17] font-mono">{issueLines.length}</span>
+                    </div>
+                    <div>
+                      Total Qty: <span className="font-bold text-emerald-700 font-mono">{totalIssueSlipQty.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div>
+                      Grand Total Value:{' '}
+                      <span className="font-bold text-emerald-700 font-mono text-sm">
+                        ₹{totalIssueSlipValue.toLocaleString('en-IN')}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
