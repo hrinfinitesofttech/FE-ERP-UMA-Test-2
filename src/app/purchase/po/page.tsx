@@ -58,8 +58,8 @@ export default function PurchaseOrderPage() {
 
   // Direct Entry State
   const [selectedSupplierId, setSelectedSupplierId] = useState(suppliers[0]?.id || '');
-  const [directJobId, setDirectJobId] = useState(projectJobs[0]?.id || 'JOB-2026-001');
-  const [directProjectId, setDirectProjectId] = useState(projectJobs[0]?.projectId || 'PRJ-2026-0001');
+  const [directJobId, setDirectJobId] = useState(projectJobs[0]?.id || projectJobs[0]?.jobNumber || '');
+  const [directProjectId, setDirectProjectId] = useState(projectJobs[0]?.projectId || '');
 
   // Common PO fields
   const [newDeliveryDate, setNewDeliveryDate] = useState('2026-10-25');
@@ -200,12 +200,12 @@ export default function PurchaseOrderPage() {
         id: `PO-2026-${Math.floor(1000 + Math.random() * 9000)}`,
         poNumber: `PO-2026-${Math.floor(1000 + Math.random() * 9000)}`,
         revisionNumber: 0,
-        projectId: sqObj.projectId || 'PRJ-2026-0001',
-        jobId: sqObj.jobId || 'JOB-2026-001',
+        projectId: sqObj.projectId || '',
+        jobId: sqObj.jobId || '',
         quotationId: sqObj.id,
-        supplierId: sqObj.supplierId || 'SUP-001',
+        supplierId: sqObj.supplierId || '',
         supplierName: sqObj.supplierName || 'Supplier',
-        supplierGstin: (sqObj as any).supplierGstin || '24AAAAA0000A1Z5',
+        supplierGstin: (sqObj as any).supplierGstin || '',
         poDate: new Date().toISOString().split('T')[0],
         expectedDeliveryDate: newDeliveryDate,
         paymentTerms: newPaymentTerms,
@@ -229,9 +229,9 @@ export default function PurchaseOrderPage() {
     } else {
       // Direct Mode
       const supplierObj = suppliers.find(s => s.id === selectedSupplierId) || suppliers[0];
-      const supplierName = supplierObj ? (supplierObj.name || supplierObj.supplierName || 'Selected Supplier') : 'Apex Steel Fabricators';
-      const supplierGstin = supplierObj?.gstin || '24AAACU1234F1Z9';
-      const supplierId = supplierObj?.id || 'SUP-001';
+      const supplierName = supplierObj ? (supplierObj.name || supplierObj.supplierName || (supplierObj as any).vendorName || 'Supplier') : '';
+      const supplierGstin = supplierObj?.gstin || '';
+      const supplierId = supplierObj?.id || '';
 
       const totals = calculateDirectTotals();
       const poItems: POItem[] = directItems.map((it, idx) => {
@@ -261,8 +261,8 @@ export default function PurchaseOrderPage() {
         id: poCode,
         poNumber: poCode,
         revisionNumber: 0,
-        projectId: directProjectId || 'PRJ-2026-0001',
-        jobId: directJobId || 'JOB-2026-001',
+        projectId: directProjectId || '',
+        jobId: directJobId || '',
         supplierId: supplierId,
         supplierName: supplierName,
         supplierGstin: supplierGstin,
@@ -438,8 +438,8 @@ export default function PurchaseOrderPage() {
                         {po.poNumber} <span className="text-[10px] text-[#70665F] font-normal">({typeof po.revisionNumber === 'number' ? `Rev-${po.revisionNumber}` : (po.revisionNumber || 'Rev-00')})</span>
                       </td>
                       <td className="p-3.5">
-                        <div className="font-bold text-amber-600">{po.jobId || (po as any).job_code || 'JOB-2026-001'}</div>
-                        <div className="text-[10px] text-[#70665F]">{po.projectId || (po as any).project_id || 'PRJ-2026-0001'}</div>
+                        <div className="font-bold text-amber-600">{po.jobId || (po as any).job_code || '—'}</div>
+                        <div className="text-[10px] text-[#70665F]">{po.projectId || (po as any).project_id || '—'}</div>
                       </td>
                       <td className="p-3.5 font-semibold text-[#211B17]">{po.supplierName || 'Supplier'}</td>
                       <td className="p-3.5 text-[#544B45] font-mono text-[11px]">{po.poDate || (po as any).date || '-'}</td>
@@ -547,7 +547,7 @@ export default function PurchaseOrderPage() {
                   </p>
                   <div className="mt-2 text-[11px] text-[#70665F]">
                     <span className="font-semibold text-[#211B17]">PO Date:</span> {viewPO.poDate || (viewPO as any).date}<br />
-                    <span className="font-semibold text-[#211B17]">Project Ref:</span> {viewPO.projectId || 'PRJ-2026-0001'} | <span className="font-semibold text-[#211B17]">Job:</span> {viewPO.jobId || 'JOB-2026-001'}
+                    <span className="font-semibold text-[#211B17]">Project Ref:</span> {viewPO.projectId || '—'} | <span className="font-semibold text-[#211B17]">Job:</span> {viewPO.jobId || '—'}
                   </div>
                 </div>
                 <div>
@@ -723,7 +723,7 @@ export default function PurchaseOrderPage() {
                             </option>
                           ))
                         ) : (
-                          <option value="SUP-001">Apex Steel Fabricators (SUP-001)</option>
+                          <option value="">No suppliers available</option>
                         )}
                       </select>
                     </div>
@@ -733,7 +733,7 @@ export default function PurchaseOrderPage() {
                         type="text"
                         value={directJobId}
                         onChange={(e) => setDirectJobId(e.target.value)}
-                        placeholder="JOB-2026-001"
+                        placeholder="e.g. JOB-2026-001"
                         className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono"
                         required
                       />

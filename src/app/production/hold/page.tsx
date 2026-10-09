@@ -17,12 +17,12 @@ export default function ProductionHoldPage() {
 
   const handleHoldSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const targetWo = selectedWo || workOrders[0]?.workOrderNumber || 'WO-2026-001-A';
+    const targetWo = selectedWo || workOrders[0]?.workOrderNumber || '';
     const wo = workOrders.find((w) => w.workOrderNumber === targetWo);
 
     addProductionHold({
-      jobId: wo?.jobId || wo?.jobNumber || 'JOB-2026-001',
-      jobNumber: wo?.jobNumber || 'JOB-2026-001',
+      jobId: wo?.jobId || wo?.jobNumber || '',
+      jobNumber: wo?.jobNumber || '',
       workOrderNumber: targetWo,
       operationName: opName || 'Fitting & Assembly',
       reason,

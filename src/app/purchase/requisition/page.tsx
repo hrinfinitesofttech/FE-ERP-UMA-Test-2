@@ -34,24 +34,12 @@ export default function PurchaseRequisitionPage() {
   const [approvedPrModal, setApprovedPrModal] = useState<PurchaseRequisition | null>(null);
 
   // Form State for Create PR Modal
-  const [newJobId, setNewJobId] = useState(projectJobs[0]?.id || 'JOB-2026-001');
+  const [newJobId, setNewJobId] = useState(projectJobs[0]?.id || projectJobs[0]?.jobNumber || '');
   const [newPriority, setNewPriority] = useState<'Low' | 'Medium' | 'High' | 'Urgent'>('High');
   const [newRequiredDate, setNewRequiredDate] = useState('2026-10-15');
   const [newRemarks, setNewRemarks] = useState('');
 
-  const [itemsList, setItemsList] = useState<Partial<PRItem>[]>([
-    {
-      itemCode: 'RM-MS-12MM',
-      itemName: 'IS 2062 Grade E250 MS Plate 12mm',
-      specification: 'Size 2500x6000mm, Standard Make (TATA/SAIL)',
-      category: 'Raw Material',
-      unitOfMeasure: 'KG',
-      requiredQuantity: 2500,
-      estimatedUnitPrice: 68,
-      estimatedTotalPrice: 170000,
-      requiredByDate: '2026-10-15',
-    },
-  ]);
+  const [itemsList, setItemsList] = useState<Partial<PRItem>[]>([]);
 
   // Close modals on ESC key
   React.useEffect(() => {

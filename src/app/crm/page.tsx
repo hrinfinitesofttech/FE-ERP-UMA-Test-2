@@ -206,7 +206,7 @@ export default function CRMDashboardPage() {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={sourcePieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} labelLine={false}>
-                  {sourcePieData.map((entry, index) => (
+                  {sourcePieData.map((entry: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                   ))}
                 </Pie>
@@ -218,7 +218,7 @@ export default function CRMDashboardPage() {
             </ResponsiveContainer>
           </div>
           <div className="grid grid-cols-2 gap-1.5 pt-1 text-[10px]">
-            {sourcePieData.map((item, idx) => (
+            {sourcePieData.map((item: any, idx: number) => (
               <div key={idx} className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
                 <span className="text-[#70665F] truncate">{item.name} ({item.value})</span>

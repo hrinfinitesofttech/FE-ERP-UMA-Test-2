@@ -27,16 +27,13 @@ export default function CustomerServiceHistoryPage() {
 
   const selectedMachine = customerMachines.find((m) => m.serialNumber === selectedSerial) || customerMachines[0];
 
-  // Full permanent traceability timeline mock steps for selected serial number
+  // Full permanent traceability timeline steps for selected serial number
   const timelineSteps = [
-    { stage: 'Manufacturing Job Order', date: selectedMachine?.manufacturingDate || '2025-11-20', detail: `Job Order #${selectedMachine?.jobNumber || 'JOB-2026-001'} completed at Bay 2`, icon: Layers, color: 'text-crm-brand-600 bg-crm-brand- border-crm-brand-' },
-    { stage: 'Dispatch & Transport', date: selectedMachine?.installationDate || '2025-12-01', detail: `Dispatched under Challan #${selectedMachine?.dispatchNumber || 'DSP-2026-088'}`, icon: Truck, color: 'text-crm-brand-600 bg-indigo-50 border-indigo-200' },
-    { stage: 'Installation & Commissioning', date: selectedMachine?.commissioningDate || '2025-12-15', detail: `Commissioned on site. Certificate #${selectedMachine?.installationNumber || 'INST-2026-014'} signed`, icon: CheckCircle2, color: 'text-emerald-500 bg-emerald-50 border-emerald-200' },
-    { stage: 'Warranty Commencement', date: selectedMachine?.warrantyStart || '2025-12-22', detail: `Standard 1 Year Warranty active until ${formatDate(selectedMachine?.warrantyEnd || '2026-12-21')}`, icon: ShieldCheck, color: 'text-amber-500 bg-amber-50 border-amber-200' },
-    { stage: 'Service Request Logged', date: '2026-09-20', detail: `Service Request SR-2026-001 logged for hydraulic pressure checkup`, icon: Wrench, color: 'text-sky-500 bg-sky-50 border-sky-200' },
-    { stage: 'Field Service Visit & Spare Parts', date: '2026-09-21', detail: `Technician Anil Desai completed Visit VISIT-2026-010. Issued Viton Seal Kit`, icon: FileCheck2, color: 'text-crm-brand-600 bg-crm-brand- border-crm-brand-' },
-    { stage: 'Annual Maintenance Contract (AMC)', date: selectedMachine?.amcStart || '2026-12-22', detail: `Active AMC Contract initialized for 12 months`, icon: FileCheck, color: 'text-teal-500 bg-teal-50 border-teal-200' },
-    { stage: 'Next Scheduled PM Visit', date: '2026-10-15', detail: `Quarterly Preventive Maintenance Inspection scheduled`, icon: RotateCcw, color: 'text-orange-500 bg-orange-50 border-orange-200' },
+    { stage: 'Manufacturing Job Order', date: selectedMachine?.manufacturingDate || '', detail: `Job Order #${selectedMachine?.jobNumber || '—'} completed`, icon: Layers, color: 'text-crm-brand-600 bg-crm-brand- border-crm-brand-' },
+    { stage: 'Dispatch & Transport', date: selectedMachine?.installationDate || '', detail: `Dispatched under Challan #${selectedMachine?.dispatchNumber || '—'}`, icon: Truck, color: 'text-crm-brand-600 bg-indigo-50 border-indigo-200' },
+    { stage: 'Installation & Commissioning', date: selectedMachine?.commissioningDate || '', detail: `Commissioned on site. Certificate #${selectedMachine?.installationNumber || '—'} signed`, icon: CheckCircle2, color: 'text-emerald-500 bg-emerald-50 border-emerald-200' },
+    { stage: 'Warranty Commencement', date: selectedMachine?.warrantyStart || '', detail: `Standard Warranty active until ${selectedMachine?.warrantyEnd ? formatDate(selectedMachine.warrantyEnd) : '—'}`, icon: ShieldCheck, color: 'text-amber-500 bg-amber-50 border-amber-200' },
+    { stage: 'Annual Maintenance Contract (AMC)', date: selectedMachine?.amcStart || '', detail: `AMC Contract coverage for machine`, icon: FileCheck, color: 'text-teal-500 bg-teal-50 border-teal-200' },
   ];
 
   return (

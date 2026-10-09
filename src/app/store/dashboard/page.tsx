@@ -320,7 +320,7 @@ export default function StoreDashboardPage() {
                   paddingAngle={4}
                   dataKey="value"
                 >
-                  {categoryDistributionData.map((entry, index) => (
+                  {categoryDistributionData.map((entry: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>

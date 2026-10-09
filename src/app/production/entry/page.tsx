@@ -49,7 +49,7 @@ export default function ProductionEntryPage() {
   }, []);
 
   // Form State
-  const defaultWo = workOrders[0]?.workOrderNumber || 'WO-2026-001-A';
+  const defaultWo = workOrders[0]?.workOrderNumber || '';
   const defaultWc = workCenters[0]?.workCenterName || 'Fabrication & Rolling Bay 01';
 
   const [selectedWo, setSelectedWo] = useState(defaultWo);
@@ -84,7 +84,7 @@ export default function ProductionEntryPage() {
 
   const openCreateModal = () => {
     setEditingEntry(null);
-    setSelectedWo(workOrders[0]?.workOrderNumber || 'WO-2026-001-A');
+    setSelectedWo(workOrders[0]?.workOrderNumber || '');
     setOpName('Plate Rolling & Shell Forming');
     setWcName(workCenters[0]?.workCenterName || 'Fabrication & Rolling Bay 01');
     setOperator(
@@ -139,7 +139,7 @@ export default function ProductionEntryPage() {
     const entryPayload = {
       entryDate: new Date().toISOString().split('T')[0],
       jobId: matchedWo?.jobId || matchedJob?.id || 'PRJ-2026-0001',
-      jobNumber: matchedWo?.jobNumber || matchedJob?.jobNumber || 'JOB-2026-001',
+      jobNumber: matchedWo?.jobNumber || matchedJob?.jobNumber || '',
       workOrderNumber: selectedWo,
       productionOrderNumber: `PO-PROD-${new Date().getFullYear()}-001`,
       operationName: opName.trim(),
@@ -430,7 +430,7 @@ export default function ProductionEntryPage() {
                       </option>
                     ))
                   ) : (
-                    <option value="WO-2026-001-A">WO-2026-001-A — JOB-2026-001 (Chemical Reactor Vessel 10KL)</option>
+                    <option value="">Select Work Order</option>
                   )}
                 </select>
               </div>

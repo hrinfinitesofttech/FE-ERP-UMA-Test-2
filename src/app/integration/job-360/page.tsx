@@ -32,7 +32,7 @@ import {
 
 export default function Job360Page() {
   const { job360List } = useERP();
-  const [selectedJobId, setSelectedJobId] = useState<string>('JOB-2026-001');
+  const [selectedJobId, setSelectedJobId] = useState<string>(job360List[0]?.header?.jobNumber || '');
   const [activeTab, setActiveTab] = useState<string>('overview');
 
   const currentJob = job360List.find((j) => j.header.jobNumber === selectedJobId) || job360List[0];

@@ -183,91 +183,41 @@ export default function QuotationComparisonPage() {
     );
   }, [purchaseOrders, activeRfq]);
 
-  // 1-Click Auto Generate 3 Competitive Supplier Bids & Build Matrix
+  // Generate competitive supplier bids based on active RFQ items and registered suppliers
   const handleAutoGenerateMultiVendorBids = () => {
-    const currentRfq = activeRfq || {
-      id: 'RFQ-2026-4586',
-      rfqNumber: 'RFQ-2026-4586',
-      jobId: 'JOB-2026-0065',
-      projectId: 'PRJ-2026-001',
-      items: [],
-    };
+    if (!activeRfq || !activeRfq.items || activeRfq.items.length === 0) {
+      alert('Please select an active RFQ with line items first to generate supplier quotations.');
+      return;
+    }
 
-    const rfqNo = currentRfq.rfqNumber || currentRfq.id || `RFQ-2026-4586`;
-    const jId = (currentRfq as any).jobId || (currentRfq as any).jobNumber || 'JOB-2026-0065';
-    const pId = currentRfq.projectId || 'PRJ-2026-001';
+    const currentRfq = activeRfq;
+    const rfqNo = currentRfq.rfqNumber || currentRfq.id;
+    const rfqItems = currentRfq.items;
+    const jId = (currentRfq as any).jobId || (currentRfq as any).jobNumber || '';
+    const pId = currentRfq.projectId || '';
 
-    const sampleItems =
-      activeRfq.items && activeRfq.items.length > 0
-        ? activeRfq.items
-        : [
-            {
-              id: 'ITM-01',
-              itemCode: 'RM-MS-12MM',
-              itemName: 'IS 2062 Grade E250 MS Plate 12mm',
-              requiredQuantity: 2500,
-              unitOfMeasure: 'KG',
-              specification: 'Size 2500x6000mm, Standard Make (TATA/SAIL)',
-              targetPrice: 68,
-            },
-            {
-              id: 'ITM-02',
-              itemCode: 'BO-FLG-300',
-              itemName: '300 NB Class 150 SORF Flange ASTM A105',
-              requiredQuantity: 12,
-              unitOfMeasure: 'NOS',
-              specification: 'ASME B16.5 Standard',
-              targetPrice: 4200,
-            },
-            {
-              id: 'ITM-03',
-              itemCode: 'BO-VLV-4IN',
-              itemName: '4 Inch Class 150 Cast Steel Gate Valve',
-              requiredQuantity: 4,
-              unitOfMeasure: 'NOS',
-              specification: 'API 600 Design, Flanged End',
-              targetPrice: 14500,
-            },
-          ];
+    // Use registered suppliers from database
+    const selectedSuppliers = (suppliers && suppliers.length > 0)
+      ? suppliers.slice(0, 3)
+      : [];
 
-    // 3 Distinct Vendor Profiles
-    const vendorProfiles = [
-      {
-        id: 'SUP-001',
-        name: 'ABB India Limited (Bought-out Items)',
-        refPrefix: 'SQ-ABB',
-        priceMultipliers: [1.05, 0.96, 1.08], // Lower on Flanges
-        terms: '30 Days Net Credit',
-        delivery: 'Ex-works Vadodara (7 Days)',
-        freight: 4500,
-        leadTime: 7,
-      },
-      {
-        id: 'SUP-002',
-        name: 'Ratnamani Metals & Tubes Ltd',
-        refPrefix: 'SQ-RMT',
-        priceMultipliers: [0.94, 1.02, 0.95], // L1 on Plates & Valves (Overall Lowest)
-        terms: '45 Days Credit after GRN',
-        delivery: 'FOR Factory Site (5 Days)',
-        freight: 2500,
-        leadTime: 5,
-      },
-      {
-        id: 'SUP-003',
-        name: 'Jindal Steel & Power Ltd',
-        refPrefix: 'SQ-JSPL',
-        priceMultipliers: [0.98, 1.08, 1.02],
-        terms: '100% Against Proforma Invoice',
-        delivery: 'Ex-works Angul (12 Days)',
-        freight: 8000,
-        leadTime: 12,
-      },
-    ];
+    if (selectedSuppliers.length === 0) return null;
+
+    const vendorProfiles = selectedSuppliers.map((s, idx) => ({
+      id: s.id,
+      name: (s as any).vendorName || (s as any).name || `Supplier ${idx + 1}`,
+      refPrefix: `SQ-${s.id}`,
+      priceMultipliers: idx === 0 ? [1.02, 0.98, 1.05] : idx === 1 ? [0.96, 1.01, 0.97] : [1.0, 1.05, 1.02],
+      terms: '30 Days Credit',
+      delivery: 'FOR Factory Site (7 Days)',
+      freight: 2500 + idx * 1000,
+      leadTime: 7 + idx * 2,
+    }));
 
     const generatedQuotes: SupplierQuotation[] = [];
 
     vendorProfiles.forEach((vp, vIdx) => {
-      const formattedItems: SupplierQuotationItem[] = sampleItems.map((itm: any, iIdx: number) => {
+      const formattedItems: SupplierQuotationItem[] = rfqItems.map((itm: any, iIdx: number) => {
         const basePrice = Number(itm.targetPrice || itm.unitPrice || 100);
         const multiplier = vp.priceMultipliers[iIdx % vp.priceMultipliers.length];
         const unitRate = Math.round(basePrice * multiplier);
@@ -338,7 +288,7 @@ export default function QuotationComparisonPage() {
       paymentTerms: q.paymentTerms || '30 Days',
     }));
 
-    const csItems = sampleItems.map((itm: any, iIdx: number) => {
+    const csItems = rfqItems.map((itm: any, iIdx: number) => {
       const rates: Record<string, number> = {};
       generatedQuotes.forEach((q) => {
         rates[q.supplierId] = q.items[iIdx]?.unitPrice || 0;
@@ -365,6 +315,10 @@ export default function QuotationComparisonPage() {
       };
     });
 
+    // Find overall lowest evaluated quotation (L1)
+    const sortedQuotes = [...generatedQuotes].sort((a, b) => a.grandTotal - b.grandTotal);
+    const l1Quote = sortedQuotes[0] || generatedQuotes[0];
+
     const newMatrix: QuotationComparison = {
       id: compId,
       comparisonNumber: compId,
@@ -376,10 +330,9 @@ export default function QuotationComparisonPage() {
       preparedBy: currentUser ? `${currentUser.firstName} ${currentUser.lastName} (Lead Buyer)` : 'Purchase Lead (Lead Buyer)',
       status: 'Under Review',
       approvalStatus: 'pending',
-      recommendedSupplierId: 'SUP-002',
-      recommendedSupplierName: 'Ratnamani Metals & Tubes Ltd',
-      buyerReason:
-        'Ratnamani Metals & Tubes Ltd offered the lowest overall techno-commercial bid (L1) with shortest 5-day delivery lead time, FOR site destination terms, and ASME Mill Test Certificates compliance.',
+      recommendedSupplierId: l1Quote?.supplierId || '',
+      recommendedSupplierName: l1Quote?.supplierName || '',
+      buyerReason: `${l1Quote?.supplierName || 'Recommended supplier'} offered the lowest overall techno-commercial bid (L1) of ₹${(l1Quote?.grandTotal || 0).toLocaleString()} with standard terms.`,
       suppliersEvaluated: csSuppliers,
       items: csItems,
     };
@@ -393,8 +346,8 @@ export default function QuotationComparisonPage() {
     if (!activeRfq || receivedQuotesForRfq.length === 0) return;
 
     const rfqNo = activeRfq.rfqNumber || activeRfq.id;
-    const jId = (activeRfq as any).jobId || (activeRfq as any).jobNumber || 'JOB-2026-001';
-    const pId = activeRfq.projectId || 'PRJ-2026-001';
+    const jId = (activeRfq as any).jobId || (activeRfq as any).jobNumber || '';
+    const pId = activeRfq.projectId || '';
 
     // Unique list of items from all quotes
     const allItemsMap = new Map<string, { itemCode: string; itemName: string; requiredQuantity: number; unitOfMeasure: string }>();
@@ -469,7 +422,7 @@ export default function QuotationComparisonPage() {
       preparedBy: currentUser ? `${currentUser.firstName} ${currentUser.lastName} (Lead Buyer)` : 'Purchase Officer (Lead Buyer)',
       status: 'Under Review',
       approvalStatus: 'pending',
-      recommendedSupplierId: lowestVendor?.supplierId || 'SUP-001',
+      recommendedSupplierId: lowestVendor?.supplierId || '',
       recommendedSupplierName: lowestVendor?.supplierName || 'Recommended Supplier',
       buyerReason: `${lowestVendor?.supplierName} is recommended based on lowest commercial pricing (L1 Total: ₹${lowestVendor?.grandTotal?.toLocaleString('en-IN')}) and compliance with delivery terms.`,
       suppliersEvaluated: csSuppliers,

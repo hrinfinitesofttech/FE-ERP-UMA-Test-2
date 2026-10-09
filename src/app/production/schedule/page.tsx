@@ -34,12 +34,11 @@ export default function ProductionSchedulePage() {
       if (w.jobNumber && !map.has(w.jobNumber)) map.set(w.jobNumber, w.productName ? `${w.jobNumber} — ${w.productName}` : w.jobNumber);
     });
     if (map.size === 0) {
-      map.set('JOB-2026-001', 'JOB-2026-001 — Reactor Vessel 50KL');
-    }
+          }
     return Array.from(map.entries()).map(([num, label]) => ({ jobNumber: num, label }));
   }, [manufacturingJobs, projectJobs, workOrders]);
 
-  const [jobNumber, setJobNumber] = useState(allJobs[0]?.jobNumber || 'JOB-2026-001');
+  const [jobNumber, setJobNumber] = useState(allJobs[0]?.jobNumber || '');
 
   // Filter work orders based on selected job number
   const filteredWorkOrders = useMemo(() => {
@@ -48,7 +47,7 @@ export default function ProductionSchedulePage() {
     return matching.length > 0 ? matching : workOrders;
   }, [workOrders, jobNumber]);
 
-  const [woNum, setWoNum] = useState(filteredWorkOrders[0]?.workOrderNumber || 'WO-2026-001-A');
+  const [woNum, setWoNum] = useState(filteredWorkOrders[0]?.workOrderNumber || '');
   const [opName, setOpName] = useState('Limpet Jacket TIG Welding');
   const [wcCode, setWcCode] = useState(workCenters[0]?.workCenterCode || 'WC-WELD');
   const [operator, setOperator] = useState(availableEmployees[0]?.name || 'Suresh Patel');
@@ -265,7 +264,7 @@ export default function ProductionSchedulePage() {
                       </option>
                     ))}
                     {filteredWorkOrders.length === 0 && (
-                      <option value="WO-2026-001-A">WO-2026-001-A (Default)</option>
+                      <option value="">Select Work Order</option>
                     )}
                   </select>
                 </div>

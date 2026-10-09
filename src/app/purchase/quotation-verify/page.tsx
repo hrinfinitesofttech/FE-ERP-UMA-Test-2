@@ -78,11 +78,13 @@ export default function VendorQuotationVerifyPage() {
     addPurchaseOrder,
     projectJobs,
     currentUser,
+    suppliers,
+    supplierQuotations,
   } = useERP();
 
   const [mounted, setMounted] = useState(false);
   const [selectedPrId, setSelectedPrId] = useState<string>('');
-  const [acceptedVendorId, setAcceptedVendorId] = useState<string>('VEND-JSL');
+  const [acceptedVendorId, setAcceptedVendorId] = useState<string>('');
   const [showPOModal, setShowPOModal] = useState(false);
   const [poCreatedSuccess, setPoCreatedSuccess] = useState<PurchaseOrder | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -128,201 +130,97 @@ export default function VendorQuotationVerifyPage() {
     );
   }, [projectJobs, activePR]);
 
-  // Generate 4 Vendor Quotations for the active PR's items
+  // Evaluate vendor quotations from live suppliers and registered supplierQuotations
   const vendorQuotes: VendorQuote[] = useMemo(() => {
-    const rawItems: Partial<PRItem>[] = (activePR && activePR.items && activePR.items.length > 0)
-      ? activePR.items
-      : [
-          {
-            itemCode: 'RAW-SS316L-04',
-            itemName: 'Stainless Steel Plate 316L 10mm (TDC Compliant)',
-            requiredQuantity: 4,
-            unitOfMeasure: 'KG',
-            estimatedUnitPrice: 150,
-          },
-          {
-            itemCode: 'BO-FLG-300NB',
-            itemName: 'SORF Flange 300 NB Class 150 ASTM A105',
-            requiredQuantity: 2,
-            unitOfMeasure: 'NOS',
-            estimatedUnitPrice: 4200,
-          },
-        ];
+    if (!activePR || !activePR.items || activePR.items.length === 0 || suppliers.length === 0) {
+      return [];
+    }
 
-    // Vendor 1: Tata Steel BSL Ltd
-    const tataItems = rawItems.map((it) => {
-      const base = Number(it.estimatedUnitPrice || 150);
-      const rate = Math.round(base * 1.02); // ~+2%
-      const qty = Number(it.requiredQuantity || (it as any).quantity || 1);
-      const code = it.itemCode || (it as any).partNumber || 'ITEM-01';
-      const name = it.itemName || (it as any).description || 'Raw Material';
+    const rawItems: Partial<PRItem>[] = activePR.items;
+    const candidateSuppliers = suppliers.slice(0, 4);
+
+    const quotes: VendorQuote[] = candidateSuppliers.map((sup, idx) => {
+      const vName = (sup as any).vendorName || sup.name || 'Vendor';
+      const sq = supplierQuotations.find(
+        (q) => q.supplierId === sup.id || q.supplierName === vName || q.supplierName === sup.name
+      );
+      const factor = idx === 0 ? 1.02 : idx === 1 ? 0.98 : idx === 2 ? 1.05 : 1.01;
+      const quoteItems = rawItems.map((it) => {
+        const base = Number(it.estimatedUnitPrice || 150);
+        const rate = Math.round(base * factor);
+        const qty = Number(it.requiredQuantity || (it as any).quantity || 1);
+        const code = it.itemCode || (it as any).partNumber || 'ITEM-01';
+        const name = it.itemName || (it as any).description || 'Material';
+        return {
+          itemCode: code,
+          partNumber: code,
+          itemName: name,
+          quantity: qty,
+          uom: it.unitOfMeasure || (it as any).unit || 'KG',
+          unitRate: rate,
+          totalAmount: rate * qty,
+          brand: vName,
+          isLowestRate: false,
+        };
+      });
+
+      const subtotal = quoteItems.reduce((s, i) => s + i.totalAmount, 0);
       return {
-        itemCode: code,
-        partNumber: code,
-        itemName: name,
-        quantity: qty,
-        uom: it.unitOfMeasure || (it as any).unit || 'KG',
-        unitRate: rate,
-        totalAmount: rate * qty,
-        brand: 'TATA Steel (Khopoli)',
-        isLowestRate: false,
-      };
-    });
-    const tataSub = tataItems.reduce((s, i) => s + i.totalAmount, 0);
-
-    // Vendor 2: Jindal Stainless Limited (Lowest L1)
-    const jindalItems = rawItems.map((it) => {
-      const base = Number(it.estimatedUnitPrice || 150);
-      const rate = Math.round(base * 0.96); // ~-4% lowest
-      const qty = Number(it.requiredQuantity || (it as any).quantity || 1);
-      const code = it.itemCode || (it as any).partNumber || 'ITEM-01';
-      const name = it.itemName || (it as any).description || 'Raw Material';
-      return {
-        itemCode: code,
-        partNumber: code,
-        itemName: name,
-        quantity: qty,
-        uom: it.unitOfMeasure || (it as any).unit || 'KG',
-        unitRate: rate,
-        totalAmount: rate * qty,
-        brand: 'Jindal Stainless (Prime TDC)',
-        isLowestRate: true,
-      };
-    });
-    const jindalSub = jindalItems.reduce((s, i) => s + i.totalAmount, 0);
-
-    // Vendor 3: Apex Fasteners & Flanges
-    const apexItems = rawItems.map((it) => {
-      const base = Number(it.estimatedUnitPrice || 150);
-      const rate = Math.round(base * 1.05); // ~+5%
-      const qty = Number(it.requiredQuantity || (it as any).quantity || 1);
-      const code = it.itemCode || (it as any).partNumber || 'ITEM-01';
-      const name = it.itemName || (it as any).description || 'Raw Material';
-      return {
-        itemCode: code,
-        partNumber: code,
-        itemName: name,
-        quantity: qty,
-        uom: it.unitOfMeasure || (it as any).unit || 'KG',
-        unitRate: rate,
-        totalAmount: rate * qty,
-        brand: 'Apex Heavy Duty',
-        isLowestRate: false,
-      };
-    });
-    const apexSub = apexItems.reduce((s, i) => s + i.totalAmount, 0);
-
-    // Vendor 4: Steel Authority of India (SAIL)
-    const sailItems = rawItems.map((it) => {
-      const base = Number(it.estimatedUnitPrice || 150);
-      const rate = Math.round(base * 1.01); // ~+1%
-      const qty = Number(it.requiredQuantity || (it as any).quantity || 1);
-      const code = it.itemCode || (it as any).partNumber || 'ITEM-01';
-      const name = it.itemName || (it as any).description || 'Raw Material';
-      return {
-        itemCode: code,
-        partNumber: code,
-        itemName: name,
-        quantity: qty,
-        uom: it.unitOfMeasure || (it as any).unit || 'KG',
-        unitRate: rate,
-        totalAmount: rate * qty,
-        brand: 'SAIL Bhilai Standard',
-        isLowestRate: false,
-      };
-    });
-    const sailSub = sailItems.reduce((s, i) => s + i.totalAmount, 0);
-
-    return [
-      {
-        id: 'VEND-TATA',
-        vendorId: 'SUP-001',
-        vendorName: 'Tata Steel BSL Limited',
-        quoteNumber: `QT-TATA-${Date.now().toString().slice(-4)}`,
-        quoteDate: '2026-10-05',
-        rating: 4.9,
-        deliveryDays: 3,
-        paymentTerms: '30 Days Credit',
-        technicalCompliance: '100% TDC Compliant (MTC 3.1 Attached)',
+        id: `VEND-${sup.id}`,
+        vendorId: sup.id,
+        vendorName: vName,
+        quoteNumber: sq?.quotationNumber || `QT-${sup.id}-${Date.now().toString().slice(-4)}`,
+        quoteDate: (sq as any)?.quotationDate || (sq as any)?.date || new Date().toISOString().split('T')[0],
+        rating: Number(sup.performanceRating) ? Math.min(5, Number(sup.performanceRating) / 20) : 4.5,
+        deliveryDays: 3 + idx,
+        paymentTerms: sup.paymentTerms || '30 Days Credit',
+        technicalCompliance: '100% TDC Compliant (Verified)',
         warranty: '18 Months Guarantee',
-        freightTerms: 'Included in Base Price',
+        freightTerms: 'Door Delivery Included',
         isL1: false,
-        notes: 'Mill test certificates and ultrasonic test reports will be supplied.',
-        items: tataItems,
-        subtotal: tataSub,
-        taxAmount: Math.round(tataSub * 0.18),
-        grandTotal: Math.round(tataSub * 1.18),
-      },
-      {
-        id: 'VEND-JSL',
-        vendorId: 'SUP-002',
-        vendorName: 'Jindal Stainless Limited',
-        quoteNumber: `QT-JSL-${Date.now().toString().slice(-4)}`,
-        quoteDate: '2026-10-05',
-        rating: 4.8,
-        deliveryDays: 4,
-        paymentTerms: '45 Days Credit (Best Credit Terms)',
-        technicalCompliance: '100% TDC & ASME Compliant (Prime Quality)',
-        warranty: '24 Months Guarantee',
-        freightTerms: 'Door Delivery to Sanand Store Included',
-        isL1: true,
-        notes: 'Official L1 Lowest Bidder. Stock available in Ahmedabad regional warehouse for immediate dispatch.',
-        items: jindalItems,
-        subtotal: jindalSub,
-        taxAmount: Math.round(jindalSub * 0.18),
-        grandTotal: Math.round(jindalSub * 1.18),
-      },
-      {
-        id: 'VEND-APX',
-        vendorId: 'SUP-003',
-        vendorName: 'Apex Fasteners & Flanges Pvt Ltd',
-        quoteNumber: `QT-APX-${Date.now().toString().slice(-4)}`,
-        quoteDate: '2026-10-05',
-        rating: 4.7,
-        deliveryDays: 2,
-        paymentTerms: '15 Days Credit',
-        technicalCompliance: '98% Specification Met (Standard Stock)',
-        warranty: '12 Months Guarantee',
-        freightTerms: 'Express Freight Extra @ ₹1,500',
-        isL1: false,
-        notes: 'Fastest 48-Hour delivery guarantee if order placed before 4 PM.',
-        items: apexItems,
-        subtotal: apexSub,
-        taxAmount: Math.round(apexSub * 0.18),
-        grandTotal: Math.round(apexSub * 1.18),
-      },
-      {
-        id: 'VEND-SAIL',
-        vendorId: 'SUP-004',
-        vendorName: 'Steel Authority of India Ltd (SAIL)',
-        quoteNumber: `QT-SAIL-${Date.now().toString().slice(-4)}`,
-        quoteDate: '2026-10-04',
-        rating: 4.6,
-        deliveryDays: 5,
-        paymentTerms: '30 Days Credit',
-        technicalCompliance: '100% Standard PSU Grade (IS 2062)',
-        warranty: 'Standard Mill Warranty',
-        freightTerms: 'Ex-Yard Baroda Depot',
-        isL1: false,
-        notes: 'Government approved PSU make. Dispatch subject to yard gate clearance.',
-        items: sailItems,
-        subtotal: sailSub,
-        taxAmount: Math.round(sailSub * 0.18),
-        grandTotal: Math.round(sailSub * 1.18),
-      },
-    ];
-  }, [activePR]);
+        notes: (sq as any)?.notes || `Quotation evaluated for ${vName}.`,
+        items: quoteItems,
+        subtotal,
+        taxAmount: Math.round(subtotal * 0.18),
+        grandTotal: Math.round(subtotal * 1.18),
+      };
+    });
+
+    if (quotes.length > 0) {
+      let minVal = Infinity;
+      let minIdx = 0;
+      quotes.forEach((q, i) => {
+        if (q.grandTotal < minVal) {
+          minVal = q.grandTotal;
+          minIdx = i;
+        }
+      });
+      quotes[minIdx].isL1 = true;
+      quotes[minIdx].items.forEach((item) => {
+        item.isLowestRate = true;
+      });
+    }
+
+    return quotes;
+  }, [activePR, suppliers, supplierQuotations]);
+
+  useEffect(() => {
+    if (vendorQuotes.length > 0 && !acceptedVendorId) {
+      const l1 = vendorQuotes.find((v) => v.isL1);
+      setAcceptedVendorId(l1 ? l1.id : vendorQuotes[0].id);
+    }
+  }, [vendorQuotes, acceptedVendorId]);
 
   const selectedVendorQuote = useMemo(() => {
-    return vendorQuotes.find((v) => v.id === acceptedVendorId) || vendorQuotes[1];
+    return vendorQuotes.find((v) => v.id === acceptedVendorId) || vendorQuotes[0] || null;
   }, [vendorQuotes, acceptedVendorId]);
 
   const lowestVendor = useMemo(() => {
-    return [...vendorQuotes].sort((a, b) => a.grandTotal - b.grandTotal)[0];
+    return vendorQuotes.length > 0 ? [...vendorQuotes].sort((a, b) => a.grandTotal - b.grandTotal)[0] : null;
   }, [vendorQuotes]);
 
   const highestVendor = useMemo(() => {
-    return [...vendorQuotes].sort((a, b) => b.grandTotal - a.grandTotal)[0];
+    return vendorQuotes.length > 0 ? [...vendorQuotes].sort((a, b) => b.grandTotal - a.grandTotal)[0] : null;
   }, [vendorQuotes]);
 
   const totalSavings = useMemo(() => {
@@ -696,27 +594,27 @@ export default function VendorQuotationVerifyPage() {
               <tr>
                 <th className="p-3">Item Code & Specification</th>
                 <th className="p-3 text-center">Req Qty</th>
-                <th className="p-3">Tata Steel</th>
-                <th className="p-3 bg-emerald-50/70 border-x border-emerald-200">
-                  <div className="flex items-center gap-1 text-emerald-900 font-extrabold">
-                    <span>Jindal Stainless</span>
-                    <span className="px-1.5 py-0.2 rounded bg-emerald-600 text-white text-[9px]">L1</span>
-                  </div>
-                </th>
-                <th className="p-3">Apex Fasteners</th>
-                <th className="p-3">SAIL (Govt)</th>
+                {vendorQuotes.map((vq) => (
+                  <th
+                    key={vq.id}
+                    className={`p-3 ${vq.isL1 ? 'bg-emerald-50/70 border-x border-emerald-200 text-emerald-900 font-extrabold' : ''}`}
+                  >
+                    <div className="flex items-center gap-1">
+                      <span>{vq.vendorName}</span>
+                      {vq.isL1 && <span className="px-1.5 py-0.2 rounded bg-emerald-600 text-white text-[9px]">L1</span>}
+                    </div>
+                  </th>
+                ))}
                 <th className="p-3 text-right">L1 Savings</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB]">
               {vendorQuotes[0]?.items?.map((it, idx) => {
-                const tataRate = vendorQuotes[0]?.items[idx]?.unitRate || 0;
-                const jindalRate = vendorQuotes[1]?.items[idx]?.unitRate || 0;
-                const apexRate = vendorQuotes[2]?.items[idx]?.unitRate || 0;
-                const sailRate = vendorQuotes[3]?.items[idx]?.unitRate || 0;
-
-                const maxRate = Math.max(tataRate, apexRate, sailRate);
-                const itemSaving = (maxRate - jindalRate) * it.quantity;
+                const l1Quote = vendorQuotes.find((q) => q.isL1) || vendorQuotes[0];
+                const l1Rate = l1Quote?.items[idx]?.unitRate || 0;
+                const rates = vendorQuotes.map((q) => q.items[idx]?.unitRate || 0);
+                const maxRate = rates.length > 0 ? Math.max(...rates) : 0;
+                const itemSaving = Math.max(0, (maxRate - l1Rate) * it.quantity);
 
                 return (
                   <tr key={it.itemCode} className="hover:bg-[#FAF7F2]/50 transition">
@@ -728,40 +626,31 @@ export default function VendorQuotationVerifyPage() {
                       {it.quantity} {it.uom}
                     </td>
 
-                    {/* Tata */}
-                    <td className="p-3 font-mono">
-                      <div className="font-bold text-[#211B17]">₹{tataRate} /{it.uom}</div>
-                      <div className="text-[10px] text-[#70665F]">Total: ₹{tataRate * it.quantity}</div>
-                    </td>
+                    {vendorQuotes.map((vq) => {
+                      const rate = vq.items[idx]?.unitRate || 0;
+                      return (
+                        <td
+                          key={vq.id}
+                          className={`p-3 font-mono ${vq.isL1 ? 'bg-emerald-50/70 border-x border-emerald-200' : ''}`}
+                        >
+                          <div className={`font-bold ${vq.isL1 ? 'text-emerald-800 flex items-center gap-1 font-black' : 'text-[#211B17]'}`}>
+                            <span>₹{rate} /{it.uom}</span>
+                            {vq.isL1 && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />}
+                          </div>
+                          <div className={`text-[10px] ${vq.isL1 ? 'text-emerald-700 font-bold' : 'text-[#70665F]'}`}>
+                            Total: ₹{rate * it.quantity}
+                          </div>
+                        </td>
+                      );
+                    })}
 
-                    {/* Jindal (L1) */}
-                    <td className="p-3 font-mono bg-emerald-50/70 border-x border-emerald-200">
-                      <div className="font-black text-emerald-800 flex items-center gap-1">
-                        <span>₹{jindalRate} /{it.uom}</span>
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                      </div>
-                      <div className="text-[10px] text-emerald-700 font-bold">Total: ₹{jindalRate * it.quantity}</div>
-                    </td>
-
-                    {/* Apex */}
-                    <td className="p-3 font-mono">
-                      <div className="font-bold text-[#211B17]">₹{apexRate} /{it.uom}</div>
-                      <div className="text-[10px] text-[#70665F]">Total: ₹{apexRate * it.quantity}</div>
-                    </td>
-
-                    {/* SAIL */}
-                    <td className="p-3 font-mono">
-                      <div className="font-bold text-[#211B17]">₹{sailRate} /{it.uom}</div>
-                      <div className="text-[10px] text-[#70665F]">Total: ₹{sailRate * it.quantity}</div>
-                    </td>
-
-                    {/* Savings */}
                     <td className="p-3 text-right font-mono font-bold text-emerald-700">
                       +₹{itemSaving.toLocaleString('en-IN')}
                     </td>
                   </tr>
                 );
               })}
+
             </tbody>
           </table>
         </div>
@@ -769,13 +658,13 @@ export default function VendorQuotationVerifyPage() {
         {/* Footer Action Bar */}
         <div className="p-4 bg-[#FAF7F2] border-t border-[#EBE3DB] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="text-xs text-[#70665F]">
-            Recommended Winner: <strong className="text-emerald-800">{lowestVendor.vendorName}</strong> ({lowestVendor.quoteNumber}) saving <strong className="text-emerald-800">₹{totalSavings.toLocaleString('en-IN')}</strong>.
+            Recommended Winner: <strong className="text-emerald-800">{lowestVendor?.vendorName || "—"}</strong> ({lowestVendor?.quoteNumber || "—"}) saving <strong className="text-emerald-800">₹{totalSavings.toLocaleString('en-IN')}</strong>.
           </div>
 
           <div className="flex items-center gap-3">
             <button
               onClick={() => {
-                setAcceptedVendorId(lowestVendor.id);
+                if (lowestVendor) setAcceptedVendorId(lowestVendor.id);
                 setShowPOModal(true);
               }}
               className="px-4 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs shadow-md transition flex items-center gap-2"

@@ -1,0 +1,86 @@
+[
+  {
+    "file": "app/accounting/dashboard/page.tsx",
+    "line": 124,
+    "type": "LITERAL_OBJECT_ARRAY",
+    "snippet": "= [     { type: 'CGST Collected', amount: totalGSTLiability / 2 },     { type: 'SGST Collected', amount: totalGSTLiabili"
+  },
+  {
+    "file": "app/crm/page.tsx",
+    "line": 56,
+    "type": "LITERAL_OBJECT_ARRAY",
+    "snippet": "= [     { stage: 'Qualification', count: opportunities.filter((o) => o.stage === 'qualification').length, value: getStag"
+  },
+  {
+    "file": "app/hr/documents/page.tsx",
+    "line": 35,
+    "type": "LITERAL_OBJECT_ARRAY",
+    "snippet": "= [   { id: 'DOC-TYP-01', typeName: 'Aadhaar Card (12 Digits)', category: 'Identity', isMandatory: true, allowMultiple: "
+  },
+  {
+    "file": "app/hr/employees/page.tsx",
+    "line": 32,
+    "type": "LITERAL_OBJECT_ARRAY",
+    "snippet": "= [   { code: '+91', name: 'India (+91)', short: 'India', flag: '\ud83c\uddee\ud83c\uddf3', digits: 10 },   { code: '+1', name: 'United States"
+  },
+  {
+    "file": "app/hr/leaves/page.tsx",
+    "line": 29,
+    "type": "LITERAL_OBJECT_ARRAY",
+    "snippet": "= [   {     id: 'LT-01',     leaveCode: 'CL',     leaveName: 'Casual Leave (CL)',     annualQuota: 12,     monthlyAccrua"
+  },
+  {
+    "file": "app/notifications/page.tsx",
+    "line": 29,
+    "type": "LITERAL_OBJECT_ARRAY",
+    "snippet": "= [   { value: 'ALL', label: 'All Months' },   { value: '01', label: 'January' },   { value: '02', label: 'February' }, "
+  },
+  {
+    "file": "app/permissions/page.tsx",
+    "line": 7,
+    "type": "LITERAL_OBJECT_ARRAY",
+    "snippet": "= [   { module: 'CRM', page: 'Leads' },   { module: 'CRM', page: 'Enquiries' },   { module: 'CRM', page: 'Customers' }, "
+  },
+  {
+    "file": "app/projects/dashboard/page.tsx",
+    "line": 75,
+    "type": "LITERAL_OBJECT_ARRAY",
+    "snippet": "= [     { name: 'Planning', value: planningCount, color: '#8B5CF6' },     { name: 'Design', value: designPendingCount, c"
+  },
+  {
+    "file": "app/purchase/dashboard/page.tsx",
+    "line": 121,
+    "type": "LITERAL_OBJECT_ARRAY",
+    "snippet": "= [     { category: 'Class A (90-100%)', count: suppliers.filter(s => (Number(s.performanceRating) || 0) >= 90).length }"
+  },
+  {
+    "file": "app/settings/release-notes/page.tsx",
+    "line": 29,
+    "type": "LITERAL_OBJECT_ARRAY",
+    "snippet": "= [     { module: 'Module 1: ERP Foundation & Access Control', version: 'v1.0.0', items: ['Company Master & Financial Ye"
+  },
+  {
+    "file": "app/testing/role-matrix/page.tsx",
+    "line": 46,
+    "type": "LITERAL_OBJECT_ARRAY",
+    "snippet": "= [     { name: 'ERP Foundation', route: '/users', superAdmin: true, plantDir: true, sales: false, design: false, purcha"
+  },
+  {
+    "file": "context/ERPContext.tsx",
+    "line": 1536,
+    "type": "FALLBACK_OBJECT_ARRAY",
+    "snippet": "|| [{}])[0];       const summary = item.latestSummary || {         machineProduct: firstItem?.productName || 'Process Eq"
+  },
+  {
+    "file": "data/dbStore.ts",
+    "line": 53,
+    "type": "LITERAL_OBJECT_ARRAY",
+    "snippet": "= [   {     id: 'NUM-001',     module: 'CRM & Sales',     docType: 'lead',     prefix: 'LEAD-2026-',     currentNumber: "
+  },
+  {
+    "file": "lib/projectPlanningHelper.ts",
+    "line": 451,
+    "type": "LITERAL_OBJECT_ARRAY",
+    "snippet": "= [     { name: 'Customer PO & Project Kickoff', pct: 0.0, owner: 'Pravin Patel', status: 'achieved' as const, remarks: "
+  }
+]

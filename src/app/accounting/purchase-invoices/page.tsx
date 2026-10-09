@@ -55,12 +55,12 @@ export default function PurchaseInvoicesPage() {
       dueDate: '2026-10-30',
       supplierId: supp.id,
       supplierName: supp.supplierName || (supp as any).name || 'Unknown Supplier',
-      supplierGstin: supp.gstin || '24AAACX8888Y1Z5',
+      supplierGstin: supp.gstin || '',
       vendorInvoiceNumber,
       poNumber,
       grnNumber,
-      jobNumber: 'JOB-2026-001',
-      projectId: 'PROJ-2026-001',
+      jobNumber: (purchaseOrders.find((p) => p.poNumber === poNumber || p.id === poNumber) as any)?.jobId || '',
+      projectId: (purchaseOrders.find((p) => p.poNumber === poNumber || p.id === poNumber) as any)?.projectId || '',
       items: [
         {
           id: 'PITEM-1',

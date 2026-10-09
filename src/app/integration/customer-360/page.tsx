@@ -5,8 +5,8 @@ import { useERP } from '../../../context/ERPContext';
 import { UserCheck, Building, Phone, Mail, MapPin, Receipt, Layers, Briefcase, FileText, Download } from 'lucide-react';
 
 export default function Customer360Page() {
-  const { customer360List } = useERP();
-  const [selectedCustId, setSelectedCustId] = useState<string>('CUST-2026-0001');
+  const { customer360List, projectJobs } = useERP();
+  const [selectedCustId, setSelectedCustId] = useState<string>(customer360List[0]?.customerId || '');
 
   const customer = customer360List.find((c) => c.customerId === selectedCustId) || customer360List[0];
 
@@ -95,13 +95,19 @@ export default function Customer360Page() {
             <Layers className="w-4 h-4 text-emerald-400" /> Active MTO Manufacturing Jobs
           </h3>
           <div className="space-y-2">
-            <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] flex justify-between items-center">
-              <div>
-                <span className="font-bold text-crm-brand-500">JOB-2026-001</span>
-                <p className="text-[10px] text-[#70665F]">10 KL Heavy SS 316L Chemical Reactor Vessel</p>
-              </div>
-              <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold text-[10px]">In Production</span>
-            </div>
+            {projectJobs.filter(j => j.customerId === customer.customerId || j.customerName === customer.customerName).length > 0 ? (
+              projectJobs.filter(j => j.customerId === customer.customerId || j.customerName === customer.customerName).map(j => (
+                <div key={j.id} className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] flex justify-between items-center">
+                  <div>
+                    <span className="font-bold text-crm-brand-500">{j.jobNumber}</span>
+                    <p className="text-[10px] text-[#70665F]">{j.productName}</p>
+                  </div>
+                  <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-600 font-bold text-[10px]">{j.status}</span>
+                </div>
+              ))
+            ) : (
+              <p className="text-xs text-[#70665F]">No active manufacturing jobs for this customer.</p>
+            )}
           </div>
         </div>
       </div>

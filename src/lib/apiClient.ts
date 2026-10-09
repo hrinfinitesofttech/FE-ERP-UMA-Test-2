@@ -110,20 +110,20 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
     d.assigned_sales_person_name = d.assigned_sales_person_name || d.assignedSalesPersonName || '';
     d.created_date = d.created_date || d.createdDate || nowStr;
   } else if (ep.includes('/customers')) {
-    d.companyName = d.companyName || d.company_name || d.name || 'Customer Co';
-    d.contactPerson = d.contactPerson || d.contact_person || d.name || 'Contact';
-    d.mobile = d.mobile || d.phone || '9999999999';
+    d.companyName = d.companyName || d.company_name || d.name || '';
+    d.contactPerson = d.contactPerson || d.contact_person || d.name || '';
+    d.mobile = d.mobile || d.phone || '';
   } else if (ep.includes('/enquiries')) {
-    d.customerId = d.customerId || d.customer_id || 'CUST-001';
-    d.customerName = d.customerName || d.customer_name || 'Customer';
-    d.requirement = d.requirement || d.title || d.specification || 'Requirements';
-    d.machineProduct = d.machineProduct || d.productName || 'Equipment';
+    d.customerId = d.customerId || d.customer_id || '';
+    d.customerName = d.customerName || d.customer_name || '';
+    d.requirement = d.requirement || d.title || d.specification || '';
+    d.machineProduct = d.machineProduct || d.productName || '';
     d.date = d.date || d.enquiryDate || nowStr;
   } else if (ep.includes('/opportunities')) {
-    d.customerId = d.customerId || d.customer_id || 'CUST-001';
-    d.customerName = d.customerName || d.customer_name || 'Customer';
-    d.machineProduct = d.machineProduct || d.productName || d.title || 'Equipment';
-    d.expectedValue = d.expectedValue || d.estimatedValue || 10000;
+    d.customerId = d.customerId || d.customer_id || '';
+    d.customerName = d.customerName || d.customer_name || '';
+    d.machineProduct = d.machineProduct || d.productName || d.title || '';
+    d.expectedValue = d.expectedValue || d.estimatedValue || 0;
   } else if (ep.includes('/sales-orders')) {
     if (d.salesOrderNumber || d.sales_order_number || d.soNumber) {
       d.sales_order_number = d.sales_order_number || d.salesOrderNumber || d.soNumber;
@@ -153,7 +153,7 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
   }
   // Projects
   else if (ep.includes('/projects')) {
-    d.customerId = d.customerId || d.customer_id || 'CUST-001';
+    d.customerId = d.customerId || d.customer_id || '';
     d.customer_id = d.customerId;
     const resolvedCustName = d.customerName || d.customer_name || d.client_name || d.clientName || '';
     if (resolvedCustName && resolvedCustName !== 'Customer') {
@@ -198,7 +198,7 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
   }
   // Purchase
   else if (ep.includes('/suppliers')) {
-    d.vendorCode = d.vendorCode || d.supplierCode || d.code || d.id || 'SUP-001';
+    d.vendorCode = d.vendorCode || d.supplierCode || d.code || d.id || '';
     d.contactPerson = d.contactPerson || d.contact_person || d.name || 'Vendor Rep';
     d.mobile = d.mobile || d.phone || '9999999999';
   } else if (ep.includes('/rfqs')) {
@@ -212,7 +212,7 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
   } else if (ep.includes('/supplier-quotations')) {
     d.quotationNumber = d.quotationNumber || d.quotation_number || d.id || `SQ-2026-${Date.now().toString().slice(-4)}`;
     d.quotation_number = d.quotationNumber;
-    d.supplierId = d.supplierId || d.supplier_id || 'SUP-001';
+    d.supplierId = d.supplierId || d.supplier_id || '';
     d.supplier_id = d.supplierId;
     d.supplierName = d.supplierName || d.supplier_name || 'Supplier';
     d.supplier_name = d.supplierName;
@@ -226,7 +226,7 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
     deliv.setDate(deliv.getDate() + 14);
     d.poNumber = d.poNumber || d.po_number || d.id || `PO-2026-${Date.now().toString().slice(-4)}`;
     d.po_number = d.poNumber;
-    d.supplierId = d.supplierId || d.supplier_id || 'SUP-001';
+    d.supplierId = d.supplierId || d.supplier_id || '';
     d.supplier_id = d.supplierId;
     d.supplierName = d.supplierName || d.supplier_name || 'Supplier';
     d.supplier_name = d.supplierName;
@@ -236,7 +236,7 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
   } else if (ep.includes('/purchase-returns')) {
     d.returnNumber = d.returnNumber || d.return_number || d.id || `PRT-2026-${Date.now().toString().slice(-4)}`;
     d.return_number = d.returnNumber;
-    d.supplierId = d.supplierId || d.supplier_id || 'SUP-001';
+    d.supplierId = d.supplierId || d.supplier_id || '';
     d.supplier_name = d.supplierName || d.supplier_name || 'Supplier';
     d.reason = d.reason || 'Quality Rejection';
     d.date = d.date || d.returnDate || nowStr;
@@ -249,12 +249,12 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
     d.date = d.date || d.grnDate || d.receiptDate || nowStr;
     d.po_id = d.po_id || d.poId || '';
     d.po_number = d.po_number || d.poNumber || '';
-    d.supplier_id = d.supplier_id || d.supplierId || 'SUP-001';
+    d.supplier_id = d.supplier_id || d.supplierId || '';
     d.supplier_name = d.supplier_name || d.supplierName || 'Supplier';
     d.challan_number = d.challan_number || d.deliveryChallanNumber || d.challanNumber || '';
     d.invoice_number = d.invoice_number || d.invoiceNumber || '';
     d.vehicle_number = d.vehicle_number || d.vehicleNumber || '';
-    d.warehouse_id = d.warehouse_id || d.warehouseId || 'WH-001';
+    d.warehouse_id = d.warehouse_id || d.warehouseId || '';
     d.received_by = d.received_by || d.receivedBy || 'Store Officer';
     d.items = d.items || [];
   } else if (ep.includes('/warehouses')) {
@@ -395,8 +395,8 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
     d.invoiceDate = d.invoiceDate || d.date || nowStr;
     d.date = d.invoiceDate;
     d.dueDate = d.dueDate || due.toISOString().split('T')[0];
-    d.customerId = d.customerId || 'CUST-001';
-    d.customerName = d.customerName || 'Customer';
+    d.customerId = d.customerId || d.customer_id || '';
+    d.customerName = d.customerName || d.customer_name || '';
   } else if (ep.includes('/purchase-invoices')) {
     const due = new Date();
     due.setDate(due.getDate() + 30);
@@ -405,22 +405,22 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
     d.invoiceDate = d.invoiceDate || d.date || nowStr;
     d.date = d.invoiceDate;
     d.dueDate = d.dueDate || due.toISOString().split('T')[0];
-    d.supplierId = d.supplierId || 'SUP-001';
-    d.supplierName = d.supplierName || 'Supplier';
+    d.supplierId = d.supplierId || d.supplier_id || '';
+    d.supplierName = d.supplierName || d.supplier_name || '';
   } else if (ep.includes('/customer-receipts')) {
     d.receiptNumber = d.receiptNumber || d.receipt_number || d.id || `REC-2026-${Date.now().toString().slice(-4)}`;
     d.receipt_number = d.receiptNumber;
     d.receiptDate = d.receiptDate || d.date || nowStr;
     d.date = d.receiptDate;
-    d.customerId = d.customerId || 'CUST-001';
-    d.customerName = d.customerName || 'Customer';
+    d.customerId = d.customerId || d.customer_id || '';
+    d.customerName = d.customerName || d.customer_name || '';
   } else if (ep.includes('/supplier-payments')) {
     d.paymentNumber = d.paymentNumber || d.payment_number || d.id || `PAY-2026-${Date.now().toString().slice(-4)}`;
     d.payment_number = d.paymentNumber;
     d.paymentDate = d.paymentDate || d.date || nowStr;
     d.date = d.paymentDate;
-    d.supplierId = d.supplierId || 'SUP-001';
-    d.supplierName = d.supplierName || 'Supplier';
+    d.supplierId = d.supplierId || d.supplier_id || '';
+    d.supplierName = d.supplierName || d.supplier_name || '';
   } else if (ep.includes('/expense-entries') || ep.includes('/expenses')) {
     d.expenseNumber = d.expenseNumber || d.expense_number || d.id || `EXP-2026-${Date.now().toString().slice(-4)}`;
     d.expense_number = d.expenseNumber;

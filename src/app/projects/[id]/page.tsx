@@ -409,8 +409,8 @@ export default function ProjectDetailPage() {
               </div>
               <div className="p-4 bg-slate-50 dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-xl space-y-2">
                 <h4 className="font-bold text-slate-800 dark:text-[#544B45]">Bill of Materials (BOM)</h4>
-                <p className="text-[#70665F]">Master BOM Released: BOM-JOB-2026-001-REV02</p>
-                <div className="text-[11px] text-[#70665F]">Items: 42 Line Items (Plates, Flanges, Agitator, Seals, Gaskets)</div>
+                <p className="text-[#70665F]">Master BOM: {(project as any)?.bomNumber || (project?.jobNumber ? `BOM-${project.jobNumber}` : 'Pending')}</p>
+                <div className="text-[11px] text-[#70665F]">Design Code: Standard Engineering Specs</div>
               </div>
             </div>
           </div>
@@ -598,7 +598,7 @@ export default function ProjectDetailPage() {
             <h3 className="font-bold text-slate-900 dark:text-[#211B17] text-xs">Warranty & After-Sales Service</h3>
             <div className="p-4 bg-slate-50 dark:bg-white rounded-xl border border-slate-200 dark:border-[#EBE3DB] space-y-2 text-xs">
               <div>Warranty Coverage: 18 Months from Dispatch date or 12 Months from commissioning.</div>
-              <div>Service Desk Ref: SERV-JOB-2026-001</div>
+              <div>Service Desk Ref: {project?.jobNumber ? `SERV-${project.jobNumber}` : 'N/A'}</div>
             </div>
           </div>
         )}

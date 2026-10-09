@@ -10,15 +10,15 @@ export default function StockReservationsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Form State
-  const [jobId, setJobId] = useState('JOB-2026-001');
-  const [itemId, setItemId] = useState(itemMasters[0]?.id || 'ITEM-001');
-  const [warehouseId, setWarehouseId] = useState(warehouses[0]?.id || 'WH-001');
-  const [requiredQty, setRequiredQty] = useState(1500);
+  const [jobId, setJobId] = useState(projectJobs[0]?.id || projectJobs[0]?.jobNumber || '');
+  const [itemId, setItemId] = useState(itemMasters[0]?.id || '');
+  const [warehouseId, setWarehouseId] = useState(warehouses[0]?.id || '');
+  const [requiredQty, setRequiredQty] = useState(0);
   const [requiredDate, setRequiredDate] = useState('2026-10-01');
 
   const selectedItem = itemMasters.find((i) => i.id === itemId) || itemMasters[0];
   const selectedWh = warehouses.find((w) => w.id === warehouseId) || warehouses[0];
-  const selectedJob = projectJobs.find((j) => j.jobNumber === jobId) || projectJobs[0];
+  const selectedJob = projectJobs.find((j) => j.jobNumber === jobId || j.id === jobId) || projectJobs[0];
 
   const filtered = stockReservations.filter(
     (r) =>

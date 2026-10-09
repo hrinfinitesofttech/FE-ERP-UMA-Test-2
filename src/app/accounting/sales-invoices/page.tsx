@@ -144,10 +144,10 @@ export default function SalesInvoicesPage() {
       dueDate,
       customerId: cust.id,
       customerName: cust.companyName || (cust as any).customerName || (cust as any).name || 'Unknown Customer',
-      customerGstin: cust.gstin || '24AAACX0000X1Z1',
+      customerGstin: cust.gstin || '',
       salesOrderNumber,
-      jobNumber: 'JOB-2026-001',
-      projectId: 'PROJ-2026-001',
+      jobNumber: (salesOrders.find((s) => s.salesOrderNumber === salesOrderNumber || s.id === salesOrderNumber) as any)?.jobNumber || '',
+      projectId: (salesOrders.find((s) => s.salesOrderNumber === salesOrderNumber || s.id === salesOrderNumber) as any)?.projectId || '',
       placeOfSupply,
       items: formattedItems,
       subTotal,
@@ -621,8 +621,8 @@ export default function SalesInvoicesPage() {
                   <span className="text-[10px] uppercase font-bold text-emerald-800 block mb-1">Details of Receiver (Billed To)</span>
                   <h4 className="font-bold text-[#211B17] text-sm">{selectedInvoiceForPrint.customerName}</h4>
                   <div className="text-[#544B45] text-[11px] space-y-0.5 mt-1">
-                    <p>Customer ID: <span className="font-mono">{selectedInvoiceForPrint.customerId || 'CUST-001'}</span></p>
-                    <p>GSTIN: <span className="font-mono font-semibold text-[#211B17]">{(selectedInvoiceForPrint as any).customerGstin || '24AAACC9876D1Z2'}</span></p>
+                    <p>Customer ID: <span className="font-mono">{selectedInvoiceForPrint.customerId || '—'}</span></p>
+                    <p>GSTIN: <span className="font-mono font-semibold text-[#211B17]">{(selectedInvoiceForPrint as any).customerGstin || '—'}</span></p>
                     <p>Place of Supply: <span className="font-semibold">{selectedInvoiceForPrint.placeOfSupply || 'Gujarat (24)'}</span></p>
                   </div>
                 </div>

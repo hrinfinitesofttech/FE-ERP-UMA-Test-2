@@ -5,7 +5,7 @@ import { useERP } from '../../../context/ERPContext';
 import { Zap, AlertTriangle, Plus, Search, ShoppingCart, CheckCircle } from 'lucide-react';
 
 export default function ReorderPage() {
-  const { itemMasters, stockBalances, addPurchaseRequisition } = useERP();
+  const { itemMasters, stockBalances, addPurchaseRequisition, projectJobs } = useERP();
   const [searchTerm, setSearchTerm] = useState('');
   const [generatedPRs, setGeneratedPRs] = useState<string[]>([]);
 
@@ -28,9 +28,9 @@ export default function ReorderPage() {
     const suggestedQty = item.maximumStock - item.minimumStock;
     addPurchaseRequisition({
       prNumber: `PR-REORDER-${Date.now().toString().slice(-4)}`,
-      projectId: 'PRJ-2026-0001',
-      jobId: 'PRJ-2026-0001',
-      jobNumber: 'JOB-2026-001',
+      projectId: projectJobs[0]?.projectId || '',
+      jobId: projectJobs[0]?.id || '',
+      jobNumber: projectJobs[0]?.jobNumber || '',
       requestedBy: 'Store Low Stock Auto-Reorder Engine',
       department: 'Store & Inventory',
       requisitionDate: new Date().toISOString().split('T')[0],

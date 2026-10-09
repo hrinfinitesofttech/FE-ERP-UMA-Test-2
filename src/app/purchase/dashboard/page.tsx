@@ -89,7 +89,7 @@ export default function PurchaseDashboardPage() {
   monthNames.forEach(m => { spendByMonth[m] = 0; });
   (purchaseOrders || []).forEach(po => {
     if (po.status !== 'Cancelled') {
-      const dt = po.date || po.orderDate || po.createdAt;
+      const dt = po.poDate || (po as any).orderDate || (po as any).date || (po as any).createdAt;
       if (dt) {
         try {
           const m = new Date(dt).toLocaleString('default', { month: 'short' });
@@ -138,7 +138,7 @@ export default function PurchaseDashboardPage() {
   // Chart 5: Material Shortage Category Split (From real MRP shortages)
   const shortageCategories: Record<string, number> = {};
   materialRequirements.filter(mr => (Number(mr.shortageQuantity) || 0) > 0).forEach(mr => {
-    const cat = mr.category || mr.itemCategory || 'General Materials';
+    const cat = mr.category || (mr as any).itemCategory || 'General Materials';
     shortageCategories[cat] = (shortageCategories[cat] || 0) + 1;
   });
   const shortageCategoryData = Object.entries(shortageCategories).map(([category, count]) => ({ category, count }));

@@ -50,8 +50,8 @@ export default function FinishedGoodsPage() {
   }, []);
 
   // Form State for Inwarding FG
-  const defaultWo = workOrders[0]?.workOrderNumber || 'WO-2026-001-A';
-  const defaultJob = workOrders[0]?.jobNumber || 'JOB-2026-001';
+  const defaultWo = workOrders[0]?.workOrderNumber || '';
+  const defaultJob = workOrders[0]?.jobNumber || '';
   const defaultProduct = workOrders[0]?.productName || 'Heavy SS 316L Chemical Reactor Vessel (10 KL)';
 
   const [selectedWo, setSelectedWo] = useState(defaultWo);
@@ -90,7 +90,7 @@ export default function FinishedGoodsPage() {
   const openCreateModal = () => {
     setEditingFg(null);
     const wo = workOrders[0];
-    setSelectedWo(wo?.workOrderNumber || 'WO-2026-001-A');
+    setSelectedWo(wo?.workOrderNumber || '');
     setProductName(wo?.productName || 'Heavy SS 316L Chemical Reactor Vessel (10 KL)');
     setSpecification('SS 316L Limpet Coil, 10 KL, 6 Bar Design Pressure');
     setSerialNumber(`UTF-SER-${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`);
@@ -141,8 +141,8 @@ export default function FinishedGoodsPage() {
     const matchedJob = projectJobs.find((j) => j.jobNumber === matchedWo?.jobNumber);
 
     const payload = {
-      jobId: matchedWo?.jobId || matchedJob?.id || 'JOB-2026-001',
-      jobNumber: matchedWo?.jobNumber || matchedJob?.jobNumber || 'JOB-2026-001',
+      jobId: matchedWo?.jobId || matchedJob?.id || '',
+      jobNumber: matchedWo?.jobNumber || matchedJob?.jobNumber || '',
       workOrderNumber: selectedWo,
       productionOrderNumber: `PO-PROD-${new Date().getFullYear()}-001`,
       productName: productName.trim(),
@@ -497,7 +497,7 @@ export default function FinishedGoodsPage() {
                       </option>
                     ))
                   ) : (
-                    <option value="WO-2026-001-A">WO-2026-001-A — JOB-2026-001 (Chemical Reactor Vessel 10KL)</option>
+                    <option value="">Select Work Order</option>
                   )}
                 </select>
               </div>

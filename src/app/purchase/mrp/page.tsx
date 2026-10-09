@@ -207,115 +207,58 @@ export default function MRPPage() {
     const pId = (jobObj as any)?.projectId || 'PRJ-2026-0001';
     const prodName = (jobObj as any)?.productName || 'Industrial Equipment';
 
-    const generated: MaterialRequirement[] = [
-      {
-        id: `MRP-GEN-${jNumber}-01`,
+    // Find real BOM for this job
+    const matchedBom = boms.find(
+      (b) => b.jobNumber === jNumber || b.jobId === jobId || b.id === jobId || (b as any).bomNumber === jNumber
+    );
+
+    if (!matchedBom || !matchedBom.items || matchedBom.items.length === 0) {
+      setGeneratedPRSuccess(`No approved BOM items found for Job ${jNumber}. Please define and approve a BOM first in Engineering.`);
+      setTimeout(() => setGeneratedPRSuccess(null), 6000);
+      return;
+    }
+
+    const generated: MaterialRequirement[] = matchedBom.items.map((bi: any, index: number) => {
+      const pNumber = bi.partNumber || bi.itemCode || `PART-${index + 1}`;
+      const iCode = bi.itemCode || bi.partNumber || pNumber;
+      const iName = bi.partName || bi.itemName || `${pNumber} for ${prodName}`;
+      const reqQty = Number(bi.quantity || bi.requiredQuantity || 1);
+      const stockObj = stockBalances.find((s: any) => s.itemCode === iCode || s.itemId === iCode);
+      const availStock = Number(stockObj?.availableQty || stockObj?.currentQuantity || (stockObj as any)?.quantity || 0);
+      const shortage = Math.max(0, reqQty - availStock);
+      const rate = Number(bi.unitCost || bi.rate || bi.unitPrice || 100);
+
+      return {
+        id: `MRP-GEN-${jNumber}-${index + 1}`,
         projectId: pId,
         jobId: jNumber,
-        bomId: `BOM-${jNumber}`,
-        bomRevision: 'Rev-01',
-        partNumber: 'RM-SS-PLATE-10MM',
-        itemCode: 'RM-SS-PLATE-10MM',
-        itemName: `SS 316L Shell Plate 10mm (for ${prodName})`,
-        specification: 'ASTM A240 Gr. 316L, 10mm x 1500mm x 6000mm',
-        category: 'Raw Material',
-        requiredQuantity: 4,
-        unitOfMeasure: 'NOS',
-        availableStock: 1,
+        bomId: matchedBom.id || `BOM-${jNumber}`,
+        bomRevision: matchedBom.revisionNumber || 'Rev-01',
+        partNumber: pNumber,
+        itemCode: iCode,
+        itemName: iName,
+        specification: bi.specification || bi.materialGrade || 'Standard Specification',
+        category: bi.category || bi.itemCategory || 'Raw Material',
+        requiredQuantity: reqQty,
+        unitOfMeasure: bi.uom || bi.unitOfMeasure || 'NOS',
+        availableStock: availStock,
         reservedStock: 0,
         onOrderQuantity: 0,
-        shortageQuantity: 3,
+        shortageQuantity: shortage,
         requiredByDate: new Date(Date.now() + 10 * 86400000).toISOString().split('T')[0],
         procurementType: 'Purchase',
-        procurementStatus: 'Action Needed',
-        drawingNumber: 'DWG-SH-001',
-        status: 'shortage',
-        estimatedRate: 4500,
-        unitPrice: 4500,
-        shortageCost: 3 * 4500,
-      },
-      {
-        id: `MRP-GEN-${jNumber}-02`,
-        projectId: pId,
-        jobId: jNumber,
-        bomId: `BOM-${jNumber}`,
-        bomRevision: 'Rev-01',
-        partNumber: 'RM-FLANGE-ANSI150',
-        itemCode: 'RM-FLANGE-ANSI150',
-        itemName: '100NB ANSI Class 150 SORF Flange SS316',
-        specification: 'ASTM A182 F316 / ASME B16.5 Class 150',
-        category: 'Raw Material',
-        requiredQuantity: 12,
-        unitOfMeasure: 'NOS',
-        availableStock: 4,
-        reservedStock: 0,
-        onOrderQuantity: 2,
-        shortageQuantity: 6,
-        requiredByDate: new Date(Date.now() + 12 * 86400000).toISOString().split('T')[0],
-        procurementType: 'Purchase',
-        procurementStatus: 'Action Needed',
-        drawingNumber: 'DWG-FL-004',
-        status: 'shortage',
-        estimatedRate: 1850,
-        unitPrice: 1850,
-        shortageCost: 6 * 1850,
-      },
-      {
-        id: `MRP-GEN-${jNumber}-03`,
-        projectId: pId,
-        jobId: jNumber,
-        bomId: `BOM-${jNumber}`,
-        bomRevision: 'Rev-01',
-        partNumber: 'BO-VALVE-BALL-2IN',
-        itemCode: 'BO-VALVE-BALL-2IN',
-        itemName: '2 Inch 3-Piece Ball Valve SS316 Flanged',
-        specification: 'Class 150 PTFE Seat, Fire-Safe API 607',
-        category: 'Bought-out Item',
-        requiredQuantity: 6,
-        unitOfMeasure: 'NOS',
-        availableStock: 2,
-        reservedStock: 0,
-        onOrderQuantity: 0,
-        shortageQuantity: 4,
-        requiredByDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
-        procurementType: 'Purchase',
-        procurementStatus: 'Action Needed',
-        drawingNumber: 'DWG-VLV-002',
-        status: 'shortage',
-        estimatedRate: 8500,
-        unitPrice: 8500,
-        shortageCost: 4 * 8500,
-      },
-      {
-        id: `MRP-GEN-${jNumber}-04`,
-        projectId: pId,
-        jobId: jNumber,
-        bomId: `BOM-${jNumber}`,
-        bomRevision: 'Rev-01',
-        partNumber: 'FAST-HEX-M16X65',
-        itemCode: 'FAST-HEX-M16X65',
-        itemName: 'M16 x 65mm Hex Head Stud Bolt & Nut Set',
-        specification: 'ASTM A193 Gr. B8M / A194 Gr. 8M Stainless Steel',
-        category: 'Hardware',
-        requiredQuantity: 48,
-        unitOfMeasure: 'SET',
-        availableStock: 20,
-        reservedStock: 0,
-        onOrderQuantity: 0,
-        shortageQuantity: 28,
-        requiredByDate: new Date(Date.now() + 8 * 86400000).toISOString().split('T')[0],
-        procurementType: 'Purchase',
-        procurementStatus: 'Action Needed',
-        drawingNumber: 'DWG-FAST-01',
-        status: 'shortage',
-        estimatedRate: 120,
-        unitPrice: 120,
-        shortageCost: 28 * 120,
-      },
-    ];
+        procurementStatus: shortage > 0 ? 'Action Needed' : 'In Stock',
+        drawingNumber: bi.drawingNumber || '',
+        status: shortage > 0 ? 'shortage' : 'available',
+        estimatedRate: rate,
+        unitPrice: rate,
+        shortageCost: shortage * rate,
+      };
+    });
 
     setCustomGeneratedItems((prev) => ({ ...prev, [jNumber]: generated }));
-    setGeneratedPRSuccess(`Calculated MRP material requirements for Job ${jNumber}! Found 4 shortage items ready for PR.`);
+    const shortageCount = generated.filter((g) => g.shortageQuantity > 0).length;
+    setGeneratedPRSuccess(`Calculated MRP from live BOM for Job ${jNumber}! Found ${shortageCount} shortage items.`);
     setTimeout(() => setGeneratedPRSuccess(null), 6000);
   };
 

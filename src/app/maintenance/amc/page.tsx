@@ -17,20 +17,20 @@ import {
 } from 'lucide-react';
 
 export default function AMCManagementPage() {
-  const { amcContracts, addAMCContract } = useERP();
+  const { amcContracts, addAMCContract, customers, customerMachines } = useERP();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
 
   const [formData, setFormData] = useState({
-    customerId: 'CUST-002',
-    customerName: 'Tata Motors Commercial Vehicles Ltd (Pune)',
-    customerMachineId: 'CM-2026-002',
-    machineName: 'Automated Hydraulic Chassis Clamping & Welding Jig Station',
-    serialNumber: 'UTF-JIG-2025-0441',
+    customerId: customers?.[0]?.id || '',
+    customerName: (customers?.[0] as any)?.companyName || (customers?.[0] as any)?.name || '',
+    customerMachineId: '',
+    machineName: '',
+    serialNumber: '',
     contractStart: new Date().toISOString().split('T')[0],
     contractEnd: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    contractValue: 185000,
+    contractValue: 0,
     billingFrequency: 'Quarterly' as const,
     totalVisitsIncluded: 4,
     visitsCompleted: 0,
@@ -40,8 +40,8 @@ export default function AMCManagementPage() {
     labourIncluded: true,
     responseTimeHours: 24,
     termsAndConditions: 'Comprehensive AMC terms.',
-    assignedTechnicianId: 'EMP-TECH-02',
-    assignedTechnicianName: 'Suresh Verma (Technician Lead)',
+    assignedTechnicianId: '',
+    assignedTechnicianName: '',
     status: 'Active' as AMCStatus,
   });
 

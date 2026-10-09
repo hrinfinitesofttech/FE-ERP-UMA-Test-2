@@ -22,7 +22,7 @@ export default function SupplierContactsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   // New Contact Form
-  const [newSupplierId, setNewSupplierId] = useState(suppliers[0]?.id || 'SUP-001');
+  const [newSupplierId, setNewSupplierId] = useState(suppliers[0]?.id || '');
   const [newName, setNewName] = useState('');
   const [newDesignation, setNewDesignation] = useState('');
   const [newDepartment, setNewDepartment] = useState('Sales');

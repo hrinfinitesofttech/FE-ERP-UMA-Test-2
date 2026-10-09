@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import {
   BarChart3,
@@ -27,7 +27,23 @@ import {
 } from 'lucide-react';
 
 export default function ManagementDashboardPage() {
-  const { activeRoleView, setActiveRoleView, customers, salesOrders, jobs, employees, centralAlerts } = useERP();
+  const {
+    activeRoleView,
+    setActiveRoleView,
+    customers,
+    salesOrders,
+    jobs,
+    employees,
+    centralAlerts,
+    quotations,
+    purchaseOrders,
+    purchaseRequisitions,
+    serviceRequests,
+    salesInvoices,
+    purchaseInvoices,
+    dispatchOrders,
+    workOrders,
+  } = useERP();
   const [dateRange, setDateRange] = useState<string>('This Month');
 
   const rolesList = [
@@ -42,26 +58,53 @@ export default function ManagementDashboardPage() {
     'Maintenance Manager',
   ];
 
-  const kpis = [
-    { label: 'Total Customers', value: '42', change: '+4 this month', color: 'text-crm-brand-500' },
-    { label: 'Active Projects', value: '14', change: '8 On Track', color: 'text-crm-brand-500' },
-    { label: 'Active Jobs', value: '18', change: '3 Urgent', color: 'text-amber-400' },
-    { label: 'Pending Quotations', value: '6', change: '₹1.8 Cr value', color: 'text-crm-brand-500' },
-    { label: 'Confirmed Orders', value: '12', change: '₹4.2 Cr booked', color: 'text-emerald-400' },
-    { label: 'Pending Purchase', value: '5 PRs', change: '₹28 Lakhs', color: 'text-rose-400' },
-    { label: 'Material Shortage', value: '0 Items', change: '100% Stock Ready', color: 'text-emerald-400' },
-    { label: 'Production Jobs', value: '8 Jobs', change: 'Shopfloor active', color: 'text-orange-400' },
-    { label: 'WIP Jobs', value: '5 Jobs', change: 'In Fabrication', color: 'text-yellow-400' },
-    { label: 'Completed Jobs', value: '24', change: 'YTD Delivered', color: 'text-green-400' },
-    { label: 'Pending Dispatch', value: '2 Units', change: 'Logistics Ready', color: 'text-indigo-400' },
-    { label: 'Outstanding Receivables', value: '₹47.56 L', change: '12 Overdue', color: 'text-rose-400' },
-    { label: 'Outstanding Payables', value: '₹22.10 L', change: 'Scheduled', color: 'text-crm-brand-500' },
-    { label: 'Monthly Revenue', value: '₹1.85 Cr', change: '+18% vs Last Mo', color: 'text-emerald-400' },
-    { label: 'Monthly Expenses', value: '₹1.22 Cr', change: 'Within Budget', color: 'text-amber-400' },
-    { label: 'Current Month Profit', value: '₹63 Lakhs', change: '34% Net Margin', color: 'text-teal-400' },
-    { label: 'Total Employees', value: '128', change: '96.5% Attendance', color: 'text-pink-400' },
-    { label: 'Open Service Requests', value: '2 Requests', change: '1 Breakdown', color: 'text-red-400' },
-  ];
+  const kpis = useMemo(() => {
+    const totalCustomers = customers?.length || 0;
+    const totalJobs = jobs?.length || 0;
+    const activeJobs = jobs?.filter((j: any) => j.status !== 'Delivered' && j.status !== 'Cancelled')?.length || 0;
+    const pendingQuotations = quotations?.filter((q: any) => q.status === 'Draft' || q.status === 'Pending_Approval')?.length || 0;
+    const confirmedOrders = salesOrders?.filter((s: any) => s.status === 'Confirmed' || s.status === 'Approved')?.length || 0;
+    const pendingPurchase = purchaseRequisitions?.filter((p: any) => p.status === 'Pending' || p.status === 'Draft')?.length || 0;
+    const activeWorkOrders = workOrders?.filter((w: any) => w.status !== 'Completed' && w.status !== 'Cancelled')?.length || 0;
+    const pendingDispatch = dispatchOrders?.filter((d: any) => d.status === 'Draft' || d.status === 'Pending')?.length || 0;
+    const totalEmployees = employees?.length || 0;
+    const openServiceRequests = serviceRequests?.filter((s: any) => s.status !== 'Closed' && s.status !== 'Resolved')?.length || 0;
+
+    const totalReceivables = (salesInvoices || [])
+      .filter((inv: any) => inv.paymentStatus !== 'Paid')
+      .reduce((sum: number, inv: any) => sum + (Number(inv.balanceAmount || inv.totalAmount) || 0), 0);
+
+    const totalPayables = (purchaseInvoices || [])
+      .filter((inv: any) => inv.paymentStatus !== 'Paid')
+      .reduce((sum: number, inv: any) => sum + (Number(inv.balanceAmount || inv.totalAmount) || 0), 0);
+
+    const monthlyRevenue = (salesInvoices || [])
+      .reduce((sum: number, inv: any) => sum + (Number(inv.totalAmount) || 0), 0);
+
+    return [
+      { label: 'Total Customers', value: String(totalCustomers), change: 'Registered Clients', color: 'text-crm-brand-500' },
+      { label: 'Active Projects / Jobs', value: String(activeJobs), change: `${totalJobs} Total Jobs`, color: 'text-crm-brand-500' },
+      { label: 'Active Jobs', value: String(activeJobs), change: 'In Production Pipeline', color: 'text-amber-400' },
+      { label: 'Pending Quotations', value: String(pendingQuotations), change: 'Awaiting Client Review', color: 'text-crm-brand-500' },
+      { label: 'Confirmed Orders', value: String(confirmedOrders), change: `${salesOrders?.length || 0} Total Orders`, color: 'text-emerald-400' },
+      { label: 'Pending Purchase PRs', value: String(pendingPurchase), change: `${purchaseOrders?.length || 0} Active POs`, color: 'text-rose-400' },
+      { label: 'Material Shortage', value: '0 Items', change: 'Live Stock Ready', color: 'text-emerald-400' },
+      { label: 'Production Work Orders', value: `${activeWorkOrders} WOs`, change: 'Shopfloor active', color: 'text-orange-400' },
+      { label: 'WIP Jobs', value: `${activeJobs} Jobs`, change: 'In Fabrication', color: 'text-yellow-400' },
+      { label: 'Completed Jobs', value: String(jobs?.filter((j: any) => j.status === 'Delivered' || j.status === 'Completed')?.length || 0), change: 'Delivered', color: 'text-green-400' },
+      { label: 'Pending Dispatch', value: `${pendingDispatch} Units`, change: 'Logistics Ready', color: 'text-indigo-400' },
+      { label: 'Outstanding Receivables', value: `₹${(totalReceivables / 100000).toFixed(2)} L`, change: 'Invoice Balances', color: 'text-rose-400' },
+      { label: 'Outstanding Payables', value: `₹${(totalPayables / 100000).toFixed(2)} L`, change: 'Vendor Invoices', color: 'text-crm-brand-500' },
+      { label: 'Total Sales Revenue', value: `₹${(monthlyRevenue / 100000).toFixed(2)} L`, change: 'Booked Turnover', color: 'text-emerald-400' },
+      { label: 'Active Purchase Orders', value: String(purchaseOrders?.length || 0), change: 'Procurement Pipeline', color: 'text-amber-400' },
+      { label: 'Total Employees', value: String(totalEmployees), change: 'Active Staff', color: 'text-pink-400' },
+      { label: 'Open Service Requests', value: `${openServiceRequests} Requests`, change: 'Support Queue', color: 'text-red-400' },
+      { label: 'System Alerts', value: String(centralAlerts?.length || 0), change: 'Live Notifications', color: 'text-teal-400' },
+    ];
+  }, [
+    customers, salesOrders, jobs, employees, centralAlerts, quotations, purchaseOrders,
+    purchaseRequisitions, serviceRequests, salesInvoices, purchaseInvoices, dispatchOrders, workOrders
+  ]);
 
   return (
     <div className="p-6 space-y-6 bg-[#FAF7F2]  text-[#544B45] font-sans">

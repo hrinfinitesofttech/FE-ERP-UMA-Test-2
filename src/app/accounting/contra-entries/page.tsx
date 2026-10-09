@@ -4,19 +4,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import { RotateCcw, Plus, Search, Landmark, Coins, ArrowRightLeft, Trash2, CheckCircle2, AlertCircle, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 
-const DEFAULT_ACCOUNTS = [
-  { id: 'BANK-01', bankName: 'HDFC Bank Ltd. (Current Operations A/c)', accountType: 'Current', accountNumber: '50200088921045' },
-  { id: 'BANK-02', bankName: 'State Bank of India (Working Capital CC A/c)', accountType: 'Cash_Credit', accountNumber: '334455667788' },
-  { id: 'BANK-03', bankName: 'ICICI Bank Ltd. (Project Escrow A/c)', accountType: 'Current', accountNumber: '002405001234' },
-  { id: 'BANK-04', bankName: 'Main Factory Cash Vault (Petty Cash)', accountType: 'Cash', accountNumber: 'CASH-VAULT-01' },
-];
-
 export default function ContraEntriesPage() {
   const { contraEntries, addContraEntry, deleteContraEntry, bankAccounts, chartOfAccounts } = useERP();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Compute available accounts from live bankAccounts, chartOfAccounts, or defaults
+  // Compute available accounts from live bankAccounts or chartOfAccounts
   const availableAccounts = useMemo(() => {
     if (bankAccounts && bankAccounts.length > 0) {
       return bankAccounts;
@@ -32,7 +25,7 @@ export default function ContraEntriesPage() {
         }));
       if (coaFiltered.length > 0) return coaFiltered;
     }
-    return DEFAULT_ACCOUNTS;
+    return [];
   }, [bankAccounts, chartOfAccounts]);
 
   const [fromAccountId, setFromAccountId] = useState('');
@@ -44,8 +37,8 @@ export default function ContraEntriesPage() {
 
   // Set default account selections when modal opens or availableAccounts changes
   const handleOpenModal = () => {
-    const defaultFrom = availableAccounts[0]?.id || 'BANK-01';
-    const defaultTo = availableAccounts[1]?.id || availableAccounts[0]?.id || 'BANK-02';
+    const defaultFrom = availableAccounts[0]?.id || '';
+    const defaultTo = availableAccounts[1]?.id || availableAccounts[0]?.id || '';
     setFromAccountId(defaultFrom);
     setToAccountId(defaultTo);
     setAmount('');

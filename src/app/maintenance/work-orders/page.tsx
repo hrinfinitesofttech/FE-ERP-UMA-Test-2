@@ -84,31 +84,24 @@ export default function WorkOrdersPage() {
       });
     }
 
-    if (map.size === 0) {
-      map.set('reliance', { id: 'CUST-001', name: 'Reliance Industries Limited (Jamnagar)' });
-      map.set('tata', { id: 'CUST-002', name: 'Tata Chemicals Limited (Mithapur)' });
-      map.set('l&t', { id: 'CUST-003', name: 'Larsen & Toubro Heavy Engineering (Hazira)' });
-      map.set('adani', { id: 'CUST-004', name: 'Adani Ports & Special Economic Zone (Mundra)' });
-    }
-
     return Array.from(map.values());
   }, [customers, customerMachines, serviceRequests, projectJobs]);
 
-  const defaultCust = customerList[0]?.name || 'Reliance Industries Limited (Jamnagar)';
+  const defaultCust = customerList[0]?.name || '';
 
   // Form State
-  const [customerId, setCustomerId] = useState(customerList[0]?.id || 'CUST-001');
+  const [customerId, setCustomerId] = useState(customerList[0]?.id || '');
   const [customerName, setCustomerName] = useState(defaultCust);
-  const [machineId, setMachineId] = useState('CM-001');
-  const [machineName, setMachineName] = useState('High Pressure Autoclave Reactor 50 KL');
+  const [machineId, setMachineId] = useState('');
+  const [machineName, setMachineName] = useState('');
   const [serviceRequestId, setServiceRequestId] = useState('');
   const [requestNumber, setRequestNumber] = useState('');
-  const [technicianId, setTechnicianId] = useState('TECH-001');
-  const [technicianName, setTechnicianName] = useState('Ramesh Parmar (Sr. Service Engineer)');
-  const [problem, setProblem] = useState('Mechanical seal leakage and bearing vibration');
-  const [scopeOfWork, setScopeOfWork] = useState('Dismantle mechanical seal, clean mating faces, replace O-rings, pressure test at 4.5 bar.');
-  const [labourHours, setLabourHours] = useState(4);
-  const [labourRate, setLabourRate] = useState(750);
+  const [technicianId, setTechnicianId] = useState('');
+  const [technicianName, setTechnicianName] = useState('');
+  const [problem, setProblem] = useState('');
+  const [scopeOfWork, setScopeOfWork] = useState('');
+  const [labourHours, setLabourHours] = useState(0);
+  const [labourRate, setLabourRate] = useState(0);
   const [approvalRequired, setApprovalRequired] = useState(false);
   const [status, setStatus] = useState<WorkOrderStatus>('Pending');
   const [requiredParts, setRequiredParts] = useState<
@@ -209,19 +202,17 @@ export default function WorkOrdersPage() {
     const finalTechName = technicianName.trim() || 'Ramesh Parmar (Sr. Service Engineer)';
 
     addServiceWorkOrder({
-      serviceRequestId: serviceRequestId || (requestNumber ? `SR-${requestNumber}` : 'SR-2026-0001'),
-      requestNumber: requestNumber || 'SR-2026-0001',
-      customerId: customerId || 'CUST-001',
+      serviceRequestId: serviceRequestId || (requestNumber ? `SR-${requestNumber}` : ''),
+      requestNumber: requestNumber || '',
+      customerId: customerId || '',
       customerName: finalCustName,
-      customerMachineId: machineId || 'CM-001',
+      customerMachineId: machineId || '',
       machineName: finalMachineName,
-      technicianId: technicianId || 'TECH-001',
+      technicianId: technicianId || '',
       technicianName: finalTechName,
-      problem: problem || 'Preventive inspection and seal replacement',
-      scopeOfWork: scopeOfWork || 'Dismantle mechanical seal, clean mating faces, replace O-rings, pressure test at 4.5 bar.',
-      requiredParts: requiredParts.length > 0 ? requiredParts : [
-        { itemCode: 'SEAL-MECH-50MM', itemName: 'Mechanical Seal Cartridge 50mm', requestedQty: 1, rate: 8500 },
-      ],
+      problem: problem || 'Service Work Order Inspection',
+      scopeOfWork: scopeOfWork || 'General Maintenance Inspection',
+      requiredParts: requiredParts,
       labourHours: Number(labourHours) || 4,
       estimatedCost: estimatedCostTotal || 11500,
       actualCost: 0,

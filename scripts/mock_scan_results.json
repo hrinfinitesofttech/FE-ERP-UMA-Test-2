@@ -1,0 +1,164 @@
+[
+  {
+    "file": "app/accounting/receipts/page.tsx",
+    "line": 62,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "id: 'CUST-001',"
+  },
+  {
+    "file": "app/accounting/sales-invoices/page.tsx",
+    "line": 624,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "<p>Customer ID: <span className=\"font-mono\">{selectedInvoiceForPrint.customerId || 'CUST-001'}</span></p>"
+  },
+  {
+    "file": "app/designer/approval/page.tsx",
+    "line": 446,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "{activeJob.projectId || 'PRJ-2026'} / {activeJob.jobNumber}"
+  },
+  {
+    "file": "app/maintenance/amc/page.tsx",
+    "line": 26,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "customerId: 'CUST-002',"
+  },
+  {
+    "file": "app/maintenance/work-orders/page.tsx",
+    "line": 88,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "map.set('reliance', { id: 'CUST-001', name: 'Reliance Industries Limited (Jamnagar)' });"
+  },
+  {
+    "file": "app/maintenance/work-orders/page.tsx",
+    "line": 89,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "map.set('tata', { id: 'CUST-002', name: 'Tata Chemicals Limited (Mithapur)' });"
+  },
+  {
+    "file": "app/maintenance/work-orders/page.tsx",
+    "line": 90,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "map.set('l&t', { id: 'CUST-003', name: 'Larsen & Toubro Heavy Engineering (Hazira)' });"
+  },
+  {
+    "file": "app/maintenance/work-orders/page.tsx",
+    "line": 91,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "map.set('adani', { id: 'CUST-004', name: 'Adani Ports & Special Economic Zone (Mundra)' });"
+  },
+  {
+    "file": "app/maintenance/work-orders/page.tsx",
+    "line": 100,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "const [customerId, setCustomerId] = useState(customerList[0]?.id || 'CUST-001');"
+  },
+  {
+    "file": "app/maintenance/work-orders/page.tsx",
+    "line": 214,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "customerId: customerId || 'CUST-001',"
+  },
+  {
+    "file": "app/production/dispatch/page.tsx",
+    "line": 214,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "customerId: customers.find((c) => c.companyName === customerName)?.id || 'CUST-001',"
+  },
+  {
+    "file": "app/purchase/followup/page.tsx",
+    "line": 25,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "const [selectedPoId, setSelectedPoId] = useState(purchaseOrders[0]?.id || 'PO-001');"
+  },
+  {
+    "file": "app/purchase/returns/page.tsx",
+    "line": 24,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "const [selectedPoId, setSelectedPoId] = useState(purchaseOrders[0]?.id || 'PO-001');"
+  },
+  {
+    "file": "context/ERPContext.tsx",
+    "line": 1472,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "jobNumber: jobNo || item.jobNumber || (prjNo ? `JOB-${prjNo.replace(/^[^\\d]*-?/, '')}` : 'JOB-001'),"
+  },
+  {
+    "file": "context/ERPContext.tsx",
+    "line": 1536,
+    "type": "FALLBACK_OBJECT_ARRAY",
+    "snippet": "const firstItem = (lastRev.items || [{}])[0];"
+  },
+  {
+    "file": "context/ERPContext.tsx",
+    "line": 6483,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "customer_id: newSO.customerId || 'CUST-001',"
+  },
+  {
+    "file": "context/ERPContext.tsx",
+    "line": 6484,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "customerId: newSO.customerId || 'CUST-001',"
+  },
+  {
+    "file": "context/ERPContext.tsx",
+    "line": 6702,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "customerId: so.customerId || 'CUST-001',"
+  },
+  {
+    "file": "context/ERPContext.tsx",
+    "line": 6774,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "customer_id: newProject.customerId || 'CUST-001',"
+  },
+  {
+    "file": "context/ERPContext.tsx",
+    "line": 6775,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "customerId: newProject.customerId || 'CUST-001',"
+  },
+  {
+    "file": "context/ERPContext.tsx",
+    "line": 6915,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "customer_id: prj.customerId || 'CUST-001',"
+  },
+  {
+    "file": "context/ERPContext.tsx",
+    "line": 6916,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "customerId: prj.customerId || 'CUST-001',"
+  },
+  {
+    "file": "lib/apiClient.ts",
+    "line": 117,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "d.customerId = d.customerId || d.customer_id || 'CUST-001';"
+  },
+  {
+    "file": "lib/apiClient.ts",
+    "line": 123,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "d.customerId = d.customerId || d.customer_id || 'CUST-001';"
+  },
+  {
+    "file": "lib/apiClient.ts",
+    "line": 156,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "d.customerId = d.customerId || d.customer_id || 'CUST-001';"
+  },
+  {
+    "file": "lib/apiClient.ts",
+    "line": 398,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "d.customerId = d.customerId || 'CUST-001';"
+  },
+  {
+    "file": "lib/apiClient.ts",
+    "line": 415,
+    "type": "HARDCODED_ERP_ID",
+    "snippet": "d.customerId = d.customerId || 'CUST-001';"
+  }
+]

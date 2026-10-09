@@ -11,19 +11,19 @@ export default function MaterialReturnPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Form State
-  const [jobId, setJobId] = useState('JOB-2026-001');
-  const [woNo, setWoNo] = useState('WO-2026-001-A');
-  const [issueNo, setIssueNo] = useState('ISS-2026-0041');
-  const [itemId, setItemId] = useState(itemMasters[0]?.id || 'ITEM-001');
-  const [returnQty, setReturnQty] = useState(200);
+  const [jobId, setJobId] = useState(projectJobs[0]?.id || projectJobs[0]?.jobNumber || '');
+  const [woNo, setWoNo] = useState('');
+  const [issueNo, setIssueNo] = useState('');
+  const [itemId, setItemId] = useState(itemMasters[0]?.id || '');
+  const [returnQty, setReturnQty] = useState(0);
   const [condition, setCondition] = useState<ReturnCondition>('Usable');
-  const [returnedBy, setReturnedBy] = useState('Ketan Parmar (Shop Supervisor)');
-  const [warehouseId, setWarehouseId] = useState(warehouses[0]?.id || 'wh-main');
-  const [remarks, setRemarks] = useState('Plate offcut returned back to store usable stock');
+  const [returnedBy, setReturnedBy] = useState('');
+  const [warehouseId, setWarehouseId] = useState(warehouses[0]?.id || '');
+  const [remarks, setRemarks] = useState('');
 
   const selectedItem = itemMasters.find((i) => i.id === itemId) || itemMasters[0];
   const selectedWh = warehouses.find((w) => w.id === warehouseId) || warehouses[0];
-  const selectedJob = projectJobs.find((j) => j.jobNumber === jobId) || projectJobs[0];
+  const selectedJob = projectJobs.find((j) => j.jobNumber === jobId || j.id === jobId) || projectJobs[0];
 
   const filtered = materialReturns.filter((r) => {
     const term = searchTerm.toLowerCase().trim();
@@ -138,13 +138,13 @@ export default function MaterialReturnPage() {
               {filtered.map((r) => {
                 const retNo = r.returnNumber || (r as any).return_number || r.id;
                 const retDate = r.returnDate || (r as any).return_date || new Date().toISOString().split('T')[0];
-                const jobCode = r.jobId || (r as any).job_number || (r as any).jobNumber || 'JOB-2026-001';
-                const issueSlip = r.materialIssueNumber || (r as any).material_issue_number || (r as any).issueNo || 'ISS-2026-0041';
-                const retBy = r.returnedBy || (r as any).returned_by || 'Ketan Parmar (Shop Supervisor)';
-                const whName = r.warehouseName || (r as any).warehouse_name || 'Main Raw Material & Plate Yard';
+                const jobCode = r.jobId || (r as any).job_number || (r as any).jobNumber || '—';
+                const issueSlip = r.materialIssueNumber || (r as any).material_issue_number || (r as any).issueNo || '—';
+                const retBy = r.returnedBy || (r as any).returned_by || '—';
+                const whName = r.warehouseName || (r as any).warehouse_name || '—';
                 const retVal = Number(r.totalReturnValue ?? (r as any).total_return_value ?? 0);
-                const recBy = r.receivedBy || (r as any).received_by || 'Hitesh Rawal (Store Head)';
-                const notes = r.remarks || (r as any).notes || 'Material returned back to store inventory';
+                const recBy = r.receivedBy || (r as any).received_by || '—';
+                const notes = r.remarks || (r as any).notes || '';
 
                 return (
                   <tr key={r.id} className="hover:bg-[#FAF7F2]/40 transition">

@@ -22,13 +22,13 @@ export default function PurchaseFollowupPage() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   // New Follow-up state
-  const [selectedPoId, setSelectedPoId] = useState(purchaseOrders[0]?.id || 'PO-001');
+  const [selectedPoId, setSelectedPoId] = useState(purchaseOrders[0]?.id || '');
   const [newFollowUpDate, setNewFollowUpDate] = useState(new Date().toISOString().split('T')[0]);
-  const [newContactedPerson, setNewContactedPerson] = useState('Mr. Rajesh Sharma');
+  const [newContactedPerson, setNewContactedPerson] = useState('');
   const [newCommChannel, setNewCommChannel] = useState<'Phone' | 'Email' | 'WhatsApp' | 'Site Visit'>('Phone');
-  const [newCommitmentDate, setNewCommitmentDate] = useState('2026-10-22');
+  const [newCommitmentDate, setNewCommitmentDate] = useState(new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]);
   const [newDelayRisk, setNewDelayRisk] = useState<'Low' | 'Medium' | 'High' | 'Critical'>('Medium');
-  const [newRemarks, setNewRemarks] = useState('Supplier confirmed material cutting completed, dispatched expected in 2 days.');
+  const [newRemarks, setNewRemarks] = useState('');
 
   const filteredFollowups = purchaseFollowUps.filter(f => {
     if (searchQuery) {

@@ -1,0 +1,1026 @@
+{
+  "total": 127,
+  "healthy_count": 124,
+  "missing_count": 0,
+  "error_count": 0,
+  "missing_endpoints": [],
+  "error_endpoints": [],
+  "results": [
+    {
+      "endpoint": "/accounting/dashboard-metrics/",
+      "url": "https://erpuma.pythonanywhere.com/api/accounting/dashboard-metrics/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 9,
+      "error": null
+    },
+    {
+      "endpoint": "/alerts/",
+      "url": "https://erpuma.pythonanywhere.com/api/alerts/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 4,
+      "error": null
+    },
+    {
+      "endpoint": "/amc-contracts/",
+      "url": "https://erpuma.pythonanywhere.com/api/amc-contracts/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 1,
+      "error": null
+    },
+    {
+      "endpoint": "/approvals/",
+      "url": "https://erpuma.pythonanywhere.com/api/approvals/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 4,
+      "error": null
+    },
+    {
+      "endpoint": "/attendance-records/",
+      "url": "https://erpuma.pythonanywhere.com/api/attendance-records/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 3,
+      "error": null
+    },
+    {
+      "endpoint": "/auth/change-password/",
+      "url": "https://erpuma.pythonanywhere.com/api/auth/change-password/",
+      "status_code": 405,
+      "is_json": true,
+      "item_count": null,
+      "error": "{\"detail\":\"Method \\\"GET\\\" not allowed.\"}"
+    },
+    {
+      "endpoint": "/auth/login/",
+      "url": "https://erpuma.pythonanywhere.com/api/auth/login/",
+      "status_code": 405,
+      "is_json": true,
+      "item_count": null,
+      "error": "{\"detail\":\"Method \\\"GET\\\" not allowed.\"}"
+    },
+    {
+      "endpoint": "/auth/me/",
+      "url": "https://erpuma.pythonanywhere.com/api/auth/me/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 23,
+      "error": null
+    },
+    {
+      "endpoint": "/bank-accounts/",
+      "url": "https://erpuma.pythonanywhere.com/api/bank-accounts/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 4,
+      "error": null
+    },
+    {
+      "endpoint": "/breakdowns/",
+      "url": "https://erpuma.pythonanywhere.com/api/breakdowns/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 1,
+      "error": null
+    },
+    {
+      "endpoint": "/change-requests/",
+      "url": "https://erpuma.pythonanywhere.com/api/change-requests/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/chart-of-accounts/",
+      "url": "https://erpuma.pythonanywhere.com/api/chart-of-accounts/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 11,
+      "error": null
+    },
+    {
+      "endpoint": "/company/",
+      "url": "https://erpuma.pythonanywhere.com/api/company/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 23,
+      "error": null
+    },
+    {
+      "endpoint": "/contacts/",
+      "url": "https://erpuma.pythonanywhere.com/api/contacts/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/contra-entries/",
+      "url": "https://erpuma.pythonanywhere.com/api/contra-entries/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 1,
+      "error": null
+    },
+    {
+      "endpoint": "/cost-centers/",
+      "url": "https://erpuma.pythonanywhere.com/api/cost-centers/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 3,
+      "error": null
+    },
+    {
+      "endpoint": "/credit-notes/",
+      "url": "https://erpuma.pythonanywhere.com/api/credit-notes/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/crm/exhibitions/",
+      "url": "https://erpuma.pythonanywhere.com/api/crm/exhibitions/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 2,
+      "error": null
+    },
+    {
+      "endpoint": "/crm/followups/",
+      "url": "https://erpuma.pythonanywhere.com/api/crm/followups/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 2,
+      "error": null
+    },
+    {
+      "endpoint": "/crm/visits/",
+      "url": "https://erpuma.pythonanywhere.com/api/crm/visits/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 1,
+      "error": null
+    },
+    {
+      "endpoint": "/customer-machines/",
+      "url": "https://erpuma.pythonanywhere.com/api/customer-machines/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 4,
+      "error": null
+    },
+    {
+      "endpoint": "/customer-pos/",
+      "url": "https://erpuma.pythonanywhere.com/api/customer-pos/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 8,
+      "error": null
+    },
+    {
+      "endpoint": "/customer-receipts/",
+      "url": "https://erpuma.pythonanywhere.com/api/customer-receipts/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 16,
+      "error": null
+    },
+    {
+      "endpoint": "/customers/",
+      "url": "https://erpuma.pythonanywhere.com/api/customers/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 18,
+      "error": null
+    },
+    {
+      "endpoint": "/debit-notes/",
+      "url": "https://erpuma.pythonanywhere.com/api/debit-notes/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/department-assignments/",
+      "url": "https://erpuma.pythonanywhere.com/api/department-assignments/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/departments/",
+      "url": "https://erpuma.pythonanywhere.com/api/departments/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 9,
+      "error": null
+    },
+    {
+      "endpoint": "/designations/",
+      "url": "https://erpuma.pythonanywhere.com/api/designations/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 6,
+      "error": null
+    },
+    {
+      "endpoint": "/designer/boms/",
+      "url": "https://erpuma.pythonanywhere.com/api/designer/boms/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 9,
+      "error": null
+    },
+    {
+      "endpoint": "/designer/design-tasks/",
+      "url": "https://erpuma.pythonanywhere.com/api/designer/design-tasks/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/designer/drawings-2d/",
+      "url": "https://erpuma.pythonanywhere.com/api/designer/drawings-2d/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 1,
+      "error": null
+    },
+    {
+      "endpoint": "/designer/jobs/",
+      "url": "https://erpuma.pythonanywhere.com/api/designer/jobs/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 7,
+      "error": null
+    },
+    {
+      "endpoint": "/designer/models-3d/",
+      "url": "https://erpuma.pythonanywhere.com/api/designer/models-3d/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 1,
+      "error": null
+    },
+    {
+      "endpoint": "/designer/requirements/",
+      "url": "https://erpuma.pythonanywhere.com/api/designer/requirements/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 1,
+      "error": null
+    },
+    {
+      "endpoint": "/designer/tasks/",
+      "url": "https://erpuma.pythonanywhere.com/api/designer/tasks/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/designer/technical-documents/",
+      "url": "https://erpuma.pythonanywhere.com/api/designer/technical-documents/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/dispatch-orders/",
+      "url": "https://erpuma.pythonanywhere.com/api/dispatch-orders/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 5,
+      "error": null
+    },
+    {
+      "endpoint": "/downtime-records/",
+      "url": "https://erpuma.pythonanywhere.com/api/downtime-records/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/early-checkouts/",
+      "url": "https://erpuma.pythonanywhere.com/api/early-checkouts/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/employee-appraisals/",
+      "url": "https://erpuma.pythonanywhere.com/api/employee-appraisals/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/employee-exits/",
+      "url": "https://erpuma.pythonanywhere.com/api/employee-exits/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/employee-onboardings/",
+      "url": "https://erpuma.pythonanywhere.com/api/employee-onboardings/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 1,
+      "error": null
+    },
+    {
+      "endpoint": "/employee-promotions/",
+      "url": "https://erpuma.pythonanywhere.com/api/employee-promotions/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/employee-transfers/",
+      "url": "https://erpuma.pythonanywhere.com/api/employee-transfers/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/employees/",
+      "url": "https://erpuma.pythonanywhere.com/api/employees/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 6,
+      "error": null
+    },
+    {
+      "endpoint": "/enquiries/",
+      "url": "https://erpuma.pythonanywhere.com/api/enquiries/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 15,
+      "error": null
+    },
+    {
+      "endpoint": "/exhibitions/",
+      "url": "https://erpuma.pythonanywhere.com/api/exhibitions/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 2,
+      "error": null
+    },
+    {
+      "endpoint": "/expenses/",
+      "url": "https://erpuma.pythonanywhere.com/api/expenses/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/financial-years/",
+      "url": "https://erpuma.pythonanywhere.com/api/financial-years/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 2,
+      "error": null
+    },
+    {
+      "endpoint": "/finished-goods/",
+      "url": "https://erpuma.pythonanywhere.com/api/finished-goods/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 6,
+      "error": null
+    },
+    {
+      "endpoint": "/fixed-assets/",
+      "url": "https://erpuma.pythonanywhere.com/api/fixed-assets/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/followups/",
+      "url": "https://erpuma.pythonanywhere.com/api/followups/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 2,
+      "error": null
+    },
+    {
+      "endpoint": "/grns/",
+      "url": "https://erpuma.pythonanywhere.com/api/grns/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 7,
+      "error": null
+    },
+    {
+      "endpoint": "/holidays/",
+      "url": "https://erpuma.pythonanywhere.com/api/holidays/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 16,
+      "error": null
+    },
+    {
+      "endpoint": "/installations/",
+      "url": "https://erpuma.pythonanywhere.com/api/installations/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 4,
+      "error": null
+    },
+    {
+      "endpoint": "/internal-assets/",
+      "url": "https://erpuma.pythonanywhere.com/api/internal-assets/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 3,
+      "error": null
+    },
+    {
+      "endpoint": "/item-categories/",
+      "url": "https://erpuma.pythonanywhere.com/api/item-categories/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 4,
+      "error": null
+    },
+    {
+      "endpoint": "/items/",
+      "url": "https://erpuma.pythonanywhere.com/api/items/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 6,
+      "error": null
+    },
+    {
+      "endpoint": "/job-360/",
+      "url": "https://erpuma.pythonanywhere.com/api/job-360/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 13,
+      "error": null
+    },
+    {
+      "endpoint": "/job-costings/",
+      "url": "https://erpuma.pythonanywhere.com/api/job-costings/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 2,
+      "error": null
+    },
+    {
+      "endpoint": "/journal-entries/",
+      "url": "https://erpuma.pythonanywhere.com/api/journal-entries/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 1,
+      "error": null
+    },
+    {
+      "endpoint": "/leads/",
+      "url": "https://erpuma.pythonanywhere.com/api/leads/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 37,
+      "error": null
+    },
+    {
+      "endpoint": "/leave-requests/",
+      "url": "https://erpuma.pythonanywhere.com/api/leave-requests/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 1,
+      "error": null
+    },
+    {
+      "endpoint": "/manufacturing-jobs/",
+      "url": "https://erpuma.pythonanywhere.com/api/manufacturing-jobs/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 3,
+      "error": null
+    },
+    {
+      "endpoint": "/material-issues/",
+      "url": "https://erpuma.pythonanywhere.com/api/material-issues/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 12,
+      "error": null
+    },
+    {
+      "endpoint": "/material-requirements/",
+      "url": "https://erpuma.pythonanywhere.com/api/material-requirements/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 6,
+      "error": null
+    },
+    {
+      "endpoint": "/material-returns/",
+      "url": "https://erpuma.pythonanywhere.com/api/material-returns/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/missed-punches/",
+      "url": "https://erpuma.pythonanywhere.com/api/missed-punches/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/numbering/",
+      "url": "https://erpuma.pythonanywhere.com/api/numbering/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 9,
+      "error": null
+    },
+    {
+      "endpoint": "/opportunities/",
+      "url": "https://erpuma.pythonanywhere.com/api/opportunities/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 8,
+      "error": null
+    },
+    {
+      "endpoint": "/overtime-records/",
+      "url": "https://erpuma.pythonanywhere.com/api/overtime-records/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/packing-orders/",
+      "url": "https://erpuma.pythonanywhere.com/api/packing-orders/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/payroll-records/",
+      "url": "https://erpuma.pythonanywhere.com/api/payroll-records/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 3,
+      "error": null
+    },
+    {
+      "endpoint": "/payroll-records/generate-monthly-payroll/",
+      "url": "https://erpuma.pythonanywhere.com/api/payroll-records/generate-monthly-payroll/",
+      "status_code": 405,
+      "is_json": true,
+      "item_count": null,
+      "error": "{\"detail\":\"Method \\\"GET\\\" not allowed.\"}"
+    },
+    {
+      "endpoint": "/planning-stages/",
+      "url": "https://erpuma.pythonanywhere.com/api/planning-stages/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 144,
+      "error": null
+    },
+    {
+      "endpoint": "/pm-plans/",
+      "url": "https://erpuma.pythonanywhere.com/api/pm-plans/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 1,
+      "error": null
+    },
+    {
+      "endpoint": "/production-entries/",
+      "url": "https://erpuma.pythonanywhere.com/api/production-entries/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 6,
+      "error": null
+    },
+    {
+      "endpoint": "/production-holds/",
+      "url": "https://erpuma.pythonanywhere.com/api/production-holds/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/production-material-requests/",
+      "url": "https://erpuma.pythonanywhere.com/api/production-material-requests/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/production-orders/",
+      "url": "https://erpuma.pythonanywhere.com/api/production-orders/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 1,
+      "error": null
+    },
+    {
+      "endpoint": "/production-schedules/",
+      "url": "https://erpuma.pythonanywhere.com/api/production-schedules/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/production-scraps/",
+      "url": "https://erpuma.pythonanywhere.com/api/production-scraps/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/production/dashboard-stats/",
+      "url": "https://erpuma.pythonanywhere.com/api/production/dashboard-stats/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 10,
+      "error": null
+    },
+    {
+      "endpoint": "/project-documents/",
+      "url": "https://erpuma.pythonanywhere.com/api/project-documents/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/project-tasks/",
+      "url": "https://erpuma.pythonanywhere.com/api/project-tasks/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 3,
+      "error": null
+    },
+    {
+      "endpoint": "/projects/",
+      "url": "https://erpuma.pythonanywhere.com/api/projects/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 8,
+      "error": null
+    },
+    {
+      "endpoint": "/projects/dashboard-summary/",
+      "url": "https://erpuma.pythonanywhere.com/api/projects/dashboard-summary/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 8,
+      "error": null
+    },
+    {
+      "endpoint": "/purchase-invoices/",
+      "url": "https://erpuma.pythonanywhere.com/api/purchase-invoices/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 1,
+      "error": null
+    },
+    {
+      "endpoint": "/purchase-orders/",
+      "url": "https://erpuma.pythonanywhere.com/api/purchase-orders/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 7,
+      "error": null
+    },
+    {
+      "endpoint": "/purchase-requisitions/",
+      "url": "https://erpuma.pythonanywhere.com/api/purchase-requisitions/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 6,
+      "error": null
+    },
+    {
+      "endpoint": "/purchase-returns/",
+      "url": "https://erpuma.pythonanywhere.com/api/purchase-returns/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/qc-inspections/",
+      "url": "https://erpuma.pythonanywhere.com/api/qc-inspections/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 1,
+      "error": null
+    },
+    {
+      "endpoint": "/quotation-comparisons/",
+      "url": "https://erpuma.pythonanywhere.com/api/quotation-comparisons/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/quotations/",
+      "url": "https://erpuma.pythonanywhere.com/api/quotations/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 8,
+      "error": null
+    },
+    {
+      "endpoint": "/rework-orders/",
+      "url": "https://erpuma.pythonanywhere.com/api/rework-orders/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/rfqs/",
+      "url": "https://erpuma.pythonanywhere.com/api/rfqs/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/roles/",
+      "url": "https://erpuma.pythonanywhere.com/api/roles/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 4,
+      "error": null
+    },
+    {
+      "endpoint": "/routing-operations/",
+      "url": "https://erpuma.pythonanywhere.com/api/routing-operations/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 5,
+      "error": null
+    },
+    {
+      "endpoint": "/salary-structures/",
+      "url": "https://erpuma.pythonanywhere.com/api/salary-structures/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 2,
+      "error": null
+    },
+    {
+      "endpoint": "/sales-invoices/",
+      "url": "https://erpuma.pythonanywhere.com/api/sales-invoices/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 5,
+      "error": null
+    },
+    {
+      "endpoint": "/sales-orders/",
+      "url": "https://erpuma.pythonanywhere.com/api/sales-orders/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 8,
+      "error": null
+    },
+    {
+      "endpoint": "/scrap/",
+      "url": "https://erpuma.pythonanywhere.com/api/scrap/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/service-contracts/",
+      "url": "https://erpuma.pythonanywhere.com/api/service-contracts/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/service-part-issues/",
+      "url": "https://erpuma.pythonanywhere.com/api/service-part-issues/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/service-part-returns/",
+      "url": "https://erpuma.pythonanywhere.com/api/service-part-returns/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/service-reports/",
+      "url": "https://erpuma.pythonanywhere.com/api/service-reports/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/service-requests/",
+      "url": "https://erpuma.pythonanywhere.com/api/service-requests/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 1,
+      "error": null
+    },
+    {
+      "endpoint": "/service-visits/",
+      "url": "https://erpuma.pythonanywhere.com/api/service-visits/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/service-work-orders/",
+      "url": "https://erpuma.pythonanywhere.com/api/service-work-orders/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/shifts/",
+      "url": "https://erpuma.pythonanywhere.com/api/shifts/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 3,
+      "error": null
+    },
+    {
+      "endpoint": "/stock-adjustments/",
+      "url": "https://erpuma.pythonanywhere.com/api/stock-adjustments/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/stock-ledger/",
+      "url": "https://erpuma.pythonanywhere.com/api/stock-ledger/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 28,
+      "error": null
+    },
+    {
+      "endpoint": "/stock-transfers/",
+      "url": "https://erpuma.pythonanywhere.com/api/stock-transfers/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/stock/",
+      "url": "https://erpuma.pythonanywhere.com/api/stock/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 3,
+      "error": null
+    },
+    {
+      "endpoint": "/supplier-payments/",
+      "url": "https://erpuma.pythonanywhere.com/api/supplier-payments/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 1,
+      "error": null
+    },
+    {
+      "endpoint": "/supplier-quotations/",
+      "url": "https://erpuma.pythonanywhere.com/api/supplier-quotations/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/suppliers/",
+      "url": "https://erpuma.pythonanywhere.com/api/suppliers/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 4,
+      "error": null
+    },
+    {
+      "endpoint": "/taxes/",
+      "url": "https://erpuma.pythonanywhere.com/api/taxes/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 3,
+      "error": null
+    },
+    {
+      "endpoint": "/technical-documents/",
+      "url": "https://erpuma.pythonanywhere.com/api/technical-documents/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/uoms/",
+      "url": "https://erpuma.pythonanywhere.com/api/uoms/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 4,
+      "error": null
+    },
+    {
+      "endpoint": "/visits/",
+      "url": "https://erpuma.pythonanywhere.com/api/visits/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 1,
+      "error": null
+    },
+    {
+      "endpoint": "/warehouses/",
+      "url": "https://erpuma.pythonanywhere.com/api/warehouses/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 2,
+      "error": null
+    },
+    {
+      "endpoint": "/warranty-records/",
+      "url": "https://erpuma.pythonanywhere.com/api/warranty-records/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/wfh-requests/",
+      "url": "https://erpuma.pythonanywhere.com/api/wfh-requests/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 0,
+      "error": null
+    },
+    {
+      "endpoint": "/wip-records/",
+      "url": "https://erpuma.pythonanywhere.com/api/wip-records/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 1,
+      "error": null
+    },
+    {
+      "endpoint": "/work-centers/",
+      "url": "https://erpuma.pythonanywhere.com/api/work-centers/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 5,
+      "error": null
+    },
+    {
+      "endpoint": "/work-orders/",
+      "url": "https://erpuma.pythonanywhere.com/api/work-orders/",
+      "status_code": 200,
+      "is_json": true,
+      "item_count": 28,
+      "error": null
+    }
+  ]
+}

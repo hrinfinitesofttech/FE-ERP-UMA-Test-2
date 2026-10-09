@@ -11,15 +11,15 @@ export default function ScrapPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Form State
-  const [itemId, setItemId] = useState(itemMasters[0]?.id || 'ITEM-001');
-  const [jobId, setJobId] = useState('JOB-2026-001');
-  const [qty, setQty] = useState(140);
+  const [itemId, setItemId] = useState(itemMasters[0]?.id || '');
+  const [jobId, setJobId] = useState(projectJobs[0]?.id || projectJobs[0]?.jobNumber || '');
+  const [qty, setQty] = useState(0);
   const [source, setSource] = useState<'Production Scrap' | 'Purchase Rejection' | 'Damaged Material' | 'Quality Rejection' | 'Expired Material' | 'Other'>('Production Scrap');
-  const [reason, setReason] = useState('Irregular corner cut pieces from dish end circle cutting');
-  const [val, setVal] = useState(25200);
+  const [reason, setReason] = useState('');
+  const [val, setVal] = useState(0);
 
   const selectedItem = itemMasters.find((i) => i.id === itemId) || itemMasters[0];
-  const selectedWh = warehouses[4] || warehouses[0];
+  const selectedWh = warehouses[0] || null;
 
   const filtered = scrapEntries.filter(
     (s) =>

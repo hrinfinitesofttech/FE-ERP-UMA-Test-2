@@ -14,28 +14,17 @@ import {
 } from 'lucide-react';
 
 export default function ServicePartsReturnPage() {
-  const { servicePartReturns, addServicePartReturn } = useERP();
+  const { servicePartReturns, addServicePartReturn, serviceWorkOrders, servicePartIssues } = useERP();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
 
   const [formData, setFormData] = useState({
-    workOrderNumber: 'SWO-2026-001',
-    originalIssueNumber: 'SPI-2026-001',
-    items: [
-      {
-        itemCode: 'OIL-HYD-46',
-        itemName: 'Servo System 46 Hydraulic Oil (20L Can)',
-        issuedQty: 2,
-        usedQty: 1,
-        returnQty: 1,
-        condition: 'Good' as const,
-        warehouse: 'Consumable Store',
-        location: 'Drum Storage Area D-12',
-      },
-    ],
-    returnedBy: 'Anil Desai',
-    receivedBy: 'Ramesh Store Executive',
+    workOrderNumber: serviceWorkOrders[0]?.requestNumber || '',
+    originalIssueNumber: servicePartIssues[0]?.issueNumber || '',
+    items: [] as any[],
+    returnedBy: '',
+    receivedBy: '',
     returnDate: new Date().toISOString().split('T')[0],
     status: 'Accepted to Store' as const,
   });

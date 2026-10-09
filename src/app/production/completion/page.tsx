@@ -8,7 +8,7 @@ export default function WorkOrderCompletionPage() {
   const { workOrders, completeWorkOrder, addFinishedGoods, openJobModal } = useERP();
   const [showModal, setShowModal] = useState(false);
 
-  const [selectedWo, setSelectedWo] = useState('WO-2026-001-A');
+  const [selectedWo, setSelectedWo] = useState('');
   const [completedQty, setCompletedQty] = useState(1);
   const [completedBy, setCompletedBy] = useState('Bhavin Shah (Production Manager)');
 
@@ -19,7 +19,7 @@ export default function WorkOrderCompletionPage() {
     completeWorkOrder({
       completionDate: new Date().toISOString().split('T')[0],
       jobId: wo?.jobId || 'PRJ-2026-0001',
-      jobNumber: wo?.jobNumber || 'JOB-2026-001',
+      jobNumber: wo?.jobNumber || '',
       workOrderNumber: selectedWo,
       productName: wo?.productName || 'Heavy SS 316L Chemical Reactor Vessel (10 KL)',
       completedQuantity: completedQty,
@@ -34,7 +34,7 @@ export default function WorkOrderCompletionPage() {
     // Automatically add to Finished Goods Warehouse
     addFinishedGoods({
       jobId: wo?.jobId || 'PRJ-2026-0001',
-      jobNumber: wo?.jobNumber || 'JOB-2026-001',
+      jobNumber: wo?.jobNumber || '',
       workOrderNumber: selectedWo,
       productionOrderNumber: 'PO-PROD-2026-001',
       productName: wo?.productName || 'Heavy SS 316L Chemical Reactor Vessel (10 KL)',

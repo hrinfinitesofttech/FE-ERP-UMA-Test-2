@@ -56,8 +56,8 @@ export default function DispatchPage() {
   }, []);
 
   // Form State
-  const defaultWo = workOrders[0]?.workOrderNumber || 'WO-2026-001-A';
-  const defaultJob = workOrders[0]?.jobNumber || 'JOB-2026-001';
+  const defaultWo = workOrders[0]?.workOrderNumber || '';
+  const defaultJob = workOrders[0]?.jobNumber || '';
   const defaultCust = customers[0]?.companyName || 'Reliance Industries Limited (Jamnagar)';
 
   const [selectedFg, setSelectedFg] = useState('');
@@ -130,8 +130,8 @@ export default function DispatchPage() {
     if (firstFg) {
       handleFgSelect(firstFg.finishedGoodsNumber);
     } else {
-      setSelectedWo(workOrders[0]?.workOrderNumber || 'WO-2026-001-A');
-      setSelectedJob(workOrders[0]?.jobNumber || 'JOB-2026-001');
+      setSelectedWo(workOrders[0]?.workOrderNumber || '');
+      setSelectedJob(workOrders[0]?.jobNumber || '');
       setProductName('Heavy SS 316L Chemical Reactor Vessel (10 KL)');
     }
     const cust = customers[0];
@@ -207,11 +207,11 @@ export default function DispatchPage() {
 
     const payload = {
       dispatchDate: new Date().toISOString().split('T')[0],
-      jobId: matchedWo?.jobId || matchedJob?.id || selectedJob || 'JOB-2026-001',
-      jobNumber: matchedWo?.jobNumber || matchedJob?.jobNumber || selectedJob || 'JOB-2026-001',
-      workOrderNumber: selectedWo || 'WO-2026-001-A',
+      jobId: matchedWo?.jobId || matchedJob?.id || selectedJob || '',
+      jobNumber: matchedWo?.jobNumber || matchedJob?.jobNumber || selectedJob || '',
+      workOrderNumber: selectedWo || '',
       finishedGoodsNumber: selectedFg || undefined,
-      customerId: customers.find((c) => c.companyName === customerName)?.id || 'CUST-001',
+      customerId: customers.find((c) => c.companyName === customerName || (c as any).name === customerName)?.id || customers[0]?.id || '',
       customerName: customerName.trim(),
       customerAddress: customerAddress.trim(),
       destinationCity: destinationCity.trim(),
@@ -557,7 +557,7 @@ export default function DispatchPage() {
                         </option>
                       ))
                     ) : (
-                      <option value="WO-2026-001-A">WO-2026-001-A — JOB-2026-001</option>
+                      <option value="">Select Work Order</option>
                     )}
                   </select>
                 </div>

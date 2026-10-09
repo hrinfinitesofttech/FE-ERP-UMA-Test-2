@@ -8,7 +8,7 @@ export default function ReworkOrderPage() {
   const { reworkOrders, workOrders, availableEmployees, addReworkOrder, isInitialLoading } = useERP();
   const [showModal, setShowModal] = useState(false);
 
-  const [selectedWo, setSelectedWo] = useState(workOrders[0]?.workOrderNumber || 'WO-2026-001-A');
+  const [selectedWo, setSelectedWo] = useState(workOrders[0]?.workOrderNumber || '');
   const [componentName, setComponentName] = useState('Heavy Shell Course Assembly');
   const [reason, setReason] = useState<'Welding Defect' | 'Dimension Error' | 'Assembly Error' | 'Quality Failure'>('Welding Defect');
   const [qty, setQty] = useState(1);
@@ -21,7 +21,7 @@ export default function ReworkOrderPage() {
 
     addReworkOrder({
       jobId: wo?.jobId || 'PRJ-2026-0001',
-      jobNumber: wo?.jobNumber || 'JOB-2026-001',
+      jobNumber: wo?.jobNumber || '',
       workOrderNumber: selectedWo,
       productionEntryNumber: `PENTRY-${Date.now().toString().slice(-4)}`,
       operationName: 'Main Shell SAW Welding',
@@ -170,7 +170,7 @@ export default function ReworkOrderPage() {
                     </option>
                   ))}
                   {workOrders.length === 0 && (
-                    <option value="WO-2026-001-A">WO-2026-001-A (Main Assembly)</option>
+                    <option value="">Select Work Order</option>
                   )}
                 </select>
               </div>

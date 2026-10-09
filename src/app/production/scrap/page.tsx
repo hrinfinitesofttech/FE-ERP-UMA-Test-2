@@ -9,7 +9,7 @@ export default function ProductionScrapPage() {
   const { productionScraps, workOrders, availableEmployees, addProductionScrap, isInitialLoading } = useERP();
   const [showModal, setShowModal] = useState(false);
 
-  const [selectedWo, setSelectedWo] = useState(workOrders[0]?.workOrderNumber || 'WO-2026-001-A');
+  const [selectedWo, setSelectedWo] = useState(workOrders[0]?.workOrderNumber || '');
   const [materialName, setMaterialName] = useState('SS 316L Offcut Plates & Plasma Skeleton Scrap');
   const [scrapType, setScrapType] = useState<ProductionScrapType>('Cutting Scrap');
   const [qty, setQty] = useState(45);
@@ -23,7 +23,7 @@ export default function ProductionScrapPage() {
     addProductionScrap({
       entryDate: new Date().toISOString().split('T')[0],
       jobId: wo?.jobId || 'PRJ-2026-0001',
-      jobNumber: wo?.jobNumber || 'JOB-2026-001',
+      jobNumber: wo?.jobNumber || '',
       workOrderNumber: selectedWo,
       productionOrderNumber: `PO-PROD-${Date.now().toString().slice(-4)}`,
       operationName: 'Plasma & Laser Offcut Recovery',
@@ -164,7 +164,7 @@ export default function ProductionScrapPage() {
                     </option>
                   ))}
                   {workOrders.length === 0 && (
-                    <option value="WO-2026-001-A">WO-2026-001-A (General)</option>
+                    <option value="">Select Work Order</option>
                   )}
                 </select>
               </div>

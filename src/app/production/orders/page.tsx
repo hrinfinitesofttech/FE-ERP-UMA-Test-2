@@ -8,7 +8,7 @@ export default function ProductionOrdersPage() {
   const { productionOrders, workOrders, addProductionOrder, openJobModal } = useERP();
   const [showModal, setShowModal] = useState(false);
 
-  const [workOrderNumber, setWorkOrderNumber] = useState('WO-2026-001-A');
+  const [workOrderNumber, setWorkOrderNumber] = useState('');
   const [qty, setQty] = useState(1);
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState('2026-10-15');
@@ -18,10 +18,10 @@ export default function ProductionOrdersPage() {
     const wo = workOrders.find((w) => w.workOrderNumber === workOrderNumber);
 
     addProductionOrder({
-      workOrderId: wo?.id || 'WO-2026-001-A',
+      workOrderId: wo?.id || '',
       workOrderNumber,
       jobId: wo?.jobId || 'PRJ-2026-0001',
-      jobNumber: wo?.jobNumber || 'JOB-2026-001',
+      jobNumber: wo?.jobNumber || '',
       productName: wo?.productName || 'Heavy SS 316L Chemical Reactor Vessel (10 KL)',
       quantity: qty,
       bomRevision: wo?.bomRevision || 'Rev-01',

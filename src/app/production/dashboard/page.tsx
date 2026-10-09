@@ -116,8 +116,8 @@ export default function ProductionDashboardPage() {
 
   const workCenterCapData = (stats?.workCenterCapacity && stats.workCenterCapacity.length > 0)
     ? stats.workCenterCapacity
-    : workCenters.map((wc) => ({
-        name: wc.workCenterCode || wc.work_center_code,
+    : workCenters.map((wc: any) => ({
+        name: wc.workCenterCode || wc.work_center_code || 'WC',
         Capacity: Number(wc.capacityPerDayHours || wc.capacity_per_day_hours) || 0,
         Available: Number(wc.availableHours || wc.available_hours) || 0,
         Efficiency: Number(wc.efficiencyPercent || wc.efficiency_percent) || 0,
@@ -127,8 +127,8 @@ export default function ProductionDashboardPage() {
 
   const wipDistributionData = (stats?.wipDistribution && stats.wipDistribution.length > 0)
     ? stats.wipDistribution
-    : wipRecords.map((wip) => ({
-        job: wip.jobNumber || wip.job_number,
+    : wipRecords.map((wip: any) => ({
+        job: wip.jobNumber || wip.job_number || 'JOB',
         OperationsDone: Number(wip.completedOperationsCount || wip.completed_operations_count || 0),
         RemainingOps: Math.max(0, Number(wip.totalOperationsCount || wip.total_operations_count || 0) - Number(wip.completedOperationsCount || wip.completed_operations_count || 0)),
       }));
@@ -191,7 +191,7 @@ export default function ProductionDashboardPage() {
             <Activity className="w-4 h-4 text-emerald-400" /> Operator Entry
           </Link>
           <button
-            onClick={() => openJobModal('JOB-2026-001')}
+            onClick={() => openJobModal(manufacturingJobs[0]?.jobNumber || '')}
             className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-crm-brand-700/20 text-crm-brand- font-medium text-xs border border-crm-brand-600/30 hover:bg-crm-brand-700/30 transition"
           >
             <Search className="w-4 h-4 text-crm-brand-500" /> Job 360° Traceability
@@ -414,7 +414,7 @@ export default function ProductionDashboardPage() {
                   paddingAngle={3}
                   dataKey="value"
                 >
-                  {jobStatusData.map((entry, index) => (
+                  {jobStatusData.map((entry: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={entry.color} stroke="#FFFFFF" strokeWidth={2} />
                   ))}
                 </Pie>
@@ -600,7 +600,7 @@ export default function ProductionDashboardPage() {
                   paddingAngle={3}
                   dataKey="value"
                 >
-                  {downtimeReasonsData.map((entry, index) => (
+                  {downtimeReasonsData.map((entry: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={entry.color} stroke="#FFFFFF" strokeWidth={2} />
                   ))}
                 </Pie>

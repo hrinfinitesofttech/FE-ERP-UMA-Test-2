@@ -766,7 +766,7 @@ export default function OvertimeManagementPage() {
                     setFormData({ ...formData, reason: e.target.value });
                     if (formErrors.reason) setFormErrors({ ...formErrors, reason: '' });
                   }}
-                  placeholder="e.g. Urgent machine assembly & fabrication deadline for Job #JOB-2026-001 Tata Motors dispatch..."
+                  placeholder="e.g. Urgent machine assembly and fabrication work for production dispatch..."
                   className={`w-full px-3 py-2 bg-white border ${
                     formErrors.reason ? 'border-red-500 bg-red-50/20 ring-1 ring-red-500' : 'border-[#EBE3DB]'
                   } rounded-lg text-xs text-[#211B17] focus:outline-none focus:ring-2 focus:ring-red-500/30`}

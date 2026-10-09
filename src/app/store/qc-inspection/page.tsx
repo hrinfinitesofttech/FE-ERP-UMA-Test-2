@@ -783,17 +783,17 @@ export default function QualityInspectionPage() {
                 e.preventDefault();
                 const selectedGrn = (goodsReceipts || []).find((g) => g.grnNumber === newGrnId || g.id === newGrnId);
                 const firstItem = selectedGrn?.items?.[0];
-                const finalCode = newItemCode || firstItem?.itemCode || 'BO-MOT-001';
-                const finalName = newItemName || firstItem?.itemName || 'Flameproof Motor';
-                const finalSupp = newSupplier || selectedGrn?.supplierName || 'ABB India Limited';
-                const finalJob = newJobId || selectedGrn?.jobId || 'JOB-2026-001';
+                const finalCode = newItemCode || firstItem?.itemCode || '';
+                const finalName = newItemName || firstItem?.itemName || '';
+                const finalSupp = newSupplier || selectedGrn?.supplierName || '';
+                const finalJob = newJobId || selectedGrn?.jobId || '';
                 const finalSample = Number(newSampleQty || firstItem?.receivedQuantity || 1);
 
                 const newQc: Omit<QCInspection, 'id' | 'inspectionNumber'> = {
                   inspectionDate: new Date().toISOString().split('T')[0],
-                  grnId: newGrnId || selectedGrn?.grnNumber || 'GRN-2026-0002',
-                  grnNumber: newGrnId || selectedGrn?.grnNumber || 'GRN-2026-0002',
-                  itemId: firstItem?.itemId || 'ITM-001',
+                  grnId: newGrnId || selectedGrn?.grnNumber || '',
+                  grnNumber: newGrnId || selectedGrn?.grnNumber || '',
+                  itemId: firstItem?.itemId || firstItem?.id || '',
                   itemCode: finalCode,
                   itemName: finalName,
                   jobId: finalJob,

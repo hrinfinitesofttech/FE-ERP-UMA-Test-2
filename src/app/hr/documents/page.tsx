@@ -23,14 +23,6 @@ import {
 } from 'lucide-react';
 import { EmployeeDocumentItem } from '../../../types/hr';
 
-const DEFAULT_EMPLOYEES = [
-  { id: 'EMP-001', name: 'Rajesh Patel', department: 'Management' },
-  { id: 'EMP-002', name: 'Sanjay Shah', department: 'HR & Payroll' },
-  { id: 'EMP-003', name: 'Amit Kumar', department: 'Production' },
-  { id: 'EMP-004', name: 'Pooja Mehta', department: 'Accounting & Finance' },
-  { id: 'EMP-005', name: 'Vikram Solanki', department: 'Design & Engineering' },
-];
-
 export interface DocumentTypeMasterItem {
   id: string;
   typeName: string;
@@ -80,7 +72,7 @@ export default function EmployeeDocumentsPage() {
   const [filePreviewUrl, setFilePreviewUrl] = useState('');
   const [isDragging, setIsDragging] = useState(false);
 
-  // Build employee list with fallbacks
+  // Build employee list
   const employeeList = useMemo(() => {
     if (availableEmployees && availableEmployees.length > 0) {
       return availableEmployees.map((e) => ({
@@ -89,7 +81,7 @@ export default function EmployeeDocumentsPage() {
         department: e.department || e.departmentName || 'General',
       }));
     }
-    return DEFAULT_EMPLOYEES;
+    return [];
   }, [availableEmployees]);
 
   const [formData, setFormData] = useState({

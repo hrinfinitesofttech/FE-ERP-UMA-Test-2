@@ -1,0 +1,610 @@
+{
+  "test_id": "FINAL-AUDIT-2026-C0ED32",
+  "timestamp": "2026-10-08T19:52:05.218868+00:00",
+  "target_backend": "https://erpuma.pythonanywhere.com/api",
+  "sections": {
+    "auth": {
+      "token_acquired": true,
+      "empty_password_bypass_vulnerability": true,
+      "unauth_protected": false,
+      "fake_token_rejected": true
+    },
+    "e2e_flow": {
+      "total_steps": 22,
+      "passed_steps": 21,
+      "failed_steps": 1,
+      "flow_pass": false,
+      "records": {
+        "lead_id": "LEAD-FINAL-AUDIT-2026-C0ED32",
+        "customer_id": "CUST-FINAL-AUDIT-2026-C0ED32",
+        "enquiry_id": "ENQ-2026-0082",
+        "quotation_id": "QT-FINAL-AUDIT-2026-C0ED32",
+        "cpo_id": "CPO-2026-0054",
+        "so_id": "SO-FINAL-AUDIT-2026-C0ED32",
+        "project_id": "PRJ-FINAL-AUDIT-2026-C0ED32",
+        "mjob_id": "JOB-FINAL-AUDIT-2026-C0ED32",
+        "design_id": "CREATED",
+        "bom_id": "BOM-FINAL-AUDIT-2026-C0ED32",
+        "mrp_id": "MRP-FINAL-AUDIT-2026-C0ED32",
+        "supplier_id": "SUP-FINAL-AUDIT-2026-C0ED32",
+        "po_id": "PO-FINAL-AUDIT-2026-C0ED32",
+        "grn_id": "GRN-FINAL-AUDIT-2026-C0ED32",
+        "material_issue_id": "REQ-FINAL-AUDIT-2026-C0ED32",
+        "production_id": "PROD-FINAL-AUDIT-2026-C0ED32",
+        "qc_id": "QC-FINAL-AUDIT-2026-C0ED32",
+        "packing_id": "PACK-FINAL-AUDIT-2026-C0ED32",
+        "dispatch_id": "DISP-FINAL-AUDIT-2026-C0ED32",
+        "installation_id": "INST-FINAL-AUDIT-2026-C0ED32",
+        "invoice_id": "INV-FINAL-AUDIT-2026-C0ED32",
+        "payment_id": "REC-FINAL-AUDIT-2026-C0ED32"
+      },
+      "steps": [
+        {
+          "step": 1,
+          "name": "Lead",
+          "endpoint": "crm/leads/",
+          "method": "POST",
+          "parent": "None",
+          "db_id": "LEAD-FINAL-AUDIT-2026-C0ED32",
+          "status_code": 201,
+          "latency_ms": 1822.88,
+          "passed": true,
+          "created_timestamp": "2026-10-08T19:52:11.683460+00:00"
+        },
+        {
+          "step": 2,
+          "name": "Customer",
+          "endpoint": "crm/customers/",
+          "method": "POST",
+          "parent": "Lead: LEAD-FINAL-AUDIT-2026-C0ED32",
+          "db_id": "CUST-FINAL-AUDIT-2026-C0ED32",
+          "status_code": 201,
+          "latency_ms": 2483.34,
+          "passed": true,
+          "created_timestamp": "2026-10-08T19:52:14.177900+00:00"
+        },
+        {
+          "step": 3,
+          "name": "Enquiry",
+          "endpoint": "crm/enquiries/",
+          "method": "POST",
+          "parent": "Cust: CUST-FINAL-AUDIT-2026-C0ED32, Lead: LEAD-FINAL-AUDIT-2026-C0ED32",
+          "db_id": "ENQ-2026-0082",
+          "status_code": 201,
+          "latency_ms": 997.91,
+          "passed": true,
+          "created_timestamp": "2026-10-08T19:52:15.190448+00:00"
+        },
+        {
+          "step": 4,
+          "name": "Quotation",
+          "endpoint": "crm/quotations/",
+          "method": "POST",
+          "parent": "Enquiry: ENQ-2026-0082",
+          "db_id": "QT-FINAL-AUDIT-2026-C0ED32",
+          "status_code": 201,
+          "latency_ms": 1615.43,
+          "passed": true,
+          "created_timestamp": "2026-10-08T19:52:16.828441+00:00"
+        },
+        {
+          "step": 5,
+          "name": "Customer PO",
+          "endpoint": "crm/customer-pos/",
+          "method": "POST",
+          "parent": "Quotation: QT-FINAL-AUDIT-2026-C0ED32",
+          "db_id": "CPO-2026-0054",
+          "status_code": 201,
+          "latency_ms": 1257.25,
+          "passed": true,
+          "created_timestamp": "2026-10-08T19:52:18.099789+00:00"
+        },
+        {
+          "step": 6,
+          "name": "Sales Order",
+          "endpoint": "crm/sales-orders/",
+          "method": "POST",
+          "parent": "Customer PO: CPO-2026-0054",
+          "db_id": "SO-FINAL-AUDIT-2026-C0ED32",
+          "status_code": 201,
+          "latency_ms": 1467.18,
+          "passed": true,
+          "created_timestamp": "2026-10-08T19:52:19.589580+00:00"
+        },
+        {
+          "step": 7,
+          "name": "Project",
+          "endpoint": "projects/jobs/",
+          "method": "POST",
+          "parent": "Sales Order: SO-FINAL-AUDIT-2026-C0ED32",
+          "db_id": "PRJ-FINAL-AUDIT-2026-C0ED32",
+          "status_code": 201,
+          "latency_ms": 2259.59,
+          "passed": true,
+          "created_timestamp": "2026-10-08T19:52:21.854835+00:00"
+        },
+        {
+          "step": 8,
+          "name": "Manufacturing Job",
+          "endpoint": "production/manufacturing-jobs/",
+          "method": "POST",
+          "parent": "Project: PRJ-FINAL-AUDIT-2026-C0ED32",
+          "db_id": "JOB-FINAL-AUDIT-2026-C0ED32",
+          "status_code": 201,
+          "latency_ms": 1209.02,
+          "passed": true,
+          "created_timestamp": "2026-10-08T19:52:23.072040+00:00"
+        },
+        {
+          "step": 9,
+          "name": "Design Document",
+          "endpoint": "designer/drawings/",
+          "method": "POST",
+          "parent": "Job: JOB-FINAL-AUDIT-2026-C0ED32",
+          "db_id": "CREATED",
+          "status_code": 404,
+          "latency_ms": 1772.98,
+          "passed": false,
+          "created_timestamp": "2026-10-08T19:52:24.862258+00:00"
+        },
+        {
+          "step": 10,
+          "name": "BOM",
+          "endpoint": "designer/boms/",
+          "method": "POST",
+          "parent": "Design: CREATED",
+          "db_id": "BOM-FINAL-AUDIT-2026-C0ED32",
+          "status_code": 201,
+          "latency_ms": 1217.74,
+          "passed": true,
+          "created_timestamp": "2026-10-08T19:52:26.083285+00:00"
+        },
+        {
+          "step": 11,
+          "name": "MRP / Material Requirement",
+          "endpoint": "mrp/",
+          "method": "POST",
+          "parent": "BOM: BOM-FINAL-AUDIT-2026-C0ED32",
+          "db_id": "MRP-FINAL-AUDIT-2026-C0ED32",
+          "status_code": 201,
+          "latency_ms": 1316.78,
+          "passed": true,
+          "created_timestamp": "2026-10-08T19:52:27.421360+00:00"
+        },
+        {
+          "step": "Pre-12",
+          "name": "Supplier Master",
+          "endpoint": "purchase/suppliers/",
+          "method": "POST",
+          "parent": "None",
+          "db_id": "SUP-FINAL-AUDIT-2026-C0ED32",
+          "status_code": 201,
+          "latency_ms": 986.67,
+          "passed": true,
+          "created_timestamp": "2026-10-08T19:52:28.417386+00:00"
+        },
+        {
+          "step": 12,
+          "name": "Purchase Order",
+          "endpoint": "purchase/orders/",
+          "method": "POST",
+          "parent": "Supplier: SUP-FINAL-AUDIT-2026-C0ED32, MRP: MRP-FINAL-AUDIT-2026-C0ED32",
+          "db_id": "PO-FINAL-AUDIT-2026-C0ED32",
+          "status_code": 201,
+          "latency_ms": 1108.81,
+          "passed": true,
+          "created_timestamp": "2026-10-08T19:52:29.534195+00:00"
+        },
+        {
+          "step": 13,
+          "name": "GRN",
+          "endpoint": "store/grns/",
+          "method": "POST",
+          "parent": "Purchase Order: PO-FINAL-AUDIT-2026-C0ED32",
+          "db_id": "GRN-FINAL-AUDIT-2026-C0ED32",
+          "status_code": 201,
+          "latency_ms": 1472.8,
+          "passed": true,
+          "created_timestamp": "2026-10-08T19:52:31.006997+00:00"
+        },
+        {
+          "step": 14,
+          "name": "Material Issue",
+          "endpoint": "production/material-requests/",
+          "method": "POST",
+          "parent": "Job: JOB-FINAL-AUDIT-2026-C0ED32, GRN: GRN-FINAL-AUDIT-2026-C0ED32",
+          "db_id": "REQ-FINAL-AUDIT-2026-C0ED32",
+          "status_code": 201,
+          "latency_ms": 1532.53,
+          "passed": true,
+          "created_timestamp": "2026-10-08T19:52:32.552960+00:00"
+        },
+        {
+          "step": 15,
+          "name": "Production / Work Order",
+          "endpoint": "production/production-entries/",
+          "method": "POST",
+          "parent": "Job: JOB-FINAL-AUDIT-2026-C0ED32, Issue: REQ-FINAL-AUDIT-2026-C0ED32",
+          "db_id": "PROD-FINAL-AUDIT-2026-C0ED32",
+          "status_code": 201,
+          "latency_ms": 1408.24,
+          "passed": true,
+          "created_timestamp": "2026-10-08T19:52:33.968708+00:00"
+        },
+        {
+          "step": 16,
+          "name": "QC Inspection",
+          "endpoint": "store/qc-inspections/",
+          "method": "POST",
+          "parent": "Production: PROD-FINAL-AUDIT-2026-C0ED32",
+          "db_id": "QC-FINAL-AUDIT-2026-C0ED32",
+          "status_code": 201,
+          "latency_ms": 891.12,
+          "passed": true,
+          "created_timestamp": "2026-10-08T19:52:34.866737+00:00"
+        },
+        {
+          "step": 17,
+          "name": "Packing Order",
+          "endpoint": "production/packing-orders/",
+          "method": "POST",
+          "parent": "QC: QC-FINAL-AUDIT-2026-C0ED32, Sales Order: SO-FINAL-AUDIT-2026-C0ED32",
+          "db_id": "PACK-FINAL-AUDIT-2026-C0ED32",
+          "status_code": 201,
+          "latency_ms": 1878.54,
+          "passed": true,
+          "created_timestamp": "2026-10-08T19:52:36.748347+00:00"
+        },
+        {
+          "step": 18,
+          "name": "Dispatch Order",
+          "endpoint": "production/dispatch-orders/",
+          "method": "POST",
+          "parent": "Packing: PACK-FINAL-AUDIT-2026-C0ED32",
+          "db_id": "DISP-FINAL-AUDIT-2026-C0ED32",
+          "status_code": 201,
+          "latency_ms": 1418.51,
+          "passed": true,
+          "created_timestamp": "2026-10-08T19:52:38.177694+00:00"
+        },
+        {
+          "step": 19,
+          "name": "Installation & Commissioning",
+          "endpoint": "maintenance/installations/",
+          "method": "POST",
+          "parent": "Dispatch: DISP-FINAL-AUDIT-2026-C0ED32",
+          "db_id": "INST-FINAL-AUDIT-2026-C0ED32",
+          "status_code": 201,
+          "latency_ms": 1339.31,
+          "passed": true,
+          "created_timestamp": "2026-10-08T19:52:39.534705+00:00"
+        },
+        {
+          "step": 20,
+          "name": "Sales Invoice",
+          "endpoint": "accounting/sales-invoices/",
+          "method": "POST",
+          "parent": "Sales Order: SO-FINAL-AUDIT-2026-C0ED32",
+          "db_id": "INV-FINAL-AUDIT-2026-C0ED32",
+          "status_code": 201,
+          "latency_ms": 1284.13,
+          "passed": true,
+          "created_timestamp": "2026-10-08T19:52:40.828622+00:00"
+        },
+        {
+          "step": 21,
+          "name": "Customer Payment",
+          "endpoint": "accounting/customer-receipts/",
+          "method": "POST",
+          "parent": "Invoice: INV-FINAL-AUDIT-2026-C0ED32",
+          "db_id": "REC-FINAL-AUDIT-2026-C0ED32",
+          "status_code": 201,
+          "latency_ms": 948.57,
+          "passed": true,
+          "created_timestamp": "2026-10-08T19:52:41.787346+00:00"
+        }
+      ]
+    },
+    "persistence": {
+      "total_checked": 17,
+      "persisted": 17,
+      "result": true,
+      "details": [
+        {
+          "entity": "Lead",
+          "url": "crm/leads/LEAD-FINAL-AUDIT-2026-C0ED32/",
+          "status_code": 200,
+          "persisted": true
+        },
+        {
+          "entity": "Customer",
+          "url": "crm/customers/CUST-FINAL-AUDIT-2026-C0ED32/",
+          "status_code": 200,
+          "persisted": true
+        },
+        {
+          "entity": "Enquiry",
+          "url": "crm/enquiries/ENQ-2026-0082/",
+          "status_code": 200,
+          "persisted": true
+        },
+        {
+          "entity": "Quotation",
+          "url": "crm/quotations/QT-FINAL-AUDIT-2026-C0ED32/",
+          "status_code": 200,
+          "persisted": true
+        },
+        {
+          "entity": "Customer PO",
+          "url": "crm/customer-pos/CPO-2026-0054/",
+          "status_code": 200,
+          "persisted": true
+        },
+        {
+          "entity": "Sales Order",
+          "url": "crm/sales-orders/SO-FINAL-AUDIT-2026-C0ED32/",
+          "status_code": 200,
+          "persisted": true
+        },
+        {
+          "entity": "Project Job",
+          "url": "projects/jobs/PRJ-FINAL-AUDIT-2026-C0ED32/",
+          "status_code": 200,
+          "persisted": true
+        },
+        {
+          "entity": "BOM",
+          "url": "designer/boms/BOM-FINAL-AUDIT-2026-C0ED32/",
+          "status_code": 200,
+          "persisted": true
+        },
+        {
+          "entity": "Purchase Order",
+          "url": "purchase/orders/PO-FINAL-AUDIT-2026-C0ED32/",
+          "status_code": 200,
+          "persisted": true
+        },
+        {
+          "entity": "GRN",
+          "url": "store/grns/GRN-FINAL-AUDIT-2026-C0ED32/",
+          "status_code": 200,
+          "persisted": true
+        },
+        {
+          "entity": "Material Issue",
+          "url": "production/material-requests/REQ-FINAL-AUDIT-2026-C0ED32/",
+          "status_code": 200,
+          "persisted": true
+        },
+        {
+          "entity": "QC Inspection",
+          "url": "store/qc-inspections/QC-FINAL-AUDIT-2026-C0ED32/",
+          "status_code": 200,
+          "persisted": true
+        },
+        {
+          "entity": "Packing Order",
+          "url": "production/packing-orders/PACK-FINAL-AUDIT-2026-C0ED32/",
+          "status_code": 200,
+          "persisted": true
+        },
+        {
+          "entity": "Dispatch Order",
+          "url": "production/dispatch-orders/DISP-FINAL-AUDIT-2026-C0ED32/",
+          "status_code": 200,
+          "persisted": true
+        },
+        {
+          "entity": "Installation",
+          "url": "maintenance/installations/INST-FINAL-AUDIT-2026-C0ED32/",
+          "status_code": 200,
+          "persisted": true
+        },
+        {
+          "entity": "Sales Invoice",
+          "url": "accounting/sales-invoices/INV-FINAL-AUDIT-2026-C0ED32/",
+          "status_code": 200,
+          "persisted": true
+        },
+        {
+          "entity": "Customer Payment",
+          "url": "accounting/customer-receipts/REC-FINAL-AUDIT-2026-C0ED32/",
+          "status_code": 200,
+          "persisted": true
+        }
+      ]
+    },
+    "negative_validations": {
+      "total": 6,
+      "properly_rejected": 2,
+      "details": [
+        {
+          "test": "Enquiry without Customer",
+          "status_code": 400,
+          "rejected_by_server": true,
+          "response_text": "{\"customerId\":[\"This field may not be blank.\"]}"
+        },
+        {
+          "test": "Negative Quantity in Purchase Order",
+          "status_code": 201,
+          "rejected_by_server": false,
+          "response_text": "{\"id\":\"NEG-PO-159d\",\"poNumber\":\"NEG-PO-159d\",\"revisionNumber\":\"Rev-00\",\"date\":\"2026-10-09\",\"poDate\":\"2026-10-09\",\"supplierId\":\"SUP-FINAL-AUDIT-2026-C0ED32\",\"supplierName\":\"Jindal Steel & Power FINAL-A"
+        },
+        {
+          "test": "Zero Quantity in Purchase Order",
+          "status_code": 201,
+          "rejected_by_server": false,
+          "response_text": "{\"id\":\"ZERO-PO-dfc6\",\"poNumber\":\"ZERO-PO-dfc6\",\"revisionNumber\":\"Rev-00\",\"date\":\"2026-10-09\",\"poDate\":\"2026-10-09\",\"supplierId\":\"SUP-FINAL-AUDIT-2026-C0ED32\",\"supplierName\":\"Jindal Steel & Power FINAL"
+        },
+        {
+          "test": "Duplicate Customer Code",
+          "status_code": 400,
+          "rejected_by_server": true,
+          "response_text": "{\"id\":[\"customer with this id already exists.\"],\"customerCode\":[\"customer with this customer code already exists.\"]}"
+        },
+        {
+          "test": "Duplicate Sales Order Number",
+          "status_code": 201,
+          "rejected_by_server": false,
+          "response_text": "{\"id\":\"SO-2026-1791368340\",\"salesOrderNumber\":\"SO-2026-1791368340\",\"customerPoId\":null,\"customerPoNumber\":\"\",\"quotationId\":null,\"quotationNumber\":\"\",\"customerId\":\"CUST-FINAL-AUDIT-2026-C0ED32\",\"custom"
+        },
+        {
+          "test": "Invalid Supplier in PO",
+          "status_code": 201,
+          "rejected_by_server": false,
+          "response_text": "{\"id\":\"INV-SUP-PO-e9ee\",\"poNumber\":\"INV-SUP-PO-e9ee\",\"revisionNumber\":\"Rev-00\",\"date\":\"2026-10-09\",\"poDate\":\"2026-10-09\",\"supplierId\":\"NON_EXISTENT_SUPPLIER_999999\",\"supplierName\":\"Supplier\",\"contactP"
+        }
+      ]
+    },
+    "decimals": [
+      {
+        "input_value": 0,
+        "stored_value": -999.0,
+        "precision_match": false,
+        "status": "FAIL"
+      },
+      {
+        "input_value": 0.01,
+        "status": "FAIL_FETCH"
+      },
+      {
+        "input_value": 0.8,
+        "status": "FAIL_FETCH"
+      },
+      {
+        "input_value": 1.0,
+        "status": "FAIL_FETCH"
+      },
+      {
+        "input_value": 1.5,
+        "status": "FAIL_FETCH"
+      },
+      {
+        "input_value": 10.25,
+        "status": "FAIL_FETCH"
+      },
+      {
+        "input_value": 100.75,
+        "status": "FAIL_FETCH"
+      },
+      {
+        "input_value": 999999,
+        "stored_value": -999.0,
+        "precision_match": false,
+        "status": "FAIL"
+      }
+    ],
+    "financials": {
+      "input_qty": 12.5,
+      "input_rate": 45250.75,
+      "expected_basic": 565634.38,
+      "expected_cgst": 50907.09,
+      "expected_sgst": 50907.09,
+      "expected_total": 667448.56,
+      "backend_status": 201,
+      "calculation_match": false
+    },
+    "concurrency": {
+      "threads": 5,
+      "requests": 10,
+      "successful": 10,
+      "results": [
+        {
+          "idx": 2,
+          "status": 201,
+          "latency": 1305.52
+        },
+        {
+          "idx": 0,
+          "status": 201,
+          "latency": 1452.62
+        },
+        {
+          "idx": 4,
+          "status": 201,
+          "latency": 1494.83
+        },
+        {
+          "idx": 1,
+          "status": 201,
+          "latency": 1623.68
+        },
+        {
+          "idx": 3,
+          "status": 201,
+          "latency": 1775.63
+        },
+        {
+          "idx": 5,
+          "status": 201,
+          "latency": 1045.88
+        },
+        {
+          "idx": 6,
+          "status": 201,
+          "latency": 1110.99
+        },
+        {
+          "idx": 7,
+          "status": 201,
+          "latency": 1189.0
+        },
+        {
+          "idx": 8,
+          "status": 201,
+          "latency": 1183.33
+        },
+        {
+          "idx": 9,
+          "status": 201,
+          "latency": 1191.28
+        }
+      ],
+      "sqlite_concurrency_assessment": "SAFE for low-to-moderate transactional volume (<20 concurrent writes). MIGRATION TO POSTGRESQL REQUIRED for enterprise-scale multi-user deployment due to SQLite database-level write locking."
+    },
+    "approval_security": {
+      "pending_to_approved": true,
+      "approved_edit_status": 200,
+      "approved_delete_blocked": false
+    },
+    "db_integrity": {
+      "integrity_check": [
+        "ok"
+      ],
+      "foreign_key_violations": 0,
+      "table_count": 154,
+      "isolated_restore_test": "PASS",
+      "restored_user_count": 6
+    },
+    "security": {
+      "findings": [
+        {
+          "file": "settings.py",
+          "issue": "DEBUG = True enabled in settings.py",
+          "severity": "P1"
+        },
+        {
+          "file": "settings.py",
+          "issue": "Wildcard ALLOWED_HOSTS configured",
+          "severity": "P2"
+        },
+        {
+          "file": "apps/authentication/views.py",
+          "issue": "Empty password bypass: LoginView permits authentication without password if password string is empty.",
+          "severity": "P0"
+        }
+      ]
+    }
+  },
+  "blockers": [
+    "P0 Security Vulnerability: Empty password bypass allows superuser token generation.",
+    "E2E Flow Failure: 1 step(s) failed."
+  ],
+  "warnings": [
+    "SQLite database engine in production: Concurrency is restricted to single-writer locking. Must migrate to PostgreSQL for high-scale enterprise operations.",
+    "DEBUG = True is currently enabled in settings.py.",
+    "Server-side business validation is permissive for negative/zero quantities on certain endpoints (relies on frontend validation)."
+  ],
+  "summary_table": [],
+  "final_verdict": "NO-GO"
+}

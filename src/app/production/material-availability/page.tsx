@@ -6,7 +6,7 @@ import { ShieldCheck, PlayCircle, CheckCircle2, AlertTriangle, Box, Search, Arro
 
 export default function MaterialAvailabilityPage() {
   const { workOrders, mrpRequirements, releaseWorkOrder, openJobModal } = useERP();
-  const [selectedJob, setSelectedJob] = useState('JOB-2026-001');
+  const [selectedJob, setSelectedJob] = useState('');
 
   const selectedWo = workOrders.find((w) => w.jobNumber === selectedJob) || workOrders[0];
   const items = mrpRequirements.filter((m) => m.jobNumber === selectedJob);
@@ -43,7 +43,7 @@ export default function MaterialAvailabilityPage() {
             onChange={(e) => setSelectedJob(e.target.value)}
             className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#544B45] focus:outline-none focus:border-teal-500"
           >
-            <option value="JOB-2026-001">JOB-2026-001 - Heavy SS Reactor</option>
+            <option value="">Select Job</option>
             <option value="JOB-2026-002">JOB-2026-002 - Fluid Bed Dryer</option>
           </select>
 

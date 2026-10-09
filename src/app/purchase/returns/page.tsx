@@ -21,7 +21,7 @@ export default function PurchaseReturnsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   // Form State
-  const [selectedPoId, setSelectedPoId] = useState(purchaseOrders[0]?.id || 'PO-001');
+  const [selectedPoId, setSelectedPoId] = useState(purchaseOrders[0]?.id || '');
   const [newReturnDate, setNewReturnDate] = useState(new Date().toISOString().split('T')[0]);
   const [newReason, setNewReason] = useState('QC Inspection Failure - Dimensional Out of Tolerance');
   const [newActionType, setNewActionType] = useState<'Replacement' | 'Debit Note' | 'Credit Note'>('Debit Note');

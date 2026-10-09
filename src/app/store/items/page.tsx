@@ -23,25 +23,8 @@ import {
 export default function ItemMasterPage() {
   const { itemMasters, addItemMaster, updateItemMaster, deleteItemMaster, itemCategories, uoms, warehouses, suppliers } = useERP();
 
-  const defaultCategories: ItemCategory[] = [
-    { id: 'CAT-001', categoryCode: 'RAW-PLT', categoryName: 'Stainless Steel Plates & Sheets', status: 'Active', description: 'Plates and sheets' },
-    { id: 'CAT-002', categoryCode: 'RAW-PIP', categoryName: 'Seamless & Welded Pipes', status: 'Active', description: 'Pipes' },
-    { id: 'CAT-003', categoryCode: 'BOUGHT-OUT', categoryName: 'Motors, Valves & Bought-Out', status: 'Active', description: 'Bought-out components' },
-    { id: 'CAT-004', categoryCode: 'CONSUMABLES', categoryName: 'Welding Wire, Gases & Consumables', status: 'Active', description: 'Consumables' },
-    { id: 'CAT-005', categoryCode: 'HARDWARE', categoryName: 'Fasteners, Flanges & Hardware', status: 'Active', description: 'Fasteners' },
-  ];
-
-  const defaultUOMs: UOMMaster[] = [
-    { id: 'UOM-001', uomCode: 'Kg', uomName: 'Kilogram', baseUom: 'Kg', conversionFactor: 1 },
-    { id: 'UOM-002', uomCode: 'Nos', uomName: 'Numbers / Pieces', baseUom: 'Nos', conversionFactor: 1 },
-    { id: 'UOM-003', uomCode: 'Mtr', uomName: 'Meter', baseUom: 'Mtr', conversionFactor: 1 },
-    { id: 'UOM-004', uomCode: 'Set', uomName: 'Set', baseUom: 'Set', conversionFactor: 1 },
-    { id: 'UOM-005', uomCode: 'Ltr', uomName: 'Litre', baseUom: 'Ltr', conversionFactor: 1 },
-    { id: 'UOM-006', uomCode: 'SqMtr', uomName: 'Square Meter', baseUom: 'SqMtr', conversionFactor: 1 },
-  ];
-
-  const availableCategories = itemCategories && itemCategories.length > 0 ? itemCategories : defaultCategories;
-  const availableUOMs = uoms && uoms.length > 0 ? uoms : defaultUOMs;
+  const availableCategories = itemCategories || [];
+  const availableUOMs = uoms || [];
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
@@ -54,7 +37,7 @@ export default function ItemMasterPage() {
     itemCode: '',
     itemName: '',
     itemType: 'Plate',
-    category: availableCategories[0]?.categoryName || 'Stainless Steel Plates & Sheets',
+    category: availableCategories[0]?.categoryName || '',
     description: '',
     specification: '',
     brandMake: '',

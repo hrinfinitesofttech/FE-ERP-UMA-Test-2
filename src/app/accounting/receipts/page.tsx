@@ -56,20 +56,17 @@ export default function CustomerReceiptsPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const cust =
-      customers.find((c) => c.id === customerId) ||
-      customers[0] || {
-        id: 'CUST-001',
-        companyName: 'Standard Customer',
-      };
+    const cust = customers.find((c) => c.id === customerId) || customers[0];
+    if (!cust) {
+      alert('Please select a valid customer.');
+      return;
+    }
 
-    const bank =
-      activeBankAccounts.find((b) => b.id === bankAccountId) ||
-      activeBankAccounts[0] || {
-        id: 'BANK-01',
-        bankName: 'HDFC Bank - Current A/C',
-        accountNumber: '50200098765432',
-      };
+    const bank = activeBankAccounts.find((b) => b.id === bankAccountId) || activeBankAccounts[0];
+    if (!bank) {
+      alert('Please select a valid bank account.');
+      return;
+    }
 
     try {
       addCustomerReceipt({

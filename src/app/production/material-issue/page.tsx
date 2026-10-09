@@ -8,7 +8,7 @@ export default function ProductionMaterialIssuePage() {
   const { materialIssues, addMaterialIssue, workOrders, itemMasters, openJobModal, isInitialLoading } = useERP();
   const [showModal, setShowModal] = useState(false);
 
-  const [selectedWo, setSelectedWo] = useState(workOrders[0]?.workOrderNumber || 'WO-2026-001-A');
+  const [selectedWo, setSelectedWo] = useState(workOrders[0]?.workOrderNumber || '');
   const [selectedItemCode, setSelectedItemCode] = useState(itemMasters[0]?.itemCode || 'RM-PLATE-316L-01');
   const [qty, setQty] = useState(10);
   const [issuedTo, setIssuedTo] = useState('Ramesh Vaghela (Fabrication)');
@@ -131,7 +131,7 @@ export default function ProductionMaterialIssuePage() {
                   <tr key={`${issue.id || 'iss'}-${idx}`} className="hover:bg-[#FAF7F2]/40 transition">
                     <td className="p-3 font-mono font-bold text-emerald-600">{issue.issueNumber || issue.issue_number || issue.id}</td>
                     <td className="p-3 font-mono text-sky-600 font-bold">{issue.jobNumber || issue.job_number || issue.jobId || 'PRJ-2026-0001'}</td>
-                    <td className="p-3 font-mono text-indigo-600 font-bold">{issue.workOrderNumber || issue.work_order_number || issue.workOrderId || 'WO-2026-001-A'}</td>
+                    <td className="p-3 font-mono text-indigo-600 font-bold">{issue.workOrderNumber || issue.work_order_number || issue.workOrderId || ''}</td>
                     <td className="p-3 text-[#211B17] font-medium">{issue.requestedBy || issue.issuedTo || issue.issued_to || 'Production Head'}</td>
                     <td className="p-3 text-[#70665F]">{issue.warehouseName || issue.warehouse_name || 'Raw Material Yard & Plate Store'}</td>
                     <td className="p-3 text-right font-bold text-[#544B45]">{Array.isArray(issue.items) ? issue.items.length : 1}</td>
@@ -145,7 +145,7 @@ export default function ProductionMaterialIssuePage() {
                     </td>
                     <td className="p-3 text-right">
                       <button
-                        onClick={() => openJobModal(issue.jobNumber || issue.jobId || 'JOB-2026-001')}
+                        onClick={() => openJobModal(issue.jobNumber || issue.jobId || '')}
                         className="px-2.5 py-1 rounded bg-orange-100 text-orange-700 hover:bg-orange-200 border border-orange-300 text-[11px] font-bold transition"
                       >
                         360° Trace
@@ -184,7 +184,7 @@ export default function ProductionMaterialIssuePage() {
                     </option>
                   ))}
                   {workOrders.length === 0 && (
-                    <option value="WO-2026-001-A">WO-2026-001-A (General)</option>
+                    <option value="">Select Work Order</option>
                   )}
                 </select>
               </div>
