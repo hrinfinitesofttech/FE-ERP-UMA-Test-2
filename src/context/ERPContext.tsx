@@ -681,7 +681,7 @@ interface ERPContextType {
   materialIssues: MaterialIssue[];
   addMaterialIssue: (issue: Omit<MaterialIssue, 'id' | 'issueNumber' | 'createdAt'>) => Promise<MaterialIssue> | void;
   materialReturns: MaterialReturn[];
-  addMaterialReturn: (ret: Omit<MaterialReturn, 'id' | 'returnNumber' | 'createdAt'>) => void;
+  addMaterialReturn: (ret: Omit<MaterialReturn, 'id' | 'returnNumber' | 'createdAt'>) => MaterialReturn;
   stockTransfers: StockTransfer[];
   addStockTransfer: (transfer: Omit<StockTransfer, 'id' | 'transferNumber' | 'createdAt'>) => void;
   stockAdjustments: StockAdjustment[];
@@ -9544,6 +9544,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
     logAction('CREATE', 'Store', 'Material Return', newRet.id, `Returned material ${newRet.returnNumber} from Job ${newRet.jobId} into warehouse stock`);
     api.post('/material-returns/', newRet).catch((err) => console.warn('Failed to add material return:', err));
+    return newRet;
   };
 
 
