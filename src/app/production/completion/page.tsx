@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { 
@@ -17,6 +17,13 @@ function WorkOrderCompletionContent() {
   const [showModal, setShowModal] = useState(false);
   const [selectedCertificate, setSelectedCertificate] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successNotification, setSuccessNotification] = useState<{
+    woNumber: string;
+    productName: string;
+    certNo: string;
+    serialNo: string;
+  } | null>(null);
 
   // Form State
   const [selectedWo, setSelectedWo] = useState('');
@@ -41,22 +48,7 @@ function WorkOrderCompletionContent() {
   const [warehouseLocation, setWarehouseLocation] = useState('Finished Goods Bay 4 (Dispatch Gate)');
   const [remarks, setRemarks] = useState('Final manufacturing sign-off completed. Hydro testing and DP clearance certified.');
 
-  // Pre-fill from query param (?woNumber=...)
-  useEffect(() => {
-    const paramWo = searchParams.get('woNumber');
-    if (paramWo) {
-      setSelectedWo(paramWo);
-      setShowModal(true);
-    } else if (workOrders.length > 0 && !selectedWo) {
-      const pendingWo = workOrders.find((w) => w.status !== 'Completed') || workOrders[0];
-      setSelectedWo(pendingWo.workOrderNumber);
-    }
-  }, [searchParams, workOrders, selectedWo]);
-
-  // Matching Work Order
-  const currentWo = useMemo(() => {
-    return workOrders.find((w) => w.workOrderNumber === selectedWo) || workOrders[0];
-  }, [workOrders, selectedWo]);
+  const handledParamWoRef = useRef<string | null>(null);
 
   const handleWoChange = (woNumber: string) => {
     setSelectedWo(woNumber);
@@ -73,10 +65,49 @@ function WorkOrderCompletionContent() {
     }
   };
 
+  const closeModal = () => {
+    setShowModal(false);
+    // Clear query parameter from URL so it doesn't re-trigger on state changes
+    if (searchParams.get('woNumber')) {
+      router.replace('/production/completion');
+    }
+  };
+
+  // Pre-fill from query param (?woNumber=...)
+  useEffect(() => {
+    const paramWo = searchParams.get('woNumber');
+    if (paramWo) {
+      if (handledParamWoRef.current !== paramWo) {
+        handledParamWoRef.current = paramWo;
+        handleWoChange(paramWo);
+        setShowModal(true);
+      }
+    } else {
+      handledParamWoRef.current = null;
+      if (workOrders.length > 0 && !selectedWo) {
+        const pendingWo = workOrders.find((w) => w.status !== 'Completed') || workOrders[0];
+        if (pendingWo) {
+          handleWoChange(pendingWo.workOrderNumber);
+        }
+      }
+    }
+  }, [searchParams, workOrders, selectedWo]);
+
+  // Matching Work Order
+  const currentWo = useMemo(() => {
+    return workOrders.find((w) => w.workOrderNumber === selectedWo) || workOrders[0];
+  }, [workOrders, selectedWo]);
+
   const handleCompleteSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentWo) {
       alert('Please select a valid work order.');
+      return;
+    }
+
+    if (currentWo.status === 'Completed') {
+      alert(`Work Order ${currentWo.workOrderNumber} is already completed and transferred to Finished Goods Warehouse.`);
+      closeModal();
       return;
     }
 
@@ -86,56 +117,71 @@ function WorkOrderCompletionContent() {
       return;
     }
 
-    const certNo = `QC-CERT-2026-${Date.now().toString().slice(-5)}`;
+    setIsSubmitting(true);
+    try {
+      const certNo = `QC-CERT-2026-${Date.now().toString().slice(-5)}`;
 
-    // 1. Mark Work Order Completed & Log QC Clearance
-    completeWorkOrder({
-      completionDate: new Date().toISOString().split('T')[0],
-      jobId: currentWo.jobId || 'PRJ-2026-0001',
-      jobNumber: currentWo.jobNumber || '',
-      workOrderNumber: currentWo.workOrderNumber,
-      productName: currentWo.productName || 'Industrial Process Equipment',
-      completedQuantity: Number(completedQty) || 1,
-      rejectedQuantity: 0,
-      reworkQuantity: 0,
-      scrapQuantity: 0,
-      completedBy,
-      qcStatus: 'Passed',
-      remarks,
-      // QC Tests
-      hydroTestPressure: `${hydroDesignPressure} / ${hydroTestPressure} (${hydroHoldingDuration})`,
-      hydroHoldingDuration,
-      hydroTestStatus: hydroStatus,
-      dpTestJoints: `${dpWeldsInspected} - ${dpObservation}`,
-      dpTestStatus: dpStatus,
-      dimensionReportNo,
-      dimensionStatus,
-      qcInspectorName: qcInspector,
-      certificateNumber: certNo,
-      equipmentSerialNumber: equipmentSerialNo,
-    });
+      // 1. Mark Work Order Completed & Log QC Clearance
+      completeWorkOrder({
+        completionDate: new Date().toISOString().split('T')[0],
+        jobId: currentWo.jobId || 'PRJ-2026-0001',
+        jobNumber: currentWo.jobNumber || '',
+        workOrderNumber: currentWo.workOrderNumber,
+        productName: currentWo.productName || 'Industrial Process Equipment',
+        completedQuantity: Number(completedQty) || 1,
+        rejectedQuantity: 0,
+        reworkQuantity: 0,
+        scrapQuantity: 0,
+        completedBy,
+        qcStatus: 'Passed',
+        remarks,
+        // QC Tests
+        hydroTestPressure: `${hydroDesignPressure} / ${hydroTestPressure} (${hydroHoldingDuration})`,
+        hydroHoldingDuration,
+        hydroTestStatus: hydroStatus,
+        dpTestJoints: `${dpWeldsInspected} - ${dpObservation}`,
+        dpTestStatus: dpStatus,
+        dimensionReportNo,
+        dimensionStatus,
+        qcInspectorName: qcInspector,
+        certificateNumber: certNo,
+        equipmentSerialNumber: equipmentSerialNo,
+      });
 
-    // 2. Automatically transfer to Finished Goods Warehouse Master
-    addFinishedGoods({
-      jobId: currentWo.jobId || 'PRJ-2026-0001',
-      jobNumber: currentWo.jobNumber || '',
-      workOrderNumber: currentWo.workOrderNumber,
-      productionOrderNumber: 'PO-PROD-2026-001',
-      productName: currentWo.productName || 'Industrial Process Equipment',
-      specification: `Hydro Tested @ ${hydroTestPressure}, DP Cleared by ${qcInspector}`,
-      quantity: Number(completedQty) || 1,
-      uom: currentWo.uom || 'Unit',
-      serialNumber: equipmentSerialNo,
-      batchNumber: `HEAT-MTC-${Date.now().toString().slice(-4)}`,
-      warehouseId: 'WH-FG-01',
-      warehouseName: warehouseLocation,
-      locationBin: 'Bay-04-ReadyYard',
-      completionDate: new Date().toISOString().split('T')[0],
-      qcStatus: 'QC Passed',
-      status: 'Ready for Dispatch',
-    });
+      // 2. Automatically transfer to Finished Goods Warehouse Master
+      addFinishedGoods({
+        jobId: currentWo.jobId || 'PRJ-2026-0001',
+        jobNumber: currentWo.jobNumber || '',
+        workOrderNumber: currentWo.workOrderNumber,
+        productionOrderNumber: 'PO-PROD-2026-001',
+        productName: currentWo.productName || 'Industrial Process Equipment',
+        specification: `Hydro Tested @ ${hydroTestPressure}, DP Cleared by ${qcInspector}`,
+        quantity: Number(completedQty) || 1,
+        uom: currentWo.uom || 'Unit',
+        serialNumber: equipmentSerialNo,
+        batchNumber: `HEAT-MTC-${Date.now().toString().slice(-4)}`,
+        warehouseId: 'WH-FG-01',
+        warehouseName: warehouseLocation,
+        locationBin: 'Bay-04-ReadyYard',
+        completionDate: new Date().toISOString().split('T')[0],
+        qcStatus: 'QC Passed',
+        status: 'Ready for Dispatch',
+      });
 
-    setShowModal(false);
+      closeModal();
+      setSuccessNotification({
+        woNumber: currentWo.workOrderNumber,
+        productName: currentWo.productName || 'Industrial Process Equipment',
+        certNo,
+        serialNo: equipmentSerialNo,
+      });
+      alert(`✅ SUCCESS: Work Order ${currentWo.workOrderNumber} has been certified and transferred to Finished Goods Warehouse! Certificate #${certNo}`);
+    } catch (err: any) {
+      console.error(err);
+      alert('Failed to complete work order. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Filtered Work Orders
@@ -184,7 +230,13 @@ function WorkOrderCompletionContent() {
             <span>View Finished Goods Warehouse</span>
           </button>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => {
+              const pendingWo = workOrders.find((w) => w.status !== 'Completed') || workOrders[0];
+              if (pendingWo) {
+                handleWoChange(pendingWo.workOrderNumber);
+              }
+              setShowModal(true);
+            }}
             className="flex items-center gap-2 bg-[#8B2500] hover:bg-[#701E00] text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs transition active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
@@ -192,6 +244,43 @@ function WorkOrderCompletionContent() {
           </button>
         </div>
       </div>
+
+      {/* Success Notification Banner */}
+      {successNotification && (
+        <div className="bg-emerald-50 border border-emerald-300 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs animate-in fade-in">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-xl">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="text-xs font-bold text-emerald-900 flex items-center gap-2">
+                <span>Work Order {successNotification.woNumber} Successfully Certified & Transferred!</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-200 text-emerald-900 font-mono">
+                  Cert: {successNotification.certNo}
+                </span>
+              </div>
+              <p className="text-[11px] text-emerald-700 mt-0.5">
+                {successNotification.productName} • Serial: <span className="font-mono font-bold">{successNotification.serialNo}</span> • Now available in Finished Goods Warehouse.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button
+              onClick={() => router.push('/production/finished-goods')}
+              className="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs cursor-pointer flex items-center gap-1.5 transition active:scale-95"
+            >
+              <PackageCheck className="w-4 h-4" />
+              <span>View in Finished Goods →</span>
+            </button>
+            <button
+              onClick={() => setSuccessNotification(null)}
+              className="p-2 text-emerald-700 hover:text-emerald-900 rounded-lg hover:bg-emerald-100 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -336,7 +425,7 @@ function WorkOrderCompletionContent() {
                   Hydro Pressure Testing, DP Dye Penetrant and Finished Goods Registration
                 </p>
               </div>
-              <button onClick={() => setShowModal(false)} className="text-[#8C827A] hover:text-[#211B17] text-base p-1 cursor-pointer">
+              <button onClick={closeModal} className="text-[#8C827A] hover:text-[#211B17] text-base p-1 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -353,7 +442,7 @@ function WorkOrderCompletionContent() {
                   >
                     {workOrders.map((w) => (
                       <option key={w.id} value={w.workOrderNumber}>
-                        {w.workOrderNumber} — {w.jobNumber} ({w.productName ? w.productName.slice(0, 28) : 'Equipment'})
+                        {w.workOrderNumber} — {w.status === 'Completed' ? '✓ Completed' : 'Pending QC'} — {w.jobNumber} ({w.productName ? w.productName.slice(0, 22) : 'Equipment'})
                       </option>
                     ))}
                   </select>
@@ -560,26 +649,60 @@ function WorkOrderCompletionContent() {
                 </div>
               )}
 
+              {/* Already Completed Status Banner */}
+              {currentWo?.status === 'Completed' && (
+                <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 flex items-start gap-2.5 animate-in fade-in">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <div className="font-bold text-xs text-emerald-950">
+                      WORK ORDER ALREADY COMPLETED & TRANSFERRED
+                    </div>
+                    <p className="text-[11px] text-emerald-800 leading-relaxed">
+                      Work Order <strong>{currentWo.workOrderNumber}</strong> ({currentWo.productName}) has already been certified and transferred to Finished Goods Warehouse.
+                    </p>
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          closeModal();
+                          router.push('/production/finished-goods');
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[11px] cursor-pointer flex items-center gap-1"
+                      >
+                        <PackageCheck className="w-3.5 h-3.5" />
+                        <span>View in Finished Goods Warehouse →</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Modal Actions */}
               <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] font-semibold cursor-pointer"
+                  onClick={closeModal}
+                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] font-semibold cursor-pointer hover:bg-[#EFE8DF] transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={hydroStatus === 'Failed' || dpStatus === 'Defects Found'}
+                  disabled={isSubmitting || hydroStatus === 'Failed' || dpStatus === 'Defects Found' || currentWo?.status === 'Completed'}
                   className={`px-5 py-2 rounded-xl text-white font-bold shadow-xs transition active:scale-95 flex items-center gap-1.5 ${
-                    hydroStatus === 'Failed' || dpStatus === 'Defects Found'
-                      ? 'bg-stone-300 cursor-not-allowed opacity-60'
+                    isSubmitting || hydroStatus === 'Failed' || dpStatus === 'Defects Found' || currentWo?.status === 'Completed'
+                      ? 'bg-stone-300 cursor-not-allowed opacity-60 text-stone-600'
                       : 'bg-[#8B2500] hover:bg-[#701E00] cursor-pointer'
                   }`}
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Certify & Transfer to Finished Goods</span>
+                  <span>
+                    {isSubmitting
+                      ? 'Processing & Certifying...'
+                      : currentWo?.status === 'Completed'
+                      ? '✓ Already Completed & Transferred'
+                      : 'Certify & Transfer to Finished Goods'}
+                  </span>
                 </button>
               </div>
             </form>
