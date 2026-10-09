@@ -10263,7 +10263,38 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addCustomerReceipt = (rec: Omit<CustomerReceipt, 'id' | 'receiptNumber'>) => {
     const receiptNumber = `RCT-2026-${String(customerReceipts.length + 1).padStart(4, '0')}`;
     const newRec: CustomerReceipt = { ...rec, id: receiptNumber, receiptNumber };
-    setCustomerReceipts((prev) => [newRec, ...prev]);
+    setCustomerReceipts((prev) => {
+      const updated = [newRec, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_customerReceipts', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
+    // Update Sales Invoice payment status and balance
+    if (newRec.salesInvoiceNumber && newRec.salesInvoiceNumber !== 'Direct Advance Payment' && newRec.salesInvoiceNumber !== 'Direct Payment') {
+      const matchedInv = salesInvoices.find(
+        (inv) =>
+          inv.invoiceNumber === newRec.salesInvoiceNumber ||
+          inv.id === newRec.salesInvoiceNumber ||
+          (inv as any).invoice_number === newRec.salesInvoiceNumber
+      );
+      if (matchedInv) {
+        const currentPaid = Number(matchedInv.paidAmount ?? (matchedInv as any).paid_amount ?? 0);
+        const total = Number(matchedInv.grandTotal ?? (matchedInv as any).grand_total ?? 0);
+        const recAmt = Number(newRec.amountPaid ?? newRec.amount ?? 0);
+        const newPaid = currentPaid + recAmt;
+        const newStatus = newPaid >= total ? 'Paid' : 'Partially Paid';
+        updateSalesInvoicePayment(matchedInv.id || matchedInv.invoiceNumber, {
+          paymentStatus: newStatus,
+          paidAmount: newPaid,
+          paymentMode: String(newRec.paymentMode),
+          referenceNumber: newRec.referenceNumber,
+          paymentDate: newRec.receiptDate || new Date().toISOString().split('T')[0],
+        });
+      }
+    }
+
     logAction('CREATE', 'Accounting', 'Customer Receipts', newRec.id, `Recorded Receipt ${newRec.receiptNumber} from ${newRec.customerName} (₹${(newRec.amountPaid ?? 0)?.toLocaleString()})`);
     api.post('/customer-receipts/', newRec).catch((err) => console.warn('Failed to add customer receipt:', err));
   };

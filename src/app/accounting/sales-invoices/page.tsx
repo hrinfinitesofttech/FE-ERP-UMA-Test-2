@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { SalesInvoice } from '../../../types/accounting';
-import { Receipt, Search, Plus, Filter, CheckCircle2, Clock, Eye, Download, FileSpreadsheet, Building, Users, Printer, X } from 'lucide-react';
+import { Receipt, Search, Plus, Filter, CheckCircle2, Clock, Eye, Download, FileSpreadsheet, Building, Users, Printer, X, Coins } from 'lucide-react';
 
 export default function SalesInvoicesPage() {
+  const router = useRouter();
   const { salesInvoices, addSalesInvoice, approveSalesInvoice, customers, salesOrders } = useERP();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('All');
@@ -250,17 +252,30 @@ export default function SalesInvoicesPage() {
                   ₹{Number(inv.grandTotal ?? (inv as any).grand_total ?? 0).toLocaleString('en-IN')}
                 </td>
                 <td className="py-3 px-4 text-center font-sans">
-                  <span
-                    className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                      inv.status === 'Approved'
-                        ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
-                        : inv.status === 'Posted'
-                        ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30'
-                        : 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30'
-                    }`}
-                  >
-                    {inv.status}
-                  </span>
+                  <div className="flex flex-col items-center gap-1">
+                    <span
+                      className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                        inv.status === 'Approved'
+                          ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                          : inv.status === 'Posted'
+                          ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30'
+                          : 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                      }`}
+                    >
+                      {inv.status}
+                    </span>
+                    <span
+                      className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
+                        inv.paymentStatus === 'Paid'
+                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                          : inv.paymentStatus === 'Partially Paid'
+                          ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                          : 'bg-amber-50 text-amber-700 border border-amber-200'
+                      }`}
+                    >
+                      {inv.paymentStatus || 'Unpaid'}
+                    </span>
+                  </div>
                 </td>
                 <td className="py-3 px-4 text-center font-sans">
                   <div className="flex items-center justify-center gap-1.5">
@@ -277,6 +292,15 @@ export default function SalesInvoicesPage() {
                         <CheckCircle2 className="w-3 h-3" /> Approved
                       </span>
                     )}
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/accounting/customer-receipts?customerId=${inv.customerId}&invoiceId=${inv.invoiceNumber || inv.id}`)}
+                      className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-bold rounded-lg transition shadow-xs flex items-center gap-1 cursor-pointer"
+                      title="Record Inward Customer Receipt"
+                    >
+                      <Coins className="w-3 h-3 text-emerald-700" />
+                      Receipt
+                    </button>
                     <button
                       type="button"
                       onClick={() => setSelectedInvoiceForPrint(inv)}
