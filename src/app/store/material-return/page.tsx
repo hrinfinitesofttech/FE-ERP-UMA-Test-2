@@ -125,9 +125,14 @@ function MaterialReturnContent() {
       return;
     }
 
+    const issuedQty = selectedItem.issuedQty || 500;
+    if (numReturnQty > issuedQty) {
+      alert(`Invalid Return Quantity: Return quantity (${numReturnQty} ${selectedItem.uom}) cannot exceed issued quantity (${issuedQty} ${selectedItem.uom}).`);
+      return;
+    }
+
     const unitPrice = selectedItem.unitPrice || 185;
     const calculatedValue = numReturnQty * unitPrice;
-    const issuedQty = selectedItem.issuedQty || 500;
     const usedQty = Math.max(0, issuedQty - numReturnQty);
 
     addMaterialReturn({

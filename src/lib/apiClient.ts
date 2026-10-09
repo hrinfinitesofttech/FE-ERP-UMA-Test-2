@@ -1371,6 +1371,11 @@ export const api = {
       delete: (id: string) => request<any>(`/finished-goods/${id}/`, { method: 'DELETE' }),
       qcPass: (id: string) => request<any>(`/finished-goods/${id}/qc-pass/`, { method: 'POST' }),
     },
+    completions: {
+      list: () => request<any[]>('/production-completions/'),
+      create: (data: any) => request<any>('/production-completions/', { method: 'POST', body: JSON.stringify(data) }),
+      get: (id: string) => request<any>(`/production-completions/${id}/`),
+    },
     materialRequests: {
       list: () => request<any[]>('/production-material-requests/'),
       create: (data: any) => request<any>('/production-material-requests/', { method: 'POST', body: JSON.stringify(data) }),

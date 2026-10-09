@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { 
-  CheckCircle2, ShieldCheck, PackageCheck, AlertCircle, Plus, 
+  CheckCircle2, ShieldCheck, PackageCheck, AlertCircle, AlertTriangle, Plus, 
   ChevronRight, Printer, X, Eye, FileText, Cpu, Building, Award, Sparkles, Filter, Search
 } from 'lucide-react';
 import { ProductionCompletion, WorkOrder } from '../../../types/production';
@@ -64,6 +64,12 @@ function WorkOrderCompletionContent() {
     if (wo) {
       setCompletedQty(wo.productionQuantity || 1);
       setEquipmentSerialNo(`UTF-${wo.jobNumber?.replace('JOB-', '') || 'EQ'}-${Date.now().toString().slice(-4)}`);
+      // Dynamically extract design pressure if specified in product description
+      const match = wo.productName?.match(/(\d+(\.\d+)?)\s*Bar/i);
+      if (match) {
+        setHydroDesignPressure(`${match[1]} Bar`);
+        setHydroTestPressure(`${(Number(match[1]) * 1.5).toFixed(1)} Bar (1.5x Design)`);
+      }
     }
   };
 
@@ -71,6 +77,12 @@ function WorkOrderCompletionContent() {
     e.preventDefault();
     if (!currentWo) {
       alert('Please select a valid work order.');
+      return;
+    }
+
+    // Critical QC Guard: Block completion if Hydro or DP test failed
+    if (hydroStatus === 'Failed' || dpStatus === 'Defects Found') {
+      alert('QUALITY CLEARANCE REJECTED: Equipment failed Hydrostatic Pressure Test or NDT DP inspection. You cannot clear this work order or transfer to Finished Goods. Please log a Rework Order.');
       return;
     }
 
@@ -402,10 +414,19 @@ function WorkOrderCompletionContent() {
                 </div>
 
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-[11px] text-[#70665F]">Zero pressure drop observed during 60 minutes holding duration.</span>
-                  <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 font-bold text-[10px]">
-                    ✓ Hydro Passed
-                  </span>
+                  <span className="text-[11px] text-[#70665F]">Pressure hold outcome:</span>
+                  <select
+                    value={hydroStatus}
+                    onChange={(e) => setHydroStatus(e.target.value as any)}
+                    className={`px-2.5 py-1 rounded text-xs font-bold border cursor-pointer ${
+                      hydroStatus === 'Passed'
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                        : 'bg-red-50 text-red-800 border-red-300 font-black'
+                    }`}
+                  >
+                    <option value="Passed">✓ Hydro Test Passed (Zero Drop)</option>
+                    <option value="Failed">❌ Hydro Test Failed (Pressure Drop / Leak)</option>
+                  </select>
                 </div>
               </div>
 
@@ -440,6 +461,22 @@ function WorkOrderCompletionContent() {
                       className="w-full bg-white border border-purple-200 rounded-lg px-2.5 py-1.5 text-xs text-[#211B17]"
                     />
                   </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-[11px] text-[#70665F]">Liquid Penetrant observation:</span>
+                  <select
+                    value={dpStatus}
+                    onChange={(e) => setDpStatus(e.target.value as any)}
+                    className={`px-2.5 py-1 rounded text-xs font-bold border cursor-pointer ${
+                      dpStatus === 'Accepted'
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                        : 'bg-red-50 text-red-800 border-red-300 font-black'
+                    }`}
+                  >
+                    <option value="Accepted">✓ DP Accepted (Nil Surface Defects)</option>
+                    <option value="Defects Found">❌ Defects Found (Cracks / Porosity Detected)</option>
+                  </select>
                 </div>
               </div>
 
@@ -501,6 +538,28 @@ function WorkOrderCompletionContent() {
                 />
               </div>
 
+              {/* Quality Rejection Enforcement Banner */}
+              {(hydroStatus === 'Failed' || dpStatus === 'Defects Found') && (
+                <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-900 flex items-start gap-2.5 animate-in fade-in">
+                  <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <div className="font-bold text-xs">QUALITY REJECTION ENFORCED: Work Order Clearance Blocked</div>
+                    <p className="text-[11px] text-red-700 leading-relaxed">
+                      Equipment failed mandatory quality testing ({hydroStatus === 'Failed' ? 'Hydrostatic Pressure Test' : ''}
+                      {hydroStatus === 'Failed' && dpStatus === 'Defects Found' ? ' and ' : ''}
+                      {dpStatus === 'Defects Found' ? 'Liquid Dye Penetrant NDT Inspection' : ''}). This equipment CANNOT be cleared as Finished Goods. You must route it for rework.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/production/rework?woNumber=${selectedWo}`)}
+                      className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-[11px] cursor-pointer"
+                    >
+                      <span>Route to Rework Order →</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Modal Actions */}
               <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
                 <button
@@ -512,7 +571,12 @@ function WorkOrderCompletionContent() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-[#8B2500] hover:bg-[#701E00] text-white font-bold shadow-xs transition active:scale-95 cursor-pointer flex items-center gap-1.5"
+                  disabled={hydroStatus === 'Failed' || dpStatus === 'Defects Found'}
+                  className={`px-5 py-2 rounded-xl text-white font-bold shadow-xs transition active:scale-95 flex items-center gap-1.5 ${
+                    hydroStatus === 'Failed' || dpStatus === 'Defects Found'
+                      ? 'bg-stone-300 cursor-not-allowed opacity-60'
+                      : 'bg-[#8B2500] hover:bg-[#701E00] cursor-pointer'
+                  }`}
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Certify & Transfer to Finished Goods</span>

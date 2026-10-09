@@ -9934,9 +9934,16 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
 
     logAction('CREATE', 'Production', 'Work Order Completion', newComp.id, `Completed & QC Cleared Work Order ${newComp.workOrderNumber}`);
+    api.production.completions.create(newComp).catch((err) => console.warn('Failed to record production completion:', err));
   };
 
   const addFinishedGoods = (data: Omit<FinishedGoodsItem, 'id' | 'finishedGoodsNumber' | 'createdAt'>) => {
+    // Idempotency check: prevent duplicate inwarding of same serial number
+    if (data.serialNumber && finishedGoods.some((f) => f.serialNumber === data.serialNumber)) {
+      console.warn(`Finished good with serial number ${data.serialNumber} already inwarded.`);
+      return;
+    }
+
     const finishedGoodsNumber = (data as any).finishedGoodsNumber || `FG-${new Date().getFullYear()}-${String(finishedGoods.length + 1).padStart(3, '0')}`;
     const newFg: FinishedGoodsItem = {
       ...data,
@@ -9947,6 +9954,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       qcStatus: data.qcStatus || 'QC Passed',
     };
     setFinishedGoods((prev) => {
+      // Secondary check against prev array in case of rapid clicks
+      if (data.serialNumber && prev.some((f) => f.serialNumber === data.serialNumber)) return prev;
       const updated = [newFg, ...prev];
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_finishedGoods', JSON.stringify(updated)); } catch (_) {}
