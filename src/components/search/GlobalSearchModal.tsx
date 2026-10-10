@@ -125,16 +125,7 @@ export const ERP_PAGES_MASTER: PageItem[] = [
     path: '/crm/leads/new',
     icon: Plus,
     description: 'Create new customer lead, machine specifications, budget, and sales engineer assignment.',
-    keywords: ['new lead', 'create lead', 'add lead', 'register lead', 'enquiry creation'],
-  },
-  {
-    id: 'page-crm-enquiries',
-    title: 'Commercial Enquiries Master',
-    category: 'CRM',
-    path: '/crm/enquiries',
-    icon: FileText,
-    description: 'Technical feasibility check, tender requirements, and customer RFP tracking.',
-    keywords: ['enquiries', 'inquiries', 'rfp', 'tender', 'customer requests'],
+    keywords: ['new lead', 'create lead', 'add lead', 'register lead'],
   },
   {
     id: 'page-crm-customers',

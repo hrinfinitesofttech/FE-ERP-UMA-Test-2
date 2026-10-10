@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useERP } from '../../../../context/ERPContext';
-import { ArrowLeft, FileCheck2, Plus, Trash2, Save, IndianRupee } from 'lucide-react';
+import { ArrowLeft, FileCheck2, Plus, Trash2, Save, IndianRupee, Sparkles } from 'lucide-react';
 import { QuotationItem } from '../../../../types/crm';
 import { formatCurrency } from '../../../../lib/utils';
 
@@ -138,6 +138,14 @@ function QuotationFormContent() {
   const totalTax = items.reduce((sum, item) => sum + (item.quantity * item.rate * (1 - item.discountPercent / 100) * (item.taxPercent / 100)), 0);
   const grandTotal = Math.round(subTotal + totalTax);
 
+  useEffect(() => {
+    if (prefillCustId && customerId !== prefillCustId) {
+      setCustomerId(prefillCustId);
+    } else if (matchedLead?.convertedCustomerId && !customerId) {
+      setCustomerId(matchedLead.convertedCustomerId);
+    }
+  }, [prefillCustId, matchedLead, customerId]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const cust = customers.find((c) => c.id === customerId);
@@ -147,10 +155,11 @@ function QuotationFormContent() {
       date,
       validUntil,
       customerId,
-      customerName: cust?.companyName || 'Valued Customer',
-      contactPerson: cust?.contactPerson || 'Purchase Head',
-      contactEmail: cust?.email || '',
-      contactMobile: cust?.mobile || '',
+      customerName: cust?.companyName || matchedLead?.companyName || 'Valued Customer',
+      contactPerson: cust?.contactPerson || matchedLead?.contactPerson || 'Purchase Head',
+      contactEmail: cust?.email || matchedLead?.email || '',
+      contactMobile: cust?.mobile || matchedLead?.mobile || '',
+      leadId: matchedLead?.id || prefillLeadId || undefined,
       enquiryId: prefillEnqId || undefined,
       latestSummary: {
         grandTotal,
@@ -199,10 +208,34 @@ function QuotationFormContent() {
               Build formal machine quotation with line items, tax calculations, technical scope, and payment milestones.
             </p>
           </div>
-          <span className="px-3 py-1 bg-crm-brand- text-crm-brand- font-mono font-bold rounded-lg text-xs">
+          <span className="px-3 py-1 bg-crm-brand-50 text-crm-brand-800 border border-crm-brand-200 font-mono font-bold rounded-lg text-xs">
             NEW REVISION: Rev-00
           </span>
         </div>
+
+        {matchedLead && (
+          <div className="p-3.5 bg-gradient-to-r from-crm-brand-50 via-[#FDF8F3] to-emerald-50 border border-crm-brand-200 rounded-xl flex items-center justify-between text-slate-800 shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-crm-brand-700 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="font-bold text-slate-900 block text-xs">
+                  Generating Quotation for Lead: <span className="font-mono text-crm-brand-800 font-extrabold">{matchedLead.leadNo || matchedLead.id}</span> — {matchedLead.companyName}
+                </span>
+                <span className="text-[11px] text-[#70665F]">
+                  Contact: {matchedLead.contactPerson} ({matchedLead.mobile || 'N/A'}) • Machine Requirement: <strong className="text-slate-800">{matchedLead.productName}</strong>
+                </span>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-[10px] uppercase font-bold text-[#70665F] block">Lead Budget</span>
+              <span className="font-mono font-bold text-emerald-700 text-xs">
+                {formatCurrency(matchedLead.budget || 0)}
+              </span>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* HEADER METADATA */}

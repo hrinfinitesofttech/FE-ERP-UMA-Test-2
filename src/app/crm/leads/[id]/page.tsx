@@ -194,10 +194,10 @@ export default function LeadDetailPage() {
 
   const handleConvert = () => {
     const res = convertLeadToCustomer(lead.id);
-    setConvertSuccess(`Successfully converted to Customer: ${res.customer.companyName}! Redirecting to Technical Enquiries...`);
+    setConvertSuccess(`Successfully converted to Customer: ${res.customer.companyName}! Redirecting to Create Quotation...`);
     setTimeout(() => {
-      router.push('/crm/leads?tab=enquiries');
-    }, 1200);
+      router.push(`/crm/quotations/new?leadId=${lead.id}&customerId=${res.customer.id}`);
+    }, 1000);
   };
 
   const handleAddFollowUp = (e: React.FormEvent) => {
@@ -390,11 +390,20 @@ export default function LeadDetailPage() {
               {lead.convertedCustomerId && (
                 <div className="relative">
                   <span className="absolute -left-6 top-1 w-2.5 h-2.5 rounded-full bg-emerald-600 ring-4 ring-emerald-100" />
-                  <div className="bg-emerald-50/50 dark:bg-emerald-950/20 p-3 rounded-xl border border-emerald-200 dark:border-emerald-800">
-                    <span className="font-bold text-emerald-800 dark:text-emerald-300 block">Converted to Customer & Enquiry</span>
-                    <p className="text-emerald-600 text-[11px] mt-0.5">
-                      Customer ID {lead.convertedCustomerId} • Opportunity created with 60% probability.
-                    </p>
+                  <div className="bg-emerald-50/50 dark:bg-emerald-950/20 p-3 rounded-xl border border-emerald-200 dark:border-emerald-800 flex items-center justify-between gap-2">
+                    <div>
+                      <span className="font-bold text-emerald-800 dark:text-emerald-300 block">Converted to Customer</span>
+                      <p className="text-emerald-600 text-[11px] mt-0.5">
+                        Customer ID {lead.convertedCustomerId} • Ready for Quotation
+                      </p>
+                    </div>
+                    <Link
+                      href={`/crm/quotations/new?leadId=${lead.id}&customerId=${lead.convertedCustomerId}`}
+                      className="px-3 py-1.5 bg-[#8B2500] hover:bg-[#701E00] text-white rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-xs cursor-pointer whitespace-nowrap"
+                    >
+                      <FileCheck2 className="w-3.5 h-3.5" />
+                      <span>Send Quotation</span>
+                    </Link>
                   </div>
                 </div>
               )}

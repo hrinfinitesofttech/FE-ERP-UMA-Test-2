@@ -5271,32 +5271,6 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
 
-    // Create Enquiry
-    const enqNo = getNextDocNumber('enquiry');
-    const newEnquiry: Enquiry = {
-      id: enqNo,
-      enquiryNo: enqNo,
-      leadId: lead.id,
-      customerId: newCustomer.id,
-      customerName: newCustomer.companyName,
-      enquiryDate: new Date().toISOString().split('T')[0],
-      requirement: lead.requirementDescription || `${lead.productName} for ${lead.companyName}`,
-      machineProduct: lead.productName,
-      quantity: lead.quantity || 1,
-      specification: lead.capacity || lead.requirementDescription || 'As per customer drawing/spec',
-      expectedDelivery: lead.expectedDelivery || new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      assignedPersonId: lead.assignedSalesPersonId,
-      assignedPersonName: lead.assignedSalesPersonName,
-      status: 'technical_review',
-    };
-    setEnquiries((prev) => {
-      const updated = [newEnquiry, ...prev.filter((e) => e.id !== newEnquiry.id && e.enquiryNo !== newEnquiry.enquiryNo)];
-      if (typeof window !== 'undefined') {
-        try { localStorage.setItem('UMA_ERP_enquiries', JSON.stringify(updated)); } catch (_) {}
-      }
-      return updated;
-    });
-
     // Create Opportunity
     const oppNo = getNextDocNumber('opportunity');
     const newOpp: Opportunity = {
@@ -5326,15 +5300,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     updateLead(lead.id, {
       status: 'won',
       convertedCustomerId: newCustomer.id,
-      convertedEnquiryId: newEnquiry.id,
       convertedOpportunityId: newOpp.id,
     });
 
     // Asynchronously trigger lead conversion on PythonAnywhere backend
     api.crm.leads.convert(lead.id).catch((err) => console.warn('Failed to sync lead conversion on backend:', err));
 
-    logAction('APPROVE', 'CRM', 'Convert Lead', lead.id, `Converted lead to Customer ${newCustomer.companyName}, Enquiry ${enqNo}, Opportunity ${oppNo}`);
-    return { customer: newCustomer, enquiry: newEnquiry, opportunity: newOpp };
+    logAction('APPROVE', 'CRM', 'Convert Lead', lead.id, `Converted lead to Customer ${newCustomer.companyName}, Opportunity ${oppNo}`);
+    return { customer: newCustomer, opportunity: newOpp };
   };
 
   // Customers

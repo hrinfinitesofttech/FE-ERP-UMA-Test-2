@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useERP } from '../../context/ERPContext';
 import { DataTable, Column } from '../data/DataTable';
 import { StatusBadge } from '../workflow/StatusBadge';
-import { Lead, Enquiry, Customer, LeadStatus, LeadSource, PriorityLevel, Employee } from '../../types/crm';
+import { Lead, Customer, LeadStatus, LeadSource, PriorityLevel, Employee } from '../../types/crm';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import {
   UserPlus,
@@ -37,7 +37,7 @@ import {
   Search,
 } from 'lucide-react';
 
-export type CRMTab = 'leads' | 'enquiries' | 'customers' | 'lifecycle';
+export type CRMTab = 'leads' | 'customers' | 'lifecycle';
 
 interface CRMMasterHubProps {
   defaultTab?: CRMTab;
@@ -52,9 +52,6 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
     updateLead,
     deleteLead,
     convertLeadToCustomer,
-    enquiries,
-    addEnquiry,
-    updateEnquiry,
     customers,
     addCustomer,
     updateCustomer,
@@ -74,10 +71,12 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
 
   // Active Tab State with URL query sync
   const queryTab = searchParams?.get('tab') as CRMTab | null;
-  const [activeTab, setActiveTab] = useState<CRMTab>(queryTab || defaultTab);
+  const [activeTab, setActiveTab] = useState<CRMTab>(
+    queryTab && ['leads', 'customers', 'lifecycle'].includes(queryTab) ? queryTab : defaultTab
+  );
 
   useEffect(() => {
-    if (queryTab && ['leads', 'enquiries', 'customers', 'lifecycle'].includes(queryTab)) {
+    if (queryTab && ['leads', 'customers', 'lifecycle'].includes(queryTab)) {
       setActiveTab(queryTab);
     }
   }, [queryTab]);
@@ -128,11 +127,9 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
     e.stopPropagation();
     try {
       const res = convertLeadToCustomer(leadId);
-      const enqNum = res.enquiry?.enquiryNo || res.enquiry?.id || 'RFQ';
       setSuccessMsg(
-        `Lead "${res.customer.companyName}" successfully converted! Created Customer "${res.customer.customerCode}" & Technical Enquiry "${enqNum}". Switched to Technical Enquiries.`
+        `Lead "${res.customer.companyName}" successfully converted to Customer "${res.customer.customerCode}"! Click [Send Quotation] to generate a formal quotation.`
       );
-      switchTab('enquiries');
       setTimeout(() => setSuccessMsg(''), 8000);
     } catch (err) {
       console.error('Error converting lead:', err);
@@ -145,42 +142,6 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
     updateLead(editingLead.id, editLeadData);
     setEditingLead(null);
     setSuccessMsg(`Lead "${editLeadData.companyName || editingLead.companyName}" updated successfully.`);
-    setTimeout(() => setSuccessMsg(''), 4000);
-  };
-
-  // --------------------------------------------------------------------------
-  // ENQUIRIES STATE & ACTIONS
-  // --------------------------------------------------------------------------
-  const [showAddEnquiryModal, setShowAddEnquiryModal] = useState(false);
-  const [enqCustomerId, setEnqCustomerId] = useState(customers[0]?.id || '');
-  const [enqMachineProduct, setEnqMachineProduct] = useState('');
-  const [enqQuantity, setEnqQuantity] = useState<number | string>(1);
-  const [enqSpecification, setEnqSpecification] = useState('');
-  const [enqExpectedDelivery, setEnqExpectedDelivery] = useState('2026-11-15');
-  const [enqAssignedPersonId, setEnqAssignedPersonId] = useState(allEmployees[0]?.id || '');
-
-  const handleCreateEnquiry = (e: React.FormEvent) => {
-    e.preventDefault();
-    const cust = customers.find((c) => c.id === enqCustomerId);
-    const emp = allEmployees.find((emp) => emp.id === enqAssignedPersonId);
-
-    addEnquiry({
-      customerId: enqCustomerId,
-      customerName: cust?.companyName || 'Valued Customer',
-      requirement: enqSpecification,
-      machineProduct: enqMachineProduct,
-      quantity: Number(enqQuantity) || 1,
-      specification: enqSpecification,
-      expectedDelivery: enqExpectedDelivery,
-      assignedPersonId: enqAssignedPersonId,
-      assignedPersonName: emp ? emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() : 'Sales Engineer',
-      status: 'technical_review',
-    });
-
-    setEnqMachineProduct('');
-    setEnqSpecification('');
-    setShowAddEnquiryModal(false);
-    setSuccessMsg('Technical enquiry registered successfully.');
     setTimeout(() => setSuccessMsg(''), 4000);
   };
 
@@ -267,10 +228,10 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
   const totalLeads = leads.length;
   const activeLeads = leads.filter((l) => l.status !== 'won' && l.status !== 'lost').length;
   const wonLeads = leads.filter((l) => l.status === 'won').length;
-  const totalEnquiries = enquiries.length;
-  const activeEnquiries = enquiries.filter((e) => e.status !== 'closed' && e.status !== 'converted').length;
   const totalCustomers = customers.length;
   const totalPipelineBudget = leads.reduce((sum, l) => sum + (Number(l.budget) || 0), 0);
+  const totalQuotations = quotations.length;
+  const activeQuotations = quotations.filter((q) => q.latestSummary?.status !== 'rejected').length;
 
   // --------------------------------------------------------------------------
   // TABLE COLUMNS CONFIGURATIONS
@@ -376,15 +337,27 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
             {!isConverted ? (
               <button
                 onClick={(e) => handleConvertLead(lead.id, e)}
-                title="Convert Lead to Customer & Technical Enquiry"
-                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded text-[10px] font-bold transition flex items-center gap-1 shadow-xs cursor-pointer"
+                title="Convert Lead to Customer Account"
+                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded text-[10px] font-bold transition flex items-center gap-1 shadow-xs cursor-pointer whitespace-nowrap"
               >
                 <Sparkles className="w-3 h-3" /> Convert
               </button>
             ) : (
-              <span className="px-2.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-300 text-[10px] font-bold flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Converted
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-300 text-[10px] font-bold flex items-center gap-1 whitespace-nowrap">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Converted
+                </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(`/crm/quotations/new?leadId=${lead.id}&customerId=${lead.convertedCustomerId || ''}`);
+                  }}
+                  title="Send formal Quotation for this converted lead"
+                  className="px-2.5 py-1 bg-crm-brand-700 hover:bg-crm-brand-800 active:scale-95 text-white rounded text-[10px] font-bold transition flex items-center gap-1 shadow-xs cursor-pointer whitespace-nowrap"
+                >
+                  <FileText className="w-3 h-3" /> Send Quotation
+                </button>
+              </div>
             )}
             <button
               onClick={() => {
@@ -409,106 +382,7 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
     },
   ];
 
-  // 2. ENQUIRIES COLUMNS
-  const enquiryColumns: Column<Enquiry>[] = [
-    {
-      header: 'Enquiry No.',
-      accessorKey: 'enquiryNo',
-      cell: (enq) => (
-        <span className="font-mono font-bold text-crm-brand-700 bg-crm-brand-50 px-2 py-0.5 rounded border border-crm-brand-200">
-          {enq.enquiryNo}
-        </span>
-      ),
-    },
-    {
-      header: 'Customer',
-      cell: (enq) => (
-        <div>
-          <span className="font-bold text-slate-900 block">{enq.customerName}</span>
-          <span className="text-[10px] text-[#70665F] font-mono">ID: {enq.customerId}</span>
-        </div>
-      ),
-    },
-    {
-      header: 'Machine / Equipment Requirement',
-      cell: (enq) => (
-        <div>
-          <span className="font-semibold text-slate-800 block">{enq.machineProduct}</span>
-          <span className="text-[10px] text-[#70665F] block truncate max-w-xs">{enq.specification}</span>
-        </div>
-      ),
-    },
-    {
-      header: 'Qty',
-      accessorKey: 'quantity',
-      cell: (enq) => <span className="font-mono font-bold">{enq.quantity}</span>,
-    },
-    {
-      header: 'Target Delivery',
-      cell: (enq) => (
-        <span className="font-mono text-[11px] text-[#544B45]">
-          {formatDate(enq.expectedDelivery)}
-        </span>
-      ),
-    },
-    {
-      header: 'Assigned Engineer',
-      accessorKey: 'assignedPersonName',
-      cell: (enq) => <span className="text-xs font-medium text-[#544B45]">{enq.assignedPersonName}</span>,
-    },
-    {
-      header: 'Status',
-      cell: (enq) => {
-        const linkedQuo = quotations.find(
-          (q) =>
-            (enq.quotationId && (q.id === enq.quotationId || q.quotationNumber === enq.quotationId)) ||
-            (q.enquiryId && (q.enquiryId === enq.id || q.enquiryId === enq.enquiryNo)) ||
-            (q.customerId === enq.customerId && q.latestSummary?.machineProduct === enq.machineProduct)
-        );
-        const effectiveStatus = linkedQuo ? 'quotation_sent' : enq.status;
-        return <StatusBadge status={effectiveStatus as any} />;
-      },
-    },
-    {
-      header: 'Actions',
-      cell: (enq) => {
-        const linkedQuo = quotations.find(
-          (q) =>
-            (enq.quotationId && (q.id === enq.quotationId || q.quotationNumber === enq.quotationId)) ||
-            (q.enquiryId && (q.enquiryId === enq.id || q.enquiryId === enq.enquiryNo)) ||
-            (q.customerId === enq.customerId && q.latestSummary?.machineProduct === enq.machineProduct)
-        );
-        return (
-          <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-            {linkedQuo ? (
-              <Link
-                href={`/crm/quotations/${linkedQuo.id}`}
-                className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
-                title={`Open Quotation ${linkedQuo.quotationNumber}`}
-              >
-                <FileCheck2 className="w-3.5 h-3.5 text-emerald-600" />
-                <span>View Quote ({linkedQuo.quotationNumber})</span>
-                <ArrowUpRight className="w-3 h-3 text-emerald-600" />
-              </Link>
-            ) : (
-              <Link
-                href={`/crm/quotations/new?enquiryId=${enq.id}&customerId=${enq.customerId}&leadId=${enq.leadId || ''}&machineProduct=${encodeURIComponent(
-                  enq.machineProduct || ''
-                )}`}
-                className="px-3 py-1.5 bg-crm-brand-700 hover:bg-crm-brand-800 active:scale-95 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
-                title="Create New Quotation for this Technical Enquiry"
-              >
-                <FileText className="w-3.5 h-3.5" />
-                <span>+ Quotation</span>
-              </Link>
-            )}
-          </div>
-        );
-      },
-    },
-  ];
-
-  // 3. CUSTOMERS COLUMNS
+  // 2. CUSTOMERS COLUMNS
   const customerColumns: Column<Customer>[] = [
     {
       header: 'Customer Code',
@@ -605,7 +479,7 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="px-2.5 py-0.5 rounded-full bg-[#F5E6D8] text-[#8C5229] border border-[#E7DED5] font-mono text-[10px] font-bold uppercase tracking-wider">
-              3-in-1 Unified CRM Engine
+              Unified CRM Engine
             </span>
             <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200">
               Live Synced
@@ -615,7 +489,7 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
             Commercial Master Hub
           </h1>
           <p className="text-[#6F6156] text-xs mt-1 max-w-2xl leading-relaxed">
-            Manage prospective Leads, Technical Enquiries (RFQs), and Customer Accounts seamlessly in one integrated workspace.
+            Manage prospective Leads, Customer Accounts, and Commercial Quotations seamlessly in one integrated workspace.
           </p>
         </div>
 
@@ -628,13 +502,13 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
             <UserPlus className="w-3.5 h-3.5" />
             <span>+ New Lead</span>
           </Link>
-          <button
-            onClick={() => setShowAddEnquiryModal(true)}
+          <Link
+            href="/crm/quotations/new"
             className="px-3.5 py-2 bg-white hover:bg-[#FAF7F2] border border-[#E7DED5] text-slate-800 rounded-xl font-bold transition flex items-center gap-1.5 shadow-xs"
           >
             <FileText className="w-3.5 h-3.5 text-blue-600" />
-            <span>+ New Enquiry</span>
-          </button>
+            <span>+ New Quotation</span>
+          </Link>
           <button
             onClick={() => setShowAddCustomerModal(true)}
             className="px-3.5 py-2 bg-white hover:bg-[#FAF7F2] border border-[#E7DED5] text-slate-800 rounded-xl font-bold transition flex items-center gap-1.5 shadow-xs"
@@ -679,22 +553,20 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
           </p>
         </div>
 
-        <div
-          onClick={() => switchTab('enquiries')}
-          className={`cursor-pointer bg-white p-4 rounded-xl border transition-all ${
-            activeTab === 'enquiries' ? 'border-blue-600 ring-2 ring-blue-600/20 shadow-sm' : 'border-[#EBE3DB] hover:border-slate-300'
-          }`}
+        <Link
+          href="/crm/quotations"
+          className="bg-white p-4 rounded-xl border border-[#EBE3DB] hover:border-slate-300 transition-all hover:shadow-xs"
         >
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider">Technical Enquiries</span>
-            <FileText className="w-4 h-4 text-blue-600" />
+            <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider">Commercial Quotations</span>
+            <FileCheck2 className="w-4 h-4 text-crm-brand-700" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span suppressHydrationWarning className="text-2xl font-extrabold text-[#211B17] font-mono">{totalEnquiries}</span>
-            <span suppressHydrationWarning className="text-[10px] text-blue-600 font-bold">({activeEnquiries} in review)</span>
+            <span suppressHydrationWarning className="text-2xl font-extrabold text-[#211B17] font-mono">{totalQuotations}</span>
+            <span suppressHydrationWarning className="text-[10px] text-crm-brand-700 font-bold">({activeQuotations} active)</span>
           </div>
-          <p className="text-[10px] text-[#70665F] mt-1">RFQ specifications & machine design</p>
-        </div>
+          <p className="text-[10px] text-[#70665F] mt-1">Estimations & customer proposals</p>
+        </Link>
 
         <div
           onClick={() => switchTab('customers')}
@@ -720,7 +592,7 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
           }`}
         >
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider">360° Conversion Flow</span>
+            <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider">Lead-to-Order Conversion</span>
             <TrendingUp className="w-4 h-4 text-emerald-600" />
           </div>
           <div className="flex items-baseline gap-2">
@@ -729,7 +601,7 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
             </span>
             <span suppressHydrationWarning className="text-[10px] text-[#70665F] font-bold">({wonLeads} won deals)</span>
           </div>
-          <p className="text-[10px] text-[#70665F] mt-1">Lead ➔ Customer ➔ Order tracking</p>
+          <p className="text-[10px] text-[#70665F] mt-1">Direct Lead ➔ Quotation ➔ Order</p>
         </div>
       </div>
 
@@ -747,21 +619,6 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
           <span>Leads Management</span>
           <span suppressHydrationWarning className="px-1.5 py-0.2 rounded-full bg-crm-brand-100 text-crm-brand-800 text-[10px] font-mono font-bold">
             {leads.length}
-          </span>
-        </button>
-
-        <button
-          onClick={() => switchTab('enquiries')}
-          className={`px-4 py-2.5 font-bold text-xs rounded-t-xl transition-all flex items-center gap-2 border-b-2 ${
-            activeTab === 'enquiries'
-              ? 'border-blue-600 text-blue-700 bg-blue-50/50'
-              : 'border-transparent text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]'
-          }`}
-        >
-          <FileText className="w-4 h-4" />
-          <span>Technical Enquiries</span>
-          <span suppressHydrationWarning className="px-1.5 py-0.2 rounded-full bg-blue-100 text-blue-800 text-[10px] font-mono font-bold">
-            {enquiries.length}
           </span>
         </button>
 
@@ -789,7 +646,7 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
           }`}
         >
           <TrendingUp className="w-4 h-4" />
-          <span>360° Conversion Lifecycle</span>
+          <span>Lead-to-Quotation Lifecycle</span>
         </button>
       </div>
 
@@ -844,43 +701,7 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
         </div>
       )}
 
-      {/* TAB 2: TECHNICAL ENQUIRIES */}
-      {activeTab === 'enquiries' && (
-        <div className="space-y-4">
-          <DataTable
-            columns={enquiryColumns}
-            data={enquiries}
-            searchPlaceholder="Search technical enquiries by customer, machine, specs..."
-            onRowClick={(enq) => {
-              const linkedQuo = quotations.find(
-                (q) =>
-                  (enq.quotationId && (q.id === enq.quotationId || q.quotationNumber === enq.quotationId)) ||
-                  (q.enquiryId && (q.enquiryId === enq.id || q.enquiryId === enq.enquiryNo)) ||
-                  (q.customerId === enq.customerId && q.latestSummary?.machineProduct === enq.machineProduct)
-              );
-              if (linkedQuo) {
-                router.push(`/crm/quotations/${linkedQuo.id}`);
-              } else {
-                router.push(
-                  `/crm/quotations/new?enquiryId=${enq.id}&customerId=${enq.customerId}&leadId=${enq.leadId || ''}&machineProduct=${encodeURIComponent(
-                    enq.machineProduct || ''
-                  )}`
-                );
-              }
-            }}
-            actions={
-              <button
-                onClick={() => setShowAddEnquiryModal(true)}
-                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-xs flex items-center gap-1 transition shadow-xs"
-              >
-                <Plus className="w-3.5 h-3.5" /> Add Enquiry
-              </button>
-            }
-          />
-        </div>
-      )}
-
-      {/* TAB 3: CUSTOMERS MASTER */}
+      {/* TAB 2: CUSTOMERS MASTER */}
       {activeTab === 'customers' && (
         <div className="space-y-4">
           <DataTable
@@ -900,7 +721,7 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
         </div>
       )}
 
-      {/* TAB 4: 360° CONVERSION LIFECYCLE */}
+      {/* TAB 3: LEAD-TO-QUOTATION LIFECYCLE */}
       {activeTab === 'lifecycle' && (
         <div className="space-y-4">
           <div className="bg-white border border-[#EBE3DB] rounded-2xl p-5 shadow-xs">
@@ -908,10 +729,10 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
               <div>
                 <h3 className="font-bold text-sm text-[#211B17] flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-emerald-600" />
-                  360° Lead-to-Customer Pipeline Architecture
+                  Direct Lead ➔ Customer ➔ Quotation Pipeline
                 </h3>
                 <p className="text-[11px] text-[#70665F] mt-0.5">
-                  Visual relationship tracking between prospective Leads, registered Customers, and active Technical Enquiries.
+                  Visual relationship tracking between prospective Leads, registered Customers, and Commercial Quotations.
                 </p>
               </div>
             </div>
@@ -923,8 +744,10 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
                     l.convertedCustomerId === cust.id ||
                     (l.companyName && l.companyName.toLowerCase() === cust.companyName.toLowerCase())
                 );
-                const linkedEnquiries = enquiries.filter(
-                  (e) => e.customerId === cust.id || e.customerName === cust.companyName
+                const linkedQuotations = quotations.filter(
+                  (q) =>
+                    q.customerId === cust.id ||
+                    (linkedLead && (q.leadId === linkedLead.id || q.leadId === linkedLead.leadNo))
                 );
 
                 return (
@@ -955,7 +778,7 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
                           GST: {cust.gstin || '24AAACX0000X1Z1'}
                         </span>
                         <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-bold">
-                          {linkedEnquiries.length} Enquiries
+                          {linkedQuotations.length} Quotations
                         </span>
                       </div>
                     </div>
@@ -984,23 +807,37 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
                         )}
                       </div>
 
-                      {/* Right: Technical Enquiries */}
+                      {/* Right: Commercial Quotations */}
                       <div className="p-2.5 bg-white rounded-lg border border-[#EBE3DB] text-[11px]">
-                        <span className="text-[10px] font-bold text-[#70665F] uppercase block mb-1">
-                          Linked Technical Enquiries ({linkedEnquiries.length}):
-                        </span>
-                        {linkedEnquiries.length > 0 ? (
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] font-bold text-[#70665F] uppercase">
+                            Commercial Quotations ({linkedQuotations.length}):
+                          </span>
+                          <Link
+                            href={`/crm/quotations/new?customerId=${cust.id}&leadId=${linkedLead?.id || ''}`}
+                            className="text-[10px] text-crm-brand-700 hover:underline font-bold flex items-center gap-0.5"
+                          >
+                            + New Quote
+                          </Link>
+                        </div>
+                        {linkedQuotations.length > 0 ? (
                           <div className="space-y-1">
-                            {linkedEnquiries.slice(0, 2).map((enq) => (
-                              <div key={enq.id} className="flex items-center justify-between text-[10px]">
-                                <span className="font-mono font-bold text-blue-700">{enq.enquiryNo}</span>
-                                <span className="truncate max-w-[150px] font-medium">{enq.machineProduct}</span>
-                                <span className="text-[#70665F]">Qty: {enq.quantity}</span>
-                              </div>
+                            {linkedQuotations.slice(0, 2).map((quo) => (
+                              <Link
+                                key={quo.id}
+                                href={`/crm/quotations/${quo.id}`}
+                                className="flex items-center justify-between text-[10px] hover:bg-slate-50 p-1 rounded"
+                              >
+                                <span className="font-mono font-bold text-crm-brand-700">{quo.quotationNumber}</span>
+                                <span className="truncate max-w-[150px] font-medium">{quo.latestSummary?.machineProduct}</span>
+                                <span className="text-emerald-700 font-mono font-bold">
+                                  {formatCurrency(quo.latestSummary?.grandTotal || 0)}
+                                </span>
+                              </Link>
                             ))}
                           </div>
                         ) : (
-                          <span className="text-[#70665F] italic">No active technical enquiries yet</span>
+                          <span className="text-[#70665F] italic">No quotations generated yet</span>
                         )}
                       </div>
                     </div>
@@ -1008,121 +845,6 @@ export function CRMMasterHub({ defaultTab = 'leads' }: CRMMasterHubProps) {
                 );
               })}
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* ---------------------------------------------------------------------- */}
-      {/* MODAL 1: ADD TECHNICAL ENQUIRY                                          */}
-      {/* ---------------------------------------------------------------------- */}
-      {showAddEnquiryModal && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-lg w-full p-6 shadow-xl animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3 mb-4">
-              <h3 className="font-bold text-sm text-[#211B17] flex items-center gap-2">
-                <FileText className="w-4 h-4 text-blue-600" />
-                Add New Technical Enquiry
-              </h3>
-              <button onClick={() => setShowAddEnquiryModal(false)} className="text-[#70665F] hover:text-[#211B17]">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateEnquiry} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Select Customer Account *</label>
-                <select
-                  value={enqCustomerId}
-                  onChange={(e) => setEnqCustomerId(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl font-semibold"
-                >
-                  {customers.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.companyName} ({c.city})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Machine / Equipment Product *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. 5 KL SS 316 Reaction Vessel"
-                  value={enqMachineProduct}
-                  onChange={(e) => setEnqMachineProduct(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl font-medium"
-                >
-                </input>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Quantity *</label>
-                  <input
-                    type="number"
-                    min={1}
-                    required
-                    value={enqQuantity}
-                    onChange={(e) => setEnqQuantity(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Target Delivery Date</label>
-                  <input
-                    type="date"
-                    min={todayStr}
-                    value={enqExpectedDelivery}
-                    onChange={(e) => setEnqExpectedDelivery(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl font-mono"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Assigned Sales Engineer</label>
-                <select
-                  value={enqAssignedPersonId}
-                  onChange={(e) => setEnqAssignedPersonId(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl"
-                >
-                  {allEmployees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || emp.id}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Technical Specifications</label>
-                <textarea
-                  rows={3}
-                  placeholder="Material specs, pressure rating, agitator details..."
-                  value={enqSpecification}
-                  onChange={(e) => setEnqSpecification(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
-                <button
-                  type="button"
-                  onClick={() => setShowAddEnquiryModal(false)}
-                  className="px-4 py-2 border border-[#EBE3DB] rounded-lg hover:bg-slate-50 font-semibold"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-xs transition"
-                >
-                  Save Enquiry
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}
