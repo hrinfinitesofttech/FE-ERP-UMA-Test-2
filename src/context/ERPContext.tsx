@@ -2595,8 +2595,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   }
 
   function applyLive<T>(res: T[] | null, setter: React.Dispatch<React.SetStateAction<T[]>>, cacheKey?: string) {
-    if (res && Array.isArray(res) && res.length > 0) {
-      const sorted = sortByLatestDesc(res as any[]) as T[];
+    if (res && Array.isArray(res)) {
+      const sorted = res.length > 0 ? (sortByLatestDesc(res as any[]) as T[]) : [];
       setter(sorted);
       if (cacheKey && typeof window !== 'undefined') {
         try {
