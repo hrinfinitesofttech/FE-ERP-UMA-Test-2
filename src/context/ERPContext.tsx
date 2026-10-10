@@ -2751,25 +2751,21 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       ]);
 
       const rawLeads = val<any[]>(results[0]);
-      if (rawLeads && Array.isArray(rawLeads) && rawLeads.length > 0) {
-        setLeads((prev) => {
-          const combined = deduplicateLeads([...prev, ...rawLeads]);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_leads', JSON.stringify(combined)); } catch (_) {}
-          }
-          return combined;
-        });
+      if (rawLeads && Array.isArray(rawLeads)) {
+        const sorted = sortByLatestDesc(deduplicateLeads(rawLeads)) as Lead[];
+        setLeads(sorted);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_leads', JSON.stringify(sorted)); } catch (_) {}
+        }
       }
 
       const rawCustomers = val<any[]>(results[1]);
-      if (rawCustomers && Array.isArray(rawCustomers) && rawCustomers.length > 0) {
-        setCustomers((prev) => {
-          const combined = deduplicateCustomers([...prev, ...rawCustomers]);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_customers', JSON.stringify(combined)); } catch (_) {}
-          }
-          return combined;
-        });
+      if (rawCustomers && Array.isArray(rawCustomers)) {
+        const sorted = sortByLatestDesc(deduplicateCustomers(rawCustomers)) as Customer[];
+        setCustomers(sorted);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_customers', JSON.stringify(sorted)); } catch (_) {}
+        }
       }
 
       applyLive<Contact>(val(results[2]), setContacts, 'contacts');
@@ -2777,36 +2773,30 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       applyLive<Opportunity>(val(results[4]), setOpportunities, 'opportunities');
 
       const rawQuotations = val<any[]>(results[5]);
-      if (rawQuotations && Array.isArray(rawQuotations) && rawQuotations.length > 0) {
-        setQuotations((prev) => {
-          const combined = deduplicateQuotations([...prev, ...rawQuotations]);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_quotations', JSON.stringify(combined)); } catch (_) {}
-          }
-          return combined;
-        });
+      if (rawQuotations && Array.isArray(rawQuotations)) {
+        const sorted = sortByLatestDesc(deduplicateQuotations(rawQuotations)) as Quotation[];
+        setQuotations(sorted);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_quotations', JSON.stringify(sorted)); } catch (_) {}
+        }
       }
 
       const rawCustomerPOs = val<any[]>(results[6]);
-      if (rawCustomerPOs && Array.isArray(rawCustomerPOs) && rawCustomerPOs.length > 0) {
-        setCustomerPOs((prev) => {
-          const combined = deduplicateCustomerPOs([...prev, ...rawCustomerPOs]);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_customerPOs', JSON.stringify(combined)); } catch (_) {}
-          }
-          return combined;
-        });
+      if (rawCustomerPOs && Array.isArray(rawCustomerPOs)) {
+        const sorted = sortByLatestDesc(deduplicateCustomerPOs(rawCustomerPOs)) as CustomerPO[];
+        setCustomerPOs(sorted);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_customerPOs', JSON.stringify(sorted)); } catch (_) {}
+        }
       }
 
       const rawSalesOrders = val<any[]>(results[7]);
-      if (rawSalesOrders && Array.isArray(rawSalesOrders) && rawSalesOrders.length > 0) {
-        setSalesOrders((prev) => {
-          const combined = deduplicateSalesOrders([...prev, ...rawSalesOrders]);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_salesOrders', JSON.stringify(combined)); } catch (_) {}
-          }
-          return combined;
-        });
+      if (rawSalesOrders && Array.isArray(rawSalesOrders)) {
+        const sorted = sortByLatestDesc(deduplicateSalesOrders(rawSalesOrders)) as SalesOrder[];
+        setSalesOrders(sorted);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_salesOrders', JSON.stringify(sorted)); } catch (_) {}
+        }
       }
 
       const rawFollowUps = val<any>(results[8]);
@@ -2919,14 +2909,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       // 1. Fetch projectJobs FIRST and apply IMMEDIATELY without waiting for sub-resources
       const prjPromise = api.projects.list()
         .then((rawProjects) => {
-          if (rawProjects && Array.isArray(rawProjects) && rawProjects.length > 0) {
-            setProjectJobs((prev) => {
-              const combined = deduplicateProjects([...prev, ...rawProjects]);
-              if (typeof window !== 'undefined') {
-                try { localStorage.setItem('UMA_ERP_projectJobs', JSON.stringify(combined)); } catch (_) {}
-              }
-              return combined;
-            });
+          if (rawProjects && Array.isArray(rawProjects)) {
+            const sorted = sortByLatestDesc(deduplicateProjects(rawProjects)) as ProjectJobMaster[];
+            setProjectJobs(sorted);
+            if (typeof window !== 'undefined') {
+              try { localStorage.setItem('UMA_ERP_projectJobs', JSON.stringify(sorted)); } catch (_) {}
+            }
           }
         })
         .catch((err) => console.warn('Fast projects fetch error:', err))
@@ -3384,7 +3372,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       ]);
 
       const rawSuppliers = val<any[]>(results[0]);
-      if (rawSuppliers && Array.isArray(rawSuppliers) && rawSuppliers.length > 0) {
+      if (rawSuppliers && Array.isArray(rawSuppliers)) {
         const normalizedSuppliers: Supplier[] = rawSuppliers.map((s: any) => {
           const sName = s.name || s.supplierName || s.supplier_name || (s as any).companyName || 'Supplier';
           const vCode = s.vendorCode || s.vendor_code || s.supplierCode || s.supplier_code || s.id;
@@ -3409,7 +3397,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
 
       const rawPRs = val<any[]>(results[1]);
-      if (rawPRs && Array.isArray(rawPRs) && rawPRs.length > 0) {
+      if (rawPRs && Array.isArray(rawPRs)) {
         const normalizedPRs: PurchaseRequisition[] = rawPRs.map((pr: any) => ({
           ...pr,
           id: String(pr.id || pr.pr_number || pr.prNumber),
@@ -3438,7 +3426,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
 
       const rawPOs = val<any[]>(results[2]);
-      if (rawPOs && Array.isArray(rawPOs) && rawPOs.length > 0) {
+      if (rawPOs && Array.isArray(rawPOs)) {
         const normalizedPOs: PurchaseOrder[] = rawPOs.map((po: any) => ({
           ...po,
           id: String(po.id || po.poNumber || po.po_number),
@@ -3542,7 +3530,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
 
       const rawSQs = val<any[]>(results[5]);
-      if (rawSQs && Array.isArray(rawSQs) && rawSQs.length > 0) {
+      if (rawSQs && Array.isArray(rawSQs)) {
         const normalizedSQs: SupplierQuotation[] = rawSQs.map((q: any) => ({
           ...q,
           id: String(q.id || q.quotationNumber || q.quotation_number),
@@ -3576,7 +3564,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
       // Sync items & UOMs for purchase drop-downs
       const rawItems = val<any[]>(results[7]);
-      if (rawItems && Array.isArray(rawItems) && rawItems.length > 0) {
+      if (rawItems && Array.isArray(rawItems)) {
         const normalizedItems: ItemMaster[] = rawItems.map((i: any) => ({
           ...i,
           id: String(i.id),
@@ -3607,7 +3595,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
 
       const rawUoms = val<any[]>(results[8]);
-      if (rawUoms && Array.isArray(rawUoms) && rawUoms.length > 0) {
+      if (rawUoms && Array.isArray(rawUoms)) {
         const normalizedUoms: UOMMaster[] = rawUoms.map((u: any) => ({
           ...u,
           id: String(u.id),
@@ -3647,7 +3635,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       ]);
 
       const rawItems = val<any[]>(results[0]);
-      if (rawItems && Array.isArray(rawItems) && rawItems.length > 0) {
+      if (rawItems && Array.isArray(rawItems)) {
         const normalizedItems: ItemMaster[] = rawItems.map((i: any) => ({
           ...i,
           id: String(i.id),
@@ -3678,7 +3666,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
 
       const rawCats = val<any[]>(results[1]);
-      if (rawCats && Array.isArray(rawCats) && rawCats.length > 0) {
+      if (rawCats && Array.isArray(rawCats)) {
         const normalizedCats: ItemCategory[] = rawCats.map((c: any) => ({
           ...c,
           id: String(c.id),
@@ -3695,7 +3683,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
 
       const rawUoms = val<any[]>(results[2]);
-      if (rawUoms && Array.isArray(rawUoms) && rawUoms.length > 0) {
+      if (rawUoms && Array.isArray(rawUoms)) {
         const normalizedUoms: UOMMaster[] = rawUoms.map((u: any) => ({
           ...u,
           id: String(u.id),
@@ -3712,7 +3700,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
 
       const rawWh = val<any[]>(results[3]);
-      if (rawWh && Array.isArray(rawWh) && rawWh.length > 0) {
+      if (rawWh && Array.isArray(rawWh)) {
         const normalizedWh: Warehouse[] = rawWh.map((w: any) => ({
           ...w,
           id: String(w.id || w.warehouseCode || w.warehouse_code),
@@ -3734,7 +3722,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       applyLive<GoodsReceiptNote>(val(results[4]), setGoodsReceipts, 'goodsReceipts');
 
       const rawStock = val<any[]>(results[5]);
-      if (rawStock && Array.isArray(rawStock) && rawStock.length > 0) {
+      if (rawStock && Array.isArray(rawStock)) {
         const normalizedStock: StockBalance[] = rawStock.map((s: any) => {
           const available = Number(s.availableQty ?? s.available_quantity ?? s.quantity ?? s.currentQuantity ?? 0);
           const reserved = Number(s.reservedQty ?? s.reserved_quantity ?? 0);
@@ -3771,7 +3759,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
 
       const rawIssues = val<any[]>(results[6]);
-      if (rawIssues && Array.isArray(rawIssues) && rawIssues.length > 0) {
+      if (rawIssues && Array.isArray(rawIssues)) {
         const normalizedIssues: MaterialIssue[] = rawIssues.map((i: any) => ({
           ...i,
           id: String(i.id || i.issue_number || i.issueNumber),
@@ -3799,7 +3787,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
 
       const rawReturns = val<any[]>(results[7]);
-      if (rawReturns && Array.isArray(rawReturns) && rawReturns.length > 0) {
+      if (rawReturns && Array.isArray(rawReturns)) {
         const normalizedReturns: MaterialReturn[] = rawReturns.map((r: any) => ({
           ...r,
           id: String(r.id || r.return_number || r.returnNumber),
@@ -3824,7 +3812,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
 
       const qcRes = val<any[]>(results[8]);
-      if (qcRes && Array.isArray(qcRes) && qcRes.length > 0) {
+      if (qcRes && Array.isArray(qcRes)) {
         const normalizedQc: QCInspection[] = qcRes.map((q: any) => {
           const firstItm = (q.items && Array.isArray(q.items) && q.items[0]) || {};
           return {
@@ -3886,7 +3874,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       applyLive<WorkCenter>(val(results[1]), setWorkCenters, 'workCenters');
 
       const woRes = val<WorkOrder[]>(results[2]);
-      if (woRes && Array.isArray(woRes) && woRes.length > 0) {
+      if (woRes && Array.isArray(woRes)) {
         const normalized = woRes.map((w: any) => ({
           ...w,
           workOrderNumber: w.workOrderNumber || w.work_order_number || w.id,
@@ -3906,7 +3894,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       applyLive<FinishedGoodsItem>(val(results[3]), setFinishedGoods, 'finishedGoods');
 
       const rawProdOrders = val<any[]>(results[4]);
-      if (rawProdOrders && Array.isArray(rawProdOrders) && rawProdOrders.length > 0) {
+      if (rawProdOrders && Array.isArray(rawProdOrders)) {
         const normalizedPO: ProductionOrder[] = rawProdOrders.map((p: any) => ({
           ...p,
           id: String(p.id || p.productionOrderNumber || p.production_order_number),
@@ -3934,7 +3922,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
 
       const rawSchedules = val<any[]>(results[5]);
-      if (rawSchedules && Array.isArray(rawSchedules) && rawSchedules.length > 0) {
+      if (rawSchedules && Array.isArray(rawSchedules)) {
         const normalizedSchedules: ProductionScheduleItem[] = rawSchedules.map((s: any) => ({
           ...s,
           id: String(s.id || s.scheduleNumber || s.schedule_number),
@@ -3961,7 +3949,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
 
       const rawEntries = val<any[]>(results[6]);
-      if (rawEntries && Array.isArray(rawEntries) && rawEntries.length > 0) {
+      if (rawEntries && Array.isArray(rawEntries)) {
         const normalizedEntries: ProductionEntry[] = rawEntries.map((e: any) => ({
           ...e,
           id: String(e.id || e.productionEntryNumber || e.production_entry_number),
@@ -3995,7 +3983,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
 
       const rawRework = val<any[]>(results[7]);
-      if (rawRework && Array.isArray(rawRework) && rawRework.length > 0) {
+      if (rawRework && Array.isArray(rawRework)) {
         const normalizedRework: ReworkOrder[] = rawRework.map((r: any) => ({
           ...r,
           id: String(r.id || r.reworkNumber || r.rework_number),
@@ -4024,7 +4012,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
 
       const rawScraps = val<any[]>(results[8]);
-      if (rawScraps && Array.isArray(rawScraps) && rawScraps.length > 0) {
+      if (rawScraps && Array.isArray(rawScraps)) {
         const normalizedScraps: ProductionScrap[] = rawScraps.map((s: any) => ({
           ...s,
           id: String(s.id || s.scrapNumber || s.scrap_number),
@@ -4052,7 +4040,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
 
       const rawHolds = val<any[]>(results[9]);
-      if (rawHolds && Array.isArray(rawHolds) && rawHolds.length > 0) {
+      if (rawHolds && Array.isArray(rawHolds)) {
         const normalizedHolds: ProductionHold[] = rawHolds.map((h: any) => ({
           ...h,
           id: String(h.id || h.holdNumber || h.hold_number),
@@ -4077,7 +4065,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
 
       const rawWip = val<any[]>(results[10]);
-      if (rawWip && Array.isArray(rawWip) && rawWip.length > 0) {
+      if (rawWip && Array.isArray(rawWip)) {
         const normalizedWip: WIPRecord[] = rawWip.map((w: any) => ({
           ...w,
           id: String(w.id),
@@ -4101,7 +4089,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
 
       const rawRoutingOps = val<any[]>(results[11]);
-      if (rawRoutingOps && Array.isArray(rawRoutingOps) && rawRoutingOps.length > 0) {
+      if (rawRoutingOps && Array.isArray(rawRoutingOps)) {
         const normalizedOps: RoutingOperation[] = rawRoutingOps.map((o: any) => ({
           ...o,
           id: String(o.id),
@@ -4239,7 +4227,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       applyLive<ChartOfAccount>(val(results[1]), setChartOfAccounts, 'chartOfAccounts');
 
       const siRes = val<any[]>(results[2]);
-      if (siRes && Array.isArray(siRes) && siRes.length > 0) {
+      if (siRes && Array.isArray(siRes)) {
         const normalizedSI: SalesInvoice[] = siRes.map((inv: any) => {
           const grandTotal = Number(inv.grandTotal ?? inv.grand_total ?? 0);
           const items = inv.items || [];
@@ -4280,7 +4268,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
 
       const piRes = val<any[]>(results[3]);
-      if (piRes && Array.isArray(piRes) && piRes.length > 0) {
+      if (piRes && Array.isArray(piRes)) {
         const normalizedPI: PurchaseInvoice[] = piRes.map((inv: any) => ({
           ...inv,
           id: String(inv.id || inv.invoiceNumber || inv.invoice_number),

@@ -10,14 +10,7 @@ export default function ItemCategoriesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const defaultCategories: ItemCategory[] = [
-    { id: 'CAT-001', categoryCode: 'RAW-PLT', categoryName: 'Stainless Steel Plates & Sheets', parentCategory: 'Raw Materials', status: 'Active', description: 'Steel plates, forgings, pipes, rounds' },
-    { id: 'CAT-002', categoryCode: 'BOUGHT-OUT', categoryName: 'Motors & Bought-Out Items', parentCategory: 'Bought-Out Items', status: 'Active', description: 'Motors, seals, valves, gearboxes' },
-    { id: 'CAT-003', categoryCode: 'CONSUMABLES', categoryName: 'Welding & Consumables', parentCategory: 'Consumables', status: 'Active', description: 'Welding wire, grinding wheels, gases' },
-    { id: 'CAT-004', categoryCode: 'FIN-EQUIP', categoryName: 'Equipment & Pressure Vessels', parentCategory: 'Finished Goods', status: 'Active', description: 'Completed pressure vessels and equipment' },
-  ];
-
-  const availableCategories = itemCategories && itemCategories.length > 0 ? itemCategories : defaultCategories;
+  const availableCategories = itemCategories || [];
 
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
