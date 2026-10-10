@@ -1,12 +1,18 @@
 'use client';
 
-import React, { Suspense } from 'react';
-import { CRMMasterHub } from '../../../components/crm/CRMMasterHub';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default function CustomersListPage() {
+export default function CustomersRedirectPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace('/crm/leads');
+  }, [router]);
+
   return (
-    <Suspense fallback={<div className="p-8 text-center text-xs text-[#70665F]">Loading Customers Master...</div>}>
-      <CRMMasterHub defaultTab="customers" />
-    </Suspense>
+    <div className="p-8 text-center text-xs text-[#70665F]">
+      Redirecting to Leads Management...
+    </div>
   );
 }

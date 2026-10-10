@@ -6,7 +6,6 @@ import { Lock, ShieldCheck, Check, Save, AlertCircle } from 'lucide-react';
 
 const MODULES_LIST = [
   { module: 'CRM', page: 'Leads' },
-  { module: 'CRM', page: 'Customers' },
   { module: 'CRM', page: 'Opportunities' },
   { module: 'CRM', page: 'Follow-ups' },
   { module: 'CRM', page: 'Visits' },
