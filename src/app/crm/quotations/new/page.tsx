@@ -39,8 +39,16 @@ function QuotationFormContent() {
     (prefillLeadId && e.leadId === prefillLeadId)
   );
 
+  // Match Customer by ID, Code, or Company Name
+  const matchedCustomer = customers.find(
+    (c) =>
+      (prefillCustId && (c.id === prefillCustId || c.customerCode === prefillCustId)) ||
+      (matchedLead?.convertedCustomerId && (c.id === matchedLead.convertedCustomerId || c.customerCode === matchedLead.convertedCustomerId)) ||
+      (matchedLead?.companyName && c.companyName.toLowerCase() === matchedLead.companyName.toLowerCase())
+  );
+
   const [customerId, setCustomerId] = useState(
-    prefillCustId || matchedLead?.convertedCustomerId || customers[0]?.id || ''
+    matchedCustomer?.id || prefillCustId || matchedLead?.convertedCustomerId || customers[0]?.id || ''
   );
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [validUntil, setValidUntil] = useState('2026-10-30');
@@ -139,12 +147,14 @@ function QuotationFormContent() {
   const grandTotal = Math.round(subTotal + totalTax);
 
   useEffect(() => {
-    if (prefillCustId && customerId !== prefillCustId) {
+    if (matchedCustomer && customerId !== matchedCustomer.id) {
+      setCustomerId(matchedCustomer.id);
+    } else if (prefillCustId && customerId !== prefillCustId) {
       setCustomerId(prefillCustId);
     } else if (matchedLead?.convertedCustomerId && !customerId) {
       setCustomerId(matchedLead.convertedCustomerId);
     }
-  }, [prefillCustId, matchedLead, customerId]);
+  }, [matchedCustomer, prefillCustId, matchedLead, customerId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -281,6 +291,9 @@ function QuotationFormContent() {
                 }}
                 className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-bold text-slate-900 dark:text-[#211B17]"
               >
+                {!customers.some((c) => c.id === customerId) && matchedLead ? (
+                  <option value={customerId}>{matchedLead.companyName}</option>
+                ) : null}
                 {customers.map((c) => (
                   <option key={c.id} value={c.id}>{c.companyName}</option>
                 ))}
