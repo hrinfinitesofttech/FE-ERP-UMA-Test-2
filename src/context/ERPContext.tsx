@@ -479,6 +479,7 @@ interface ERPContextType {
   addEnquiry: (enqData: Omit<Enquiry, 'id' | 'enquiryNo' | 'enquiryDate'>) => Enquiry;
   updateEnquiry: (id: string, enqData: Partial<Enquiry>) => void;
 
+
   opportunities: Opportunity[];
   addOpportunity: (oppData: Omit<Opportunity, 'id' | 'opportunityNo'>) => Opportunity;
   updateOpportunity: (id: string, oppData: Partial<Opportunity>) => void;

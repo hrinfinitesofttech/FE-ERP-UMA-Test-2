@@ -814,6 +814,7 @@ export const api = {
       update: (id: string, data: any) => request<any>(`/leads/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: string) => request<any>(`/leads/${id}/`, { method: 'DELETE' }),
       convert: (id: string) => request<any>(`/leads/${id}/convert/`, { method: 'POST' }),
+      convertToEnquiry: (id: string) => request<any>(`/leads/${id}/convert-to-enquiry/`, { method: 'POST' }),
     },
     customers: {
       list: () => request<any[]>('/customers/'),
@@ -829,9 +830,11 @@ export const api = {
       delete: (id: string) => request<any>(`/contacts/${id}/`, { method: 'DELETE' }),
     },
     enquiries: {
-      list: () => request<any[]>('/enquiries/'),
-      create: (data: any) => request<any>('/enquiries/', { method: 'POST', body: JSON.stringify(data) }),
-      update: (id: string, data: any) => request<any>(`/enquiries/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      list: () => Promise.resolve([] as any[]),
+      get: (id: string) => Promise.resolve(null as any),
+      create: (data: any) => Promise.resolve(data),
+      update: (id: string, data: any) => Promise.resolve(data),
+      delete: (id: string) => Promise.resolve({ success: true }),
     },
     opportunities: {
       list: () => request<any[]>('/opportunities/'),
@@ -840,11 +843,19 @@ export const api = {
     },
     quotations: {
       list: () => request<any[]>('/quotations/'),
+      get: (id: string) => request<any>(`/quotations/${id}/`),
       create: (data: any) => request<any>('/quotations/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/quotations/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/quotations/${id}/`, { method: 'DELETE' }),
       addRevision: (id: string, data: any) => request<any>(`/quotations/${id}/add-revision/`, { method: 'POST', body: JSON.stringify(data) }),
-      updateStatus: (id: string, data: { revisionNumber: string; status: string }) =>
+      updateStatus: (id: string, data: { revisionNumber?: string; status: string }) =>
         request<any>(`/quotations/${id}/update-status/`, { method: 'POST', body: JSON.stringify(data) }),
+      approve: (id: string, reason?: string) =>
+        request<any>(`/quotations/${id}/approve/`, { method: 'POST', body: JSON.stringify({ reason: reason || 'Approved' }) }),
+      reject: (id: string, reason: string) =>
+        request<any>(`/quotations/${id}/reject/`, { method: 'POST', body: JSON.stringify({ reason }) }),
+      sendEmail: (id: string, recipientEmail?: string) =>
+        request<any>(`/quotations/${id}/send-email/`, { method: 'POST', body: JSON.stringify({ recipientEmail }) }),
     },
     customerPos: {
       list: () => request<any[]>('/customer-pos/'),

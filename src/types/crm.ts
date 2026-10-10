@@ -249,8 +249,11 @@ export interface Enquiry {
   id: string; // e.g. ENQ-2026-0001
   enquiryNo: string;
   leadId?: string;
-  customerId: string;
+  customerId?: string;
   customerName: string;
+  customerEmail?: string;
+  contactPerson?: string;
+  contactMobile?: string;
   enquiryDate: string;
   requirement: string;
   machineProduct: string;
@@ -259,7 +262,7 @@ export interface Enquiry {
   expectedDelivery: string;
   assignedPersonId: string;
   assignedPersonName: string;
-  status: 'new' | 'under_review' | 'requirement_pending' | 'technical_review' | 'quotation_ready' | 'converted' | 'closed';
+  status: 'new' | 'under_review' | 'requirement_pending' | 'technical_review' | 'quotation_ready' | 'quotation_sent' | 'converted' | 'closed';
   quotationId?: string;
 }
 

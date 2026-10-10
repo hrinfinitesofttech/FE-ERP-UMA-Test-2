@@ -11,7 +11,7 @@ import { formatCurrency } from '../../../../lib/utils';
 function QuotationFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { customers, enquiries, leads, addQuotation, currentUser } = useERP();
+  const { customers, enquiries, leads, addQuotation, currentUser, updateLead } = useERP();
 
   const prefillCustId = searchParams.get('customerId') || '';
   const prefillEnqId = searchParams.get('enquiryId') || '';
@@ -102,6 +102,52 @@ function QuotationFormContent() {
   const [deliveryTime, setDeliveryTime] = useState(matchedLead?.expectedDelivery ? `By ${matchedLead.expectedDelivery}` : '8 to 10 Weeks from approved GA drawing.');
   const [warranty, setWarranty] = useState('18 Months from dispatch or 12 Months from commissioning.');
   const [termsAndConditions, setTermsAndConditions] = useState('Prices Ex-Works Makarpura, Vadodara. Freight extra at actuals.');
+
+  // Reliable Auto-Fill from Lead even when leads load asynchronously
+  const isLeadPrefilledRef = React.useRef(false);
+  useEffect(() => {
+    if (matchedLead && !isLeadPrefilledRef.current) {
+      isLeadPrefilledRef.current = true;
+      const q = Number(matchedLead.quantity) || 1;
+      const r = matchedLead.budget ? Math.round(Number(matchedLead.budget) / q) : 100000;
+      const tax = 18;
+      const base = q * r;
+      const amt = Math.round(base * (1 + tax / 100));
+
+      setItems([
+        {
+          id: 'item-lead',
+          productName: matchedLead.productName || 'Industrial Machine Equipment',
+          description:
+            matchedLead.requirementDescription ||
+            (matchedLead.capacity ? `Capacity: ${matchedLead.capacity}` : 'Standard machinery specifications'),
+          quantity: q,
+          unit: 'Set',
+          rate: r,
+          discountPercent: 0,
+          taxPercent: tax,
+          amount: amt,
+        },
+      ]);
+
+      if (matchedLead.capacity || matchedLead.machineType || matchedLead.requirementDescription) {
+        setTechnicalSpecs(
+          `Capacity: ${matchedLead.capacity || 'Standard'} (${matchedLead.machineType || 'Industrial Equipment'}).\nSpecifications: ${matchedLead.requirementDescription || ''}`
+        );
+      }
+      if (matchedLead.productName) {
+        setScopeOfSupply(
+          `Design, engineering, fabrication, inspection and testing of ${matchedLead.productName} as per specifications.`
+        );
+      }
+      if (matchedLead.expectedDelivery) {
+        setDeliveryTime(`Expected Delivery: ${matchedLead.expectedDelivery} (or 6-8 weeks from engineering approval)`);
+      }
+      if (matchedLead.convertedCustomerId) {
+        setCustomerId(matchedLead.convertedCustomerId);
+      }
+    }
+  }, [matchedLead]);
 
   const handleItemChange = (idx: number, field: keyof QuotationItem, value: any) => {
     const updated = [...items];
@@ -197,6 +243,13 @@ function QuotationFormContent() {
         },
       ],
     });
+
+    if (matchedLead) {
+      const qNum = (created as any)?.quotationNumber || (created as any)?.quotationNo || created.id;
+      updateLead(matchedLead.id, {
+        remarks: `Quotation ${qNum} generated (₹${grandTotal.toLocaleString('en-IN')})`,
+      });
+    }
 
     router.push(`/crm/quotations/${created.id}`);
   };

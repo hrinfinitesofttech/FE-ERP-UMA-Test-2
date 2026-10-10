@@ -297,13 +297,22 @@ export default function LeadDetailPage() {
                 className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
               >
                 <CheckCircle2 className="w-4 h-4" />
-                <span>Convert to Customer & Enquiry</span>
+                <span>Convert to Customer & Send Quotation</span>
               </button>
             ) : (
-              <span className="px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold flex items-center gap-1">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Converted Customer ({lead.convertedCustomerId})</span>
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold flex items-center gap-1">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>Converted Customer ({lead.convertedCustomerId})</span>
+                </span>
+                <button
+                  onClick={() => router.push(`/crm/quotations/new?leadId=${lead.id}&customerId=${lead.convertedCustomerId || ''}`)}
+                  className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-xl font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>Send Quotation</span>
+                </button>
+              </div>
             )}
           </div>
         </div>
