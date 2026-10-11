@@ -525,6 +525,17 @@ const STALE_TTL_MS = 5 * 60 * 1000;
 export function invalidateApiCache(endpointPrefix?: string) {
   if (!endpointPrefix) {
     memoryCache.clear();
+    inflightRequests.clear();
+    if (typeof window !== 'undefined') {
+      try {
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('UMA_CACHE_')) {
+            localStorage.removeItem(key);
+          }
+        }
+      } catch (_) {}
+    }
     return;
   }
   const prefix = endpointPrefix.toLowerCase();

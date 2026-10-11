@@ -2482,16 +2482,17 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ['notifications', setNotifications],
       ];
 
-      const CURRENT_ERP_CACHE_VERSION = '2026.10.11-clean-v4';
+      const CURRENT_ERP_CACHE_VERSION = '2026.10.11-clean-v5';
       if (typeof window !== 'undefined') {
         const storedVer = localStorage.getItem('UMA_ERP_VERSION');
         if (storedVer !== CURRENT_ERP_CACHE_VERSION) {
-          cacheEntries.forEach(([key]) => {
-            localStorage.removeItem('UMA_ERP_' + key);
-          });
-          localStorage.removeItem('UMA_ERP_notifications');
-          localStorage.removeItem('UMA_ERP_company');
-          localStorage.removeItem('UMA_ERP_numbering');
+          for (let i = localStorage.length - 1; i >= 0; i--) {
+            const k = localStorage.key(i);
+            if (k && (k.startsWith('UMA_ERP_') || k.startsWith('UMA_CACHE_'))) {
+              localStorage.removeItem(k);
+            }
+          }
+          api.invalidateCache();
           localStorage.setItem('UMA_ERP_VERSION', CURRENT_ERP_CACHE_VERSION);
         }
       }
