@@ -2482,6 +2482,20 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ['notifications', setNotifications],
       ];
 
+      const CURRENT_ERP_CACHE_VERSION = '2026.10.11-clean-v4';
+      if (typeof window !== 'undefined') {
+        const storedVer = localStorage.getItem('UMA_ERP_VERSION');
+        if (storedVer !== CURRENT_ERP_CACHE_VERSION) {
+          cacheEntries.forEach(([key]) => {
+            localStorage.removeItem('UMA_ERP_' + key);
+          });
+          localStorage.removeItem('UMA_ERP_notifications');
+          localStorage.removeItem('UMA_ERP_company');
+          localStorage.removeItem('UMA_ERP_numbering');
+          localStorage.setItem('UMA_ERP_VERSION', CURRENT_ERP_CACHE_VERSION);
+        }
+      }
+
       let hasCached = false;
       for (const [key, setter] of cacheEntries) {
         const item = localStorage.getItem('UMA_ERP_' + key);
@@ -2724,6 +2738,17 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         });
       }
 
+      // Live Notifications sync from API
+      try {
+        const rawNotifs: any = await api.get('/notifications/');
+        if (Array.isArray(rawNotifs)) {
+          setNotifications(rawNotifs);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_notifications', JSON.stringify(rawNotifs)); } catch (_) {}
+          }
+        }
+      } catch (_) {}
+
       lastSyncTimes.current['bootstrap'] = Date.now();
     } catch (err) {
       console.warn('Bootstrap load error:', err);
@@ -2801,7 +2826,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
 
       const rawFollowUps = val<any>(results[8]);
-      if (rawFollowUps) {
+      if (rawFollowUps !== null && rawFollowUps !== undefined) {
         const followUpsList: any[] = Array.isArray(rawFollowUps)
           ? rawFollowUps
           : Array.isArray(rawFollowUps?.results)
@@ -2809,35 +2834,33 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           : Array.isArray(rawFollowUps?.data)
           ? rawFollowUps.data
           : [];
-        if (followUpsList.length > 0) {
-          const normalizedFollowUps: FollowUp[] = followUpsList.map((f: any) => ({
-            ...f,
-            id: String(f.id || f.follow_up_no || f.followUpNo),
-            followUpNo: f.followUpNo || f.follow_up_no || f.id,
-            leadOrCustomerId: f.leadOrCustomerId || f.lead_or_customer_id || f.customer_id || f.lead_id || '',
-            leadOrCustomerName: f.leadOrCustomerName || f.lead_or_customer_name || f.customer_name || '',
-            entityType: f.entityType || f.entity_type || 'lead',
-            type: f.type || 'call',
-            assignedToId: f.assignedToId || f.assigned_to_id || f.sales_person_id || '',
-            assignedToName: f.assignedToName || f.assigned_to_name || f.sales_person_name || '',
-            date: f.date || f.scheduled_date || '',
-            time: f.time || f.scheduled_time || '',
-            priority: f.priority || 'medium',
-            purpose: f.purpose || f.discussion_purpose || '',
-            notes: f.notes || f.discussion_notes || '',
-            nextFollowUpDate: f.nextFollowUpDate || f.next_follow_up_date || '',
-            status: f.status || 'pending',
-            completedNotes: f.completedNotes || f.completed_notes || '',
-          }));
-          setFollowUps(normalizedFollowUps);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_followUps', JSON.stringify(normalizedFollowUps)); } catch (_) {}
-          }
+        const normalizedFollowUps: FollowUp[] = followUpsList.map((f: any) => ({
+          ...f,
+          id: String(f.id || f.follow_up_no || f.followUpNo),
+          followUpNo: f.followUpNo || f.follow_up_no || f.id,
+          leadOrCustomerId: f.leadOrCustomerId || f.lead_or_customer_id || f.customer_id || f.lead_id || '',
+          leadOrCustomerName: f.leadOrCustomerName || f.lead_or_customer_name || f.customer_name || '',
+          entityType: f.entityType || f.entity_type || 'lead',
+          type: f.type || 'call',
+          assignedToId: f.assignedToId || f.assigned_to_id || f.sales_person_id || '',
+          assignedToName: f.assignedToName || f.assigned_to_name || f.sales_person_name || '',
+          date: f.date || f.scheduled_date || '',
+          time: f.time || f.scheduled_time || '',
+          priority: f.priority || 'medium',
+          purpose: f.purpose || f.discussion_purpose || '',
+          notes: f.notes || f.discussion_notes || '',
+          nextFollowUpDate: f.nextFollowUpDate || f.next_follow_up_date || '',
+          status: f.status || 'pending',
+          completedNotes: f.completedNotes || f.completed_notes || '',
+        }));
+        setFollowUps(normalizedFollowUps);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_followUps', JSON.stringify(normalizedFollowUps)); } catch (_) {}
         }
       }
 
       const rawVisits = val<any[]>(results[9]);
-      if (rawVisits && Array.isArray(rawVisits) && rawVisits.length > 0) {
+      if (rawVisits !== null && rawVisits !== undefined && Array.isArray(rawVisits)) {
         const normalizedVisits: SiteVisit[] = rawVisits.map((v: any) => ({
           ...v,
           id: String(v.id || v.visit_no || v.visitNo),
@@ -2864,7 +2887,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
 
       const rawExhibitions = val<any[]>(results[10]);
-      if (rawExhibitions && Array.isArray(rawExhibitions) && rawExhibitions.length > 0) {
+      if (rawExhibitions !== null && rawExhibitions !== undefined && Array.isArray(rawExhibitions)) {
         const normalizedExhibitions: Exhibition[] = rawExhibitions.map((e: any) => ({
           id: String(e.id),
           expoName: e.expoName || e.expo_name || 'Exhibition',
@@ -2932,7 +2955,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
       const stagesPromise = api.projects.planningStages()
         .then((rawPlanningStages) => {
-          if (rawPlanningStages && Array.isArray(rawPlanningStages) && rawPlanningStages.length > 0) {
+          if (rawPlanningStages && Array.isArray(rawPlanningStages)) {
+            if (rawPlanningStages.length === 0) {
+              setProjectPlanningStages([]);
+              if (typeof window !== 'undefined') {
+                try { localStorage.setItem('UMA_ERP_projectPlanningStages', JSON.stringify([])); } catch (_) {}
+              }
+              return;
+            }
             setProjectPlanningStages((prev) => {
               // Projects present in backend response
               const backendProjects = new Set(
@@ -3101,7 +3131,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       ]);
 
       const rawDesignJobs = val<any[]>(results[0]);
-      if (rawDesignJobs && Array.isArray(rawDesignJobs) && rawDesignJobs.length > 0) {
+      if (rawDesignJobs && Array.isArray(rawDesignJobs)) {
+        if (rawDesignJobs.length === 0) {
+          setDesignJobs([]);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_designJobs', JSON.stringify([])); } catch (_) {}
+          }
+        } else {
         setDesignJobs((prev) => {
           const localMap = new Map<string, DesignJob>();
           if (typeof window !== 'undefined') {
@@ -3177,10 +3213,17 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           }
           return cleaned;
         });
+        }
       }
 
       const rawBoms = val<any[]>(results[3]);
-      if (rawBoms && Array.isArray(rawBoms) && rawBoms.length > 0) {
+      if (rawBoms && Array.isArray(rawBoms)) {
+        if (rawBoms.length === 0) {
+          setBoms([]);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_boms', JSON.stringify([])); } catch (_) {}
+          }
+        } else {
         const normalizedBoms: BOMHeader[] = rawBoms.map((b: any) => {
           let calcTotal = 0;
           const items = (b.items || []).map((itm: any, idx: number) => {
@@ -3216,46 +3259,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           };
         });
 
-        setBoms((prev) => {
-          const map = new Map<string, BOMHeader>();
-          normalizedBoms.forEach((nb) => {
-            if (nb.id) map.set(nb.id, nb);
-            if (nb.bomNumber) map.set(nb.bomNumber, nb);
-            if (nb.jobNumber) map.set(nb.jobNumber, nb);
-          });
-          const merged: BOMHeader[] = [...normalizedBoms];
-          (prev || []).forEach((pb) => {
-            const hasMatch = (pb.id && map.has(pb.id)) || (pb.bomNumber && map.has(pb.bomNumber)) || (pb.jobNumber && map.has(pb.jobNumber));
-            if (!hasMatch) {
-              merged.push(pb);
-              // Auto-sync local BOM up to the backend database
-              api.designer.boms.create({
-                ...pb,
-                bom_number: pb.bomNumber || pb.id,
-                job_number: pb.jobNumber,
-                design_job_id: pb.designJobId || pb.jobNumber,
-                items: pb.items || [],
-                total_items: pb.items?.length || 0,
-                total_estimated_cost: pb.totalEstimatedCost || 0,
-                active_revision: pb.revisionNumber || 'V1',
-              }).catch(() => {});
-            } else {
-              // If backend item has 0 items but local has items, preserve local items!
-              const mIdx = merged.findIndex((m) => m.id === pb.id || m.bomNumber === pb.bomNumber || m.jobNumber === pb.jobNumber);
-              if (mIdx !== -1 && (!merged[mIdx].items || merged[mIdx].items.length === 0) && pb.items && pb.items.length > 0) {
-                merged[mIdx] = { ...merged[mIdx], items: pb.items, totalItemsCount: pb.items.length, totalEstimatedCost: pb.totalEstimatedCost };
-              }
-            }
-          });
-
-          const cleanedBoms = deduplicateBOMs(merged);
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_boms', JSON.stringify(cleanedBoms)); } catch (_) {}
-          }
-          return cleanedBoms;
-        });
-      } else {
-        // live API is authoritative - keep existing or empty state
+        const cleanedBoms = deduplicateBOMs(normalizedBoms);
+        setBoms(cleanedBoms);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_boms', JSON.stringify(cleanedBoms)); } catch (_) {}
+        }
+        }
       }
 
       const rawReqs = val<any[]>(results[4]);
@@ -3327,7 +3336,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
 
       const rawTechDocs = val<any[]>(results[6]);
-      if (rawTechDocs && Array.isArray(rawTechDocs) && rawTechDocs.length > 0) {
+      if (rawTechDocs && Array.isArray(rawTechDocs)) {
         const normalizedDocs: TechnicalDocumentItem[] = rawTechDocs.map((td: any) => ({
           ...td,
           id: String(td.id || td.document_number || td.documentNumber),
