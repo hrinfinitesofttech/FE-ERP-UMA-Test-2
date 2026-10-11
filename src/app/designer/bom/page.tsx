@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import { BOMHeader, BOMItem, BOMItemType, ProcurementType } from '../../../types/designer';
 import {
@@ -15,19 +15,29 @@ import {
   Layers,
   X,
   PlusCircle,
-  FileCode,
-  ShieldCheck,
   Trash2,
   Package,
   Boxes,
-  Code2,
   Check,
   Edit2,
+  ArrowLeft,
+  Building2,
+  Eye,
+  FolderKanban,
+  Briefcase,
+  Calendar,
+  ChevronRight,
+  Filter,
+  ShieldCheck,
+  Clock,
+  Sparkles,
 } from 'lucide-react';
 
 interface NewBOMFormItem {
   id: string;
+  partNumber: string;
   material: string;
+  specification?: string;
   quantity: number;
   unit: string;
   procurement: 'PURCHASE' | 'FABRICATE';
@@ -39,68 +49,217 @@ export default function MasterBOMPage() {
   const [mounted, setMounted] = useState(false);
   const { boms, addBOM, updateBOM, designJobs, projectJobs, itemMasters, currentUser } = useERP();
 
-  const [selectedJobNumber, setSelectedJobNumber] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('UMA_ERP_activeBOMJob');
-      if (saved) return saved;
-    }
-    return boms[0]?.id || boms[0]?.bomNumber || boms[0]?.jobNumber || 'BOM-JOB-TEST-6-V1';
-  });
-  const [editingItemId, setEditingItemId] = useState<string | null>(null);
-  const [itemTypeFilter, setItemTypeFilter] = useState('all');
+  // View state: 'projects' = Main Projects BOM List; 'detail' = Single Project BOM Detail
+  const [viewMode, setViewMode] = useState<'projects' | 'detail'>('projects');
+
+  // Currently active selected BOM ID or Job Number
+  const [selectedJobNumber, setSelectedJobNumber] = useState<string>('');
+
+  // Search & Filters for Projects List
+  const [projectSearchQuery, setProjectSearchQuery] = useState('');
+  const [projectStatusFilter, setProjectStatusFilter] = useState<'all' | 'draft' | 'approved'>('all');
+
+  // Search & Filters for BOM Items Table
   const [searchQuery, setSearchQuery] = useState('');
-  const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
+  const [itemTypeFilter, setItemTypeFilter] = useState('all');
+
+  // Modals state
   const [isCreateBOMModalOpen, setIsCreateBOMModalOpen] = useState(false);
-  const [showJsonPreview, setShowJsonPreview] = useState(false);
+  const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+
+  // Toast notification
   const [successToast, setSuccessToast] = useState('');
 
+  useEffect(() => {
+    setMounted(true);
+    // Check URL parameters for direct job or project navigation
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const urlJob = params.get('job') || params.get('project');
+      if (urlJob) {
+        setSelectedJobNumber(urlJob);
+        setViewMode('detail');
+      } else {
+        const saved = localStorage.getItem('UMA_ERP_activeBOMJob');
+        if (saved) {
+          setSelectedJobNumber(saved);
+        } else if (boms.length > 0) {
+          setSelectedJobNumber(boms[0].id || boms[0].bomNumber || boms[0].jobNumber);
+        }
+      }
+    }
+  }, [boms]);
+
+  // Persist active selection
   useEffect(() => {
     if (selectedJobNumber && typeof window !== 'undefined') {
       localStorage.setItem('UMA_ERP_activeBOMJob', selectedJobNumber);
     }
   }, [selectedJobNumber]);
 
-  // Ensure active selected job is valid when boms populate
-  useEffect(() => {
-    if (boms && boms.length > 0) {
-      const match = boms.some(
+  // Active BOM computation
+  const activeBOM: BOMHeader | undefined = useMemo(() => {
+    if (!boms || boms.length === 0) return undefined;
+    return (
+      boms.find(
         (b) =>
           b.id === selectedJobNumber ||
           b.jobNumber === selectedJobNumber ||
           b.bomNumber === selectedJobNumber ||
+          b.projectId === selectedJobNumber ||
           (b as any).bom_name === selectedJobNumber ||
           (b as any).bomName === selectedJobNumber
-      );
-      if (!match) {
-        setSelectedJobNumber(boms[0].id || boms[0].bomNumber || boms[0].jobNumber || 'BOM-JOB-TEST-6-V1');
-      }
-    }
+      ) || boms[0]
+    );
   }, [boms, selectedJobNumber]);
 
-  // Active BOM
-  const activeBOM =
-    boms.find(
-      (b) =>
-        b.id === selectedJobNumber ||
-        b.jobNumber === selectedJobNumber ||
-        b.bomNumber === selectedJobNumber ||
-        (b as any).bom_name === selectedJobNumber ||
-        (b as any).bomName === selectedJobNumber ||
-        b.machineName === selectedJobNumber
-    ) || boms[0];
+  // Matching Project for active BOM
+  const activeProject = useMemo(() => {
+    if (!activeBOM) return undefined;
+    return (
+      (projectJobs || []).find(
+        (p) =>
+          p.jobNumber === activeBOM.jobNumber ||
+          p.projectNumber === activeBOM.projectId ||
+          p.id === activeBOM.projectId
+      ) ||
+      (designJobs || []).find(
+        (d) =>
+          d.jobNumber === activeBOM.jobNumber ||
+          d.projectNumber === activeBOM.projectId ||
+          d.id === activeBOM.projectId
+      )
+    );
+  }, [activeBOM, projectJobs, designJobs]);
 
   // ---------------------------------------------------------------------------
-  // NEW MASTER BOM FORM STATE (matches Developer JSON schema exactly)
-  // { product, bom_name, version, quantity, items: [ { material, quantity, unit, procurement, item_type } ] }
+  // EXPORT BOM TO EXCEL (CSV) FUNCTIONALITY
   // ---------------------------------------------------------------------------
-  const [selectedProductId, setSelectedProductId] = useState(designJobs[0]?.id || '101');
-  const [newBomName, setNewBomName] = useState('Steel Table BOM');
-  const [newVersion, setNewVersion] = useState('V1');
-  const [newProductQuantity, setNewProductQuantity] = useState(1);
-  const [bomItemsList, setBomItemsList] = useState<NewBOMFormItem[]>([
+  const exportBOMToExcel = (bomToExport?: BOMHeader, project?: any) => {
+    const targetBOM = bomToExport || activeBOM;
+    if (!targetBOM) {
+      alert('No BOM found to export.');
+      return;
+    }
+
+    const targetProj =
+      project ||
+      (projectJobs || []).find(
+        (p) =>
+          p.jobNumber === targetBOM.jobNumber ||
+          p.projectNumber === targetBOM.projectId ||
+          p.id === targetBOM.projectId
+      ) ||
+      (designJobs || []).find(
+        (d) =>
+          d.jobNumber === targetBOM.jobNumber ||
+          d.projectNumber === targetBOM.projectId ||
+          d.id === targetBOM.projectId
+      );
+
+    const projectName =
+      targetProj?.productName ||
+      targetProj?.projectName ||
+      targetBOM.machineName ||
+      targetBOM.bomName ||
+      'Industrial Equipment';
+    const customerName = targetProj?.customerName || 'Uma Techno Fab Client';
+    const projNumber = targetProj?.projectNumber || targetBOM.projectId || 'PRJ-2026';
+    const jobNumber = targetProj?.jobNumber || targetBOM.jobNumber || 'JOB-2026';
+    const bomNumber = targetBOM.bomNumber || 'BOM-001';
+    const version = targetBOM.revisionNumber || targetBOM.version || 'V1';
+    const status = targetBOM.approvalStatus || (targetBOM.isLocked ? 'APPROVED & LOCKED' : 'DRAFT');
+
+    const csvRows: string[][] = [
+      ['UMA TECHNO FAB PRIVATE LIMITED'],
+      ['CUSTOM HEAVY FABRICATION & EQUIPMENT MANUFACTURER'],
+      ['MASTER BILL OF MATERIALS (BOM) SPECIFICATION SHEET'],
+      [''],
+      ['Project Number:', projNumber, 'Project / Equipment:', projectName],
+      ['Customer Name:', customerName, 'Job Number:', jobNumber],
+      ['BOM Number:', bomNumber, 'Version / Revision:', version],
+      ['Approval Status:', status.toUpperCase(), 'Export Date:', new Date().toLocaleDateString('en-IN')],
+      [''],
+      [
+        'Item #',
+        'Material / Part Ref',
+        'Item Name & Specification',
+        'Item Type',
+        'Procurement',
+        'Quantity',
+        'Unit',
+        'Estimated Rate (INR)',
+        'Total Amount (INR)',
+        'Make / Brand',
+        'Remarks',
+      ],
+    ];
+
+    let grandTotal = 0;
+    const itemsList = targetBOM.items || [];
+    itemsList.forEach((itm, idx) => {
+      const qty = Number(itm.quantity ?? (itm as any).qty ?? 1);
+      const rate = Number(itm.estimatedRate ?? (itm as any).rate ?? 0);
+      const total = Number(itm.totalEstimatedAmount ?? qty * rate);
+      grandTotal += total;
+
+      const partRef = itm.partNumber || (itm as any).part_number || '';
+      const nameSpec = `${itm.itemName || (itm as any).material || ''} ${itm.specification ? `- ${itm.specification}` : ''}`.trim();
+      const iType = itm.item_type || itm.itemType || 'RAW_MATERIAL';
+      const proc = itm.procurement || itm.procurementType || 'PURCHASE';
+
+      csvRows.push([
+        String(idx + 1),
+        `"${partRef.replace(/"/g, '""')}"`,
+        `"${nameSpec.replace(/"/g, '""')}"`,
+        `"${String(iType).replace(/"/g, '""')}"`,
+        `"${String(proc).replace(/"/g, '""')}"`,
+        String(qty),
+        `"${(itm.unit || 'PCS').replace(/"/g, '""')}"`,
+        String(rate),
+        String(total),
+        `"${(itm.makeBrand || '').replace(/"/g, '""')}"`,
+        `"${(itm.remarks || '').replace(/"/g, '""')}"`,
+      ]);
+    });
+
+    csvRows.push(['']);
+    csvRows.push(['', '', '', '', '', '', 'TOTAL BOM COST (INR):', '', String(grandTotal)]);
+
+    const csvContent = '\uFEFF' + csvRows.map((r) => r.join(',')).join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `BOM_${projNumber}_${bomNumber}_${version}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    setSuccessToast(`BOM ${bomNumber} successfully downloaded as Excel/CSV!`);
+    setTimeout(() => setSuccessToast(''), 4000);
+  };
+
+  // ---------------------------------------------------------------------------
+  // NEW PROJECT BOM FORM STATE (Project-First Architecture)
+  // ---------------------------------------------------------------------------
+  const [createSelectedProjectId, setCreateSelectedProjectId] = useState<string>('');
+  const [createProjectName, setCreateProjectName] = useState<string>('');
+  const [createCustomerName, setCreateCustomerName] = useState<string>('');
+  const [createJobNumber, setCreateJobNumber] = useState<string>('');
+  const [createBomName, setCreateBomName] = useState<string>('');
+  const [createVersion, setCreateVersion] = useState<string>('V1');
+  const [createProductQuantity, setCreateProductQuantity] = useState<number>(1);
+
+  // Dynamic material lines inside Create BOM Modal
+  const [createMaterialLines, setCreateMaterialLines] = useState<NewBOMFormItem[]>([
     {
-      id: 'itm-1',
-      material: '201 - Mild Steel Plate 5mm',
+      id: 'init-1',
+      partNumber: '201',
+      material: 'Mild Steel Plate 5mm (IS 2062 Grade E250)',
+      specification: 'Plate thickness 5mm, structural grade',
       quantity: 4,
       unit: 'KG',
       procurement: 'PURCHASE',
@@ -108,36 +267,184 @@ export default function MasterBOMPage() {
       estimatedRate: 150,
     },
     {
-      id: 'itm-2',
-      material: '202 - Table Legs 50x50 Box Sub-Assembly',
+      id: 'init-2',
+      partNumber: '202',
+      material: 'Table Legs 50x50 Box Sub-Assembly',
+      specification: 'Fabricated RHS Box section with end plates',
       quantity: 2,
       unit: 'PCS',
       procurement: 'FABRICATE',
       item_type: 'FABRICATED',
       estimatedRate: 850,
     },
-    {
-      id: 'itm-3',
-      material: '203 - Heavy Duty Leveling Stud M12',
+  ]);
+
+  // When opening Create Modal, default to first available project
+  const handleOpenCreateModal = (defaultProjId?: string) => {
+    const targetProjId = defaultProjId || (projectJobs[0]?.id || projectJobs[0]?.projectNumber || '');
+    setCreateSelectedProjectId(targetProjId);
+
+    const targetProj =
+      (projectJobs || []).find((p) => p.id === targetProjId || p.projectNumber === targetProjId) ||
+      (designJobs || []).find((d) => d.id === targetProjId || d.projectNumber === targetProjId);
+
+    if (targetProj) {
+      setCreateProjectName(targetProj.productName || targetProj.projectName || '');
+      setCreateCustomerName(targetProj.customerName || '');
+      setCreateJobNumber(targetProj.jobNumber || '');
+      setCreateBomName(`BOM - ${targetProj.productName || targetProj.projectName || 'Equipment'}`);
+    } else {
+      setCreateProjectName('Custom Equipment');
+      setCreateCustomerName('Uma Techno Fab Client');
+      setCreateJobNumber(`JOB-2026-${Date.now().toString().slice(-4)}`);
+      setCreateBomName('Master BOM');
+    }
+
+    setCreateVersion('V1');
+    setCreateProductQuantity(1);
+    setIsCreateBOMModalOpen(true);
+  };
+
+  // Change project in Create Modal
+  const handleSelectCreateProject = (projId: string) => {
+    setCreateSelectedProjectId(projId);
+    const targetProj =
+      (projectJobs || []).find((p) => p.id === projId || p.projectNumber === projId) ||
+      (designJobs || []).find((d) => d.id === projId || d.projectNumber === projId);
+
+    if (targetProj) {
+      setCreateProjectName(targetProj.productName || targetProj.projectName || '');
+      setCreateCustomerName(targetProj.customerName || '');
+      setCreateJobNumber(targetProj.jobNumber || '');
+      setCreateBomName(`BOM - ${targetProj.productName || targetProj.projectName || 'Equipment'}`);
+    }
+  };
+
+  // Add line inside Create Modal
+  const handleAddCreateMaterialLine = () => {
+    const nextNum = createMaterialLines.length + 1;
+    const newLine: NewBOMFormItem = {
+      id: `line-${Date.now()}-${nextNum}`,
+      partNumber: `PRT-${nextNum.toString().padStart(3, '0')}`,
+      material: '',
+      specification: '',
       quantity: 1,
       unit: 'PCS',
       procurement: 'PURCHASE',
-      item_type: 'BOUGHT_OUT',
-      estimatedRate: 320,
-    },
-    {
-      id: 'itm-4',
-      material: '204 - Anti-Rust Zinc Spray Coating',
-      quantity: 0.5,
-      unit: 'KG',
-      procurement: 'PURCHASE',
-      item_type: 'CONSUMABLE',
-      estimatedRate: 480,
-    },
-  ]);
+      item_type: 'RAW_MATERIAL',
+      estimatedRate: 100,
+    };
+    setCreateMaterialLines([...createMaterialLines, newLine]);
+  };
+
+  // Remove line inside Create Modal
+  const handleRemoveCreateMaterialLine = (lineId: string) => {
+    if (createMaterialLines.length <= 1) {
+      alert('At least one material item is required in the BOM.');
+      return;
+    }
+    setCreateMaterialLines(createMaterialLines.filter((l) => l.id !== lineId));
+  };
+
+  // Update line inside Create Modal
+  const handleUpdateCreateLine = (lineId: string, field: keyof NewBOMFormItem, val: any) => {
+    setCreateMaterialLines((prev) =>
+      prev.map((line) => {
+        if (line.id !== lineId) return line;
+        return { ...line, [field]: val };
+      })
+    );
+  };
+
+  // Submit Create New BOM
+  const handleSubmitNewBOM = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!createProjectName.trim()) {
+      alert('Please specify a Project / Equipment name.');
+      return;
+    }
+
+    if (createMaterialLines.length === 0) {
+      alert('Please add at least one material line item to the BOM.');
+      return;
+    }
+
+    const jobNo = createJobNumber.trim() || `JOB-2026-${Date.now().toString().slice(-4)}`;
+    const bomNo = `BOM-${jobNo}`;
+
+    // Convert form lines to BOMItems
+    let totalCost = 0;
+    const finalItems: BOMItem[] = createMaterialLines.map((line, idx) => {
+      const qty = Number(line.quantity) || 1;
+      const rate = Number(line.estimatedRate) || 0;
+      const amt = qty * rate;
+      totalCost += amt;
+
+      const itemTypeLabel: BOMItemType =
+        line.item_type === 'RAW_MATERIAL'
+          ? 'Raw Material'
+          : line.item_type === 'FABRICATED'
+          ? 'Fabricated'
+          : line.item_type === 'BOUGHT_OUT'
+          ? 'Bought-Out'
+          : line.item_type === 'CONSUMABLE'
+          ? 'Consumable'
+          : line.item_type === 'HARDWARE'
+          ? 'Hardware'
+          : 'Electrical';
+
+      return {
+        id: `bi-${Date.now()}-${idx + 1}`,
+        itemNo: idx + 1,
+        partNumber: line.partNumber || `PRT-${idx + 1}`,
+        itemName: line.material || 'Material Item',
+        description: line.specification || '',
+        specification: line.specification || '',
+        itemType: itemTypeLabel,
+        material: line.material || '',
+        quantity: qty,
+        unit: line.unit || 'PCS',
+        makeBrand: 'Standard',
+        procurementType: line.procurement === 'FABRICATE' ? 'In-House' : 'Purchase',
+        procurement: line.procurement,
+        item_type: line.item_type,
+        estimatedRate: rate,
+        totalEstimatedAmount: amt,
+      };
+    });
+
+    const newBOMHeader: Omit<BOMHeader, 'id'> = {
+      bomNumber: bomNo,
+      projectId: createSelectedProjectId || createJobNumber,
+      jobNumber: jobNo,
+      product: createProjectName,
+      machineName: createProjectName,
+      bomName: createBomName.trim() || `Master BOM - ${createProjectName}`,
+      version: createVersion.trim() || 'V1',
+      revision: createVersion.trim() || 'V1',
+      revisionNumber: createVersion.trim() || 'V1',
+      quantity: Number(createProductQuantity) || 1,
+      approvalStatus: 'draft',
+      isLocked: false,
+      preparedBy: `${currentUser?.firstName || 'Dharmesh'} ${currentUser?.lastName || 'Joshi'}`.trim(),
+      items: finalItems,
+    };
+
+    addBOM(newBOMHeader);
+
+    setIsCreateBOMModalOpen(false);
+    setSelectedJobNumber(bomNo);
+    setViewMode('detail');
+
+    setSuccessToast(
+      `Master BOM for Project "${createProjectName}" successfully created with ${finalItems.length} components!`
+    );
+    setTimeout(() => setSuccessToast(''), 4000);
+  };
 
   // ---------------------------------------------------------------------------
-  // SINGLE ITEM MODAL FORM STATE
+  // SINGLE MATERIAL LINE MODAL (ADD / EDIT)
   // ---------------------------------------------------------------------------
   const [partNumber, setPartNumber] = useState('');
   const [itemName, setItemName] = useState('');
@@ -149,224 +456,106 @@ export default function MasterBOMPage() {
   const [unit, setUnit] = useState('Nos');
   const [makeBrand, setMakeBrand] = useState('');
   const [procurementType, setProcurementType] = useState<ProcurementType>('Purchase');
-  const [estimatedRate, setEstimatedRate] = useState(5000);
+  const [estimatedRate, setEstimatedRate] = useState(0);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Close modals on ESC key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (isAddItemModalOpen) setIsAddItemModalOpen(false);
-        if (isCreateBOMModalOpen) setIsCreateBOMModalOpen(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isAddItemModalOpen, isCreateBOMModalOpen]);
-
-  // Add line item in New BOM Modal
-  const handleAddNewBOMRow = () => {
-    const newId = `itm-${Date.now()}`;
-    setBomItemsList((prev) => [
-      ...prev,
-      {
-        id: newId,
-        material: '',
-        quantity: 1,
-        unit: 'PCS',
-        procurement: 'PURCHASE',
-        item_type: 'RAW_MATERIAL',
-        estimatedRate: 500,
-      },
-    ]);
-  };
-
-  const handleRemoveBOMRow = (id: string) => {
-    if (bomItemsList.length <= 1) {
-      alert('BOM must have at least 1 material item.');
-      return;
-    }
-    setBomItemsList((prev) => prev.filter((r) => r.id !== id));
-  };
-
-  const handleUpdateBOMRow = (id: string, field: keyof NewBOMFormItem, val: any) => {
-    setBomItemsList((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, [field]: val } : r))
-    );
-  };
-
-  // Construct Developer JSON payload preview
-  const developerJsonPayload = {
-    product: selectedProductId,
-    bom_name: newBomName,
-    version: newVersion,
-    quantity: newProductQuantity,
-    items: bomItemsList.map((itm) => ({
-      material: itm.material,
-      quantity: Number(itm.quantity) || 1,
-      unit: itm.unit,
-      procurement: itm.procurement,
-      item_type: itm.item_type,
-      estimatedRate: Number(itm.estimatedRate) || 0,
-      estimated_rate: Number(itm.estimatedRate) || 0,
-      rate: Number(itm.estimatedRate) || 0,
-      totalEstimatedAmount: (Number(itm.quantity) || 1) * (Number(itm.estimatedRate) || 0),
-      total_amount: (Number(itm.quantity) || 1) * (Number(itm.estimatedRate) || 0),
-    })),
-  };
-
-  const totalNewBOMCost = bomItemsList.reduce(
-    (sum, itm) => sum + (Number(itm.quantity) || 0) * (Number(itm.estimatedRate) || 0),
-    0
-  );
-
-  // Handle Submission of New Full BOM
-  const handleCreateFullBOM = (e: React.FormEvent) => {
-    e.preventDefault();
-    const desJob = designJobs.find((j) => j.id === selectedProductId) || {
-      id: selectedProductId,
-      jobNumber: `JOB-${newBomName.replace(/\s+/g, '-').slice(0, 10).toUpperCase()}`,
-      projectId: 'PRJ-2026-001',
-      productName: newBomName,
-    };
-
-    const formattedItems: BOMItem[] = bomItemsList.map((itm, idx) => {
-      const rate = Number(itm.estimatedRate ?? (itm as any).estimated_rate ?? (itm as any).rate ?? (itm as any).unitPrice ?? (itm as any).unitCost ?? 0);
-      const qty = Number(itm.quantity) || 1;
-      const totalAmount = qty * rate;
-      const matStr = itm.material || `Material Item ${idx + 1}`;
-      const matParts = matStr.split(' - ');
-      const partNum = matParts.length > 1 ? matParts[0].trim() : `MAT-${String(idx + 1).padStart(3, '0')}`;
-      const itemName = matParts.length > 1 ? matParts.slice(1).join(' - ').trim() : matStr;
-
-      return {
-        id: `bi-${Date.now()}-${idx + 1}`,
-        itemNo: idx + 1,
-        itemNumber: `ITM-${String(idx + 1).padStart(3, '0')}`,
-        partNumber: partNum,
-        part_number: partNum,
-        itemName: itemName,
-        item_name: itemName,
-        partName: itemName,
-        description: `${itm.item_type} for ${newBomName}`,
-        itemType: (itm.item_type === 'RAW_MATERIAL'
-          ? 'Raw Material'
-          : itm.item_type === 'FABRICATED'
-          ? 'Fabricated'
-          : itm.item_type === 'BOUGHT_OUT'
-          ? 'Bought-Out'
-          : itm.item_type === 'CONSUMABLE'
-          ? 'Consumable'
-          : itm.item_type === 'HARDWARE'
-          ? 'Hardware'
-          : 'Electrical') as BOMItemType,
-        material: matStr,
-        specification: `Procurement: ${itm.procurement}`,
-        quantity: qty,
-        qty: qty,
-        unit: itm.unit || 'PCS',
-        makeBrand: itm.procurement === 'PURCHASE' ? 'Standard Supplier' : 'In-House Shopfloor',
-        procurementType: (itm.procurement === 'FABRICATE' ? 'In-House' : 'Purchase') as ProcurementType,
-        procurement: itm.procurement,
-        item_type: itm.item_type,
-        estimatedRate: rate,
-        estimated_rate: rate,
-        rate: rate,
-        unitCost: rate,
-        unit_price: rate,
-        totalEstimatedAmount: totalAmount,
-        total_estimated_amount: totalAmount,
-        total_amount: totalAmount,
-        totalAmount: totalAmount,
-        extendedCost: totalAmount,
-      } as any;
-    });
-
-    const bomId = `BOM-${desJob.jobNumber}`;
-    addBOM({
-      bomNumber: `BOM-${desJob.jobNumber}-${newVersion}`,
-      bomName: newBomName,
-      bom_name: newBomName,
-      product: selectedProductId,
-      version: newVersion,
-      quantity: newProductQuantity,
-      projectId: desJob.projectId || 'PRJ-2026-001',
-      jobNumber: desJob.jobNumber,
-      designJobId: desJob.id,
-      machineName: newBomName,
-      revision: newVersion,
-      revisionNumber: newVersion,
-      preparedBy: `${currentUser?.firstName || 'Design'} ${currentUser?.lastName || 'Engineer'}`.trim(),
-      status: 'draft',
-      approvalStatus: 'draft',
-      isLocked: false,
-      totalItemCount: formattedItems.length,
-      totalItemsCount: formattedItems.length,
-      totalEstimatedCost: totalNewBOMCost,
-      estimatedTotalCost: totalNewBOMCost,
-      items: formattedItems,
-    } as any);
-
-    setSelectedJobNumber(desJob.jobNumber);
-    setIsCreateBOMModalOpen(false);
-    setSuccessToast(`Master BOM "${newBomName}" (${newVersion}) created successfully with ${formattedItems.length} line items!`);
-    setTimeout(() => setSuccessToast(''), 5000);
-  };
-
-  // Add or Update Item in Active BOM
-  const handleAddItem = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleOpenAddItem = () => {
     if (!activeBOM || activeBOM.isLocked) return;
+    setEditingItemId(null);
+    setPartNumber(`PRT-${(activeBOM.items.length + 1).toString().padStart(3, '0')}`);
+    setItemName('');
+    setDescription('');
+    setItemType('Raw Material');
+    setMaterial('SS 316L');
+    setSpecification('');
+    setQuantity(1);
+    setUnit('Kg');
+    setMakeBrand('Tata Steel / Local');
+    setProcurementType('Purchase');
+    setEstimatedRate(250);
+    setIsAddItemModalOpen(true);
+  };
 
-    const rate = Number(estimatedRate);
-    const qty = Number(quantity);
+  const handleOpenEditItem = (item: BOMItem) => {
+    if (!activeBOM || activeBOM.isLocked) return;
+    setEditingItemId(item.id);
+    setPartNumber(item.partNumber || '');
+    setItemName(item.itemName || item.partName || (item as any).part_name || '');
+    setDescription(item.description || '');
+    setItemType(item.itemType || 'Raw Material');
+    setMaterial(item.material || '');
+    setSpecification(item.specification || '');
+    setQuantity(Number(item.quantity ?? (item as any).qty ?? 1));
+    setUnit(item.unit || 'PCS');
+    setMakeBrand(item.makeBrand || '');
+    setProcurementType(
+      item.procurementType || (item.procurement === 'FABRICATE' ? 'In-House' : 'Purchase')
+    );
+    setEstimatedRate(Number(item.estimatedRate ?? (item as any).rate ?? 0));
+    setIsAddItemModalOpen(true);
+  };
+
+  const handleSaveItemModal = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeBOM) return;
+
+    const rate = Number(estimatedRate) || 0;
+    const qty = Number(quantity) || 1;
 
     if (editingItemId) {
-      const updatedItems = (activeBOM.items || []).map((i) =>
+      const updatedItems = activeBOM.items.map((i) =>
         i.id === editingItemId
           ? {
               ...i,
-              partNumber: partNumber || i.partNumber,
+              partNumber,
               itemName,
-              partName: itemName,
               description,
               itemType,
               material,
               specification,
               quantity: qty,
-              qty,
               unit,
               makeBrand,
               procurementType,
               procurement: (procurementType === 'In-House' ? 'FABRICATE' : 'PURCHASE') as any,
+              item_type: (itemType === 'Raw Material'
+                ? 'RAW_MATERIAL'
+                : itemType === 'Fabricated'
+                ? 'FABRICATED'
+                : itemType === 'Bought-Out'
+                ? 'BOUGHT_OUT'
+                : itemType === 'Consumable'
+                ? 'CONSUMABLE'
+                : 'HARDWARE') as any,
               estimatedRate: rate,
-              rate,
               totalEstimatedAmount: rate * qty,
-              total_estimated_amount: rate * qty,
             }
           : i
       );
-      const newTotal = updatedItems.reduce((s, i) => s + (i.totalEstimatedAmount || 0), 0);
+
+      const newTotal = updatedItems.reduce(
+        (s, i) => s + (i.totalEstimatedAmount || (Number(i.quantity || 1) * Number(i.estimatedRate || 0))),
+        0
+      );
+
       updateBOM(activeBOM.id, {
         items: updatedItems,
         totalItemsCount: updatedItems.length,
         estimatedTotalCost: newTotal,
       });
+
       setIsAddItemModalOpen(false);
       setEditingItemId(null);
-      setSuccessToast(`Item "${itemName}" updated successfully!`);
+      setSuccessToast(`Material item "${itemName}" updated successfully!`);
       setTimeout(() => setSuccessToast(''), 4000);
       return;
     }
 
+    // Add new line item
     const newNo = activeBOM.items.length + 1;
     const newItem: BOMItem = {
       id: `bi-${Date.now()}`,
       itemNo: newNo,
-      partNumber: partNumber || `PRT-PART-${newNo}`,
+      partNumber: partNumber || `PRT-${newNo.toString().padStart(3, '0')}`,
       itemName,
       description,
       itemType,
@@ -374,7 +563,7 @@ export default function MasterBOMPage() {
       specification,
       quantity: qty,
       unit,
-      makeBrand: makeBrand || 'Tata Steel / Local',
+      makeBrand: makeBrand || 'Local / Standard',
       procurementType,
       procurement: procurementType === 'In-House' ? 'FABRICATE' : 'PURCHASE',
       item_type: (itemType === 'Raw Material'
@@ -391,7 +580,10 @@ export default function MasterBOMPage() {
     };
 
     const updatedItems = [...activeBOM.items, newItem];
-    const newTotal = updatedItems.reduce((s, i) => s + (i.totalEstimatedAmount || (Number(i.quantity || 1) * Number(i.estimatedRate || 0))), 0);
+    const newTotal = updatedItems.reduce(
+      (s, i) => s + (i.totalEstimatedAmount || (Number(i.quantity || 1) * Number(i.estimatedRate || 0))),
+      0
+    );
 
     updateBOM(activeBOM.id, {
       items: updatedItems,
@@ -400,37 +592,21 @@ export default function MasterBOMPage() {
     });
 
     setIsAddItemModalOpen(false);
-    setSuccessToast(`Item "${itemName}" added to BOM ${activeBOM.bomNumber}!`);
+    setSuccessToast(`Material item "${itemName}" added to BOM ${activeBOM.bomNumber}!`);
     setTimeout(() => setSuccessToast(''), 4000);
-  };
-
-  const handleOpenEditItem = (item: BOMItem) => {
-    if (!activeBOM || activeBOM.isLocked) return;
-    setEditingItemId(item.id);
-    setPartNumber(item.partNumber || '');
-    setItemName(item.itemName || item.partName || (item as any).part_name || '');
-    setDescription(item.description || '');
-    setItemType(item.itemType || 'Raw Material');
-    setMaterial(item.material || '');
-    setSpecification(item.specification || '');
-    setQuantity(item.quantity || (item as any).qty || 1);
-    setUnit(item.unit || 'PCS');
-    setMakeBrand(item.makeBrand || '');
-    setProcurementType(item.procurementType || (item.procurement === 'FABRICATE' ? 'In-House' : 'Purchase'));
-    setEstimatedRate(Number(item.estimatedRate ?? (item as any).rate ?? 0));
-    setIsAddItemModalOpen(true);
   };
 
   const handleDeleteItem = (itemId: string) => {
     if (!activeBOM || activeBOM.isLocked) return;
     const itemToDelete = activeBOM.items.find((i) => i.id === itemId);
-    if (!confirm(`Are you sure you want to remove "${itemToDelete?.itemName || 'this item'}" from the BOM?`)) return;
+    if (!confirm(`Are you sure you want to remove "${itemToDelete?.itemName || 'this item'}" from the BOM?`)) {
+      return;
+    }
     const updatedItems = activeBOM.items.filter((i) => i.id !== itemId);
-    const newTotal = updatedItems.reduce((s, i) => {
-      const r = Number(i.estimatedRate || (i as any).rate || 0);
-      const q = Number(i.quantity || (i as any).qty || 1);
-      return s + (i.totalEstimatedAmount || (q * r));
-    }, 0);
+    const newTotal = updatedItems.reduce(
+      (s, i) => s + (i.totalEstimatedAmount || (Number(i.quantity || 1) * Number(i.estimatedRate || 0))),
+      0
+    );
     updateBOM(activeBOM.id, {
       items: updatedItems,
       totalItemsCount: updatedItems.length,
@@ -451,588 +627,1109 @@ export default function MasterBOMPage() {
     setTimeout(() => setSuccessToast(''), 4000);
   };
 
-  const filteredItems = (activeBOM?.items || []).filter((item) => {
-    const q = searchQuery?.toLowerCase() || '';
-    const matchSearch =
-      !q ||
-      item.partNumber?.toLowerCase().includes(q) ||
-      item.itemName?.toLowerCase().includes(q) ||
-      item.material?.toLowerCase().includes(q) ||
-      (item.makeBrand && item.makeBrand?.toLowerCase().includes(q));
+  // ---------------------------------------------------------------------------
+  // FILTERED BOM ITEMS FOR ACTIVE BOM
+  // ---------------------------------------------------------------------------
+  const filteredBOMItems = useMemo(() => {
+    if (!activeBOM) return [];
+    return (activeBOM.items || []).filter((item) => {
+      const q = searchQuery?.toLowerCase() || '';
+      const matchSearch =
+        !q ||
+        item.partNumber?.toLowerCase().includes(q) ||
+        item.itemName?.toLowerCase().includes(q) ||
+        item.material?.toLowerCase().includes(q) ||
+        item.specification?.toLowerCase().includes(q) ||
+        (item.makeBrand && item.makeBrand?.toLowerCase().includes(q));
 
-    if (!matchSearch) return false;
-    if (itemTypeFilter === 'all') return true;
+      if (!matchSearch) return false;
+      if (itemTypeFilter === 'all') return true;
 
-    const filterNormalized = itemTypeFilter.toLowerCase().replace(/[-_\s]/g, '');
-    const itemTypeNormalized = String(item.itemType || (item as any).item_type || '').toLowerCase().replace(/[-_\s]/g, '');
-    return itemTypeNormalized.includes(filterNormalized) || filterNormalized.includes(itemTypeNormalized);
-  });
+      const filterNormalized = itemTypeFilter.toLowerCase().replace(/[-_\s]/g, '');
+      const itemTypeNormalized = String(item.itemType || (item as any).item_type || '')
+        .toLowerCase()
+        .replace(/[-_\s]/g, '');
+      return (
+        itemTypeNormalized.includes(filterNormalized) || filterNormalized.includes(itemTypeNormalized)
+      );
+    });
+  }, [activeBOM, searchQuery, itemTypeFilter]);
 
-  const totalBOMCost = (activeBOM?.items || []).reduce((sum, item: any) => {
-    const rate = Number(item.estimatedRate ?? item.estimated_rate ?? item.rate ?? item.estRate ?? item.unitPrice ?? item.unit_price ?? item.costPerUnit ?? item.cost_per_unit ?? 0);
-    const qty = Number(item.quantity ?? item.qty ?? 1);
-    const amt = Number(item.totalEstimatedAmount ?? item.total_estimated_amount ?? item.total_amount ?? item.totalAmount ?? item.amount ?? (qty * rate));
-    return sum + amt;
-  }, 0) || Number(activeBOM?.totalEstimatedCost || (activeBOM as any)?.estimatedTotalCost || (activeBOM as any)?.total_estimated_cost || 0);
+  const totalBOMCost = useMemo(() => {
+    if (!activeBOM) return 0;
+    return (activeBOM.items || []).reduce((acc, itm) => {
+      const q = Number(itm.quantity ?? (itm as any).qty ?? 1);
+      const r = Number(itm.estimatedRate ?? (itm as any).rate ?? 0);
+      return acc + (itm.totalEstimatedAmount ?? q * r);
+    }, 0);
+  }, [activeBOM]);
+
+  // ---------------------------------------------------------------------------
+  // PROJECTS DIRECTORY DATA COMPUTATION
+  // ---------------------------------------------------------------------------
+  const projectsWithBOM = useMemo(() => {
+    // Collect all projects from projectJobs and designJobs
+    const projectMap = new Map<string, any>();
+
+    // 1. First add known projects from projectJobs
+    (projectJobs || []).forEach((p) => {
+      projectMap.set(p.jobNumber || p.projectNumber || p.id, {
+        id: p.id,
+        projectNumber: p.projectNumber,
+        projectName: p.productName || p.projectName || 'Project Equipment',
+        customerName: p.customerName || 'Uma Techno Fab Client',
+        jobNumber: p.jobNumber,
+        orderValue: p.orderValue || 0,
+        status: p.status,
+      });
+    });
+
+    // 2. Supplement from designJobs
+    (designJobs || []).forEach((d) => {
+      const key = d.jobNumber || d.projectNumber || d.id;
+      if (!projectMap.has(key)) {
+        projectMap.set(key, {
+          id: d.id,
+          projectNumber: d.projectNumber,
+          projectName: d.productName,
+          customerName: d.customerName,
+          jobNumber: d.jobNumber,
+          orderValue: 0,
+          status: d.status,
+        });
+      }
+    });
+
+    // 3. Map each BOM to its project info
+    const directoryList = boms.map((b) => {
+      const matched =
+        projectMap.get(b.jobNumber) ||
+        projectMap.get(b.projectId) ||
+        (projectJobs || []).find(
+          (p) => p.jobNumber === b.jobNumber || p.projectNumber === b.projectId
+        ) ||
+        (designJobs || []).find(
+          (d) => d.jobNumber === b.jobNumber || d.projectNumber === b.projectId
+        );
+
+      const items = b.items || [];
+      const cost = items.reduce((acc, itm) => {
+        const q = Number(itm.quantity ?? (itm as any).qty ?? 1);
+        const r = Number(itm.estimatedRate ?? (itm as any).rate ?? 0);
+        return acc + (itm.totalEstimatedAmount ?? q * r);
+      }, 0);
+
+      return {
+        bom: b,
+        projectNumber: matched?.projectNumber || b.projectId || 'PRJ-2026',
+        projectName: matched?.projectName || matched?.productName || b.machineName || b.bomName || 'Equipment',
+        customerName: matched?.customerName || 'Uma Techno Fab Client',
+        jobNumber: matched?.jobNumber || b.jobNumber || 'JOB-2026',
+        itemsCount: items.length,
+        totalCost: cost,
+        isLocked: b.isLocked,
+        status: b.approvalStatus || (b.isLocked ? 'approved' : 'draft'),
+      };
+    });
+
+    // Filter by search & status
+    return directoryList.filter((item) => {
+      const q = projectSearchQuery.toLowerCase();
+      const matchQuery =
+        !q ||
+        item.projectNumber.toLowerCase().includes(q) ||
+        item.projectName.toLowerCase().includes(q) ||
+        item.customerName.toLowerCase().includes(q) ||
+        item.jobNumber.toLowerCase().includes(q) ||
+        item.bom.bomNumber.toLowerCase().includes(q);
+
+      if (!matchQuery) return false;
+      if (projectStatusFilter === 'all') return true;
+      if (projectStatusFilter === 'approved') return item.isLocked || item.status === 'approved';
+      if (projectStatusFilter === 'draft') return !item.isLocked && item.status !== 'approved';
+      return true;
+    });
+  }, [boms, projectJobs, designJobs, projectSearchQuery, projectStatusFilter]);
 
   if (!mounted) {
-    return null;
+    return (
+      <div className="p-8 text-center text-sm font-semibold text-[#70665F]">
+        Loading Master Bill of Materials (BOM)...
+      </div>
+    );
   }
 
   return (
-    <div className="p-6 space-y-6 text-[#211B17]">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-5">
+    <div className="p-6 max-w-[1600px] mx-auto space-y-6 animate-in fade-in duration-150">
+      {/* ======================================================================= */}
+      {/* 1. TOP HEADER & NAVIGATION BAR                                           */}
+      {/* ======================================================================= */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-[#EBE3DB]">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-800 border border-amber-500/30 text-xs font-mono font-bold">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 font-mono text-[10px] font-bold">
               MODULE 3.8
             </span>
-            <h1 className="text-2xl font-black text-[#211B17] tracking-tight flex items-center gap-2">
-              <FileSpreadsheet className="w-7 h-7 text-amber-600" />
-              Multi-Level Master Bill of Materials (BOM)
-            </h1>
+            <span className="text-xs text-[#70665F] font-bold">Designer & Engineering</span>
           </div>
-          <p className="text-xs text-[#70665F] mt-1">
-            Component Hierarchy Structure for Production Items with Material, Unit, Procurement (PURCHASE/FABRICATE) & Item Types
+          <h1 className="text-2xl font-black text-[#211B17] tracking-tight flex items-center gap-2.5">
+            <FileSpreadsheet className="w-7 h-7 text-amber-600" />
+            <span>Master Bill of Materials (BOM)</span>
+          </h1>
+          <p className="text-xs text-[#70665F] mt-0.5">
+            Project-Centric Material Specifications, Part Hierarchy & Production Procurement Routing
           </p>
         </div>
 
+        {/* View Switcher & Primary Action Buttons */}
         <div className="flex flex-wrap items-center gap-2.5">
+          {/* Toggle between Projects Directory and BOM Items View */}
+          <div className="flex items-center bg-[#FAF7F2] p-1 rounded-xl border border-[#EBE3DB]">
+            <button
+              onClick={() => setViewMode('projects')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                viewMode === 'projects'
+                  ? 'bg-white text-[#211B17] shadow-xs border border-[#EBE3DB]'
+                  : 'text-[#70665F] hover:text-[#211B17]'
+              }`}
+            >
+              <FolderKanban className="w-3.5 h-3.5 text-amber-600" />
+              <span>Projects Directory ({projectsWithBOM.length})</span>
+            </button>
+
+            {activeBOM && (
+              <button
+                onClick={() => setViewMode('detail')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  viewMode === 'detail'
+                    ? 'bg-white text-[#211B17] shadow-xs border border-[#EBE3DB]'
+                    : 'text-[#70665F] hover:text-[#211B17]'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5 text-amber-600" />
+                <span>BOM Items ({activeBOM.items?.length || 0})</span>
+              </button>
+            )}
+          </div>
+
+          {/* Create New Project BOM Button */}
           <button
-            onClick={() => setIsCreateBOMModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:brightness-110 text-white text-xs font-bold shadow-lg shadow-amber-600/30 transition"
+            onClick={() => handleOpenCreateModal()}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:brightness-110 text-white text-xs font-bold shadow-md shadow-amber-600/25 transition cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            Create New Master BOM
+            <span>Create New Project BOM</span>
           </button>
 
+          {/* Export Active / General BOM to Excel */}
           {activeBOM && (
             <button
-              onClick={() => alert(`Exporting Master BOM ${activeBOM.bomNumber} (${activeBOM.revisionNumber}) to CSV/Excel...`)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-[#FAF7F2] text-amber-800 border border-[#EBE3DB] text-xs font-bold transition shadow-xs"
+              onClick={() => exportBOMToExcel(activeBOM, activeProject)}
+              title="Download Master BOM as formatted Excel/CSV file"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-[#FAF7F2] text-emerald-800 border border-emerald-300 text-xs font-bold transition shadow-xs cursor-pointer"
             >
-              <Download className="w-4 h-4 text-amber-600" />
-              Export BOM Excel
+              <Download className="w-4 h-4 text-emerald-600" />
+              <span>Export BOM Excel</span>
             </button>
           )}
-
-          {activeBOM && !activeBOM.isLocked ? (
-            <button
-              onClick={handleLockBOM}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/30 transition"
-            >
-              <ShieldCheck className="w-4 h-4" />
-              Approve & Lock BOM
-            </button>
-          ) : activeBOM?.isLocked ? (
-            <button
-              onClick={() => {
-                if (activeBOM) {
-                  updateBOM(activeBOM.id, { isLocked: false, approvalStatus: 'draft' });
-                  setSuccessToast(`BOM ${activeBOM.bomNumber} unlocked for editing.`);
-                  setTimeout(() => setSuccessToast(''), 3000);
-                }
-              }}
-              title="Click to Unlock BOM for editing"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-mono font-bold cursor-pointer transition shadow-xs"
-            >
-              <Lock className="w-4 h-4 text-emerald-600" />
-              BOM Locked ({activeBOM.revisionNumber || activeBOM.version || 'V1'}) - Click to Unlock
-            </button>
-          ) : null}
         </div>
       </div>
 
+      {/* Success Notification Banner */}
       {successToast && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2 shadow-xs">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-          {successToast}
+        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between gap-2 shadow-xs animate-in slide-in-from-top-1">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{successToast}</span>
+          </div>
+          <button onClick={() => setSuccessToast('')} className="text-emerald-700 hover:text-emerald-900">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
-      {/* BOM Job Selector & Summary Header */}
-      {activeBOM && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 rounded-2xl bg-white border border-[#EBE3DB] shadow-md">
-          <div>
-            <label className="text-[10px] font-bold text-[#70665F] block mb-1">Select Active Job BOM</label>
-            <select
-              value={selectedJobNumber}
-              onChange={(e) => setSelectedJobNumber(e.target.value)}
-              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
-            >
-              {boms.map((b) => {
-                const matchedJob = designJobs.find((j) => j.jobNumber === b.jobNumber) || (projectJobs || []).find((p) => p.jobNumber === b.jobNumber);
-                const cust = matchedJob?.customerName;
-                const optVal = b.id || b.bomNumber || b.jobNumber;
-                return (
-                  <option key={b.id || b.bomNumber} value={optVal}>
-                    {b.jobNumber || b.bomNumber} — {cust ? `[${cust}] ` : ''}{b.bomName || b.machineName || b.bomNumber} ({b.revisionNumber || b.version || 'V1'})
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-
-          <div className="bg-[#FAF7F2] p-3.5 rounded-xl border border-[#EBE3DB]">
-            <span className="text-[10px] text-[#70665F] block font-bold">TOTAL BOM COMPONENTS</span>
-            <span className="font-mono text-xl font-black text-[#211B17]">{activeBOM.items?.length || 0} Items</span>
-            <span className="text-[11px] text-amber-800 block font-mono font-semibold">Version: {activeBOM.revisionNumber || 'V1'}</span>
-          </div>
-
-          <div className="bg-[#FAF7F2] p-3.5 rounded-xl border border-[#EBE3DB]">
-            <span className="text-[10px] text-[#70665F] block font-bold">ESTIMATED TOTAL BOM COST</span>
-            <span className="font-mono text-xl font-black text-emerald-700">
-              ₹ {totalBOMCost?.toLocaleString('en-IN')}
-            </span>
-            <span className="text-[10px] text-[#70665F] block">Rollup Calculated for Production</span>
-          </div>
-
-          <div className="bg-[#FAF7F2] p-3.5 rounded-xl border border-[#EBE3DB] flex items-center justify-between">
-            <div>
-              <span className="text-[10px] text-[#70665F] block font-bold">APPROVAL STATUS</span>
-              <span className="font-bold text-xs uppercase text-amber-700">{activeBOM.approvalStatus || 'draft'}</span>
-              <span className="text-[10px] text-[#70665F] block">By: {activeBOM.approvedBy || 'Engineering Lead'}</span>
+      {/* ======================================================================= */}
+      {/* 2. VIEW MODE A: MAIN PROJECTS BOM DIRECTORY (PROJECT-FIRST VIEW)        */}
+      {/* ======================================================================= */}
+      {viewMode === 'projects' && (
+        <div className="space-y-5">
+          {/* KPI Summary Cards for Projects */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-4 rounded-2xl bg-white border border-[#EBE3DB] shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-[#70665F] font-bold uppercase tracking-wider">
+                  Total Project BOMs
+                </span>
+                <FolderKanban className="w-4 h-4 text-amber-600" />
+              </div>
+              <span className="font-mono text-2xl font-black text-[#211B17] mt-1 block">
+                {boms.length}
+              </span>
+              <span className="text-[10px] text-[#70665F] block">Active Equipment Designs</span>
             </div>
-            {activeBOM.isLocked ? (
-              <Lock className="w-6 h-6 text-emerald-600" />
-            ) : (
-              <Unlock className="w-6 h-6 text-amber-600" />
-            )}
+
+            <div className="p-4 rounded-2xl bg-white border border-[#EBE3DB] shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-[#70665F] font-bold uppercase tracking-wider">
+                  Approved & Locked
+                </span>
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              </div>
+              <span className="font-mono text-2xl font-black text-emerald-700 mt-1 block">
+                {boms.filter((b) => b.isLocked || b.approvalStatus === 'approved').length}
+              </span>
+              <span className="text-[10px] text-[#70665F] block">Released to Manufacturing</span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white border border-[#EBE3DB] shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-[#70665F] font-bold uppercase tracking-wider">
+                  Total BOM Components
+                </span>
+                <Boxes className="w-4 h-4 text-sky-600" />
+              </div>
+              <span className="font-mono text-2xl font-black text-sky-700 mt-1 block">
+                {boms.reduce((acc, b) => acc + (b.items?.length || 0), 0)}
+              </span>
+              <span className="text-[10px] text-[#70665F] block">Itemized BOM Material Lines</span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white border border-[#EBE3DB] shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-[#70665F] font-bold uppercase tracking-wider">
+                  Total BOM Valuation
+                </span>
+                <DollarSign className="w-4 h-4 text-amber-600" />
+              </div>
+              <span className="font-mono text-2xl font-black text-amber-800 mt-1 block">
+                ₹{' '}
+                {projectsWithBOM
+                  .reduce((acc, p) => acc + p.totalCost, 0)
+                  .toLocaleString('en-IN')}
+              </span>
+              <span className="text-[10px] text-[#70665F] block">Material Rollup Cost</span>
+            </div>
           </div>
-        </div>
-      )}
 
-      {/* Control & Item Filter Bar */}
-      <div className="p-4 rounded-2xl bg-white border border-[#EBE3DB] flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
-          <input
-            type="text"
-            placeholder="Search Material, Part #, Item Name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] text-xs text-[#211B17] placeholder-slate-400 focus:outline-none focus:border-amber-500"
-          />
-        </div>
+          {/* Search, Filter & Projects List Controls */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-[#EBE3DB] shadow-xs">
+            <div className="flex-1 w-full relative">
+              <Search className="w-4 h-4 text-[#70665F] absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search by Project Name, Project Number, Customer, Job #, BOM #..."
+                value={projectSearchQuery}
+                onChange={(e) => setProjectSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] placeholder-[#70665F] focus:outline-none focus:border-amber-500 transition"
+              />
+            </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <select
-            value={itemTypeFilter}
-            onChange={(e) => setItemTypeFilter(e.target.value)}
-            className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] focus:outline-none focus:border-amber-500 font-medium"
-          >
-            <option value="all">All Item Types</option>
-            <option value="Raw Material">Raw Material (RAW_MATERIAL)</option>
-            <option value="Fabricated">Fabricated (FABRICATED)</option>
-            <option value="Bought-Out">Bought-Out (BOUGHT_OUT)</option>
-            <option value="Consumable">Consumable (CONSUMABLE)</option>
-            <option value="Hardware">Hardware</option>
-            <option value="Electrical">Electrical</option>
-          </select>
+            <div className="flex items-center gap-2 shrink-0 w-full md:w-auto">
+              <div className="flex items-center gap-1.5 bg-[#FAF7F2] px-3 py-1.5 rounded-xl border border-[#EBE3DB]">
+                <Filter className="w-3.5 h-3.5 text-[#70665F]" />
+                <span className="text-[10px] font-bold text-[#70665F]">Status:</span>
+                <select
+                  value={projectStatusFilter}
+                  onChange={(e: any) => setProjectStatusFilter(e.target.value)}
+                  className="bg-transparent text-xs font-bold text-[#211B17] focus:outline-none cursor-pointer"
+                >
+                  <option value="all">All Projects</option>
+                  <option value="approved">Approved & Locked</option>
+                  <option value="draft">Draft BOMs</option>
+                </select>
+              </div>
 
-          {activeBOM && !activeBOM.isLocked && (
-            <button
-              onClick={() => {
-                setEditingItemId(null);
-                setPartNumber('');
-                setItemName('');
-                setDescription('');
-                setItemType('Raw Material');
-                setMaterial('SS 316L');
-                setSpecification('');
-                setQuantity(1);
-                setUnit('PCS');
-                setMakeBrand('');
-                setProcurementType('Purchase');
-                setEstimatedRate(500);
-                setIsAddItemModalOpen(true);
-              }}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition shadow-sm whitespace-nowrap shrink-0"
-            >
-              <PlusCircle className="w-4 h-4" />
-              Add Material Line
-            </button>
-          )}
-        </div>
-      </div>
+              <button
+                onClick={() => handleOpenCreateModal()}
+                className="px-3.5 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-800 text-white text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ New Project BOM</span>
+              </button>
+            </div>
+          </div>
 
-      {/* BOM Multi-Level Hierarchy Table */}
-      <div className="overflow-x-auto rounded-2xl border border-[#EBE3DB] bg-white shadow-md">
-        <table className="w-full text-left border-collapse text-xs text-[#544B45]">
-          <thead>
-            <tr className="bg-[#FAF7F2] text-[#70665F] font-mono text-[11px] uppercase border-b border-[#EBE3DB]">
-              <th className="p-3.5 w-12 text-center">#</th>
-              <th className="p-3.5">Material / Part Ref</th>
-              <th className="p-3.5">Item Name & Spec</th>
-              <th className="p-3.5">Item Type</th>
-              <th className="p-3.5 text-center">Procurement</th>
-              <th className="p-3.5 text-center">Qty / Unit</th>
-              <th className="p-3.5 text-right">Est. Rate</th>
-              <th className="p-3.5 text-right">Total Amount (₹)</th>
-              <th className="p-3.5 w-20 text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#EBE3DB]">
-            {filteredItems.length === 0 ? (
-              <tr>
-                <td colSpan={9} className="p-8 text-center text-[#70665F]">
-                  No BOM items match the selected filter. Click &quot;Add Material Line&quot; to populate.
-                </td>
-              </tr>
-            ) : (
-              filteredItems.map((item, idx) => {
-                const isFabricate =
-                  item.procurement === 'FABRICATE' ||
-                  item.procurementType === 'In-House' ||
-                  item.itemType === 'Fabricated';
-
-                const rate = Number(
-                  item.estimatedRate ??
-                  (item as any).estimated_rate ??
-                  (item as any).rate ??
-                  (item as any).estRate ??
-                  (item as any).unitPrice ??
-                  (item as any).unitCost ??
-                  (item as any).unit_cost ??
-                  (item as any).costPerUnit ??
-                  0
-                );
-                const qty = Number(item.quantity ?? (item as any).qty ?? 1);
-                const totalAmt = Number(
-                  item.totalEstimatedAmount ??
-                  (item as any).total_estimated_amount ??
-                  (item as any).total_amount ??
-                  (item as any).totalAmount ??
-                  (item as any).extendedCost ??
-                  (qty * rate)
-                );
-
-                const rawMat = item.material || '';
-                const matParts = rawMat.split(' - ');
-                const defaultPartNo = matParts.length > 1 ? matParts[0].trim() : (item.partNumber || (item as any).itemCode || `MAT-${String(item.itemNo || idx + 1).padStart(3, '0')}`);
-                const defaultItemName = item.itemName || (matParts.length > 1 ? matParts.slice(1).join(' - ').trim() : rawMat) || `Item ${idx + 1}`;
-
-                return (
-                  <tr key={item.id || `bi-${idx}`} className="hover:bg-[#FAF7F2]/60 transition">
-                    <td className="p-3.5 text-center font-mono font-bold text-[#70665F]">{item.itemNo || idx + 1}</td>
-                    <td className="p-3.5 font-mono font-bold text-amber-800">
-                      {defaultPartNo}
-                    </td>
-                    <td className="p-3.5">
-                      <div className="font-bold text-[#211B17]">{defaultItemName}</div>
-                      <div className="text-[10px] text-[#70665F]">{item.specification || item.description || (item.procurement ? `Procurement: ${item.procurement}` : '')}</div>
-                    </td>
-                    <td className="p-3.5">
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${
-                          item.itemType === 'Raw Material'
-                            ? 'bg-blue-50 text-blue-700 border-blue-200'
-                            : item.itemType === 'Bought-Out'
-                            ? 'bg-purple-50 text-purple-700 border-purple-200'
-                            : item.itemType === 'Fabricated'
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : item.itemType === 'Consumable'
-                            ? 'bg-amber-50 text-amber-700 border-amber-200'
-                            : 'bg-slate-100 text-slate-700 border-slate-300'
-                        }`}
-                      >
-                        {item.item_type || item.itemType || 'RAW_MATERIAL'}
-                      </span>
-                    </td>
-                    <td className="p-3.5 text-center">
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
-                          isFabricate
-                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                            : 'bg-sky-50 text-sky-800 border-sky-300'
-                        }`}
-                      >
-                        {item.procurement || (isFabricate ? 'FABRICATE' : 'PURCHASE')}
-                      </span>
-                    </td>
-                    <td className="p-3.5 text-center font-mono font-bold text-[#211B17]">
-                      {qty} {item.unit || 'PCS'}
-                    </td>
-                    <td className="p-3.5 text-right font-mono text-[#544B45]">
-                      ₹ {rate.toLocaleString('en-IN')}
-                    </td>
-                    <td className="p-3.5 text-right font-mono font-bold text-emerald-700">
-                      ₹ {totalAmt.toLocaleString('en-IN')}
-                    </td>
-                    <td className="p-3.5 text-center">
-                      {!activeBOM?.isLocked ? (
-                        <div className="flex items-center justify-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEditItem(item)}
-                            title="Edit this line item"
-                            className="p-1.5 rounded-lg text-amber-700 hover:text-amber-900 hover:bg-amber-100 transition"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteItem(item.id)}
-                            title="Remove this line item"
-                            className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ) : (
-                        <span className="text-[10px] text-slate-400 font-mono">Locked</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* ======================================================================= */}
-      {/* MODAL 1: CREATE FULL MASTER BOM (Structured exactly per Developer Schema)*/}
-      {/* ======================================================================= */}
-      {isCreateBOMModalOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150"
-          onClick={() => setIsCreateBOMModalOpen(false)}
-        >
-          <div
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl space-y-4 p-6 text-xs max-h-[92vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+          {/* Projects Directory Table */}
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-sm">
+            <div className="px-5 py-3.5 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-extrabold text-[#211B17] flex items-center gap-2">
-                  <FileSpreadsheet className="w-6 h-6 text-amber-600" />
-                  Create Master BOM (Product & Materials Structure)
+                <h3 className="font-extrabold text-[#211B17] text-sm flex items-center gap-2">
+                  <FolderKanban className="w-4 h-4 text-amber-600" />
+                  <span>Projects Master BOM Register</span>
                 </h3>
-                <p className="text-[11px] text-[#70665F] mt-0.5">
-                  Define Product Header, Output Quantity, and Child Material Requirements with Procurement Types
+                <p className="text-[11px] text-[#70665F]">
+                  Select any Project to open and inspect its complete Bill of Materials, or export directly to Excel
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowJsonPreview(!showJsonPreview)}
-                  className="px-3 py-1.5 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] text-[11px] font-mono font-bold text-[#544B45] hover:bg-white flex items-center gap-1 transition"
-                >
-                  <Code2 className="w-3.5 h-3.5 text-amber-600" />
-                  {showJsonPreview ? 'Hide JSON' : 'Preview Developer JSON'}
-                </button>
-                <button
-                  onClick={() => setIsCreateBOMModalOpen(false)}
-                  className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+              <span className="text-xs font-mono font-bold text-[#70665F]">
+                Showing {projectsWithBOM.length} Projects
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="bg-[#FAF7F2]/60 border-b border-[#EBE3DB] text-[10px] font-bold text-[#70665F] uppercase tracking-wider">
+                    <th className="p-3.5 text-center w-12">#</th>
+                    <th className="p-3.5">Project & Equipment Name</th>
+                    <th className="p-3.5">Customer & Job Ref</th>
+                    <th className="p-3.5">Master BOM Number</th>
+                    <th className="p-3.5 text-center">Components</th>
+                    <th className="p-3.5 text-right">Estimated Total Cost</th>
+                    <th className="p-3.5 text-center">Status</th>
+                    <th className="p-3.5 text-center w-48">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#EBE3DB]">
+                  {projectsWithBOM.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="p-8 text-center text-[#70665F]">
+                        <p className="font-semibold text-sm">No Projects matching search criteria.</p>
+                        <button
+                          onClick={() => handleOpenCreateModal()}
+                          className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Create First Project BOM</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ) : (
+                    projectsWithBOM.map((item, idx) => (
+                      <tr
+                        key={item.bom.id || item.bom.bomNumber || idx}
+                        className="hover:bg-[#FAF7F2]/80 transition group"
+                      >
+                        <td className="p-3.5 text-center font-mono text-[#70665F] font-bold">
+                          {idx + 1}
+                        </td>
+
+                        {/* Project & Equipment */}
+                        <td className="p-3.5">
+                          <div className="font-bold text-[#211B17] text-sm group-hover:text-amber-800 transition">
+                            {item.projectName}
+                          </div>
+                          <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-[#70665F] font-mono">
+                            <span className="font-semibold text-amber-700">{item.projectNumber}</span>
+                          </div>
+                        </td>
+
+                        {/* Customer & Job Ref */}
+                        <td className="p-3.5">
+                          <div className="font-semibold text-[#211B17] flex items-center gap-1">
+                            <Building2 className="w-3 h-3 text-[#70665F]" />
+                            <span>{item.customerName}</span>
+                          </div>
+                          <div className="text-[10px] text-[#70665F] font-mono mt-0.5">
+                            Job: <span className="text-[#3E2723] font-bold">{item.jobNumber}</span>
+                          </div>
+                        </td>
+
+                        {/* BOM Number & Version */}
+                        <td className="p-3.5">
+                          <div className="font-mono font-bold text-amber-900">
+                            {item.bom.bomNumber}
+                          </div>
+                          <div className="text-[10px] text-[#70665F] font-mono">
+                            Version: {item.bom.revisionNumber || item.bom.version || 'V1'}
+                          </div>
+                        </td>
+
+                        {/* Components */}
+                        <td className="p-3.5 text-center">
+                          <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 font-mono font-bold text-xs border border-slate-200">
+                            {item.itemsCount} Items
+                          </span>
+                        </td>
+
+                        {/* Total Cost */}
+                        <td className="p-3.5 text-right font-mono font-bold text-emerald-700 text-sm">
+                          ₹ {item.totalCost.toLocaleString('en-IN')}
+                        </td>
+
+                        {/* Status */}
+                        <td className="p-3.5 text-center">
+                          {item.isLocked || item.status === 'approved' ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px] border border-emerald-300">
+                              <CheckCircle2 className="w-3 h-3" />
+                              <span>LOCKED</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px] border border-amber-300">
+                              <Clock className="w-3 h-3" />
+                              <span>DRAFT</span>
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Actions: Open BOM & Export Excel */}
+                        <td className="p-3.5 text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            {/* Open Project BOM */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedJobNumber(item.bom.id || item.bom.bomNumber || item.bom.jobNumber);
+                                setViewMode('detail');
+                              }}
+                              className="px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold text-xs flex items-center gap-1 transition cursor-pointer shadow-2xs"
+                              title="Open BOM Details for this Project"
+                            >
+                              <FileSpreadsheet className="w-3.5 h-3.5 text-amber-600" />
+                              <span>Open BOM</span>
+                            </button>
+
+                            {/* Direct Excel Download */}
+                            <button
+                              type="button"
+                              onClick={() => exportBOMToExcel(item.bom, item)}
+                              className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition cursor-pointer shadow-2xs"
+                              title="Download BOM to Excel/CSV"
+                            >
+                              <Download className="w-3.5 h-3.5 text-emerald-600" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================================= */}
+      {/* 3. VIEW MODE B: SINGLE PROJECT BOM ITEMS DETAIL VIEW                   */}
+      {/* ======================================================================= */}
+      {viewMode === 'detail' && activeBOM && (
+        <div className="space-y-5 animate-in fade-in duration-150">
+          {/* Back Button & Project Context Banner */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 shadow-xs">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setViewMode('projects')}
+                className="px-3 py-2 rounded-xl bg-white hover:bg-[#FAF7F2] text-[#211B17] font-bold text-xs border border-[#EBE3DB] flex items-center gap-1.5 transition shadow-2xs cursor-pointer"
+                title="Return to Projects List"
+              >
+                <ArrowLeft className="w-4 h-4 text-amber-700" />
+                <span>← All Projects List</span>
+              </button>
+
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xs font-bold text-amber-800">
+                    {activeProject?.projectNumber || activeBOM.projectId || 'PRJ-2026'}
+                  </span>
+                  <span className="text-[#70665F]">•</span>
+                  <span className="font-bold text-xs text-[#211B17]">
+                    Job: {activeProject?.jobNumber || activeBOM.jobNumber}
+                  </span>
+                </div>
+                <h2 className="text-lg font-extrabold text-[#211B17] tracking-tight">
+                  {activeProject?.productName || activeProject?.projectName || activeBOM.machineName || activeBOM.bomName}
+                </h2>
+                <p className="text-[11px] text-[#70665F]">
+                  Customer: <span className="font-semibold text-[#3E2723]">{activeProject?.customerName || 'Uma Techno Fab Client'}</span>
+                </p>
               </div>
             </div>
 
-            {/* Optional Live Developer JSON Payload View */}
-            {showJsonPreview && (
-              <div className="p-3.5 bg-slate-900 rounded-xl font-mono text-[11px] text-emerald-400 overflow-x-auto border border-slate-700 shadow-inner">
-                <div className="text-slate-400 text-[10px] mb-1">// Real-time API Payload Output:</div>
-                <pre>{JSON.stringify(developerJsonPayload, null, 2)}</pre>
+            {/* Quick Switch Dropdown */}
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="text-right hidden md:block">
+                <span className="text-[10px] text-[#70665F] font-bold uppercase block">Switch Project BOM:</span>
               </div>
-            )}
+              <select
+                value={selectedJobNumber}
+                onChange={(e) => setSelectedJobNumber(e.target.value)}
+                className="bg-white border border-[#EBE3DB] rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-amber-500 shadow-2xs cursor-pointer"
+              >
+                {boms.map((b) => {
+                  const mProj =
+                    (projectJobs || []).find((p) => p.jobNumber === b.jobNumber || p.projectNumber === b.projectId) ||
+                    (designJobs || []).find((d) => d.jobNumber === b.jobNumber || d.projectNumber === b.projectId);
+                  const pName = mProj?.productName || b.machineName || b.bomName || b.bomNumber;
+                  const optVal = b.id || b.bomNumber || b.jobNumber;
+                  return (
+                    <option key={b.id || b.bomNumber} value={optVal}>
+                      {b.bomNumber} — {pName}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          </div>
 
-            <form onSubmit={handleCreateFullBOM} className="space-y-4">
-              {/* Header Details Card */}
-              <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] space-y-3">
-                <div className="font-bold text-xs text-[#211B17] flex items-center gap-1.5">
-                  <Package className="w-4 h-4 text-amber-600" /> 1. Product / BOM Header Information
-                </div>
+          {/* BOM Summary KPIs */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 rounded-2xl bg-white border border-[#EBE3DB] shadow-sm">
+            <div className="bg-[#FAF7F2] p-3.5 rounded-xl border border-[#EBE3DB]">
+              <span className="text-[10px] text-[#70665F] block font-bold uppercase tracking-wider">
+                MASTER BOM NUMBER
+              </span>
+              <span className="font-mono text-lg font-black text-[#211B17]">
+                {activeBOM.bomNumber}
+              </span>
+              <span className="text-[11px] text-amber-800 block font-mono font-semibold">
+                Version: {activeBOM.revisionNumber || activeBOM.version || 'V1'}
+              </span>
+            </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                  <div className="md:col-span-1">
-                    <label className="text-[#544B45] font-bold block mb-1">Product / Job Reference *</label>
-                    <select
-                      value={selectedProductId}
-                      onChange={(e) => {
-                        setSelectedProductId(e.target.value);
-                        const sel = designJobs.find((j) => j.id === e.target.value);
-                        if (sel) setNewBomName(`${sel.productName} BOM`);
-                      }}
-                      required
-                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500 font-medium"
-                    >
-                      {designJobs.map((j) => (
-                        <option key={j.id} value={j.id}>
-                          {j.jobNumber} — {j.customerName ? `[${j.customerName}] ` : ''}{j.productName}
-                        </option>
-                      ))}
-                      <option value="101">101 - Steel Table (Standard Item)</option>
-                    </select>
-                  </div>
+            <div className="bg-[#FAF7F2] p-3.5 rounded-xl border border-[#EBE3DB]">
+              <span className="text-[10px] text-[#70665F] block font-bold uppercase tracking-wider">
+                TOTAL BOM COMPONENTS
+              </span>
+              <span className="font-mono text-xl font-black text-[#211B17]">
+                {activeBOM.items?.length || 0} Items
+              </span>
+              <span className="text-[10px] text-[#70665F] block">
+                Itemized Bill of Materials
+              </span>
+            </div>
 
-                  <div className="md:col-span-2">
-                    <label className="text-[#544B45] font-bold block mb-1">BOM Name (bom_name) *</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Steel Table BOM"
-                      value={newBomName}
-                      onChange={(e) => setNewBomName(e.target.value)}
-                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500 font-semibold"
-                    />
-                  </div>
+            <div className="bg-[#FAF7F2] p-3.5 rounded-xl border border-[#EBE3DB]">
+              <span className="text-[10px] text-[#70665F] block font-bold uppercase tracking-wider">
+                ESTIMATED TOTAL BOM COST
+              </span>
+              <span className="font-mono text-xl font-black text-emerald-700">
+                ₹ {totalBOMCost.toLocaleString('en-IN')}
+              </span>
+              <span className="text-[10px] text-[#70665F] block">
+                Calculated for Production
+              </span>
+            </div>
 
-                  <div>
-                    <label className="text-[#544B45] font-bold block mb-1">Version (version) *</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. V1, V2, REV-01"
-                      value={newVersion}
-                      onChange={(e) => setNewVersion(e.target.value)}
-                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500 font-mono font-bold"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                  <div>
-                    <label className="text-[#544B45] font-bold block mb-1">Output Product Quantity *</label>
-                    <input
-                      type="number"
-                      min="0.1"
-                      step="any"
-                      required
-                      value={newProductQuantity}
-                      onChange={(e) => setNewProductQuantity(Number(e.target.value))}
-                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500 font-mono font-bold"
-                    />
-                    <span className="text-[10px] text-[#70665F] mt-0.5 block">Quantity of finished unit produced</span>
-                  </div>
-                  <div className="md:col-span-3 flex items-end justify-between p-2.5 bg-white rounded-xl border border-[#EBE3DB]">
-                    <div>
-                      <span className="text-[10px] text-[#70665F] block font-semibold">ESTIMATED PRODUCTION COST</span>
-                      <span className="text-base font-black text-emerald-700 font-mono">
-                        ₹ {totalNewBOMCost.toLocaleString('en-IN')}
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-[10px] text-[#70665F] block font-semibold">TOTAL LINE ITEMS</span>
-                      <span className="text-base font-black text-[#211B17] font-mono">{bomItemsList.length} Materials</span>
-                    </div>
-                  </div>
-                </div>
+            <div className="bg-[#FAF7F2] p-3.5 rounded-xl border border-[#EBE3DB] flex items-center justify-between">
+              <div>
+                <span className="text-[10px] text-[#70665F] block font-bold uppercase tracking-wider">
+                  APPROVAL STATUS
+                </span>
+                <span className="font-bold text-xs uppercase text-amber-700">
+                  {activeBOM.approvalStatus || (activeBOM.isLocked ? 'approved' : 'draft')}
+                </span>
+                <span className="text-[10px] text-[#70665F] block">
+                  By: {activeBOM.approvedBy || 'Engineering Lead'}
+                </span>
               </div>
+              {activeBOM.isLocked ? (
+                <Lock className="w-6 h-6 text-emerald-600" />
+              ) : (
+                <Unlock className="w-6 h-6 text-amber-600" />
+              )}
+            </div>
+          </div>
 
-              {/* Material Items Table */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="font-bold text-xs text-[#211B17] flex items-center gap-1.5">
-                    <Boxes className="w-4 h-4 text-amber-600" /> 2. Material Requirements List (items)
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleAddNewBOMRow}
-                    className="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 hover:bg-amber-200 border border-amber-300 font-bold text-xs flex items-center gap-1 transition"
-                  >
-                    <Plus className="w-3.5 h-3.5" /> Add Material Row
-                  </button>
-                </div>
+          {/* BOM Material Table Control Bar */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-[#EBE3DB] shadow-xs">
+            {/* Search Input */}
+            <div className="flex-1 w-full relative">
+              <Search className="w-4 h-4 text-[#70665F] absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search Material, Part #, Item Name, Specification..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] placeholder-[#70665F] focus:outline-none focus:border-amber-500"
+              />
+            </div>
 
-                <div className="overflow-x-auto rounded-xl border border-[#EBE3DB] bg-white">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead className="bg-[#FAF7F2] text-[#70665F] font-mono text-[10px] uppercase border-b border-[#EBE3DB]">
-                      <tr>
-                        <th className="p-2.5">Material (material) *</th>
-                        <th className="p-2.5 w-24">Qty (quantity) *</th>
-                        <th className="p-2.5 w-24">Unit (unit) *</th>
-                        <th className="p-2.5 w-32">Procurement *</th>
-                        <th className="p-2.5 w-40">Item Type (item_type) *</th>
-                        <th className="p-2.5 w-28 text-right">Est Rate (₹)</th>
-                        <th className="p-2.5 w-12 text-center">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#EBE3DB]">
-                      {bomItemsList.map((row, idx) => (
-                        <tr key={row.id} className="hover:bg-[#FAF7F2]/40">
-                          <td className="p-2">
-                            <input
-                              type="text"
-                              required
-                              placeholder="e.g. 201 - Mild Steel Plate 5mm"
-                              value={row.material}
-                              onChange={(e) => handleUpdateBOMRow(row.id, 'material', e.target.value)}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-amber-500 font-medium"
-                            />
+            {/* Item Type Filter & Add Material Line Button */}
+            <div className="flex items-center gap-2 shrink-0 w-full md:w-auto">
+              <select
+                value={itemTypeFilter}
+                onChange={(e) => setItemTypeFilter(e.target.value)}
+                className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-semibold text-[#211B17] focus:outline-none"
+              >
+                <option value="all">All Item Types</option>
+                <option value="RAW_MATERIAL">Raw Material</option>
+                <option value="FABRICATED">Fabricated</option>
+                <option value="BOUGHT_OUT">Bought-Out</option>
+                <option value="CONSUMABLE">Consumable</option>
+                <option value="HARDWARE">Hardware</option>
+                <option value="ELECTRICAL">Electrical</option>
+              </select>
+
+              {!activeBOM.isLocked && (
+                <button
+                  onClick={handleOpenAddItem}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-800 text-white text-xs font-bold transition shadow-xs cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Material Line</span>
+                </button>
+              )}
+
+              {/* Approve & Lock BOM button */}
+              {!activeBOM.isLocked ? (
+                <button
+                  onClick={handleLockBOM}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition cursor-pointer"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Approve & Lock BOM</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    updateBOM(activeBOM.id, { isLocked: false, approvalStatus: 'draft' });
+                    setSuccessToast(`BOM ${activeBOM.bomNumber} unlocked for editing.`);
+                    setTimeout(() => setSuccessToast(''), 3000);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold transition cursor-pointer"
+                >
+                  <Lock className="w-4 h-4 text-emerald-600" />
+                  <span>Locked (Click to Unlock)</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Material Items Table (with Edit, Download, Delete in Actions) */}
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[10px] font-bold text-[#70665F] uppercase tracking-wider">
+                    <th className="p-3.5 text-center w-12">#</th>
+                    <th className="p-3.5">Material / Part Ref</th>
+                    <th className="p-3.5">Item Name & Spec</th>
+                    <th className="p-3.5 text-center">Item Type</th>
+                    <th className="p-3.5 text-center">Procurement</th>
+                    <th className="p-3.5 text-center">Qty / Unit</th>
+                    <th className="p-3.5 text-right">Est. Rate</th>
+                    <th className="p-3.5 text-right">Total Amount (₹)</th>
+                    <th className="p-3.5 text-center w-36">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#EBE3DB]">
+                  {filteredBOMItems.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="p-8 text-center text-[#70665F]">
+                        <p className="font-semibold text-sm">No BOM items found.</p>
+                        {!activeBOM.isLocked && (
+                          <button
+                            onClick={handleOpenAddItem}
+                            className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold text-xs"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Add First Material Component</span>
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredBOMItems.map((item, idx) => {
+                      const qty = Number(item.quantity ?? (item as any).qty ?? 1);
+                      const rate = Number(item.estimatedRate ?? (item as any).rate ?? 0);
+                      const totalAmt = Number(item.totalEstimatedAmount ?? qty * rate);
+                      const isFabricate =
+                        item.procurement === 'FABRICATE' ||
+                        item.procurementType === 'Fabricate' ||
+                        item.procurementType === 'In-House';
+
+                      return (
+                        <tr key={item.id || idx} className="hover:bg-[#FAF7F2]/80 transition">
+                          <td className="p-3.5 text-center font-mono text-[#70665F] font-bold">
+                            {idx + 1}
                           </td>
-                          <td className="p-2">
-                            <input
-                              type="number"
-                              required
-                              min="0.001"
-                              step="any"
-                              value={row.quantity}
-                              onChange={(e) => handleUpdateBOMRow(row.id, 'quantity', Number(e.target.value))}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-amber-500 font-mono font-bold"
-                            />
+
+                          {/* Part Number / Ref */}
+                          <td className="p-3.5 font-mono font-bold text-amber-900">
+                            {item.partNumber || `PRT-${idx + 1}`}
                           </td>
-                          <td className="p-2">
-                            <select
-                              value={row.unit}
-                              onChange={(e) => handleUpdateBOMRow(row.id, 'unit', e.target.value)}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-amber-500 font-mono font-bold"
-                            >
-                              <option value="KG">KG</option>
-                              <option value="PCS">PCS</option>
-                              <option value="NOS">NOS</option>
-                              <option value="MTR">MTR</option>
-                              <option value="LTR">LTR</option>
-                              <option value="SET">SET</option>
-                              <option value="SQM">SQM</option>
-                            </select>
+
+                          {/* Item Name & Spec */}
+                          <td className="p-3.5">
+                            <span className="font-bold text-[#211B17] block">
+                              {item.itemName || item.partName || (item as any).part_name || item.material}
+                            </span>
+                            {(item.specification || item.description) && (
+                              <span className="text-[11px] text-[#70665F] block mt-0.5">
+                                {item.specification || item.description}
+                              </span>
+                            )}
                           </td>
-                          <td className="p-2">
-                            <select
-                              value={row.procurement}
-                              onChange={(e) => handleUpdateBOMRow(row.id, 'procurement', e.target.value)}
-                              className={`w-full border rounded-lg px-2 py-1.5 text-xs font-mono font-bold focus:outline-none ${
-                                row.procurement === 'FABRICATE'
-                                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+
+                          {/* Item Type */}
+                          <td className="p-3.5 text-center">
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase bg-slate-100 text-slate-700 border border-slate-200">
+                              {item.item_type || item.itemType || 'RAW_MATERIAL'}
+                            </span>
+                          </td>
+
+                          {/* Procurement */}
+                          <td className="p-3.5 text-center">
+                            <span
+                              className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
+                                isFabricate
+                                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
                                   : 'bg-sky-50 text-sky-800 border-sky-300'
                               }`}
                             >
-                              <option value="PURCHASE">PURCHASE (Vendor)</option>
-                              <option value="FABRICATE">FABRICATE (Shopfloor)</option>
-                            </select>
+                              {item.procurement || (isFabricate ? 'FABRICATE' : 'PURCHASE')}
+                            </span>
                           </td>
+
+                          {/* Qty / Unit */}
+                          <td className="p-3.5 text-center font-mono font-bold text-[#211B17]">
+                            {qty} {item.unit || 'PCS'}
+                          </td>
+
+                          {/* Est. Rate */}
+                          <td className="p-3.5 text-right font-mono text-[#544B45]">
+                            ₹ {rate.toLocaleString('en-IN')}
+                          </td>
+
+                          {/* Total Amount */}
+                          <td className="p-3.5 text-right font-mono font-bold text-emerald-700">
+                            ₹ {totalAmt.toLocaleString('en-IN')}
+                          </td>
+
+                          {/* Actions: Edit, Download (Excel), Delete */}
+                          <td className="p-3.5 text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              {/* Edit Button */}
+                              {!activeBOM.isLocked ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenEditItem(item)}
+                                  title="Edit this line item"
+                                  className="p-1.5 rounded-lg text-amber-700 hover:text-amber-900 hover:bg-amber-100 transition cursor-pointer"
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                </button>
+                              ) : null}
+
+                              {/* Download / Export Excel Option (placed between Edit and Delete as requested) */}
+                              <button
+                                type="button"
+                                onClick={() => exportBOMToExcel(activeBOM, activeProject)}
+                                title="Download this BOM to Excel/CSV"
+                                className="p-1.5 rounded-lg text-emerald-700 hover:text-emerald-900 hover:bg-emerald-100 transition cursor-pointer"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                              </button>
+
+                              {/* Delete Button */}
+                              {!activeBOM.isLocked ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteItem(item.id)}
+                                  title="Remove this line item"
+                                  className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition cursor-pointer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              ) : null}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================================= */}
+      {/* 4. MODAL: CREATE NEW PROJECT MASTER BOM (PROJECT-FIRST FLOW)           */}
+      {/* ======================================================================= */}
+      {isCreateBOMModalOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
+          onClick={() => setIsCreateBOMModalOpen(false)}
+        >
+          <div
+            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl p-6 text-xs max-h-[92vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-start justify-between border-b border-[#EBE3DB] pb-3 shrink-0">
+              <div>
+                <h3 className="text-lg font-black text-[#211B17] flex items-center gap-2">
+                  <FileSpreadsheet className="w-5 h-5 text-amber-600" />
+                  <span>Create New Project Master BOM</span>
+                </h3>
+                <p className="text-[11px] text-[#70665F] mt-0.5">
+                  Select Project, Define Master BOM Details & Add Required Material Component Lines
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCreateBOMModalOpen(false)}
+                className="p-1.5 rounded-xl hover:bg-[#FAF7F2] text-[#70665F] hover:text-[#211B17] transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Form Body */}
+            <form onSubmit={handleSubmitNewBOM} className="flex-1 overflow-y-auto space-y-4 py-3">
+              {/* Step 1: Select Project */}
+              <div className="p-4 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-[#211B17] text-xs flex items-center gap-1.5">
+                    <FolderKanban className="w-4 h-4 text-amber-700" />
+                    <span>Step 1: Select Target Project</span>
+                  </span>
+                  <span className="text-[10px] text-amber-800 font-semibold font-mono">Required</span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                      Choose From Registered ERP Projects:
+                    </label>
+                    <select
+                      value={createSelectedProjectId}
+                      onChange={(e) => handleSelectCreateProject(e.target.value)}
+                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
+                    >
+                      <option value="">-- Select Project / Equipment --</option>
+                      {(projectJobs || []).map((pj) => (
+                        <option key={pj.id} value={pj.id}>
+                          {pj.projectNumber} — {pj.customerName} [{pj.jobNumber}] {pj.productName}
+                        </option>
+                      ))}
+                      {(designJobs || []).map((dj) => (
+                        <option key={dj.id} value={dj.id}>
+                          {dj.projectNumber} — {dj.customerName} [{dj.jobNumber}] {dj.productName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                      Equipment / Product Name:
+                    </label>
+                    <input
+                      type="text"
+                      value={createProjectName}
+                      onChange={(e) => setCreateProjectName(e.target.value)}
+                      placeholder="e.g. Heavy SS 316L Chemical Reactor Vessel (10 KL)"
+                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                      Customer Name:
+                    </label>
+                    <input
+                      type="text"
+                      value={createCustomerName}
+                      onChange={(e) => setCreateCustomerName(e.target.value)}
+                      placeholder="e.g. Gujarat Alkalies & Chemicals Ltd."
+                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                      Associated Job Number:
+                    </label>
+                    <input
+                      type="text"
+                      value={createJobNumber}
+                      onChange={(e) => setCreateJobNumber(e.target.value)}
+                      placeholder="e.g. JOB-2026-0042"
+                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 2: BOM Metadata */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-4 rounded-xl bg-white border border-[#EBE3DB]">
+                <div>
+                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                    Master BOM Name:
+                  </label>
+                  <input
+                    type="text"
+                    value={createBomName}
+                    onChange={(e) => setCreateBomName(e.target.value)}
+                    placeholder="e.g. Master BOM - Reactor Vessel"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                    BOM Version / Revision:
+                  </label>
+                  <input
+                    type="text"
+                    value={createVersion}
+                    onChange={(e) => setCreateVersion(e.target.value)}
+                    placeholder="e.g. V1 or Rev-00"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                    Output Equipment Quantity:
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={createProductQuantity}
+                    onChange={(e) => setCreateProductQuantity(Number(e.target.value))}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              {/* Step 3: Material Component Lines */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-extrabold text-[#211B17] text-xs flex items-center gap-1.5">
+                      <Boxes className="w-4 h-4 text-amber-700" />
+                      <span>Step 2: Add BOM Required Materials & Components ({createMaterialLines.length})</span>
+                    </h4>
+                    <p className="text-[11px] text-[#70665F]">
+                      Define all raw material plates, bought-out items, and sub-assemblies for this project
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleAddCreateMaterialLine}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs transition cursor-pointer shadow-2xs"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-amber-700" />
+                    <span>+ Add Material Line</span>
+                  </button>
+                </div>
+
+                {/* Material Lines Form Table */}
+                <div className="border border-[#EBE3DB] rounded-xl overflow-hidden">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#FAF7F2] text-[10px] font-bold text-[#70665F] uppercase border-b border-[#EBE3DB]">
+                      <tr>
+                        <th className="p-2.5 w-10 text-center">#</th>
+                        <th className="p-2.5 w-24">Part Ref</th>
+                        <th className="p-2.5">Material & Spec</th>
+                        <th className="p-2.5 w-32">Item Type</th>
+                        <th className="p-2.5 w-28">Procurement</th>
+                        <th className="p-2.5 w-20 text-center">Qty</th>
+                        <th className="p-2.5 w-20 text-center">Unit</th>
+                        <th className="p-2.5 w-24 text-right">Est. Rate</th>
+                        <th className="p-2.5 w-10 text-center"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#EBE3DB] bg-white">
+                      {createMaterialLines.map((line, idx) => (
+                        <tr key={line.id} className="hover:bg-[#FAF7F2]/50">
+                          <td className="p-2.5 text-center font-mono font-bold text-[#70665F]">
+                            {idx + 1}
+                          </td>
+
+                          {/* Part Ref */}
+                          <td className="p-2">
+                            <input
+                              type="text"
+                              value={line.partNumber}
+                              onChange={(e) => handleUpdateCreateLine(line.id, 'partNumber', e.target.value)}
+                              placeholder={`20${idx + 1}`}
+                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-mono font-bold text-amber-900 focus:outline-none"
+                            />
+                          </td>
+
+                          {/* Material Description */}
+                          <td className="p-2">
+                            <input
+                              type="text"
+                              value={line.material}
+                              onChange={(e) => handleUpdateCreateLine(line.id, 'material', e.target.value)}
+                              placeholder="e.g. SS 316L Plates 8mm thk (SA 240)"
+                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs text-[#211B17] font-semibold focus:outline-none"
+                              required
+                            />
+                          </td>
+
+                          {/* Item Type */}
                           <td className="p-2">
                             <select
-                              value={row.item_type}
-                              onChange={(e) => handleUpdateBOMRow(row.id, 'item_type', e.target.value)}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-amber-500 font-mono font-medium"
+                              value={line.item_type}
+                              onChange={(e: any) => handleUpdateCreateLine(line.id, 'item_type', e.target.value)}
+                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-[11px] font-semibold text-[#211B17] focus:outline-none"
                             >
-                              <option value="RAW_MATERIAL">RAW_MATERIAL</option>
-                              <option value="FABRICATED">FABRICATED</option>
-                              <option value="BOUGHT_OUT">BOUGHT_OUT</option>
-                              <option value="CONSUMABLE">CONSUMABLE</option>
-                              <option value="HARDWARE">HARDWARE</option>
-                              <option value="ELECTRICAL">ELECTRICAL</option>
+                              <option value="RAW_MATERIAL">Raw Material</option>
+                              <option value="FABRICATED">Fabricated</option>
+                              <option value="BOUGHT_OUT">Bought-Out</option>
+                              <option value="CONSUMABLE">Consumable</option>
+                              <option value="HARDWARE">Hardware</option>
+                              <option value="ELECTRICAL">Electrical</option>
                             </select>
                           </td>
-                          <td className="p-2 text-right">
+
+                          {/* Procurement */}
+                          <td className="p-2">
+                            <select
+                              value={line.procurement}
+                              onChange={(e: any) => handleUpdateCreateLine(line.id, 'procurement', e.target.value)}
+                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-[11px] font-bold text-sky-800 focus:outline-none"
+                            >
+                              <option value="PURCHASE">PURCHASE</option>
+                              <option value="FABRICATE">FABRICATE</option>
+                            </select>
+                          </td>
+
+                          {/* Qty */}
+                          <td className="p-2">
+                            <input
+                              type="number"
+                              min="0.1"
+                              step="any"
+                              value={line.quantity}
+                              onChange={(e) => handleUpdateCreateLine(line.id, 'quantity', Number(e.target.value))}
+                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-mono font-bold text-center text-[#211B17] focus:outline-none"
+                              required
+                            />
+                          </td>
+
+                          {/* Unit */}
+                          <td className="p-2">
+                            <select
+                              value={line.unit}
+                              onChange={(e) => handleUpdateCreateLine(line.id, 'unit', e.target.value)}
+                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-1.5 py-1 text-[11px] font-mono font-bold text-center text-[#211B17] focus:outline-none"
+                            >
+                              <option value="KG">KG</option>
+                              <option value="PCS">PCS</option>
+                              <option value="MTR">MTR</option>
+                              <option value="SET">SET</option>
+                              <option value="NOS">NOS</option>
+                            </select>
+                          </td>
+
+                          {/* Est. Rate */}
+                          <td className="p-2">
                             <input
                               type="number"
                               min="0"
-                              value={row.estimatedRate}
-                              onChange={(e) => handleUpdateBOMRow(row.id, 'estimatedRate', Number(e.target.value))}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-xs text-[#211B17] text-right focus:outline-none focus:border-amber-500 font-mono"
+                              value={line.estimatedRate}
+                              onChange={(e) => handleUpdateCreateLine(line.id, 'estimatedRate', Number(e.target.value))}
+                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-mono text-right text-[#211B17] focus:outline-none"
                             />
                           </td>
+
+                          {/* Remove Line */}
                           <td className="p-2 text-center">
                             <button
                               type="button"
-                              onClick={() => handleRemoveBOMRow(row.id)}
-                              className="p-1.5 rounded-lg text-[#70665F] hover:text-rose-600 hover:bg-rose-50 transition"
-                              title="Delete Material Row"
+                              onClick={() => handleRemoveCreateMaterialLine(line.id)}
+                              className="p-1 rounded text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -1042,21 +1739,45 @@ export default function MasterBOMPage() {
                     </tbody>
                   </table>
                 </div>
+
+                <div className="flex items-center justify-between p-3 rounded-xl bg-amber-50 border border-amber-200">
+                  <button
+                    type="button"
+                    onClick={handleAddCreateMaterialLine}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-amber-300 text-amber-900 font-bold text-xs hover:bg-amber-100 transition cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-amber-700" />
+                    <span>+ Add Another Line</span>
+                  </button>
+
+                  <div className="text-right">
+                    <span className="text-[10px] text-amber-800 font-bold uppercase block">Total Estimated Materials Cost:</span>
+                    <span className="font-mono text-base font-black text-emerald-800">
+                      ₹{' '}
+                      {createMaterialLines
+                        .reduce((acc, l) => acc + (Number(l.quantity || 1) * Number(l.estimatedRate || 0)), 0)
+                        .toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#EBE3DB]">
+              {/* Modal Footer / Submit */}
+              <div className="border-t border-[#EBE3DB] pt-3 flex items-center justify-between shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsCreateBOMModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] text-[#544B45] font-semibold hover:bg-white transition"
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-[#FAF7F2] border border-[#EBE3DB] text-[#70665F] font-bold text-xs"
                 >
                   Cancel
                 </button>
+
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:brightness-110 text-white font-bold shadow-lg shadow-amber-600/30 transition flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:brightness-110 text-white font-extrabold text-xs shadow-md shadow-amber-600/30 transition flex items-center gap-2 cursor-pointer"
                 >
-                  <Check className="w-4 h-4" /> Save & Release Master BOM
+                  <Check className="w-4 h-4" />
+                  <span>Save & Create Project BOM</span>
                 </button>
               </div>
             </form>
@@ -1065,57 +1786,56 @@ export default function MasterBOMPage() {
       )}
 
       {/* ======================================================================= */}
-      {/* MODAL 2: ADD SINGLE ITEM TO ACTIVE BOM */}
+      {/* 5. MODAL: ADD / EDIT SINGLE MATERIAL ITEM                               */}
       {/* ======================================================================= */}
       {isAddItemModalOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
           onClick={() => setIsAddItemModalOpen(false)}
         >
           <div
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl space-y-4 p-6 text-xs max-h-[85vh] overflow-y-auto"
+            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl space-y-4 p-6 text-xs max-h-[92vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
               <h3 className="text-base font-extrabold text-[#211B17] flex items-center gap-2">
-                <FileSpreadsheet className="w-5 h-5 text-amber-600" />
-                {editingItemId
-                  ? `Edit Item in BOM (${activeBOM?.jobNumber || activeBOM?.bomNumber})`
-                  : `Add Item to Master BOM (${activeBOM?.jobNumber || activeBOM?.bomNumber})`}
+                <Boxes className="w-5 h-5 text-amber-600" />
+                <span>{editingItemId ? 'Edit Material Line Item' : 'Add Material Component to BOM'}</span>
               </h3>
               <button
+                type="button"
                 onClick={() => setIsAddItemModalOpen(false)}
-                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]"
+                className="p-1 rounded-lg hover:bg-[#FAF7F2] text-[#70665F]"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleAddItem} className="space-y-3">
+            <form onSubmit={handleSaveItemModal} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[#544B45] font-bold block mb-1">Part / Material Code *</label>
+                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">Part Number / Ref:</label>
                   <input
                     type="text"
-                    required
-                    placeholder="e.g. 201-MS-PLATE"
                     value={partNumber}
                     onChange={(e) => setPartNumber(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500 font-mono"
+                    placeholder="e.g. 201 or RM-SS-01"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[#211B17] focus:outline-none"
+                    required
                   />
                 </div>
+
                 <div>
-                  <label className="text-[#544B45] font-bold block mb-1">Item Type (item_type) *</label>
+                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">Item Type:</label>
                   <select
                     value={itemType}
-                    onChange={(e) => setItemType(e.target.value as any)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500"
+                    onChange={(e: any) => setItemType(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-bold text-[#211B17] focus:outline-none"
                   >
-                    <option value="Raw Material">Raw Material (RAW_MATERIAL)</option>
-                    <option value="Fabricated">Fabricated (FABRICATED)</option>
-                    <option value="Bought-Out">Bought-Out (BOUGHT_OUT)</option>
-                    <option value="Consumable">Consumable (CONSUMABLE)</option>
-                    <option value="Sub-Assembly">Sub-Assembly</option>
+                    <option value="Raw Material">Raw Material</option>
+                    <option value="Fabricated">Fabricated</option>
+                    <option value="Bought-Out">Bought-Out</option>
+                    <option value="Consumable">Consumable</option>
                     <option value="Hardware">Hardware</option>
                     <option value="Electrical">Electrical</option>
                   </select>
@@ -1123,94 +1843,113 @@ export default function MasterBOMPage() {
               </div>
 
               <div>
-                <label className="text-[#544B45] font-bold block mb-1">Material / Item Description *</label>
+                <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                  Item Name & Description:
+                </label>
                 <input
                   type="text"
-                  required
-                  placeholder="e.g. SS 316L Shell Plate 12mm Thick"
                   value={itemName}
                   onChange={(e) => setItemName(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500"
+                  placeholder="e.g. Mild Steel Plate 5mm (IS 2062)"
+                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-bold text-[#211B17] focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                  Technical Specification:
+                </label>
+                <input
+                  type="text"
+                  value={specification}
+                  onChange={(e) => setSpecification(e.target.value)}
+                  placeholder="e.g. SA 240 Gr 316L, 1500 x 6000 mm"
+                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="text-[#544B45] font-bold block mb-1">Qty (quantity) *</label>
+                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">Procurement:</label>
+                  <select
+                    value={procurementType}
+                    onChange={(e: any) => setProcurementType(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-bold text-sky-800 focus:outline-none"
+                  >
+                    <option value="Purchase">Purchase</option>
+                    <option value="In-House">Fabricate (In-House)</option>
+                    <option value="Stock">From Stock</option>
+                    <option value="Outsourced">Outsourced</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">Quantity:</label>
                   <input
                     type="number"
-                    min="0.001"
+                    min="0.1"
                     step="any"
-                    required
                     value={quantity}
                     onChange={(e) => setQuantity(Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500 font-mono font-bold"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[#211B17] focus:outline-none"
+                    required
                   />
                 </div>
+
                 <div>
-                  <label className="text-[#544B45] font-bold block mb-1">Unit (unit) *</label>
+                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">Unit:</label>
                   <select
                     value={unit}
                     onChange={(e) => setUnit(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500 font-mono font-bold"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[#211B17] focus:outline-none"
                   >
-                    <option value="KG">KG</option>
-                    <option value="PCS">PCS</option>
-                    <option value="NOS">NOS</option>
-                    <option value="MTR">MTR</option>
-                    <option value="LTR">LTR</option>
-                    <option value="SET">SET</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[#544B45] font-bold block mb-1">Procurement *</label>
-                  <select
-                    value={procurementType}
-                    onChange={(e) => setProcurementType(e.target.value as any)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500 font-mono font-bold"
-                  >
-                    <option value="Purchase">PURCHASE</option>
-                    <option value="In-House">FABRICATE</option>
+                    <option value="Kg">Kg</option>
+                    <option value="Nos">Nos</option>
+                    <option value="Pcs">Pcs</option>
+                    <option value="Meter">Meter</option>
+                    <option value="Set">Set</option>
                   </select>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[#544B45] font-bold block mb-1">Material Grade</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. SS 316L, IS 2062"
-                    value={material}
-                    onChange={(e) => setMaterial(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500"
-                  />
-                </div>
-                <div>
-                  <label className="text-[#544B45] font-bold block mb-1">Est. Unit Rate (₹)</label>
+                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">Estimated Unit Rate (₹):</label>
                   <input
                     type="number"
                     min="0"
                     value={estimatedRate}
                     onChange={(e) => setEstimatedRate(Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-500 font-mono"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono text-[#211B17] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">Make / Brand / Origin:</label>
+                  <input
+                    type="text"
+                    value={makeBrand}
+                    onChange={(e) => setMakeBrand(e.target.value)}
+                    placeholder="e.g. Jindal / Tata / Local"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] focus:outline-none"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex items-center justify-between border-t border-[#EBE3DB] pt-3">
                 <button
                   type="button"
                   onClick={() => setIsAddItemModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] text-[#544B45] font-semibold hover:bg-white transition"
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-[#FAF7F2] border border-[#EBE3DB] text-[#70665F] font-bold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold shadow-md transition"
+                  className="px-5 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold text-xs"
                 >
-                  {editingItemId ? 'Update Material Line' : 'Add Item to BOM'}
+                  {editingItemId ? 'Update Component' : 'Add Component Line'}
                 </button>
               </div>
             </form>

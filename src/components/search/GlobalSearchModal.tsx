@@ -307,14 +307,6 @@ export const ERP_PAGES_MASTER: PageItem[] = [
     description: 'Itemized raw material plates, dished ends, nozzles, and bought-out components.',
     keywords: ['bom', 'bill of materials', 'ebom', 'parts list', 'raw material specs'],
   },
-  {
-    id: 'page-designer-approval',
-    title: 'Design Approvals & Sign-Offs',
-    category: 'Design',
-    path: '/designer/approval',
-    icon: ShieldCheck,
-    description: 'Client sign-off, internal QA approval, and drawing release to shop floor.',
-    keywords: ['design approval', 'sign off', 'client drawing approval', 'qa approval'],
   },
 
 

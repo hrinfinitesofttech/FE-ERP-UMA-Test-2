@@ -391,10 +391,6 @@ export function Sidebar() {
                 <FileSpreadsheet className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>BOM</span>}
               </Link>
-              <Link href="/designer/approval" className={subNavItemClass('/designer/approval')}>
-                <Zap className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Approval & Release</span>}
-              </Link>
             </div>
           )}
         </div>

@@ -85,6 +85,7 @@ export default function DesignJobsPage() {
 
   // Drawer / View Modal State
   const [selectedJob, setSelectedJob] = useState<DesignJob | null>(null);
+  const [previewDrawingJob, setPreviewDrawingJob] = useState<DesignJob | null>(null);
 
   // Success Notification
   const [notificationMsg, setNotificationMsg] = useState('');
@@ -100,6 +101,7 @@ export default function DesignJobsPage() {
         if (isModalOpen) closeCreateModal();
         if (uploadingJob) setUploadingJob(null);
         if (selectedJob) setSelectedJob(null);
+        if (previewDrawingJob) setPreviewDrawingJob(null);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -552,24 +554,14 @@ export default function DesignJobsPage() {
                     <FileSpreadsheet className="w-4 h-4" />
                   </Link>
 
-                  {isJobApproved(j) ? (
-                    <Link
-                      href={`/designer/approval?job=${j.jobNumber}`}
-                      className="px-2.5 py-1.5 rounded-xl bg-[#DCFCE7] hover:bg-[#BBF7D0] text-[#15803D] border border-[#BBF7D0] text-xs font-bold transition flex items-center gap-1 shadow-xs"
-                      title="Design Job is Released & Approved to Production"
-                    >
-                      <CheckCircle2 className="w-3.5 h-3.5 text-[#169B62]" />
-                      <span>Approved</span>
-                    </Link>
-                  ) : (
-                    <Link
-                      href={`/designer/approval?job=${j.jobNumber}`}
-                      className="px-3 py-1.5 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-800 text-white text-xs font-bold transition flex items-center gap-1 shadow-xs"
-                    >
-                      <span>Approval</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </Link>
-                  )}
+                  <button
+                    onClick={() => setPreviewDrawingJob(j)}
+                    className="px-2.5 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 text-xs font-bold transition flex items-center gap-1 shadow-2xs cursor-pointer"
+                    title="Check Uploaded Design Drawing Image"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-sky-600" />
+                    <span>Check Image</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1205,18 +1197,201 @@ export default function DesignJobsPage() {
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#EBE3DB]">
-              <Link
-                href={`/designer/approval?job=${selectedJob.jobNumber}`}
-                className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#FAF7F2] text-amber-800 font-bold border border-[#EBE3DB]"
+              <button
+                type="button"
+                onClick={() => {
+                  const curr = selectedJob;
+                  setSelectedJob(null);
+                  setPreviewDrawingJob(curr);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 font-bold border border-sky-200 flex items-center gap-1.5 cursor-pointer shadow-2xs"
               >
-                Approval & Release
-              </Link>
+                <Eye className="w-4 h-4 text-sky-600" />
+                <span>Check Design Image</span>
+              </button>
               <Link
                 href={`/designer/bom?job=${selectedJob.jobNumber}`}
                 className="px-4 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold"
               >
                 Go to Master BOM
               </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: CHECK DESIGN DRAWING / IMAGE VIEWER */}
+      {previewDrawingJob && (
+        <div
+          onClick={() => setPreviewDrawingJob(null)}
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl space-y-4 p-6 text-xs max-h-[92vh] flex flex-col"
+          >
+            {/* Modal Header */}
+            <div className="flex items-start justify-between border-b border-[#EBE3DB] pb-3 shrink-0">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 font-mono font-bold text-[10px]">
+                    {previewDrawingJob.jobNumber}
+                  </span>
+                  <span className="text-[11px] text-[#70665F] font-mono">
+                    {previewDrawingJob.projectNumber}
+                  </span>
+                </div>
+                <h3 className="text-base font-extrabold text-[#211B17] mt-1">
+                  {previewDrawingJob.productName} — Design Drawing & Specifications
+                </h3>
+                <p className="text-[#70665F] text-[11px]">
+                  Customer: <span className="font-semibold text-[#3E2723]">{previewDrawingJob.customerName}</span>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreviewDrawingJob(null)}
+                className="p-1.5 rounded-xl hover:bg-[#FAF7F2] text-[#70665F] hover:text-[#211B17] transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Drawing Preview Body */}
+            <div className="flex-1 overflow-y-auto space-y-4">
+              {previewDrawingJob.fileUrl || previewDrawingJob.drawingFileName ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB]">
+                    <div>
+                      <span className="font-bold text-[#211B17] block text-xs">
+                        {previewDrawingJob.drawingTitle || previewDrawingJob.drawingFileName || 'General Arrangement (GA) Drawing'}
+                      </span>
+                      <span className="text-[10px] text-[#70665F] font-mono">
+                        File: {previewDrawingJob.drawingFileName || 'Design-Drawing.png'} • Format: {previewDrawingJob.drawingFormat || 'PNG/PDF'} • Size: {previewDrawingJob.fileSize || 'Standard'}
+                      </span>
+                    </div>
+                    {previewDrawingJob.fileUrl && (
+                      <a
+                        href={previewDrawingJob.fileUrl}
+                        download={previewDrawingJob.drawingFileName || 'Design-Drawing'}
+                        className="px-3 py-1.5 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download Original</span>
+                      </a>
+                    )}
+                  </div>
+
+                  {/* Image Viewer */}
+                  <div className="w-full bg-[#1A1A1A] rounded-xl overflow-hidden border border-[#333] flex items-center justify-center min-h-[380px] p-2 relative group">
+                    {previewDrawingJob.fileUrl && previewDrawingJob.fileUrl.startsWith('data:image') || previewDrawingJob.drawingFileName?.match(/\.(png|jpg|jpeg|webp|svg)$/i) ? (
+                      <img
+                        src={previewDrawingJob.fileUrl || '/placeholder-drawing.png'}
+                        alt={previewDrawingJob.drawingTitle || 'Design Drawing'}
+                        className="max-h-[500px] w-auto max-w-full object-contain rounded-lg shadow-lg"
+                      />
+                    ) : (
+                      <div className="text-center p-8 text-white space-y-3">
+                        <div className="w-16 h-16 rounded-2xl bg-white/10 mx-auto flex items-center justify-center">
+                          <FileText className="w-8 h-8 text-amber-400" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm text-white">
+                            {previewDrawingJob.drawingFileName || 'CAD Technical Drawing Document'}
+                          </p>
+                          <p className="text-white/60 text-xs mt-1">
+                            Technical 2D/3D Engineering Sheet ({previewDrawingJob.drawingCategory || 'GA'} - Rev: {previewDrawingJob.activeRevision || 'REV-01'})
+                          </p>
+                        </div>
+                        {previewDrawingJob.fileUrl && (
+                          <a
+                            href={previewDrawingJob.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-md transition"
+                          >
+                            <Eye className="w-4 h-4" />
+                            <span>Open In Full Screen</span>
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-8 rounded-xl bg-[#FAF7F2] border border-dashed border-[#D5CBC1] text-center space-y-3">
+                  <div className="w-12 h-12 rounded-full bg-amber-100 mx-auto flex items-center justify-center text-amber-800">
+                    <Upload className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-[#211B17] text-sm">No Design Drawing Uploaded Yet</h4>
+                    <p className="text-[#70665F] text-xs mt-0.5">
+                      You can upload the GA / Fabrication drawing image for this job to inspect it here anytime.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const curr = previewDrawingJob;
+                      setPreviewDrawingJob(null);
+                      setUploadingJob(curr);
+                      setModalDrawingTitle(`${curr.productName} GA Drawing`);
+                    }}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-xl font-bold text-xs shadow-xs cursor-pointer"
+                  >
+                    <Upload className="w-4 h-4" />
+                    <span>Upload Design Drawing Now</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Technical Specifications Bar */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-3.5 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] text-xs">
+                <div>
+                  <span className="text-[#70665F] text-[10px] block font-bold">MACHINE TYPE</span>
+                  <span className="font-bold text-[#211B17]">{previewDrawingJob.machineType || 'Process Equipment'}</span>
+                </div>
+                <div>
+                  <span className="text-[#70665F] text-[10px] block font-bold">QUANTITY</span>
+                  <span className="font-mono font-bold text-[#211B17]">{previewDrawingJob.quantity} Units</span>
+                </div>
+                <div>
+                  <span className="text-[#70665F] text-[10px] block font-bold">ASSIGNED DESIGNER</span>
+                  <span className="font-bold text-[#211B17]">{previewDrawingJob.assignedDesigner}</span>
+                </div>
+                <div>
+                  <span className="text-[#70665F] text-[10px] block font-bold">RELEASE TARGET</span>
+                  <span className="font-mono text-amber-700 font-bold">{previewDrawingJob.requiredDate}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="border-t border-[#EBE3DB] pt-3 flex items-center justify-between shrink-0">
+              <span className="text-[11px] text-[#70665F]">
+                Press <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] font-mono">ESC</kbd> to close
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const curr = previewDrawingJob;
+                    setPreviewDrawingJob(null);
+                    setUploadingJob(curr);
+                    setModalDrawingTitle(`${curr.productName} GA Drawing`);
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#FAF7F2] border border-[#EBE3DB] text-[#211B17] font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Upload className="w-3.5 h-3.5 text-crm-brand-700" />
+                  <span>Update Drawing File</span>
+                </button>
+                <Link
+                  href={`/designer/bom?job=${previewDrawingJob.jobNumber}`}
+                  className="px-4 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold text-xs"
+                >
+                  Open Master BOM
+                </Link>
+              </div>
             </div>
           </div>
         </div>
