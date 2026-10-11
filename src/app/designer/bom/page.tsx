@@ -115,7 +115,7 @@ export default function MasterBOMPage() {
   }, [boms, selectedJobNumber]);
 
   // Matching Project for active BOM
-  const activeProject = useMemo(() => {
+  const activeProject: any = useMemo(() => {
     if (!activeBOM) return undefined;
     return (
       (projectJobs || []).find(
@@ -284,7 +284,7 @@ export default function MasterBOMPage() {
     const targetProjId = defaultProjId || (projectJobs[0]?.id || projectJobs[0]?.projectNumber || '');
     setCreateSelectedProjectId(targetProjId);
 
-    const targetProj =
+    const targetProj: any =
       (projectJobs || []).find((p) => p.id === targetProjId || p.projectNumber === targetProjId) ||
       (designJobs || []).find((d) => d.id === targetProjId || d.projectNumber === targetProjId);
 
@@ -308,7 +308,7 @@ export default function MasterBOMPage() {
   // Change project in Create Modal
   const handleSelectCreateProject = (projId: string) => {
     setCreateSelectedProjectId(projId);
-    const targetProj =
+    const targetProj: any =
       (projectJobs || []).find((p) => p.id === projId || p.projectNumber === projId) ||
       (designJobs || []).find((d) => d.id === projId || d.projectNumber === projId);
 
@@ -702,7 +702,7 @@ export default function MasterBOMPage() {
 
     // 3. Map each BOM to its project info
     const directoryList = boms.map((b) => {
-      const matched =
+      const matched: any =
         projectMap.get(b.jobNumber) ||
         projectMap.get(b.projectId) ||
         (projectJobs || []).find(

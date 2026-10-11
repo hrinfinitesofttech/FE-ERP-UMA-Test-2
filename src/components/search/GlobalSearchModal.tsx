@@ -307,8 +307,6 @@ export const ERP_PAGES_MASTER: PageItem[] = [
     description: 'Itemized raw material plates, dished ends, nozzles, and bought-out components.',
     keywords: ['bom', 'bill of materials', 'ebom', 'parts list', 'raw material specs'],
   },
-  },
-
 
   // 4. Purchase Management
   {
