@@ -1276,6 +1276,12 @@ export const api = {
       create: (data: any) => request<any>('/purchase-orders/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/purchase-orders/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: string) => request<any>(`/purchase-orders/${id}/`, { method: 'DELETE' }),
+      approve: (id: string, comment?: string) =>
+        request<any>(`/purchase-orders/${id}/approve/`, { method: 'POST', body: JSON.stringify({ comment }) }),
+      reject: (id: string, reason?: string) =>
+        request<any>(`/purchase-orders/${id}/reject/`, { method: 'POST', body: JSON.stringify({ reason }) }),
+      sendEmail: (id: string, recipientEmail?: string) =>
+        request<any>(`/purchase-orders/${id}/send-email/`, { method: 'POST', body: JSON.stringify({ recipientEmail }) }),
     },
     returns: () => request<any[]>('/purchase-returns/'),
   },
