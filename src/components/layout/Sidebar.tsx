@@ -246,9 +246,11 @@ export function Sidebar() {
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Quotations & Rev</span>
+                    {quotations.length > 0 && (
                     <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
                       {quotations.length}
                     </span>
+                  )}
                   </div>
                 )}
               </Link>
@@ -261,9 +263,11 @@ export function Sidebar() {
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Sales Orders</span>
+                    {salesOrders.length > 0 && (
                     <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
                       {salesOrders.length}
                     </span>
+                  )}
                   </div>
                 )}
               </Link>
@@ -381,9 +385,11 @@ export function Sidebar() {
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Design Jobs</span>
+                    {designJobs.length > 0 && (
                     <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
                       {designJobs.length}
                     </span>
+                  )}
                   </div>
                 )}
               </Link>
@@ -435,9 +441,11 @@ export function Sidebar() {
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Purchase Requisition</span>
+                    {purchaseRequisitions.length > 0 && (
                     <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
                       {purchaseRequisitions.length}
                     </span>
+                  )}
                   </div>
                 )}
               </Link>
@@ -477,9 +485,11 @@ export function Sidebar() {
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Purchase Orders</span>
+                    {purchaseOrders.length > 0 && (
                     <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
                       {purchaseOrders.length}
                     </span>
+                  )}
                   </div>
                 )}
               </Link>
@@ -540,9 +550,11 @@ export function Sidebar() {
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Item / Material Master</span>
+                    {itemMasters.length > 0 && (
                     <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
                       {itemMasters.length}
                     </span>
+                  )}
                   </div>
                 )}
               </Link>
@@ -571,9 +583,11 @@ export function Sidebar() {
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Goods Receipt / GRN</span>
+                    {goodsReceipts.length > 0 && (
                     <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
                       {goodsReceipts.length}
                     </span>
+                  )}
                   </div>
                 )}
               </Link>

@@ -999,7 +999,26 @@ interface ERPContextType {
   toggleGoLiveItem: (id: string) => void;
 }
 
+export const CURRENT_ERP_CACHE_VERSION = '2026.10.11-clean-v6';
+
+// Synchronous nuclear wipe if version is older (runs before any useState initializer):
+if (typeof window !== 'undefined') {
+  try {
+    const v = localStorage.getItem('UMA_ERP_VERSION');
+    if (v !== CURRENT_ERP_CACHE_VERSION) {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith('UMA_ERP_') || k.startsWith('UMA_CACHE_') || k.startsWith('UMA_'))) {
+          localStorage.removeItem(k);
+        }
+      }
+      localStorage.setItem('UMA_ERP_VERSION', CURRENT_ERP_CACHE_VERSION);
+    }
+  } catch (_) {}
+}
+
 const ERPContext = createContext<ERPContextType | undefined>(undefined);
+
 
 export function ERPProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -1035,12 +1054,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const [activeRoleView, setActiveRoleView] = useState<string>('Super Admin');
 
   // Module 11 Testing States & Handlers
-  const [testCases, setTestCases] = useState<TestCaseItem[]>(MOCK_TEST_CASES);
-  const [bugTickets, setBugTickets] = useState<BugTicket[]>(MOCK_BUG_TICKETS);
-  const [backupRecords, setBackupRecords] = useState<BackupRecord[]>(MOCK_BACKUP_RECORDS);
-  const [dataImportLogs, setDataImportLogs] = useState<DataImportLog[]>(MOCK_IMPORT_LOGS);
-  const [securityChecks, setSecurityChecks] = useState<SecurityAuditCheck[]>(MOCK_SECURITY_CHECKS);
-  const [goLiveChecklist, setGoLiveChecklist] = useState<GoLiveChecklistItem[]>(MOCK_GOLIVE_CHECKLIST);
+  const [testCases, setTestCases] = useState<TestCaseItem[]>([]);
+  const [bugTickets, setBugTickets] = useState<BugTicket[]>([]);
+  const [backupRecords, setBackupRecords] = useState<BackupRecord[]>([]);
+  const [dataImportLogs, setDataImportLogs] = useState<DataImportLog[]>([]);
+  const [securityChecks, setSecurityChecks] = useState<SecurityAuditCheck[]>([]);
+  const [goLiveChecklist, setGoLiveChecklist] = useState<GoLiveChecklistItem[]>([]);
 
   const updateTestCaseStatus = (id: string, status: TestCaseItem['status'], remarks?: string) => {
     setTestCases((prev) =>
@@ -1992,7 +2011,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         if (stored) return JSON.parse(stored);
       } catch (_) {}
     }
-    return MOCK_PROJECT_ISSUES;
+    return [];
   });
   const [projectDelays, setProjectDelays] = useState<ProjectDelay[]>(() => {
     if (typeof window !== 'undefined') {
@@ -2001,7 +2020,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         if (stored) return JSON.parse(stored);
       } catch (_) {}
     }
-    return MOCK_PROJECT_DELAYS;
+    return [];
   });
   const [changeRequests, setChangeRequests] = useState<CustomerChangeRequest[]>(() => {
     if (typeof window !== 'undefined') {
@@ -2027,9 +2046,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
     return [];
   });
-  const [projectCosts, setProjectCosts] = useState<ProjectCostItem[]>(MOCK_PROJECT_COSTS);
-  const [projectComments, setProjectComments] = useState<ProjectComment[]>(MOCK_PROJECT_COMMENTS);
-  const [projectApprovals, setProjectApprovals] = useState<ProjectApproval[]>(MOCK_PROJECT_APPROVALS);
+  const [projectCosts, setProjectCosts] = useState<ProjectCostItem[]>([]);
+  const [projectComments, setProjectComments] = useState<ProjectComment[]>([]);
+  const [projectApprovals, setProjectApprovals] = useState<ProjectApproval[]>([]);
   const [projectActivities, setProjectActivities] = useState<ProjectActivityLog[]>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -2037,7 +2056,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         if (stored) return JSON.parse(stored);
       } catch (_) {}
     }
-    return MOCK_PROJECT_ACTIVITIES;
+    return [];
   });
 
   const [designJobs, setDesignJobs] = useState<DesignJob[]>(() => {
@@ -2056,7 +2075,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         if (stored) return JSON.parse(stored);
       } catch (_) {}
     }
-    return MOCK_CUSTOMER_REQUIREMENTS;
+    return [];
   });
   const [designTasks, setDesignTasks] = useState<DesignTask[]>(() => {
     if (typeof window !== 'undefined') {
@@ -2065,7 +2084,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         if (stored) return JSON.parse(stored);
       } catch (_) {}
     }
-    return MOCK_DESIGN_TASKS;
+    return [];
   });
   const [drawings2D, setDrawings2D] = useState<Drawing2D[]>(() => {
     if (typeof window !== 'undefined') {
@@ -2074,7 +2093,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         if (stored) return JSON.parse(stored);
       } catch (_) {}
     }
-    return MOCK_2D_DRAWINGS;
+    return [];
   });
   const [designs3D, setDesigns3D] = useState<Design3DModel[]>(() => {
     if (typeof window !== 'undefined') {
@@ -2083,7 +2102,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         if (stored) return JSON.parse(stored);
       } catch (_) {}
     }
-    return MOCK_3D_MODELS;
+    return [];
   });
   const [assemblyDrawings, setAssemblyDrawings] = useState<AssemblyDrawing[]>(() => {
     if (typeof window !== 'undefined') {
@@ -2092,9 +2111,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         if (stored) return JSON.parse(stored);
       } catch (_) {}
     }
-    return MOCK_ASSEMBLY_DRAWINGS;
+    return [];
   });
-  const [partDrawings, setPartDrawings] = useState<PartDrawing[]>(MOCK_PART_DRAWINGS);
+  const [partDrawings, setPartDrawings] = useState<PartDrawing[]>([]);
 
   const [boms, setBoms] = useState<BOMHeader[]>(() => {
     if (typeof window !== 'undefined') {
@@ -2110,9 +2129,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
     return [];
   });
-    const [bomRevisions, setBomRevisions] = useState<BOMRevision[]>(MOCK_BOM_REVISIONS);
-  const [designRevisions, setDesignRevisions] = useState<DesignRevisionLog[]>(MOCK_DESIGN_REVISIONS);
-  const [designReviews, setDesignReviews] = useState<DesignReviewChecklist[]>(MOCK_DESIGN_REVIEWS);
+    const [bomRevisions, setBomRevisions] = useState<BOMRevision[]>([]);
+  const [designRevisions, setDesignRevisions] = useState<DesignRevisionLog[]>([]);
+  const [designReviews, setDesignReviews] = useState<DesignReviewChecklist[]>([]);
   const [technicalDocuments, setTechnicalDocuments] = useState<TechnicalDocumentItem[]>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -2123,13 +2142,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return MOCK_TECHNICAL_DOCUMENTS;
+    return [];
   });
 
   // Module 4: Purchase Management States
   const [suppliers, setSuppliers] = useState<Supplier[]>(INITIAL_SUPPLIERS);
-  const [supplierContacts, setSupplierContacts] = useState<SupplierContact[]>(MOCK_SUPPLIER_CONTACTS);
-  const [materialRequirements, setMaterialRequirements] = useState<MaterialRequirement[]>(MOCK_MATERIAL_REQUIREMENTS);
+  const [supplierContacts, setSupplierContacts] = useState<SupplierContact[]>([]);
+  const [materialRequirements, setMaterialRequirements] = useState<MaterialRequirement[]>([]);
   const [purchaseRequisitions, setPurchaseRequisitions] = useState<PurchaseRequisition[]>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -2140,7 +2159,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return MOCK_PURCHASE_REQUISITIONS;
+    return [];
   });
   const [rfqs, setRfqs] = useState<RequestForQuotation[]>(() => {
     if (typeof window !== 'undefined') {
@@ -2152,7 +2171,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return MOCK_RFQS;
+    return [];
   });
   const [supplierQuotations, setSupplierQuotations] = useState<SupplierQuotation[]>(() => {
     if (typeof window !== 'undefined') {
@@ -2164,7 +2183,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return MOCK_SUPPLIER_QUOTATIONS;
+    return [];
   });
   const [quotationComparisons, setQuotationComparisons] = useState<QuotationComparison[]>(() => {
     if (typeof window !== 'undefined') {
@@ -2176,7 +2195,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return MOCK_QUOTATION_COMPARISONS;
+    return [];
   });
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(() => {
     if (typeof window !== 'undefined') {
@@ -2188,11 +2207,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return MOCK_PURCHASE_ORDERS;
+    return [];
   });
-  const [poRevisions, setPoRevisions] = useState<PORevision[]>(MOCK_PO_REVISIONS);
-  const [purchaseFollowUps, setPurchaseFollowUps] = useState<PurchaseFollowUp[]>(MOCK_PURCHASE_FOLLOWUPS);
-  const [purchaseReturns, setPurchaseReturns] = useState<PurchaseReturn[]>(MOCK_PURCHASE_RETURNS);
+  const [poRevisions, setPoRevisions] = useState<PORevision[]>([]);
+  const [purchaseFollowUps, setPurchaseFollowUps] = useState<PurchaseFollowUp[]>([]);
+  const [purchaseReturns, setPurchaseReturns] = useState<PurchaseReturn[]>([]);
 
   // Module 5: Store & Warehouse Management States
   const [itemMasters, setItemMasters] = useState<ItemMaster[]>(INITIAL_ITEM_MASTERS);
@@ -2390,10 +2409,10 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const [payableAging, setPayableAging] = useState<PayableAging[]>(INITIAL_PAYABLE_AGING);
 
   // Traceability & Audit & Notification
-  const [jobs, setJobs] = useState<JobTraceabilityRecord[]>(MOCK_JOBS);
+  const [jobs, setJobs] = useState<JobTraceabilityRecord[]>([]);
   const [selectedJobForModal, setSelectedJobForModal] = useState<JobTraceabilityRecord | null>(null);
-  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>(MOCK_AUDIT_LOGS);
-  const [notifications, setNotifications] = useState<NotificationItem[]>(MOCK_NOTIFICATIONS);
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
   // Keyboard shortcut for Global Search (Ctrl+K or Cmd+K)
   useEffect(() => {
@@ -2482,7 +2501,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ['notifications', setNotifications],
       ];
 
-      const CURRENT_ERP_CACHE_VERSION = '2026.10.11-clean-v5';
+      const CURRENT_ERP_CACHE_VERSION = '2026.10.11-clean-v6';
       if (typeof window !== 'undefined') {
         const storedVer = localStorage.getItem('UMA_ERP_VERSION');
         if (storedVer !== CURRENT_ERP_CACHE_VERSION) {
@@ -10612,7 +10631,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockInternalAssets;
+    return [];
   });
 
   const [customerMachines, setCustomerMachines] = useState<CustomerMachine[]>(() => {
@@ -10625,7 +10644,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockCustomerMachines;
+    return [];
   });
 
   const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>(() => {
@@ -10638,7 +10657,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockServiceRequests;
+    return [];
   });
 
   const [breakdowns, setBreakdowns] = useState<BreakdownRecord[]>(() => {
@@ -10651,7 +10670,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockBreakdowns;
+    return [];
   });
 
   const [preventivePlans, setPreventivePlans] = useState<PreventiveMaintenancePlan[]>(() => {
@@ -10664,7 +10683,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockPreventiveMaintenancePlans;
+    return [];
   });
 
   const [servicePlanningItems, setServicePlanningItems] = useState<ServicePlanningItem[]>(() => {
@@ -10677,7 +10696,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockServicePlanningItems;
+    return [];
   });
 
   const [serviceVisits, setServiceVisits] = useState<ServiceVisit[]>(() => {
@@ -10690,7 +10709,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockServiceVisits;
+    return [];
   });
 
   const [serviceWorkOrders, setServiceWorkOrders] = useState<ServiceWorkOrder[]>(() => {
@@ -10703,7 +10722,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockServiceWorkOrders;
+    return [];
   });
 
   const [servicePartIssues, setServicePartIssues] = useState<ServicePartIssue[]>(() => {
@@ -10716,7 +10735,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockServicePartIssues;
+    return [];
   });
 
   const [servicePartReturns, setServicePartReturns] = useState<ServicePartReturn[]>(() => {
@@ -10729,7 +10748,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockServicePartReturns;
+    return [];
   });
 
   const [serviceReports, setServiceReports] = useState<ServiceReport[]>(() => {
@@ -10742,7 +10761,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockServiceReports;
+    return [];
   });
 
   const [warranties, setWarranties] = useState<WarrantyRecord[]>(() => {
@@ -10755,7 +10774,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockWarranties;
+    return [];
   });
 
   const [amcContracts, setAmcContracts] = useState<AMCContract[]>(() => {
@@ -10768,7 +10787,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockAMCContracts;
+    return [];
   });
 
   const [serviceContracts, setServiceContracts] = useState<ServiceContract[]>(() => {
@@ -10781,7 +10800,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockServiceContracts;
+    return [];
   });
 
   const [downtimeRecords, setDowntimeRecords] = useState<DowntimeRecord[]>(() => {
@@ -10794,7 +10813,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockDowntimeRecords;
+    return [];
   });
 
   const [maintenanceCosts, setMaintenanceCosts] = useState<MaintenanceCostRecord[]>(() => {
@@ -10807,7 +10826,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockMaintenanceCosts;
+    return [];
   });
 
   const [checklistTemplates, setChecklistTemplates] = useState<ServiceChecklistTemplate[]>(() => {
@@ -10820,7 +10839,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockChecklistTemplates;
+    return [];
   });
 
   const [technicians, setTechnicians] = useState<TechnicianProfile[]>(() => {
@@ -10833,7 +10852,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockTechnicians;
+    return [];
   });
 
   const addInternalAsset = (asset: Omit<InternalAsset, 'id'>) => {
@@ -11142,7 +11161,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockEmployeeTransfers;
+    return [];
   });
   const [employeePromotions, setEmployeePromotions] = useState<EmployeePromotionItem[]>(() => {
     if (typeof window !== 'undefined') {
@@ -11154,7 +11173,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockEmployeePromotions;
+    return [];
   });
   const [employeeExits, setEmployeeExits] = useState<EmployeeExitItem[]>(() => {
     if (typeof window !== 'undefined') {
@@ -11166,7 +11185,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockEmployeeExits;
+    return [];
   });
   const [fullAndFinalSettlements, setFullAndFinalSettlements] = useState<FullAndFinalSettlementItem[]>(() => {
     if (typeof window !== 'undefined') {
@@ -11178,7 +11197,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockFullAndFinalSettlements;
+    return [];
   });
   const [shiftMasters, setShiftMasters] = useState<ShiftMaster[]>(() => {
     if (typeof window !== 'undefined') {
@@ -11202,7 +11221,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockShiftRosters;
+    return [];
   });
   const [holidays, setHolidays] = useState<HolidayItem[]>(() => {
     if (typeof window !== 'undefined') {
@@ -11240,7 +11259,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return mockLeaveRequests;
+    return [];
   });
   const [wfhRequests, setWFHRequests] = useState<WFHRequest[]>(mockWFHRequests);
   const [missedPunchRequests, setMissedPunchRequests] = useState<MissedPunchRequest[]>(mockMissedPunchRequests);
