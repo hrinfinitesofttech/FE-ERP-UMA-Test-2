@@ -1053,19 +1053,30 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return INITIAL_DEPARTMENTS;
+    return [];
   });
-  const [roles, setRoles] = useState<Role[]>(INITIAL_ROLES);
+  const [roles, setRoles] = useState<Role[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_roles');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return [];
+  });
 
   // Module 10 Integration States
-  const [job360List, setJob360List] = useState<Job360Full[]>(MOCK_JOB_360_FULL_LIST);
-  const [centralApprovals, setCentralApprovals] = useState<ApprovalItem[]>(INITIAL_CENTRAL_APPROVALS);
-  const [centralAlerts, setCentralAlerts] = useState<ERPAlertItem[]>(INITIAL_CENTRAL_ALERTS);
-  const [jobProfitabilityList, setJobProfitabilityList] = useState<JobProfitabilityEntry[]>(MOCK_JOB_PROFITABILITY_LIST);
-  const [customer360List, setCustomer360List] = useState<Customer360Summary[]>(MOCK_CUSTOMER_360_LIST);
-  const [supplier360List, setSupplier360List] = useState<Supplier360Summary[]>(MOCK_SUPPLIER_360_LIST);
-  const [item360List, setItem360List] = useState<Item360Summary[]>(MOCK_ITEM_360_LIST);
-  const [employee360List, setEmployee360List] = useState<Employee360Summary[]>(MOCK_EMPLOYEE_360_LIST);
+  const [job360List, setJob360List] = useState<Job360Full[]>([]);
+  const [centralApprovals, setCentralApprovals] = useState<ApprovalItem[]>([]);
+  const [centralAlerts, setCentralAlerts] = useState<ERPAlertItem[]>([]);
+  const [jobProfitabilityList, setJobProfitabilityList] = useState<JobProfitabilityEntry[]>([]);
+  const [customer360List, setCustomer360List] = useState<Customer360Summary[]>([]);
+  const [supplier360List, setSupplier360List] = useState<Supplier360Summary[]>([]);
+  const [item360List, setItem360List] = useState<Item360Summary[]>([]);
+  const [employee360List, setEmployee360List] = useState<Employee360Summary[]>([]);
   const [activeRoleView, setActiveRoleView] = useState<string>('Super Admin');
 
   // Module 11 Testing States & Handlers
