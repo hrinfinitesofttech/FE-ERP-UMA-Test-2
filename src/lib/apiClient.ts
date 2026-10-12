@@ -1705,6 +1705,18 @@ export const api = {
       markRead: (id: string) => request<any>(`/alerts/${id}/mark-read/`, { method: 'POST' }),
     },
   },
+
+  // Audit Logs & Central Notifications
+  auditLogs: {
+    list: () => request<any[]>('/audit-logs/'),
+    create: (data: any) => request<any>('/audit-logs/', { method: 'POST', body: JSON.stringify(data) }),
+  },
+  notifications: {
+    list: () => request<any[]>('/notifications/'),
+    create: (data: any) => request<any>('/notifications/', { method: 'POST', body: JSON.stringify(data) }),
+    markRead: (id: string) => request<any>(`/notifications/${id}/`, { method: 'PATCH', body: JSON.stringify({ isRead: true }) }),
+    delete: (id: string) => request<any>(`/notifications/${id}/`, { method: 'DELETE' }),
+  },
 };
 
 export default api;

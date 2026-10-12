@@ -70,6 +70,27 @@ const ACTIONS = [
   { id: 'print', label: 'Print' },
 ];
 
+const getEmpRoleInfo = (emp: any) => {
+  if (!emp) return { type: 'employee', label: 'Staff', badgeClass: 'bg-slate-100 text-slate-700 border border-slate-200' };
+  const rType = emp.roleType || emp.role_type || (
+    (emp.role?.toLowerCase().includes('super admin') || emp.designation?.toLowerCase().includes('super admin') || emp.name?.toLowerCase().includes('super admin') || emp.username?.toLowerCase() === 'admin') ? 'super_admin' :
+    (emp.role?.toLowerCase().includes('admin') || emp.roleName?.toLowerCase().includes('admin') || emp.designation?.toLowerCase().includes('executive director') || emp.username?.toLowerCase() === 'ketan.admin' || emp.isFamilyMember || emp.is_family_member) ? 'admin' :
+    (emp.role?.toLowerCase().includes('manager') || emp.roleName?.toLowerCase().includes('manager') || emp.designation?.toLowerCase().includes('director') || emp.designation?.toLowerCase().includes('manager') || emp.designation?.toLowerCase().includes('head')) ? 'department_manager' :
+    'employee'
+  );
+
+  if (rType === 'super_admin') {
+    return { type: 'super_admin', label: 'Super Admin', badgeClass: 'bg-purple-100 text-purple-700 border border-purple-200 font-semibold shadow-sm' };
+  }
+  if (rType === 'admin') {
+    return { type: 'admin', label: 'Admin', badgeClass: 'bg-amber-100 text-amber-800 border border-amber-200 font-semibold shadow-sm' };
+  }
+  if (rType === 'department_manager') {
+    return { type: 'department_manager', label: 'Dept Manager', badgeClass: 'bg-blue-100 text-blue-800 border border-blue-200 font-semibold shadow-sm' };
+  }
+  return { type: 'employee', label: 'Staff', badgeClass: 'bg-slate-100 text-slate-700 border border-slate-200 font-semibold' };
+};
+
 export default function PermissionsPage() {
   const {
     roles,
@@ -363,17 +384,17 @@ export default function PermissionsPage() {
                           <p className="text-[10px] text-[#70665F] truncate">{dept} • {emp.id}</p>
                         </div>
                       </div>
-                      <span className={cn(
-                        'px-1.5 py-0.5 rounded text-[9px] font-bold shrink-0 ml-1',
-                        emp.roleType === 'super_admin' ? 'bg-purple-100 text-purple-700' :
-                        emp.roleType === 'admin' ? 'bg-amber-100 text-amber-700' :
-                        emp.roleType === 'department_manager' ? 'bg-blue-100 text-blue-700' :
-                        'bg-slate-100 text-slate-600'
-                      )}>
-                        {emp.roleType === 'super_admin' ? 'Super Admin' :
-                         emp.roleType === 'admin' ? 'Admin' :
-                         emp.roleType === 'department_manager' ? 'Manager' : 'Staff'}
-                      </span>
+                      {(() => {
+                        const roleInfo = getEmpRoleInfo(emp);
+                        return (
+                          <span className={cn(
+                            'px-2 py-0.5 rounded text-[9px] font-bold shrink-0 ml-1',
+                            roleInfo.badgeClass
+                          )}>
+                            {roleInfo.label}
+                          </span>
+                        );
+                      })()}
                     </button>
                   );
                 })}
@@ -393,11 +414,19 @@ export default function PermissionsPage() {
                         {(selectedEmployee.name || selectedEmployee.firstName || 'U').charAt(0)}
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <h2 className="text-base font-bold text-[#211B17]">
                             {selectedEmployee.name || `${selectedEmployee.firstName || ''} ${selectedEmployee.lastName || ''}`.trim()}
                           </h2>
                           <span className="text-xs font-mono text-[#70665F]">({selectedEmployee.id})</span>
+                          {(() => {
+                            const selRole = getEmpRoleInfo(selectedEmployee);
+                            return (
+                              <span className={cn('px-2.5 py-0.5 rounded-full text-[10px] font-bold', selRole.badgeClass)}>
+                                {selRole.label}
+                              </span>
+                            );
+                          })()}
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                             {selectedEmployee.status || 'Active'}
                           </span>

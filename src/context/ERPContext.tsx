@@ -1856,7 +1856,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return deduplicateLeads(INITIAL_LEADS);
+    return [];
   });
   const [customers, setCustomers] = useState<Customer[]>(() => {
     if (typeof window !== 'undefined') {
@@ -1868,7 +1868,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return deduplicateCustomers(INITIAL_CUSTOMERS);
+    return [];
   });
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [enquiries, setEnquiries] = useState<Enquiry[]>(() => {
@@ -1881,7 +1881,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return INITIAL_ENQUIRIES;
+    return [];
   });
   const [opportunities, setOpportunities] = useState<Opportunity[]>(() => {
     if (typeof window !== 'undefined') {
@@ -1893,7 +1893,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return INITIAL_OPPORTUNITIES;
+    return [];
   });
   const [followUps, setFollowUps] = useState<FollowUp[]>(() => {
     if (typeof window !== 'undefined') {
@@ -1905,7 +1905,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return INITIAL_FOLLOWUPS;
+    return [];
   });
   const [siteVisits, setSiteVisits] = useState<SiteVisit[]>(() => {
     if (typeof window !== 'undefined') {
@@ -1917,9 +1917,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return INITIAL_VISITS;
+    return [];
   });
-  const [exhibitions, setExhibitions] = useState<Exhibition[]>(INITIAL_EXHIBITIONS);
+  const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
   const [quotations, setQuotations] = useState<Quotation[]>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -1933,7 +1933,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return deduplicateQuotations(INITIAL_QUOTATIONS);
+    return [];
   });
   const [customerPOs, setCustomerPOs] = useState<CustomerPO[]>(() => {
     if (typeof window !== 'undefined') {
@@ -1948,7 +1948,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return deduplicateCustomerPOs(INITIAL_CUSTOMER_POS);
+    return [];
   });
   const [salesOrders, setSalesOrders] = useState<SalesOrder[]>(() => {
     if (typeof window !== 'undefined') {
@@ -1960,7 +1960,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return deduplicateSalesOrders(INITIAL_SALES_ORDERS);
+    return [];
   });
   const [projectJobs, setProjectJobs] = useState<ProjectJobMaster[]>(() => {
     if (typeof window !== 'undefined') {
@@ -1978,7 +1978,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return deduplicateProjects(INITIAL_PROJECT_JOBS);
+    return [];
   });
   const [isProjectsLoading, setIsProjectsLoading] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -1991,7 +1991,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
     return true;
   });
-  const [projectTasks, setProjectTasks] = useState<ProjectTask[]>(MOCK_PROJECT_TASKS);
+  const [projectTasks, setProjectTasks] = useState<ProjectTask[]>([]);
   const [projectPlanningStages, setProjectPlanningStages] = useState<ProjectPlanningStage[]>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -2004,9 +2004,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return deduplicatePlanningStages(MOCK_PLANNING_STAGES);
+    return [];
   });
-  const [projectMilestones, setProjectMilestones] = useState<ProjectMilestone[]>(MOCK_MILESTONES);
+  const [projectMilestones, setProjectMilestones] = useState<ProjectMilestone[]>([]);
   const [departmentAssignments, setDepartmentAssignments] = useState<DepartmentAssignment[]>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -2081,7 +2081,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         if (stored) return deduplicateDesignJobs(JSON.parse(stored));
       } catch (_) {}
     }
-    return deduplicateDesignJobs(INITIAL_DESIGN_JOBS);
+    return [];
   });
   const [customerRequirements, setCustomerRequirements] = useState<CustomerRequirement[]>(() => {
     if (typeof window !== 'undefined') {
@@ -2161,7 +2161,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   });
 
   // Module 4: Purchase Management States
-  const [suppliers, setSuppliers] = useState<Supplier[]>(INITIAL_SUPPLIERS);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [supplierContacts, setSupplierContacts] = useState<SupplierContact[]>([]);
   const [materialRequirements, setMaterialRequirements] = useState<MaterialRequirement[]>([]);
   const [purchaseRequisitions, setPurchaseRequisitions] = useState<PurchaseRequisition[]>(() => {
@@ -2229,12 +2229,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const [purchaseReturns, setPurchaseReturns] = useState<PurchaseReturn[]>([]);
 
   // Module 5: Store & Warehouse Management States
-  const [itemMasters, setItemMasters] = useState<ItemMaster[]>(INITIAL_ITEM_MASTERS);
-  const [itemCategories, setItemCategories] = useState<ItemCategory[]>(INITIAL_ITEM_CATEGORIES);
-  const [uoms, setUoms] = useState<UOMMaster[]>(INITIAL_UOMS);
-  const [warehouses, setWarehouses] = useState<Warehouse[]>(INITIAL_WAREHOUSES);
-  const [warehouseLocations, setWarehouseLocations] = useState<WarehouseLocation[]>(INITIAL_WAREHOUSE_LOCATIONS);
-  const [openingStocks, setOpeningStocks] = useState<OpeningStock[]>(INITIAL_OPENING_STOCKS);
+  const [itemMasters, setItemMasters] = useState<ItemMaster[]>([]);
+  const [itemCategories, setItemCategories] = useState<ItemCategory[]>([]);
+  const [uoms, setUoms] = useState<UOMMaster[]>([]);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [warehouseLocations, setWarehouseLocations] = useState<WarehouseLocation[]>([]);
+  const [openingStocks, setOpeningStocks] = useState<OpeningStock[]>([]);
   const [goodsReceipts, setGoodsReceipts] = useState<GoodsReceiptNote[]>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -2245,7 +2245,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return INITIAL_GOODS_RECEIPTS;
+    return [];
   });
   const [qcInspections, setQcInspections] = useState<QCInspection[]>(() => {
     if (typeof window !== 'undefined') {
@@ -2257,10 +2257,10 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return INITIAL_QC_INSPECTIONS;
+    return [];
   });
-  const [stockBalances, setStockBalances] = useState<StockBalance[]>(INITIAL_STOCK_BALANCES);
-  const [stockReservations, setStockReservations] = useState<StockReservation[]>(INITIAL_STOCK_RESERVATIONS);
+  const [stockBalances, setStockBalances] = useState<StockBalance[]>([]);
+  const [stockReservations, setStockReservations] = useState<StockReservation[]>([]);
   const [materialIssues, setMaterialIssues] = useState<MaterialIssue[]>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -2271,7 +2271,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return INITIAL_MATERIAL_ISSUES;
+    return [];
   });
   const [materialReturns, setMaterialReturns] = useState<MaterialReturn[]>(() => {
     if (typeof window !== 'undefined') {
@@ -2283,13 +2283,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return INITIAL_MATERIAL_RETURNS;
+    return [];
   });
-  const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>(INITIAL_STOCK_TRANSFERS);
-  const [stockAdjustments, setStockAdjustments] = useState<StockAdjustment[]>(INITIAL_STOCK_ADJUSTMENTS);
-  const [scrapEntries, setScrapEntries] = useState<ScrapEntry[]>(INITIAL_SCRAP_ENTRIES);
-  const [physicalStockCounts, setPhysicalStockCounts] = useState<PhysicalStockCount[]>(INITIAL_PHYSICAL_COUNTS);
-  const [stockLedgers, setStockLedgers] = useState<StockLedgerEntry[]>(INITIAL_STOCK_LEDGERS);
+  const [stockTransfers, setStockTransfers] = useState<StockTransfer[]>([]);
+  const [stockAdjustments, setStockAdjustments] = useState<StockAdjustment[]>([]);
+  const [scrapEntries, setScrapEntries] = useState<ScrapEntry[]>([]);
+  const [physicalStockCounts, setPhysicalStockCounts] = useState<PhysicalStockCount[]>([]);
+  const [stockLedgers, setStockLedgers] = useState<StockLedgerEntry[]>([]);
 
   // Module 6: Production / Manufacturing / MRP States
   const [manufacturingJobs, setManufacturingJobs] = useState<ManufacturingJob[]>(() => {
@@ -2302,7 +2302,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return INITIAL_MANUFACTURING_JOBS;
+    return [];
   });
   const [productionPlans, setProductionPlans] = useState<ProductionPlan[]>(() => {
     if (typeof window !== 'undefined') {
@@ -2314,9 +2314,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return INITIAL_PRODUCTION_PLANS;
+    return [];
   });
-  const [workOrders, setWorkOrders] = useState<WorkOrder[]>(INITIAL_WORK_ORDERS);
+  const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const [productionOrders, setProductionOrders] = useState<ProductionOrder[]>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -2327,7 +2327,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return INITIAL_PRODUCTION_ORDERS;
+    return [];
   });
   const [routingOperations, setRoutingOperations] = useState<RoutingOperation[]>(() => {
     if (typeof window !== 'undefined') {
@@ -2339,11 +2339,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return INITIAL_ROUTING_OPERATIONS;
+    return [];
   });
-  const [workCenters, setWorkCenters] = useState<WorkCenter[]>(INITIAL_WORK_CENTERS);
-  const [productionSchedules, setProductionSchedules] = useState<ProductionScheduleItem[]>(INITIAL_PRODUCTION_SCHEDULES);
-  const [mrpRequirements, setMrpRequirements] = useState<MRPItemRequirement[]>(INITIAL_MRP_REQUIREMENTS);
+  const [workCenters, setWorkCenters] = useState<WorkCenter[]>([]);
+  const [productionSchedules, setProductionSchedules] = useState<ProductionScheduleItem[]>([]);
+  const [mrpRequirements, setMrpRequirements] = useState<MRPItemRequirement[]>([]);
   const [productionEntries, setProductionEntries] = useState<ProductionEntry[]>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -2354,9 +2354,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return INITIAL_PRODUCTION_ENTRIES;
+    return [];
   });
-  const [wipRecords, setWipRecords] = useState<WIPRecord[]>(INITIAL_WIP_RECORDS);
+  const [wipRecords, setWipRecords] = useState<WIPRecord[]>([]);
   const [productionHolds, setProductionHolds] = useState<ProductionHold[]>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -2367,10 +2367,10 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return INITIAL_PRODUCTION_HOLDS;
+    return [];
   });
-  const [reworkOrders, setReworkOrders] = useState<ReworkOrder[]>(INITIAL_REWORK_ORDERS);
-  const [productionScraps, setProductionScraps] = useState<ProductionScrap[]>(INITIAL_PRODUCTION_SCRAPS);
+  const [reworkOrders, setReworkOrders] = useState<ReworkOrder[]>([]);
+  const [productionScraps, setProductionScraps] = useState<ProductionScrap[]>([]);
   const [productionCompletions, setProductionCompletions] = useState<ProductionCompletion[]>([]);
   const [finishedGoods, setFinishedGoods] = useState<FinishedGoodsItem[]>(() => {
     if (typeof window !== 'undefined') {
@@ -2382,7 +2382,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
     }
-    return INITIAL_FINISHED_GOODS;
+    return [];
   });
   const [dispatchOrders, setDispatchOrders] = useState<DispatchOrder[]>(() => {
     if (typeof window !== 'undefined') {
@@ -2396,32 +2396,32 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
     return [];
   });
-  const [productionCosts, setProductionCosts] = useState<ProductionCostSummary[]>(INITIAL_PRODUCTION_COSTS);
+  const [productionCosts, setProductionCosts] = useState<ProductionCostSummary[]>([]);
 
   // Module 7: Accounting & Finance States
-  const [financialYears, setFinancialYears] = useState<FinancialYear[]>(INITIAL_FINANCIAL_YEARS);
-  const [chartOfAccounts, setChartOfAccounts] = useState<ChartOfAccount[]>(INITIAL_CHART_OF_ACCOUNTS);
-  const [accountGroups, setAccountGroups] = useState<AccountGroup[]>(INITIAL_ACCOUNT_GROUPS);
-  const [taxMasters, setTaxMasters] = useState<TaxMaster[]>(INITIAL_TAX_MASTERS);
-  const [tdsMasters, setTdsMasters] = useState<TDSMaster[]>(INITIAL_TDS_MASTERS);
-  const [costCenters, setCostCenters] = useState<CostCenter[]>(INITIAL_COST_CENTERS);
-  const [salesInvoices, setSalesInvoices] = useState<SalesInvoice[]>(INITIAL_SALES_INVOICES);
-  const [purchaseInvoices, setPurchaseInvoices] = useState<PurchaseInvoice[]>(INITIAL_PURCHASE_INVOICES);
-  const [creditNotes, setCreditNotes] = useState<CreditNote[]>(INITIAL_CREDIT_NOTES);
-  const [debitNotes, setDebitNotes] = useState<DebitNote[]>(INITIAL_DEBIT_NOTES);
-  const [customerReceipts, setCustomerReceipts] = useState<CustomerReceipt[]>(INITIAL_CUSTOMER_RECEIPTS);
-  const [supplierPayments, setSupplierPayments] = useState<SupplierPayment[]>(INITIAL_SUPPLIER_PAYMENTS);
-  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>(INITIAL_JOURNAL_ENTRIES);
-  const [contraEntries, setContraEntries] = useState<ContraEntry[]>(INITIAL_CONTRA_ENTRIES);
-  const [expenseEntries, setExpenseEntries] = useState<ExpenseEntry[]>(INITIAL_EXPENSE_ENTRIES);
-  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>(INITIAL_BANK_ACCOUNTS);
+  const [financialYears, setFinancialYears] = useState<FinancialYear[]>([]);
+  const [chartOfAccounts, setChartOfAccounts] = useState<ChartOfAccount[]>([]);
+  const [accountGroups, setAccountGroups] = useState<AccountGroup[]>([]);
+  const [taxMasters, setTaxMasters] = useState<TaxMaster[]>([]);
+  const [tdsMasters, setTdsMasters] = useState<TDSMaster[]>([]);
+  const [costCenters, setCostCenters] = useState<CostCenter[]>([]);
+  const [salesInvoices, setSalesInvoices] = useState<SalesInvoice[]>([]);
+  const [purchaseInvoices, setPurchaseInvoices] = useState<PurchaseInvoice[]>([]);
+  const [creditNotes, setCreditNotes] = useState<CreditNote[]>([]);
+  const [debitNotes, setDebitNotes] = useState<DebitNote[]>([]);
+  const [customerReceipts, setCustomerReceipts] = useState<CustomerReceipt[]>([]);
+  const [supplierPayments, setSupplierPayments] = useState<SupplierPayment[]>([]);
+  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
+  const [contraEntries, setContraEntries] = useState<ContraEntry[]>([]);
+  const [expenseEntries, setExpenseEntries] = useState<ExpenseEntry[]>([]);
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [bankTransactions, setBankTransactions] = useState<BankTransaction[]>([]);
   const [bankReconciliations, setBankReconciliations] = useState<BankReconciliation[]>([]);
-  const [fixedAssets, setFixedAssets] = useState<FixedAsset[]>(INITIAL_FIXED_ASSETS);
+  const [fixedAssets, setFixedAssets] = useState<FixedAsset[]>([]);
   const [depreciationEntries, setDepreciationEntries] = useState<DepreciationEntry[]>([]);
-  const [jobCostings, setJobCostings] = useState<JobCostingSummary[]>(INITIAL_JOB_COSTINGS);
-  const [receivableAging, setReceivableAging] = useState<ReceivableAging[]>(INITIAL_RECEIVABLE_AGING);
-  const [payableAging, setPayableAging] = useState<PayableAging[]>(INITIAL_PAYABLE_AGING);
+  const [jobCostings, setJobCostings] = useState<JobCostingSummary[]>([]);
+  const [receivableAging, setReceivableAging] = useState<ReceivableAging[]>([]);
+  const [payableAging, setPayableAging] = useState<PayableAging[]>([]);
 
   // Traceability & Audit & Notification
   const [jobs, setJobs] = useState<JobTraceabilityRecord[]>([]);
@@ -2780,6 +2780,17 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           setNotifications(rawNotifs);
           if (typeof window !== 'undefined') {
             try { localStorage.setItem('UMA_ERP_notifications', JSON.stringify(rawNotifs)); } catch (_) {}
+          }
+        }
+      } catch (_) {}
+
+      // Live Audit Logs sync from database
+      try {
+        const rawAuditLogs: any = await api.auditLogs.list();
+        if (Array.isArray(rawAuditLogs) && rawAuditLogs.length > 0) {
+          setAuditLogs(rawAuditLogs);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_auditLogs', JSON.stringify(rawAuditLogs)); } catch (_) {}
           }
         }
       } catch (_) {}
@@ -4791,12 +4802,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     newValue?: string
   ) => {
     const newEntry: AuditLogEntry = {
-      id: `AUD-${Date.now().toString().slice(-6)}`,
+      id: `aud-${Date.now().toString().slice(-8)}`,
       timestamp: new Date().toISOString(),
-      userId: currentUser.id,
-      userName: `${currentUser.firstName} ${currentUser.lastName}`,
-      role: (currentUser.roleName?.toLowerCase()?.replace(/[^a-z]/g, '_') as any) || 'super_admin',
-      department: (currentUser.departmentName?.toLowerCase().includes('crm') ? 'crm' : 'project') as any,
+      userId: currentUser?.id || 'EMP-000',
+      userName: currentUser?.name || `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim() || 'Super Admin',
+      role: (currentUser?.roleName || currentUser?.role || 'Super Admin') as any,
+      department: (currentUser?.departmentName || currentUser?.department || 'Management') as any,
       action,
       module,
       page,
@@ -4807,6 +4818,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       ipAddress: '192.168.1.100 (Makarpura Plant Terminal)',
     };
     setAuditLogs((prev) => [newEntry, ...prev]);
+
+    // Asynchronously sync to PythonAnywhere DRF backend
+    api.auditLogs.create(newEntry).catch((err) => {
+      console.warn('Could not sync audit log to backend:', err);
+    });
   };
 
   // Notification Publisher

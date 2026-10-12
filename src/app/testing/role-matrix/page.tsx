@@ -43,6 +43,14 @@ export default function RoleMatrixPage() {
     'Operator',
   ];
 
+  const availableRoleNames = React.useMemo(() => {
+    if (roles && roles.length > 0) {
+      const names = roles.map((r) => r.name).filter(Boolean);
+      return Array.from(new Set([...names, ...erpRoles]));
+    }
+    return erpRoles;
+  }, [roles]);
+
   const erpModulesAccess = [
     { name: 'ERP Foundation', route: '/users', superAdmin: true, plantDir: true, sales: false, design: false, purchase: false, store: false, prod: false, acc: false, hr: false, service: false },
     { name: 'CRM & Sales', route: '/crm/leads', superAdmin: true, plantDir: true, sales: true, design: false, purchase: false, store: false, prod: false, acc: true, hr: false, service: true },
@@ -139,7 +147,7 @@ export default function RoleMatrixPage() {
               }}
               className="w-full bg-[#FAF7F2] text-xs text-[#211B17] p-2.5 rounded-xl border border-[#EBE3DB] focus:outline-none focus:border-crm-brand-600 mt-1 cursor-pointer"
             >
-              {erpRoles.map((r) => (
+              {availableRoleNames.map((r) => (
                 <option key={r} value={r} className="bg-white">{r}</option>
               ))}
             </select>
