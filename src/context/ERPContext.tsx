@@ -434,6 +434,21 @@ interface ERPContextType {
   // Permissions & RBAC
   can: (module: string, page: string, action: 'view' | 'create' | 'edit' | 'delete' | 'approve' | 'reject' | 'export' | 'print') => boolean;
   hasDepartmentAccess: (deptCode: string) => boolean;
+  updateEmployeePermissions: (
+    employeeId: string,
+    permissionData: {
+      roleType?: string;
+      dataScope?: string;
+      assignedModules?: string[];
+      customPermissions?: Record<string, any>;
+      canAssignTasks?: boolean;
+      canApproveLeaves?: boolean;
+      canManageAttendance?: boolean;
+      canExportData?: boolean;
+    }
+  ) => Promise<{ success: boolean; message?: string; error?: string }>;
+  checkInAttendance: (data?: any) => Promise<{ success: boolean; message?: string; record?: any }>;
+  checkOutAttendance: (data?: any) => Promise<{ success: boolean; message?: string; record?: any }>;
 
   // Master Settings
   company: CompanySetting;
@@ -1386,7 +1401,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         items: Array.isArray(item.items) ? item.items : [],
         orderValue: rawOrderValue,
         paymentTerms: item.paymentTerms || item.payment_terms || '',
-        assignedProjectManager: item.assignedProjectManager || item.assigned_project_manager || item.created_by || 'Bhavin Shah',
+        assignedProjectManager: item.assignedProjectManager || item.assigned_project_manager || item.created_by || '',
         status: item.status || 'confirmed',
         projectId: item.projectId || item.project_id || undefined,
         jobNumber: item.jobNumber || item.job_number || undefined,
@@ -1681,11 +1696,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         projectNumber: item.projectNumber || prjId || '',
         jobNumber: jobNo || item.jobNumber || '',
         customerId: item.customerId || item.customer_id || '',
-        customerName: item.customerName || item.customer_name || 'Customer',
-        productName: item.productName || item.product_name || 'Custom Equipment',
+        customerName: item.customerName || item.customer_name || '',
+        productName: item.productName || item.product_name || '',
         machineType: item.machineType || item.machine_type || 'Process Equipment',
-        assignedDesigner: item.assignedDesigner || item.assigned_designer || 'Dharmesh Joshi',
-        designManager: item.designManager || item.design_manager || 'Ketan Patel',
+        assignedDesigner: item.assignedDesigner || item.assigned_designer || '',
+        designManager: item.designManager || item.design_manager || '',
         activeRevision: item.activeRevision || item.active_revision || 'REV-00',
         deliveryDate: item.deliveryDate || item.delivery_date || '',
         status: normalizedStatus,
@@ -3205,14 +3220,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
               projectId: j.projectId || j.project_id || local?.projectId || '',
               jobNumber: j.jobNumber || j.job_number || local?.jobNumber || '',
               customerId: j.customerId || j.customer_id || local?.customerId || '',
-              customerName: j.customerName || j.customer_name || local?.customerName || 'Customer',
-              productName: j.productName || j.product_name || local?.productName || 'Custom Equipment',
+              customerName: j.customerName || j.customer_name || local?.customerName || '',
+              productName: j.productName || j.product_name || local?.productName || '',
               status: effectiveStatus,
               remarks: effectiveRemarks,
               activeRevision: j.activeRevision || j.active_revision || local?.activeRevision || 'REV-00',
               deliveryDate: j.deliveryDate || j.delivery_date || local?.deliveryDate || '',
-              assignedDesigner: j.assignedDesigner || j.assigned_designer || local?.assignedDesigner || 'Dharmesh Joshi',
-              designManager: j.designManager || j.design_manager || local?.designManager || 'Ketan Patel',
+              assignedDesigner: j.assignedDesigner || j.assigned_designer || local?.assignedDesigner || '',
+              designManager: j.designManager || j.design_manager || local?.designManager || '',
             };
             seenIds.add(jobObj.id);
             if (jobObj.designJobNumber) seenIds.add(jobObj.designJobNumber);
@@ -3337,7 +3352,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           taskName: t.taskName || t.task_name || '',
           customerName: t.customerName || t.customer_name || '',
           machineName: t.machineName || t.machine_name || '',
-          designer: t.designer || 'Dharmesh Joshi',
+          designer: t.designer || t.assigned_designer || '',
           startDate: t.startDate || t.start_date || '',
           targetDate: t.targetDate || t.target_date || '',
           dueDate: t.dueDate || t.due_date || '',
@@ -3941,7 +3956,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           plannedEndDate: p.plannedEndDate || p.planned_end_date || '',
           actualStartDate: p.actualStartDate || p.actual_start_date || '',
           actualEndDate: p.actualEndDate || p.actual_end_date || '',
-          productionManager: p.productionManager || p.production_manager || 'Bhavin Shah',
+          productionManager: p.productionManager || p.production_manager || '',
           status: p.status || 'In Progress',
           createdAt: p.createdAt || p.created_at || new Date().toISOString(),
         }));
@@ -4196,7 +4211,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     try {
       const results = await Promise.allSettled([
         api.hr.shifts(),
-        api.hr.attendance(),
+        api.hr.attendance.list(),
         api.hr.leaves.list(),
         api.hr.payroll.list(),
         api.hr.onboardings.list(),
@@ -4458,7 +4473,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       const assignedDesignerNames =
         designStage?.assignedEmployees && designStage.assignedEmployees.length > 0
           ? designStage.assignedEmployees.map((a) => a.name).join(', ')
-          : designStage?.responsibleEmployee || 'Dharmesh Joshi';
+          : designStage?.responsibleEmployee || '';
 
       const designStatus: DesignJobStatus =
         designStage?.status === 'completed'
@@ -4512,7 +4527,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
               : 'Process Equipment Unit',
             quantity: prj.quantity,
             deliveryDate: prj.deliveryDate,
-            designManager: 'Dharmesh Joshi',
+            designManager: designStage?.responsibleEmployee || prj.projectManager || '',
             assignedDesigner: assignedDesignerNames,
             priority: (prj.priority as any) || 'high',
             requiredDate: designStage?.plannedEnd || prj.deliveryDate,
@@ -4535,7 +4550,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       const prodSupervisor =
         prodStage?.assignedEmployees && prodStage.assignedEmployees.length > 0
           ? prodStage.assignedEmployees.map((a) => a.name).join(', ')
-          : prodStage?.responsibleEmployee || prj.projectManager || 'Bhavin Shah';
+          : prodStage?.responsibleEmployee || prj.projectManager || '';
 
       setManufacturingJobs((prev) => {
         const existingIdx = prev.findIndex(
@@ -4576,7 +4591,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             unit: prj.unit || 'Unit',
             designRevision: 'REV-00',
             bomRevision: 'REV-00',
-            projectManager: prj.projectManager || 'Bhavin Shah',
+            projectManager: prj.projectManager || '',
             productionManager: prodSupervisor,
             plannedStartDate: prodStage?.plannedStart || prj.startDate,
             plannedCompletionDate: prodStage?.plannedEnd || prj.deliveryDate,
@@ -4860,23 +4875,156 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     page: string,
     action: 'view' | 'create' | 'edit' | 'delete' | 'approve' | 'reject' | 'export' | 'print'
   ): boolean => {
-    if (currentUser.roleName === 'Super Admin') return true;
+    // 1. Super Admin always has full access
+    if (
+      currentUser.roleType === 'super_admin' ||
+      currentUser.roleName === 'Super Admin' ||
+      currentUser.username === 'admin' ||
+      currentUser.username === 'rajesh.admin'
+    ) {
+      return true;
+    }
 
-    const userRole = roles.find((r) => r.id === currentUser.roleId);
-    if (!userRole) return false;
+    // 2. Export check
+    if (action === 'export' && currentUser.canExportData === false) {
+      return false;
+    }
 
-    // Check module or page level permission
+    // 3. Module level check against assignedModules
+    const modKey = module?.toLowerCase();
+    if (currentUser.assignedModules && currentUser.assignedModules.length > 0) {
+      const hasMod = currentUser.assignedModules.some((m) => m?.toLowerCase() === modKey);
+      if (!hasMod) return false;
+    }
+
+    // 4. Custom Granular Permissions override
+    if (currentUser.customPermissions && typeof currentUser.customPermissions === 'object') {
+      const customMod = currentUser.customPermissions[modKey] || currentUser.customPermissions[module];
+      if (customMod) {
+        const pageKey = page?.toLowerCase();
+        const pagePerms = customMod[pageKey] || customMod[page];
+        if (Array.isArray(pagePerms)) {
+          if (pagePerms.includes(action)) return true;
+        } else if (typeof pagePerms === 'object' && pagePerms !== null) {
+          if (pagePerms[action] !== undefined) return Boolean(pagePerms[action]);
+        }
+        if (Array.isArray(customMod)) {
+          if (customMod.includes(action)) return true;
+        } else if (customMod[action] !== undefined) {
+          return Boolean(customMod[action]);
+        }
+      }
+    }
+
+    // 5. Role-based fallback
+    const userRole = roles.find((r) => r.id === currentUser.roleId || r.name === currentUser.roleName);
+    if (!userRole) {
+      return action === 'view';
+    }
+
     const perm = userRole.permissions.find(
-      (p) => p.module?.toLowerCase() === module?.toLowerCase() && (p.page === 'All' || p.page?.toLowerCase() === page?.toLowerCase())
+      (p) =>
+        p.module?.toLowerCase() === modKey &&
+        (p.page === 'All' || p.page?.toLowerCase() === page?.toLowerCase())
     );
     if (!perm) return false;
     return Boolean(perm[action]);
   };
 
   const hasDepartmentAccess = (deptCode: string): boolean => {
-    if (currentUser.roleName === 'Super Admin') return true;
-    if (currentUser.isFamilyMember) return true; // Family admins have broader access
-    return currentUser.departmentName?.toLowerCase().includes(deptCode?.toLowerCase());
+    if (
+      currentUser.roleType === 'super_admin' ||
+      currentUser.roleName === 'Super Admin' ||
+      currentUser.roleType === 'admin' ||
+      currentUser.isFamilyMember
+    ) {
+      return true;
+    }
+    const cleanDept = deptCode?.toLowerCase();
+    if (currentUser.assignedModules?.some((m) => m?.toLowerCase() === cleanDept)) return true;
+    return Boolean(
+      currentUser.departmentId?.toLowerCase() === cleanDept ||
+      currentUser.departmentName?.toLowerCase().includes(cleanDept) ||
+      (currentUser.department && currentUser.department.toLowerCase().includes(cleanDept))
+    );
+  };
+
+  const updateEmployeePermissions = async (
+    employeeId: string,
+    permissionData: {
+      roleType?: string;
+      dataScope?: string;
+      assignedModules?: string[];
+      customPermissions?: Record<string, any>;
+      canAssignTasks?: boolean;
+      canApproveLeaves?: boolean;
+      canManageAttendance?: boolean;
+      canExportData?: boolean;
+    }
+  ) => {
+    try {
+      const res = await api.employees.updatePermissions(employeeId, permissionData);
+      setEmployees((prev) =>
+        prev.map((emp) =>
+          emp.id === employeeId || emp.username === employeeId
+            ? { ...emp, ...permissionData, ...(res?.user || {}) }
+            : emp
+        )
+      );
+      if (currentUser?.id === employeeId || currentUser?.username === employeeId) {
+        setCurrentUser((prev) => ({ ...prev, ...permissionData, ...(res?.user || {}) }));
+      }
+      return { success: true, message: res?.message || 'Permissions updated successfully' };
+    } catch (err: any) {
+      console.warn('Failed to update employee permissions on server:', err);
+      setEmployees((prev) =>
+        prev.map((emp) =>
+          emp.id === employeeId || emp.username === employeeId ? { ...emp, ...permissionData } : emp
+        )
+      );
+      return { success: false, error: err?.message || 'Failed to update permissions' };
+    }
+  };
+
+  const checkInAttendance = async (data?: any) => {
+    const payload = {
+      employeeId: data?.employeeId || currentUser?.id,
+      employeeName: data?.employeeName || currentUser?.name || `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim(),
+      department: data?.department || currentUser?.departmentName || 'General',
+      shiftName: data?.shiftName || 'General Day Shift (09:00 - 18:00)',
+    };
+    try {
+      const res = await api.hr.attendance.checkIn(payload);
+      if (res?.record) {
+        setAttendanceRecords((prev) => {
+          const filtered = prev.filter((r) => r.id !== res.record.id && !(r.employeeId === res.record.employeeId && r.date === res.record.date));
+          return [res.record, ...filtered];
+        });
+      }
+      return { success: true, message: res?.message || 'Checked in successfully', record: res?.record };
+    } catch (err: any) {
+      console.warn('Check in API error:', err);
+      return { success: false, message: err?.message || 'Check-in failed' };
+    }
+  };
+
+  const checkOutAttendance = async (data?: any) => {
+    const payload = {
+      employeeId: data?.employeeId || currentUser?.id,
+    };
+    try {
+      const res = await api.hr.attendance.checkOut(payload);
+      if (res?.record) {
+        setAttendanceRecords((prev) => {
+          const filtered = prev.filter((r) => r.id !== res.record.id && !(r.employeeId === res.record.employeeId && r.date === res.record.date));
+          return [res.record, ...filtered];
+        });
+      }
+      return { success: true, message: res?.message || 'Checked out successfully', record: res?.record };
+    } catch (err: any) {
+      console.warn('Check out API error:', err);
+      return { success: false, message: err?.message || 'Check-out failed' };
+    }
   };
 
   // Company & Numbering Updates
@@ -5910,7 +6058,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       deliveryDate: po.deliveryDate,
       orderValue: po.poAmount,
       paymentTerms: po.paymentTerms,
-      assignedProjectManager: 'Bhavin Shah',
+      assignedProjectManager: currentUser?.name || '',
       status: 'confirmed',
       items: [
         {
@@ -5993,7 +6141,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       deliveryDate: soData.deliveryDate || '',
       orderValue: Number(soData.orderValue) || 0,
       paymentTerms: soData.paymentTerms || '',
-      assignedProjectManager: soData.assignedProjectManager || 'Bhavin Shah',
+      assignedProjectManager: soData.assignedProjectManager || currentUser?.name || '',
     };
     setSalesOrders((prev) => {
       const updated = deduplicateSalesOrders([newSO, ...prev]);
@@ -6249,7 +6397,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       priority: 'high',
       startDate: new Date().toISOString().split('T')[0],
       deliveryDate: soDelivDate,
-      projectManager: so.assignedProjectManager || 'Bhavin Shah',
+      projectManager: so.assignedProjectManager || currentUser?.name || '',
       status: 'planning',
       progressPercent: 0,
       isPlanningSaved: false,
@@ -6327,9 +6475,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       deliveryDate: newProject.deliveryDate || '2026-12-31',
       order_value: Number(newProject.orderValue) || 0,
       orderValue: Number(newProject.orderValue) || 0,
-      project_manager_name: newProject.projectManager || 'Bhavin Shah',
-      projectManager: newProject.projectManager || 'Bhavin Shah',
-      projectManagerName: newProject.projectManager || 'Bhavin Shah',
+      project_manager_name: newProject.projectManager || currentUser?.name || '',
+      projectManager: newProject.projectManager || currentUser?.name || '',
+      projectManagerName: newProject.projectManager || currentUser?.name || '',
       current_status: newProject.status || 'planning',
       currentStatus: newProject.status || 'planning',
       status: newProject.status || 'planning',
@@ -6468,8 +6616,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       deliveryDate: prj.deliveryDate || '2026-12-31',
       order_value: Number(prj.orderValue) || 0,
       orderValue: Number(prj.orderValue) || 0,
-      project_manager_name: prj.projectManager || 'Bhavin Shah',
-      projectManager: prj.projectManager || 'Bhavin Shah',
+      project_manager_name: prj.projectManager || currentUser?.name || '',
+      projectManager: prj.projectManager || currentUser?.name || '',
       current_status: prj.status || 'planning',
       currentStatus: prj.status || 'planning',
       status: prj.status || 'planning',
@@ -6552,7 +6700,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       taskNumber: tskNo,
     };
     setProjectTasks((prev) => [newTask, ...prev]);
-    logProjectActivity(newTask.projectId, newTask.jobNumber, 'Task Created', `Created task ${newTask.taskName} assigned to ${newTask.assignedTo}`);
+    logProjectActivity(newTask.projectId || '', newTask.jobNumber || '', 'Task Created', `Created task ${newTask.taskName} assigned to ${newTask.assignedTo}`);
     sendNotification({
       title: 'New Project Task Assigned',
       message: `Task ${newTask.taskName} (${tskNo}) assigned for ${newTask.jobNumber}`,
@@ -6654,7 +6802,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return updatedStages;
     });
 
-    logProjectActivity(target.projectId, target.jobNumber, 'Task Status Updated', `Task ${target.taskName} updated to ${taskUpdates.status || 'modified'} (${taskUpdates.completionPercent ?? target.completionPercent}%)`);
+    logProjectActivity(target.projectId || '', target.jobNumber || '', 'Task Status Updated', `Task ${target.taskName} updated to ${taskUpdates.status || 'modified'} (${taskUpdates.completionPercent ?? target.completionPercent}%)`);
     // Sync to PythonAnywhere backend
     api.projects.updateTask(id, taskUpdates).catch((err) => console.warn('Failed to update task on backend:', err));
   };
@@ -9459,10 +9607,10 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       production_stage: (newIssue as any).productionStage || (newIssue as any).production_stage || 'Shell & Dish End Cutting / Rolling',
       productionStage: (newIssue as any).productionStage || 'Shell & Dish End Cutting / Rolling',
       department: 'Production',
-      issued_to: (newIssue as any).requestedBy || (newIssue as any).issued_to || 'Bhavin Shah (Production Head)',
-      requestedBy: (newIssue as any).requestedBy || 'Bhavin Shah (Production Head)',
-      issued_by: (newIssue as any).issuedBy || (newIssue as any).issued_by || 'Hitesh Rawal (Store Incharge)',
-      issuedBy: (newIssue as any).issuedBy || 'Hitesh Rawal (Store Incharge)',
+      issued_to: (newIssue as any).requestedBy || (newIssue as any).issued_to || '',
+      requestedBy: (newIssue as any).requestedBy || '',
+      issued_by: (newIssue as any).issuedBy || (newIssue as any).issued_by || currentUser?.name || '',
+      issuedBy: (newIssue as any).issuedBy || currentUser?.name || '',
       issue_date: newIssue.issueDate || new Date().toISOString().split('T')[0],
       issueDate: newIssue.issueDate || new Date().toISOString().split('T')[0],
       warehouse_id: (newIssue as any).warehouseId || (newIssue as any).warehouse_id || 'WH-001',
@@ -11235,7 +11383,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
     return mockHolidays;
   });
-  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(mockAttendanceRecords);
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -12261,6 +12409,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         setIsSearchOpen,
         can,
         hasDepartmentAccess,
+        updateEmployeePermissions,
+        checkInAttendance,
+        checkOutAttendance,
         company,
         updateCompany,
         numbering,

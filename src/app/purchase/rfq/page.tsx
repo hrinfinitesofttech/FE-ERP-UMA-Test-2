@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useERP } from '../../../context/ERPContext';
 import {
   ClipboardList,
@@ -29,7 +30,7 @@ export default function RFQPage() {
   const [newPrId, setNewPrId] = useState('');
   const [newDueDate, setNewDueDate] = useState('');
   const [newSelectedSuppliers, setNewSelectedSuppliers] = useState<string[]>([]);
-  const [newTerms, setNewTerms] = useState('FOR Destination Price including GST 18%, Payment 30 Days Credit');
+  const [newTerms, setNewTerms] = useState('');
 
   // Sync defaults when modal opens or purchaseRequisitions loads
   React.useEffect(() => {
@@ -37,12 +38,6 @@ export default function RFQPage() {
       setNewPrId(purchaseRequisitions[0].id);
     }
   }, [purchaseRequisitions, newPrId]);
-
-  React.useEffect(() => {
-    if (suppliers.length > 0 && newSelectedSuppliers.length === 0) {
-      setNewSelectedSuppliers(suppliers.slice(0, 2).map(s => s.id));
-    }
-  }, [suppliers, newSelectedSuppliers]);
 
   // Set default due date (10 days from now)
   React.useEffect(() => {
@@ -422,8 +417,11 @@ export default function RFQPage() {
                 <div>
                   <label className="block text-[#70665F] mb-2 font-bold">Select Suppliers to Invite for Quote *</label>
                   {suppliers.length === 0 ? (
-                    <div className="p-3 bg-amber-500/10 border border-amber-500/20 text-amber-600 rounded-xl text-xs">
-                      No suppliers found. Please register suppliers in Supplier Master.
+                    <div className="p-3 bg-amber-500/10 border border-amber-500/20 text-amber-700 rounded-xl text-xs flex items-center justify-between">
+                      <span>No suppliers found. Please register suppliers in Supplier Master.</span>
+                      <Link href="/purchase/suppliers" className="font-bold underline text-amber-800 hover:text-amber-900 ml-2">
+                        Open Supplier Master →
+                      </Link>
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto p-3 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl">
@@ -448,6 +446,7 @@ export default function RFQPage() {
                   <textarea
                     value={newTerms}
                     onChange={(e) => setNewTerms(e.target.value)}
+                    placeholder="e.g. FOR Destination Price including GST 18%, Payment 30 Days Credit, Delivery within 2 weeks..."
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] h-16 focus:outline-none focus:border-crm-brand-600"
                   />
                 </div>

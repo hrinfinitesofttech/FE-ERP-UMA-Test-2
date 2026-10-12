@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 
 export default function QualityInspectionPage() {
-  const { qcInspections, approveQCInspection, addQCInspection, goodsReceipts } = useERP();
+  const { qcInspections, approveQCInspection, addQCInspection, goodsReceipts, currentUser } = useERP();
   const [mounted, setMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<'inspections' | 'pending_grns'>('inspections');
@@ -37,12 +37,12 @@ export default function QualityInspectionPage() {
   }, []);
 
   // Modal State
-  const [inspectorName, setInspectorName] = useState('Suresh Patel (Sr. QC Lead)');
+  const [inspectorName, setInspectorName] = useState('');
   const [result, setResult] = useState<QCResult>('Pass');
   const [acceptedQty, setAcceptedQty] = useState(0);
   const [rejectedQty, setRejectedQty] = useState(0);
   const [actualSpec, setActualSpec] = useState('');
-  const [parameters, setParameters] = useState('Spectro PMI Chemical, Ultrasonic Flaw Check, Dimension Verification');
+  const [parameters, setParameters] = useState('');
   const [remarks, setRemarks] = useState('');
 
   // New Inspection Form State
@@ -91,20 +91,20 @@ export default function QualityInspectionPage() {
       inspectionDate: new Date().toISOString().split('T')[0],
       grnId: grnNumber,
       grnNumber: grnNumber,
-      itemId: 'ITM-001',
-      itemCode: 'RM-MS-12MM',
-      itemName: 'IS 2062 Grade E250 MS Plate 12mm',
-      jobId: 'General Stock',
-      supplierName: 'Jindal Stainless Limited',
-      requiredSpecification: 'Standard Technical Delivery Conditions (TDC)',
-      actualSpecification: 'Inspected OK as per ASTM standard',
-      inspectionParameters: 'Spectro PMI Chemical, Ultrasonic Flaw Check, Dimension Verification',
+      itemId: '',
+      itemCode: '',
+      itemName: 'Inward Invoiced Goods',
+      jobId: '',
+      supplierName: '',
+      requiredSpecification: '',
+      actualSpecification: '',
+      inspectionParameters: '',
       sampleQuantity: 1,
       acceptedQuantity: 1,
       rejectedQuantity: 0,
       qcResult: 'Pass',
-      inspectorName: 'Suresh Patel (Sr. QC Lead)',
-      remarks: 'Clearance verified on physical inward arrival.',
+      inspectorName: currentUser?.name || '',
+      remarks: '',
     };
     openInspectionModal(tempQc);
   };
@@ -160,13 +160,13 @@ export default function QualityInspectionPage() {
     const sample = Number(q.sampleQuantity || 1);
     const acc = Number(q.acceptedQuantity ?? sample);
     const rej = Number(q.rejectedQuantity ?? 0);
-    setInspectorName(q.inspectorName || 'Suresh Patel (Sr. QC Lead)');
+    setInspectorName(q.inspectorName || currentUser?.name || '');
     setResult((q.qcResult as QCResult) || 'Pass');
     setAcceptedQty(acc > 0 ? acc : sample);
     setRejectedQty(rej);
-    setActualSpec(q.actualSpecification || 'Chemical PMI & Visual inspection verified OK.');
-    setParameters(q.inspectionParameters || 'Spectro PMI Chemical, Ultrasonic Flaw Check, Dimension Verification');
-    setRemarks(q.remarks || 'Test certificates verified matching Heat No.');
+    setActualSpec(q.actualSpecification || '');
+    setParameters(q.inspectionParameters || '');
+    setRemarks(q.remarks || '');
   };
 
   const handleStartInspectionForGrn = (grn: GoodsReceiptNote) => {

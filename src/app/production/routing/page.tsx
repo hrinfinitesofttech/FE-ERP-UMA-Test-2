@@ -12,7 +12,7 @@ export default function RoutingOperationsPage() {
   const [wcCode, setWcCode] = useState('WC-CUT');
   const [setupMins, setSetupMins] = useState(30);
   const [procMins, setProcMins] = useState(120);
-  const [operator, setOperator] = useState('Ramesh Vaghela');
+  const [operator, setOperator] = useState('');
   const [qcReq, setQcReq] = useState(true);
 
   const handleAddOp = (e: React.FormEvent) => {
@@ -202,6 +202,7 @@ export default function RoutingOperationsPage() {
                 <label className="block font-semibold text-[#544B45] mb-1">Assigned Lead Technician</label>
                 <input
                   type="text"
+                  placeholder="e.g. Lead Technician Name"
                   value={operator}
                   onChange={(e) => setOperator(e.target.value)}
                   className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#544B45] focus:outline-none focus:border-crm-brand-600"

@@ -13,10 +13,10 @@ export default function WarehousesPage() {
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
   const [type, setType] = useState<WarehouseType>('Raw Material Store');
-  const [address, setAddress] = useState('Plot 48/B, GIDC Makarpura, Vadodara');
-  const [manager, setManager] = useState('Hitesh Rawal');
-  const [phone, setPhone] = useState('+91 98250 88771');
-  const [email, setEmail] = useState('hitesh.rmstore@umatechnofab.com');
+  const [address, setAddress] = useState('');
+  const [manager, setManager] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
 
   const filtered = warehouses.filter(
     (w) =>
@@ -200,6 +200,7 @@ export default function WarehousesPage() {
                   type="text"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
+                  placeholder="e.g. Plot 48/B, GIDC Makarpura, Vadodara"
                   className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                 />
               </div>
@@ -211,6 +212,7 @@ export default function WarehousesPage() {
                     type="text"
                     value={manager}
                     onChange={(e) => setManager(e.target.value)}
+                    placeholder="e.g. Store Manager Name"
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                   />
                 </div>
@@ -220,6 +222,7 @@ export default function WarehousesPage() {
                     type="text"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
+                    placeholder="e.g. +91 98250 88771"
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                   />
                 </div>

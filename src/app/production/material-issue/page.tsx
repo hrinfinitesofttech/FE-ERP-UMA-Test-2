@@ -9,9 +9,9 @@ export default function ProductionMaterialIssuePage() {
   const [showModal, setShowModal] = useState(false);
 
   const [selectedWo, setSelectedWo] = useState(workOrders[0]?.workOrderNumber || '');
-  const [selectedItemCode, setSelectedItemCode] = useState(itemMasters[0]?.itemCode || 'RM-PLATE-316L-01');
-  const [qty, setQty] = useState(10);
-  const [issuedTo, setIssuedTo] = useState('Ramesh Vaghela (Fabrication)');
+  const [selectedItemCode, setSelectedItemCode] = useState(itemMasters[0]?.itemCode || '');
+  const [qty, setQty] = useState(1);
+  const [issuedTo, setIssuedTo] = useState('');
 
   const handleIssueSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -202,7 +202,7 @@ export default function ProductionMaterialIssuePage() {
                     </option>
                   ))}
                   {itemMasters.length === 0 && (
-                    <option value="RM-PLATE-316L-01">RM-PLATE-316L-01 — SS 316L Plate 12mm</option>
+                    <option value="">No items registered in Item Master</option>
                   )}
                 </select>
               </div>
@@ -223,6 +223,7 @@ export default function ProductionMaterialIssuePage() {
                   <input
                     type="text"
                     required
+                    placeholder="e.g. Employee / Supervisor Name"
                     value={issuedTo}
                     onChange={(e) => setIssuedTo(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#544B45] focus:outline-none focus:border-emerald-500"

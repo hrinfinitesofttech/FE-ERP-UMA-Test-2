@@ -449,12 +449,12 @@ export function createDefaultMilestonesForProject(prj: {
   };
 
   const msTemplates = [
-    { name: 'Customer PO & Project Kickoff', pct: 0.0, owner: 'Pravin Patel', status: 'achieved' as const, remarks: 'Order finalized' },
-    { name: 'Design CAD & BOM Sign-off', pct: 0.22, owner: 'Dharmesh Joshi', status: 'pending' as const, remarks: 'GA Drawing approved' },
-    { name: 'Raw Material Receipt in Store', pct: 0.52, owner: 'Store Manager', status: 'pending' as const, remarks: 'Plates & bought-out items inwarded' },
-    { name: 'Fabrication & Hydro Test Clearance', pct: 0.82, owner: prj.projectManager || 'Bhavin Shah', status: 'pending' as const, remarks: 'Shop floor QC approved' },
-    { name: 'Dispatch & Site Delivery', pct: 0.93, owner: prj.projectManager || 'Bhavin Shah', status: 'pending' as const, remarks: 'Flagged off with permit' },
-    { name: 'Site Commissioning & Handover', pct: 1.0, owner: 'Service Manager', status: 'pending' as const, remarks: 'Completion certificate signed' },
+    { name: 'Customer PO & Project Kickoff', pct: 0.0, owner: prj.projectManager || 'Sales & PM', status: 'achieved' as const, remarks: 'Order finalized' },
+    { name: 'Design CAD & BOM Sign-off', pct: 0.22, owner: 'Design Lead', status: 'pending' as const, remarks: 'GA Drawing approved' },
+    { name: 'Raw Material Receipt in Store', pct: 0.52, owner: 'Store Incharge', status: 'pending' as const, remarks: 'Plates & bought-out items inwarded' },
+    { name: 'Fabrication & Hydro Test Clearance', pct: 0.82, owner: prj.projectManager || 'Production Head', status: 'pending' as const, remarks: 'Shop floor QC approved' },
+    { name: 'Dispatch & Site Delivery', pct: 0.93, owner: prj.projectManager || 'Dispatch Officer', status: 'pending' as const, remarks: 'Flagged off with permit' },
+    { name: 'Site Commissioning & Handover', pct: 1.0, owner: 'Service Engineer', status: 'pending' as const, remarks: 'Completion certificate signed' },
   ];
 
   return msTemplates.map((m, idx) => ({

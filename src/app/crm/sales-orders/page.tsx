@@ -41,7 +41,11 @@ export default function SalesOrdersPage() {
     deleteSalesOrder,
     refreshSalesOrders,
     createProjectFromSalesOrderAsync,
+    availableEmployees,
+    employees,
   } = useERP();
+
+  const allStaff = (availableEmployees && availableEmployees.length > 0 ? availableEmployees : employees) || [];
 
   const [successInfo, setSuccessInfo] = useState<{ prj: string; job: string } | null>(null);
   const [isCreatingProject, setIsCreatingProject] = useState<string | null>(null);
@@ -56,8 +60,8 @@ export default function SalesOrdersPage() {
   const [newQtnNum, setNewQtnNum] = useState('');
   const [newOrderDate, setNewOrderDate] = useState(new Date().toISOString().split('T')[0]);
   const [newDeliveryDate, setNewDeliveryDate] = useState('');
-  const [newPaymentTerms, setNewPaymentTerms] = useState('30% Advance, 60% ag. Proforma Invoice, 10% after Commissioning');
-  const [newProjectManager, setNewProjectManager] = useState('Bhavin Shah');
+  const [newPaymentTerms, setNewPaymentTerms] = useState('');
+  const [newProjectManager, setNewProjectManager] = useState('');
   const [newBillingAddress, setNewBillingAddress] = useState('');
   const [newShippingAddress, setNewShippingAddress] = useState('');
   const [newItems, setNewItems] = useState<SalesOrderItem[]>([
@@ -824,10 +828,16 @@ export default function SalesOrdersPage() {
                     onChange={(e) => setNewProjectManager(e.target.value)}
                     className="w-full px-3 py-2 border border-[#E7DED5] rounded-xl text-xs focus:outline-none focus:border-[#75401F] bg-[#FAF8F5]"
                   >
-                    <option value="Bhavin Shah">Bhavin Shah (Lead PM)</option>
-                    <option value="Pravin Patel">Pravin Patel</option>
-                    <option value="Ketan Patel">Ketan Patel</option>
-                    <option value="Dharmesh Joshi">Dharmesh Joshi</option>
+                    <option value="">-- Select Project Manager --</option>
+                    {allStaff && allStaff.length > 0 ? (
+                      allStaff.map((emp) => (
+                        <option key={emp.id} value={emp.name}>
+                          {emp.name} {emp.role ? `(${emp.role})` : ''}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="Project Manager">Project Manager</option>
+                    )}
                   </select>
                 </div>
               </div>

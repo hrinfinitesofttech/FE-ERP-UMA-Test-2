@@ -11,9 +11,9 @@ export default function PhysicalStockCountPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Form State
-  const [whId, setWhId] = useState(warehouses[0]?.id || 'WH-001');
-  const [counterName, setCounterName] = useState('Deepak Solanki (Internal Auditor)');
-  const [remarks, setRemarks] = useState('Monthly physical stock audit for raw material plates');
+  const [whId, setWhId] = useState('');
+  const [counterName, setCounterName] = useState('');
+  const [remarks, setRemarks] = useState('');
 
   const selectedWh = warehouses.find((w) => w.id === whId) || warehouses[0];
 
@@ -29,7 +29,10 @@ export default function PhysicalStockCountPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedWh) return;
+    if (!selectedWh || !whId) {
+      alert('Please select a warehouse yard.');
+      return;
+    }
 
     addPhysicalStockCount({
       countDate: new Date().toISOString().split('T')[0],
@@ -160,7 +163,9 @@ export default function PhysicalStockCountPage() {
                   value={whId}
                   onChange={(e) => setWhId(e.target.value)}
                   className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-teal-500"
+                  required
                 >
+                  <option value="">-- Select Warehouse Yard --</option>
                   {warehouses.map((w) => (
                     <option key={w.id} value={w.id}>
                       {w.warehouseName}
@@ -175,6 +180,7 @@ export default function PhysicalStockCountPage() {
                   type="text"
                   value={counterName}
                   onChange={(e) => setCounterName(e.target.value)}
+                  placeholder="e.g. Stock Auditor Name"
                   className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-teal-500"
                 />
               </div>
@@ -185,6 +191,7 @@ export default function PhysicalStockCountPage() {
                   rows={2}
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
+                  placeholder="e.g. Monthly physical stock audit scope and remarks..."
                   className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-teal-500"
                 />
               </div>

@@ -49,18 +49,18 @@ export default function NewLeadPage() {
   const [formData, setFormData] = useState({
     // 1. Company
     companyName: '',
-    industry: 'Speciality Chemicals',
+    industry: '',
     website: '',
     gstin: '',
     address: '',
-    city: 'Vadodara',
-    state: 'Gujarat',
+    city: '',
+    state: '',
     country: 'India',
-    pincode: '390010',
+    pincode: '',
 
     // 2. Contact
     contactPerson: '',
-    designation: 'Project Lead',
+    designation: '',
     mobile: '',
     altMobile: '',
     email: '',
@@ -68,20 +68,20 @@ export default function NewLeadPage() {
 
     // 3. Requirement
     productName: '',
-    machineType: 'Chemical Pressure Vessel / Reactor',
+    machineType: '',
     quantity: 1 as number | string,
     capacity: '',
     application: '',
     requirementDescription: '',
-    expectedDelivery: defaultDelivery,
+    expectedDelivery: '',
     budget: '' as number | string,
-    priority: 'high' as PriorityLevel,
+    priority: 'medium' as PriorityLevel,
 
     // 4. CRM
-    source: 'exhibition' as LeadSource,
+    source: 'direct' as LeadSource,
     assignedSalesPersonId: defaultSalesPersonId,
     status: 'new' as LeadStatus,
-    nextFollowUpDate: defaultFollowUp,
+    nextFollowUpDate: '',
     remarks: '',
   });
 

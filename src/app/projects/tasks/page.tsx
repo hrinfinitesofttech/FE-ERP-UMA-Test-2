@@ -82,11 +82,7 @@ export default function TasksPage() {
   const [taskName, setTaskName] = useState('');
   const [description, setDescription] = useState('');
   const [department, setDepartment] = useState('production');
-  const [assignedTo, setAssignedTo] = useState(
-    availableEmployees[0]
-      ? `${availableEmployees[0].firstName || ''} ${availableEmployees[0].lastName || ''}`.trim() || availableEmployees[0].name || 'Bhavin Shah'
-      : 'Bhavin Shah'
-  );
+  const [assignedTo, setAssignedTo] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high' | 'urgent'>('high');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [dueDate, setDueDate] = useState('');
@@ -453,7 +449,7 @@ export default function TasksPage() {
                     <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-[#EBE3DB]/60 text-[11px] text-[#70665F]">
                       <div className="flex items-center gap-1.5">
                         <User className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                        <span className="truncate font-semibold">{prj.projectManager || 'Bhavin Shah'}</span>
+                        <span className="truncate font-semibold">{prj.projectManager || 'Unassigned'}</span>
                       </div>
                       <div className="flex items-center gap-1.5 justify-end">
                         <Calendar className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
@@ -567,9 +563,9 @@ export default function TasksPage() {
                   {activeProject.productName}
                 </h1>
                 <p className="text-xs text-[#70665F] flex items-center gap-3 flex-wrap">
-                  <span>Customer: <strong className="text-slate-800 dark:text-[#211B17]">{activeProject.customerName || 'Standard Client'}</strong></span>
+                  <span>Customer: <strong className="text-slate-800 dark:text-[#211B17]">{activeProject.customerName || '—'}</strong></span>
                   <span>•</span>
-                  <span>PM: <strong className="text-emerald-600 font-bold">{activeProject.projectManager || 'Bhavin Shah'}</strong></span>
+                  <span>PM: <strong className="text-emerald-600 font-bold">{activeProject.projectManager || 'Unassigned'}</strong></span>
                   <span>•</span>
                   <span>Target Delivery: <strong className="text-slate-800 dark:text-[#211B17] font-mono">{formatDate(activeProject.deliveryDate)}</strong></span>
                 </p>
@@ -1148,6 +1144,7 @@ export default function TasksPage() {
                     onChange={(e) => setAssignedTo(e.target.value)}
                     className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold"
                   >
+                    <option value="">-- Select Assigned Employee --</option>
                     {availableEmployees.map((emp) => {
                       const empName = `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || emp.name || emp.id;
                       const empDept = emp.department || emp.departmentName || 'Staff';
@@ -1158,12 +1155,7 @@ export default function TasksPage() {
                       );
                     })}
                     {availableEmployees.length === 0 && (
-                      <>
-                        <option value="Bhavin Shah">Bhavin Shah (Production)</option>
-                        <option value="Dharmesh Joshi">Dharmesh Joshi (Design)</option>
-                        <option value="Pravin Patel">Pravin Patel (CRM)</option>
-                        <option value="Ketan Patel">Ketan Patel (QA)</option>
-                      </>
+                      <option value="" disabled>-- No Staff Available in Master --</option>
                     )}
                   </select>
                 </div>

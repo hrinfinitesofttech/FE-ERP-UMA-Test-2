@@ -21,9 +21,9 @@ export default function PurchaseReturnsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   // Form State
-  const [selectedPoId, setSelectedPoId] = useState(purchaseOrders[0]?.id || '');
+  const [selectedPoId, setSelectedPoId] = useState('');
   const [newReturnDate, setNewReturnDate] = useState(new Date().toISOString().split('T')[0]);
-  const [newReason, setNewReason] = useState('QC Inspection Failure - Dimensional Out of Tolerance');
+  const [newReason, setNewReason] = useState('');
   const [newActionType, setNewActionType] = useState<'Replacement' | 'Debit Note' | 'Credit Note'>('Debit Note');
 
   const filteredReturns = purchaseReturns.filter(r => {
@@ -41,6 +41,10 @@ export default function PurchaseReturnsPage() {
 
   const handleCreateReturnSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedPoId) {
+      alert('Please select a Purchase Order.');
+      return;
+    }
     const poObj = purchaseOrders.find(p => p.id === selectedPoId);
     if (!poObj) return;
 
@@ -177,12 +181,14 @@ export default function PurchaseReturnsPage() {
 
             <form onSubmit={handleCreateReturnSubmit} className="p-6 space-y-4 text-xs">
               <div>
-                <label className="block text-[#70665F] mb-1">Select Purchase Order</label>
+                <label className="block text-[#70665F] mb-1">Select Purchase Order *</label>
                 <select
                   value={selectedPoId}
                   onChange={(e) => setSelectedPoId(e.target.value)}
                   className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
+                  required
                 >
+                  <option value="">-- Select Purchase Order --</option>
                   {purchaseOrders.map(p => (
                     <option key={p.id} value={p.id}>{p.poNumber} - {p.supplierName} ({p.jobId})</option>
                   ))}
@@ -218,6 +224,7 @@ export default function PurchaseReturnsPage() {
                 <textarea
                   value={newReason}
                   onChange={(e) => setNewReason(e.target.value)}
+                  placeholder="e.g. QC Inspection Failure - Dimensional Out of Tolerance"
                   className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] h-20"
                 />
               </div>

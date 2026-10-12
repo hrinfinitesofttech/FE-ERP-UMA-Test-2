@@ -28,8 +28,8 @@ function WorkOrderCompletionContent() {
   // Form State
   const [selectedWo, setSelectedWo] = useState('');
   const [completedQty, setCompletedQty] = useState(1);
-  const [completedBy, setCompletedBy] = useState('Bhavin Shah (Production Manager)');
-  const [qcInspector, setQcInspector] = useState('Ramesh Patel (Lead NDT Level-II Inspector)');
+  const [completedBy, setCompletedBy] = useState('');
+  const [qcInspector, setQcInspector] = useState('');
 
   // QC Testing Specifics
   const [hydroDesignPressure, setHydroDesignPressure] = useState('6.0 Bar');

@@ -124,7 +124,7 @@ export default function SupplierQuotationsPage() {
     setNewSupplierId(defaultSupp);
     setNewQuoteDate(today);
     setNewValidUntil(valid.toISOString().split('T')[0]);
-    setNewRefNumber(`SQ-REF-${Math.floor(1000 + Math.random() * 9000)}`);
+    setNewRefNumber('');
     setNewPaymentTerms('30 Days Credit');
     setNewDeliveryTerms('FOR Destination');
     setNewLeadTimeDays(7);
@@ -132,13 +132,13 @@ export default function SupplierQuotationsPage() {
     setNewGstPercentage(18);
     setNewTechnicalStatus('Compliant');
 
-    // Populate initial items from default RFQ
+    // Populate initial items from default RFQ if available
     const activeRfq = rfqs.find((r) => r.id === defaultRfq) || rfqs[0];
     if (activeRfq && Array.isArray(activeRfq.items) && activeRfq.items.length > 0) {
       setQuoteItems(
         activeRfq.items.map((it: any, idx: number) => {
           const qty = Number(it.requiredQuantity || it.required_quantity || 1);
-          const price = Number(it.targetPrice || it.target_price || it.estimatedUnitPrice || 100);
+          const price = Number(it.targetPrice || it.target_price || it.estimatedUnitPrice || 0);
           return {
             id: `SQI-NEW-${idx}`,
             itemCode: it.itemCode || it.item_code || `ITEM-${idx + 1}`,
@@ -162,16 +162,16 @@ export default function SupplierQuotationsPage() {
         {
           id: 'SQI-NEW-0',
           itemCode: 'ITEM-001',
-          itemName: 'Raw Material Plate / Pipe',
-          specification: 'Standard Specification IS 2062',
+          itemName: '',
+          specification: '',
           category: 'Raw Material',
           unitOfMeasure: 'NOS',
-          quotedQuantity: 10,
-          unitPrice: 500,
-          totalPrice: 5000,
+          quotedQuantity: 1,
+          unitPrice: 0,
+          totalPrice: 0,
           discountPercentage: 0,
           gstPercentage: 18,
-          netPrice: 5900,
+          netPrice: 0,
           leadTimeDays: 7,
           technicalCompliant: true,
         },
@@ -929,18 +929,16 @@ export default function SupplierQuotationsPage() {
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-medium focus:outline-none focus:border-amber-500"
                     required
                   >
-                    {rfqs.length === 0 ? (
-                      <option value="RFQ-MANUAL">General / Ad-hoc Quotation</option>
-                    ) : (
-                      rfqs.map((r) => {
-                        const details = getRfqJobDetails(r.id);
-                        return (
-                          <option key={r.id} value={r.id}>
-                            {r.rfqNumber || r.id} — [{details?.customerName || 'Customer'}] {details?.productName || ''}
-                          </option>
-                        );
-                      })
-                    )}
+                    <option value="">-- Select RFQ (or choose Ad-hoc) --</option>
+                    <option value="RFQ-MANUAL">General / Ad-hoc Quotation</option>
+                    {rfqs.map((r) => {
+                      const details = getRfqJobDetails(r.id);
+                      return (
+                        <option key={r.id} value={r.id}>
+                          {r.rfqNumber || r.id} — [{details?.customerName || 'Customer'}] {details?.productName || ''}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
 
@@ -952,8 +950,9 @@ export default function SupplierQuotationsPage() {
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-medium focus:outline-none focus:border-amber-500"
                     required
                   >
+                    <option value="">-- Select Bidding Supplier --</option>
                     {suppliers.length === 0 ? (
-                      <option value="SUP-GENERAL">Standard Vendor</option>
+                      <option value="" disabled>-- No Registered Suppliers Found (Register in Supplier Master) --</option>
                     ) : (
                       suppliers.map((s) => (
                         <option key={s.id} value={s.id}>

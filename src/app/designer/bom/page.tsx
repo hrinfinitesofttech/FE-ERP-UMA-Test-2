@@ -164,7 +164,7 @@ export default function MasterBOMPage() {
       targetBOM.machineName ||
       targetBOM.bomName ||
       'Industrial Equipment';
-    const customerName = targetProj?.customerName || 'Uma Techno Fab Client';
+    const customerName = targetProj?.customerName || '';
     const projNumber = targetProj?.projectNumber || targetBOM.projectId || 'PRJ-2026';
     const jobNumber = targetProj?.jobNumber || targetBOM.jobNumber || 'JOB-2026';
     const bomNumber = targetBOM.bomNumber || 'BOM-001';
@@ -253,40 +253,30 @@ export default function MasterBOMPage() {
   const [createVersion, setCreateVersion] = useState<string>('V1');
   const [createProductQuantity, setCreateProductQuantity] = useState<number>(1);
 
-  // Dynamic material lines inside Create BOM Modal
+  // Dynamic material lines inside Create BOM Modal (starts clean and empty)
   const [createMaterialLines, setCreateMaterialLines] = useState<NewBOMFormItem[]>([
     {
       id: 'init-1',
-      partNumber: '201',
-      material: 'Mild Steel Plate 5mm (IS 2062 Grade E250)',
-      specification: 'Plate thickness 5mm, structural grade',
-      quantity: 4,
-      unit: 'KG',
+      partNumber: '101',
+      material: '',
+      specification: '',
+      quantity: 1,
+      unit: 'NOS',
       procurement: 'PURCHASE',
       item_type: 'RAW_MATERIAL',
-      estimatedRate: 150,
-    },
-    {
-      id: 'init-2',
-      partNumber: '202',
-      material: 'Table Legs 50x50 Box Sub-Assembly',
-      specification: 'Fabricated RHS Box section with end plates',
-      quantity: 2,
-      unit: 'PCS',
-      procurement: 'FABRICATE',
-      item_type: 'FABRICATED',
-      estimatedRate: 850,
+      estimatedRate: 0,
     },
   ]);
 
-  // When opening Create Modal, default to first available project
+  // When opening Create Modal, default to clean selection or provided project
   const handleOpenCreateModal = (defaultProjId?: string) => {
     const targetProjId = defaultProjId || (projectJobs[0]?.id || projectJobs[0]?.projectNumber || '');
     setCreateSelectedProjectId(targetProjId);
 
-    const targetProj: any =
-      (projectJobs || []).find((p) => p.id === targetProjId || p.projectNumber === targetProjId) ||
-      (designJobs || []).find((d) => d.id === targetProjId || d.projectNumber === targetProjId);
+    const targetProj: any = targetProjId
+      ? (projectJobs || []).find((p) => p.id === targetProjId || p.projectNumber === targetProjId) ||
+        (designJobs || []).find((d) => d.id === targetProjId || d.projectNumber === targetProjId)
+      : null;
 
     if (targetProj) {
       setCreateProjectName(targetProj.productName || targetProj.projectName || '');
@@ -294,20 +284,41 @@ export default function MasterBOMPage() {
       setCreateJobNumber(targetProj.jobNumber || '');
       setCreateBomName(`BOM - ${targetProj.productName || targetProj.projectName || 'Equipment'}`);
     } else {
-      setCreateProjectName('Custom Equipment');
-      setCreateCustomerName('Uma Techno Fab Client');
-      setCreateJobNumber(`JOB-2026-${Date.now().toString().slice(-4)}`);
-      setCreateBomName('Master BOM');
+      setCreateProjectName('');
+      setCreateCustomerName('');
+      setCreateJobNumber('');
+      setCreateBomName('');
     }
 
     setCreateVersion('V1');
     setCreateProductQuantity(1);
+    setCreateMaterialLines([
+      {
+        id: `line-${Date.now()}-1`,
+        partNumber: '101',
+        material: '',
+        specification: '',
+        quantity: 1,
+        unit: 'NOS',
+        procurement: 'PURCHASE',
+        item_type: 'RAW_MATERIAL',
+        estimatedRate: 0,
+      },
+    ]);
     setIsCreateBOMModalOpen(true);
   };
 
   // Change project in Create Modal
   const handleSelectCreateProject = (projId: string) => {
     setCreateSelectedProjectId(projId);
+    if (!projId) {
+      setCreateProjectName('');
+      setCreateCustomerName('');
+      setCreateJobNumber('');
+      setCreateBomName('');
+      return;
+    }
+
     const targetProj: any =
       (projectJobs || []).find((p) => p.id === projId || p.projectNumber === projId) ||
       (designJobs || []).find((d) => d.id === projId || d.projectNumber === projId);
@@ -677,7 +688,7 @@ export default function MasterBOMPage() {
         id: p.id,
         projectNumber: p.projectNumber,
         projectName: p.productName || p.projectName || 'Project Equipment',
-        customerName: p.customerName || 'Uma Techno Fab Client',
+        customerName: p.customerName || '',
         jobNumber: p.jobNumber,
         orderValue: p.orderValue || 0,
         status: p.status,
@@ -723,7 +734,7 @@ export default function MasterBOMPage() {
         bom: b,
         projectNumber: matched?.projectNumber || b.projectId || 'PRJ-2026',
         projectName: matched?.projectName || matched?.productName || b.machineName || b.bomName || 'Equipment',
-        customerName: matched?.customerName || 'Uma Techno Fab Client',
+        customerName: matched?.customerName || '',
         jobNumber: matched?.jobNumber || b.jobNumber || 'JOB-2026',
         itemsCount: items.length,
         totalCost: cost,
@@ -1132,7 +1143,7 @@ export default function MasterBOMPage() {
                   {activeProject?.productName || activeProject?.projectName || activeBOM.machineName || activeBOM.bomName}
                 </h2>
                 <p className="text-[11px] text-[#70665F]">
-                  Customer: <span className="font-semibold text-[#3E2723]">{activeProject?.customerName || 'Uma Techno Fab Client'}</span>
+                  Customer: <span className="font-semibold text-[#3E2723]">{activeProject?.customerName || 'N/A'}</span>
                 </p>
               </div>
             </div>

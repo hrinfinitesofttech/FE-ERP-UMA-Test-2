@@ -173,7 +173,7 @@ export default function ProjectListPage() {
     setEditFormData({
       productName: prj.productName,
       specification: prj.specification,
-      projectManager: prj.projectManager || 'Bhavin Shah',
+      projectManager: prj.projectManager || '',
       priority: prj.priority || 'high',
       status: prj.status || 'planning',
       progressPercent: prj.progressPercent || 0,

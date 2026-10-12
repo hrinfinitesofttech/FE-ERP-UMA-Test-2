@@ -79,6 +79,7 @@ import { cn } from '../../lib/utils';
 export function Sidebar() {
   const {
     currentUser,
+    hasDepartmentAccess,
     sidebarCollapsed,
     setSidebarCollapsed,
     leads,
@@ -96,6 +97,28 @@ export function Sidebar() {
     workOrders,
     productionOrders,
   } = useERP();
+
+  const isSuperAdminOrAdmin =
+    currentUser?.roleType === 'super_admin' ||
+    currentUser?.roleType === 'admin' ||
+    currentUser?.roleName === 'Super Admin' ||
+    currentUser?.isFamilyMember;
+
+  const hasModule = (moduleKey: string) => {
+    if (isSuperAdminOrAdmin) return true;
+    const cleanK = moduleKey.toLowerCase();
+    if (currentUser?.assignedModules && currentUser.assignedModules.length > 0) {
+      if (
+        currentUser.assignedModules.some((m: string) => {
+          const cleanM = (m || '').toLowerCase();
+          return cleanM === cleanK || cleanM.includes(cleanK) || cleanK.includes(cleanM);
+        })
+      ) {
+        return true;
+      }
+    }
+    return hasDepartmentAccess ? hasDepartmentAccess(moduleKey) : false;
+  };
 
   const pathname = usePathname();
   const [crmOpen, setCrmOpen] = useState(false);
@@ -187,7 +210,34 @@ export function Sidebar() {
           {!sidebarCollapsed && <span>Dashboard</span>}
         </Link>
 
+        {/* Employee Self-Service Quick Section (Attendance, Leaves, Assigned Tasks) */}
+        {!isSuperAdminOrAdmin && (
+          <div className="py-1 px-1 mb-2 bg-[#F5EFE6] rounded-xl border border-[#E8DFD3] space-y-0.5">
+            {!sidebarCollapsed && (
+              <div className="px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-crm-brand-800 flex items-center justify-between">
+                <span>My Workspace</span>
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-crm-brand-100 text-crm-brand-700">
+                  {currentUser?.roleType === 'department_manager' ? 'Manager' : 'Staff'}
+                </span>
+              </div>
+            )}
+            <Link href="/hr/attendance" className={subNavItemClass('/hr/attendance')}>
+              <Clock className="w-3.5 h-3.5 flex-shrink-0 text-crm-brand-700" />
+              {!sidebarCollapsed && <span>My Attendance</span>}
+            </Link>
+            <Link href="/hr/leaves" className={subNavItemClass('/hr/leaves')}>
+              <FileCheck2 className="w-3.5 h-3.5 flex-shrink-0 text-crm-brand-700" />
+              {!sidebarCollapsed && <span>My Leave Requests</span>}
+            </Link>
+            <Link href="/projects/tasks" className={subNavItemClass('/projects/tasks')}>
+              <CheckSquare className="w-3.5 h-3.5 flex-shrink-0 text-crm-brand-700" />
+              {!sidebarCollapsed && <span>My Assigned Tasks</span>}
+            </Link>
+          </div>
+        )}
+
         {/* 1. CRM MODULE (MODULE 1 BUSINESS CORE) */}
+        {hasModule('crm') && (
         <div className="py-0.5">
           {!sidebarCollapsed && (
             <button
@@ -275,8 +325,10 @@ export function Sidebar() {
             </div>
           )}
         </div>
+        )}
 
         {/* 2. PROJECT MANAGEMENT & JOB MANAGEMENT (MODULE 2) */}
+        {hasModule('projects') && (
         <div className="py-0.5">
           {!sidebarCollapsed && (
             <button
@@ -352,8 +404,10 @@ export function Sidebar() {
             </div>
           )}
         </div>
+        )}
 
         {/* 3. DESIGNER / ENGINEERING MANAGEMENT (MODULE 3) */}
+        {hasModule('design') && (
         <div className="py-0.5">
           {!sidebarCollapsed && (
             <button
@@ -400,8 +454,10 @@ export function Sidebar() {
             </div>
           )}
         </div>
+        )}
 
         {/* 4. PURCHASE MANAGEMENT (MODULE 4) */}
+        {hasModule('purchase') && (
         <div className="py-0.5">
           {!sidebarCollapsed && (
             <button
@@ -513,8 +569,10 @@ export function Sidebar() {
             </div>
           )}
         </div>
+        )}
 
         {/* 5. STORE & WAREHOUSE MANAGEMENT (MODULE 5) */}
+        {hasModule('store') && (
         <div className="py-0.5">
           {!sidebarCollapsed && (
             <button
@@ -650,8 +708,10 @@ export function Sidebar() {
             </div>
           )}
         </div>
+        )}
 
         {/* MODULE 6: PRODUCTION / MANUFACTURING / MRP */}
+        {hasModule('production') && (
         <div className="py-0.5">
           {!sidebarCollapsed && (
             <button
@@ -780,8 +840,10 @@ export function Sidebar() {
             </div>
           )}
         </div>
+        )}
 
         {/* MODULE 7: ACCOUNTING & FINANCE */}
+        {hasModule('accounting') && (
         <div className="py-0.5">
           {!sidebarCollapsed && (
             <button
@@ -920,8 +982,10 @@ export function Sidebar() {
             </div>
           )}
         </div>
+        )}
 
         {/* MODULE 8: MAINTENANCE & SERVICES */}
+        {hasModule('maintenance') && (
         <div className="py-0.5">
           {!sidebarCollapsed && (
             <button
@@ -1037,8 +1101,10 @@ export function Sidebar() {
             </div>
           )}
         </div>
+        )}
 
         {/* MODULE 9: HR & PAYROLL */}
+        {(isSuperAdminOrAdmin || hasModule('hr')) && (
         <div className="py-0.5">
           {!sidebarCollapsed && (
             <button
@@ -1235,8 +1301,10 @@ export function Sidebar() {
             </div>
           )}
         </div>
+        )}
 
         {/* MODULE 10: INTEGRATION & MANAGEMENT 360° */}
+        {(isSuperAdminOrAdmin || hasModule('integration')) && (
         <div className="py-0.5">
           {!sidebarCollapsed && (
             <button
@@ -1303,8 +1371,10 @@ export function Sidebar() {
             </div>
           )}
         </div>
+        )}
 
         {/* MODULE 11: TESTING, SECURITY & PRODUCTION DEPLOYMENT */}
+        {(isSuperAdminOrAdmin || hasModule('testing')) && (
         <div className="py-0.5">
           {!sidebarCollapsed && (
             <button
@@ -1362,8 +1432,10 @@ export function Sidebar() {
             </div>
           )}
         </div>
+        )}
 
         {/* 2. COMMON ERP FOUNDATION & USER/ROLE MANAGEMENT */}
+        {(isSuperAdminOrAdmin || hasModule('settings')) && (
         <div className="py-0.5">
           {!sidebarCollapsed && (
             <button
@@ -1425,6 +1497,7 @@ export function Sidebar() {
             </div>
           )}
         </div>
+        )}
       </div>
 
       {/* Quality | Innovation | Partnership Card Footer */}

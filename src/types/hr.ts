@@ -266,6 +266,8 @@ export interface LeaveRequest {
   appliedDate: string;
   approvedBy?: string;
   approvedDate?: string;
+  managerRemarks?: string;
+  adminRemarks?: string;
 }
 
 export interface WFHRequest {

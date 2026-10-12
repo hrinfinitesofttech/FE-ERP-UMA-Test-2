@@ -59,6 +59,7 @@ export default function ProjectDetailPage() {
     addProjectComment,
     openJobModal,
     jobs,
+    currentUser,
   } = useERP();
 
   const [activeTab, setActiveTab] = useState<
@@ -158,8 +159,8 @@ export default function ProjectDetailPage() {
     addProjectComment({
       projectId: project.id,
       jobNumber: project.jobNumber,
-      authorName: 'Bhavin Shah',
-      authorRole: 'Project Manager',
+      authorName: currentUser?.name || project.projectManager || 'Project Lead',
+      authorRole: currentUser?.role || 'Project Manager',
       text: newCommentText,
     });
     setNewCommentText('');

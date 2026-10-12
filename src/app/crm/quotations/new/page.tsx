@@ -51,22 +51,26 @@ function QuotationFormContent() {
     matchedCustomer?.id || prefillCustId || matchedLead?.convertedCustomerId || customers[0]?.id || ''
   );
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [validUntil, setValidUntil] = useState('2026-10-30');
+  const [validUntil, setValidUntil] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    return d.toISOString().split('T')[0];
+  });
 
-  // Compute initial product name, desc, qty, rate from lead/enquiry
+  // Compute initial product name, desc, qty, rate from lead/enquiry (or clean empty state)
   const initProductName =
     matchedLead?.productName ||
     matchedEnquiry?.machineProduct ||
-    'Heavy SS 316L Chemical Reactor Vessel (10 KL)';
+    '';
   const initDesc =
     matchedLead?.requirementDescription ||
     matchedEnquiry?.requirement ||
     matchedEnquiry?.specification ||
-    'Shell: 8mm SS 316L, Jacket: Dimple SS 304, 15 HP Anchor Agitator with Dual Mechanical Seal.';
+    '';
   const initQty = Number(matchedLead?.quantity || matchedEnquiry?.quantity || 1);
   const initRate = matchedLead?.budget
     ? Math.round(Number(matchedLead.budget) / (initQty || 1))
-    : 4200000;
+    : 0;
   const initTax = 18;
   const initBase = initQty * initRate;
   const initAmount = Math.round(initBase * (1 + initTax / 100));
@@ -78,7 +82,7 @@ function QuotationFormContent() {
       productName: initProductName,
       description: initDesc,
       quantity: initQty,
-      unit: 'Set',
+      unit: 'Unit',
       rate: initRate,
       discountPercent: 0,
       taxPercent: initTax,
@@ -90,18 +94,18 @@ function QuotationFormContent() {
   const [technicalSpecs, setTechnicalSpecs] = useState(
     matchedLead?.capacity
       ? `Capacity: ${matchedLead.capacity} (${matchedLead.machineType || 'Industrial Equipment'}). ${matchedLead.requirementDescription || ''}`
-      : matchedEnquiry?.specification || 'Design Code: ASME Sec VIII Div 1. Hydro test: 12 Bar. Design Temp: 180°C.'
+      : matchedEnquiry?.specification || ''
   );
   const [scopeOfSupply, setScopeOfSupply] = useState(
     matchedLead?.productName
       ? `Supply, fabrication, inspection and testing of ${matchedLead.productName} as per specifications.`
-      : 'Supply of complete reactor vessel, motor, gearbox, seal pot, mounting stool.'
+      : ''
   );
-  const [exclusions, setExclusions] = useState('Civil foundations, interconnecting piping, insulation cladding.');
-  const [paymentTerms, setPaymentTerms] = useState('30% Advance, 60% ag. Proforma Invoice, 10% after Commissioning.');
-  const [deliveryTime, setDeliveryTime] = useState(matchedLead?.expectedDelivery ? `By ${matchedLead.expectedDelivery}` : '8 to 10 Weeks from approved GA drawing.');
-  const [warranty, setWarranty] = useState('18 Months from dispatch or 12 Months from commissioning.');
-  const [termsAndConditions, setTermsAndConditions] = useState('Prices Ex-Works Makarpura, Vadodara. Freight extra at actuals.');
+  const [exclusions, setExclusions] = useState('');
+  const [paymentTerms, setPaymentTerms] = useState('');
+  const [deliveryTime, setDeliveryTime] = useState(matchedLead?.expectedDelivery ? `By ${matchedLead.expectedDelivery}` : '');
+  const [warranty, setWarranty] = useState('');
+  const [termsAndConditions, setTermsAndConditions] = useState('');
 
   // Reliable Auto-Fill from Lead even when leads load asynchronously
   const isLeadPrefilledRef = React.useRef(false);
@@ -175,10 +179,10 @@ function QuotationFormContent() {
         description: '',
         quantity: 1,
         unit: 'Unit',
-        rate: 100000,
+        rate: 0,
         discountPercent: 0,
         taxPercent: 18,
-        amount: 118000,
+        amount: 0,
       },
     ]);
   };
@@ -316,7 +320,7 @@ function QuotationFormContent() {
                     const prodName = custLead?.productName || custEnq?.machineProduct;
                     const desc = custLead?.requirementDescription || custEnq?.requirement || custEnq?.specification;
                     const qty = Number(custLead?.quantity || custEnq?.quantity || 1);
-                    const rate = custLead?.budget ? Math.round(Number(custLead.budget) / (qty || 1)) : 100000;
+                    const rate = custLead?.budget ? Math.round(Number(custLead.budget) / (qty || 1)) : 0;
                     const tax = 18;
                     const base = qty * rate;
                     const amt = Math.round(base * (1 + tax / 100));
@@ -328,7 +332,7 @@ function QuotationFormContent() {
                           productName: prodName,
                           description: desc || 'Standard technical specifications',
                           quantity: qty,
-                          unit: 'Set',
+                          unit: 'Unit',
                           rate,
                           discountPercent: 0,
                           taxPercent: tax,
@@ -344,11 +348,12 @@ function QuotationFormContent() {
                 }}
                 className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-bold text-slate-900 dark:text-[#211B17]"
               >
+                <option value="">-- Select Customer --</option>
                 {!customers.some((c) => c.id === customerId) && matchedLead ? (
                   <option value={customerId}>{matchedLead.companyName}</option>
                 ) : null}
                 {customers.map((c) => (
-                  <option key={c.id} value={c.id}>{c.companyName}</option>
+                  <option key={c.id} value={c.id}>{c.companyName} ({c.customerCode || c.id})</option>
                 ))}
               </select>
             </div>
@@ -513,6 +518,7 @@ function QuotationFormContent() {
                   rows={2}
                   value={technicalSpecs}
                   onChange={(e) => setTechnicalSpecs(e.target.value)}
+                  placeholder="e.g. Design Code: ASME Sec VIII Div 1. Hydro test: 12 Bar. Design Temp: 180°C..."
                   className="w-full px-3 py-1.5 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                 />
               </div>
@@ -522,6 +528,7 @@ function QuotationFormContent() {
                   rows={2}
                   value={scopeOfSupply}
                   onChange={(e) => setScopeOfSupply(e.target.value)}
+                  placeholder="e.g. Supply of complete equipment, motor, gearbox, accessories as per specifications..."
                   className="w-full px-3 py-1.5 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                 />
               </div>
@@ -534,6 +541,7 @@ function QuotationFormContent() {
                   type="text"
                   value={paymentTerms}
                   onChange={(e) => setPaymentTerms(e.target.value)}
+                  placeholder="e.g. 30% Advance, 60% ag. PI, 10% after Commissioning"
                   className="w-full px-3 py-1.5 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                 />
               </div>
@@ -543,6 +551,7 @@ function QuotationFormContent() {
                   type="text"
                   value={deliveryTime}
                   onChange={(e) => setDeliveryTime(e.target.value)}
+                  placeholder="e.g. 8 to 10 Weeks from approved GA drawing"
                   className="w-full px-3 py-1.5 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                 />
               </div>
@@ -552,6 +561,7 @@ function QuotationFormContent() {
                   type="text"
                   value={warranty}
                   onChange={(e) => setWarranty(e.target.value)}
+                  placeholder="e.g. 18 Months from dispatch or 12 Months from commissioning"
                   className="w-full px-3 py-1.5 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
                 />
               </div>
@@ -563,6 +573,7 @@ function QuotationFormContent() {
                 rows={2}
                 value={termsAndConditions}
                 onChange={(e) => setTermsAndConditions(e.target.value)}
+                placeholder="e.g. Prices Ex-Works Makarpura, Vadodara. Freight extra at actuals..."
                 className="w-full px-3 py-1.5 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg"
               />
             </div>

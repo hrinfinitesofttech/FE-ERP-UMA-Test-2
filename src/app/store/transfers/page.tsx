@@ -5,7 +5,7 @@ import { useERP } from '../../../context/ERPContext';
 import { Workflow, Plus, Search, Building, ArrowRight, CheckCircle } from 'lucide-react';
 
 export default function StockTransfersPage() {
-  const { stockTransfers, addStockTransfer, warehouses, itemMasters } = useERP();
+  const { stockTransfers, addStockTransfer, warehouses, itemMasters, currentUser } = useERP();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -48,8 +48,8 @@ export default function StockTransfersPage() {
       toWarehouseName: selectedToWh.warehouseName,
       toLocationCode: toLoc,
       reason,
-      requestedBy: 'Bhavin Shah (Production Manager)',
-      approvedBy: 'Hitesh Rawal (Store Head)',
+      requestedBy: currentUser?.name || 'Store Officer',
+      approvedBy: 'Store Head',
       status: 'Completed',
       items: [
         {
@@ -134,7 +134,7 @@ export default function StockTransfersPage() {
                 const toW = t.toWarehouseName || (t as any).to_warehouse_name || 'Scrap & Offcut Yard';
                 const toL = t.toLocationCode || (t as any).to_location_code || 'W5-ZS-B1-F1-S01';
                 const rsn = t.reason || 'Location Movement';
-                const reqBy = t.requestedBy || (t as any).requested_by || 'Bhavin Shah (Production Manager)';
+                const reqBy = t.requestedBy || (t as any).requested_by || 'Store Team';
                 const st = t.status || 'Completed';
 
                 return (

@@ -17,23 +17,15 @@ function MaterialReturnContent() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Form State
-  const defaultJob = projectJobs[0]?.jobNumber || projectJobs[0]?.id || '';
-  const [jobId, setJobId] = useState(defaultJob);
+  const [jobId, setJobId] = useState('');
   const [woNo, setWoNo] = useState('');
   const [issueNo, setIssueNo] = useState('');
   const [itemId, setItemId] = useState('');
   const [returnQty, setReturnQty] = useState<number | string>(1);
   const [condition, setCondition] = useState<ReturnCondition>('Usable');
-  const [returnedBy, setReturnedBy] = useState('Raju Prajapati (Shop Floor Supervisor)');
-  const [warehouseId, setWarehouseId] = useState(warehouses[0]?.id || 'WH-RM-01');
-  const [remarks, setRemarks] = useState('Good usable plate offcut returned to raw material yard');
-
-  // Sync default job when projectJobs loads asynchronously
-  useEffect(() => {
-    if (!jobId && projectJobs.length > 0) {
-      setJobId(projectJobs[0]?.jobNumber || projectJobs[0]?.id || '');
-    }
-  }, [projectJobs, jobId]);
+  const [returnedBy, setReturnedBy] = useState('');
+  const [warehouseId, setWarehouseId] = useState('');
+  const [remarks, setRemarks] = useState('');
 
   // Sync warehouseId when warehouses load asynchronously
   useEffect(() => {
@@ -532,7 +524,9 @@ function MaterialReturnContent() {
                   value={jobId}
                   onChange={(e) => handleJobChange(e.target.value)}
                   className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-mono font-bold"
+                  required
                 >
+                  <option value="">-- Select Target Job / Project --</option>
                   {projectJobs.map((j) => (
                     <option key={j.id} value={j.jobNumber}>
                       {j.jobNumber} — {j.customerName ? `[${j.customerName}] ` : ''}
@@ -587,7 +581,9 @@ function MaterialReturnContent() {
                   value={itemId}
                   onChange={(e) => handleItemChange(e.target.value)}
                   className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-bold"
+                  required
                 >
+                  <option value="">-- Select Item to Return --</option>
                   {issuedItemsList.map((i) => (
                     <option key={i.itemId} value={i.itemId}>
                       {i.itemCode} - {i.itemName} (Issued: {i.issuedQty} {i.uom})
@@ -617,7 +613,9 @@ function MaterialReturnContent() {
                     value={warehouseId}
                     onChange={(e) => setWarehouseId(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-semibold"
+                    required
                   >
+                    <option value="">-- Select Receiving Warehouse --</option>
                     {warehouses.map((w) => (
                       <option key={w.id} value={w.id}>
                         {w.warehouseName}
@@ -681,6 +679,7 @@ function MaterialReturnContent() {
                   <input
                     type="text"
                     required
+                    placeholder="e.g. Raju Prajapati (Shop Floor Supervisor)"
                     value={returnedBy}
                     onChange={(e) => setReturnedBy(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-semibold"

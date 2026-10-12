@@ -32,13 +32,8 @@ function DepartmentAssignmentsContent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [dept, setDept] = useState('designer');
 
-  // Default manager and employee from staff list
-  const defaultStaffName = allStaff[0]
-    ? allStaff[0].name || `${allStaff[0].firstName || ''} ${allStaff[0].lastName || ''}`.trim() || allStaff[0].username
-    : 'Dharmesh Joshi';
-
-  const [manager, setManager] = useState(defaultStaffName);
-  const [employee, setEmployee] = useState(defaultStaffName);
+  const [manager, setManager] = useState('');
+  const [employee, setEmployee] = useState('');
   const [responsibility, setResponsibility] = useState('');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [dueDate, setDueDate] = useState('');
@@ -81,14 +76,22 @@ function DepartmentAssignmentsContent() {
     e.preventDefault();
     if (!responsibility.trim()) return;
     if (!activeProject) return;
+    if (!manager) {
+      alert('Please select a Department Manager.');
+      return;
+    }
+    if (!employee) {
+      alert('Please select an Assigned Employee.');
+      return;
+    }
 
     assignDepartment({
       projectId: activeProject.id,
       projectNumber: activeProject.projectNumber || activeProject.id,
       jobNumber: activeProject.jobNumber || activeProject.projectNumber || activeProject.id,
       department: dept,
-      manager: manager || defaultStaffName,
-      assignedEmployee: employee || defaultStaffName,
+      manager,
+      assignedEmployee: employee,
       responsibility: responsibility.trim(),
       startDate,
       dueDate: dueDate || activeProject.deliveryDate || new Date().toISOString().split('T')[0],
@@ -134,10 +137,10 @@ function DepartmentAssignmentsContent() {
 
           <button
             onClick={() => {
-              if (allStaff.length > 0 && !manager) {
-                setManager(getStaffValue(allStaff[0]));
-                setEmployee(getStaffValue(allStaff[0]));
-              }
+              setManager('');
+              setEmployee('');
+              setResponsibility('');
+              setDueDate('');
               setIsModalOpen(true);
             }}
             className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-white font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-crm-brand-700/30 transition cursor-pointer"
@@ -222,15 +225,26 @@ function DepartmentAssignmentsContent() {
                   onChange={(e) => setDept(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-300 dark:border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none focus:border-crm-brand-600"
                 >
-                  <option value="crm">CRM & Commercial</option>
-                  <option value="project">Project Management</option>
-                  <option value="designer">Designer & Engineering</option>
-                  <option value="purchase">Purchase & Procurement</option>
-                  <option value="store">Store & Inventory</option>
-                  <option value="production">Production & Plant</option>
-                  <option value="accounting">Accounting & Finance</option>
-                  <option value="maintenance">Maintenance & Service</option>
-                  <option value="hr">HR & Payroll</option>
+                  <option value="">-- Select Department --</option>
+                  {departments && departments.length > 0 ? (
+                    departments.map((d) => (
+                      <option key={d.id} value={d.code?.toLowerCase() || d.id}>
+                        {d.name || d.departmentName}
+                      </option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="crm">CRM & Commercial</option>
+                      <option value="project">Project Management</option>
+                      <option value="designer">Designer & Engineering</option>
+                      <option value="purchase">Purchase & Procurement</option>
+                      <option value="store">Store & Inventory</option>
+                      <option value="production">Production & Plant</option>
+                      <option value="accounting">Accounting & Finance</option>
+                      <option value="maintenance">Maintenance & Service</option>
+                      <option value="hr">HR & Payroll</option>
+                    </>
+                  )}
                 </select>
               </div>
 

@@ -28,6 +28,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { Employee } from '../../../types/crm';
+import { cn } from '../../../lib/utils';
 
 const COUNTRY_CODES = [
   { code: '+91', name: 'India (+91)', short: 'India', flag: '🇮🇳', digits: 10 },
@@ -42,7 +43,7 @@ const COUNTRY_CODES = [
 ];
 
 function EmployeeMasterContent() {
-  const { availableEmployees, currentUser, departments, designations, salaryStructures, addEmployee, updateEmployee, deleteEmployee, roles } = useERP();
+  const { availableEmployees, currentUser, departments, designations, salaryStructures, addEmployee, updateEmployee, updateEmployeePermissions, deleteEmployee, roles } = useERP();
   const searchParams = useSearchParams();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,6 +66,38 @@ function EmployeeMasterContent() {
   const maxDobDate = new Date(now.getFullYear() - 18, now.getMonth(), now.getDate());
   const maxDob = maxDobDate.toISOString().split('T')[0];
 
+  const ALL_ERP_MODULES = [
+    { id: 'crm', label: 'CRM & Sales' },
+    { id: 'projects', label: 'Projects & Planning' },
+    { id: 'design', label: 'Designer & BOM' },
+    { id: 'purchase', label: 'Purchase & RFQ' },
+    { id: 'store', label: 'Store & Inventory' },
+    { id: 'production', label: 'Production & Shop Floor' },
+    { id: 'quality', label: 'Quality Inspection' },
+    { id: 'maintenance', label: 'Plant Maintenance' },
+    { id: 'hr', label: 'HR & Payroll' },
+    { id: 'accounting', label: 'Accounts & Finance' },
+  ];
+
+  const getDepartmentDefaultModules = (deptId: string): string[] => {
+    const dept = departments.find(d => d.id === deptId || (d.departmentName || d.name || '').toLowerCase() === deptId?.toLowerCase());
+    if (dept?.assignedModules && Array.isArray(dept.assignedModules) && dept.assignedModules.length > 0) {
+      return [...dept.assignedModules];
+    }
+    const name = (dept?.departmentName || dept?.name || deptId || '').toLowerCase();
+    if (name.includes('crm') || name.includes('sales')) return ['crm'];
+    if (name.includes('project')) return ['projects'];
+    if (name.includes('design') || name.includes('eng')) return ['design'];
+    if (name.includes('purch') || name.includes('procure')) return ['purchase'];
+    if (name.includes('store') || name.includes('wareh') || name.includes('inven')) return ['store'];
+    if (name.includes('prod') || name.includes('mfg') || name.includes('fabric')) return ['production'];
+    if (name.includes('qual') || name.includes('qc') || name.includes('qa')) return ['quality'];
+    if (name.includes('maint')) return ['maintenance'];
+    if (name.includes('hr') || name.includes('personnel') || name.includes('admin')) return ['hr'];
+    if (name.includes('account') || name.includes('fin')) return ['accounting'];
+    return ['production'];
+  };
+
   const defaultForm = {
     firstName: '',
     lastName: '',
@@ -79,6 +112,13 @@ function EmployeeMasterContent() {
     designation: '',
     roleId: '',
     roleName: '',
+    roleType: 'employee' as 'super_admin' | 'admin' | 'department_manager' | 'employee',
+    dataScope: 'department' as 'own' | 'assigned' | 'department' | 'all',
+    assignedModules: ['production'] as string[],
+    canAssignTasks: false,
+    canApproveLeaves: false,
+    canManageAttendance: false,
+    canExportData: false,
     joiningDate: todayStr,
     employmentType: 'full_time' as 'full_time' | 'contract' | 'probation',
     status: 'Active',
@@ -516,8 +556,34 @@ function EmployeeMasterContent() {
                         </div>
                       </td>
                       <td className="p-4">
-                        <div className="font-medium text-[#3E2723]">{empDept}</div>
-                        <div className="text-xs text-pink-500 font-semibold">{emp.role || emp.roleName || emp.designation || 'Staff'}</div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-[#3E2723]">{empDept}</span>
+                          {emp.roleType === 'super_admin' ? (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 border border-purple-200">
+                              Super Admin
+                            </span>
+                          ) : emp.roleType === 'admin' ? (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                              Admin
+                            </span>
+                          ) : emp.roleType === 'department_manager' ? (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200">
+                              Dept Manager
+                            </span>
+                          ) : (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                              Staff
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-pink-500 font-semibold mt-0.5 flex items-center gap-1.5">
+                          <span>{emp.role || emp.roleName || emp.designation || 'Staff'}</span>
+                          {emp.assignedModules && emp.assignedModules.length > 0 && (
+                            <span className="text-[10px] text-slate-500 font-normal">
+                              • {emp.assignedModules.length} Modules
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="p-4 space-y-0.5 text-xs text-[#544B45]">
                         <div className="flex items-center gap-1.5">
@@ -1438,10 +1504,12 @@ function EmployeeMasterContent() {
                       value={addForm.departmentId}
                       onChange={(e) => {
                         const dept = departments.find((d) => d.id === e.target.value);
+                        const defaultMods = getDepartmentDefaultModules(e.target.value);
                         setAddForm((f) => ({
                           ...f,
                           departmentId: e.target.value,
                           departmentName: dept?.departmentName || e.target.value,
+                          assignedModules: defaultMods,
                         }));
                       }}
                       className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm"
@@ -1580,6 +1648,146 @@ function EmployeeMasterContent() {
                 </div>
               </div>
 
+              {/* Role-Based Access Control (RBAC) & Authority Configuration */}
+              <div className="bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB] space-y-4">
+                <h3 className="text-xs font-bold text-[#70665F] uppercase tracking-wider flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-crm-brand-700" />
+                  Role Hierarchy, Data Scope & Department Access
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#544B45] mb-1">
+                      Role Hierarchy Level *
+                    </label>
+                    <select
+                      value={addForm.roleType}
+                      onChange={(e) => {
+                        const rType = e.target.value as any;
+                        setAddForm((f) => ({
+                          ...f,
+                          roleType: rType,
+                          canAssignTasks: rType === 'super_admin' || rType === 'admin' || rType === 'department_manager',
+                          canApproveLeaves: rType === 'super_admin' || rType === 'admin' || rType === 'department_manager',
+                          canManageAttendance: rType === 'super_admin' || rType === 'admin' || rType === 'department_manager',
+                          canExportData: rType === 'super_admin' || rType === 'admin',
+                          dataScope: rType === 'super_admin' || rType === 'admin' ? 'all' : rType === 'department_manager' ? 'department' : 'own',
+                        }));
+                      }}
+                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600 text-sm font-semibold"
+                    >
+                      <option value="employee">4. Department Employee (Standard Execution Staff)</option>
+                      <option value="department_manager">3. Department Manager (Approval & Task Authority)</option>
+                      <option value="admin">2. Executive Admin (All Departments Management)</option>
+                      <option value="super_admin">1. Super Admin / Owner (Full System Control)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#544B45] mb-1">
+                      Data Visibility Scope *
+                    </label>
+                    <select
+                      value={addForm.dataScope}
+                      onChange={(e) => setAddForm((f) => ({ ...f, dataScope: e.target.value as any }))}
+                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600 text-sm font-semibold"
+                    >
+                      <option value="own">Own Records (Only records created by self)</option>
+                      <option value="assigned">Assigned Records (Tasks/Orders assigned to self)</option>
+                      <option value="department">Department Scope (Entire Department records)</option>
+                      <option value="all">Enterprise All (Cross-department enterprise access)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Assigned Modules Checkboxes */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs font-bold text-[#3E2723]">
+                      Authorized ERP Modules:
+                    </label>
+                    <span className="text-[11px] text-[#8C7A6F]">
+                      Default loaded from selected department
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-white p-3 rounded-xl border border-[#EBE3DB]">
+                    {ALL_ERP_MODULES.map((mod) => {
+                      const isChecked = addForm.assignedModules?.includes(mod.id);
+                      return (
+                        <label
+                          key={mod.id}
+                          className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-[#FAF7F2] cursor-pointer text-xs select-none"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              setAddForm((f) => {
+                                const current = f.assignedModules || [];
+                                const next = checked
+                                  ? Array.from(new Set([...current, mod.id]))
+                                  : current.filter((m) => m !== mod.id);
+                                return { ...f, assignedModules: next };
+                              });
+                            }}
+                            className="rounded text-crm-brand-700 focus:ring-crm-brand-500 w-4 h-4 cursor-pointer"
+                          />
+                          <span className={cn('font-medium', isChecked ? 'text-[#211B17] font-bold' : 'text-[#70665F]')}>
+                            {mod.label}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Operational Authorities */}
+                <div>
+                  <label className="block text-xs font-bold text-[#3E2723] mb-2">
+                    Operational Authorities & Privileges:
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[#EBE3DB] cursor-pointer text-xs select-none">
+                      <input
+                        type="checkbox"
+                        checked={addForm.canAssignTasks}
+                        onChange={(e) => setAddForm((f) => ({ ...f, canAssignTasks: e.target.checked }))}
+                        className="rounded text-crm-brand-700 w-4 h-4 cursor-pointer"
+                      />
+                      <span className="font-semibold text-[#3E2723]">Assign Tasks</span>
+                    </label>
+                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[#EBE3DB] cursor-pointer text-xs select-none">
+                      <input
+                        type="checkbox"
+                        checked={addForm.canApproveLeaves}
+                        onChange={(e) => setAddForm((f) => ({ ...f, canApproveLeaves: e.target.checked }))}
+                        className="rounded text-crm-brand-700 w-4 h-4 cursor-pointer"
+                      />
+                      <span className="font-semibold text-[#3E2723]">Approve Leaves</span>
+                    </label>
+                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[#EBE3DB] cursor-pointer text-xs select-none">
+                      <input
+                        type="checkbox"
+                        checked={addForm.canManageAttendance}
+                        onChange={(e) => setAddForm((f) => ({ ...f, canManageAttendance: e.target.checked }))}
+                        className="rounded text-crm-brand-700 w-4 h-4 cursor-pointer"
+                      />
+                      <span className="font-semibold text-[#3E2723]">Manage Attendance</span>
+                    </label>
+                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[#EBE3DB] cursor-pointer text-xs select-none">
+                      <input
+                        type="checkbox"
+                        checked={addForm.canExportData}
+                        onChange={(e) => setAddForm((f) => ({ ...f, canExportData: e.target.checked }))}
+                        className="rounded text-crm-brand-700 w-4 h-4 cursor-pointer"
+                      />
+                      <span className="font-semibold text-[#3E2723]">Export Reports</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
               {/* Actions */}
               <div className="flex justify-end gap-3 pt-2 border-t border-[#EBE3DB]">
                 <button
@@ -1625,7 +1833,7 @@ function EmployeeMasterContent() {
                 try {
                   const cleanPhone = (editingEmployee.mobile || editingEmployee.phone || '').replace(/\D/g, '').slice(0, 10);
                   const fullName = `${editingEmployee.firstName || ''} ${editingEmployee.lastName || ''}`.trim() || editingEmployee.name || 'Staff';
-                  const selectedDept = departments.find((d) => d.id === editingEmployee.departmentId);
+                  const selectedDept = departments.find((d) => d.id === editingEmployee.departmentId || d.departmentName === editingEmployee.department);
                   updateEmployee(editingEmployee.id, {
                     ...editingEmployee,
                     id: editingEmployee.id, // Strictly preserve existing ID
@@ -1635,6 +1843,15 @@ function EmployeeMasterContent() {
                     name: fullName,
                     department: selectedDept?.departmentName || editingEmployee.department || 'Production',
                     departmentName: selectedDept?.departmentName || editingEmployee.departmentName || 'Production',
+                  });
+                  updateEmployeePermissions(editingEmployee.id, {
+                    roleType: editingEmployee.roleType,
+                    dataScope: editingEmployee.dataScope,
+                    assignedModules: editingEmployee.assignedModules,
+                    canAssignTasks: editingEmployee.canAssignTasks,
+                    canApproveLeaves: editingEmployee.canApproveLeaves,
+                    canManageAttendance: editingEmployee.canManageAttendance,
+                    canExportData: editingEmployee.canExportData,
                   });
                   if (selectedEmployee?.id === editingEmployee.id) {
                     setSelectedEmployee({
@@ -1751,7 +1968,18 @@ function EmployeeMasterContent() {
                   <label className="block font-semibold text-[#544B45] mb-1">Department</label>
                   <select
                     value={editingEmployee.department || editingEmployee.departmentName || ''}
-                    onChange={(e) => setEditingEmployee({ ...editingEmployee, department: e.target.value, departmentName: e.target.value })}
+                    onChange={(e) => {
+                      const selectedDeptName = e.target.value;
+                      const selectedDeptObj = departments.find(d => d.departmentName === selectedDeptName);
+                      const defMods = getDepartmentDefaultModules(selectedDeptObj?.id || selectedDeptName);
+                      setEditingEmployee({
+                        ...editingEmployee,
+                        department: selectedDeptName,
+                        departmentName: selectedDeptName,
+                        departmentId: selectedDeptObj?.id || editingEmployee.departmentId,
+                        assignedModules: editingEmployee.assignedModules?.length ? editingEmployee.assignedModules : defMods,
+                      });
+                    }}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17]"
                   >
                     {departments.map((d) => (
@@ -1792,6 +2020,150 @@ function EmployeeMasterContent() {
                     onChange={(e) => setEditingEmployee({ ...editingEmployee, joiningDate: e.target.value, joinedDate: e.target.value })}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17]"
                   />
+                </div>
+              </div>
+
+              {/* Role Hierarchy, Scope & Permissions */}
+              <div className="bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB] space-y-3">
+                <div className="flex items-center gap-2 pb-2 border-b border-[#EBE3DB]">
+                  <ShieldCheck className="w-4 h-4 text-crm-brand-700" />
+                  <h4 className="font-bold text-[#211B17] text-xs">Role Hierarchy, Data Scope & Access Control</h4>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-semibold text-[#544B45] mb-1">Role Hierarchy Level *</label>
+                    <select
+                      value={editingEmployee.roleType || 'employee'}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, roleType: e.target.value as any })}
+                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] font-semibold"
+                    >
+                      <option value="super_admin">1. Super Admin (Full ERP Authority)</option>
+                      <option value="admin">2. Admin (Department & Ops Management)</option>
+                      <option value="department_manager">3. Department Manager (Approvals & Tasks)</option>
+                      <option value="employee">4. Department Employee (Workspace User)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-[#544B45] mb-1">Data Scope & Visibility *</label>
+                    <select
+                      value={editingEmployee.dataScope || 'department'}
+                      onChange={(e) => setEditingEmployee({ ...editingEmployee, dataScope: e.target.value as any })}
+                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] font-semibold"
+                    >
+                      <option value="own">Self Only (Personal Profile & Tasks)</option>
+                      <option value="assigned">Assigned Records (Assigned Orders/Tasks)</option>
+                      <option value="department">Department Scope (Entire Department records)</option>
+                      <option value="all">Enterprise All (Cross-department enterprise access)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Assigned Modules Checkboxes */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs font-bold text-[#3E2723]">
+                      Authorized ERP Modules:
+                    </label>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const dept = editingEmployee.department || editingEmployee.departmentName || '';
+                          const defMods = getDepartmentDefaultModules(dept);
+                          setEditingEmployee({ ...editingEmployee, assignedModules: defMods });
+                        }}
+                        className="text-[11px] text-pink-600 hover:text-pink-700 font-medium underline cursor-pointer"
+                      >
+                        Reset to Dept Defaults
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingEmployee({
+                            ...editingEmployee,
+                            assignedModules: ALL_ERP_MODULES.map(m => m.id),
+                          });
+                        }}
+                        className="text-[11px] text-pink-600 hover:text-pink-700 font-medium underline cursor-pointer"
+                      >
+                        Select All
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-white p-3 rounded-xl border border-[#EBE3DB]">
+                    {ALL_ERP_MODULES.map((mod) => {
+                      const isChecked = (editingEmployee.assignedModules || []).includes(mod.id);
+                      return (
+                        <label
+                          key={mod.id}
+                          className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-[#FAF7F2] cursor-pointer text-xs select-none"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              const current = editingEmployee.assignedModules || [];
+                              const next = checked
+                                ? Array.from(new Set([...current, mod.id]))
+                                : current.filter((m) => m !== mod.id);
+                              setEditingEmployee({ ...editingEmployee, assignedModules: next });
+                            }}
+                            className="rounded text-crm-brand-700 focus:ring-crm-brand-500 w-4 h-4 cursor-pointer"
+                          />
+                          <span className={cn('font-medium', isChecked ? 'text-[#211B17] font-bold' : 'text-[#70665F]')}>
+                            {mod.label}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Operational Authorities */}
+                <div>
+                  <label className="block text-xs font-bold text-[#3E2723] mb-2">
+                    Operational Authorities & Privileges:
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[#EBE3DB] cursor-pointer text-xs select-none">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(editingEmployee.canAssignTasks)}
+                        onChange={(e) => setEditingEmployee({ ...editingEmployee, canAssignTasks: e.target.checked })}
+                        className="rounded text-crm-brand-700 w-4 h-4 cursor-pointer"
+                      />
+                      <span className="font-semibold text-[#3E2723]">Assign Tasks</span>
+                    </label>
+                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[#EBE3DB] cursor-pointer text-xs select-none">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(editingEmployee.canApproveLeaves)}
+                        onChange={(e) => setEditingEmployee({ ...editingEmployee, canApproveLeaves: e.target.checked })}
+                        className="rounded text-crm-brand-700 w-4 h-4 cursor-pointer"
+                      />
+                      <span className="font-semibold text-[#3E2723]">Approve Leaves</span>
+                    </label>
+                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[#EBE3DB] cursor-pointer text-xs select-none">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(editingEmployee.canManageAttendance)}
+                        onChange={(e) => setEditingEmployee({ ...editingEmployee, canManageAttendance: e.target.checked })}
+                        className="rounded text-crm-brand-700 w-4 h-4 cursor-pointer"
+                      />
+                      <span className="font-semibold text-[#3E2723]">Manage Attendance</span>
+                    </label>
+                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[#EBE3DB] cursor-pointer text-xs select-none">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(editingEmployee.canExportData)}
+                        onChange={(e) => setEditingEmployee({ ...editingEmployee, canExportData: e.target.checked })}
+                        className="rounded text-crm-brand-700 w-4 h-4 cursor-pointer"
+                      />
+                      <span className="font-semibold text-[#3E2723]">Export Reports</span>
+                    </label>
+                  </div>
                 </div>
               </div>
 

@@ -58,34 +58,34 @@ export default function DispatchPage() {
   // Form State
   const defaultWo = workOrders[0]?.workOrderNumber || '';
   const defaultJob = workOrders[0]?.jobNumber || '';
-  const defaultCust = customers[0]?.companyName || 'Reliance Industries Limited (Jamnagar)';
+  const defaultCust = customers[0]?.companyName || '';
 
   const [selectedFg, setSelectedFg] = useState('');
   const [selectedWo, setSelectedWo] = useState(defaultWo);
   const [selectedJob, setSelectedJob] = useState(defaultJob);
   const [customerName, setCustomerName] = useState(defaultCust);
-  const [customerAddress, setCustomerAddress] = useState('Refinery Complex, Moti Khavdi, Jamnagar, Gujarat - 361140');
-  const [destinationCity, setDestinationCity] = useState('Jamnagar');
-  const [productName, setProductName] = useState('Heavy SS 316L Chemical Reactor Vessel (10 KL)');
-  const [specification, setSpecification] = useState('SS 316L Limpet Coil, 10 KL Capacity, Design Pressure 6 Bar');
+  const [customerAddress, setCustomerAddress] = useState('');
+  const [destinationCity, setDestinationCity] = useState('');
+  const [productName, setProductName] = useState('');
+  const [specification, setSpecification] = useState('');
   const [quantity, setQuantity] = useState<number | string>(1);
   const [uom, setUom] = useState('Unit');
-  const [serialNumber, setSerialNumber] = useState('UTF-CR-2026-001');
-  const [batchNumber, setBatchNumber] = useState('HEAT-SS316-9921');
-  const [weightMT, setWeightMT] = useState<number | string>(8.5);
-  const [transporterName, setTransporterName] = useState('Mahavir Heavy Logistics & Trailers');
-  const [vehicleNumber, setVehicleNumber] = useState('GJ-01-XX-9900');
-  const [lrNumber, setLrNumber] = useState('LR-2026-8899');
-  const [driverName, setDriverName] = useState('Ramesh Bhai Solanki');
-  const [driverMobile, setDriverMobile] = useState('9825112233');
-  const [eWayBillNumber, setEWayBillNumber] = useState('EWB-24-99887766');
-  const [invoiceNumber, setInvoiceNumber] = useState('INV-2026-0089');
-  const [packagingType, setPackagingType] = useState('Wooden Saddle & Tarpaulin Protection');
-  const [dispatchType, setDispatchType] = useState('Road Freight (Semi Low Bed Trailer)');
-  const [qcClearanceBy, setQcClearanceBy] = useState('Sanjay Mehta (QC Lead)');
-  const [dispatchedBy, setDispatchedBy] = useState('Pravin Patel (Dispatch Manager)');
+  const [serialNumber, setSerialNumber] = useState('');
+  const [batchNumber, setBatchNumber] = useState('');
+  const [weightMT, setWeightMT] = useState<number | string>('');
+  const [transporterName, setTransporterName] = useState('');
+  const [vehicleNumber, setVehicleNumber] = useState('');
+  const [lrNumber, setLrNumber] = useState('');
+  const [driverName, setDriverName] = useState('');
+  const [driverMobile, setDriverMobile] = useState('');
+  const [eWayBillNumber, setEWayBillNumber] = useState('');
+  const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [packagingType, setPackagingType] = useState('');
+  const [dispatchType, setDispatchType] = useState('');
+  const [qcClearanceBy, setQcClearanceBy] = useState('');
+  const [dispatchedBy, setDispatchedBy] = useState('');
   const [status, setStatus] = useState<DispatchStatus>('Ready for Dispatch');
-  const [remarks, setRemarks] = useState('FAT inspection cleared, ready for customer transit.');
+  const [remarks, setRemarks] = useState('');
 
   // Handle ESC key
   useEffect(() => {
@@ -132,22 +132,22 @@ export default function DispatchPage() {
     } else {
       setSelectedWo(workOrders[0]?.workOrderNumber || '');
       setSelectedJob(workOrders[0]?.jobNumber || '');
-      setProductName('Heavy SS 316L Chemical Reactor Vessel (10 KL)');
+      setProductName('');
     }
     const cust = customers[0];
-    setCustomerName(cust?.companyName || 'Reliance Industries Limited (Jamnagar)');
-    setCustomerAddress(cust?.shippingAddress || 'Refinery Complex, Moti Khavdi, Jamnagar, Gujarat - 361140');
-    setDestinationCity(cust?.city || 'Jamnagar');
-    setWeightMT(8.5);
-    setTransporterName('Mahavir Heavy Logistics & Trailers');
-    setVehicleNumber(`GJ-${Math.floor(Math.random() * 30 + 1).toString().padStart(2, '0')}-AB-${Math.floor(Math.random() * 8999 + 1000)}`);
-    setLrNumber(`LR-2026-${Date.now().toString().slice(-4)}`);
-    setDriverName('Ramesh Bhai Solanki');
-    setDriverMobile('9825112233');
-    setEWayBillNumber(`EWB-24-${Date.now().toString().slice(-8)}`);
-    setInvoiceNumber(`INV-2026-${Date.now().toString().slice(-4)}`);
-    setPackagingType('Wooden Saddle & Tarpaulin Protection');
-    setDispatchType('Road Freight (Semi Low Bed Trailer)');
+    setCustomerName(cust?.companyName || '');
+    setCustomerAddress(cust?.shippingAddress || '');
+    setDestinationCity(cust?.city || '');
+    setWeightMT('');
+    setTransporterName('');
+    setVehicleNumber('');
+    setLrNumber('');
+    setDriverName('');
+    setDriverMobile('');
+    setEWayBillNumber('');
+    setInvoiceNumber('');
+    setPackagingType('');
+    setDispatchType('');
     setStatus('Ready for Dispatch');
     setShowModal(true);
   };

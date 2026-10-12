@@ -35,14 +35,14 @@ export default function ExhibitionsPage() {
   // New Expo Form State
   const [expoName, setExpoName] = useState('');
   const [organizer, setOrganizer] = useState('');
-  const [location, setLocation] = useState('Helipad Ground, Gandhinagar');
-  const [startDate, setStartDate] = useState('2026-11-20');
-  const [endDate, setEndDate] = useState('2026-11-24');
-  const [stallNumber, setStallNumber] = useState('Hall 8 / D-24');
-  const [contactPerson, setContactPerson] = useState('Pravin Patel');
-  const [budget, setBudget] = useState(850000);
-  const [assignedTeam, setAssignedTeam] = useState<string[]>(['Pravin Patel', 'Amit Sharma']);
-  const [productsDisplayed, setProductsDisplayed] = useState('Chemical Reactors, Storage Tanks');
+  const [location, setLocation] = useState('');
+  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const [stallNumber, setStallNumber] = useState('');
+  const [contactPerson, setContactPerson] = useState('');
+  const [budget, setBudget] = useState(0);
+  const [assignedTeam, setAssignedTeam] = useState<string[]>([]);
+  const [productsDisplayed, setProductsDisplayed] = useState('');
   const [notes, setNotes] = useState('');
 
   // Edit Expo Form State
@@ -65,13 +65,13 @@ export default function ExhibitionsPage() {
   const resetCreateForm = () => {
     setExpoName('');
     setOrganizer('');
-    setLocation('Helipad Ground, Gandhinagar');
+    setLocation('');
     setStartDate(new Date().toISOString().split('T')[0]);
     setEndDate(new Date().toISOString().split('T')[0]);
-    setStallNumber('Hall 1 / Stand 10');
-    setContactPerson('Pravin Patel');
-    setBudget(500000);
-    setAssignedTeam(['Pravin Patel']);
+    setStallNumber('');
+    setContactPerson('');
+    setBudget(0);
+    setAssignedTeam([]);
     setProductsDisplayed('');
     setNotes('');
   };

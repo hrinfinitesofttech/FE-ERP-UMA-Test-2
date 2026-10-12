@@ -6,7 +6,7 @@ import { PauseCircle, Plus, PlayCircle, AlertTriangle, Clock, ShieldCheck } from
 import { ProductionHoldReason } from '../../../types/production';
 
 export default function ProductionHoldPage() {
-  const { productionHolds, workOrders, addProductionHold, resumeProductionHold, isInitialLoading } = useERP();
+  const { productionHolds, workOrders, addProductionHold, resumeProductionHold, isInitialLoading, currentUser } = useERP();
   const [showModal, setShowModal] = useState(false);
 
   const [selectedWo, setSelectedWo] = useState('');
@@ -29,7 +29,7 @@ export default function ProductionHoldPage() {
       description: desc || 'Authorized production hold for resolution.',
       startDate: new Date().toISOString().split('T')[0],
       expectedResumeDate: resumeDate || '',
-      approvedBy: 'Bhavin Shah (Senior Production Manager)',
+      approvedBy: currentUser?.name || 'Production Manager',
       status: 'Active Hold',
     });
 

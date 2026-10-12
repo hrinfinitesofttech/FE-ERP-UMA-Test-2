@@ -64,14 +64,11 @@ function ProductionEntryContent() {
   const [isManualOperator, setIsManualOperator] = useState(false);
 
   // Form State
-  const defaultWo = workOrders[0]?.workOrderNumber || '';
-  const defaultWc = workCenters[0]?.workCenterName || 'Fabrication & Rolling Bay 01';
-
-  const [selectedWo, setSelectedWo] = useState(defaultWo);
-  const [opName, setOpName] = useState(STANDARD_FAB_STAGES[1]);
-  const [wcName, setWcName] = useState(defaultWc);
-  const [machineName, setMachineName] = useState('Heavy 3-Roll Plate Bending M/C (40mm)');
-  const [operator, setOperator] = useState('Mahesh Solanki (Machine Operator)');
+  const [selectedWo, setSelectedWo] = useState('');
+  const [opName, setOpName] = useState('');
+  const [wcName, setWcName] = useState('');
+  const [machineName, setMachineName] = useState('');
+  const [operator, setOperator] = useState('');
   const [shiftType, setShiftType] = useState<'Day Shift' | 'Night Shift'>('Day Shift');
   const [shiftHours, setShiftHours] = useState<number | string>(8.5);
   const [produced, setProduced] = useState<number | string>(1);
@@ -80,7 +77,7 @@ function ProductionEntryContent() {
   const [scrap, setScrap] = useState<number | string>(0);
   const [downtime, setDowntime] = useState<number | string>(0);
   const [downtimeReason, setDowntimeReason] = useState('');
-  const [remarks, setRemarks] = useState('Shift fabrication target completed within tolerance.');
+  const [remarks, setRemarks] = useState('');
 
   const computedGood = Math.max(
     0,
@@ -118,15 +115,11 @@ function ProductionEntryContent() {
 
   const openCreateModal = () => {
     setEditingEntry(null);
-    setSelectedWo(workOrders[0]?.workOrderNumber || '');
-    setOpName(STANDARD_FAB_STAGES[1]);
-    setWcName(workCenters[0]?.workCenterName || 'Fabrication & Rolling Bay 01');
-    setMachineName('Heavy 3-Roll Plate Bending M/C (40mm)');
-    setOperator(
-      availableEmployees[0]?.name ||
-        `${availableEmployees[0]?.firstName || 'Mahesh'} ${availableEmployees[0]?.lastName || 'Solanki'}`.trim() ||
-        'Mahesh Solanki (Machine Operator)'
-    );
+    setSelectedWo('');
+    setOpName('');
+    setWcName('');
+    setMachineName('');
+    setOperator('');
     setShiftType('Day Shift');
     setShiftHours(8.5);
     setProduced(1);
@@ -135,16 +128,16 @@ function ProductionEntryContent() {
     setScrap(0);
     setDowntime(0);
     setDowntimeReason('');
-    setRemarks('Shift fabrication target completed within tolerance.');
+    setRemarks('');
     setShowModal(true);
   };
 
   const openEditModal = (entry: ProductionEntry) => {
     setEditingEntry(entry);
-    setSelectedWo(entry.workOrderNumber || defaultWo);
+    setSelectedWo(entry.workOrderNumber || '');
     setOpName(entry.operationName || '');
-    setWcName(entry.workCenterName || defaultWc);
-    setMachineName(entry.machineName || 'SAW Automatic Manipulator M/C-01');
+    setWcName(entry.workCenterName || '');
+    setMachineName(entry.machineName || '');
     setOperator(entry.operatorName || '');
     setProduced(entry.producedQuantity || 0);
     setRejected(entry.rejectedQuantity || 0);
@@ -166,23 +159,27 @@ function ProductionEntryContent() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedWo) {
+      alert('Please select a Work Order.');
+      return;
+    }
     if (!opName.trim()) {
       alert('Operation Name is required and cannot be blank.');
       return;
     }
-    const finalOperator = operator.trim() || 'Mahesh Solanki (Machine Operator)';
+    const finalOperator = operator.trim() || 'Operator';
     const matchedWo = workOrders.find((w) => w.workOrderNumber === selectedWo);
     const matchedJob = projectJobs?.find((j) => j.jobNumber === matchedWo?.jobNumber || j.id === matchedWo?.jobId);
 
     const entryPayload = {
       entryDate: new Date().toISOString().split('T')[0],
-      jobId: matchedWo?.jobId || matchedJob?.id || 'PRJ-2026-0001',
+      jobId: matchedWo?.jobId || matchedJob?.id || '',
       jobNumber: matchedWo?.jobNumber || matchedJob?.jobNumber || '',
       workOrderNumber: selectedWo,
       productionOrderNumber: `PO-PROD-${new Date().getFullYear()}-001`,
       operationName: opName.trim(),
-      workCenterName: wcName || defaultWc,
-      machineName: machineName || 'Heavy Plate Rolling M/C',
+      workCenterName: wcName || '',
+      machineName: machineName || '',
       operatorName: finalOperator,
       startTime: shiftType === 'Day Shift' ? '08:00 AM' : '08:00 PM',
       endTime: shiftType === 'Day Shift' ? '05:00 PM' : '05:00 AM',
@@ -193,7 +190,7 @@ function ProductionEntryContent() {
       scrapQuantity: Number(scrap) || 0,
       downtimeMinutes: Number(downtime) || 0,
       downtimeReason: downtimeReason || undefined,
-      remarks: remarks || `Logged in ${shiftType} (${shiftHours} Hrs).`,
+      remarks: remarks || '',
       createdBy: finalOperator,
     };
 
@@ -485,6 +482,7 @@ function ProductionEntryContent() {
                   onChange={(e) => setSelectedWo(e.target.value)}
                   className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-mono font-bold"
                 >
+                  <option value="">-- Select Work Order & Job --</option>
                   {workOrders.map((w) => (
                     <option key={w.id} value={w.workOrderNumber}>
                       {w.workOrderNumber} — {w.jobNumber} | {w.productName ? w.productName.slice(0, 32) : 'Equipment'} ({w.customerName || 'Client'})
@@ -504,6 +502,7 @@ function ProductionEntryContent() {
                   onChange={(e) => setOpName(e.target.value)}
                   className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-bold text-xs"
                 >
+                  <option value="">-- Select Operation / Stage --</option>
                   {STANDARD_FAB_STAGES.map((stg) => (
                     <option key={stg} value={stg}>
                       {stg}
@@ -518,12 +517,13 @@ function ProductionEntryContent() {
               {/* Work Center & Machine */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-[#70665F] mb-1">Work Center Bay *</label>
+                  <label className="block font-bold text-[#70665F] mb-1">Work Center Bay</label>
                   <select
                     value={wcName}
                     onChange={(e) => setWcName(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-semibold"
                   >
+                    <option value="">-- Select Work Center Bay --</option>
                     <option value="Fabrication & Rolling Bay 01">WC-FAB-01 - Fabrication & Rolling Bay 01</option>
                     <option value="SAW & TIG Welding Bay 02">WC-WELD-02 - SAW & TIG Welding Bay 02</option>
                     <option value="Heavy Machining & Flange Bay 03">WC-MACH-03 - Heavy Machining & Flange Bay 03</option>
@@ -571,14 +571,12 @@ function ProductionEntryContent() {
                     value={operator}
                     onChange={(e) => setOperator(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-semibold"
+                    required
                   >
-                    <option value="Mahesh Solanki (Machine Operator)">Mahesh Solanki (Machine Operator)</option>
-                    <option value="Ketan Parmar (Sr. SAW Welder)">Ketan Parmar (Sr. SAW Welder)</option>
-                    <option value="Dinesh Vaghela (Fitter & Rigger)">Dinesh Vaghela (Fitter & Rigger)</option>
-                    <option value="Suresh Rathod (CNC Plasma Operator)">Suresh Rathod (CNC Plasma Operator)</option>
+                    <option value="">-- Select Operator --</option>
                     {availableEmployees.map((emp) => (
-                      <option key={emp.id} value={emp.name || emp.firstName}>
-                        {emp.name || emp.firstName}
+                      <option key={emp.id} value={emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim()}>
+                        {emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim()} {emp.role ? `(${emp.role})` : ''}
                       </option>
                     ))}
                   </select>
@@ -664,6 +662,7 @@ function ProductionEntryContent() {
                   type="text"
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
+                  placeholder="e.g. Shift fabrication notes / observation"
                   className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17]"
                 />
               </div>

@@ -284,9 +284,9 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
     d.production_stage = d.production_stage || d.productionStage || 'Shell & Dish End Cutting / Rolling';
     d.productionStage = d.production_stage;
     d.department = d.department || 'Production';
-    d.issued_to = d.issued_to || d.requestedBy || 'Bhavin Shah (Production Head)';
+    d.issued_to = d.issued_to || d.requestedBy || '';
     d.requestedBy = d.issued_to;
-    d.issued_by = d.issued_by || d.issuedBy || 'Hitesh Rawal (Store Incharge)';
+    d.issued_by = d.issued_by || d.issuedBy || '';
     d.issuedBy = d.issued_by;
     d.warehouse_id = d.warehouse_id || d.warehouseId || 'WH-001';
     d.warehouseId = d.warehouse_id;
@@ -809,11 +809,15 @@ export const api = {
   },
   employees: {
     list: () => request<any[]>('/employees/'),
+    get: (id: string) => request<any>(`/employees/${id}/`),
     create: (data: any) => request<any>('/employees/', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: string, data: any) => request<any>(`/employees/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: (id: string) => request<any>(`/employees/${id}/`, { method: 'DELETE' }),
     resetPassword: (id: string, password: string) =>
       request<any>(`/employees/${id}/reset-password/`, { method: 'POST', body: JSON.stringify({ password }) }),
+    getPermissions: (id: string) => request<any>(`/employees/${id}/permissions/`),
+    updatePermissions: (id: string, data: any) =>
+      request<any>(`/employees/${id}/permissions/`, { method: 'POST', body: JSON.stringify(data) }),
   },
 
   // CRM
@@ -1080,8 +1084,22 @@ export const api = {
       request<any[]>(projectId ? `/project-milestones/?projectId=${projectId}` : '/project-milestones/'),
     tasks: (projectId?: string) =>
       request<any[]>(projectId ? `/project-tasks/?projectId=${projectId}` : '/project-tasks/'),
+    listTasks: (params?: { projectId?: string; assignedToId?: string; department?: string; status?: string }) => {
+      let query = '';
+      if (params) {
+        const q = new URLSearchParams();
+        if (params.projectId) q.append('projectId', params.projectId);
+        if (params.assignedToId) q.append('assigned_to_id', params.assignedToId);
+        if (params.department) q.append('department', params.department);
+        if (params.status) q.append('status', params.status);
+        query = `?${q.toString()}`;
+      }
+      return request<any[]>(`/project-tasks/${query}`);
+    },
     createTask: (data: any) => request<any>('/project-tasks/', { method: 'POST', body: JSON.stringify(data) }),
     updateTask: (id: string, data: any) => request<any>(`/project-tasks/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+    updateTaskProgress: (id: string, data: any) =>
+      request<any>(`/project-tasks/${id}/progress/`, { method: 'POST', body: JSON.stringify(data) }),
     deleteTask: (id: string) => request<any>(`/project-tasks/${id}/`, { method: 'DELETE' }),
     departmentAssignments: (projectId?: string) =>
       request<any[]>(projectId ? `/department-assignments/?projectId=${projectId}` : '/department-assignments/'),
@@ -1479,12 +1497,46 @@ export const api = {
   hr: {
     designations: () => request<any[]>('/designations/'),
     shifts: () => request<any[]>('/shifts/'),
-    attendance: () => request<any[]>('/attendance-records/'),
+    attendance: {
+      list: (params?: { employeeId?: string; date?: string; status?: string }) => {
+        let query = '';
+        if (params) {
+          const q = new URLSearchParams();
+          if (params.employeeId) q.append('employee_id', params.employeeId);
+          if (params.date) q.append('date', params.date);
+          if (params.status) q.append('status', params.status);
+          query = `?${q.toString()}`;
+        }
+        return request<any[]>(`/attendance-records/${query}`);
+      },
+      checkIn: (data: { employeeId?: string; employeeName?: string; department?: string; shiftName?: string }) =>
+        request<any>('/attendance-records/check-in/', { method: 'POST', body: JSON.stringify(data) }),
+      checkOut: (data: { employeeId?: string }) =>
+        request<any>('/attendance-records/check-out/', { method: 'POST', body: JSON.stringify(data) }),
+      myHistory: (employeeId?: string) =>
+        request<any[]>(`/attendance-records/my-history/${employeeId ? `?employee_id=${employeeId}` : ''}`),
+      create: (data: any) => request<any>('/attendance-records/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/attendance-records/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/attendance-records/${id}/`, { method: 'DELETE' }),
+    },
     leaves: {
-      list: () => request<any[]>('/leave-requests/'),
+      list: (params?: { employeeId?: string; status?: string }) => {
+        let query = '';
+        if (params) {
+          const q = new URLSearchParams();
+          if (params.employeeId) q.append('employee_id', params.employeeId);
+          if (params.status) q.append('status', params.status);
+          query = `?${q.toString()}`;
+        }
+        return request<any[]>(`/leave-requests/${query}`);
+      },
       create: (data: any) => request<any>('/leave-requests/', { method: 'POST', body: JSON.stringify(data) }),
-      approve: (id: string, approvedBy?: string) =>
-        request<any>(`/leave-requests/${id}/approve/`, { method: 'POST', body: JSON.stringify({ approvedBy }) }),
+      update: (id: string, data: any) => request<any>(`/leave-requests/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      approve: (id: string, approvedBy?: string, remarks?: string) =>
+        request<any>(`/leave-requests/${id}/approve/`, { method: 'POST', body: JSON.stringify({ approvedBy, approved_by: approvedBy, managerRemarks: remarks }) }),
+      reject: (id: string, rejectedBy?: string, remarks?: string) =>
+        request<any>(`/leave-requests/${id}/reject/`, { method: 'POST', body: JSON.stringify({ approvedBy: rejectedBy, approved_by: rejectedBy, managerRemarks: remarks }) }),
+      delete: (id: string) => request<any>(`/leave-requests/${id}/`, { method: 'DELETE' }),
     },
     salaryStructures: () => request<any[]>('/salary-structures/'),
     payroll: {

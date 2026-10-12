@@ -52,7 +52,11 @@ export default function DesignJobsPage() {
     customers,
     addDrawing2D,
     drawings2D,
+    availableEmployees,
+    employees,
   } = useERP();
+
+  const allStaff = (availableEmployees && availableEmployees.length > 0 ? availableEmployees : employees) || [];
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -61,7 +65,7 @@ export default function DesignJobsPage() {
   // Modal State for New Design Job
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState('');
-  const [assignedDesigner, setAssignedDesigner] = useState('Dharmesh Joshi');
+  const [assignedDesigner, setAssignedDesigner] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high' | 'urgent'>('high');
   const [requiredDate, setRequiredDate] = useState('');
   const [remarks, setRemarks] = useState('');
@@ -211,7 +215,7 @@ export default function DesignJobsPage() {
       machineType: proj.productName.includes('Reactor') ? 'Reaction Vessel' : 'Process Equipment',
       quantity: proj.quantity,
       deliveryDate: proj.deliveryDate,
-      designManager: 'Dharmesh Joshi',
+      designManager: assignedDesigner || 'Design Dept',
       assignedDesigner,
       priority,
       requiredDate: requiredDate || proj.deliveryDate,
@@ -305,7 +309,7 @@ export default function DesignJobsPage() {
         drawingTitle: drwTitle,
         category: drwCategory as any,
         revision: drwRev,
-        designer: uploadingJob.assignedDesigner || 'Dharmesh Joshi',
+        designer: uploadingJob.assignedDesigner || 'Design Team',
         fileFormat: (primaryFile.name.split('.').pop()?.toUpperCase() as any) || 'PDF',
         fileUrl: primaryFile.dataUrl,
         fileSize: primaryFile.sizeText,
@@ -632,9 +636,16 @@ export default function DesignJobsPage() {
                     onChange={(e) => setAssignedDesigner(e.target.value)}
                     className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
                   >
-                    <option value="Dharmesh Joshi">Dharmesh Joshi (Sr. Design Engineer)</option>
-                    <option value="Ketan Patel">Ketan Patel (Design Manager)</option>
-                    <option value="Rajesh Patel">Rajesh Patel (Technical Director)</option>
+                    <option value="">-- Select Lead Designer --</option>
+                    {allStaff && allStaff.length > 0 ? (
+                      allStaff.map((emp) => (
+                        <option key={emp.id} value={emp.name}>
+                          {emp.name} {emp.role ? `(${emp.role})` : ''}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="Design Lead">Design Lead</option>
+                    )}
                   </select>
                 </div>
 

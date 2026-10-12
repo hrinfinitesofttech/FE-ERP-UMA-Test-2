@@ -5,7 +5,7 @@ import { useERP } from '../../../context/ERPContext';
 import { FileText, Plus, CheckCircle2, Clock, PlayCircle, Layers, Search, ChevronRight } from 'lucide-react';
 
 export default function ProductionOrdersPage() {
-  const { productionOrders, workOrders, addProductionOrder, openJobModal } = useERP();
+  const { productionOrders, workOrders, addProductionOrder, openJobModal, currentUser } = useERP();
   const [showModal, setShowModal] = useState(false);
 
   const [workOrderNumber, setWorkOrderNumber] = useState('');
@@ -19,16 +19,16 @@ export default function ProductionOrdersPage() {
 
     addProductionOrder({
       workOrderId: wo?.id || '',
-      workOrderNumber,
-      jobId: wo?.jobId || 'PRJ-2026-0001',
+      workOrderNumber: workOrderNumber || wo?.workOrderNumber || '',
+      jobId: wo?.jobId || wo?.jobNumber || '',
       jobNumber: wo?.jobNumber || '',
-      productName: wo?.productName || 'Heavy SS 316L Chemical Reactor Vessel (10 KL)',
+      productName: wo?.productName || 'Custom Equipment',
       quantity: qty,
-      bomRevision: wo?.bomRevision || 'Rev-01',
-      designRevision: wo?.designRevision || 'REV-01',
+      bomRevision: wo?.bomRevision || 'Rev-00',
+      designRevision: wo?.designRevision || 'REV-00',
       plannedStartDate: startDate,
       plannedEndDate: endDate,
-      productionManager: 'Bhavin Shah (Senior Production Manager)',
+      productionManager: currentUser?.name || 'Production Manager',
       status: 'In Progress',
     });
 

@@ -92,11 +92,22 @@ export interface Employee {
   roleId: string;
   roleName: string;
   role?: string;
+  roleType?: 'super_admin' | 'admin' | 'department_manager' | 'employee' | string;
+  dataScope?: 'own' | 'assigned' | 'department' | 'all' | string;
+  assignedModules?: string[];
+  customPermissions?: Record<string, any>;
+  canAssignTasks?: boolean;
+  canApproveLeaves?: boolean;
+  canManageAttendance?: boolean;
+  canExportData?: boolean;
+  forcePasswordChange?: boolean;
+  workLocation?: string;
+  emergencyContact?: string;
   reportingManagerId?: string;
   reportingManagerName?: string;
   joiningDate: string;
   joinedDate?: string;
-  employmentType: 'full_time' | 'contract' | 'probation';
+  employmentType: 'full_time' | 'contract' | 'probation' | string;
   status: 'active' | 'inactive' | 'suspended' | string;
   lastLogin?: string;
   username: string;
@@ -112,8 +123,14 @@ export interface Department {
   managerId: string;
   managerName: string;
   description: string;
+  parentDepartmentId?: string;
+  assignedModules?: string[];
+  defaultPermissions?: Record<string, any>;
   status: 'active' | 'inactive' | string;
   employeeCount: number;
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Role {
@@ -447,22 +464,34 @@ export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 export interface ProjectTask {
   id: string; // e.g. TSK-2026-0001
   taskNumber: string;
-  projectId: string;
-  projectNumber: string;
-  jobNumber: string;
+  projectId?: string;
+  projectNumber?: string;
+  jobNumber?: string;
   taskName: string;
+  title?: string;
   description: string;
   department: string;
-  assignedTo: string;
-  priority: TaskPriority;
-  startDate: string;
+  assignedByName?: string;
+  assignedTo?: string;
+  assignedToId?: string;
+  assignedToName?: string;
+  assignedEmployee?: string;
+  category?: string;
+  priority: TaskPriority | string;
+  startDate?: string;
   dueDate: string;
   estimatedHours: number;
   actualHours: number;
-  status: TaskStatus;
-  completionPercent: number;
+  status: TaskStatus | string;
+  completionPercent?: number;
+  progressPercent?: number;
+  progress?: number;
+  checklist?: { id?: string; text: string; completed: boolean }[];
   dependentTaskId?: string;
   remarks?: string;
+  completionDate?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface PlanningStageAssignee {

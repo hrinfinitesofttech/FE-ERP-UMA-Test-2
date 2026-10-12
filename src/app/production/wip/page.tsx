@@ -55,24 +55,24 @@ function WIPTrackingContent() {
 
       result.push({
         id: existing?.id || `WIP-${wo.workOrderNumber}`,
-        jobId: wo.jobId || matchedJob?.id || 'PRJ-2026-0001',
+        jobId: wo.jobId || matchedJob?.id || '',
         jobNumber: wo.jobNumber,
         workOrderNumber: wo.workOrderNumber,
-        productionOrderNumber: existing?.productionOrderNumber || 'PO-PROD-2026-001',
+        productionOrderNumber: existing?.productionOrderNumber || '',
         currentOperationName: isCompleted ? 'Completed & QC Cleared' : currentOp,
         completedOperationsCount: isCompleted ? totalOps : Math.min(totalOps, completedOps),
         totalOperationsCount: totalOps,
         wipQuantity: wo.productionQuantity || 1,
         uom: wo.uom || 'Unit',
-        location: entriesForWo[0]?.workCenterName || existing?.location || 'Fabrication Bay 01',
-        responsibleDepartment: existing?.responsibleDepartment || 'Heavy Fabrication Division',
-        startDate: wo.plannedStartDate || new Date().toISOString().split('T')[0],
-        expectedCompletionDate: wo.plannedEndDate || new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
+        location: entriesForWo[0]?.workCenterName || existing?.location || 'Unassigned Bay',
+        responsibleDepartment: existing?.responsibleDepartment || 'Fabrication',
+        startDate: wo.plannedStartDate || '',
+        expectedCompletionDate: wo.plannedEndDate || '',
         delayDays: existing?.delayDays || 0,
         status: isCompleted ? 'QC Pending' : (existing?.status || (completedOps >= totalOps ? 'QC Pending' : 'In Progress')),
-        customerName: wo.customerName || matchedJob?.customerName || 'Standard Client',
-        productName: wo.productName || matchedJob?.productName || 'Industrial Process Equipment',
-        priority: wo.priority || 'High',
+        customerName: wo.customerName || matchedJob?.customerName || '',
+        productName: wo.productName || matchedJob?.productName || '',
+        priority: wo.priority || 'Medium',
       });
     });
 
@@ -275,11 +275,11 @@ function WIPTrackingContent() {
                       )}
                     </div>
                     <div className="font-bold text-[#211B17] text-sm mt-1">
-                      {wip.productName || 'Custom Fabricated Process Vessel'}
+                      {wip.productName || 'N/A'}
                     </div>
                     <div className="text-xs text-[#70665F] flex items-center gap-1 mt-0.5">
                       <Building className="w-3.5 h-3.5 text-[#8C827A]" />
-                      <span>Customer: <strong>{wip.customerName || 'Standard Client'}</strong></span>
+                      <span>Customer: <strong>{wip.customerName || '-'}</strong></span>
                     </div>
                   </div>
 

@@ -57,16 +57,16 @@ export default function PurchaseOrderPage() {
   const [selectedQuoteId, setSelectedQuoteId] = useState(supplierQuotations[0]?.id || '');
 
   // Direct Entry State
-  const [selectedSupplierId, setSelectedSupplierId] = useState(suppliers[0]?.id || '');
-  const [directJobId, setDirectJobId] = useState(projectJobs[0]?.id || projectJobs[0]?.jobNumber || '');
-  const [directProjectId, setDirectProjectId] = useState(projectJobs[0]?.projectId || '');
+  const [selectedSupplierId, setSelectedSupplierId] = useState('');
+  const [directJobId, setDirectJobId] = useState('');
+  const [directProjectId, setDirectProjectId] = useState('');
 
   // Common PO fields
-  const [newDeliveryDate, setNewDeliveryDate] = useState('2026-10-25');
-  const [newPaymentTerms, setNewPaymentTerms] = useState('30 Days Credit after GRN');
-  const [newDeliveryTerms, setNewDeliveryTerms] = useState('FOR Destination (Uma Techno Fab GIDC Works)');
-  const [newDispatchMode, setNewDispatchMode] = useState('By Road Truck');
-  const [newSpecialInstructions, setNewSpecialInstructions] = useState('Test certificates (MTC) required along with material delivery.');
+  const [newDeliveryDate, setNewDeliveryDate] = useState(new Date().toISOString().split('T')[0]);
+  const [newPaymentTerms, setNewPaymentTerms] = useState('');
+  const [newDeliveryTerms, setNewDeliveryTerms] = useState('');
+  const [newDispatchMode, setNewDispatchMode] = useState('');
+  const [newSpecialInstructions, setNewSpecialInstructions] = useState('');
 
   // Direct Items State
   const [directItems, setDirectItems] = useState<Array<{
@@ -80,13 +80,13 @@ export default function PurchaseOrderPage() {
     gstPercentage: number;
   }>>([
     {
-      itemCode: 'RM-MS-PL-12',
-      itemName: 'IS 2062 E250 Mild Steel Plate 12mm',
-      specification: 'Grade E250 BR/BO with Mill TC',
+      itemCode: '',
+      itemName: '',
+      specification: '',
       category: 'Raw Material',
-      unitOfMeasure: 'KG',
-      orderedQuantity: 500,
-      unitPrice: 62,
+      unitOfMeasure: 'NOS',
+      orderedQuantity: 1,
+      unitPrice: 0,
       gstPercentage: 18,
     }
   ]);
@@ -712,10 +712,12 @@ export default function PurchaseOrderPage() {
                     <div>
                       <label className="block text-[#70665F] font-semibold mb-1">Select Supplier</label>
                       <select
-                        value={selectedSupplierId || suppliers[0]?.id}
+                        value={selectedSupplierId}
                         onChange={(e) => setSelectedSupplierId(e.target.value)}
                         className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] focus:outline-none focus:border-emerald-500"
+                        required
                       >
+                        <option value="">-- Select Supplier --</option>
                         {suppliers.length > 0 ? (
                           suppliers.map((s) => (
                             <option key={s.id} value={s.id}>
@@ -723,7 +725,7 @@ export default function PurchaseOrderPage() {
                             </option>
                           ))
                         ) : (
-                          <option value="">No suppliers available</option>
+                          <option value="" disabled>No suppliers available</option>
                         )}
                       </select>
                     </div>
@@ -744,7 +746,7 @@ export default function PurchaseOrderPage() {
                         type="text"
                         value={directProjectId}
                         onChange={(e) => setDirectProjectId(e.target.value)}
-                        placeholder="PRJ-2026-0001"
+                        placeholder="e.g. PRJ-2026-0001"
                         className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono"
                         required
                       />
@@ -885,6 +887,7 @@ export default function PurchaseOrderPage() {
                     type="text"
                     value={newPaymentTerms}
                     onChange={(e) => setNewPaymentTerms(e.target.value)}
+                    placeholder="e.g. 30 Days Credit after GRN"
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
                   />
                 </div>
@@ -896,6 +899,7 @@ export default function PurchaseOrderPage() {
                   rows={2}
                   value={newSpecialInstructions}
                   onChange={(e) => setNewSpecialInstructions(e.target.value)}
+                  placeholder="e.g. Test certificates (MTC) required along with material delivery."
                   className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
                 />
               </div>

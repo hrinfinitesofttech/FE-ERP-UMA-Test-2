@@ -52,18 +52,18 @@ export default function FinishedGoodsPage() {
   // Form State for Inwarding FG
   const defaultWo = workOrders[0]?.workOrderNumber || '';
   const defaultJob = workOrders[0]?.jobNumber || '';
-  const defaultProduct = workOrders[0]?.productName || 'Heavy SS 316L Chemical Reactor Vessel (10 KL)';
+  const defaultProduct = workOrders[0]?.productName || '';
 
   const [selectedWo, setSelectedWo] = useState(defaultWo);
   const [productName, setProductName] = useState(defaultProduct);
-  const [specification, setSpecification] = useState('SS 316L Limpet Coil, 10 KL, 6 Bar Design Pressure');
-  const [serialNumber, setSerialNumber] = useState('UTF-CR-2026-001');
-  const [batchNumber, setBatchNumber] = useState('HEAT-SS316-9921');
-  const [warehouseName, setWarehouseName] = useState('Finished Goods Bay 4 (Dispatch Gate)');
-  const [locationBin, setLocationBin] = useState('Bin-FG-01');
+  const [specification, setSpecification] = useState('');
+  const [serialNumber, setSerialNumber] = useState('');
+  const [batchNumber, setBatchNumber] = useState('');
+  const [warehouseName, setWarehouseName] = useState('');
+  const [locationBin, setLocationBin] = useState('');
   const [quantity, setQuantity] = useState<number | string>(1);
   const [uom, setUom] = useState('Unit');
-  const [qcStatus, setQcStatus] = useState<'QC Passed' | 'QC Pending' | 'QC Failed'>('QC Passed');
+  const [qcStatus, setQcStatus] = useState<'QC Passed' | 'QC Pending' | 'QC Failed'>('QC Pending');
   const [dispatchStatus, setDispatchStatus] = useState<FinishedGoodsItem['status']>('Ready for Dispatch');
 
   // Close modals on ESC
@@ -83,7 +83,8 @@ export default function FinishedGoodsPage() {
     setSelectedWo(woNumber);
     const wo = workOrders.find((w) => w.workOrderNumber === woNumber);
     if (wo) {
-      setProductName(wo.productName || 'Custom Fabricated Process Equipment');
+      setProductName(wo.productName || '');
+      setSpecification((wo as any).specification || '');
     }
   };
 
@@ -91,15 +92,15 @@ export default function FinishedGoodsPage() {
     setEditingFg(null);
     const wo = workOrders[0];
     setSelectedWo(wo?.workOrderNumber || '');
-    setProductName(wo?.productName || 'Heavy SS 316L Chemical Reactor Vessel (10 KL)');
-    setSpecification('SS 316L Limpet Coil, 10 KL, 6 Bar Design Pressure');
-    setSerialNumber(`UTF-SER-${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`);
-    setBatchNumber(`HEAT-SS-${Date.now().toString().slice(-4)}`);
-    setWarehouseName('Finished Goods Bay 4 (Dispatch Gate)');
-    setLocationBin('Bin-FG-01');
+    setProductName(wo?.productName || '');
+    setSpecification((wo as any)?.specification || '');
+    setSerialNumber('');
+    setBatchNumber('');
+    setWarehouseName('');
+    setLocationBin('');
     setQuantity(1);
     setUom('Unit');
-    setQcStatus('QC Passed');
+    setQcStatus('QC Pending');
     setDispatchStatus('Ready for Dispatch');
     setShowModal(true);
   };
