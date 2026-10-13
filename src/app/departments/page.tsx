@@ -4,18 +4,51 @@ import React, { useState } from 'react';
 import { useERP } from '../../context/ERPContext';
 import { DataTable, Column } from '../../components/data/DataTable';
 import { Department } from '../../types/crm';
-import { Building, Plus, CheckCircle2, XCircle, Users, Briefcase } from 'lucide-react';
+import {
+  Building,
+  Plus,
+  CheckCircle2,
+  XCircle,
+  Users,
+  Briefcase,
+  Edit2,
+  Trash2,
+  AlertTriangle,
+  AlertCircle,
+  CheckCircle,
+  X,
+  RefreshCw,
+} from 'lucide-react';
+import { cn } from '../../lib/utils';
 
 export default function DepartmentsPage() {
-  const { departments, addDepartment, updateDepartment, employees } = useERP();
+  const { departments, addDepartment, updateDepartment, deleteDepartment, employees } = useERP();
+
+  // Create Modal State
   const [showModal, setShowModal] = useState(false);
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
   const [managerId, setManagerId] = useState(employees[0]?.id || '');
   const [description, setDescription] = useState('');
 
+  // Edit Modal State
+  const [editDept, setEditDept] = useState<Department | null>(null);
+  const [editCode, setEditCode] = useState('');
+  const [editName, setEditName] = useState('');
+  const [editManagerId, setEditManagerId] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+
+  // Delete Modal State
+  const [confirmDeleteDept, setConfirmDeleteDept] = useState<Department | null>(null);
+  const [isDeletingDept, setIsDeletingDept] = useState(false);
+
+  // Notifications
+  const [actionSuccess, setActionSuccess] = useState('');
+  const [actionError, setActionError] = useState('');
+
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
+    setActionError('');
     const mgr = employees.find((emp) => emp.id === managerId);
     addDepartment({
       code,
@@ -29,19 +62,72 @@ export default function DepartmentsPage() {
     setName('');
     setDescription('');
     setShowModal(false);
+    setActionSuccess(`Department ${code} (${name}) created successfully.`);
+    setTimeout(() => setActionSuccess(''), 5000);
+  };
+
+  const openEditModal = (dept: Department) => {
+    setEditDept(dept);
+    setEditCode(dept.code || '');
+    setEditName(dept.name || '');
+    setEditManagerId(dept.managerId || employees[0]?.id || '');
+    setEditDescription(dept.description || '');
+  };
+
+  const handleUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editDept) return;
+    setActionError('');
+
+    const mgr = employees.find((emp) => emp.id === editManagerId);
+    updateDepartment(editDept.id, {
+      name: editName,
+      managerId: editManagerId,
+      managerName: mgr ? `${mgr.firstName} ${mgr.lastName}` : 'Unassigned',
+      description: editDescription,
+    });
+
+    setActionSuccess(`Department ${editDept.code} (${editName}) updated successfully.`);
+    setEditDept(null);
+    setTimeout(() => setActionSuccess(''), 5000);
+  };
+
+  const handleDelete = async () => {
+    if (!confirmDeleteDept) return;
+    setIsDeletingDept(true);
+    setActionError('');
+
+    try {
+      const res = await deleteDepartment(confirmDeleteDept.id);
+      if (res && res.success === false) {
+        setActionError(res.error || 'Failed to delete department.');
+      } else {
+        setActionSuccess(`Department ${confirmDeleteDept.code} (${confirmDeleteDept.name}) deleted successfully.`);
+      }
+      setConfirmDeleteDept(null);
+      setTimeout(() => setActionSuccess(''), 5000);
+    } catch (err: any) {
+      setActionError(err?.message || 'Error occurred while deleting department.');
+    } finally {
+      setIsDeletingDept(false);
+    }
   };
 
   const columns: Column<Department>[] = [
     {
       header: 'Code',
       accessorKey: 'code',
-      cell: (dept) => <span className="font-mono font-bold text-crm-brand-700 bg-crm-brand- px-2 py-0.5 rounded border border-crm-brand-">{dept.code}</span>,
+      cell: (dept) => (
+        <span className="font-mono font-bold text-crm-brand-700 bg-crm-brand-50 px-2 py-0.5 rounded border border-crm-brand-200">
+          {dept.code}
+        </span>
+      ),
     },
     {
       header: 'Department Name',
       cell: (dept) => (
         <div>
-          <span className="font-bold text-slate-900 dark:text-[#211B17] block">{dept.name}</span>
+          <span className="font-bold text-slate-900 block">{dept.name}</span>
           <span className="text-[11px] text-[#70665F]">{dept.description}</span>
         </div>
       ),
@@ -49,14 +135,14 @@ export default function DepartmentsPage() {
     {
       header: 'Department Head / Manager',
       cell: (dept) => (
-        <span className="font-semibold text-slate-800 dark:text-[#544B45]">{dept.managerName}</span>
+        <span className="font-semibold text-slate-800">{dept.managerName || 'Unassigned'}</span>
       ),
     },
     {
       header: 'Active Staff',
       cell: (dept) => (
-        <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-[#FAF7F2] font-mono text-slate-700 dark:text-[#544B45] font-bold text-[11px]">
-          {dept.employeeCount} Members
+        <span className="px-2 py-0.5 rounded-full bg-slate-100 font-mono text-slate-700 font-bold text-[11px]">
+          {dept.employeeCount || 0} Members
         </span>
       ),
     },
@@ -64,13 +150,14 @@ export default function DepartmentsPage() {
       header: 'Status',
       cell: (dept) => (
         <span
-          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+          className={cn(
+            'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase',
             dept.status === 'active'
               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
               : 'bg-slate-100 text-slate-600 border border-slate-200'
-          }`}
+          )}
         >
-          <span className={`w-1.5 h-1.5 rounded-full ${dept.status === 'active' ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+          <span className={cn('w-1.5 h-1.5 rounded-full', dept.status === 'active' ? 'bg-emerald-500' : 'bg-slate-400')} />
           {dept.status}
         </span>
       ),
@@ -78,12 +165,44 @@ export default function DepartmentsPage() {
     {
       header: 'Actions',
       cell: (dept) => (
-        <button
-          onClick={() => updateDepartment(dept.id, { status: dept.status === 'active' ? 'inactive' : 'active' })}
-          className="text-[11px] text-crm-brand-700 hover:underline font-semibold"
-        >
-          Toggle Status
-        </button>
+        <div className="flex items-center gap-1.5">
+          {/* Edit Button */}
+          <button
+            onClick={() => openEditModal(dept)}
+            title="Edit Department Details"
+            className="p-1.5 rounded-lg border border-blue-200 bg-blue-50/60 hover:bg-blue-100 hover:border-blue-400 text-blue-700 transition shadow-2xs"
+          >
+            <Edit2 className="w-3.5 h-3.5 text-blue-700" />
+          </button>
+
+          {/* Toggle Status Button */}
+          <button
+            onClick={() => {
+              const newStatus = dept.status === 'active' ? 'inactive' : 'active';
+              updateDepartment(dept.id, { status: newStatus });
+              setActionSuccess(`Department ${dept.code} status changed to ${newStatus}.`);
+              setTimeout(() => setActionSuccess(''), 4000);
+            }}
+            title={dept.status === 'active' ? 'Deactivate Department' : 'Activate Department'}
+            className={cn(
+              'p-1.5 rounded-lg border transition shadow-2xs',
+              dept.status === 'active'
+                ? 'border-gray-200 hover:bg-rose-50 hover:border-rose-300 text-rose-600'
+                : 'border-gray-200 hover:bg-emerald-50 hover:border-emerald-300 text-emerald-600'
+            )}
+          >
+            {dept.status === 'active' ? <XCircle className="w-3.5 h-3.5" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+          </button>
+
+          {/* Delete Button */}
+          <button
+            onClick={() => setConfirmDeleteDept(dept)}
+            title="Delete Department"
+            className="p-1.5 rounded-lg border border-rose-200 bg-rose-50/60 hover:bg-rose-100 hover:border-rose-400 text-rose-600 transition shadow-2xs"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+          </button>
+        </div>
       ),
     },
   ];
@@ -91,9 +210,9 @@ export default function DepartmentsPage() {
   return (
     <div className="space-y-4">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white dark:bg-white p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB]">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200">
         <div>
-          <h1 className="text-lg font-bold text-slate-900 dark:text-[#211B17] flex items-center gap-2">
+          <h1 className="text-lg font-bold text-slate-900 flex items-center gap-2">
             <Building className="w-5 h-5 text-crm-brand-700" />
             Departments Management (9 Core Manufacturing Units)
           </h1>
@@ -111,6 +230,31 @@ export default function DepartmentsPage() {
         </button>
       </div>
 
+      {/* Notification Messages */}
+      {actionSuccess && (
+        <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-semibold border border-emerald-200 flex items-center justify-between shadow-2xs animate-in fade-in duration-200">
+          <div className="flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+            <span>{actionSuccess}</span>
+          </div>
+          <button onClick={() => setActionSuccess('')} className="text-emerald-700 hover:text-emerald-900">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {actionError && (
+        <div className="p-3 bg-rose-50 text-rose-800 rounded-xl text-xs font-semibold border border-rose-200 flex items-center justify-between shadow-2xs animate-in fade-in duration-200">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+            <span>{actionError}</span>
+          </div>
+          <button onClick={() => setActionError('')} className="text-rose-700 hover:text-rose-900">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Departments Table */}
       <DataTable
         title="Departments Master"
@@ -119,76 +263,243 @@ export default function DepartmentsPage() {
         searchPlaceholder="Filter departments..."
       />
 
-      {/* Create Modal */}
+      {/* CREATE MODAL */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FAF7F2] backdrop-blur-sm">
-          <div className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl shadow-xl w-full max-w-md p-6 text-xs space-y-4">
-            <h3 className="text-base font-bold text-slate-900 dark:text-[#211B17]">Add New Department</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#EBE3DB]">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-crm-brand-100 text-crm-brand-800 flex items-center justify-center font-bold">
+                  <Building className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-[#211B17]">Add New Department</h3>
+                  <p className="text-[11px] text-[#70665F]">Configure code, manager and workflow details</p>
+                </div>
+              </div>
+              <button onClick={() => setShowModal(false)} className="text-[#70665F] hover:text-[#211B17] p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
             <form onSubmit={handleCreate} className="space-y-3">
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Department Code *</label>
+                <label className="block text-[#544B45] font-semibold mb-1">Department Code *</label>
                 <input
                   type="text"
                   required
                   value={code}
                   onChange={(e) => setCode(e.target.value?.toUpperCase())}
                   placeholder="e.g. LOG"
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg font-mono uppercase text-slate-900 dark:text-[#211B17]"
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-mono uppercase text-[#211B17] focus:outline-none focus:border-crm-brand-500"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Department Name *</label>
+                <label className="block text-[#544B45] font-semibold mb-1">Department Name *</label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Logistics & Dispatch"
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Assigned Manager</label>
+                <label className="block text-[#544B45] font-semibold mb-1">Assigned Manager</label>
                 <select
                   value={managerId}
                   onChange={(e) => setManagerId(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
                 >
                   {employees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>{emp.firstName} {emp.lastName} ({emp.designation})</option>
+                    <option key={emp.id} value={emp.id}>
+                      {emp.firstName} {emp.lastName} ({emp.designation || 'Staff'})
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Description</label>
+                <label className="block text-[#544B45] font-semibold mb-1">Description</label>
                 <textarea
                   rows={2}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Responsibilities of this department..."
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border rounded-lg hover:bg-slate-100 text-slate-600 font-semibold"
+                  className="px-4 py-2 border border-[#EBE3DB] rounded-lg hover:bg-[#FAF7F5] text-[#544B45] font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-lg font-bold"
+                  className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-lg font-bold shadow-xs"
                 >
                   Save Department
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT MODAL */}
+      {editDept && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#EBE3DB]">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+                  <Edit2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-[#211B17]">Edit Department</h3>
+                  <p className="text-[11px] text-[#70665F]">Update name, manager and description</p>
+                </div>
+              </div>
+              <button onClick={() => setEditDept(null)} className="text-[#70665F] hover:text-[#211B17] p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdate} className="space-y-3">
+              <div>
+                <label className="block text-[#544B45] font-semibold mb-1">Department Code</label>
+                <input
+                  type="text"
+                  disabled
+                  value={editCode}
+                  className="w-full px-3 py-2 bg-gray-100 border border-[#EBE3DB] rounded-lg font-mono uppercase text-[#70665F] cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[#544B45] font-semibold mb-1">Department Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="Department Name"
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[#544B45] font-semibold mb-1">Assigned Manager</label>
+                <select
+                  value={editManagerId}
+                  onChange={(e) => setEditManagerId(e.target.value)}
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                >
+                  <option value="">Unassigned</option>
+                  {employees.map((emp) => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.firstName} {emp.lastName} ({emp.designation || 'Staff'})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[#544B45] font-semibold mb-1">Description</label>
+                <textarea
+                  rows={2}
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  placeholder="Responsibilities of this department..."
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
+                <button
+                  type="button"
+                  onClick={() => setEditDept(null)}
+                  className="px-4 py-2 border border-[#EBE3DB] rounded-lg hover:bg-[#FAF7F5] text-[#544B45] font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-xs"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {confirmDeleteDept && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center font-bold flex-shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-[#211B17]">Delete Department</h3>
+                <p className="text-xs text-[#70665F]">
+                  Code: <span className="font-mono font-bold text-slate-800">{confirmDeleteDept.code}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl space-y-1.5">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-rose-800">
+                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>Warning: Irreversible Deletion</span>
+              </div>
+              <p className="text-xs text-rose-700 leading-relaxed">
+                Are you sure you want to permanently delete the department{' '}
+                <span className="font-bold text-slate-900">{confirmDeleteDept.name}</span> ({confirmDeleteDept.code})?
+                {confirmDeleteDept.employeeCount > 0 && (
+                  <span className="block mt-1 font-semibold text-rose-800">
+                    ⚠️ Note: There are currently {confirmDeleteDept.employeeCount} active staff member(s) listed under this department.
+                  </span>
+                )}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#EBE3DB]">
+              <button
+                type="button"
+                disabled={isDeletingDept}
+                onClick={() => setConfirmDeleteDept(null)}
+                className="px-4 py-2 border border-[#EBE3DB] rounded-lg hover:bg-[#FAF7F5] text-[#544B45] font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingDept}
+                onClick={handleDelete}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg shadow-xs flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {isDeletingDept ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" /> Yes, Delete Department
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

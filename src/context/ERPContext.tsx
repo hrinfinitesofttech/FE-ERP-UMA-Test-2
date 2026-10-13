@@ -465,11 +465,12 @@ interface ERPContextType {
   departments: Department[];
   addDepartment: (dept: Omit<Department, 'id' | 'employeeCount'> & { employeeCount?: number }) => void;
   updateDepartment: (id: string, dept: Partial<Department>) => void;
-  deleteDepartment: (id: string) => void;
+  deleteDepartment: (id: string) => Promise<{ success: boolean; message?: string; error?: string }>;
 
   roles: Role[];
   addRole: (role: Omit<Role, 'id'>) => void;
   updateRole: (id: string, role: Partial<Role>) => void;
+  deleteRole: (id: string) => Promise<{ success: boolean; message?: string; error?: string }>;
 
   employees: Employee[];
   addEmployee: (emp: Omit<Employee, 'id'>) => void;
@@ -5295,16 +5296,30 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     api.departments.update(id, dept).catch((err) => console.warn('Failed to update department on backend:', err));
   };
 
-  const deleteDepartment = (id: string) => {
+  const deleteDepartment = async (id: string): Promise<{ success: boolean; message?: string; error?: string }> => {
+    let apiError: string | null = null;
+    try {
+      await api.departments.delete(id);
+    } catch (err: any) {
+      console.warn('Failed to delete department on backend:', err);
+      apiError = err?.data?.error || err?.message || 'API request failed';
+      if (err?.status === 400 && err?.data?.error) {
+        return { success: false, error: err.data.error };
+      }
+    }
+
     setDepartments((prev) => {
-      const updated = prev.filter((d) => d.id !== id);
+      const updated = prev.filter((d) => d.id !== id && d.code?.toLowerCase() !== id.toLowerCase());
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_departments', JSON.stringify(updated)); } catch (_) {}
       }
       return updated;
     });
     logAction('DELETE', 'Department Management', 'Delete Department', id, `Deleted department ${id}`);
-    api.departments.delete(id).catch((err) => console.warn('Failed to delete department on backend:', err));
+    if (apiError) {
+      return { success: true, message: `Department deleted locally (backend note: ${apiError})` };
+    }
+    return { success: true, message: `Department deleted successfully.` };
   };
 
   // Role CRUD
@@ -5322,6 +5337,32 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     setRoles((prev) => prev.map((r) => (r.id === id ? { ...r, ...role } : r)));
     logAction('UPDATE', 'Role Management', 'Edit Role', id, `Updated role permissions`);
     api.roles.update(id, role).catch((err) => console.warn('Failed to update role:', err));
+  };
+
+  const deleteRole = async (id: string): Promise<{ success: boolean; message?: string; error?: string }> => {
+    let apiError: string | null = null;
+    try {
+      await api.roles.delete(id);
+    } catch (err: any) {
+      console.warn('Failed to delete role on backend:', err);
+      apiError = err?.data?.error || err?.message || 'API request failed';
+      if (err?.status === 400 && err?.data?.error) {
+        return { success: false, error: err.data.error };
+      }
+    }
+
+    setRoles((prev) => {
+      const updated = prev.filter((r) => r.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_roles', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'Role Management', 'Delete Role', id, `Deleted role ${id}`);
+    if (apiError) {
+      return { success: true, message: `Role deleted locally (backend note: ${apiError})` };
+    }
+    return { success: true, message: `Role deleted successfully.` };
   };
 
 
@@ -12746,6 +12787,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         roles,
         addRole,
         updateRole,
+        deleteRole,
         employees,
         addEmployee,
         updateEmployee,
