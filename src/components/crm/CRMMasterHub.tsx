@@ -24,6 +24,7 @@ import {
   AlertTriangle,
   TrendingUp,
   FileCheck2,
+  ClipboardList,
 } from 'lucide-react';
 
 interface CRMMasterHubProps {
@@ -39,6 +40,7 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
     updateLead,
     deleteLead,
     convertLeadToCustomer,
+    convertLeadToEnquiry,
     quotations,
     employees,
     availableEmployees,
@@ -93,6 +95,19 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
       setTimeout(() => setSuccessMsg(''), 8000);
     } catch (err) {
       console.error('Error converting lead:', err);
+    }
+  };
+
+  const handleConvertToEnquiry = async (leadId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const enq = await convertLeadToEnquiry(leadId);
+      setSuccessMsg(
+        `Lead successfully converted to Enquiry "${enq.enquiryNo}"! Ready for technical review or quotation generation.`
+      );
+      setTimeout(() => setSuccessMsg(''), 8000);
+    } catch (err) {
+      console.error('Error converting lead to enquiry:', err);
     }
   };
 
@@ -217,11 +232,32 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
         const isConverted = lead.status === 'won' || !!lead.convertedCustomerId;
         return (
           <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+            {!lead.convertedEnquiryId ? (
+              <button
+                onClick={(e) => handleConvertToEnquiry(lead.id, e)}
+                title="Convert Lead to Technical Enquiry (RFQ)"
+                className="px-2 py-1 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white rounded text-[10px] font-bold transition flex items-center gap-1 shadow-xs cursor-pointer whitespace-nowrap"
+              >
+                <ClipboardList className="w-3 h-3" /> + To Enquiry
+              </button>
+            ) : (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push('/crm/enquiries');
+                }}
+                title={`Linked to Enquiry ${lead.convertedEnquiryId}`}
+                className="px-2 py-0.5 rounded bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-300 text-[10px] font-bold flex items-center gap-1 whitespace-nowrap cursor-pointer"
+              >
+                <CheckCircle2 className="w-3 h-3 text-amber-600" /> {lead.convertedEnquiryId}
+              </button>
+            )}
+
             {!isConverted ? (
               <button
                 onClick={(e) => handleConvertLead(lead.id, e)}
                 title="Convert Lead to Customer Account"
-                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded text-[10px] font-bold transition flex items-center gap-1 shadow-xs cursor-pointer whitespace-nowrap"
+                className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded text-[10px] font-bold transition flex items-center gap-1 shadow-xs cursor-pointer whitespace-nowrap"
               >
                 <Sparkles className="w-3 h-3" /> Convert
               </button>
@@ -233,7 +269,7 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    router.push(`/crm/quotations/new?leadId=${lead.id}&customerId=${lead.convertedCustomerId || ''}`);
+                    router.push(`/crm/quotations/new?leadId=${lead.id}&customerId=${lead.convertedCustomerId || ''}&enquiryId=${lead.convertedEnquiryId || ''}`);
                   }}
                   title="Send formal Quotation for this converted lead"
                   className="px-2.5 py-1 bg-crm-brand-700 hover:bg-crm-brand-800 active:scale-95 text-white rounded text-[10px] font-bold transition flex items-center gap-1 shadow-xs cursor-pointer whitespace-nowrap"

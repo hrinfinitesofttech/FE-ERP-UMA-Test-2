@@ -493,6 +493,8 @@ interface ERPContextType {
   enquiries: Enquiry[];
   addEnquiry: (enqData: Omit<Enquiry, 'id' | 'enquiryNo' | 'enquiryDate'>) => Enquiry;
   updateEnquiry: (id: string, enqData: Partial<Enquiry>) => void;
+  deleteEnquiry: (id: string) => void;
+  convertLeadToEnquiry: (leadId: string) => Promise<Enquiry>;
 
 
   opportunities: Opportunity[];
@@ -5614,6 +5616,80 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     });
     logAction('UPDATE', 'CRM', 'Enquiries', id, `Updated Enquiry ${id}`);
     api.crm.enquiries.update(id, enqData).catch((err) => console.warn('Failed to update enquiry on backend:', err));
+  };
+
+  const deleteEnquiry = (id: string) => {
+    setEnquiries((prev) => {
+      const updated = prev.filter((e) => e.id !== id && e.enquiryNo !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_enquiries', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'CRM', 'Enquiries', id, `Deleted Enquiry ${id}`);
+    api.crm.enquiries.delete(id).catch((err) => console.warn('Failed to delete enquiry on backend:', err));
+  };
+
+  const convertLeadToEnquiry = async (leadId: string): Promise<Enquiry> => {
+    const lead = leads.find((l) => l.id === leadId || l.leadNo === leadId);
+    if (!lead) throw new Error('Lead not found');
+
+    if (lead.convertedEnquiryId) {
+      const existing = enquiries.find((e) => e.id === lead.convertedEnquiryId || e.enquiryNo === lead.convertedEnquiryId);
+      if (existing) return existing;
+    }
+
+    const enqNo = getNextDocNumber('enquiry');
+    const newEnq: Enquiry = {
+      id: enqNo,
+      enquiryNo: enqNo,
+      leadId: lead.id,
+      customerId: lead.convertedCustomerId || '',
+      customerName: lead.companyName,
+      customerEmail: lead.email || '',
+      contactPerson: lead.contactPerson || '',
+      contactMobile: lead.mobile || '',
+      enquiryDate: new Date().toISOString().split('T')[0],
+      requirement: lead.requirementDescription || `Enquiry for ${lead.productName}`,
+      machineProduct: lead.productName || 'Process Equipment',
+      quantity: Number(lead.quantity) || 1,
+      specification: lead.capacity || lead.machineType || '',
+      expectedDelivery: lead.expectedDelivery || '',
+      assignedPersonId: lead.assignedSalesPersonId || currentUser.id || '',
+      assignedPersonName: lead.assignedSalesPersonName || `${currentUser.firstName} ${currentUser.lastName}` || 'Sales Engineer',
+      status: 'new',
+    };
+
+    setEnquiries((prev) => {
+      const updated = [newEnq, ...prev.filter((e) => e.id !== enqNo)];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_enquiries', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
+    updateLead(lead.id, {
+      convertedEnquiryId: enqNo,
+      status: 'requirement_received',
+    });
+
+    logAction('APPROVE', 'CRM', 'Convert Lead to Enquiry', lead.id, `Converted lead to Enquiry ${enqNo}`);
+    sendNotification({
+      title: 'Enquiry Generated from Lead',
+      message: `${enqNo}: ${newEnq.customerName} requires ${newEnq.machineProduct}.`,
+      type: 'info',
+      department: 'crm',
+      linkUrl: `/crm/enquiries`,
+      priority: 'normal',
+    });
+
+    try {
+      await api.crm.leads.convertToEnquiry(lead.id);
+    } catch {
+      api.crm.enquiries.create(newEnq).catch((err) => console.warn('Failed to sync enquiry to backend:', err));
+    }
+
+    return newEnq;
   };
 
   const addOpportunity = (oppData: Omit<Opportunity, 'id' | 'opportunityNo'>): Opportunity => {
@@ -12472,6 +12548,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         enquiries: sortByLatestDesc(enquiries),
         addEnquiry,
         updateEnquiry,
+        deleteEnquiry,
+        convertLeadToEnquiry,
         opportunities: sortByLatestDesc(opportunities),
         addOpportunity,
         updateOpportunity,

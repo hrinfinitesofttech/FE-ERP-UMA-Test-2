@@ -27,12 +27,13 @@ import {
   Trash2,
   X,
   Save,
+  ClipboardList,
 } from 'lucide-react';
 
 export default function LeadDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { leads, updateLead, deleteLead, convertLeadToCustomer, followUps, addFollowUp, siteVisits, addSiteVisit, quotations, employees, availableEmployees } = useERP();
+  const { leads, updateLead, deleteLead, convertLeadToCustomer, convertLeadToEnquiry, followUps, addFollowUp, siteVisits, addSiteVisit, quotations, employees, availableEmployees } = useERP();
 
   const allEmployees =
     availableEmployees && availableEmployees.length > 0
@@ -200,6 +201,16 @@ export default function LeadDetailPage() {
     }, 1000);
   };
 
+  const handleConvertToEnquiry = async () => {
+    try {
+      const enq = await convertLeadToEnquiry(lead.id);
+      setConvertSuccess(`Successfully generated Technical Enquiry: ${enq.enquiryNo}!`);
+      setTimeout(() => setConvertSuccess(''), 5000);
+    } catch (err: any) {
+      console.error('Error generating enquiry:', err);
+    }
+  };
+
   const handleAddFollowUp = (e: React.FormEvent) => {
     e.preventDefault();
     addFollowUp({
@@ -291,6 +302,26 @@ export default function LeadDetailPage() {
               <span>Schedule Follow-up</span>
             </button>
 
+            {!lead.convertedEnquiryId ? (
+              <button
+                onClick={handleConvertToEnquiry}
+                className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold flex items-center gap-1.5 transition shadow-2xs cursor-pointer"
+                title="Convert this lead into a formal Technical Enquiry (RFQ)"
+              >
+                <ClipboardList className="w-4 h-4" />
+                <span>+ Convert to Enquiry (RFQ)</span>
+              </button>
+            ) : (
+              <Link
+                href="/crm/enquiries"
+                className="px-3 py-2 rounded-xl bg-amber-50 text-amber-800 border border-amber-300 font-bold flex items-center gap-1 text-xs"
+                title="View linked Technical Enquiry"
+              >
+                <CheckCircle2 className="w-4 h-4 text-amber-600" />
+                <span>Enquiry: {lead.convertedEnquiryId}</span>
+              </Link>
+            )}
+
             {!lead.convertedCustomerId ? (
               <button
                 onClick={handleConvert}
@@ -306,7 +337,7 @@ export default function LeadDetailPage() {
                   <span>Converted Customer ({lead.convertedCustomerId})</span>
                 </span>
                 <button
-                  onClick={() => router.push(`/crm/quotations/new?leadId=${lead.id}&customerId=${lead.convertedCustomerId || ''}`)}
+                  onClick={() => router.push(`/crm/quotations/new?leadId=${lead.id}&customerId=${lead.convertedCustomerId || ''}&enquiryId=${lead.convertedEnquiryId || ''}`)}
                   className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-xl font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   <FileText className="w-4 h-4" />

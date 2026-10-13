@@ -845,11 +845,11 @@ export const api = {
       delete: (id: string) => request<any>(`/contacts/${id}/`, { method: 'DELETE' }),
     },
     enquiries: {
-      list: () => Promise.resolve([] as any[]),
-      get: (id: string) => Promise.resolve(null as any),
-      create: (data: any) => Promise.resolve(data),
-      update: (id: string, data: any) => Promise.resolve(data),
-      delete: (id: string) => Promise.resolve({ success: true }),
+      list: () => request<any[]>('/enquiries/'),
+      get: (id: string) => request<any>(`/enquiries/${id}/`),
+      create: (data: any) => request<any>('/enquiries/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/enquiries/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/enquiries/${id}/`, { method: 'DELETE' }),
     },
     opportunities: {
       list: () => request<any[]>('/opportunities/'),

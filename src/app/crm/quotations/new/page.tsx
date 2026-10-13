@@ -11,7 +11,7 @@ import { formatCurrency } from '../../../../lib/utils';
 function QuotationFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { customers, enquiries, leads, addQuotation, currentUser, updateLead } = useERP();
+  const { customers, enquiries, leads, addQuotation, currentUser, updateLead, updateEnquiry } = useERP();
 
   const prefillCustId = searchParams.get('customerId') || '';
   const prefillEnqId = searchParams.get('enquiryId') || '';
@@ -251,8 +251,19 @@ function QuotationFormContent() {
     if (matchedLead) {
       const qNum = (created as any)?.quotationNumber || (created as any)?.quotationNo || created.id;
       updateLead(matchedLead.id, {
+        status: 'quotation_sent',
         remarks: `Quotation ${qNum} generated (₹${grandTotal.toLocaleString('en-IN')})`,
       });
+    }
+
+    if (prefillEnqId || matchedEnquiry) {
+      const targetEnqId = prefillEnqId || matchedEnquiry?.id;
+      if (targetEnqId) {
+        updateEnquiry(targetEnqId, {
+          status: 'quotation_sent',
+          quotationId: created.id,
+        });
+      }
     }
 
     router.push(`/crm/quotations/${created.id}`);
