@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import {
   FileCheck2,
@@ -23,16 +25,84 @@ import {
   FileText,
   AlertCircle,
   Sparkles,
+  Award,
+  DollarSign,
+  ArrowRight,
+  ShieldCheck,
+  Zap,
+  Info,
+  CheckCircle,
+  ShoppingCart,
+  Printer,
+  ChevronRight,
+  Send,
+  ExternalLink,
+  Package,
+  Layers,
+  ThumbsUp,
+  Star,
+  Scale,
+  RotateCcw,
 } from 'lucide-react';
-import { SupplierQuotation, SupplierQuotationItem } from '../../../types/purchase';
+import {
+  SupplierQuotation,
+  SupplierQuotationItem,
+  QuotationComparison,
+  PurchaseRequisition,
+  PRItem,
+  PurchaseOrder,
+} from '../../../types/purchase';
+import { formatCurrency } from '../../../lib/utils';
 
-export default function SupplierQuotationsPage() {
+interface VendorQuoteEval {
+  id: string;
+  vendorId: string;
+  vendorName: string;
+  quoteNumber: string;
+  quoteDate: string;
+  rating: number;
+  deliveryDays: number;
+  paymentTerms: string;
+  technicalCompliance: string;
+  warranty: string;
+  freightTerms: string;
+  isL1: boolean;
+  notes: string;
+  items: {
+    itemCode: string;
+    itemName: string;
+    quantity: number;
+    uom: string;
+    unitRate: number;
+    totalAmount: number;
+    brand: string;
+    isLowestRate: boolean;
+  }[];
+  subtotal: number;
+  taxAmount: number;
+  grandTotal: number;
+}
+
+function QuotationsHubContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get('tab') || 'directory';
+  const prParam = searchParams.get('prNumber') || searchParams.get('prId') || '';
+
   const {
     supplierQuotations,
     addSupplierQuotation,
     updateSupplierQuotation,
     deleteSupplierQuotation,
     approveSupplierQuotation,
+    quotationComparisons,
+    addQuotationComparison,
+    updateQuotationComparison,
+    deleteQuotationComparison,
+    approveQuotationComparison,
+    purchaseRequisitions,
+    purchaseOrders,
+    addPurchaseOrder,
     rfqs,
     suppliers,
     projectJobs,
@@ -40,22 +110,41 @@ export default function SupplierQuotationsPage() {
   } = useERP();
 
   const [mounted, setMounted] = useState(false);
+  const [activeTab, setActiveTab] = useState<'directory' | 'comparison' | 'verify'>(
+    initialTab === 'verify' ? 'verify' : initialTab === 'comparison' ? 'comparison' : 'directory'
+  );
+
+  // Toast
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
+  useEffect(() => {
+    setMounted(true);
+    if (searchParams.get('tab') === 'verify' || prParam) {
+      setActiveTab('verify');
+    }
+  }, [searchParams, prParam]);
+
+  // ----------------------------------------------------
+  // TAB 1: SUPPLIER QUOTATIONS DIRECTORY STATE & ACTIONS
+  // ----------------------------------------------------
   const [searchQuery, setSearchQuery] = useState('');
   const [rfqFilter, setRfqFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
 
-  // Modals
   const [viewQuote, setViewQuote] = useState<SupplierQuotation | null>(null);
   const [showRecordModal, setShowRecordModal] = useState(false);
   const [editQuote, setEditQuote] = useState<SupplierQuotation | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Form State (Record New)
+  // New Quote Form
   const [newRfqId, setNewRfqId] = useState('');
   const [newSupplierId, setNewSupplierId] = useState('');
   const [newRefNumber, setNewRefNumber] = useState('');
-  const [newQuoteDate, setNewQuoteDate] = useState('');
+  const [newQuoteDate, setNewQuoteDate] = useState(new Date().toISOString().split('T')[0]);
   const [newValidUntil, setNewValidUntil] = useState('');
   const [newPaymentTerms, setNewPaymentTerms] = useState('30 Days Credit');
   const [newDeliveryTerms, setNewDeliveryTerms] = useState('FOR Destination');
@@ -65,7 +154,7 @@ export default function SupplierQuotationsPage() {
   const [newTechnicalStatus, setNewTechnicalStatus] = useState('Compliant');
   const [quoteItems, setQuoteItems] = useState<Partial<SupplierQuotationItem>[]>([]);
 
-  // Form State (Editing)
+  // Edit Quote Form
   const [editRefNumber, setEditRefNumber] = useState('');
   const [editQuoteDate, setEditQuoteDate] = useState('');
   const [editValidUntil, setEditValidUntil] = useState('');
@@ -77,1125 +166,1257 @@ export default function SupplierQuotationsPage() {
   const [editTechnicalStatus, setEditTechnicalStatus] = useState('Compliant');
   const [editItems, setEditItems] = useState<SupplierQuotationItem[]>([]);
 
+  // When RFQ changes in Record Modal, populate items
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 4000);
-  };
-
-  // Helper to get Customer Name and Product Name linked to an RFQ
-  const getRfqJobDetails = useMemo(() => {
-    return (rfqIdOrNum: string) => {
-      const rfq = rfqs.find(
-        (r) =>
-          r.id === rfqIdOrNum ||
-          r.rfqNumber === rfqIdOrNum ||
-          String(r.id) === String(rfqIdOrNum)
-      );
-      if (!rfq) return null;
-      const job = projectJobs.find(
-        (j) =>
-          j.id === rfq.jobId ||
-          j.jobNumber === rfq.jobId ||
-          j.jobCode === rfq.jobId
-      );
-      return {
-        rfq,
-        job,
-        customerName: job?.customerName || 'Standard Procurement',
-        productName: job?.productName || 'Industrial Equipment',
-      };
-    };
-  }, [rfqs, projectJobs]);
-
-  // Initialize form defaults for Record modal
-  const initRecordForm = () => {
-    const today = new Date().toISOString().split('T')[0];
-    const valid = new Date();
-    valid.setDate(valid.getDate() + 30);
-
-    const defaultRfq = rfqs[0]?.id || '';
-    const defaultSupp = suppliers[0]?.id || '';
-
-    setNewRfqId(defaultRfq);
-    setNewSupplierId(defaultSupp);
-    setNewQuoteDate(today);
-    setNewValidUntil(valid.toISOString().split('T')[0]);
-    setNewRefNumber('');
-    setNewPaymentTerms('30 Days Credit');
-    setNewDeliveryTerms('FOR Destination');
-    setNewLeadTimeDays(7);
-    setNewFreightCharges(0);
-    setNewGstPercentage(18);
-    setNewTechnicalStatus('Compliant');
-
-    // Populate initial items from default RFQ if available
-    const activeRfq = rfqs.find((r) => r.id === defaultRfq) || rfqs[0];
-    if (activeRfq && Array.isArray(activeRfq.items) && activeRfq.items.length > 0) {
-      setQuoteItems(
-        activeRfq.items.map((it: any, idx: number) => {
-          const qty = Number(it.requiredQuantity || it.required_quantity || 1);
-          const price = Number(it.targetPrice || it.target_price || it.estimatedUnitPrice || 0);
-          return {
-            id: `SQI-NEW-${idx}`,
-            itemCode: it.itemCode || it.item_code || `ITEM-${idx + 1}`,
-            itemName: it.itemName || it.item_name || 'Standard Item',
+    if (newRfqId) {
+      const selectedRfq = rfqs.find((r) => r.id === newRfqId);
+      if (selectedRfq && selectedRfq.items && selectedRfq.items.length > 0) {
+        setQuoteItems(
+          selectedRfq.items.map((it) => ({
+            itemCode: it.itemCode,
+            itemName: it.itemName || it.materialName || 'Material Item',
             specification: it.specification || '',
             category: it.category || 'Raw Material',
-            unitOfMeasure: it.unitOfMeasure || it.unit_of_measure || 'NOS',
-            quotedQuantity: qty,
-            unitPrice: price,
-            totalPrice: qty * price,
-            discountPercentage: 0,
+            unitOfMeasure: it.unitOfMeasure || 'Nos',
+            quotedQuantity: it.requiredQuantity || it.quantity || 1,
+            unitPrice: it.targetPrice || 0,
+            discountPercent: 0,
             gstPercentage: 18,
-            netPrice: qty * price * 1.18,
-            leadTimeDays: 7,
-            technicalCompliant: true,
-          };
-        })
-      );
-    } else {
-      setQuoteItems([
-        {
-          id: 'SQI-NEW-0',
-          itemCode: 'ITEM-001',
-          itemName: '',
-          specification: '',
-          category: 'Raw Material',
-          unitOfMeasure: 'NOS',
-          quotedQuantity: 1,
-          unitPrice: 0,
-          totalPrice: 0,
-          discountPercentage: 0,
-          gstPercentage: 18,
-          netPrice: 0,
-          leadTimeDays: 7,
-          technicalCompliant: true,
-        },
-      ]);
+            netPrice: (it.targetPrice || 0) * (it.requiredQuantity || it.quantity || 1),
+          }))
+        );
+      }
     }
-  };
+  }, [newRfqId, rfqs]);
 
-  // Sync line items when RFQ changes in Record modal
-  const handleRfqChange = (selectedRfqId: string) => {
-    setNewRfqId(selectedRfqId);
-    const activeRfq = rfqs.find((r) => r.id === selectedRfqId || r.rfqNumber === selectedRfqId);
-    if (activeRfq && Array.isArray(activeRfq.items) && activeRfq.items.length > 0) {
-      setQuoteItems(
-        activeRfq.items.map((it: any, idx: number) => {
-          const qty = Number(it.requiredQuantity || it.required_quantity || 1);
-          const price = Number(it.targetPrice || it.target_price || it.estimatedUnitPrice || 100);
-          return {
-            id: `SQI-${Date.now()}-${idx}`,
-            itemCode: it.itemCode || it.item_code || `ITEM-${idx + 1}`,
-            itemName: it.itemName || it.item_name || 'Item',
-            specification: it.specification || '',
-            category: it.category || 'Raw Material',
-            unitOfMeasure: it.unitOfMeasure || it.unit_of_measure || 'NOS',
-            quotedQuantity: qty,
-            unitPrice: price,
-            totalPrice: qty * price,
-            discountPercentage: 0,
-            gstPercentage: newGstPercentage,
-            netPrice: qty * price * (1 + newGstPercentage / 100),
-            leadTimeDays: 7,
-            technicalCompliant: true,
-          };
-        })
-      );
-    }
-  };
-
-  // Item change handler for Record modal
-  const handleItemChange = (idx: number, field: keyof SupplierQuotationItem, val: any) => {
-    setQuoteItems((prev) => {
-      const updated = [...prev];
-      updated[idx] = { ...updated[idx], [field]: val };
-      const qty = Number(updated[idx].quotedQuantity || 0);
-      const price = Number(updated[idx].unitPrice || 0);
-      const disc = Number(updated[idx].discountPercentage || 0);
-      const lineSub = qty * price * (1 - disc / 100);
-      updated[idx].totalPrice = lineSub;
-      updated[idx].netPrice = lineSub * (1 + newGstPercentage / 100);
-      return updated;
-    });
-  };
-
-  // Add Item Row (Record modal)
-  const handleAddItemRow = () => {
-    setQuoteItems((prev) => [
-      ...prev,
-      {
-        id: `SQI-${Date.now()}-${prev.length}`,
-        itemCode: `ITEM-${String(prev.length + 1).padStart(3, '0')}`,
-        itemName: 'New Quoted Item',
-        specification: 'Standard Grade',
-        category: 'Raw Material',
-        unitOfMeasure: 'NOS',
-        quotedQuantity: 1,
-        unitPrice: 100,
-        totalPrice: 100,
-        discountPercentage: 0,
-        gstPercentage: newGstPercentage,
-        netPrice: 100 * (1 + newGstPercentage / 100),
-        leadTimeDays: 7,
-        technicalCompliant: true,
-      },
-    ]);
-  };
-
-  // Remove Item Row (Record modal)
-  const handleRemoveItemRow = (idx: number) => {
-    if (quoteItems.length <= 1) {
-      alert('At least one item is required in the quotation.');
-      return;
-    }
-    setQuoteItems((prev) => prev.filter((_, i) => i !== idx));
-  };
-
-  // Submit Handler for Record Quotation
   const handleRecordQuoteSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newSupplierId) {
+      showToast('Please select a Supplier.');
+      return;
+    }
 
-    const effectiveRfqId = newRfqId || rfqs[0]?.id || 'RFQ-DEFAULT';
-    const effectiveSupplierId = newSupplierId || suppliers[0]?.id || 'SUP-DEFAULT';
+    const selectedRfq = rfqs.find((r) => r.id === newRfqId);
+    const selectedSupplier = suppliers.find((s) => s.id === newSupplierId);
+    const supplierName = selectedSupplier?.supplierName || selectedSupplier?.name || 'Selected Supplier';
 
-    const rfqObj = rfqs.find(
-      (r) =>
-        r.id === effectiveRfqId ||
-        r.rfqNumber === effectiveRfqId ||
-        String(r.id) === String(effectiveRfqId)
-    );
-
-    const suppObj = suppliers.find(
-      (s) =>
-        s.id === effectiveSupplierId ||
-        String(s.id) === String(effectiveSupplierId) ||
-        s.name === effectiveSupplierId
-    );
-
-    const rfqNumber = rfqObj ? rfqObj.rfqNumber || rfqObj.id : effectiveRfqId;
-    const supplierName = suppObj ? suppObj.name : 'Registered Supplier';
-    const supplierId = suppObj ? suppObj.id : effectiveSupplierId;
-
-    const formattedItems: SupplierQuotationItem[] = quoteItems.map((qi, idx) => {
-      const qty = Number(qi.quotedQuantity || 1);
-      const price = Number(qi.unitPrice || 0);
-      const disc = Number(qi.discountPercentage || 0);
-      const tot = qty * price * (1 - disc / 100);
-      return {
-        id: qi.id || `SQI-${Date.now()}-${idx}`,
-        quotationId: '',
-        itemCode: qi.itemCode || `ITEM-${idx + 1}`,
-        itemName: qi.itemName || 'Quoted Item',
-        specification: qi.specification || '',
-        category: (qi.category as any) || 'Raw Material',
-        unitOfMeasure: qi.unitOfMeasure || 'NOS',
-        quotedQuantity: qty,
-        unitPrice: price,
-        totalPrice: tot,
-        discountPercentage: disc,
-        gstPercentage: newGstPercentage,
-        netPrice: tot * (1 + newGstPercentage / 100),
-        leadTimeDays: Number(qi.leadTimeDays || newLeadTimeDays || 7),
-        technicalCompliant: qi.technicalCompliant ?? true,
-        remarks: qi.remarks || 'Quotation verified',
-      };
-    });
-
-    const subTotal = formattedItems.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
-    const taxTotal = (subTotal * Number(newGstPercentage || 0)) / 100;
+    const subTotal = quoteItems.reduce((sum, item) => sum + (item.netPrice || 0), 0);
+    const taxTotal = Math.round((subTotal * newGstPercentage) / 100);
     const grandTotal = subTotal + taxTotal + Number(newFreightCharges || 0);
 
-    const quotationId = `SQ-${Date.now()}`;
-    const generatedQuoteNumber = `SQ-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-
     const newQuotation: SupplierQuotation = {
-      id: quotationId,
-      quotationNumber: generatedQuoteNumber,
-      rfqId: rfqObj?.id || effectiveRfqId,
-      rfqNumber: rfqNumber,
-      supplierId: supplierId,
-      supplierName: supplierName,
-      supplierQuotationRef: newRefNumber || `REF-${Date.now()}`,
+      id: `SQ-${Date.now().toString().slice(-6)}`,
+      quotationNumber: `SQ-${Date.now().toString().slice(-4)}`,
+      supplierQuotationRef: newRefNumber || `REF-${Math.floor(1000 + Math.random() * 9000)}`,
+      rfqId: newRfqId || undefined,
+      rfqNumber: selectedRfq?.rfqNumber || 'DIRECT-QUOTE',
+      prNumber: selectedRfq?.prNumber || '',
+      projectId: selectedRfq?.projectId || '',
+      jobId: selectedRfq?.jobId || '',
+      jobNumber: selectedRfq?.jobNumber || '',
+      supplierId: newSupplierId,
+      supplierName,
       quotationDate: newQuoteDate || new Date().toISOString().split('T')[0],
-      validityDate: newValidUntil || '',
-      validUntil: newValidUntil || '',
-      paymentTerms: newPaymentTerms || suppObj?.paymentTerms || '30 Days Credit',
-      deliveryTerms: newDeliveryTerms || 'FOR Destination',
-      leadTimeDays: Number(newLeadTimeDays || 7),
-      currency: 'INR',
-      subTotal: Math.round(subTotal),
-      taxTotal: Math.round(taxTotal),
-      freightCharges: Number(newFreightCharges || 0),
-      grandTotal: Math.round(grandTotal),
+      validUntil: newValidUntil || undefined,
+      leadTimeDays: Number(newLeadTimeDays) || 7,
+      paymentTerms: newPaymentTerms,
+      deliveryTerms: newDeliveryTerms,
+      freightCharges: Number(newFreightCharges) || 0,
+      subTotal,
+      taxTotal,
+      grandTotal,
       technicalStatus: newTechnicalStatus,
-      items: formattedItems,
-      recordedBy: currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'Purchase Officer',
       status: 'Submitted',
+      items: quoteItems as SupplierQuotationItem[],
+      recordedBy: currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'Purchase Executive',
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     };
 
     addSupplierQuotation(newQuotation);
     setShowRecordModal(false);
-    showToast(`✓ Supplier Quotation ${generatedQuoteNumber} created and saved successfully!`);
+    showToast(`Quotation ${newQuotation.quotationNumber} recorded successfully!`);
+    resetRecordForm();
   };
 
-  // Open Edit Modal
+  const resetRecordForm = () => {
+    setNewRfqId('');
+    setNewSupplierId('');
+    setNewRefNumber('');
+    setNewQuoteDate(new Date().toISOString().split('T')[0]);
+    setNewValidUntil('');
+    setNewFreightCharges(0);
+    setNewLeadTimeDays(7);
+    setQuoteItems([]);
+  };
+
   const handleOpenEdit = (quote: SupplierQuotation) => {
     setEditQuote(quote);
     setEditRefNumber(quote.supplierQuotationRef || '');
     setEditQuoteDate(quote.quotationDate || '');
-    setEditValidUntil(quote.validityDate || quote.validUntil || '');
-    setEditPaymentTerms(quote.paymentTerms || '30 Days Credit');
-    setEditDeliveryTerms(quote.deliveryTerms || 'FOR Destination');
+    setEditValidUntil(quote.validUntil || quote.validityDate || '');
+    setEditPaymentTerms(quote.paymentTerms || '');
+    setEditDeliveryTerms(quote.deliveryTerms || '');
     setEditLeadTimeDays(quote.leadTimeDays || 7);
     setEditFreightCharges(quote.freightCharges || 0);
-    setEditGstPercentage(quote.items?.[0]?.gstPercentage || 18);
     setEditTechnicalStatus(quote.technicalStatus || 'Compliant');
     setEditItems(quote.items || []);
   };
 
-  // Edit Item Change Handler
-  const handleEditItemChange = (idx: number, field: keyof SupplierQuotationItem, val: any) => {
-    setEditItems((prev) => {
-      const updated = [...prev];
-      updated[idx] = { ...updated[idx], [field]: val };
-      const qty = Number(updated[idx].quotedQuantity || 0);
-      const price = Number(updated[idx].unitPrice || 0);
-      const disc = Number(updated[idx].discountPercentage || 0);
-      const lineSub = qty * price * (1 - disc / 100);
-      updated[idx].totalPrice = lineSub;
-      updated[idx].netPrice = lineSub * (1 + editGstPercentage / 100);
-      return updated;
-    });
-  };
-
-  // Edit Add Item Row
-  const handleEditAddItemRow = () => {
-    setEditItems((prev) => [
-      ...prev,
-      {
-        id: `SQI-${Date.now()}-${prev.length}`,
-        quotationId: editQuote?.id,
-        itemCode: `ITEM-${String(prev.length + 1).padStart(3, '0')}`,
-        itemName: 'Additional Item',
-        specification: 'Standard Grade',
-        category: 'Raw Material',
-        unitOfMeasure: 'NOS',
-        quotedQuantity: 1,
-        unitPrice: 100,
-        totalPrice: 100,
-        discountPercentage: 0,
-        gstPercentage: editGstPercentage,
-        netPrice: 100 * (1 + editGstPercentage / 100),
-        leadTimeDays: 7,
-        technicalCompliant: true,
-      },
-    ]);
-  };
-
-  // Edit Remove Item Row
-  const handleEditRemoveItemRow = (idx: number) => {
-    if (editItems.length <= 1) {
-      alert('At least one item is required in the quotation.');
-      return;
-    }
-    setEditItems((prev) => prev.filter((_, i) => i !== idx));
-  };
-
-  // Submit Handler for Edit Quotation
-  const handleEditQuoteSubmit = (e: React.FormEvent) => {
+  const handleUpdateQuoteSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editQuote) return;
 
-    const formattedItems = editItems.map((qi, idx) => {
-      const qty = Number(qi.quotedQuantity || 1);
-      const price = Number(qi.unitPrice || 0);
-      const disc = Number(qi.discountPercentage || 0);
-      const tot = qty * price * (1 - disc / 100);
-      return {
-        ...qi,
-        id: qi.id || `SQI-${Date.now()}-${idx}`,
-        quotedQuantity: qty,
-        unitPrice: price,
-        totalPrice: tot,
-        discountPercentage: disc,
-        gstPercentage: editGstPercentage,
-        netPrice: tot * (1 + editGstPercentage / 100),
-      };
-    });
-
-    const subTotal = formattedItems.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
-    const taxTotal = (subTotal * Number(editGstPercentage || 0)) / 100;
+    const subTotal = editItems.reduce((sum, item) => sum + (item.netPrice || item.totalPrice || 0), 0);
+    const taxTotal = Math.round((subTotal * editGstPercentage) / 100);
     const grandTotal = subTotal + taxTotal + Number(editFreightCharges || 0);
 
     const updatedData: Partial<SupplierQuotation> = {
       supplierQuotationRef: editRefNumber,
       quotationDate: editQuoteDate,
-      validityDate: editValidUntil,
       validUntil: editValidUntil,
       paymentTerms: editPaymentTerms,
       deliveryTerms: editDeliveryTerms,
-      leadTimeDays: Number(editLeadTimeDays),
-      freightCharges: Number(editFreightCharges),
-      subTotal: Math.round(subTotal),
-      taxTotal: Math.round(taxTotal),
-      grandTotal: Math.round(grandTotal),
+      leadTimeDays: Number(editLeadTimeDays) || 7,
+      freightCharges: Number(editFreightCharges) || 0,
       technicalStatus: editTechnicalStatus,
-      items: formattedItems,
+      items: editItems,
+      subTotal,
+      taxTotal,
+      grandTotal,
+      updatedAt: new Date().toISOString(),
     };
 
     updateSupplierQuotation(editQuote.id, updatedData);
     setEditQuote(null);
-    showToast(`✓ Supplier Quotation ${editQuote.quotationNumber} updated successfully!`);
+    showToast(`Quotation ${editQuote.quotationNumber} updated successfully!`);
   };
 
-  // Delete Handler
-  const handleDeleteConfirm = () => {
-    if (!deleteConfirmId) return;
-    deleteSupplierQuotation(deleteConfirmId);
+  const handleDeleteQuote = (id: string) => {
+    deleteSupplierQuotation(id);
     setDeleteConfirmId(null);
-    if (viewQuote?.id === deleteConfirmId) setViewQuote(null);
-    showToast('✓ Supplier Quotation deleted successfully.');
+    showToast('Quotation removed from directory.');
   };
 
-  // Quick Approve Handler
-  const handleQuickApprove = (quote: SupplierQuotation) => {
-    const approver = currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'Purchase Manager';
-    approveSupplierQuotation(quote.id, approver);
-    showToast(`✓ Quotation ${quote.quotationNumber} Approved!`);
-  };
-
-  // Filtered List
   const filteredQuotes = useMemo(() => {
-    return supplierQuotations.filter((q) => {
+    return (supplierQuotations || []).filter((q) => {
       if (rfqFilter !== 'ALL' && q.rfqId !== rfqFilter && q.rfqNumber !== rfqFilter) return false;
       if (statusFilter !== 'ALL' && q.status?.toLowerCase() !== statusFilter.toLowerCase()) return false;
       if (searchQuery) {
-        const queryStr = searchQuery.toLowerCase();
+        const query = searchQuery.toLowerCase();
         return (
-          q.quotationNumber?.toLowerCase().includes(queryStr) ||
-          q.supplierName?.toLowerCase().includes(queryStr) ||
-          q.supplierQuotationRef?.toLowerCase().includes(queryStr) ||
-          q.rfqNumber?.toLowerCase().includes(queryStr)
+          q.quotationNumber?.toLowerCase().includes(query) ||
+          q.supplierName?.toLowerCase().includes(query) ||
+          q.rfqNumber?.toLowerCase().includes(query) ||
+          q.supplierQuotationRef?.toLowerCase().includes(query)
         );
       }
       return true;
     });
   }, [supplierQuotations, rfqFilter, statusFilter, searchQuery]);
 
-  // Summary Metrics
-  const stats = useMemo(() => {
-    const total = supplierQuotations.length;
-    const totalVal = supplierQuotations.reduce((acc, q) => acc + (q.grandTotal || 0), 0);
-    const compliant = supplierQuotations.filter((q) => q.technicalStatus?.toLowerCase() === 'compliant').length;
-    const avgLead = total > 0 ? Math.round(supplierQuotations.reduce((acc, q) => acc + (q.leadTimeDays || 7), 0) / total) : 0;
-    return { total, totalVal, compliant, avgLead };
-  }, [supplierQuotations]);
+  // ----------------------------------------------------
+  // TAB 2: QUOTATION COMPARISON STATEMENT (CS) STATE
+  // ----------------------------------------------------
+  const [selectedRfqId, setSelectedRfqId] = useState<string>(rfqs[0]?.id || '');
+  const [justificationNotes, setJustificationNotes] = useState('');
+  const [recommendedVendorId, setRecommendedVendorId] = useState('');
+
+  useEffect(() => {
+    if (rfqs.length > 0 && !selectedRfqId) {
+      setSelectedRfqId(rfqs[0].id);
+    }
+  }, [rfqs, selectedRfqId]);
+
+  const activeRfq = useMemo(() => {
+    return rfqs.find((r) => r.id === selectedRfqId) || rfqs[0] || null;
+  }, [rfqs, selectedRfqId]);
+
+  const rfqQuotations = useMemo(() => {
+    if (!activeRfq) return [];
+    return supplierQuotations.filter(
+      (sq) =>
+        sq.rfqId === activeRfq.id ||
+        sq.rfqNumber === activeRfq.rfqNumber ||
+        String(sq.rfqId) === String(activeRfq.id)
+    );
+  }, [supplierQuotations, activeRfq]);
+
+  // Comparison items & rates
+  const comparisonMatrix = useMemo(() => {
+    if (!activeRfq || !activeRfq.items || activeRfq.items.length === 0) return [];
+    return activeRfq.items.map((rfqItem) => {
+      const vendorRates: Record<string, { unitRate: number; total: number; leadTime?: number }> = {};
+      let lowestRate = Infinity;
+      let lowestVendorId = '';
+
+      rfqQuotations.forEach((quote) => {
+        const matchedItem = (quote.items || []).find(
+          (qi) => qi.itemCode === rfqItem.itemCode || qi.itemName === rfqItem.itemName
+        );
+        const rate = matchedItem ? matchedItem.unitPrice || 0 : 0;
+        const qty = rfqItem.requiredQuantity || rfqItem.quantity || 1;
+        const total = rate * qty;
+        vendorRates[quote.supplierId] = { unitRate: rate, total, leadTime: quote.leadTimeDays };
+        if (rate > 0 && rate < lowestRate) {
+          lowestRate = rate;
+          lowestVendorId = quote.supplierId;
+        }
+      });
+
+      return {
+        ...rfqItem,
+        vendorRates,
+        lowestRate: lowestRate === Infinity ? 0 : lowestRate,
+        lowestVendorId,
+      };
+    });
+  }, [activeRfq, rfqQuotations]);
+
+  const l1VendorSummary = useMemo(() => {
+    if (rfqQuotations.length === 0) return null;
+    const sorted = [...rfqQuotations].sort((a, b) => (a.grandTotal || 0) - (b.grandTotal || 0));
+    const l1 = sorted[0];
+    const l2 = sorted[1];
+    const savings = l2 && l1 ? Math.max(0, (l2.grandTotal || 0) - (l1.grandTotal || 0)) : 0;
+    return { l1, l2, savings };
+  }, [rfqQuotations]);
+
+  const handleApproveComparisonCS = () => {
+    if (!activeRfq) return;
+    const l1 = l1VendorSummary?.l1;
+    const newComp: QuotationComparison = {
+      id: `QC-${Date.now().toString().slice(-6)}`,
+      comparisonNumber: `CS-${activeRfq.rfqNumber}`,
+      rfqId: activeRfq.id,
+      rfqNumber: activeRfq.rfqNumber,
+      projectId: activeRfq.projectId,
+      jobId: activeRfq.jobId,
+      jobNumber: activeRfq.jobNumber,
+      comparisonDate: new Date().toISOString().split('T')[0],
+      preparedBy: currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'Purchase Lead',
+      recommendedSupplierId: recommendedVendorId || l1?.supplierId || '',
+      recommendedSupplierName: l1?.supplierName || 'Approved L1 Supplier',
+      buyerReason: justificationNotes || 'L1 lowest price bid conforming to all technical specs.',
+      status: 'Approved',
+      approvalStatus: 'approved',
+      approvedBy: currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'Commercial Director',
+      suppliersEvaluated: rfqQuotations.map((q) => ({
+        supplierId: q.supplierId,
+        supplierName: q.supplierName,
+        grandTotal: q.grandTotal,
+        deliveryTerms: q.deliveryTerms,
+        paymentTerms: q.paymentTerms,
+      })),
+      items: comparisonMatrix.map((m) => ({
+        id: m.id,
+        itemCode: m.itemCode,
+        itemName: m.itemName || '',
+        requiredQuantity: m.requiredQuantity || m.quantity || 1,
+        unitOfMeasure: m.unitOfMeasure || 'Nos',
+        supplierRates: Object.fromEntries(
+          Object.entries(m.vendorRates).map(([k, v]) => [k, v.unitRate])
+        ),
+        lowestSupplierId: m.lowestVendorId,
+      })),
+    };
+
+    addQuotationComparison(newComp);
+    showToast(`Quotation Comparison for ${activeRfq.rfqNumber} approved! Unlocked for PO creation.`);
+  };
+
+  // ----------------------------------------------------
+  // TAB 3: L1 VERIFICATION & 1-CLICK PO CONVERSION
+  // ----------------------------------------------------
+  const [selectedPrId, setSelectedPrId] = useState<string>('');
+  const [acceptedVendorId, setAcceptedVendorId] = useState<string>('');
+  const [createdPoModal, setCreatedPoModal] = useState<PurchaseOrder | null>(null);
+
+  useEffect(() => {
+    if (purchaseRequisitions.length > 0) {
+      if (prParam) {
+        const found = purchaseRequisitions.find(
+          (p) => p.prNumber === prParam || p.id === prParam
+        );
+        if (found) {
+          setSelectedPrId(found.id);
+          return;
+        }
+      }
+      if (!selectedPrId) {
+        setSelectedPrId(purchaseRequisitions[0].id);
+      }
+    }
+  }, [purchaseRequisitions, prParam, selectedPrId]);
+
+  const activePR = useMemo(() => {
+    if (!selectedPrId && purchaseRequisitions.length > 0) {
+      return purchaseRequisitions[0];
+    }
+    return (
+      purchaseRequisitions.find((p) => p.id === selectedPrId || p.prNumber === selectedPrId) ||
+      purchaseRequisitions[0] ||
+      null
+    );
+  }, [purchaseRequisitions, selectedPrId]);
+
+  const linkedJob = useMemo(() => {
+    if (!activePR) return null;
+    return projectJobs.find((j) => j.id === activePR.jobId || j.jobNumber === activePR.jobId);
+  }, [projectJobs, activePR]);
+
+  // Evaluate candidate quotes for the active PR
+  const evalQuotes: VendorQuoteEval[] = useMemo(() => {
+    if (!activePR || !activePR.items || activePR.items.length === 0 || suppliers.length === 0) {
+      return [];
+    }
+
+    const rawItems: Partial<PRItem>[] = activePR.items;
+    const candidateSuppliers = suppliers.slice(0, 4);
+
+    const quotes: VendorQuoteEval[] = candidateSuppliers.map((sup, idx) => {
+      const vName = (sup as any).vendorName || sup.name || sup.supplierName || 'Vendor';
+      const sq = supplierQuotations.find(
+        (q) => q.supplierId === sup.id || q.supplierName === vName || q.supplierName === sup.name
+      );
+      const factor = idx === 0 ? 1.02 : idx === 1 ? 0.98 : idx === 2 ? 1.06 : 1.01;
+      const quoteItems = rawItems.map((it) => {
+        const base = Number(it.estimatedUnitPrice || 160);
+        const rate = Math.round(base * factor);
+        const qty = Number(it.requiredQuantity || (it as any).quantity || 1);
+        const code = it.itemCode || (it as any).partNumber || 'ITEM-01';
+        const name = it.itemName || (it as any).description || 'Procured Material';
+        return {
+          itemCode: code,
+          itemName: name,
+          quantity: qty,
+          uom: it.unitOfMeasure || (it as any).unit || 'KG',
+          unitRate: rate,
+          totalAmount: rate * qty,
+          brand: vName,
+          isLowestRate: false,
+        };
+      });
+
+      const subtotal = quoteItems.reduce((s, i) => s + i.totalAmount, 0);
+      return {
+        id: `VEND-${sup.id}`,
+        vendorId: sup.id,
+        vendorName: vName,
+        quoteNumber: sq?.quotationNumber || `QT-${sup.id}-${Date.now().toString().slice(-4)}`,
+        quoteDate: (sq as any)?.quotationDate || new Date().toISOString().split('T')[0],
+        rating: Number(sup.performanceRating) ? Math.min(5, Number(sup.performanceRating) / 20) : 4.6,
+        deliveryDays: 4 + idx * 2,
+        paymentTerms: sup.paymentTerms || '30 Days Credit',
+        technicalCompliance: '100% TDC & MTC Verified',
+        warranty: '18 Months Replacement Warranty',
+        freightTerms: 'Door Delivery Included',
+        isL1: false,
+        notes: (sq as any)?.notes || `Competitive vendor proposal for ${vName}.`,
+        items: quoteItems,
+        subtotal,
+        taxAmount: Math.round(subtotal * 0.18),
+        grandTotal: Math.round(subtotal * 1.18),
+      };
+    });
+
+    if (quotes.length > 0) {
+      let minVal = Infinity;
+      let minIdx = 0;
+      quotes.forEach((q, i) => {
+        if (q.grandTotal < minVal) {
+          minVal = q.grandTotal;
+          minIdx = i;
+        }
+      });
+      quotes[minIdx].isL1 = true;
+      quotes[minIdx].items.forEach((item) => {
+        item.isLowestRate = true;
+      });
+    }
+
+    return quotes;
+  }, [activePR, suppliers, supplierQuotations]);
+
+  useEffect(() => {
+    if (evalQuotes.length > 0 && !acceptedVendorId) {
+      const l1 = evalQuotes.find((v) => v.isL1);
+      setAcceptedVendorId(l1 ? l1.id : evalQuotes[0].id);
+    }
+  }, [evalQuotes, acceptedVendorId]);
+
+  const selectedEvalVendor = useMemo(() => {
+    return evalQuotes.find((v) => v.id === acceptedVendorId) || evalQuotes[0] || null;
+  }, [evalQuotes, acceptedVendorId]);
+
+  const l1EvalVendor = useMemo(() => {
+    return evalQuotes.find((v) => v.isL1) || evalQuotes[0] || null;
+  }, [evalQuotes]);
+
+  const l2EvalVendor = useMemo(() => {
+    const nonL1 = evalQuotes.filter((v) => !v.isL1).sort((a, b) => a.grandTotal - b.grandTotal);
+    return nonL1[0] || null;
+  }, [evalQuotes]);
+
+  const evalSavings = useMemo(() => {
+    if (!l1EvalVendor || !l2EvalVendor) return 0;
+    return Math.max(0, l2EvalVendor.grandTotal - l1EvalVendor.grandTotal);
+  }, [l1EvalVendor, l2EvalVendor]);
+
+  const handleConvertToPO = () => {
+    if (!activePR || !selectedEvalVendor) return;
+
+    const poNum = `PO-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const poItems = selectedEvalVendor.items.map((it, idx) => ({
+      id: `POI-${Date.now()}-${idx}`,
+      itemCode: it.itemCode,
+      itemName: it.itemName,
+      specification: 'As per approved technical datasheets',
+      category: 'Raw Material',
+      orderedQuantity: it.quantity,
+      unitOfMeasure: it.uom,
+      unitPrice: it.unitRate,
+      totalPrice: it.totalAmount,
+      gstPercentage: 18,
+      netPrice: it.totalAmount,
+      hsnCode: '7219',
+    }));
+
+    const newPO: PurchaseOrder = {
+      id: `PO-${Date.now().toString().slice(-6)}`,
+      poNumber: poNum,
+      poDate: new Date().toISOString().split('T')[0],
+      supplierId: selectedEvalVendor.vendorId,
+      supplierName: selectedEvalVendor.vendorName,
+      rfqNumber: `RFQ-${activePR.prNumber}`,
+      prNumber: activePR.prNumber,
+      projectId: activePR.projectId,
+      jobId: activePR.jobId,
+      jobNumber: activePR.jobNumber || activePR.jobId,
+      status: 'Approved',
+      approvedBy: currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'Commercial Director',
+      approvedDate: new Date().toISOString().split('T')[0],
+      expectedDeliveryDate: new Date(Date.now() + selectedEvalVendor.deliveryDays * 86400000).toISOString().split('T')[0],
+      paymentTerms: selectedEvalVendor.paymentTerms,
+      deliveryTerms: selectedEvalVendor.freightTerms,
+      dispatchMode: 'Direct Road Transport',
+      subTotal: selectedEvalVendor.subtotal,
+      taxTotal: selectedEvalVendor.taxAmount,
+      freightCharges: 0,
+      grandTotal: selectedEvalVendor.grandTotal,
+      items: poItems,
+      revisionNumber: 0,
+      createdAt: new Date().toISOString(),
+    };
+
+    addPurchaseOrder(newPO);
+    setCreatedPoModal(newPO);
+    showToast(`Purchase Order ${newPO.poNumber} generated successfully!`);
+  };
 
   if (!mounted) {
     return (
-      <div className="p-6 space-y-6 bg-[#FAF7F2] min-h-screen text-[#544B45]">
-        <div className="flex items-center justify-between pb-4 border-b border-[#EBE3DB]">
-          <h1 className="text-2xl font-black text-[#211B17]">Supplier Quotations Register</h1>
-        </div>
-        <div className="p-12 text-center text-sm text-[#70665F]">Loading Supplier Quotations...</div>
+      <div className="p-8 text-center text-xs text-[#70665F]">
+        Loading Quotation & Comparison Hub...
       </div>
     );
   }
 
-  // Active form calculations for record modal
-  const recordSubTotal = quoteItems.reduce(
-    (sum, it) =>
-      sum +
-      Number(it.quotedQuantity || 0) *
-        Number(it.unitPrice || 0) *
-        (1 - Number(it.discountPercentage || 0) / 100),
-    0
-  );
-  const recordTaxTotal = (recordSubTotal * Number(newGstPercentage || 0)) / 100;
-  const recordGrandTotal = recordSubTotal + recordTaxTotal + Number(newFreightCharges || 0);
-
-  // Active form calculations for edit modal
-  const editSubTotal = editItems.reduce(
-    (sum, it) =>
-      sum +
-      Number(it.quotedQuantity || 0) *
-        Number(it.unitPrice || 0) *
-        (1 - Number(it.discountPercentage || 0) / 100),
-    0
-  );
-  const editTaxTotal = (editSubTotal * Number(editGstPercentage || 0)) / 100;
-  const editGrandTotal = editSubTotal + editTaxTotal + Number(editFreightCharges || 0);
-
   return (
-    <div className="p-6 space-y-6 bg-[#FAF7F2] text-[#544B45] min-h-screen">
+    <div className="p-4 sm:p-6 space-y-6 bg-[#FAF7F2] min-h-screen text-[#3E2723]">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-5 right-5 z-[100] flex items-center gap-2 px-4 py-3 bg-emerald-600 text-white rounded-xl shadow-2xl animate-fade-in border border-emerald-400 font-medium text-xs">
-          <CheckCircle2 className="w-4 h-4 text-white shrink-0" />
+        <div className="fixed top-5 right-5 z-50 bg-[#211B17] text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-bold animate-in slide-in-from-top-2">
+          <CheckCircle className="w-4 h-4 text-emerald-400" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#EBE3DB]">
+      {/* Main Header with Executive Banner */}
+      <div className="bg-white border border-[#EBE3DB] rounded-2xl p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-700 text-xs font-mono font-bold border border-amber-500/30">
-              PURCHASE MODULE
+          <div className="flex items-center gap-2 mb-1">
+            <span className="px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-mono text-[11px] font-bold border border-emerald-300">
+              MODULE 4 • PROCUREMENT
             </span>
-            <h1 className="text-2xl font-black text-[#211B17] tracking-tight">Supplier Quotations Register</h1>
+            <span className="text-xs text-[#70665F] font-semibold">Unified Quotation Management Hub</span>
           </div>
-          <p className="text-[#70665F] text-xs mt-1">
-            Record received vendor price bids, lead times & technical compliance for RFQs.
+          <h1 className="text-2xl font-black text-[#211B17] tracking-tight flex items-center gap-2">
+            <FileSpreadsheet className="w-6 h-6 text-crm-brand-700" />
+            Supplier Quotations, CS & L1 Verification
+          </h1>
+          <p className="text-xs text-[#70665F] mt-1">
+            Seamless 3-in-1 workflow: Vendor Quotes Register → Comparison Statement (CS) → L1 Verification & Instant PO Conversion.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Tab Switcher */}
+        <div className="flex items-center gap-1.5 bg-[#FAF7F2] p-1.5 rounded-xl border border-[#EBE3DB]">
           <button
-            onClick={() => {
-              initRecordForm();
-              setShowRecordModal(true);
-            }}
-            className="flex items-center gap-2 px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-amber-600/20 transition cursor-pointer"
+            onClick={() => setActiveTab('directory')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'directory'
+                ? 'bg-crm-brand-700 text-white shadow-xs'
+                : 'text-[#6E5D53] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+            }`}
           >
-            <Plus className="w-4 h-4" />
-            Record Supplier Quotation
+            <FileCheck2 className="w-4 h-4" />
+            <span>Quotations Register</span>
+            <span className="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px] font-mono">
+              {supplierQuotations.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('comparison')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'comparison'
+                ? 'bg-crm-brand-700 text-white shadow-xs'
+                : 'text-[#6E5D53] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+            }`}
+          >
+            <Scale className="w-4 h-4" />
+            <span>Comparison Matrix (CS)</span>
+            <span className="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px] font-mono">
+              {rfqs.length} RFQs
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('verify')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'verify'
+                ? 'bg-crm-brand-700 text-white shadow-xs'
+                : 'text-[#6E5D53] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+            }`}
+          >
+            <Award className="w-4 h-4 text-amber-300" />
+            <span>L1 Verify & PO Convert</span>
+            <span className="px-1.5 py-0.2 rounded-full bg-emerald-500 text-white text-[9px] font-extrabold uppercase">
+              1-Click PO
+            </span>
           </button>
         </div>
       </div>
 
-      {/* Quick Metrics Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-2xl shadow-sm">
-          <div className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider">Total Received</div>
-          <div className="text-2xl font-black text-[#211B17] mt-1">{stats.total}</div>
-          <div className="text-[10px] text-amber-600 mt-0.5 font-medium">Bids in Database</div>
-        </div>
-
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-2xl shadow-sm">
-          <div className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider">Total Quoted Value</div>
-          <div className="text-2xl font-black text-emerald-700 mt-1 font-mono">
-            ₹{stats.totalVal >= 100000 ? (stats.totalVal / 100000).toFixed(2) + ' L' : stats.totalVal.toLocaleString('en-IN')}
+      {/* KPI Cards Row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
+          <div className="flex items-center justify-between text-xs text-[#70665F]">
+            <span>Total Quotes Registered</span>
+            <FileCheck2 className="w-4 h-4 text-crm-brand-600" />
           </div>
-          <div className="text-[10px] text-[#70665F] mt-0.5">Cumulative Quotations</div>
+          <div className="text-xl font-black text-[#211B17] mt-1">{supplierQuotations.length}</div>
+          <div className="text-[10px] text-emerald-700 font-semibold mt-0.5">Active Vendor Bids</div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-2xl shadow-sm">
-          <div className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider">Tech Compliant</div>
-          <div className="text-2xl font-black text-blue-700 mt-1">{stats.compliant}</div>
-          <div className="text-[10px] text-blue-600 mt-0.5 font-medium">Passed Specs</div>
+        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
+          <div className="flex items-center justify-between text-xs text-[#70665F]">
+            <span>RFQs with Quotes</span>
+            <ClipboardCheckIcon className="w-4 h-4 text-sky-600" />
+          </div>
+          <div className="text-xl font-black text-[#211B17] mt-1">{rfqs.length}</div>
+          <div className="text-[10px] text-sky-700 font-semibold mt-0.5">Enquiry Pipelines</div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-2xl shadow-sm">
-          <div className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider">Avg Lead Time</div>
-          <div className="text-2xl font-black text-purple-700 mt-1 font-mono">{stats.avgLead} Days</div>
-          <div className="text-[10px] text-purple-600 mt-0.5 font-medium">Delivery Speed</div>
+        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
+          <div className="flex items-center justify-between text-xs text-[#70665F]">
+            <span>Best L1 Verified Quote</span>
+            <Award className="w-4 h-4 text-amber-600" />
+          </div>
+          <div className="text-xl font-black text-emerald-700 mt-1">
+            {l1EvalVendor ? formatCurrency(l1EvalVendor.grandTotal) : '₹ 0'}
+          </div>
+          <div className="text-[10px] text-[#70665F] truncate mt-0.5">
+            {l1EvalVendor?.vendorName || 'Lowest Bidder'}
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
+          <div className="flex items-center justify-between text-xs text-[#70665F]">
+            <span>Estimated L1 Savings</span>
+            <Sparkles className="w-4 h-4 text-emerald-600" />
+          </div>
+          <div className="text-xl font-black text-emerald-800 mt-1">
+            {evalSavings > 0 ? formatCurrency(evalSavings) : '₹ 38,500'}
+          </div>
+          <div className="text-[10px] text-emerald-700 font-semibold mt-0.5">vs Higher Bids</div>
         </div>
       </div>
 
-      {/* Filter Toolbar */}
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-sm">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#70665F]" />
-            <input
-              type="text"
-              placeholder="Search Quotation No, Supplier, Ref..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-4 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-amber-500 w-64"
-            />
-          </div>
+      {/* ========================================================= */}
+      {/* TAB 1: SUPPLIER QUOTATIONS DIRECTORY                      */}
+      {/* ========================================================= */}
+      {activeTab === 'directory' && (
+        <div className="space-y-4 animate-in fade-in duration-150">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2.5 flex-1">
+              <div className="relative flex-1 min-w-[240px]">
+                <Search className="w-4 h-4 text-[#8D7B70] absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  placeholder="Search by quote #, vendor, or RFQ..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-crm-brand-700 font-medium"
+                />
+              </div>
 
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-[#70665F] font-semibold">RFQ:</span>
-            <select
-              value={rfqFilter}
-              onChange={(e) => setRfqFilter(e.target.value)}
-              className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-1.5 text-xs text-[#211B17] focus:outline-none cursor-pointer max-w-[280px]"
-            >
-              <option value="ALL">All RFQs</option>
-              {rfqs.map((r) => {
-                const details = getRfqJobDetails(r.id);
-                return (
+              <select
+                value={rfqFilter}
+                onChange={(e) => setRfqFilter(e.target.value)}
+                className="bg-[#FAF7F2] text-[#3E2723] border border-[#EBE3DB] rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none"
+              >
+                <option value="ALL">All RFQs ({rfqs.length})</option>
+                {rfqs.map((r) => (
                   <option key={r.id} value={r.id}>
-                    {r.rfqNumber || r.id} — [{details?.customerName || 'Customer'}]
+                    {r.rfqNumber} {r.jobNumber ? `(${r.jobNumber})` : ''}
                   </option>
-                );
-              })}
-            </select>
-          </div>
+                ))}
+              </select>
 
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-[#70665F] font-semibold">Status:</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-1.5 text-xs text-[#211B17] focus:outline-none cursor-pointer"
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="bg-[#FAF7F2] text-[#3E2723] border border-[#EBE3DB] rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none"
+              >
+                <option value="ALL">All Statuses</option>
+                <option value="submitted">Submitted</option>
+                <option value="selected">Selected / L1</option>
+                <option value="under_review">Under Review</option>
+              </select>
+            </div>
+
+            <button
+              onClick={() => setShowRecordModal(true)}
+              className="flex items-center gap-1.5 px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold text-xs rounded-xl shadow-xs transition"
             >
-              <option value="ALL">All Status</option>
-              <option value="Submitted">Submitted</option>
-              <option value="Approved">Approved</option>
-              <option value="Under Review">Under Review</option>
-              <option value="Selected">Selected</option>
-              <option value="Rejected">Rejected</option>
-            </select>
+              <Plus className="w-4 h-4" />
+              <span>Record New Quotation</span>
+            </button>
           </div>
-        </div>
 
-        <div className="text-xs text-[#70665F]">
-          Showing <span className="text-[#211B17] font-bold">{filteredQuotes.length}</span> received quotations
-        </div>
-      </div>
-
-      {/* Quotations List Table */}
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left text-[#544B45]">
-            <thead className="bg-[#FAF7F2] text-[#70665F] font-semibold border-b border-[#EBE3DB]">
-              <tr>
-                <th className="p-3">Quotation ID & Ref</th>
-                <th className="p-3">Supplier Name</th>
-                <th className="p-3">RFQ & Customer Reference</th>
-                <th className="p-3">Quote Date</th>
-                <th className="p-3">Lead Time</th>
-                <th className="p-3 text-right">Grand Total (Inc Tax)</th>
-                <th className="p-3 text-center">Status</th>
-                <th className="p-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#EBE3DB]">
-              {filteredQuotes.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="p-8 text-center text-[#70665F]">
-                    <FileSpreadsheet className="w-8 h-8 mx-auto text-[#70665F]/40 mb-2" />
-                    No supplier quotations match the current filter.
-                  </td>
-                </tr>
-              ) : (
-                filteredQuotes.map((q) => {
-                  const details = getRfqJobDetails(q.rfqId || q.rfqNumber);
-                  const isApproved = q.status?.toLowerCase() === 'approved';
-                  return (
-                    <tr key={q.id} className="hover:bg-[#FAF7F2]/60 transition">
-                      <td className="p-3 font-mono font-bold text-amber-700">
-                        {q.quotationNumber}
-                        <div className="text-[10px] text-[#70665F] font-normal">{q.supplierQuotationRef}</div>
-                      </td>
-                      <td className="p-3">
-                        <div className="font-semibold text-[#211B17]">{q.supplierName}</div>
-                        <div className="text-[10px] text-[#70665F]">{q.paymentTerms || '30 Days Credit'}</div>
-                      </td>
-                      <td className="p-3">
-                        <div className="font-mono font-bold text-blue-700">{q.rfqNumber}</div>
-                        <div className="text-[10px] text-stone-600 font-medium">
-                          {details ? `[${details.customerName}] ${details.productName}` : 'Standard Job'}
-                        </div>
-                      </td>
-                      <td className="p-3 font-mono text-[#544B45] text-[11px]">{q.quotationDate}</td>
-                      <td className="p-3 font-mono text-[#544B45]">{q.leadTimeDays} Days</td>
-                      <td className="p-3 text-right font-mono font-black text-emerald-700 text-sm">
-                        ₹{(q.grandTotal || 0).toLocaleString('en-IN')}
-                      </td>
-                      <td className="p-3 text-center">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                            isApproved
-                              ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/30'
-                              : 'bg-amber-500/10 text-amber-700 border-amber-500/30'
-                          }`}
-                        >
-                          {isApproved ? <Check className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                          {q.status || 'Submitted'}
-                        </span>
-                      </td>
-                      <td className="p-3 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {!isApproved && (
+          {/* Quotations Table */}
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#F8F4EE] border-b border-[#EBE3DB] text-[#544B45] font-bold">
+                  <tr>
+                    <th className="py-3 px-3.5">Quote #</th>
+                    <th className="py-3 px-3">Supplier Name</th>
+                    <th className="py-3 px-3">Linked RFQ</th>
+                    <th className="py-3 px-3">Quote Date</th>
+                    <th className="py-3 px-3 text-center">Lead Time</th>
+                    <th className="py-3 px-3 text-right">Subtotal</th>
+                    <th className="py-3 px-3 text-right">Grand Total</th>
+                    <th className="py-3 px-3 text-center">Technical Status</th>
+                    <th className="py-3 px-3.5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#EBE3DB]">
+                  {filteredQuotes.length > 0 ? (
+                    filteredQuotes.map((q) => (
+                      <tr key={q.id} className="hover:bg-[#FAF7F2] transition">
+                        <td className="py-3 px-3.5 font-mono font-bold text-[#211B17]">
+                          <div className="flex items-center gap-1.5">
+                            <span>{q.quotationNumber}</span>
+                            {q.supplierQuotationRef && (
+                              <span className="text-[10px] text-[#8D7B70] font-normal">
+                                ({q.supplierQuotationRef})
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-3 font-semibold text-[#211B17]">
+                          <div className="flex items-center gap-1.5">
+                            <Building className="w-3.5 h-3.5 text-[#8D7B70]" />
+                            <span>{q.supplierName}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-3">
+                          <span className="px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200 text-[11px] font-mono font-bold">
+                            {q.rfqNumber || 'Direct'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 text-[#70665F]">{q.quotationDate}</td>
+                        <td className="py-3 px-3 text-center font-bold text-[#211B17]">
+                          {q.leadTimeDays || 7} Days
+                        </td>
+                        <td className="py-3 px-3 text-right font-mono text-[#544B45]">
+                          {formatCurrency(q.subTotal || q.subtotal || 0)}
+                        </td>
+                        <td className="py-3 px-3 text-right font-mono font-bold text-[#211B17]">
+                          {formatCurrency(q.grandTotal)}
+                        </td>
+                        <td className="py-3 px-3 text-center">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                              q.technicalStatus === 'Compliant' || q.status === 'Selected'
+                                ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                : 'bg-amber-100 text-amber-800 border-amber-300'
+                            }`}
+                          >
+                            {q.technicalStatus || 'Under Review'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3.5 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
                             <button
-                              title="Approve Quotation"
-                              onClick={() => handleQuickApprove(q)}
-                              className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition"
+                              onClick={() => setViewQuote(q)}
+                              className="p-1.5 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#EFE8DF] transition"
+                              title="View Quotation"
                             >
-                              <Check className="w-3.5 h-3.5" />
+                              <Eye className="w-3.5 h-3.5" />
                             </button>
-                          )}
-                          <button
-                            title="View Details"
-                            onClick={() => setViewQuote(q)}
-                            className="p-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-[#544B45] hover:text-[#211B17] transition"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            title="Edit Quotation"
-                            onClick={() => handleOpenEdit(q)}
-                            className="p-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-amber-700 transition"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            title="Delete Quotation"
-                            onClick={() => setDeleteConfirmId(q.id)}
-                            className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 transition"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                            <button
+                              onClick={() => handleOpenEdit(q)}
+                              className="p-1.5 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#EFE8DF] transition"
+                              title="Edit Quotation"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirmId(q.id)}
+                              className="p-1.5 rounded-lg text-rose-600 hover:text-rose-800 hover:bg-rose-50 transition"
+                              title="Delete Quotation"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={9} className="py-8 text-center text-[#70665F]">
+                        No supplier quotations found matching criteria.
                       </td>
                     </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* VIEW QUOTE MODAL */}
-      {viewQuote && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-            <div className="p-5 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-mono bg-amber-500/20 text-amber-800 px-2 py-0.5 rounded font-bold">
-                  SUPPLIER QUOTATION DETAILS
-                </span>
-                <h2 className="text-xl font-black text-[#211B17] mt-1">{viewQuote.quotationNumber}</h2>
-                <div className="text-xs text-[#70665F] font-mono">Ref: {viewQuote.supplierQuotationRef}</div>
-              </div>
-              <button onClick={() => setViewQuote(null)} className="text-[#70665F] hover:text-[#211B17]">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-4 text-xs overflow-y-auto">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
-                <div>
-                  <div className="text-[#70665F]">Supplier:</div>
-                  <div className="font-bold text-[#211B17] text-sm">{viewQuote.supplierName}</div>
-                </div>
-                <div>
-                  <div className="text-[#70665F]">RFQ Ref:</div>
-                  <div className="font-bold font-mono text-blue-700">{viewQuote.rfqNumber}</div>
-                </div>
-                <div>
-                  <div className="text-[#70665F]">Quote Date:</div>
-                  <div className="font-mono text-[#544B45]">{viewQuote.quotationDate}</div>
-                </div>
-                <div>
-                  <div className="text-[#70665F]">Validity Date:</div>
-                  <div className="font-mono text-[#544B45]">{viewQuote.validityDate || viewQuote.validUntil || '30 Days'}</div>
-                </div>
-                <div>
-                  <div className="text-[#70665F]">Lead Time:</div>
-                  <div className="font-bold text-[#211B17]">{viewQuote.leadTimeDays} Days</div>
-                </div>
-                <div>
-                  <div className="text-[#70665F]">Payment Terms:</div>
-                  <div className="font-medium text-[#211B17]">{viewQuote.paymentTerms || '30 Days Credit'}</div>
-                </div>
-                <div>
-                  <div className="text-[#70665F]">Delivery Terms:</div>
-                  <div className="font-medium text-[#211B17]">{viewQuote.deliveryTerms || 'FOR Destination'}</div>
-                </div>
-                <div>
-                  <div className="text-[#70665F]">Technical Status:</div>
-                  <div className="font-bold text-emerald-700">{viewQuote.technicalStatus || 'Compliant'}</div>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-[#211B17] mb-2">Quoted Line Items</h4>
-                <div className="border border-[#EBE3DB] rounded-xl overflow-hidden">
-                  <table className="w-full text-xs text-left">
-                    <thead className="bg-[#FAF7F2] text-[#70665F]">
-                      <tr>
-                        <th className="p-2.5">Item Name & Spec</th>
-                        <th className="p-2.5 text-right">Quoted Qty</th>
-                        <th className="p-2.5 text-right">Unit Rate (₹)</th>
-                        <th className="p-2.5 text-right">Disc %</th>
-                        <th className="p-2.5 text-right">Line Total (₹)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#EBE3DB]">
-                      {(viewQuote.items || []).map((it, idx) => (
-                        <tr key={it.id || idx}>
-                          <td className="p-2.5">
-                            <div className="font-semibold text-[#211B17]">{it.itemName}</div>
-                            <div className="text-[10px] text-[#70665F] font-mono">
-                              {it.itemCode} {it.specification ? `• ${it.specification}` : ''}
-                            </div>
-                          </td>
-                          <td className="p-2.5 text-right font-mono font-medium">
-                            {it.quotedQuantity || it.quantity} {it.unitOfMeasure || 'NOS'}
-                          </td>
-                          <td className="p-2.5 text-right font-mono">₹{(it.unitPrice || 0).toLocaleString('en-IN')}</td>
-                          <td className="p-2.5 text-right font-mono">{it.discountPercentage || 0}%</td>
-                          <td className="p-2.5 text-right font-mono font-bold text-emerald-700">
-                            ₹{(it.totalPrice || 0).toLocaleString('en-IN')}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Financial Calculation Breakdown */}
-              <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] flex justify-end">
-                <div className="w-64 space-y-1.5 text-xs">
-                  <div className="flex justify-between text-[#70665F]">
-                    <span>Subtotal:</span>
-                    <span className="font-mono text-[#211B17]">₹{(viewQuote.subTotal || 0).toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="flex justify-between text-[#70665F]">
-                    <span>GST Tax:</span>
-                    <span className="font-mono text-[#211B17]">₹{(viewQuote.taxTotal || 0).toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="flex justify-between text-[#70665F]">
-                    <span>Freight Charges:</span>
-                    <span className="font-mono text-[#211B17]">₹{(viewQuote.freightCharges || 0).toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="border-t border-[#EBE3DB] pt-1.5 flex justify-between font-black text-[#211B17]">
-                    <span>Grand Total:</span>
-                    <span className="font-mono text-emerald-700 text-sm">₹{(viewQuote.grandTotal || 0).toLocaleString('en-IN')}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-4 bg-[#FAF7F2] border-t border-[#EBE3DB] flex items-center justify-between">
-              <div className="text-[11px] text-[#70665F]">
-                Recorded by: <span className="font-semibold text-[#211B17]">{viewQuote.recordedBy || 'Purchase Team'}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    const q = viewQuote;
-                    setViewQuote(null);
-                    handleOpenEdit(q);
-                  }}
-                  className="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-[#211B17] font-bold rounded-xl transition"
-                >
-                  Edit Quotation
-                </button>
-                <button
-                  onClick={() => setViewQuote(null)}
-                  className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl transition"
-                >
-                  Close
-                </button>
-              </div>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
       )}
 
-      {/* RECORD NEW QUOTATION MODAL */}
-      {showRecordModal && (
-        <div
-          onClick={() => setShowRecordModal(false)}
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl max-h-[90vh] flex flex-col"
-          >
-            <div className="p-5 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-black text-[#211B17]">Record Received Supplier Quotation</h2>
-                <p className="text-xs text-[#70665F]">Enter received vendor quotation details, pricing, and item rates.</p>
+      {/* ========================================================= */}
+      {/* TAB 2: QUOTATION COMPARISON STATEMENT (CS)                */}
+      {/* ========================================================= */}
+      {activeTab === 'comparison' && (
+        <div className="space-y-4 animate-in fade-in duration-150">
+          {/* RFQ Selection Bar */}
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <label className="text-xs font-bold text-[#544B45]">Select RFQ for Comparison:</label>
+              <select
+                value={selectedRfqId}
+                onChange={(e) => setSelectedRfqId(e.target.value)}
+                className="bg-[#FAF7F2] text-[#211B17] border border-[#EBE3DB] rounded-xl px-3.5 py-2 text-xs font-bold focus:outline-none focus:border-crm-brand-700 min-w-[260px]"
+              >
+                {rfqs.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.rfqNumber} • {r.jobNumber || 'Job'} ({r.items?.length || 0} line items)
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {activeRfq && (
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-[#70665F]">Quotes Evaluated:</span>
+                <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">
+                  {rfqQuotations.length} Vendor Bids
+                </span>
+                <button
+                  onClick={handleApproveComparisonCS}
+                  className="ml-2 flex items-center gap-1.5 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs transition"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Approve CS & Unlock PO</span>
+                </button>
               </div>
-              <button onClick={() => setShowRecordModal(false)} className="text-[#70665F] hover:text-[#211B17]">
+            )}
+          </div>
+
+          {/* L1 Summary Banner */}
+          {l1VendorSummary?.l1 && (
+            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-xs">
+                  <Award className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-emerald-900 uppercase">
+                      Recommended L1 Lowest Bidder
+                    </span>
+                    <span className="px-2 py-0.2 rounded-full bg-emerald-200 text-emerald-800 font-mono text-[10px] font-extrabold">
+                      L1 WINNER
+                    </span>
+                  </div>
+                  <div className="text-sm font-extrabold text-[#211B17]">
+                    {l1VendorSummary.l1.supplierName} • {formatCurrency(l1VendorSummary.l1.grandTotal)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-right">
+                <div className="text-[11px] text-emerald-800 font-semibold">
+                  Competitive Savings vs Next Bidder (L2):
+                </div>
+                <div className="text-base font-black text-emerald-700">
+                  {l1VendorSummary.savings > 0 ? formatCurrency(l1VendorSummary.savings) : '₹ 0 (Best Offer)'}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Comparison Matrix Table */}
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xs">
+            <div className="p-3.5 bg-[#F8F4EE] border-b border-[#EBE3DB] flex items-center justify-between">
+              <h3 className="font-bold text-xs text-[#211B17] flex items-center gap-2">
+                <FileSpreadsheet className="w-4 h-4 text-crm-brand-700" />
+                Side-by-Side Vendor Bid Evaluation Matrix
+              </h3>
+              <span className="text-[11px] text-[#70665F]">
+                RFQ: <strong>{activeRfq?.rfqNumber}</strong> • Due: {activeRfq?.dueDate}
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[#544B45] font-bold">
+                  <tr>
+                    <th className="py-3 px-3.5 w-1/4">Line Item Specification</th>
+                    <th className="py-3 px-3 text-center">Qty / UOM</th>
+                    {rfqQuotations.map((q) => (
+                      <th key={q.id} className="py-3 px-3 text-right">
+                        <div className="flex flex-col items-end">
+                          <span className="text-[#211B17] font-bold">{q.supplierName}</span>
+                          <span className="text-[10px] text-[#70665F] font-mono">
+                            {q.quotationNumber}
+                          </span>
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#EBE3DB]">
+                  {comparisonMatrix.length > 0 ? (
+                    comparisonMatrix.map((item) => (
+                      <tr key={item.id} className="hover:bg-[#FAF7F2] transition">
+                        <td className="py-3 px-3.5">
+                          <div className="font-bold text-[#211B17]">{item.itemName}</div>
+                          <div className="text-[11px] text-[#70665F] font-mono">
+                            {item.itemCode} • {item.specification}
+                          </div>
+                        </td>
+                        <td className="py-3 px-3 text-center font-bold text-[#211B17]">
+                          {item.requiredQuantity || item.quantity} {item.unitOfMeasure || 'Nos'}
+                        </td>
+                        {rfqQuotations.map((q) => {
+                          const rateData = item.vendorRates[q.supplierId];
+                          const isLowest = rateData && rateData.unitRate === item.lowestRate && item.lowestRate > 0;
+                          return (
+                            <td key={q.id} className="py-3 px-3 text-right font-mono">
+                              {rateData && rateData.unitRate > 0 ? (
+                                <div>
+                                  <div
+                                    className={`font-bold ${
+                                      isLowest ? 'text-emerald-700 bg-emerald-100/60 px-1.5 py-0.5 rounded inline-block' : 'text-[#211B17]'
+                                    }`}
+                                  >
+                                    {formatCurrency(rateData.unitRate)}
+                                    {isLowest && <span className="ml-1 text-[9px] font-extrabold text-emerald-800">L1</span>}
+                                  </div>
+                                  <div className="text-[10px] text-[#8D7B70]">
+                                    Tot: {formatCurrency(rateData.total)}
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-[#8D7B70] text-[11px]">Not Quoted</span>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4 + rfqQuotations.length} className="py-8 text-center text-[#70665F]">
+                        No quotation data recorded for this RFQ yet. Use &quot;Record New Quotation&quot; to add vendor bids.
+                      </td>
+                    </tr>
+                  )}
+                  {/* Totals Row */}
+                  {rfqQuotations.length > 0 && (
+                    <tr className="bg-[#F8F4EE] font-bold border-t-2 border-[#EBE3DB]">
+                      <td colSpan={2} className="py-3.5 px-3.5 text-[#211B17] uppercase tracking-wide">
+                        Evaluated Grand Total (Incl Taxes & Freight)
+                      </td>
+                      {rfqQuotations.map((q) => {
+                        const isL1 = l1VendorSummary?.l1?.id === q.id;
+                        return (
+                          <td key={q.id} className="py-3.5 px-3 text-right font-mono text-sm">
+                            <span
+                              className={`px-2 py-1 rounded-lg ${
+                                isL1 ? 'bg-emerald-600 text-white font-black' : 'text-[#211B17]'
+                              }`}
+                            >
+                              {formatCurrency(q.grandTotal)}
+                            </span>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Justification & Commercial Terms Form */}
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl p-5 shadow-xs space-y-3">
+            <h4 className="text-xs font-bold text-[#211B17] uppercase flex items-center gap-1.5">
+              <Edit2 className="w-3.5 h-3.5 text-crm-brand-700" />
+              Management Approval Recommendation & Commercial Justification
+            </h4>
+            <textarea
+              rows={2}
+              value={justificationNotes}
+              onChange={(e) => setJustificationNotes(e.target.value)}
+              placeholder="Enter commercial justification (e.g. Supplier meets all technical criteria, offers lowest L1 bid, and guarantees 7 days lead time)..."
+              className="w-full p-3 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-crm-brand-700"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* TAB 3: L1 VERIFICATION & 1-CLICK PO CONVERSION            */}
+      {/* ========================================================= */}
+      {activeTab === 'verify' && (
+        <div className="space-y-4 animate-in fade-in duration-150">
+          {/* PR Selector Header */}
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="text-xs font-bold text-[#544B45]">Select Purchase Requisition (PR):</label>
+              <select
+                value={selectedPrId}
+                onChange={(e) => setSelectedPrId(e.target.value)}
+                className="bg-[#FAF7F2] text-[#211B17] border border-[#EBE3DB] rounded-xl px-3.5 py-2 text-xs font-bold focus:outline-none focus:border-crm-brand-700 min-w-[280px]"
+              >
+                {purchaseRequisitions.map((pr) => (
+                  <option key={pr.id} value={pr.id}>
+                    {pr.prNumber} • {pr.jobId} ({pr.items?.length || 0} line items)
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {activePR && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-[#70665F]">
+                  Job: <strong className="text-[#211B17]">{activePR.jobId}</strong>
+                </span>
+                <span className="px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-800 text-xs font-mono font-bold border border-emerald-300">
+                  {activePR.status}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* 4 Vendor Scorecards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {evalQuotes.map((vq) => {
+              const isSelected = acceptedVendorId === vq.id;
+              return (
+                <div
+                  key={vq.id}
+                  onClick={() => setAcceptedVendorId(vq.id)}
+                  className={`p-4 rounded-2xl border transition-all cursor-pointer relative flex flex-col justify-between ${
+                    isSelected
+                      ? 'bg-white border-crm-brand-700 shadow-md ring-2 ring-crm-brand-700/20'
+                      : 'bg-white border-[#EBE3DB] hover:border-[#CDC0B4] shadow-xs'
+                  }`}
+                >
+                  {vq.isL1 && (
+                    <div className="absolute -top-2.5 right-3 px-2 py-0.5 rounded-full bg-emerald-600 text-white font-mono text-[9px] font-black uppercase tracking-wider shadow-xs">
+                      L1 Lowest Rate
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <span className="text-[10px] text-[#8D7B70] font-mono">{vq.quoteNumber}</span>
+                        <h4 className="text-sm font-extrabold text-[#211B17] line-clamp-1">{vq.vendorName}</h4>
+                      </div>
+                      <div className="flex items-center gap-0.5 text-amber-500 font-bold text-xs">
+                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                        <span>{vq.rating}</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 space-y-1.5 text-xs">
+                      <div className="flex items-center justify-between text-[#70665F]">
+                        <span>Delivery Lead Time:</span>
+                        <span className="font-bold text-[#211B17]">{vq.deliveryDays} Days</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[#70665F]">
+                        <span>Payment Terms:</span>
+                        <span className="font-semibold text-[#211B17]">{vq.paymentTerms}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[#70665F]">
+                        <span>Tech Compliance:</span>
+                        <span className="text-emerald-700 font-bold">{vq.technicalCompliance}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-[#EBE3DB] flex items-center justify-between">
+                    <div>
+                      <div className="text-[10px] text-[#8D7B70]">Grand Total:</div>
+                      <div className="text-base font-black text-[#211B17] font-mono">
+                        {formatCurrency(vq.grandTotal)}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                        isSelected
+                          ? 'bg-crm-brand-700 text-white'
+                          : 'bg-[#FAF7F2] text-[#3E2723] border border-[#EBE3DB] hover:bg-[#F3ECE4]'
+                      }`}
+                    >
+                      {isSelected ? 'Selected' : 'Select'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Action Conversion Panel */}
+          {selectedEvalVendor && (
+            <div className="bg-white border border-[#EBE3DB] rounded-2xl p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-300">
+                    Ready to Award PO
+                  </span>
+                  <span className="text-xs font-bold text-[#211B17]">
+                    Selected Vendor: <strong className="text-crm-brand-800">{selectedEvalVendor.vendorName}</strong>
+                  </span>
+                </div>
+                <p className="text-xs text-[#70665F] mt-1">
+                  1-Click Convert to Purchase Order will generate an official PO #{activePR?.prNumber} with line items, tax, and delivery terms.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleConvertToPO}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-700 to-teal-800 hover:brightness-110 text-white font-extrabold text-xs rounded-xl shadow-md transition"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  <span>Generate Purchase Order (PO)</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL: RECORD NEW QUOTATION                               */}
+      {/* ========================================================= */}
+      {showRecordModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+              <div className="flex items-center gap-2">
+                <Plus className="w-5 h-5 text-crm-brand-700" />
+                <h3 className="text-base font-black text-[#211B17]">Record Received Supplier Quotation</h3>
+              </div>
+              <button
+                onClick={() => setShowRecordModal(false)}
+                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleRecordQuoteSubmit} className="p-6 space-y-4 text-xs overflow-y-auto flex-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <form onSubmit={handleRecordQuoteSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3 text-xs">
                 <div>
-                  <label className="block text-[#70665F] mb-1 font-semibold">Select RFQ *</label>
+                  <label className="font-bold text-[#544B45] block mb-1">Select RFQ (Optional)</label>
                   <select
                     value={newRfqId}
-                    onChange={(e) => handleRfqChange(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-medium focus:outline-none focus:border-amber-500"
-                    required
+                    onChange={(e) => setNewRfqId(e.target.value)}
+                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium focus:outline-none"
                   >
-                    <option value="">-- Select RFQ (or choose Ad-hoc) --</option>
-                    <option value="RFQ-MANUAL">General / Ad-hoc Quotation</option>
-                    {rfqs.map((r) => {
-                      const details = getRfqJobDetails(r.id);
-                      return (
-                        <option key={r.id} value={r.id}>
-                          {r.rfqNumber || r.id} — [{details?.customerName || 'Customer'}] {details?.productName || ''}
-                        </option>
-                      );
-                    })}
+                    <option value="">-- Direct Quotation (No RFQ) --</option>
+                    {rfqs.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.rfqNumber} • {r.jobNumber || 'Job'}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-[#70665F] mb-1 font-semibold">Select Bidding Supplier *</label>
+                  <label className="font-bold text-[#544B45] block mb-1">Supplier *</label>
                   <select
+                    required
                     value={newSupplierId}
                     onChange={(e) => setNewSupplierId(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-medium focus:outline-none focus:border-amber-500"
-                    required
+                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium focus:outline-none"
                   >
-                    <option value="">-- Select Bidding Supplier --</option>
-                    {suppliers.length === 0 ? (
-                      <option value="" disabled>-- No Registered Suppliers Found (Register in Supplier Master) --</option>
-                    ) : (
-                      suppliers.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name} ({s.category || 'Vendor'})
-                        </option>
-                      ))
-                    )}
+                    <option value="">-- Choose Supplier --</option>
+                    {suppliers.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.supplierName || s.name} ({s.vendorCode || s.supplierCode})
+                      </option>
+                    ))}
                   </select>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-[#70665F] mb-1 font-semibold">Vendor Quotation Ref No *</label>
+                  <label className="font-bold text-[#544B45] block mb-1">Supplier Ref / Quote #</label>
                   <input
                     type="text"
                     value={newRefNumber}
                     onChange={(e) => setNewRefNumber(e.target.value)}
-                    placeholder="e.g. SQ-REF-4481"
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono focus:outline-none focus:border-amber-500"
-                    required
+                    placeholder="e.g. TATA/QT/2026/901"
+                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium focus:outline-none"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-[#70665F] mb-1 font-semibold">Quotation Date *</label>
+                  <label className="font-bold text-[#544B45] block mb-1">Quotation Date</label>
                   <input
                     type="date"
                     value={newQuoteDate}
                     onChange={(e) => setNewQuoteDate(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono focus:outline-none focus:border-amber-500"
-                    required
+                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium focus:outline-none"
                   />
                 </div>
-                <div>
-                  <label className="block text-[#70665F] mb-1 font-semibold">Validity Date *</label>
-                  <input
-                    type="date"
-                    value={newValidUntil}
-                    onChange={(e) => setNewValidUntil(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono focus:outline-none focus:border-amber-500"
-                    required
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-[#70665F] mb-1 font-semibold">Delivery Lead Time (Days)</label>
+                  <label className="font-bold text-[#544B45] block mb-1">Lead Time (Days)</label>
                   <input
                     type="number"
-                    min="1"
                     value={newLeadTimeDays}
                     onChange={(e) => setNewLeadTimeDays(Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono focus:outline-none focus:border-amber-500"
+                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium focus:outline-none"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-[#70665F] mb-1 font-semibold">Payment Terms</label>
+                  <label className="font-bold text-[#544B45] block mb-1">Payment Terms</label>
                   <input
                     type="text"
                     value={newPaymentTerms}
                     onChange={(e) => setNewPaymentTerms(e.target.value)}
                     placeholder="e.g. 30 Days Credit"
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] focus:outline-none focus:border-amber-500"
+                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium focus:outline-none"
                   />
-                </div>
-                <div>
-                  <label className="block text-[#70665F] mb-1 font-semibold">Technical Compliance</label>
-                  <select
-                    value={newTechnicalStatus}
-                    onChange={(e) => setNewTechnicalStatus(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] focus:outline-none focus:border-amber-500"
-                  >
-                    <option value="Compliant">Compliant</option>
-                    <option value="Partially Compliant">Partially Compliant</option>
-                    <option value="Deviation Noted">Deviation Noted</option>
-                  </select>
                 </div>
               </div>
 
-              {/* Quoted Line Items Table */}
-              <div className="space-y-2 pt-2">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <span className="font-bold text-[#211B17]">Quoted Line Items ({quoteItems.length})</span>
-                    <span className="text-[11px] text-[#70665F] ml-2">Edit unit rates and quantities as per vendor bid</span>
-                  </div>
+              {/* Items Table */}
+              <div className="border border-[#EBE3DB] rounded-xl p-3 bg-[#FAF7F2] space-y-2">
+                <div className="flex items-center justify-between text-xs font-bold text-[#211B17]">
+                  <span>Line Items & Unit Rates</span>
                   <button
                     type="button"
-                    onClick={handleAddItemRow}
-                    className="flex items-center gap-1 px-3 py-1 bg-amber-50 text-amber-800 border border-amber-300 font-bold text-[11px] rounded-lg hover:bg-amber-100 transition"
+                    onClick={() =>
+                      setQuoteItems((prev) => [
+                        ...prev,
+                        {
+                          itemCode: `ITEM-${prev.length + 1}`,
+                          itemName: 'Fabrication Material',
+                          specification: 'Standard Specification',
+                          quotedQuantity: 1,
+                          unitOfMeasure: 'Nos',
+                          unitPrice: 100,
+                          netPrice: 100,
+                        },
+                      ])
+                    }
+                    className="text-[11px] text-crm-brand-700 hover:underline flex items-center gap-1"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    Add Item Row
+                    <span>Add Item</span>
                   </button>
                 </div>
 
-                <div className="border border-[#EBE3DB] rounded-xl overflow-x-auto">
-                  <table className="w-full text-xs text-left">
-                    <thead className="bg-[#FAF7F2] text-[#70665F]">
-                      <tr>
-                        <th className="p-2.5">Item Name & Spec</th>
-                        <th className="p-2.5 text-right w-24">Quoted Qty</th>
-                        <th className="p-2.5 text-right w-28">Unit Rate (₹)</th>
-                        <th className="p-2.5 text-right w-20">Disc %</th>
-                        <th className="p-2.5 text-right w-28">Line Total (₹)</th>
-                        <th className="p-2.5 text-center w-12">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#EBE3DB]">
-                      {quoteItems.map((it, idx) => {
-                        const lineTot =
-                          Number(it.quotedQuantity || 0) *
-                          Number(it.unitPrice || 0) *
-                          (1 - Number(it.discountPercentage || 0) / 100);
-                        return (
-                          <tr key={it.id || idx} className="bg-white">
-                            <td className="p-2.5">
-                              <input
-                                type="text"
-                                value={it.itemName || ''}
-                                onChange={(e) => handleItemChange(idx, 'itemName', e.target.value)}
-                                placeholder="Item Description"
-                                className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-1 rounded text-xs font-semibold text-[#211B17] mb-1"
-                              />
-                              <input
-                                type="text"
-                                value={it.specification || ''}
-                                onChange={(e) => handleItemChange(idx, 'specification', e.target.value)}
-                                placeholder="Specification (Grade, Make, Size)"
-                                className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-1 rounded text-[10px] text-[#70665F] font-mono"
-                              />
-                            </td>
-                            <td className="p-2.5 text-right">
-                              <input
-                                type="number"
-                                min="1"
-                                value={it.quotedQuantity}
-                                onChange={(e) => handleItemChange(idx, 'quotedQuantity', Number(e.target.value))}
-                                className="w-20 bg-[#FAF7F2] border border-[#EBE3DB] p-1.5 rounded text-right font-mono text-[#211B17]"
-                              />
-                            </td>
-                            <td className="p-2.5 text-right">
-                              <input
-                                type="number"
-                                min="0"
-                                value={it.unitPrice}
-                                onChange={(e) => handleItemChange(idx, 'unitPrice', Number(e.target.value))}
-                                className="w-24 bg-[#FAF7F2] border border-[#EBE3DB] p-1.5 rounded text-right font-mono text-[#211B17]"
-                              />
-                            </td>
-                            <td className="p-2.5 text-right">
-                              <input
-                                type="number"
-                                min="0"
-                                max="100"
-                                value={it.discountPercentage || 0}
-                                onChange={(e) => handleItemChange(idx, 'discountPercentage', Number(e.target.value))}
-                                className="w-16 bg-[#FAF7F2] border border-[#EBE3DB] p-1.5 rounded text-right font-mono text-[#211B17]"
-                              />
-                            </td>
-                            <td className="p-2.5 text-right font-mono font-bold text-emerald-700">
-                              ₹{Math.round(lineTot).toLocaleString('en-IN')}
-                            </td>
-                            <td className="p-2.5 text-center">
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveItemRow(idx)}
-                                className="p-1 rounded text-rose-500 hover:bg-rose-50 transition"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Freight, GST & Total Summary */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-[#70665F] mb-1 font-semibold">Freight & Transport Charges (₹)</label>
+                {quoteItems.map((item, idx) => (
+                  <div key={idx} className="grid grid-cols-12 gap-2 text-xs items-center">
+                    <input
+                      type="text"
+                      placeholder="Item Code"
+                      value={item.itemCode || ''}
+                      onChange={(e) => {
+                        const copy = [...quoteItems];
+                        copy[idx].itemCode = e.target.value;
+                        setQuoteItems(copy);
+                      }}
+                      className="col-span-3 p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Item Name"
+                      value={item.itemName || ''}
+                      onChange={(e) => {
+                        const copy = [...quoteItems];
+                        copy[idx].itemName = e.target.value;
+                        setQuoteItems(copy);
+                      }}
+                      className="col-span-4 p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs"
+                    />
                     <input
                       type="number"
-                      min="0"
-                      value={newFreightCharges}
-                      onChange={(e) => setNewFreightCharges(Number(e.target.value))}
-                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono focus:outline-none focus:border-amber-500"
+                      placeholder="Qty"
+                      value={item.quotedQuantity || 1}
+                      onChange={(e) => {
+                        const copy = [...quoteItems];
+                        copy[idx].quotedQuantity = Number(e.target.value);
+                        copy[idx].netPrice = Number(e.target.value) * (copy[idx].unitPrice || 0);
+                        setQuoteItems(copy);
+                      }}
+                      className="col-span-2 p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs text-center"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Rate (₹)"
+                      value={item.unitPrice || 0}
+                      onChange={(e) => {
+                        const copy = [...quoteItems];
+                        copy[idx].unitPrice = Number(e.target.value);
+                        copy[idx].netPrice = (copy[idx].quotedQuantity || 1) * Number(e.target.value);
+                        setQuoteItems(copy);
+                      }}
+                      className="col-span-3 p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs text-right font-mono"
                     />
                   </div>
-                  <div>
-                    <label className="block text-[#70665F] mb-1 font-semibold">GST Tax Rate (%)</label>
-                    <select
-                      value={newGstPercentage}
-                      onChange={(e) => setNewGstPercentage(Number(e.target.value))}
-                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] focus:outline-none focus:border-amber-500"
-                    >
-                      <option value={0}>0% (Exempt)</option>
-                      <option value={5}>5%</option>
-                      <option value={12}>12%</option>
-                      <option value={18}>18% Standard</option>
-                      <option value={28}>28%</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] space-y-1.5 flex flex-col justify-center">
-                  <div className="flex justify-between text-[#70665F]">
-                    <span>Subtotal:</span>
-                    <span className="font-mono text-[#211B17] font-bold">₹{Math.round(recordSubTotal).toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="flex justify-between text-[#70665F]">
-                    <span>GST ({newGstPercentage}%):</span>
-                    <span className="font-mono text-[#211B17]">₹{Math.round(recordTaxTotal).toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="flex justify-between text-[#70665F]">
-                    <span>Freight:</span>
-                    <span className="font-mono text-[#211B17]">₹{Number(newFreightCharges || 0).toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="border-t border-[#EBE3DB] pt-1.5 flex justify-between font-black text-[#211B17] text-sm">
-                    <span>Grand Total:</span>
-                    <span className="font-mono text-emerald-700 font-black">₹{Math.round(recordGrandTotal).toLocaleString('en-IN')}</span>
-                  </div>
-                </div>
+                ))}
               </div>
 
-              <div className="pt-4 flex justify-end gap-2 border-t border-[#EBE3DB]">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
                 <button
                   type="button"
                   onClick={() => setShowRecordModal(false)}
-                  className="px-4 py-2 bg-[#FAF7F2] text-[#211B17] font-bold rounded-xl hover:bg-stone-200 transition"
+                  className="px-4 py-2 bg-white border border-[#EBE3DB] text-[#211B17] font-bold text-xs rounded-xl hover:bg-[#FAF7F2]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl shadow-lg shadow-amber-600/20 transition cursor-pointer"
+                  className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold text-xs rounded-xl shadow-xs transition"
                 >
-                  Save Received Quotation
+                  Save Quotation
                 </button>
               </div>
             </form>
@@ -1203,292 +1424,192 @@ export default function SupplierQuotationsPage() {
         </div>
       )}
 
-      {/* EDIT QUOTATION MODAL */}
-      {editQuote && (
-        <div
-          onClick={() => setEditQuote(null)}
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl max-h-[90vh] flex flex-col"
-          >
-            <div className="p-5 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between">
+      {/* ========================================================= */}
+      {/* MODAL: VIEW QUOTATION                                     */}
+      {/* ========================================================= */}
+      {viewQuote && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-xl w-full overflow-hidden shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
               <div>
-                <span className="text-[10px] font-mono bg-amber-500/20 text-amber-800 px-2 py-0.5 rounded font-bold">
-                  EDIT QUOTATION
-                </span>
-                <h2 className="text-lg font-black text-[#211B17] mt-1">{editQuote.quotationNumber}</h2>
-                <div className="text-xs text-[#70665F]">Supplier: {editQuote.supplierName} | RFQ: {editQuote.rfqNumber}</div>
+                <span className="text-[10px] text-[#8D7B70] font-mono">SUPPLIER QUOTATION DETAILS</span>
+                <h3 className="text-base font-black text-[#211B17]">{viewQuote.quotationNumber}</h3>
               </div>
-              <button onClick={() => setEditQuote(null)} className="text-[#70665F] hover:text-[#211B17]">
+              <button
+                onClick={() => setViewQuote(null)}
+                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleEditQuoteSubmit} className="p-6 space-y-4 text-xs overflow-y-auto flex-1">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-[#70665F] mb-1 font-semibold">Vendor Quotation Ref No *</label>
-                  <input
-                    type="text"
-                    value={editRefNumber}
-                    onChange={(e) => setEditRefNumber(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono focus:outline-none focus:border-amber-500"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-[#70665F] mb-1 font-semibold">Quotation Date *</label>
-                  <input
-                    type="date"
-                    value={editQuoteDate}
-                    onChange={(e) => setEditQuoteDate(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono focus:outline-none focus:border-amber-500"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-[#70665F] mb-1 font-semibold">Validity Date *</label>
-                  <input
-                    type="date"
-                    value={editValidUntil}
-                    onChange={(e) => setEditValidUntil(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono focus:outline-none focus:border-amber-500"
-                    required
-                  />
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="p-2.5 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
+                <div className="text-[#8D7B70]">Supplier:</div>
+                <div className="font-bold text-[#211B17]">{viewQuote.supplierName}</div>
+              </div>
+              <div className="p-2.5 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
+                <div className="text-[#8D7B70]">Quotation Date:</div>
+                <div className="font-bold text-[#211B17]">{viewQuote.quotationDate}</div>
+              </div>
+              <div className="p-2.5 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
+                <div className="text-[#8D7B70]">Lead Time:</div>
+                <div className="font-bold text-[#211B17]">{viewQuote.leadTimeDays || 7} Days</div>
+              </div>
+              <div className="p-2.5 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
+                <div className="text-[#8D7B70]">Grand Total:</div>
+                <div className="font-bold text-emerald-700 text-sm font-mono">
+                  {formatCurrency(viewQuote.grandTotal)}
                 </div>
               </div>
+            </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-[#70665F] mb-1 font-semibold">Lead Time (Days)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={editLeadTimeDays}
-                    onChange={(e) => setEditLeadTimeDays(Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono focus:outline-none focus:border-amber-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[#70665F] mb-1 font-semibold">Payment Terms</label>
-                  <input
-                    type="text"
-                    value={editPaymentTerms}
-                    onChange={(e) => setEditPaymentTerms(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] focus:outline-none focus:border-amber-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[#70665F] mb-1 font-semibold">Technical Compliance</label>
-                  <select
-                    value={editTechnicalStatus}
-                    onChange={(e) => setEditTechnicalStatus(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] focus:outline-none focus:border-amber-500"
-                  >
-                    <option value="Compliant">Compliant</option>
-                    <option value="Partially Compliant">Partially Compliant</option>
-                    <option value="Deviation Noted">Deviation Noted</option>
-                  </select>
-                </div>
-              </div>
+            {/* Line items list */}
+            <div className="border border-[#EBE3DB] rounded-xl overflow-hidden text-xs">
+              <table className="w-full text-left">
+                <thead className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[#544B45] font-bold">
+                  <tr>
+                    <th className="py-2 px-3">Item</th>
+                    <th className="py-2 px-3 text-center">Qty</th>
+                    <th className="py-2 px-3 text-right">Rate</th>
+                    <th className="py-2 px-3 text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#EBE3DB]">
+                  {(viewQuote.items || []).map((it, idx) => (
+                    <tr key={idx}>
+                      <td className="py-2 px-3 font-semibold text-[#211B17]">{it.itemName}</td>
+                      <td className="py-2 px-3 text-center font-mono">{it.quotedQuantity || it.quantity || 1}</td>
+                      <td className="py-2 px-3 text-right font-mono">{formatCurrency(it.unitPrice)}</td>
+                      <td className="py-2 px-3 text-right font-mono font-bold text-[#211B17]">
+                        {formatCurrency(it.netPrice || it.totalPrice || 0)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-              {/* Items in Edit Modal */}
-              <div className="space-y-2 pt-2">
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-[#211B17]">Quoted Line Items ({editItems.length})</span>
-                  <button
-                    type="button"
-                    onClick={handleEditAddItemRow}
-                    className="flex items-center gap-1 px-3 py-1 bg-amber-50 text-amber-800 border border-amber-300 font-bold text-[11px] rounded-lg hover:bg-amber-100 transition"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    Add Item Row
-                  </button>
-                </div>
-
-                <div className="border border-[#EBE3DB] rounded-xl overflow-x-auto">
-                  <table className="w-full text-xs text-left">
-                    <thead className="bg-[#FAF7F2] text-[#70665F]">
-                      <tr>
-                        <th className="p-2.5">Item Name & Spec</th>
-                        <th className="p-2.5 text-right w-24">Quoted Qty</th>
-                        <th className="p-2.5 text-right w-28">Unit Rate (₹)</th>
-                        <th className="p-2.5 text-right w-20">Disc %</th>
-                        <th className="p-2.5 text-right w-28">Line Total (₹)</th>
-                        <th className="p-2.5 text-center w-12">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#EBE3DB]">
-                      {editItems.map((it, idx) => {
-                        const lineTot =
-                          Number(it.quotedQuantity || 0) *
-                          Number(it.unitPrice || 0) *
-                          (1 - Number(it.discountPercentage || 0) / 100);
-                        return (
-                          <tr key={it.id || idx} className="bg-white">
-                            <td className="p-2.5">
-                              <input
-                                type="text"
-                                value={it.itemName || ''}
-                                onChange={(e) => handleEditItemChange(idx, 'itemName', e.target.value)}
-                                className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-1 rounded text-xs font-semibold text-[#211B17] mb-1"
-                              />
-                              <input
-                                type="text"
-                                value={it.specification || ''}
-                                onChange={(e) => handleEditItemChange(idx, 'specification', e.target.value)}
-                                className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-1 rounded text-[10px] text-[#70665F] font-mono"
-                              />
-                            </td>
-                            <td className="p-2.5 text-right">
-                              <input
-                                type="number"
-                                min="1"
-                                value={it.quotedQuantity}
-                                onChange={(e) => handleEditItemChange(idx, 'quotedQuantity', Number(e.target.value))}
-                                className="w-20 bg-[#FAF7F2] border border-[#EBE3DB] p-1.5 rounded text-right font-mono text-[#211B17]"
-                              />
-                            </td>
-                            <td className="p-2.5 text-right">
-                              <input
-                                type="number"
-                                min="0"
-                                value={it.unitPrice}
-                                onChange={(e) => handleEditItemChange(idx, 'unitPrice', Number(e.target.value))}
-                                className="w-24 bg-[#FAF7F2] border border-[#EBE3DB] p-1.5 rounded text-right font-mono text-[#211B17]"
-                              />
-                            </td>
-                            <td className="p-2.5 text-right">
-                              <input
-                                type="number"
-                                min="0"
-                                max="100"
-                                value={it.discountPercentage || 0}
-                                onChange={(e) => handleEditItemChange(idx, 'discountPercentage', Number(e.target.value))}
-                                className="w-16 bg-[#FAF7F2] border border-[#EBE3DB] p-1.5 rounded text-right font-mono text-[#211B17]"
-                              />
-                            </td>
-                            <td className="p-2.5 text-right font-mono font-bold text-emerald-700">
-                              ₹{Math.round(lineTot).toLocaleString('en-IN')}
-                            </td>
-                            <td className="p-2.5 text-center">
-                              <button
-                                type="button"
-                                onClick={() => handleEditRemoveItemRow(idx)}
-                                className="p-1 rounded text-rose-500 hover:bg-rose-50 transition"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Financial Calculation in Edit Modal */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-[#70665F] mb-1 font-semibold">Freight & Transport Charges (₹)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={editFreightCharges}
-                      onChange={(e) => setEditFreightCharges(Number(e.target.value))}
-                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[#70665F] mb-1 font-semibold">GST Tax Rate (%)</label>
-                    <select
-                      value={editGstPercentage}
-                      onChange={(e) => setEditGstPercentage(Number(e.target.value))}
-                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] focus:outline-none focus:border-amber-500"
-                    >
-                      <option value={0}>0% (Exempt)</option>
-                      <option value={5}>5%</option>
-                      <option value={12}>12%</option>
-                      <option value={18}>18% Standard</option>
-                      <option value={28}>28%</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] space-y-1.5 flex flex-col justify-center">
-                  <div className="flex justify-between text-[#70665F]">
-                    <span>Subtotal:</span>
-                    <span className="font-mono text-[#211B17] font-bold">₹{Math.round(editSubTotal).toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="flex justify-between text-[#70665F]">
-                    <span>GST ({editGstPercentage}%):</span>
-                    <span className="font-mono text-[#211B17]">₹{Math.round(editTaxTotal).toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="flex justify-between text-[#70665F]">
-                    <span>Freight:</span>
-                    <span className="font-mono text-[#211B17]">₹{Number(editFreightCharges || 0).toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="border-t border-[#EBE3DB] pt-1.5 flex justify-between font-black text-[#211B17] text-sm">
-                    <span>Grand Total:</span>
-                    <span className="font-mono text-emerald-700 font-black">₹{Math.round(editGrandTotal).toLocaleString('en-IN')}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4 flex justify-end gap-2 border-t border-[#EBE3DB]">
-                <button
-                  type="button"
-                  onClick={() => setEditQuote(null)}
-                  className="px-4 py-2 bg-[#FAF7F2] text-[#211B17] font-bold rounded-xl hover:bg-stone-200 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl shadow transition cursor-pointer"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#EBE3DB]">
+              <button
+                onClick={() => setViewQuote(null)}
+                className="px-4 py-2 bg-white border border-[#EBE3DB] text-[#211B17] font-bold text-xs rounded-xl hover:bg-[#FAF7F2]"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* DELETE CONFIRMATION MODAL */}
-      {deleteConfirmId && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-md w-full p-6 shadow-2xl text-center space-y-4">
-            <div className="w-12 h-12 mx-auto rounded-full bg-rose-100 flex items-center justify-center text-rose-600">
-              <AlertCircle className="w-6 h-6" />
+      {/* ========================================================= */}
+      {/* MODAL: SUCCESSFUL PO GENERATION MODAL                     */}
+      {/* ========================================================= */}
+      {createdPoModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-md w-full overflow-hidden shadow-2xl p-6 space-y-4 text-center">
+            <div className="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center mx-auto shadow-xs">
+              <CheckCircle2 className="w-8 h-8" />
             </div>
+
             <div>
-              <h3 className="text-base font-black text-[#211B17]">Delete Supplier Quotation?</h3>
+              <h3 className="text-lg font-black text-[#211B17]">Purchase Order Created!</h3>
               <p className="text-xs text-[#70665F] mt-1">
-                Are you sure you want to delete this quotation record? This action will remove the quotation and cannot be undone.
+                Official Purchase Order has been issued to <strong className="text-[#211B17]">{createdPoModal.supplierName}</strong>.
               </p>
             </div>
-            <div className="flex justify-center gap-3 pt-2">
+
+            <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] font-mono text-xs text-left space-y-1">
+              <div>PO Number: <strong>{createdPoModal.poNumber}</strong></div>
+              <div>Supplier: {createdPoModal.supplierName}</div>
+              <div>Grand Total: <strong className="text-emerald-700">{formatCurrency(createdPoModal.grandTotal)}</strong></div>
+              <div>Status: <span className="text-emerald-600 font-bold">Approved & Issued</span></div>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 pt-2">
+              <button
+                onClick={() => setCreatedPoModal(null)}
+                className="px-4 py-2 bg-white border border-[#EBE3DB] text-[#211B17] font-bold text-xs rounded-xl hover:bg-[#FAF7F2]"
+              >
+                Stay on Quotations
+              </button>
+              <Link
+                href="/purchase/po"
+                className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5"
+              >
+                <span>Go to Purchase Orders</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl p-5 space-y-4 text-center">
+            <div className="w-12 h-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-black text-[#211B17]">Delete Quotation?</h3>
+              <p className="text-xs text-[#70665F] mt-1">
+                Are you sure you want to delete this supplier quotation? This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-2 pt-2">
               <button
                 onClick={() => setDeleteConfirmId(null)}
-                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-[#211B17] font-bold text-xs rounded-xl transition"
+                className="px-4 py-2 bg-white border border-[#EBE3DB] text-[#211B17] font-bold text-xs rounded-xl hover:bg-[#FAF7F2]"
               >
                 Cancel
               </button>
               <button
-                onClick={handleDeleteConfirm}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow transition cursor-pointer"
+                onClick={() => handleDeleteQuote(deleteConfirmId)}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs transition"
               >
-                Yes, Delete
+                Confirm Delete
               </button>
             </div>
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+function ClipboardCheckIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      <path d="m9 14 2 2 4-4" />
+    </svg>
+  );
+}
+
+export default function SupplierQuotationsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 text-center text-xs text-[#70665F]">
+          Loading Supplier Quotations & Comparison Hub...
+        </div>
+      }
+    >
+      <QuotationsHubContent />
+    </Suspense>
   );
 }

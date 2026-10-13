@@ -436,30 +436,30 @@ export default function StoreDashboardPage() {
           </Link>
 
           <Link
-            href="/store/stock"
+            href="/store/grn"
             className="p-3 bg-white/60 rounded-xl border border-[#EBE3DB]/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
           >
             <Box className="w-5 h-5 text-sky-400 mb-1.5 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-[#544B45]">Stock Matrix</span>
-            <span className="text-[10px] text-[#70665F] mt-0.5">Usable Quantities</span>
+            <span className="text-xs font-bold text-[#544B45]">Goods Receipt (GRN)</span>
+            <span className="text-[10px] text-[#70665F] mt-0.5">Inward Gate Entry</span>
           </Link>
 
           <Link
-            href="/store/reservations"
+            href="/store/material-issue"
             className="p-3 bg-white/60 rounded-xl border border-[#EBE3DB]/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
           >
-            <Lock className="w-5 h-5 text-rose-400 mb-1.5 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-[#544B45]">Stock Reservation</span>
-            <span className="text-[10px] text-[#70665F] mt-0.5">Job-wise Locking</span>
+            <Truck className="w-5 h-5 text-emerald-500 mb-1.5 group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-bold text-[#544B45]">Material Issue</span>
+            <span className="text-[10px] text-[#70665F] mt-0.5">Shop Floor Voucher</span>
           </Link>
 
           <Link
-            href="/store/ledger"
+            href="/store/material-return"
             className="p-3 bg-white/60 rounded-xl border border-[#EBE3DB]/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
           >
             <RotateCcw className="w-5 h-5 text-indigo-400 mb-1.5 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-[#544B45]">Stock Ledger</span>
-            <span className="text-[10px] text-[#70665F] mt-0.5">Audit History</span>
+            <span className="text-xs font-bold text-[#544B45]">Material Return</span>
+            <span className="text-[10px] text-[#70665F] mt-0.5">Surplus & Scrap</span>
           </Link>
 
           <Link

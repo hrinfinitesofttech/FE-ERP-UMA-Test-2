@@ -441,6 +441,8 @@ interface ERPContextType {
       dataScope?: string;
       assignedModules?: string[];
       customPermissions?: Record<string, any>;
+      explicitRestrictions?: string[] | any;
+      permissionsReviewRequired?: boolean;
       canAssignTasks?: boolean;
       canApproveLeaves?: boolean;
       canManageAttendance?: boolean;
@@ -473,6 +475,10 @@ interface ERPContextType {
   addEmployee: (emp: Omit<Employee, 'id'>) => void;
   updateEmployee: (id: string, emp: Partial<Employee>) => void;
   deleteEmployee: (id: string) => void;
+  deactivateEmployee: (id: string) => Promise<{ success: boolean; message?: string; error?: string }>;
+  activateEmployee: (id: string) => Promise<{ success: boolean; message?: string; error?: string }>;
+  refreshEmployees: () => Promise<Employee[]>;
+  refreshCurrentUser: () => Promise<void>;
   resetEmployeePassword: (id: string, password: string) => Promise<{ success: boolean; message?: string }>;
 
   // CRM Entities
@@ -4985,6 +4991,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       dataScope?: string;
       assignedModules?: string[];
       customPermissions?: Record<string, any>;
+      explicitRestrictions?: string[] | any;
+      permissionsReviewRequired?: boolean;
       canAssignTasks?: boolean;
       canApproveLeaves?: boolean;
       canManageAttendance?: boolean;
@@ -5329,6 +5337,69 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     });
     logAction('DELETE', 'User Management', 'Delete Employee', id, `Deleted employee ${id}`);
     api.employees.delete(id).catch((err) => console.warn('Failed to delete employee:', err));
+  };
+
+  const deactivateEmployee = async (id: string): Promise<{ success: boolean; message?: string; error?: string }> => {
+    try {
+      const res = await api.employees.deactivate(id);
+      setEmployees((prev) =>
+        prev.map((e) => (e.id === id || e.username === id ? { ...e, status: 'inactive', isActive: false } : e))
+      );
+      logAction('UPDATE', 'User Management', 'Deactivate Employee', id, `Deactivated employee ${id}`);
+      return { success: true, message: res?.message || 'Employee deactivated successfully' };
+    } catch (err: any) {
+      console.warn('Deactivate employee API error:', err);
+      return { success: false, error: err?.message || 'Failed to deactivate employee' };
+    }
+  };
+
+  const activateEmployee = async (id: string): Promise<{ success: boolean; message?: string; error?: string }> => {
+    try {
+      const res = await api.employees.activate(id);
+      setEmployees((prev) =>
+        prev.map((e) => (e.id === id || e.username === id ? { ...e, status: 'active', isActive: true } : e))
+      );
+      logAction('UPDATE', 'User Management', 'Activate Employee', id, `Activated employee ${id}`);
+      return { success: true, message: res?.message || 'Employee activated successfully' };
+    } catch (err: any) {
+      console.warn('Activate employee API error:', err);
+      return { success: false, error: err?.message || 'Failed to activate employee' };
+    }
+  };
+
+  const refreshEmployees = async (): Promise<Employee[]> => {
+    try {
+      const raw = await api.employees.list();
+      if (Array.isArray(raw)) {
+        const cleaned = deduplicateEmployees(raw);
+        setEmployees(cleaned);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_employees', JSON.stringify(cleaned)); } catch (_) {}
+        }
+        return cleaned;
+      }
+    } catch (err) {
+      console.warn('Failed to refresh employees:', err);
+    }
+    return employees;
+  };
+
+  const refreshCurrentUser = async (): Promise<void> => {
+    try {
+      const meRes = await api.auth.me();
+      if (meRes && meRes.username) {
+        setCurrentUser((prev) => ({
+          ...prev,
+          ...meRes,
+          name: meRes.name || `${meRes.firstName || ''} ${meRes.lastName || ''}`.trim() || meRes.username,
+          role: meRes.role || meRes.roleName || 'Super Admin',
+          roleName: meRes.roleName || meRes.role || 'Super Admin',
+          department: meRes.department || meRes.departmentName || 'Management',
+        }));
+      }
+    } catch (err) {
+      console.warn('Failed to refresh current user:', err);
+    }
   };
 
   // CRM: Leads
@@ -9191,7 +9262,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       type: 'info',
       department: 'store',
       priority: 'normal',
-      linkUrl: `/store/qc-inspection?grn=${grnNumber}`,
+      linkUrl: `/store/grn`,
     });
 
     const grnPayload = {
@@ -9545,7 +9616,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       type: qcResult === 'Pass' ? 'success' : qcResult === 'Fail' ? 'alert' : 'warning',
       department: 'store',
       priority: 'normal',
-      linkUrl: '/store/qc-inspection',
+      linkUrl: '/store/grn',
     });
 
     api.post('/qc-inspections/', {
@@ -12533,6 +12604,10 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         addEmployee,
         updateEmployee,
         deleteEmployee,
+        deactivateEmployee,
+        activateEmployee,
+        refreshEmployees,
+        refreshCurrentUser,
         resetEmployeePassword,
         leads: deduplicateLeads(leads),
         addLead,

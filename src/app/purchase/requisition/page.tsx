@@ -287,7 +287,7 @@ export default function PurchaseRequisitionPage() {
                       )}
                       {(pr.status === 'Approved' || pr.status === 'Converted to RFQ' || pr.status === 'Submitted') && (
                         <Link
-                          href={`/purchase/quotation-verify?prNumber=${pr.prNumber}`}
+                          href={`/purchase/quotations?tab=verify&prNumber=${pr.prNumber}`}
                           className="px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 font-bold text-[10px] border border-amber-500/30 transition flex items-center gap-1"
                           title="Verify Vendor Quotations & Compare L1"
                         >
@@ -352,7 +352,7 @@ export default function PurchaseRequisitionPage() {
                 Close
               </button>
               <Link
-                href={`/purchase/quotation-verify?prNumber=${approvedPrModal.prNumber}`}
+                href={`/purchase/quotations?tab=verify&prNumber=${approvedPrModal.prNumber}`}
                 className="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5"
               >
                 <span>Go to Vendor Quotation Verify</span>

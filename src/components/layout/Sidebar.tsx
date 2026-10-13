@@ -98,15 +98,39 @@ export function Sidebar() {
     productionOrders,
   } = useERP();
 
-  const isSuperAdminOrAdmin =
+  const isSuperAdmin =
     currentUser?.roleType === 'super_admin' ||
-    currentUser?.roleType === 'admin' ||
     currentUser?.roleName === 'Super Admin' ||
+    currentUser?.username === 'admin';
+
+  const isSuperAdminOrAdmin =
+    isSuperAdmin ||
+    currentUser?.roleType === 'admin' ||
     currentUser?.isFamilyMember;
 
   const hasModule = (moduleKey: string) => {
-    if (isSuperAdminOrAdmin) return true;
     const cleanK = moduleKey.toLowerCase();
+
+    // Check explicit restrictions first (overrides all grants)
+    const restrictions = currentUser?.explicitRestrictions || currentUser?.explicit_restrictions;
+    if (Array.isArray(restrictions)) {
+      const isRestricted = restrictions.some((r: string) => {
+        const cleanR = String(r).toLowerCase();
+        return cleanR === `${cleanK}:*` || cleanR === `${cleanK}:view` || cleanR === '*:*' || cleanR === '*:view';
+      });
+      if (isRestricted) return false;
+    }
+
+    if (isSuperAdmin) return true;
+
+    // Check computed effective permissions from backend if available
+    const effMods = currentUser?.effectivePermissions?.allowed_modules || (currentUser as any)?.effective_permissions?.allowed_modules;
+    if (Array.isArray(effMods) && effMods.length > 0) {
+      return effMods.some((m: string) => m.toLowerCase() === cleanK);
+    }
+
+    if (isSuperAdminOrAdmin) return true;
+
     if (currentUser?.assignedModules && currentUser.assignedModules.length > 0) {
       if (
         currentUser.assignedModules.some((m: string) => {
@@ -509,27 +533,15 @@ export function Sidebar() {
                 <Building className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Supplier Master</span>}
               </Link>
-              <Link href="/purchase/supplier-contacts" className={subNavItemClass('/purchase/supplier-contacts')}>
-                <Users className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Supplier Contacts</span>}
-              </Link>
               <Link href="/purchase/rfq" className={subNavItemClass('/purchase/rfq')}>
                 <ClipboardList className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>RFQ (Request for Quotation)</span>}
               </Link>
               <Link href="/purchase/quotations" className={subNavItemClass('/purchase/quotations')}>
                 <FileCheck2 className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Supplier Quotations</span>}
-              </Link>
-              <Link href="/purchase/quotation-comparison" className={subNavItemClass('/purchase/quotation-comparison')}>
-                <FileSpreadsheet className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Quotation Comparison</span>}
-              </Link>
-              <Link href="/purchase/quotation-verify" className={subNavItemClass('/purchase/quotation-verify')}>
-                <Award className="w-3.5 h-3.5 flex-shrink-0 text-amber-600 group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
-                    <span>Quotation Verify</span>
+                    <span>Quotations & Comparison</span>
                     <span className="px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 font-mono text-[9px] font-bold border border-emerald-300">
                       L1 Compare
                     </span>
@@ -540,7 +552,7 @@ export function Sidebar() {
                 <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
-                    <span>Purchase Orders</span>
+                    <span>Purchase Orders & Approvals</span>
                     {purchaseOrders.length > 0 && (
                     <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
                       {purchaseOrders.length}
@@ -548,18 +560,6 @@ export function Sidebar() {
                   )}
                   </div>
                 )}
-              </Link>
-              <Link href="/purchase/po-approval" className={subNavItemClass('/purchase/po-approval')}>
-                <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>PO Approval</span>}
-              </Link>
-              <Link href="/purchase/followup" className={subNavItemClass('/purchase/followup')}>
-                <Truck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Purchase Follow-up</span>}
-              </Link>
-              <Link href="/purchase/pending" className={subNavItemClass('/purchase/pending')}>
-                <Clock className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Pending / Overdue</span>}
               </Link>
               <Link href="/purchase/returns" className={subNavItemClass('/purchase/returns')}>
                 <CornerUpLeft className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
@@ -624,18 +624,6 @@ export function Sidebar() {
                 <Compass className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Units of Measurement</span>}
               </Link>
-              <Link href="/store/warehouses" className={subNavItemClass('/store/warehouses')}>
-                <Building className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Warehouses Master</span>}
-              </Link>
-              <Link href="/store/locations" className={subNavItemClass('/store/locations')}>
-                <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Store Locations / Bins</span>}
-              </Link>
-              <Link href="/store/opening-stock" className={subNavItemClass('/store/opening-stock')}>
-                <Sparkles className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Opening Stock Entry</span>}
-              </Link>
               <Link href="/store/grn" className={subNavItemClass('/store/grn')}>
                 <PackageCheck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && (
@@ -649,14 +637,6 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/store/qc-inspection" className={subNavItemClass('/store/qc-inspection')}>
-                <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Quality Inspection</span>}
-              </Link>
-              <Link href="/store/stock" className={subNavItemClass('/store/stock')}>
-                <Box className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Stock Matrix (Usable)</span>}
-              </Link>
               <Link href="/store/bom-verification" className={subNavItemClass('/store/bom-verification')}>
                 <FileSpreadsheet className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && (
@@ -668,10 +648,6 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/store/reservations" className={subNavItemClass('/store/reservations')}>
-                <Lock className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Stock Reservation</span>}
-              </Link>
               <Link href="/store/material-issue" className={subNavItemClass('/store/material-issue')}>
                 <Truck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Material Issue</span>}
@@ -680,25 +656,9 @@ export function Sidebar() {
                 <CornerUpLeft className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Material Return</span>}
               </Link>
-              <Link href="/store/transfers" className={subNavItemClass('/store/transfers')}>
-                <Workflow className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Stock Transfer</span>}
-              </Link>
-              <Link href="/store/adjustments" className={subNavItemClass('/store/adjustments')}>
-                <RotateCcw className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Stock Adjustment</span>}
-              </Link>
               <Link href="/store/scrap" className={subNavItemClass('/store/scrap')}>
                 <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Scrap & Rejection</span>}
-              </Link>
-              <Link href="/store/ledger" className={subNavItemClass('/store/ledger')}>
-                <History className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Stock Ledger</span>}
-              </Link>
-              <Link href="/store/stock-count" className={subNavItemClass('/store/stock-count')}>
-                <CheckSquare className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Physical Stock Count</span>}
               </Link>
               <Link href="/store/reorder" className={subNavItemClass('/store/reorder')}>
                 <Zap className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />

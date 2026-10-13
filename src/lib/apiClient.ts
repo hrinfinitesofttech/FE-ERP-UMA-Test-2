@@ -800,6 +800,10 @@ export const api = {
     create: (data: any) => request<any>('/departments/', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: string, data: any) => request<any>(`/departments/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: (id: string) => request<any>(`/departments/${id}/`, { method: 'DELETE' }),
+    deactivate: (id: string) => request<any>(`/departments/${id}/deactivate/`, { method: 'POST' }),
+    activate: (id: string) => request<any>(`/departments/${id}/activate/`, { method: 'POST' }),
+    configureModules: (id: string, data: any) =>
+      request<any>(`/departments/${id}/configure-modules/`, { method: 'PATCH', body: JSON.stringify(data) }),
   },
   roles: {
     list: () => request<any[]>('/roles/'),
@@ -813,11 +817,14 @@ export const api = {
     create: (data: any) => request<any>('/employees/', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: string, data: any) => request<any>(`/employees/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: (id: string) => request<any>(`/employees/${id}/`, { method: 'DELETE' }),
+    deactivate: (id: string) => request<any>(`/employees/${id}/deactivate/`, { method: 'POST' }),
+    activate: (id: string) => request<any>(`/employees/${id}/activate/`, { method: 'POST' }),
     resetPassword: (id: string, password: string) =>
       request<any>(`/employees/${id}/reset-password/`, { method: 'POST', body: JSON.stringify({ password }) }),
     getPermissions: (id: string) => request<any>(`/employees/${id}/permissions/`),
     updatePermissions: (id: string, data: any) =>
       request<any>(`/employees/${id}/permissions/`, { method: 'POST', body: JSON.stringify(data) }),
+    effectivePermissions: (id: string) => request<any>(`/employees/${id}/effective-permissions/`),
   },
 
   // CRM
@@ -1100,6 +1107,15 @@ export const api = {
     updateTask: (id: string, data: any) => request<any>(`/project-tasks/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
     updateTaskProgress: (id: string, data: any) =>
       request<any>(`/project-tasks/${id}/progress/`, { method: 'POST', body: JSON.stringify(data) }),
+    acceptTask: (id: string) => request<any>(`/project-tasks/${id}/accept/`, { method: 'POST' }),
+    startTask: (id: string) => request<any>(`/project-tasks/${id}/start/`, { method: 'POST' }),
+    submitTaskForReview: (id: string, data?: { remarks?: string }) =>
+      request<any>(`/project-tasks/${id}/submit-for-review/`, { method: 'POST', body: JSON.stringify(data || {}) }),
+    reviewTask: (id: string, data: { action: string; reviewNotes?: string; feedback?: string }) =>
+      request<any>(`/project-tasks/${id}/review/`, { method: 'POST', body: JSON.stringify(data) }),
+    holdTask: (id: string) => request<any>(`/project-tasks/${id}/hold/`, { method: 'POST' }),
+    cancelTask: (id: string) => request<any>(`/project-tasks/${id}/cancel/`, { method: 'POST' }),
+    taskMetrics: () => request<any>('/project-tasks/metrics/'),
     deleteTask: (id: string) => request<any>(`/project-tasks/${id}/`, { method: 'DELETE' }),
     departmentAssignments: (projectId?: string) =>
       request<any[]>(projectId ? `/department-assignments/?projectId=${projectId}` : '/department-assignments/'),
@@ -1495,6 +1511,8 @@ export const api = {
 
   // HR & Payroll
   hr: {
+    employeeDashboard: (employeeId?: string) =>
+      request<any>(`/hr/employee-dashboard/${employeeId ? `?employee_id=${employeeId}` : ''}`),
     designations: () => request<any[]>('/designations/'),
     shifts: () => request<any[]>('/shifts/'),
     attendance: {
@@ -1509,15 +1527,37 @@ export const api = {
         }
         return request<any[]>(`/attendance-records/${query}`);
       },
-      checkIn: (data: { employeeId?: string; employeeName?: string; department?: string; shiftName?: string }) =>
-        request<any>('/attendance-records/check-in/', { method: 'POST', body: JSON.stringify(data) }),
-      checkOut: (data: { employeeId?: string }) =>
-        request<any>('/attendance-records/check-out/', { method: 'POST', body: JSON.stringify(data) }),
+      checkIn: (data?: { employeeId?: string; employeeName?: string; department?: string; shiftName?: string }) =>
+        request<any>('/attendance-records/check-in/', { method: 'POST', body: JSON.stringify(data || {}) }),
+      checkOut: (data?: { employeeId?: string }) =>
+        request<any>('/attendance-records/check-out/', { method: 'POST', body: JSON.stringify(data || {}) }),
+      monthlySummary: (params?: { employeeId?: string; monthYear?: string }) => {
+        const q = new URLSearchParams();
+        if (params?.employeeId) q.append('employee_id', params.employeeId);
+        if (params?.monthYear) q.append('month_year', params.monthYear);
+        const qs = q.toString() ? `?${q.toString()}` : '';
+        return request<any>(`/attendance-records/monthly-summary/${qs}`);
+      },
       myHistory: (employeeId?: string) =>
         request<any[]>(`/attendance-records/my-history/${employeeId ? `?employee_id=${employeeId}` : ''}`),
       create: (data: any) => request<any>('/attendance-records/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/attendance-records/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: string) => request<any>(`/attendance-records/${id}/`, { method: 'DELETE' }),
+    },
+    leaveTypes: {
+      list: () => request<any[]>('/leave-types/'),
+      create: (data: any) => request<any>('/leave-types/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/leave-types/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+    },
+    leaveBalances: {
+      list: (params?: { employeeId?: string; financialYear?: string }) => {
+        const q = new URLSearchParams();
+        if (params?.employeeId) q.append('employee_id', params.employeeId);
+        if (params?.financialYear) q.append('financial_year', params.financialYear);
+        const qs = q.toString() ? `?${q.toString()}` : '';
+        return request<any[]>(`/leave-balances/${qs}`);
+      },
+      get: (id: string) => request<any>(`/leave-balances/${id}/`),
     },
     leaves: {
       list: (params?: { employeeId?: string; status?: string }) => {
@@ -1537,6 +1577,30 @@ export const api = {
       reject: (id: string, rejectedBy?: string, remarks?: string) =>
         request<any>(`/leave-requests/${id}/reject/`, { method: 'POST', body: JSON.stringify({ approvedBy: rejectedBy, approved_by: rejectedBy, managerRemarks: remarks }) }),
       delete: (id: string) => request<any>(`/leave-requests/${id}/`, { method: 'DELETE' }),
+    },
+    missedPunch: {
+      list: (params?: { employeeId?: string; status?: string }) => {
+        const q = new URLSearchParams();
+        if (params?.employeeId) q.append('employee_id', params.employeeId);
+        if (params?.status) q.append('status', params.status);
+        const qs = q.toString() ? `?${q.toString()}` : '';
+        return request<any[]>(`/missed-punches/${qs}`);
+      },
+      create: (data: any) => request<any>('/missed-punches/', { method: 'POST', body: JSON.stringify(data) }),
+      approve: (id: string) => request<any>(`/missed-punches/${id}/approve/`, { method: 'POST' }),
+      reject: (id: string) => request<any>(`/missed-punches/${id}/reject/`, { method: 'POST' }),
+    },
+    regularization: {
+      list: (params?: { employeeId?: string; status?: string }) => {
+        const q = new URLSearchParams();
+        if (params?.employeeId) q.append('employee_id', params.employeeId);
+        if (params?.status) q.append('status', params.status);
+        const qs = q.toString() ? `?${q.toString()}` : '';
+        return request<any[]>(`/attendance-regularizations/${qs}`);
+      },
+      create: (data: any) => request<any>('/attendance-regularizations/', { method: 'POST', body: JSON.stringify(data) }),
+      approve: (id: string) => request<any>(`/attendance-regularizations/${id}/approve/`, { method: 'POST' }),
+      reject: (id: string) => request<any>(`/attendance-regularizations/${id}/reject/`, { method: 'POST' }),
     },
     salaryStructures: () => request<any[]>('/salary-structures/'),
     payroll: {

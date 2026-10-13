@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import {
   ShoppingCart,
@@ -23,30 +25,70 @@ import {
   IndianRupee,
   FileText,
   DollarSign,
+  PhoneCall,
+  History,
+  RotateCcw,
+  UserCheck,
+  AlertTriangle,
+  ArrowRight,
+  Send,
+  Check,
+  Sparkles,
 } from 'lucide-react';
-import { PurchaseOrder, POItem } from '../../../types/purchase';
+import { PurchaseOrder, POItem, PORevision, PurchaseFollowUp } from '../../../types/purchase';
+import { formatCurrency } from '../../../lib/utils';
 
-export default function PurchaseOrderPage() {
+function PurchaseOrdersHubContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get('tab') || 'orders';
+
   const {
     purchaseOrders,
     addPurchaseOrder,
     updatePurchaseOrder,
     deletePurchaseOrder,
     approvePurchaseOrder,
+    poRevisions,
+    purchaseFollowUps,
+    addPurchaseFollowUp,
     supplierQuotations,
     suppliers,
     projectJobs,
     currentUser,
   } = useERP();
 
+  const [mounted, setMounted] = useState(false);
+  const [activeTab, setActiveTab] = useState<'orders' | 'approvals' | 'followup'>(
+    initialTab === 'approvals' ? 'approvals' : initialTab === 'followup' ? 'followup' : 'orders'
+  );
+
+  // Toast
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
+  useEffect(() => {
+    setMounted(true);
+    if (searchParams.get('tab') === 'approvals') {
+      setActiveTab('approvals');
+    } else if (searchParams.get('tab') === 'followup') {
+      setActiveTab('followup');
+    }
+  }, [searchParams]);
+
+  // ----------------------------------------------------
+  // TAB 1: PURCHASE ORDERS MASTER STATE & ACTIONS
+  // ----------------------------------------------------
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [projectFilter, setProjectFilter] = useState('ALL');
 
-  // Modals
   const [viewPO, setViewPO] = useState<PurchaseOrder | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Mode: 'from_quotation' | 'direct'
   const [createMode, setCreateMode] = useState<'from_quotation' | 'direct'>(
@@ -59,615 +101,840 @@ export default function PurchaseOrderPage() {
   // Direct Entry State
   const [selectedSupplierId, setSelectedSupplierId] = useState('');
   const [directJobId, setDirectJobId] = useState('');
-  const [directProjectId, setDirectProjectId] = useState('');
 
   // Common PO fields
-  const [newDeliveryDate, setNewDeliveryDate] = useState(new Date().toISOString().split('T')[0]);
-  const [newPaymentTerms, setNewPaymentTerms] = useState('');
-  const [newDeliveryTerms, setNewDeliveryTerms] = useState('');
-  const [newDispatchMode, setNewDispatchMode] = useState('');
+  const [newDeliveryDate, setNewDeliveryDate] = useState(
+    new Date(Date.now() + 10 * 86400000).toISOString().split('T')[0]
+  );
+  const [newPaymentTerms, setNewPaymentTerms] = useState('30 Days Credit');
+  const [newDeliveryTerms, setNewDeliveryTerms] = useState('FOR Factory Gate');
+  const [newDispatchMode, setNewDispatchMode] = useState('Road Transport');
   const [newSpecialInstructions, setNewSpecialInstructions] = useState('');
 
   // Direct Items State
-  const [directItems, setDirectItems] = useState<Array<{
-    itemCode: string;
-    itemName: string;
-    specification: string;
-    category: string;
-    unitOfMeasure: string;
-    orderedQuantity: number;
-    unitPrice: number;
-    gstPercentage: number;
-  }>>([
+  const [directItems, setDirectItems] = useState<
+    Array<{
+      itemCode: string;
+      itemName: string;
+      specification: string;
+      category: string;
+      unitOfMeasure: string;
+      orderedQuantity: number;
+      unitPrice: number;
+      gstPercentage: number;
+    }>
+  >([
     {
-      itemCode: '',
-      itemName: '',
-      specification: '',
+      itemCode: 'MAT-SS316-PL',
+      itemName: 'SS 316L 12mm Shell Plate',
+      specification: 'ASTM A240 Grade 316L Mill Finish',
       category: 'Raw Material',
-      unitOfMeasure: 'NOS',
-      orderedQuantity: 1,
-      unitPrice: 0,
+      unitOfMeasure: 'KG',
+      orderedQuantity: 1500,
+      unitPrice: 285,
       gstPercentage: 18,
-    }
+    },
   ]);
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 4000);
-  };
-
   const handleAddDirectItem = () => {
-    setDirectItems(prev => [
+    setDirectItems((prev) => [
       ...prev,
       {
-        itemCode: `ITM-${Date.now().toString().slice(-4)}`,
-        itemName: '',
-        specification: '',
+        itemCode: `ITEM-${prev.length + 1}`,
+        itemName: 'Fasteners / Raw Material',
+        specification: 'Standard Specification',
         category: 'Raw Material',
         unitOfMeasure: 'NOS',
-        orderedQuantity: 1,
-        unitPrice: 0,
+        orderedQuantity: 10,
+        unitPrice: 150,
         gstPercentage: 18,
-      }
+      },
     ]);
   };
 
-  const handleRemoveDirectItem = (index: number) => {
-    if (directItems.length <= 1) return;
-    setDirectItems(prev => prev.filter((_, idx) => idx !== index));
-  };
-
-  const handleDirectItemChange = (index: number, field: string, value: any) => {
-    setDirectItems(prev => {
-      const updated = [...prev];
-      updated[index] = { ...updated[index], [field]: value };
-      return updated;
-    });
-  };
-
-  // Calculations for Direct PO
-  const calculateDirectTotals = () => {
-    let subTotal = 0;
-    let taxTotal = 0;
-    directItems.forEach(it => {
-      const lineNet = Number(it.orderedQuantity || 0) * Number(it.unitPrice || 0);
-      const lineTax = (lineNet * Number(it.gstPercentage || 0)) / 100;
-      subTotal += lineNet;
-      taxTotal += lineTax;
-    });
-    return {
-      subTotal,
-      taxTotal,
-      grandTotal: subTotal + taxTotal,
-    };
-  };
-
-  const filteredPOs = purchaseOrders.filter(po => {
-    const pStatus = (po.status || '').toLowerCase();
-    const fStatus = statusFilter.toLowerCase();
-    if (statusFilter !== 'ALL' && pStatus !== fStatus) return false;
-    if (projectFilter !== 'ALL' && po.projectId !== projectFilter) return false;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      const poNum = (po.poNumber || '').toLowerCase();
-      const sName = (po.supplierName || '').toLowerCase();
-      const jId = (po.jobId || (po as any).job_code || '').toLowerCase();
-      return poNum.includes(q) || sName.includes(q) || jId.includes(q);
-    }
-    return true;
-  });
-
-  // KPI calculations
-  const totalPOValue = purchaseOrders.reduce((acc, p) => acc + (Number(p.grandTotal || (p as any).totalAmount || 0)), 0);
-  const pendingCount = purchaseOrders.filter(p => {
-    const s = (p.status || '').toLowerCase();
-    return s === 'submitted' || s === 'pending approval' || s === 'pending_approval' || s === 'draft';
-  }).length;
-  const approvedCount = purchaseOrders.filter(p => {
-    const s = (p.status || '').toLowerCase();
-    return s === 'approved' || s === 'ordered' || s === 'completed' || s === 'partially received';
-  }).length;
-
   const handleCreatePOSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const poNum = `PO-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
     if (createMode === 'from_quotation') {
-      const sqObj = supplierQuotations.find(s => s.id === selectedQuoteId) || supplierQuotations[0];
-      if (!sqObj) {
-        showToast('Please create or select an approved Supplier Quotation first, or use Direct PO creation.');
+      const quote = supplierQuotations.find((q) => q.id === selectedQuoteId);
+      if (!quote) {
+        showToast('Please select a valid supplier quotation.');
         return;
       }
 
-      const poItems: POItem[] = (sqObj.items || []).map((it, idx) => ({
+      const poItems: POItem[] = (quote.items || []).map((it, idx) => ({
         id: `POI-${Date.now()}-${idx}`,
-        poId: '',
-        itemCode: it.itemCode || `ITM-${idx + 1}`,
-        itemName: it.itemName || 'Material Item',
+        itemCode: it.itemCode,
+        itemName: it.itemName,
         specification: it.specification || '',
         category: it.category || 'Raw Material',
-        unitOfMeasure: it.unitOfMeasure || 'NOS',
-        orderedQuantity: it.quotedQuantity || (it as any).quantity || 1,
-        receivedQuantity: 0,
-        unitPrice: it.unitPrice || (it as any).rate || 0,
-        totalPrice: it.totalPrice || ((it.quotedQuantity || 1) * (it.unitPrice || 0)),
-        gstPercentage: it.gstPercentage || (it as any).gst || 18,
-        netPrice: it.netPrice || ((it.quotedQuantity || 1) * (it.unitPrice || 0) * (1 + (it.gstPercentage || 18) / 100)),
-        hsnCode: (it as any).hsnCode || '72085110',
-        drawingNumber: (it as any).drawingNumber || 'DWG-REV01',
+        orderedQuantity: it.quotedQuantity || it.quantity || 1,
+        unitOfMeasure: it.unitOfMeasure || 'Nos',
+        unitPrice: it.unitPrice,
+        totalPrice: (it.quotedQuantity || it.quantity || 1) * it.unitPrice,
+        gstPercentage: it.gstPercentage || 18,
+        netPrice: (it.quotedQuantity || it.quantity || 1) * it.unitPrice,
+        hsnCode: '7219',
       }));
 
       const newPO: PurchaseOrder = {
-        id: `PO-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-        poNumber: `PO-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-        revisionNumber: 0,
-        projectId: sqObj.projectId || '',
-        jobId: sqObj.jobId || '',
-        quotationId: sqObj.id,
-        supplierId: sqObj.supplierId || '',
-        supplierName: sqObj.supplierName || 'Supplier',
-        supplierGstin: (sqObj as any).supplierGstin || '',
+        id: `PO-${Date.now().toString().slice(-6)}`,
+        poNumber: poNum,
         poDate: new Date().toISOString().split('T')[0],
-        expectedDeliveryDate: newDeliveryDate,
-        paymentTerms: newPaymentTerms,
-        deliveryTerms: newDeliveryTerms,
-        dispatchMode: newDispatchMode,
-        currency: 'INR',
-        subTotal: sqObj.subTotal || sqObj.subtotal || 0,
-        taxTotal: sqObj.taxTotal || 0,
-        freightCharges: sqObj.freightCharges || 0,
-        grandTotal: sqObj.grandTotal || (sqObj.subTotal || 0) + (sqObj.taxTotal || 0),
+        supplierId: quote.supplierId,
+        supplierName: quote.supplierName,
+        quotationId: quote.id,
+        supplierQuotationNumber: quote.quotationNumber,
+        rfqNumber: quote.rfqNumber,
+        prNumber: quote.prNumber,
+        projectId: quote.projectId || '',
+        jobId: quote.jobId || directJobId || 'JOB-2026-001',
+        jobNumber: quote.jobNumber || quote.jobId || directJobId || 'JOB-2026-001',
         status: 'Submitted',
-        items: poItems,
-        approvalTier: 'Tier 1 - Executive',
+        expectedDeliveryDate: newDeliveryDate,
+        paymentTerms: newPaymentTerms || quote.paymentTerms || '30 Days Credit',
+        deliveryTerms: newDeliveryTerms || quote.deliveryTerms || 'FOR Destination',
+        dispatchMode: newDispatchMode,
         specialInstructions: newSpecialInstructions,
-        createdBy: currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'Super Admin',
+        subTotal: quote.subTotal || quote.subtotal || 0,
+        taxTotal: quote.taxTotal || 0,
+        freightCharges: 0,
+        grandTotal: quote.grandTotal,
+        items: poItems,
+        revisionNumber: 0,
+        createdAt: new Date().toISOString(),
       };
 
       addPurchaseOrder(newPO);
-      showToast(`✅ Purchase Order ${newPO.poNumber} created and saved to database successfully!`);
       setShowCreateModal(false);
+      showToast(`Purchase Order ${newPO.poNumber} created and sent for approval!`);
     } else {
-      // Direct Mode
-      const supplierObj = suppliers.find(s => s.id === selectedSupplierId) || suppliers[0];
-      const supplierName = supplierObj ? (supplierObj.name || supplierObj.supplierName || (supplierObj as any).vendorName || 'Supplier') : '';
-      const supplierGstin = supplierObj?.gstin || '';
-      const supplierId = supplierObj?.id || '';
+      if (!selectedSupplierId) {
+        showToast('Please select a supplier.');
+        return;
+      }
+      const sup = suppliers.find((s) => s.id === selectedSupplierId);
+      const supplierName = sup?.supplierName || sup?.name || 'Selected Supplier';
 
-      const totals = calculateDirectTotals();
       const poItems: POItem[] = directItems.map((it, idx) => {
-        const lineTotal = Number(it.orderedQuantity || 0) * Number(it.unitPrice || 0);
-        const lineTax = (lineTotal * Number(it.gstPercentage || 0)) / 100;
+        const itemTotal = it.orderedQuantity * it.unitPrice;
         return {
           id: `POI-${Date.now()}-${idx}`,
-          poId: '',
-          itemCode: it.itemCode || `ITM-${idx + 1}`,
-          itemName: it.itemName || 'Material Item',
-          specification: it.specification || '',
-          category: it.category || 'Raw Material',
-          unitOfMeasure: it.unitOfMeasure || 'NOS',
-          orderedQuantity: Number(it.orderedQuantity || 1),
-          receivedQuantity: 0,
-          unitPrice: Number(it.unitPrice || 0),
-          totalPrice: lineTotal,
-          gstPercentage: Number(it.gstPercentage || 18),
-          netPrice: lineTotal + lineTax,
-          hsnCode: '72085110',
-          drawingNumber: 'DWG-REV01',
+          itemCode: it.itemCode,
+          itemName: it.itemName,
+          specification: it.specification,
+          category: it.category,
+          orderedQuantity: it.orderedQuantity,
+          unitOfMeasure: it.unitOfMeasure,
+          unitPrice: it.unitPrice,
+          totalPrice: itemTotal,
+          gstPercentage: it.gstPercentage,
+          netPrice: itemTotal,
+          hsnCode: '7219',
         };
       });
 
-      const poCode = `PO-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+      const subTotal = poItems.reduce((sum, item) => sum + item.netPrice, 0);
+      const taxTotal = Math.round(subTotal * 0.18);
+      const grandTotal = subTotal + taxTotal;
+
       const newPO: PurchaseOrder = {
-        id: poCode,
-        poNumber: poCode,
-        revisionNumber: 0,
-        projectId: directProjectId || '',
-        jobId: directJobId || '',
-        supplierId: supplierId,
-        supplierName: supplierName,
-        supplierGstin: supplierGstin,
+        id: `PO-${Date.now().toString().slice(-6)}`,
+        poNumber: poNum,
         poDate: new Date().toISOString().split('T')[0],
+        supplierId: selectedSupplierId,
+        supplierName,
+        jobId: directJobId || 'JOB-2026-001',
+        jobNumber: directJobId || 'JOB-2026-001',
+        status: 'Submitted',
         expectedDeliveryDate: newDeliveryDate,
         paymentTerms: newPaymentTerms,
         deliveryTerms: newDeliveryTerms,
         dispatchMode: newDispatchMode,
-        currency: 'INR',
-        subTotal: totals.subTotal,
-        taxTotal: totals.taxTotal,
-        freightCharges: 0,
-        grandTotal: totals.grandTotal,
-        status: 'Submitted',
-        items: poItems,
-        approvalTier: 'Tier 1 - Executive',
         specialInstructions: newSpecialInstructions,
-        createdBy: currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'Super Admin',
+        subTotal,
+        taxTotal,
+        freightCharges: 0,
+        grandTotal,
+        items: poItems,
+        revisionNumber: 0,
+        createdAt: new Date().toISOString(),
       };
 
       addPurchaseOrder(newPO);
-      showToast(`✅ Purchase Order ${newPO.poNumber} created and saved to database successfully!`);
       setShowCreateModal(false);
+      showToast(`Purchase Order ${newPO.poNumber} created successfully!`);
     }
   };
 
+  const filteredPOs = useMemo(() => {
+    return purchaseOrders.filter((po) => {
+      if (statusFilter !== 'ALL' && po.status?.toLowerCase() !== statusFilter.toLowerCase()) {
+        return false;
+      }
+      if (projectFilter !== 'ALL' && po.jobId !== projectFilter && po.jobNumber !== projectFilter) {
+        return false;
+      }
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        return (
+          po.poNumber?.toLowerCase().includes(q) ||
+          po.supplierName?.toLowerCase().includes(q) ||
+          po.jobId?.toLowerCase().includes(q) ||
+          po.jobNumber?.toLowerCase().includes(q)
+        );
+      }
+      return true;
+    });
+  }, [purchaseOrders, statusFilter, projectFilter, searchQuery]);
+
+  // ----------------------------------------------------
+  // TAB 2: PO APPROVAL & REVISIONS QUEUE STATE
+  // ----------------------------------------------------
+  const [approvalTab, setApprovalTab] = useState<'pending' | 'revisions'>('pending');
+
+  const pendingPOs = useMemo(() => {
+    return purchaseOrders.filter(
+      (po) =>
+        po.status === 'Submitted' ||
+        po.status === 'Pending Approval' ||
+        po.status === 'Draft' ||
+        po.status === 'draft' ||
+        po.status === 'pending_approval'
+    );
+  }, [purchaseOrders]);
+
+  const approvedPOs = useMemo(() => {
+    return purchaseOrders.filter(
+      (po) =>
+        po.status === 'Approved' ||
+        po.status === 'Ordered' ||
+        po.status === 'Partially Received' ||
+        po.status === 'Completed' ||
+        po.status === 'approved'
+    );
+  }, [purchaseOrders]);
+
+  const handleApprovePO = (poId: string) => {
+    const approverName = currentUser
+      ? `${currentUser.firstName} ${currentUser.lastName}`
+      : 'Commercial Director';
+    approvePurchaseOrder(poId, approverName);
+    showToast(`PO ${poId} approved and released to supplier!`);
+  };
+
+  // ----------------------------------------------------
+  // TAB 3: DELIVERY EXPEDITING & FOLLOW-UP STATE
+  // ----------------------------------------------------
+  const [showAddFollowupModal, setShowAddFollowupModal] = useState(false);
+  const [selectedFollowupPoId, setSelectedFollowupPoId] = useState(purchaseOrders[0]?.id || '');
+  const [newFollowUpDate, setNewFollowUpDate] = useState(new Date().toISOString().split('T')[0]);
+  const [newContactedPerson, setNewContactedPerson] = useState('');
+  const [newCommChannel, setNewCommChannel] = useState<'Phone' | 'Email' | 'WhatsApp' | 'Site Visit'>('Phone');
+  const [newCommitmentDate, setNewCommitmentDate] = useState(
+    new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]
+  );
+  const [newDelayRisk, setNewDelayRisk] = useState<'Low' | 'Medium' | 'High' | 'Critical'>('Medium');
+  const [newRemarks, setNewRemarks] = useState('');
+
+  const handleAddFollowupSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const poObj = purchaseOrders.find((p) => p.id === selectedFollowupPoId);
+    if (!poObj) return;
+
+    const newFU: PurchaseFollowUp = {
+      id: `PFU-${Date.now()}`,
+      poId: poObj.id,
+      poNumber: poObj.poNumber,
+      supplierId: poObj.supplierId,
+      supplierName: poObj.supplierName,
+      followUpDate: newFollowUpDate,
+      contactedPerson: newContactedPerson || 'Dispatch Head',
+      communicationChannel: newCommChannel,
+      supplierCommitmentDate: newCommitmentDate,
+      delayRisk: newDelayRisk,
+      followUpBy: currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'Purchase Expeditor',
+      remarks: newRemarks || 'Spoke regarding fabrication status and dispatch timeline.',
+      nextFollowUpDate: new Date(Date.now() + 5 * 86400000).toISOString().split('T')[0],
+      createdAt: new Date().toISOString(),
+    };
+
+    addPurchaseFollowUp(newFU);
+    setShowAddFollowupModal(false);
+    showToast(`Follow-up logged for ${poObj.poNumber}!`);
+  };
+
+  // Overall KPIs
+  const totalPOValue = useMemo(() => {
+    return purchaseOrders.reduce((sum, p) => sum + (p.grandTotal || 0), 0);
+  }, [purchaseOrders]);
+
+  if (!mounted) {
+    return (
+      <div className="p-8 text-center text-xs text-[#70665F]">
+        Loading Purchase Orders & Approvals Command Center...
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6 space-y-6 bg-[#FAF7F2] text-[#544B45] min-h-screen">
-      {/* Toast Feedback */}
+    <div className="p-4 sm:p-6 space-y-6 bg-[#FAF7F2] min-h-screen text-[#3E2723]">
+      {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-4 right-4 z-50 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
-          <CheckCircle2 className="w-5 h-5 text-emerald-200" />
-          <span className="text-xs font-bold">{toastMessage}</span>
+        <div className="fixed top-5 right-5 z-50 bg-[#211B17] text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-bold animate-in slide-in-from-top-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#EBE3DB] print:hidden">
+      {/* Main Header */}
+      <div className="bg-white border border-[#EBE3DB] rounded-2xl p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 text-xs font-mono font-bold border border-emerald-500/30">
-              PURCHASE ORDERS
+          <div className="flex items-center gap-2 mb-1">
+            <span className="px-2.5 py-0.5 rounded-md bg-crm-brand-100 text-crm-brand-800 font-mono text-[11px] font-bold border border-crm-brand-300">
+              MODULE 4 • PURCHASE
             </span>
-            <h1 className="text-2xl font-black text-[#211B17] tracking-tight">Purchase Orders (PO) Registry</h1>
+            <span className="text-xs text-[#70665F] font-semibold">Orders, Approvals & Expediting Command Center</span>
           </div>
-          <p className="text-[#70665F] text-xs mt-1">
-            Official legally-binding purchase contracts with database persistence, revision history log & Project + Job mapping.
+          <h1 className="text-2xl font-black text-[#211B17] tracking-tight flex items-center gap-2">
+            <ShoppingCart className="w-6 h-6 text-crm-brand-700" />
+            Purchase Orders & Approvals Hub
+          </h1>
+          <p className="text-xs text-[#70665F] mt-1">
+            Official purchase orders release, 3-tier management approval control matrix, and supplier expediting tracker.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Tab Switcher */}
+        <div className="flex items-center gap-1.5 bg-[#FAF7F2] p-1.5 rounded-xl border border-[#EBE3DB]">
           <button
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30 transition active:scale-95"
+            onClick={() => setActiveTab('orders')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'orders'
+                ? 'bg-crm-brand-700 text-white shadow-xs'
+                : 'text-[#6E5D53] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+            }`}
           >
-            <Plus className="w-4 h-4" />
-            + Create Purchase Order
+            <ShoppingCart className="w-4 h-4" />
+            <span>All Purchase Orders</span>
+            <span className="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px] font-mono">
+              {purchaseOrders.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('approvals')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'approvals'
+                ? 'bg-crm-brand-700 text-white shadow-xs'
+                : 'text-[#6E5D53] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+            }`}
+          >
+            <ShieldCheck className="w-4 h-4" />
+            <span>Approval Queue</span>
+            {pendingPOs.length > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-white text-[10px] font-mono font-extrabold animate-pulse">
+                {pendingPOs.length}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('followup')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'followup'
+                ? 'bg-crm-brand-700 text-white shadow-xs'
+                : 'text-[#6E5D53] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+            }`}
+          >
+            <Truck className="w-4 h-4" />
+            <span>Follow-up & Expediting</span>
+            <span className="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px] font-mono">
+              {purchaseFollowUps.length}
+            </span>
           </button>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 print:hidden">
-        <div className="bg-white p-4 rounded-2xl border border-[#EBE3DB] shadow-sm flex items-center justify-between">
-          <div>
-            <div className="text-[11px] font-semibold text-[#70665F]">Total Purchase Orders</div>
-            <div className="text-2xl font-black text-[#211B17] mt-1">{purchaseOrders.length}</div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
+          <div className="flex items-center justify-between text-xs text-[#70665F]">
+            <span>Total Issued POs</span>
+            <ShoppingCart className="w-4 h-4 text-crm-brand-700" />
           </div>
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-            <ShoppingCart className="w-5 h-5" />
-          </div>
+          <div className="text-xl font-black text-[#211B17] mt-1">{purchaseOrders.length}</div>
+          <div className="text-[10px] text-emerald-700 font-semibold mt-0.5">Procurement Orders</div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-[#EBE3DB] shadow-sm flex items-center justify-between">
-          <div>
-            <div className="text-[11px] font-semibold text-[#70665F]">Committed PO Value</div>
-            <div className="text-2xl font-black text-emerald-600 mt-1">₹{totalPOValue.toLocaleString('en-IN')}</div>
+        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
+          <div className="flex items-center justify-between text-xs text-[#70665F]">
+            <span>Pending Approvals</span>
+            <Clock className="w-4 h-4 text-amber-500" />
           </div>
-          <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
-            <IndianRupee className="w-5 h-5" />
-          </div>
+          <div className="text-xl font-black text-amber-600 mt-1">{pendingPOs.length}</div>
+          <div className="text-[10px] text-amber-700 font-semibold mt-0.5">Awaiting Director Sign-off</div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-[#EBE3DB] shadow-sm flex items-center justify-between">
-          <div>
-            <div className="text-[11px] font-semibold text-[#70665F]">Pending Approval</div>
-            <div className="text-2xl font-black text-amber-600 mt-1">{pendingCount}</div>
+        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
+          <div className="flex items-center justify-between text-xs text-[#70665F]">
+            <span>Total Committed Value</span>
+            <IndianRupee className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
-            <Clock className="w-5 h-5" />
-          </div>
+          <div className="text-xl font-black text-[#211B17] mt-1">{formatCurrency(totalPOValue)}</div>
+          <div className="text-[10px] text-[#70665F] mt-0.5">Total Value Across All POs</div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-[#EBE3DB] shadow-sm flex items-center justify-between">
-          <div>
-            <div className="text-[11px] font-semibold text-[#70665F]">Approved / Active</div>
-            <div className="text-2xl font-black text-emerald-600 mt-1">{approvedCount}</div>
+        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
+          <div className="flex items-center justify-between text-xs text-[#70665F]">
+            <span>Active Follow-up Logs</span>
+            <Truck className="w-4 h-4 text-sky-600" />
           </div>
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
+          <div className="text-xl font-black text-sky-700 mt-1">{purchaseFollowUps.length}</div>
+          <div className="text-[10px] text-sky-800 font-semibold mt-0.5">Supplier Expediting Records</div>
         </div>
       </div>
 
-      {/* Filter Toolbar */}
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 print:hidden shadow-sm">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#70665F]" />
-            <input
-              type="text"
-              placeholder="Search PO No, Supplier, Job ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-4 py-2 text-xs text-[#211B17] focus:outline-none focus:border-emerald-500 w-64"
-            />
-          </div>
+      {/* ========================================================= */}
+      {/* TAB 1: ALL PURCHASE ORDERS MASTER                         */}
+      {/* ========================================================= */}
+      {activeTab === 'orders' && (
+        <div className="space-y-4 animate-in fade-in duration-150">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2.5 flex-1">
+              <div className="relative flex-1 min-w-[240px]">
+                <Search className="w-4 h-4 text-[#8D7B70] absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  placeholder="Search by PO #, supplier, or job..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-crm-brand-700 font-medium"
+                />
+              </div>
 
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-[#70665F]">Status:</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] focus:outline-none cursor-pointer"
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="bg-[#FAF7F2] text-[#3E2723] border border-[#EBE3DB] rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none"
+              >
+                <option value="ALL">All Statuses</option>
+                <option value="Approved">Approved</option>
+                <option value="Submitted">Submitted (Pending)</option>
+                <option value="Ordered">Ordered / Dispatched</option>
+                <option value="Completed">Completed</option>
+              </select>
+
+              <select
+                value={projectFilter}
+                onChange={(e) => setProjectFilter(e.target.value)}
+                className="bg-[#FAF7F2] text-[#3E2723] border border-[#EBE3DB] rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none"
+              >
+                <option value="ALL">All Jobs ({projectJobs.length})</option>
+                {projectJobs.map((j) => (
+                  <option key={j.id} value={j.jobNumber || j.id}>
+                    {j.jobNumber} • {j.productName?.slice(0, 20)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-1.5 px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold text-xs rounded-xl shadow-xs transition"
             >
-              <option value="ALL">All Statuses</option>
-              <option value="Submitted">Submitted (Pending Approval)</option>
-              <option value="Approved">Approved</option>
-              <option value="Ordered">Ordered / Sent</option>
-              <option value="Partially Received">Partially Received</option>
-              <option value="Completed">Completed</option>
-              <option value="Cancelled">Cancelled</option>
-            </select>
+              <Plus className="w-4 h-4" />
+              <span>Create Purchase Order</span>
+            </button>
           </div>
-        </div>
 
-        <div className="text-xs text-[#70665F]">
-          Showing <span className="text-[#211B17] font-bold">{filteredPOs.length}</span> of <span className="font-bold">{purchaseOrders.length}</span> Purchase Orders
-        </div>
-      </div>
-
-      {/* PO Table */}
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left text-[#544B45]">
-            <thead className="bg-[#FAF7F2] text-[#70665F] font-semibold border-b border-[#EBE3DB]">
-              <tr>
-                <th className="p-3.5">PO Number & Rev</th>
-                <th className="p-3.5">Project & Job Reference</th>
-                <th className="p-3.5">Supplier Name</th>
-                <th className="p-3.5">PO Date</th>
-                <th className="p-3.5">Expected Delivery</th>
-                <th className="p-3.5 text-right">Grand Total (Inc GST)</th>
-                <th className="p-3.5">Status</th>
-                <th className="p-3.5 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#EBE3DB]">
-              {filteredPOs.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="p-8 text-center text-[#70665F]">
-                    <ShoppingCart className="w-10 h-10 mx-auto text-[#70665F]/40 mb-2" />
-                    <p className="font-semibold text-sm">No Purchase Orders Found</p>
-                    <p className="text-[11px] mt-1">Click "+ Create Purchase Order" to generate a new PO.</p>
-                  </td>
-                </tr>
-              ) : (
-                filteredPOs.map((po) => {
-                  const statusNormalized = (po.status || 'Submitted').toLowerCase();
-                  return (
-                    <tr key={po.id} className="hover:bg-[#FAF7F2]/60 transition">
-                      <td className="p-3.5 font-mono font-bold text-emerald-600">
-                        {po.poNumber} <span className="text-[10px] text-[#70665F] font-normal">({typeof po.revisionNumber === 'number' ? `Rev-${po.revisionNumber}` : (po.revisionNumber || 'Rev-00')})</span>
-                      </td>
-                      <td className="p-3.5">
-                        <div className="font-bold text-amber-600">{po.jobId || (po as any).job_code || '—'}</div>
-                        <div className="text-[10px] text-[#70665F]">{po.projectId || (po as any).project_id || '—'}</div>
-                      </td>
-                      <td className="p-3.5 font-semibold text-[#211B17]">{po.supplierName || 'Supplier'}</td>
-                      <td className="p-3.5 text-[#544B45] font-mono text-[11px]">{po.poDate || (po as any).date || '-'}</td>
-                      <td className="p-3.5 font-mono text-amber-600 font-semibold text-[11px]">
-                        {po.expectedDeliveryDate || (po as any).deliveryDate || (po as any).delivery_date || '-'}
-                      </td>
-                      <td className="p-3.5 text-right font-mono font-extrabold text-emerald-600 text-sm">
-                        ₹{(Number(po.grandTotal || (po as any).totalAmount || 0)).toLocaleString('en-IN')}
-                      </td>
-                      <td className="p-3.5">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
-                            statusNormalized === 'approved'
-                              ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
-                              : statusNormalized === 'partially received' || statusNormalized === 'partially_received'
-                              ? 'bg-sky-500/10 text-sky-600 border-sky-500/30'
-                              : statusNormalized === 'completed'
-                              ? 'bg-purple-500/10 text-purple-600 border-purple-500/30'
-                              : statusNormalized === 'submitted' || statusNormalized === 'pending approval' || statusNormalized === 'pending_approval' || statusNormalized === 'draft'
-                              ? 'bg-amber-500/10 text-amber-600 border-amber-500/30'
-                              : 'bg-rose-500/10 text-rose-600 border-rose-500/30'
-                          }`}
-                        >
-                          {po.status || 'Submitted'}
-                        </span>
-                      </td>
-                      <td className="p-3.5 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {statusNormalized === 'submitted' && (
+          {/* Orders Table */}
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#F8F4EE] border-b border-[#EBE3DB] text-[#544B45] font-bold">
+                  <tr>
+                    <th className="py-3 px-3.5">PO Number</th>
+                    <th className="py-3 px-3">Date</th>
+                    <th className="py-3 px-3">Supplier Name</th>
+                    <th className="py-3 px-3">Job / Project</th>
+                    <th className="py-3 px-3 text-center">Delivery Date</th>
+                    <th className="py-3 px-3 text-center">Items</th>
+                    <th className="py-3 px-3 text-right">Grand Total</th>
+                    <th className="py-3 px-3 text-center">Approval Status</th>
+                    <th className="py-3 px-3.5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#EBE3DB]">
+                  {filteredPOs.length > 0 ? (
+                    filteredPOs.map((po) => (
+                      <tr key={po.id} className="hover:bg-[#FAF7F2] transition">
+                        <td className="py-3 px-3.5 font-mono font-bold text-[#211B17]">
+                          <div className="flex items-center gap-1.5">
+                            <span>{po.poNumber}</span>
+                            {po.revisionNumber && po.revisionNumber > 0 ? (
+                              <span className="text-[10px] text-amber-700 bg-amber-100 px-1.5 py-0.2 rounded font-bold">
+                                Rev {po.revisionNumber}
+                              </span>
+                            ) : null}
+                          </div>
+                        </td>
+                        <td className="py-3 px-3 text-[#70665F]">{po.poDate || po.createdAt?.slice(0, 10)}</td>
+                        <td className="py-3 px-3 font-semibold text-[#211B17]">
+                          <div className="flex items-center gap-1.5">
+                            <Building className="w-3.5 h-3.5 text-[#8D7B70]" />
+                            <span>{po.supplierName}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-3">
+                          <span className="px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200 text-[11px] font-mono font-bold">
+                            {po.jobNumber || po.jobId || 'Direct'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 text-center font-bold text-[#211B17]">
+                          {po.expectedDeliveryDate || '10 Days'}
+                        </td>
+                        <td className="py-3 px-3 text-center font-bold text-[#544B45]">
+                          {po.items?.length || 1}
+                        </td>
+                        <td className="py-3 px-3 text-right font-mono font-black text-[#211B17]">
+                          {formatCurrency(po.grandTotal)}
+                        </td>
+                        <td className="py-3 px-3 text-center">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                              po.status === 'Approved' || po.status === 'Ordered' || po.status === 'Completed'
+                                ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                : 'bg-amber-100 text-amber-800 border-amber-300'
+                            }`}
+                          >
+                            {po.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3.5 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
                             <button
-                              onClick={() => {
-                                approvePurchaseOrder(po.id, currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'Super Admin');
-                                showToast(`Approved PO ${po.poNumber}`);
-                              }}
-                              className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition"
-                              title="Approve PO"
+                              onClick={() => setViewPO(po)}
+                              className="p-1.5 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#EFE8DF] transition"
+                              title="View PO Details"
                             >
-                              <CheckCircle2 className="w-4 h-4" />
+                              <Eye className="w-3.5 h-3.5" />
                             </button>
-                          )}
-                          <button
-                            onClick={() => setViewPO(po)}
-                            className="p-1.5 rounded-lg bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#211B17] transition"
-                            title="View & Print Official PO"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (confirm(`Are you sure you want to delete PO ${po.poNumber}?`)) {
-                                deletePurchaseOrder(po.id);
-                                showToast(`Deleted PO ${po.poNumber}`);
-                              }
-                            }}
-                            className="p-1.5 rounded-lg bg-[#FAF7F2] hover:bg-rose-50 text-[#70665F] hover:text-rose-600 transition"
-                            title="Delete PO"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
+                            {po.status === 'Submitted' && (
+                              <button
+                                onClick={() => handleApprovePO(po.id)}
+                                className="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] shadow-xs transition"
+                                title="Approve PO"
+                              >
+                                Approve
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setDeleteConfirmId(po.id)}
+                              className="p-1.5 rounded-lg text-rose-600 hover:text-rose-800 hover:bg-rose-50 transition"
+                              title="Delete PO"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={9} className="py-8 text-center text-[#70665F]">
+                        No purchase orders found matching criteria.
                       </td>
                     </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* VIEW PO PRINTABLE MODAL */}
-      {viewPO && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl">
-            <div className="p-5 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between print:hidden">
-              <div>
-                <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-700 px-2 py-0.5 rounded font-bold">
-                  OFFICIAL PURCHASE ORDER
-                </span>
-                <h2 className="text-xl font-black text-[#211B17] mt-1">
-                  {viewPO.poNumber} <span className="text-xs text-[#70665F] font-mono">({typeof viewPO.revisionNumber === 'number' ? `Rev-${viewPO.revisionNumber}` : (viewPO.revisionNumber || 'Rev-00')})</span>
-                </h2>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => window.print()}
-                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow"
-                >
-                  <Printer className="w-3.5 h-3.5" /> Print PO
-                </button>
-                <button onClick={() => setViewPO(null)} className="text-[#70665F] hover:text-[#211B17] p-1">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto text-xs">
-              {/* Company & Supplier Header */}
-              <div className="grid grid-cols-2 gap-6 p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
-                <div>
-                  <h3 className="font-extrabold text-[#211B17] text-sm">UMA TECHNO FAB</h3>
-                  <p className="text-[#70665F] text-[11px] mt-0.5">
-                    Plot No. 45, GIDC Industrial Estate, Odhav, Ahmedabad, Gujarat - 382415<br />
-                    GSTIN: 24AAACU1234F1Z9 | Email: purchase@umatechnofab.com
-                  </p>
-                  <div className="mt-2 text-[11px] text-[#70665F]">
-                    <span className="font-semibold text-[#211B17]">PO Date:</span> {viewPO.poDate || (viewPO as any).date}<br />
-                    <span className="font-semibold text-[#211B17]">Project Ref:</span> {viewPO.projectId || '—'} | <span className="font-semibold text-[#211B17]">Job:</span> {viewPO.jobId || '—'}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-[#70665F] font-semibold">Vendor / Supplier:</div>
-                  <h4 className="font-bold text-emerald-600 text-sm">{viewPO.supplierName}</h4>
-                  <p className="text-[#70665F] text-[11px] mt-0.5 font-mono">
-                    GSTIN: {viewPO.supplierGstin || '24AAAAA0000A1Z5'}<br />
-                    Payment Terms: {viewPO.paymentTerms || '30 Days Credit after GRN'}<br />
-                    Delivery: {viewPO.expectedDeliveryDate || (viewPO as any).deliveryDate}
-                  </p>
-                </div>
-              </div>
-
-              {/* Items Table */}
-              <div>
-                <h4 className="font-bold text-[#211B17] mb-2 uppercase tracking-wider">Ordered Material Specifications</h4>
-                <div className="border border-[#EBE3DB] rounded-xl overflow-hidden">
-                  <table className="w-full text-xs text-left">
-                    <thead className="bg-[#FAF7F2] text-[#70665F] font-semibold">
-                      <tr>
-                        <th className="p-2.5">Item Code</th>
-                        <th className="p-2.5">Item Description & HSN</th>
-                        <th className="p-2.5 text-right">Qty</th>
-                        <th className="p-2.5 text-right">Unit Rate</th>
-                        <th className="p-2.5 text-right">Tax (GST)</th>
-                        <th className="p-2.5 text-right">Net Total</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#EBE3DB]">
-                      {viewPO.items && viewPO.items.length > 0 ? (
-                        viewPO.items.map((it, idx) => (
-                          <tr key={it.id || idx}>
-                            <td className="p-2.5 font-mono text-emerald-600">{it.itemCode}</td>
-                            <td className="p-2.5 font-semibold text-[#211B17]">
-                              {it.itemName}
-                              <div className="text-[10px] text-[#70665F]">HSN: {it.hsnCode || '72085110'} | Spec: {it.specification || '-'}</div>
-                            </td>
-                            <td className="p-2.5 text-right font-mono">{it.orderedQuantity || (it as any).quantity || 1} {it.unitOfMeasure || 'NOS'}</td>
-                            <td className="p-2.5 text-right font-mono">₹{(it.unitPrice || (it as any).rate || 0).toLocaleString('en-IN')}</td>
-                            <td className="p-2.5 text-right font-mono text-[#70665F]">{it.gstPercentage || 18}%</td>
-                            <td className="p-2.5 text-right font-mono font-bold text-emerald-600">
-                              ₹{(Number(it.netPrice || it.totalPrice || 0)).toLocaleString('en-IN')}
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={6} className="p-3 text-center text-[#70665F]">No line items defined</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Terms & Special Instructions */}
-              <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] space-y-1">
-                <div className="font-bold text-[#211B17]">Terms & Conditions:</div>
-                <p className="text-[11px] text-[#70665F]">
-                  1. Delivery Terms: {viewPO.deliveryTerms || 'FOR Destination (Uma Techno Fab Works)'}<br />
-                  2. Dispatch Mode: {viewPO.dispatchMode || 'By Road Truck'}<br />
-                  3. Special Instructions: {viewPO.specialInstructions || 'Test certificates (MTC) required along with material delivery.'}
-                </p>
-              </div>
-
-              {/* Total Financial Summary */}
-              <div className="flex justify-end">
-                <div className="w-64 bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB] space-y-1.5 font-mono text-xs">
-                  <div className="flex justify-between text-[#70665F]">
-                    <span>Subtotal:</span>
-                    <span>₹{(Number(viewPO.subTotal || 0)).toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="flex justify-between text-[#70665F]">
-                    <span>Tax (GST Total):</span>
-                    <span>₹{(Number(viewPO.taxTotal || (viewPO as any).taxAmount || 0)).toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="flex justify-between text-[#70665F]">
-                    <span>Freight Charges:</span>
-                    <span>₹{(Number(viewPO.freightCharges || 0)).toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="pt-2 border-t border-[#EBE3DB] flex justify-between font-extrabold text-[#211B17] text-sm">
-                    <span>Grand Total:</span>
-                    <span className="text-emerald-600">₹{(Number(viewPO.grandTotal || (viewPO as any).totalAmount || 0)).toLocaleString('en-IN')}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-4 bg-[#FAF7F2] border-t border-[#EBE3DB] flex justify-end print:hidden">
-              <button onClick={() => setViewPO(null)} className="px-4 py-2 bg-white border border-[#EBE3DB] text-[#211B17] font-bold rounded-xl hover:bg-[#FAF7F2]">
-                Close
-              </button>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
       )}
 
-      {/* CREATE PO MODAL */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl">
-            <div className="p-5 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-700 px-2 py-0.5 rounded font-bold">
-                  NEW PURCHASE ORDER
-                </span>
-                <h2 className="text-lg font-black text-[#211B17] mt-1">Create Purchase Order (PO)</h2>
+      {/* ========================================================= */}
+      {/* TAB 2: PO APPROVAL & REVISIONS QUEUE                      */}
+      {/* ========================================================= */}
+      {activeTab === 'approvals' && (
+        <div className="space-y-4 animate-in fade-in duration-150">
+          {/* Header matrix indicator */}
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-amber-700" />
+                <h3 className="font-extrabold text-sm text-[#211B17]">
+                  3-Tier Management Approval Control Matrix
+                </h3>
               </div>
-              <button onClick={() => setShowCreateModal(false)} className="text-[#70665F] hover:text-[#211B17]">
+              <p className="text-xs text-[#70665F] mt-0.5">
+                Executive Creation → Department Manager Review → Commercial Director Final Authorization.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-amber-200 text-xs">
+              <button
+                onClick={() => setApprovalTab('pending')}
+                className={`px-3 py-1.5 rounded-lg font-bold transition ${
+                  approvalTab === 'pending'
+                    ? 'bg-crm-brand-700 text-white shadow-xs'
+                    : 'text-[#70665F] hover:text-[#211B17]'
+                }`}
+              >
+                Pending Approvals ({pendingPOs.length})
+              </button>
+              <button
+                onClick={() => setApprovalTab('revisions')}
+                className={`px-3 py-1.5 rounded-lg font-bold transition ${
+                  approvalTab === 'revisions'
+                    ? 'bg-crm-brand-700 text-white shadow-xs'
+                    : 'text-[#70665F] hover:text-[#211B17]'
+                }`}
+              >
+                Revision Audit Logs ({poRevisions.length})
+              </button>
+            </div>
+          </div>
+
+          {approvalTab === 'pending' ? (
+            <div className="space-y-3">
+              {pendingPOs.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {pendingPOs.map((po) => (
+                    <div
+                      key={po.id}
+                      className="bg-white border border-[#EBE3DB] rounded-2xl p-5 shadow-xs space-y-3 flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <span className="font-mono text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                              {po.poNumber}
+                            </span>
+                            <h4 className="text-sm font-extrabold text-[#211B17] mt-1.5">{po.supplierName}</h4>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-[10px] text-[#8D7B70]">Total Value:</span>
+                            <div className="text-base font-black text-emerald-700 font-mono">
+                              {formatCurrency(po.grandTotal)}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-[#EBE3DB] text-xs">
+                          <div>
+                            <span className="text-[#8D7B70]">Job / Project:</span>
+                            <div className="font-bold text-[#211B17]">{po.jobNumber || po.jobId}</div>
+                          </div>
+                          <div>
+                            <span className="text-[#8D7B70]">Required Delivery:</span>
+                            <div className="font-bold text-[#211B17]">{po.expectedDeliveryDate || 'Within 10 Days'}</div>
+                          </div>
+                          <div>
+                            <span className="text-[#8D7B70]">Payment Terms:</span>
+                            <div className="font-semibold text-[#211B17]">{po.paymentTerms || '30 Days Credit'}</div>
+                          </div>
+                          <div>
+                            <span className="text-[#8D7B70]">Line Items:</span>
+                            <div className="font-semibold text-[#211B17]">{po.items?.length || 1} Products</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-3 border-t border-[#EBE3DB] flex items-center justify-between">
+                        <button
+                          onClick={() => setViewPO(po)}
+                          className="text-xs font-bold text-[#70665F] hover:text-[#211B17] flex items-center gap-1"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>View Full PO</span>
+                        </button>
+                        <button
+                          onClick={() => handleApprovePO(po.id)}
+                          className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5"
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>Authorize & Release PO</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white border border-[#EBE3DB] rounded-2xl p-8 text-center text-[#70665F] space-y-2">
+                  <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
+                  <div className="font-bold text-sm text-[#211B17]">All Purchase Orders Approved</div>
+                  <p className="text-xs">There are no purchase orders awaiting authorization at this moment.</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Revisions Tab */
+            <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xs">
+              <div className="p-3.5 bg-[#F8F4EE] border-b border-[#EBE3DB]">
+                <h4 className="font-bold text-xs text-[#211B17] flex items-center gap-1.5">
+                  <History className="w-4 h-4 text-crm-brand-700" />
+                  Immutable Purchase Order Revision History
+                </h4>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[#544B45] font-bold">
+                    <tr>
+                      <th className="py-3 px-3.5">PO Number</th>
+                      <th className="py-3 px-3 text-center">Revision #</th>
+                      <th className="py-3 px-3">Revised Date</th>
+                      <th className="py-3 px-3">Authorized By</th>
+                      <th className="py-3 px-3">Reason for Revision</th>
+                      <th className="py-3 px-3.5 text-right">Revised Grand Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#EBE3DB]">
+                    {poRevisions.length > 0 ? (
+                      poRevisions.map((rev) => (
+                        <tr key={rev.id} className="hover:bg-[#FAF7F2] transition">
+                          <td className="py-3 px-3.5 font-mono font-bold text-[#211B17]">{rev.poNumber}</td>
+                          <td className="py-3 px-3 text-center font-bold text-amber-700">Rev {rev.revisionNumber}</td>
+                          <td className="py-3 px-3 text-[#70665F]">{rev.revisionDate || rev.revisedDate}</td>
+                          <td className="py-3 px-3 font-semibold text-[#211B17]">{rev.revisedBy}</td>
+                          <td className="py-3 px-3 text-[#544B45]">{rev.reasonForRevision || rev.reason}</td>
+                          <td className="py-3 px-3.5 text-right font-mono font-black text-emerald-700">
+                            {formatCurrency(rev.revisedGrandTotal || rev.newGrandTotal || 0)}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={6} className="py-8 text-center text-[#70665F]">
+                          No revisions have been recorded yet. All POs are on original revision 0.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* TAB 3: DELIVERY EXPEDITING & FOLLOW-UP                    */}
+      {/* ========================================================= */}
+      {activeTab === 'followup' && (
+        <div className="space-y-4 animate-in fade-in duration-150">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-extrabold text-[#211B17] flex items-center gap-1.5">
+                <Truck className="w-4 h-4 text-sky-600" />
+                Supplier Delivery Expediting & Follow-up Logs
+              </h3>
+              <p className="text-xs text-[#70665F] mt-0.5">
+                Proactive vendor tracking, commitment dates, logistics contacts, and delay risk logging.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowAddFollowupModal(true)}
+              className="flex items-center gap-1.5 px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold text-xs rounded-xl shadow-xs transition"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Log Supplier Follow-up</span>
+            </button>
+          </div>
+
+          {/* Follow-up Table */}
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#F8F4EE] border-b border-[#EBE3DB] text-[#544B45] font-bold">
+                  <tr>
+                    <th className="py-3 px-3.5">PO Number</th>
+                    <th className="py-3 px-3">Supplier Name</th>
+                    <th className="py-3 px-3">Follow-up Date</th>
+                    <th className="py-3 px-3">Contact Person</th>
+                    <th className="py-3 px-3 text-center">Channel</th>
+                    <th className="py-3 px-3 text-center">Commitment Date</th>
+                    <th className="py-3 px-3 text-center">Delay Risk</th>
+                    <th className="py-3 px-3.5">Remarks / Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#EBE3DB]">
+                  {purchaseFollowUps.length > 0 ? (
+                    purchaseFollowUps.map((fu) => (
+                      <tr key={fu.id} className="hover:bg-[#FAF7F2] transition">
+                        <td className="py-3 px-3.5 font-mono font-bold text-[#211B17]">{fu.poNumber}</td>
+                        <td className="py-3 px-3 font-semibold text-[#211B17]">{fu.supplierName}</td>
+                        <td className="py-3 px-3 text-[#70665F]">{fu.followUpDate}</td>
+                        <td className="py-3 px-3 font-medium text-[#211B17]">{fu.contactedPerson}</td>
+                        <td className="py-3 px-3 text-center">
+                          <span className="px-2 py-0.5 rounded bg-[#FAF7F2] border border-[#EBE3DB] font-semibold text-[10px]">
+                            {fu.communicationChannel || fu.mode || 'Phone'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 text-center font-bold text-[#211B17]">
+                          {fu.supplierCommitmentDate || fu.expectedDelivery || 'On Schedule'}
+                        </td>
+                        <td className="py-3 px-3 text-center">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                              fu.delayRisk === 'Low'
+                                ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                : fu.delayRisk === 'Medium'
+                                ? 'bg-sky-100 text-sky-800 border-sky-300'
+                                : 'bg-rose-100 text-rose-800 border-rose-300'
+                            }`}
+                          >
+                            {fu.delayRisk || 'Normal'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3.5 text-[#544B45]">{fu.remarks}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={8} className="py-8 text-center text-[#70665F]">
+                        No expediting logs recorded yet. Click &quot;Log Supplier Follow-up&quot; to track supplier deliveries.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL: CREATE PURCHASE ORDER                              */}
+      {/* ========================================================= */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+              <div className="flex items-center gap-2">
+                <ShoppingCart className="w-5 h-5 text-crm-brand-700" />
+                <h3 className="text-base font-black text-[#211B17]">Create Purchase Order (PO)</h3>
+              </div>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Mode Switcher */}
-            <div className="px-6 pt-4 flex gap-3 border-b border-[#EBE3DB] pb-3 bg-white">
+            <div className="flex items-center gap-2 bg-[#FAF7F2] p-1 rounded-xl border border-[#EBE3DB] text-xs">
               <button
                 type="button"
                 onClick={() => setCreateMode('from_quotation')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                  createMode === 'from_quotation' ? 'bg-emerald-600 text-white shadow' : 'bg-[#FAF7F2] text-[#70665F] hover:text-[#211B17]'
+                className={`flex-1 py-1.5 rounded-lg font-bold transition ${
+                  createMode === 'from_quotation'
+                    ? 'bg-crm-brand-700 text-white shadow-xs'
+                    : 'text-[#70665F] hover:text-[#211B17]'
                 }`}
               >
                 From Approved Quotation ({supplierQuotations.length})
@@ -675,254 +942,425 @@ export default function PurchaseOrderPage() {
               <button
                 type="button"
                 onClick={() => setCreateMode('direct')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                  createMode === 'direct' ? 'bg-emerald-600 text-white shadow' : 'bg-[#FAF7F2] text-[#70665F] hover:text-[#211B17]'
+                className={`flex-1 py-1.5 rounded-lg font-bold transition ${
+                  createMode === 'direct'
+                    ? 'bg-crm-brand-700 text-white shadow-xs'
+                    : 'text-[#70665F] hover:text-[#211B17]'
                 }`}
               >
-                Direct PO Creation
+                Direct Manual Entry
               </button>
             </div>
 
-            <form onSubmit={handleCreatePOSubmit} className="p-6 space-y-4 text-xs max-h-[75vh] overflow-y-auto">
+            <form onSubmit={handleCreatePOSubmit} className="space-y-4 text-xs">
               {createMode === 'from_quotation' ? (
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Select Approved Supplier Quotation</label>
-                  {supplierQuotations.length === 0 ? (
-                    <div className="p-3 bg-amber-50 text-amber-700 rounded-xl border border-amber-200">
-                      No supplier quotations found. Switch to <b>Direct PO Creation</b> above to create a PO directly.
-                    </div>
-                  ) : (
+                  <label className="font-bold text-[#544B45] block mb-1">Select Supplier Quotation *</label>
+                  <select
+                    value={selectedQuoteId}
+                    onChange={(e) => setSelectedQuoteId(e.target.value)}
+                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
+                  >
+                    {supplierQuotations.map((sq) => (
+                      <option key={sq.id} value={sq.id}>
+                        {sq.quotationNumber} • {sq.supplierName} • {formatCurrency(sq.grandTotal)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-[#544B45] block mb-1">Supplier *</label>
                     <select
-                      value={selectedQuoteId || supplierQuotations[0]?.id}
-                      onChange={(e) => setSelectedQuoteId(e.target.value)}
-                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2.5 rounded-xl text-[#211B17] focus:outline-none focus:border-emerald-500"
+                      required
+                      value={selectedSupplierId}
+                      onChange={(e) => setSelectedSupplierId(e.target.value)}
+                      className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
                     >
-                      {supplierQuotations.map((sq) => (
-                        <option key={sq.id} value={sq.id}>
-                          {sq.quotationNumber || sq.id} - {sq.supplierName} (Total: ₹{(Number(sq.grandTotal || sq.subTotal || 0)).toLocaleString('en-IN')})
+                      <option value="">-- Choose Supplier --</option>
+                      {suppliers.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.supplierName || s.name} ({s.vendorCode || s.supplierCode})
                         </option>
                       ))}
                     </select>
-                  )}
-                </div>
-              ) : (
-                /* Direct PO Configuration */
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-[#70665F] font-semibold mb-1">Select Supplier</label>
-                      <select
-                        value={selectedSupplierId}
-                        onChange={(e) => setSelectedSupplierId(e.target.value)}
-                        className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] focus:outline-none focus:border-emerald-500"
-                        required
-                      >
-                        <option value="">-- Select Supplier --</option>
-                        {suppliers.length > 0 ? (
-                          suppliers.map((s) => (
-                            <option key={s.id} value={s.id}>
-                              {s.name || s.supplierName} ({s.vendorCode || s.id})
-                            </option>
-                          ))
-                        ) : (
-                          <option value="" disabled>No suppliers available</option>
-                        )}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[#70665F] font-semibold mb-1">Job ID Reference</label>
-                      <input
-                        type="text"
-                        value={directJobId}
-                        onChange={(e) => setDirectJobId(e.target.value)}
-                        placeholder="e.g. JOB-2026-001"
-                        className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[#70665F] font-semibold mb-1">Project ID Reference</label>
-                      <input
-                        type="text"
-                        value={directProjectId}
-                        onChange={(e) => setDirectProjectId(e.target.value)}
-                        placeholder="e.g. PRJ-2026-0001"
-                        className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono"
-                        required
-                      />
-                    </div>
                   </div>
-
-                  {/* Line Items Builder */}
-                  <div className="border border-[#EBE3DB] rounded-xl p-3 bg-[#FAF7F2]/50 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-[#211B17] text-xs uppercase">PO Line Items</h4>
-                      <button
-                        type="button"
-                        onClick={handleAddDirectItem}
-                        className="flex items-center gap-1 text-[11px] text-emerald-600 font-bold hover:underline"
-                      >
-                        <PlusCircle className="w-3.5 h-3.5" /> Add Item
-                      </button>
-                    </div>
-
-                    {directItems.map((item, idx) => (
-                      <div key={idx} className="p-3 bg-white border border-[#EBE3DB] rounded-xl space-y-2">
-                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                          <div>
-                            <label className="text-[10px] text-[#70665F]">Item Code</label>
-                            <input
-                              type="text"
-                              value={item.itemCode}
-                              onChange={(e) => handleDirectItemChange(idx, 'itemCode', e.target.value)}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-1.5 rounded-lg text-xs font-mono"
-                              required
-                            />
-                          </div>
-                          <div className="sm:col-span-2">
-                            <label className="text-[10px] text-[#70665F]">Item Name / Description</label>
-                            <input
-                              type="text"
-                              value={item.itemName}
-                              onChange={(e) => handleDirectItemChange(idx, 'itemName', e.target.value)}
-                              placeholder="e.g. Mild Steel Plate 12mm"
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-1.5 rounded-lg text-xs"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10px] text-[#70665F]">Specification</label>
-                            <input
-                              type="text"
-                              value={item.specification}
-                              onChange={(e) => handleDirectItemChange(idx, 'specification', e.target.value)}
-                              placeholder="Grade E250"
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-1.5 rounded-lg text-xs"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 items-end">
-                          <div>
-                            <label className="text-[10px] text-[#70665F]">Qty</label>
-                            <input
-                              type="number"
-                              value={item.orderedQuantity}
-                              onChange={(e) => handleDirectItemChange(idx, 'orderedQuantity', Number(e.target.value))}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-1.5 rounded-lg text-xs font-mono"
-                              min="1"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10px] text-[#70665F]">UOM</label>
-                            <input
-                              type="text"
-                              value={item.unitOfMeasure}
-                              onChange={(e) => handleDirectItemChange(idx, 'unitOfMeasure', e.target.value)}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-1.5 rounded-lg text-xs"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10px] text-[#70665F]">Unit Rate (₹)</label>
-                            <input
-                              type="number"
-                              value={item.unitPrice}
-                              onChange={(e) => handleDirectItemChange(idx, 'unitPrice', Number(e.target.value))}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-1.5 rounded-lg text-xs font-mono"
-                              min="0"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10px] text-[#70665F]">GST (%)</label>
-                            <input
-                              type="number"
-                              value={item.gstPercentage}
-                              onChange={(e) => handleDirectItemChange(idx, 'gstPercentage', Number(e.target.value))}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-1.5 rounded-lg text-xs font-mono"
-                            />
-                          </div>
-                          <div className="flex items-center justify-between pt-2">
-                            <span className="text-xs font-bold text-emerald-600 font-mono">
-                              ₹{(Number(item.orderedQuantity || 0) * Number(item.unitPrice || 0) * (1 + Number(item.gstPercentage || 18) / 100)).toLocaleString('en-IN')}
-                            </span>
-                            {directItems.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveDirectItem(idx)}
-                                className="text-rose-500 hover:text-rose-700 p-1"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-
-                    <div className="flex justify-end p-2 bg-white rounded-xl border border-[#EBE3DB] font-mono text-xs font-bold text-[#211B17]">
-                      Direct PO Total: ₹{calculateDirectTotals().grandTotal.toLocaleString('en-IN')}
-                    </div>
+                  <div>
+                    <label className="font-bold text-[#544B45] block mb-1">Linked Job / Project</label>
+                    <select
+                      value={directJobId}
+                      onChange={(e) => setDirectJobId(e.target.value)}
+                      className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
+                    >
+                      {projectJobs.map((j) => (
+                        <option key={j.id} value={j.jobNumber || j.id}>
+                          {j.jobNumber} • {j.productName?.slice(0, 20)}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               )}
 
-              {/* Delivery & Payment Settings */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Expected Delivery Date</label>
+                  <label className="font-bold text-[#544B45] block mb-1">Delivery Due Date</label>
                   <input
                     type="date"
                     value={newDeliveryDate}
                     onChange={(e) => setNewDeliveryDate(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono"
-                    required
+                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium focus:outline-none"
                   />
                 </div>
-
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Payment Terms</label>
+                  <label className="font-bold text-[#544B45] block mb-1">Payment Terms</label>
                   <input
                     type="text"
                     value={newPaymentTerms}
                     onChange={(e) => setNewPaymentTerms(e.target.value)}
-                    placeholder="e.g. 30 Days Credit after GRN"
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
+                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-[#544B45] block mb-1">Delivery Terms</label>
+                  <input
+                    type="text"
+                    value={newDeliveryTerms}
+                    onChange={(e) => setNewDeliveryTerms(e.target.value)}
+                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium focus:outline-none"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[#70665F] font-semibold mb-1">Special Instructions & Quality Requisites</label>
-                <textarea
-                  rows={2}
-                  value={newSpecialInstructions}
-                  onChange={(e) => setNewSpecialInstructions(e.target.value)}
-                  placeholder="e.g. Test certificates (MTC) required along with material delivery."
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
-                />
-              </div>
+              {createMode === 'direct' && (
+                <div className="border border-[#EBE3DB] rounded-xl p-3 bg-[#FAF7F2] space-y-2">
+                  <div className="flex items-center justify-between font-bold text-[#211B17]">
+                    <span>PO Line Items</span>
+                    <button
+                      type="button"
+                      onClick={handleAddDirectItem}
+                      className="text-[11px] text-crm-brand-700 hover:underline flex items-center gap-1"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Item</span>
+                    </button>
+                  </div>
 
-              <div className="pt-4 flex justify-end gap-2 border-t border-[#EBE3DB]">
+                  {directItems.map((item, idx) => (
+                    <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+                      <input
+                        type="text"
+                        placeholder="Item Code"
+                        value={item.itemCode}
+                        onChange={(e) => {
+                          const c = [...directItems];
+                          c[idx].itemCode = e.target.value;
+                          setDirectItems(c);
+                        }}
+                        className="col-span-3 p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Item Name"
+                        value={item.itemName}
+                        onChange={(e) => {
+                          const c = [...directItems];
+                          c[idx].itemName = e.target.value;
+                          setDirectItems(c);
+                        }}
+                        className="col-span-4 p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Qty"
+                        value={item.orderedQuantity}
+                        onChange={(e) => {
+                          const c = [...directItems];
+                          c[idx].orderedQuantity = Number(e.target.value);
+                          setDirectItems(c);
+                        }}
+                        className="col-span-2 p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs text-center"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Rate"
+                        value={item.unitPrice}
+                        onChange={(e) => {
+                          const c = [...directItems];
+                          c[idx].unitPrice = Number(e.target.value);
+                          setDirectItems(c);
+                        }}
+                        className="col-span-3 p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs text-right font-mono"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 bg-white border border-[#EBE3DB] text-[#211B17] rounded-xl hover:bg-[#FAF7F2]"
+                  className="px-4 py-2 bg-white border border-[#EBE3DB] text-[#211B17] font-bold text-xs rounded-xl hover:bg-[#FAF7F2]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/30 transition active:scale-95"
+                  className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold text-xs rounded-xl shadow-xs transition"
                 >
-                  Generate & Save PO to Database
+                  Issue Purchase Order
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* ========================================================= */}
+      {/* MODAL: VIEW PURCHASE ORDER DETAILS                        */}
+      {/* ========================================================= */}
+      {viewPO && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+              <div>
+                <span className="text-[10px] text-[#8D7B70] font-mono">OFFICIAL PURCHASE ORDER</span>
+                <h3 className="text-base font-black text-[#211B17]">{viewPO.poNumber}</h3>
+              </div>
+              <button
+                onClick={() => setViewPO(null)}
+                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="p-2.5 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
+                <div className="text-[#8D7B70]">Vendor:</div>
+                <div className="font-bold text-[#211B17]">{viewPO.supplierName}</div>
+              </div>
+              <div className="p-2.5 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
+                <div className="text-[#8D7B70]">PO Date:</div>
+                <div className="font-bold text-[#211B17]">{viewPO.poDate}</div>
+              </div>
+              <div className="p-2.5 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
+                <div className="text-[#8D7B70]">Job Code:</div>
+                <div className="font-bold text-[#211B17]">{viewPO.jobNumber || viewPO.jobId}</div>
+              </div>
+              <div className="p-2.5 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
+                <div className="text-[#8D7B70]">Grand Total:</div>
+                <div className="font-bold text-emerald-700 text-sm font-mono">
+                  {formatCurrency(viewPO.grandTotal)}
+                </div>
+              </div>
+            </div>
+
+            {/* Line items table */}
+            <div className="border border-[#EBE3DB] rounded-xl overflow-hidden text-xs">
+              <table className="w-full text-left">
+                <thead className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[#544B45] font-bold">
+                  <tr>
+                    <th className="py-2 px-3">Item Name</th>
+                    <th className="py-2 px-3 text-center">Qty</th>
+                    <th className="py-2 px-3 text-right">Unit Rate</th>
+                    <th className="py-2 px-3 text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#EBE3DB]">
+                  {(viewPO.items || []).map((it, idx) => (
+                    <tr key={idx}>
+                      <td className="py-2 px-3 font-semibold text-[#211B17]">{it.itemName}</td>
+                      <td className="py-2 px-3 text-center font-mono">{it.orderedQuantity || it.quantity || 1}</td>
+                      <td className="py-2 px-3 text-right font-mono">{formatCurrency(it.unitPrice)}</td>
+                      <td className="py-2 px-3 text-right font-mono font-bold text-[#211B17]">
+                        {formatCurrency(it.totalPrice || it.netPrice || 0)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#EBE3DB]">
+              <button
+                onClick={() => setViewPO(null)}
+                className="px-4 py-2 bg-white border border-[#EBE3DB] text-[#211B17] font-bold text-xs rounded-xl hover:bg-[#FAF7F2]"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL: LOG SUPPLIER FOLLOW-UP                             */}
+      {/* ========================================================= */}
+      {showAddFollowupModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-md w-full overflow-hidden shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+              <div className="flex items-center gap-2">
+                <Truck className="w-5 h-5 text-sky-600" />
+                <h3 className="text-base font-black text-[#211B17]">Log Supplier Follow-up</h3>
+              </div>
+              <button
+                onClick={() => setShowAddFollowupModal(false)}
+                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddFollowupSubmit} className="space-y-3 text-xs">
+              <div>
+                <label className="font-bold text-[#544B45] block mb-1">Select Purchase Order *</label>
+                <select
+                  value={selectedFollowupPoId}
+                  onChange={(e) => setSelectedFollowupPoId(e.target.value)}
+                  className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
+                >
+                  {purchaseOrders.map((po) => (
+                    <option key={po.id} value={po.id}>
+                      {po.poNumber} • {po.supplierName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="font-bold text-[#544B45] block mb-1">Contact Person</label>
+                  <input
+                    type="text"
+                    value={newContactedPerson}
+                    onChange={(e) => setNewContactedPerson(e.target.value)}
+                    placeholder="e.g. Sales / Dispatch Mgr"
+                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-[#544B45] block mb-1">Channel</label>
+                  <select
+                    value={newCommChannel}
+                    onChange={(e) => setNewCommChannel(e.target.value as any)}
+                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
+                  >
+                    <option value="Phone">Phone Call</option>
+                    <option value="WhatsApp">WhatsApp</option>
+                    <option value="Email">Email</option>
+                    <option value="Site Visit">Site Visit</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="font-bold text-[#544B45] block mb-1">Commitment Date</label>
+                  <input
+                    type="date"
+                    value={newCommitmentDate}
+                    onChange={(e) => setNewCommitmentDate(e.target.value)}
+                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-[#544B45] block mb-1">Delay Risk</label>
+                  <select
+                    value={newDelayRisk}
+                    onChange={(e) => setNewDelayRisk(e.target.value as any)}
+                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
+                  >
+                    <option value="Low">Low (On Schedule)</option>
+                    <option value="Medium">Medium (3-5 Days)</option>
+                    <option value="High">High (Risk of Delay)</option>
+                    <option value="Critical">Critical Shortage</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-[#544B45] block mb-1">Remarks / Minutes</label>
+                <textarea
+                  rows={2}
+                  value={newRemarks}
+                  onChange={(e) => setNewRemarks(e.target.value)}
+                  placeholder="Details of discussion, dispatch LR number, or fabrication status..."
+                  className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#EBE3DB]">
+                <button
+                  type="button"
+                  onClick={() => setShowAddFollowupModal(false)}
+                  className="px-4 py-2 bg-white border border-[#EBE3DB] text-[#211B17] font-bold text-xs rounded-xl hover:bg-[#FAF7F2]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold text-xs rounded-xl shadow-xs transition"
+                >
+                  Save Log
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl p-5 space-y-4 text-center">
+            <div className="w-12 h-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-black text-[#211B17]">Delete Purchase Order?</h3>
+              <p className="text-xs text-[#70665F] mt-1">
+                Are you sure you want to delete this purchase order? This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-2 pt-2">
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                className="px-4 py-2 bg-white border border-[#EBE3DB] text-[#211B17] font-bold text-xs rounded-xl hover:bg-[#FAF7F2]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  deletePurchaseOrder(deleteConfirmId);
+                  setDeleteConfirmId(null);
+                  showToast('Purchase Order removed.');
+                }}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs transition"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+export default function PurchaseOrderPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 text-center text-xs text-[#70665F]">
+          Loading Purchase Orders & Approvals Command Center...
+        </div>
+      }
+    >
+      <PurchaseOrdersHubContent />
+    </Suspense>
   );
 }

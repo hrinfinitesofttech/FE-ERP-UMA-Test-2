@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { Employee } from '../../types/crm';
 import { cn } from '../../lib/utils';
+import { PermissionMatrixModal } from '../../components/employees/PermissionMatrixModal';
 
 const ALL_ERP_MODULES = [
   { id: 'crm', label: 'CRM & Sales', desc: 'Leads, Opportunities, Quotations, Sales Orders' },
@@ -106,6 +107,7 @@ export default function PermissionsPage() {
   const [empSearch, setEmpSearch] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
+  const [isMatrixModalOpen, setIsMatrixModalOpen] = useState(false);
 
   // Selected Employee Editable State
   const [empRoleType, setEmpRoleType] = useState<string>('employee');
@@ -437,14 +439,23 @@ export default function PermissionsPage() {
                       </div>
                     </div>
 
-                    <button
-                      onClick={handleSaveEmployeePermissions}
-                      disabled={isSaving}
-                      className="px-5 py-2.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
-                    >
-                      <Save className="w-4 h-4" />
-                      <span>{isSaving ? 'Saving...' : 'Save Permissions'}</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setIsMatrixModalOpen(true)}
+                        className="px-4 py-2.5 bg-purple-700 hover:bg-purple-800 text-white font-bold rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer text-xs"
+                      >
+                        <Sliders className="w-4 h-4" />
+                        <span>Open 12-Module Matrix</span>
+                      </button>
+                      <button
+                        onClick={handleSaveEmployeePermissions}
+                        disabled={isSaving}
+                        className="px-5 py-2.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer disabled:opacity-50 text-xs"
+                      >
+                        <Save className="w-4 h-4" />
+                        <span>{isSaving ? 'Saving...' : 'Save Permissions'}</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Hierarchy & Scope Controls */}
@@ -797,6 +808,18 @@ export default function PermissionsPage() {
           </div>
         </div>
       )}
+
+      {/* 12-Module Granular RBAC Permissions Modal */}
+      <PermissionMatrixModal
+        isOpen={isMatrixModalOpen}
+        onClose={() => setIsMatrixModalOpen(false)}
+        employee={selectedEmployee}
+        onSaved={(updatedEmp) => {
+          setSaveSuccessMsg(`RBAC matrix for ${updatedEmp.firstName || ''} ${updatedEmp.lastName || updatedEmp.id} successfully updated.`);
+          setIsMatrixModalOpen(false);
+          setTimeout(() => setSaveSuccessMsg(null), 4000);
+        }}
+      />
     </div>
   );
 }

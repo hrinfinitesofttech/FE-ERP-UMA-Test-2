@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useERP } from '../context/ERPContext';
+import { api } from '../lib/apiClient';
 import {
   FileText,
   Users,
@@ -102,8 +103,44 @@ export default function DashboardPage() {
     });
   }, []);
 
-  // Today's Attendance Record for Current User
+  // Live Backend Employee Dashboard State
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [dashboardLoading, setDashboardLoading] = useState(false);
+
+  const fetchDashboard = useCallback(async () => {
+    try {
+      setDashboardLoading(true);
+      const data = await api.hr.employeeDashboard(currentUser?.id);
+      if (data && (data.profile || data.todayAttendance)) {
+        setDashboardData(data);
+      }
+    } catch (err) {
+      console.warn('Failed to load employee dashboard from backend API:', err);
+    } finally {
+      setDashboardLoading(false);
+    }
+  }, [currentUser?.id]);
+
+  useEffect(() => {
+    if (currentUser?.id) {
+      fetchDashboard();
+    }
+  }, [currentUser?.id, fetchDashboard]);
+
+  // Today's Attendance Record for Current User (Prefer Live API Data)
   const todayAttendance = useMemo(() => {
+    if (dashboardData?.todayAttendance) {
+      return {
+        checkIn: dashboardData.todayAttendance.checkIn,
+        checkOut: dashboardData.todayAttendance.checkOut,
+        status: dashboardData.todayAttendance.status,
+        totalHours: dashboardData.todayAttendance.totalHours,
+        lateMinutes: dashboardData.todayAttendance.lateMinutes,
+        shiftName: dashboardData.todayAttendance.shiftName,
+        canCheckIn: dashboardData.todayAttendance.canCheckIn,
+        canCheckOut: dashboardData.todayAttendance.canCheckOut,
+      };
+    }
     return attendanceRecords.find(
       (a) =>
         (a.employeeId === currentUser?.id ||
@@ -111,7 +148,7 @@ export default function DashboardPage() {
           (currentUser?.firstName && a.employeeName?.includes(currentUser.firstName))) &&
         a.date === todayDateStr
     );
-  }, [attendanceRecords, currentUser, todayDateStr]);
+  }, [dashboardData, attendanceRecords, currentUser, todayDateStr]);
 
   // Attendance Punch State
   const [punchLoading, setPunchLoading] = useState(false);
@@ -121,18 +158,23 @@ export default function DashboardPage() {
     setPunchLoading(true);
     setPunchFeedback(null);
     try {
-      const res = await checkInAttendance({
-        employeeId: currentUser?.id,
-        employeeName: currentUser?.name || `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim(),
-        department: currentUser?.departmentName || currentUser?.department,
-        shiftName: 'Day Shift (General)',
-      });
+      const res = await api.hr.attendance.checkIn();
       setPunchFeedback({ msg: res.message || 'Punched In Successfully!' });
+      await fetchDashboard();
+      if (checkInAttendance) {
+        checkInAttendance({
+          employeeId: currentUser?.id,
+          employeeName: currentUser?.name,
+          department: currentUser?.departmentName || currentUser?.department,
+          shiftName: 'General Day Shift (09:00 - 18:00)',
+        }).catch?.(() => {});
+      }
     } catch (err: any) {
-      setPunchFeedback({ msg: 'Failed to record punch in. Please try again.', isError: true });
+      const errMsg = err?.data?.error || err?.message || 'Failed to record punch in. Please try again.';
+      setPunchFeedback({ msg: errMsg, isError: true });
     } finally {
       setPunchLoading(false);
-      setTimeout(() => setPunchFeedback(null), 4000);
+      setTimeout(() => setPunchFeedback(null), 5000);
     }
   };
 
@@ -140,18 +182,37 @@ export default function DashboardPage() {
     setPunchLoading(true);
     setPunchFeedback(null);
     try {
-      const res = await checkOutAttendance({ employeeId: currentUser?.id });
-      setPunchFeedback({ msg: res.message || 'Punched Out Successfully!' });
+      const res = await api.hr.attendance.checkOut();
+      const hrs = res.record?.total_hours !== undefined ? ` (${res.record.total_hours} hrs logged)` : '';
+      setPunchFeedback({ msg: (res.message || 'Punched Out Successfully!') + hrs });
+      await fetchDashboard();
+      if (checkOutAttendance) {
+        checkOutAttendance({ employeeId: currentUser?.id }).catch?.(() => {});
+      }
     } catch (err: any) {
-      setPunchFeedback({ msg: 'Failed to record punch out. Please try again.', isError: true });
+      const errMsg = err?.data?.error || err?.message || 'Failed to record punch out. Please try again.';
+      setPunchFeedback({ msg: errMsg, isError: true });
     } finally {
       setPunchLoading(false);
-      setTimeout(() => setPunchFeedback(null), 4000);
+      setTimeout(() => setPunchFeedback(null), 5000);
     }
   };
 
-  // Filter My Tasks
+  // Filter My Tasks (Prefer Live API Data)
   const myAssignedTasks = useMemo(() => {
+    if (dashboardData?.tasksSummary?.recentTasks && dashboardData.tasksSummary.recentTasks.length > 0) {
+      return dashboardData.tasksSummary.recentTasks.map((t: any) => ({
+        id: t.id,
+        projectNumber: t.taskNumber,
+        taskName: t.title,
+        title: t.title,
+        priority: t.priority,
+        status: t.status,
+        progressPercent: t.progressPercent,
+        dueDate: t.dueDate,
+        isOverdue: t.isOverdue,
+      }));
+    }
     if (!projectTasks || projectTasks.length === 0) return [];
     return projectTasks.filter((t) => {
       const matchId = t.assignedTo && (t.assignedTo === currentUser?.id || t.assignedTo === currentUser?.username);
@@ -161,17 +222,25 @@ export default function DashboardPage() {
         t.assignedToName.toLowerCase().includes(currentUser.name.toLowerCase());
       return matchId || matchName;
     });
-  }, [projectTasks, currentUser]);
+  }, [dashboardData, projectTasks, currentUser]);
 
   // Task Progress Updating State
   const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
   const handleUpdateTaskProgress = async (taskId: string, newPercent: number) => {
     setUpdatingTaskId(taskId);
     try {
-      const nextStatus = newPercent >= 100 ? 'completed' : newPercent > 0 ? 'in_progress' : 'pending';
+      if (newPercent >= 100) {
+        await api.projects.submitTaskForReview(taskId, { remarks: 'Submitted stage progress to 100%' });
+      } else {
+        await api.projects.updateTaskProgress(taskId, { progress_percent: newPercent, status: 'In Progress' });
+      }
+      await fetchDashboard();
+      const nextStatus = newPercent >= 100 ? 'Submitted for Review' : newPercent > 0 ? 'In Progress' : 'Assigned';
       if (updateProjectTask) {
         updateProjectTask(taskId, { progressPercent: newPercent, status: nextStatus });
       }
+    } catch (err: any) {
+      console.warn('Failed to update task progress on backend:', err);
     } finally {
       setUpdatingTaskId(null);
     }
@@ -450,24 +519,32 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <h3 className="text-xs font-bold text-[#211B17]">Monthly Attendance Record</h3>
-                      <p className="text-[10px] text-[#8C7A6F]">October 2026</p>
+                      <p className="text-[10px] text-[#8C7A6F]">{dashboardData?.monthlySummary?.month || 'Current Month'}</p>
                     </div>
                   </div>
-                  <span className="text-xs font-mono font-bold text-[#211B17]">96.5%</span>
+                  <span className="text-xs font-mono font-bold text-[#211B17]">
+                    {dashboardData?.monthlySummary?.attendanceRate ? `${dashboardData.monthlySummary.attendanceRate}%` : '100%'}
+                  </span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2.5 my-4">
                   <div className="bg-[#FAF7F2] p-2.5 rounded-xl border border-[#EBE3DB] text-center">
                     <span className="text-[10px] text-[#8C7A6F] block">Present</span>
-                    <span className="text-sm font-black text-emerald-700 font-mono">11 Days</span>
+                    <span className="text-sm font-black text-emerald-700 font-mono">
+                      {dashboardData?.monthlySummary?.presentDays !== undefined ? `${dashboardData.monthlySummary.presentDays} Days` : '0 Days'}
+                    </span>
                   </div>
                   <div className="bg-[#FAF7F2] p-2.5 rounded-xl border border-[#EBE3DB] text-center">
                     <span className="text-[10px] text-[#8C7A6F] block">Late</span>
-                    <span className="text-sm font-black text-amber-700 font-mono">1 Day</span>
+                    <span className="text-sm font-black text-amber-700 font-mono">
+                      {dashboardData?.monthlySummary?.lateDays !== undefined ? `${dashboardData.monthlySummary.lateDays} Days` : '0 Days'}
+                    </span>
                   </div>
                   <div className="bg-[#FAF7F2] p-2.5 rounded-xl border border-[#EBE3DB] text-center">
-                    <span className="text-[10px] text-[#8C7A6F] block">OT Hours</span>
-                    <span className="text-sm font-black text-crm-brand-700 font-mono">4.5 Hrs</span>
+                    <span className="text-[10px] text-[#8C7A6F] block">Total Hours</span>
+                    <span className="text-sm font-black text-crm-brand-700 font-mono">
+                      {dashboardData?.monthlySummary?.totalHours !== undefined ? `${dashboardData.monthlySummary.totalHours}h` : '0.0h'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -502,23 +579,28 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="grid grid-cols-3 gap-2.5 my-4">
-                  <div className="bg-[#FAF7F2] p-2.5 rounded-xl border border-[#EBE3DB] text-center">
-                    <span className="text-[10px] text-[#8C7A6F] block">Casual (CL)</span>
-                    <span className="text-sm font-black text-[#211B17] font-mono">6 / 12</span>
-                  </div>
-                  <div className="bg-[#FAF7F2] p-2.5 rounded-xl border border-[#EBE3DB] text-center">
-                    <span className="text-[10px] text-[#8C7A6F] block">Sick (SL)</span>
-                    <span className="text-sm font-black text-[#211B17] font-mono">8 / 10</span>
-                  </div>
-                  <div className="bg-[#FAF7F2] p-2.5 rounded-xl border border-[#EBE3DB] text-center">
-                    <span className="text-[10px] text-[#8C7A6F] block">Earned (EL)</span>
-                    <span className="text-sm font-black text-[#211B17] font-mono">14 / 18</span>
-                  </div>
+                  {(dashboardData?.leaveBalances && dashboardData.leaveBalances.length > 0
+                    ? dashboardData.leaveBalances.slice(0, 3)
+                    : [
+                        { leaveCode: 'CL', leaveName: 'Casual', availableBalance: 12 },
+                        { leaveCode: 'SL', leaveName: 'Sick', availableBalance: 10 },
+                        { leaveCode: 'EL', leaveName: 'Earned', availableBalance: 18 },
+                      ]
+                  ).map((b: any, idx: number) => (
+                    <div key={b.id || idx} className="bg-[#FAF7F2] p-2.5 rounded-xl border border-[#EBE3DB] text-center">
+                      <span className="text-[10px] text-[#8C7A6F] block truncate">{b.leaveCode || b.leave_code}</span>
+                      <span className="text-sm font-black text-[#211B17] font-mono">
+                        {b.availableBalance !== undefined ? b.availableBalance : b.available_balance} Left
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
               <div className="pt-2 border-t border-[#F2ECE4] flex items-center justify-between text-xs">
-                <span className="text-[#8C7A6F]">Pending Approval: 0</span>
+                <span className="text-[#8C7A6F]">
+                  Pending Approval: {dashboardData?.pendingLeaves ? dashboardData.pendingLeaves.length : 0}
+                </span>
                 <Link href="/hr/leaves" className="text-crm-brand-700 font-bold hover:underline">
                   My Applications
                 </Link>
@@ -542,7 +624,7 @@ export default function DashboardPage() {
                 href="/projects/tasks"
                 className="text-xs font-bold text-crm-brand-700 hover:underline flex items-center gap-1"
               >
-                All Project Tasks ({projectTasks.length}) <ChevronRight className="w-3.5 h-3.5" />
+                All Project Tasks ({dashboardData?.tasksSummary?.totalAssigned || projectTasks.length}) <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
@@ -556,7 +638,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {myAssignedTasks.map((t) => (
+                {myAssignedTasks.map((t: any) => (
                   <div
                     key={t.id}
                     className="p-3.5 rounded-xl border border-[#E7DED5] bg-[#FAF7F2]/60 hover:bg-white transition-all flex flex-col justify-between gap-3 shadow-2xs"
@@ -632,74 +714,39 @@ export default function DashboardPage() {
           <div className="bg-white border border-[#E7DED5] rounded-2xl p-5 shadow-xs">
             <h2 className="text-xs font-bold uppercase tracking-wider text-[#70665F] mb-3 flex items-center gap-2">
               <Zap className="w-4 h-4 text-crm-brand-700" />
-              Department Module Shortcuts & Quick Actions
+              Authorized Module Shortcuts & Quick Actions
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              <Link
-                href="/production/entry"
-                className="p-3 rounded-xl bg-[#FAF7F2] hover:bg-[#F3ECE4] border border-[#EBE3DB] text-center transition group"
-              >
-                <div className="w-9 h-9 mx-auto rounded-lg bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center font-bold mb-2 group-hover:scale-105 transition-transform">
-                  <Play className="w-4 h-4" />
-                </div>
-                <div className="text-xs font-bold text-[#211B17]">Shift Entry</div>
-                <div className="text-[10px] text-[#8C7A6F]">Operator Log</div>
-              </Link>
-
-              <Link
-                href="/production/work-orders"
-                className="p-3 rounded-xl bg-[#FAF7F2] hover:bg-[#F3ECE4] border border-[#EBE3DB] text-center transition group"
-              >
-                <div className="w-9 h-9 mx-auto rounded-lg bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center font-bold mb-2 group-hover:scale-105 transition-transform">
-                  <Factory className="w-4 h-4" />
-                </div>
-                <div className="text-xs font-bold text-[#211B17]">Work Orders</div>
-                <div className="text-[10px] text-[#8C7A6F]">Job Routing</div>
-              </Link>
-
-              <Link
-                href="/store/stock"
-                className="p-3 rounded-xl bg-[#FAF7F2] hover:bg-[#F3ECE4] border border-[#EBE3DB] text-center transition group"
-              >
-                <div className="w-9 h-9 mx-auto rounded-lg bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center font-bold mb-2 group-hover:scale-105 transition-transform">
-                  <Box className="w-4 h-4" />
-                </div>
-                <div className="text-xs font-bold text-[#211B17]">Stock Matrix</div>
-                <div className="text-[10px] text-[#8C7A6F]">Material Usable</div>
-              </Link>
-
-              <Link
-                href="/designer/bom"
-                className="p-3 rounded-xl bg-[#FAF7F2] hover:bg-[#F3ECE4] border border-[#EBE3DB] text-center transition group"
-              >
-                <div className="w-9 h-9 mx-auto rounded-lg bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center font-bold mb-2 group-hover:scale-105 transition-transform">
-                  <Palette className="w-4 h-4" />
-                </div>
-                <div className="text-xs font-bold text-[#211B17]">Designer BOM</div>
-                <div className="text-[10px] text-[#8C7A6F]">Part Masters</div>
-              </Link>
-
-              <Link
-                href="/purchase/requisition"
-                className="p-3 rounded-xl bg-[#FAF7F2] hover:bg-[#F3ECE4] border border-[#EBE3DB] text-center transition group"
-              >
-                <div className="w-9 h-9 mx-auto rounded-lg bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center font-bold mb-2 group-hover:scale-105 transition-transform">
-                  <ShoppingCart className="w-4 h-4" />
-                </div>
-                <div className="text-xs font-bold text-[#211B17]">Indent / PR</div>
-                <div className="text-[10px] text-[#8C7A6F]">Requisition</div>
-              </Link>
-
-              <Link
-                href="/hr/attendance"
-                className="p-3 rounded-xl bg-[#FAF7F2] hover:bg-[#F3ECE4] border border-[#EBE3DB] text-center transition group"
-              >
-                <div className="w-9 h-9 mx-auto rounded-lg bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center font-bold mb-2 group-hover:scale-105 transition-transform">
-                  <Clock className="w-4 h-4" />
-                </div>
-                <div className="text-xs font-bold text-[#211B17]">My Attendance</div>
-                <div className="text-[10px] text-[#8C7A6F]">Full Calendar</div>
-              </Link>
+              {(dashboardData?.moduleShortcuts && dashboardData.moduleShortcuts.length > 0
+                ? dashboardData.moduleShortcuts
+                : [
+                    { module: 'production', label: 'Shift Entry', href: '/production/entry', icon: 'Play' },
+                    { module: 'projects', label: 'Projects & Tasks', href: '/projects/tasks', icon: 'Factory' },
+                    { module: 'store', label: 'Stock Matrix', href: '/store/stock', icon: 'Box' },
+                    { module: 'designer', label: 'Designer BOM', href: '/designer/bom', icon: 'Palette' },
+                    { module: 'purchase', label: 'Indent / PR', href: '/purchase/requisition', icon: 'ShoppingCart' },
+                    { module: 'hr', label: 'My Attendance', href: '/hr/attendance', icon: 'Clock' },
+                  ]
+              ).map((sc: any, idx: number) => (
+                <Link
+                  key={sc.module || idx}
+                  href={sc.href}
+                  className="p-3 rounded-xl bg-[#FAF7F2] hover:bg-[#F3ECE4] border border-[#EBE3DB] text-center transition group"
+                >
+                  <div className="w-9 h-9 mx-auto rounded-lg bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center font-bold mb-2 group-hover:scale-105 transition-transform">
+                    {sc.icon === 'Play' ? <Play className="w-4 h-4" /> :
+                     sc.icon === 'ShoppingCart' ? <ShoppingCart className="w-4 h-4" /> :
+                     sc.icon === 'Box' ? <Box className="w-4 h-4" /> :
+                     sc.icon === 'Palette' ? <Palette className="w-4 h-4" /> :
+                     sc.icon === 'Users' ? <Users className="w-4 h-4" /> :
+                     sc.icon === 'CheckSquare' ? <CheckSquare className="w-4 h-4" /> :
+                     sc.icon === 'Landmark' ? <Landmark className="w-4 h-4" /> :
+                     <Factory className="w-4 h-4" />}
+                  </div>
+                  <div className="text-xs font-bold text-[#211B17] truncate">{sc.label}</div>
+                  <div className="text-[10px] text-[#8C7A6F] capitalize">{sc.module}</div>
+                </Link>
+              ))}
             </div>
           </div>
         </div>

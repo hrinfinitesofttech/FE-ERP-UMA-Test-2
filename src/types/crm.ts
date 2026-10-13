@@ -113,6 +113,12 @@ export interface Employee {
   username: string;
   password?: string;
   isFamilyMember?: boolean;
+  isActive?: boolean;
+  explicitRestrictions?: string[] | any;
+  explicit_restrictions?: string[] | any;
+  permissionsReviewRequired?: boolean;
+  previousDepartmentName?: string;
+  effectivePermissions?: any;
 }
 
 export interface Department {
@@ -489,6 +495,8 @@ export interface ProjectTask {
   checklist?: { id?: string; text: string; completed: boolean }[];
   dependentTaskId?: string;
   remarks?: string;
+  reviewNotes?: string;
+  review_notes?: string;
   completionDate?: string;
   createdAt?: string;
   updatedAt?: string;

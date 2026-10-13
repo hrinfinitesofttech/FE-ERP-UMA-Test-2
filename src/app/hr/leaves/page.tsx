@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import {
   FileCheck2,
@@ -23,8 +23,11 @@ import {
   Building2,
   FileText,
   User,
+  ShieldCheck,
+  Lock,
 } from 'lucide-react';
 import { LeaveType, LeaveRequest } from '../../../types/hr';
+import api from '../../../lib/apiClient';
 
 const DEFAULT_LEAVE_TYPES: LeaveType[] = [
   {
@@ -91,11 +94,8 @@ const DEFAULT_LEAVE_TYPES: LeaveType[] = [
 
 export default function LeaveManagementPage() {
   const {
-    leaveTypes = [],
-    leaveRequests = [],
-    addLeaveRequest,
-    updateLeaveRequestStatus,
-    addLeaveType,
+    leaveTypes: contextLeaveTypes = [],
+    leaveRequests: contextLeaveRequests = [],
     availableEmployees = [],
     currentUser,
   } = useERP();
@@ -103,6 +103,11 @@ export default function LeaveManagementPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [successToast, setSuccessToast] = useState<string | null>(null);
+
+  // Live Backend State
+  const [liveLeaveTypes, setLiveLeaveTypes] = useState<LeaveType[]>([]);
+  const [liveLeaveRequests, setLiveLeaveRequests] = useState<any[]>([]);
+  const [liveLeaveBalances, setLiveLeaveBalances] = useState<any[]>([]);
 
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [showAddTypeModal, setShowAddTypeModal] = useState(false);
@@ -116,12 +121,16 @@ export default function LeaveManagementPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const activeLeaveTypes: LeaveType[] =
-    leaveTypes && leaveTypes.length > 0 ? leaveTypes : DEFAULT_LEAVE_TYPES;
+  // Active Leave Types
+  const activeLeaveTypes: LeaveType[] = useMemo(() => {
+    if (liveLeaveTypes.length > 0) return liveLeaveTypes;
+    if (contextLeaveTypes && contextLeaveTypes.length > 0) return contextLeaveTypes;
+    return DEFAULT_LEAVE_TYPES;
+  }, [liveLeaveTypes, contextLeaveTypes]);
 
   // Apply Leave Form Initial State
   const initialApplyForm = {
-    employeeId: availableEmployees[0]?.id || 'EMP-2026-001',
+    employeeId: (currentUser?.id as string) || availableEmployees[0]?.id || 'EMP-2026-001',
     leaveTypeId: activeLeaveTypes[0]?.id || 'LT-01',
     fromDate: new Date().toISOString().split('T')[0],
     toDate: new Date().toISOString().split('T')[0],
@@ -153,7 +162,70 @@ export default function LeaveManagementPage() {
   };
 
   const [newTypeData, setNewTypeData] = useState(initialTypeForm);
-  const [typeErrors, setTypeErrors] = useState<Record<string, string>>({});
+
+  // Fetch Live Data from Backend
+  const loadLiveData = useCallback(async () => {
+    setIsLoading(true);
+    setLoadError(null);
+    try {
+      const [typesRes, reqsRes, balancesRes] = await Promise.allSettled([
+        api.hr.leaveTypes.list(),
+        api.hr.leaves.list(),
+        api.hr.leaveBalances.list(),
+      ]);
+
+      if (typesRes.status === 'fulfilled' && Array.isArray(typesRes.value)) {
+        setLiveLeaveTypes(
+          typesRes.value.map((t: any) => ({
+            id: t.id,
+            leaveCode: t.leave_code || t.leaveCode || 'LV',
+            leaveName: t.leave_name || t.leaveName || 'Leave',
+            annualQuota: Number(t.annual_quota ?? t.annualQuota ?? 12),
+            monthlyAccrual: Number(t.monthly_accrual ?? t.monthlyAccrual ?? 1),
+            carryForwardAllowed: Boolean(t.carry_forward_allowed ?? t.carryForwardAllowed),
+            maxConsecutiveDays: Number(t.max_consecutive_days ?? t.maxConsecutiveDays ?? 5),
+            halfDayAllowed: Boolean(t.half_day_allowed ?? t.halfDayAllowed ?? true),
+            attachmentRequired: Boolean(t.attachment_required ?? t.attachmentRequired ?? false),
+            status: t.status || 'Active',
+          }))
+        );
+      }
+
+      if (reqsRes.status === 'fulfilled' && Array.isArray(reqsRes.value)) {
+        setLiveLeaveRequests(
+          reqsRes.value.map((r: any) => ({
+            id: r.id,
+            leaveNumber: r.leave_number || r.leaveNumber || r.id,
+            employeeId: r.employee || r.employee_id || r.employeeId,
+            employeeName: r.employee_name || r.employeeName || 'Staff Member',
+            department: r.department || 'General',
+            leaveTypeId: r.leave_type || r.leave_type_id || r.leaveTypeId,
+            leaveName: r.leave_name || r.leaveName || 'Leave',
+            fromDate: r.from_date || r.fromDate,
+            toDate: r.to_date || r.toDate,
+            numberOfDays: Number(r.number_of_days ?? r.numberOfDays ?? 1),
+            isHalfDay: Boolean(r.is_half_day ?? r.isHalfDay),
+            halfDayType: r.half_day_type || r.halfDayType || 'Full Day',
+            reason: r.reason || '',
+            status: r.status || 'Pending',
+            reportingManager: r.reporting_manager || r.reportingManager || '',
+          }))
+        );
+      }
+
+      if (balancesRes.status === 'fulfilled' && Array.isArray(balancesRes.value)) {
+        setLiveLeaveBalances(balancesRes.value);
+      }
+    } catch (err: any) {
+      console.warn('Backend load notice:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadLiveData();
+  }, [loadLiveData]);
 
   // Calculate requested days
   const calculatedDays = useMemo(() => {
@@ -170,10 +242,9 @@ export default function LeaveManagementPage() {
   const isFormDirty = useMemo(() => {
     return (
       formData.reason.trim() !== '' ||
-      formData.durationOption !== 'Full Day' ||
-      formData.employeeId !== (availableEmployees[0]?.id || 'EMP-2026-001')
+      formData.durationOption !== 'Full Day'
     );
-  }, [formData, availableEmployees]);
+  }, [formData]);
 
   const closeApplyModalWithConfirm = () => {
     if (isFormDirty) {
@@ -253,14 +324,20 @@ export default function LeaveManagementPage() {
     // Leave Balance Check
     const selectedLeaveType = activeLeaveTypes.find((l) => l.id === formData.leaveTypeId);
     const annualQuota = selectedLeaveType?.annualQuota || 12;
-    // Count used days by employee for this leave type
-    const usedDays = leaveRequests
-      .filter((r) => r.employeeId === formData.employeeId && r.leaveTypeId === formData.leaveTypeId && r.status !== 'Rejected')
-      .reduce((sum, r) => sum + (Number(r.numberOfDays) || 1), 0);
-    const availableBalance = Math.max(0, annualQuota - usedDays);
+
+    // Check live balances if present
+    const balanceRecord = liveLeaveBalances.find(
+      (b: any) =>
+        (b.employee === formData.employeeId || b.employee_id === formData.employeeId) &&
+        (b.leave_type === formData.leaveTypeId || b.leave_type_id === formData.leaveTypeId)
+    );
+
+    const availableBalance = balanceRecord
+      ? Number(balanceRecord.available_balance ?? balanceRecord.availableBalance ?? annualQuota)
+      : annualQuota;
 
     if (calculatedDays > availableBalance) {
-      errors.leaveTypeId = 'You do not have enough leave balance.';
+      errors.leaveTypeId = `Insufficient leave balance! Available: ${availableBalance} days, Requested: ${calculatedDays} days.`;
     }
 
     setFormErrors(errors);
@@ -305,7 +382,8 @@ export default function LeaveManagementPage() {
     }
   };
 
-  const handleApplySubmit = (e: React.FormEvent) => {
+  // Submit Leave Application to Live Backend
+  const handleApplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     setTouched({
@@ -319,76 +397,118 @@ export default function LeaveManagementPage() {
     if (!validateApplyForm()) return;
 
     try {
-      const emp = availableEmployees.find((e) => e.id === formData.employeeId);
-      const lt = activeLeaveTypes.find((l) => l.id === formData.leaveTypeId) || activeLeaveTypes[0];
       const isHalf = formData.durationOption !== 'Full Day';
-      const numDays = calculatedDays;
 
-      addLeaveRequest({
-        employeeId: formData.employeeId,
-        employeeName: emp?.name || (emp as any)?.employeeName || 'Staff Member',
-        department: emp?.department || 'Production',
-        leaveTypeId: lt.id,
-        leaveName: lt.leaveName || 'Casual Leave',
-        fromDate: formData.fromDate,
-        toDate: formData.toDate,
-        numberOfDays: numDays,
-        isHalfDay: isHalf,
-        halfDayType: isHalf ? (formData.durationOption as any) : 'Full Day',
+      const payload = {
+        employee_id: formData.employeeId,
+        leave_type_id: formData.leaveTypeId,
+        from_date: formData.fromDate,
+        to_date: formData.toDate,
+        is_half_day: isHalf,
+        half_day_type: isHalf ? formData.durationOption : 'Full Day',
         reason: formData.reason.trim(),
-        reportingManager: (emp as any)?.reportingManagerName || (emp as any)?.reportingManager || 'Rajesh Patel (Department Head)',
-      });
+      };
+
+      await api.hr.leaves.create(payload);
 
       setShowApplyModal(false);
       setFormData(initialApplyForm);
       setFormErrors({});
       setTouched({});
-      setSuccessToast('Leave application submitted successfully.');
+      setSuccessToast('Leave application submitted successfully! Working days verified by server.');
       setTimeout(() => setSuccessToast(null), 4000);
-    } catch (err) {
+
+      // Refresh live records and balances
+      await loadLiveData();
+    } catch (err: any) {
       console.error('Failed to submit leave:', err);
-      setLoadError('The leave request could not be submitted. Please try again.');
+      const serverMsg =
+        err?.data?.error ||
+        err?.data?.detail ||
+        (Array.isArray(err?.data?.non_field_errors) ? err.data.non_field_errors[0] : null) ||
+        err?.message ||
+        'The leave request could not be submitted. Please check for date overlaps or balance limits.';
+      setLoadError(serverMsg);
+      setTimeout(() => setLoadError(null), 6000);
     }
   };
 
-  const handleCreateLeaveType = (e: React.FormEvent) => {
+  // Manager Approve Action
+  const handleApproveLeave = async (req: any) => {
+    // Check self-approval prevention
+    const isSelf =
+      req.employeeId === currentUser?.id ||
+      (currentUser as any)?.email === (req as any)?.employeeEmail;
+
+    if (isSelf) {
+      setLoadError('Self-Approval Not Permitted! Leave applications must be approved by a reporting manager.');
+      setTimeout(() => setLoadError(null), 5000);
+      return;
+    }
+
+    try {
+      await api.hr.leaves.approve(req.id, currentUser?.name, 'Approved by manager');
+      setSuccessToast(`Leave ${req.leaveNumber || req.id} approved successfully! Balance deducted.`);
+      setTimeout(() => setSuccessToast(null), 4000);
+      await loadLiveData();
+    } catch (err: any) {
+      const msg = err?.data?.error || err?.message || 'Failed to approve leave request.';
+      setLoadError(msg);
+      setTimeout(() => setLoadError(null), 5000);
+    }
+  };
+
+  // Manager Reject Action
+  const handleRejectLeave = async (req: any) => {
+    try {
+      await api.hr.leaves.reject(req.id, currentUser?.name, 'Rejected by manager');
+      setSuccessToast(`Leave ${req.leaveNumber || req.id} rejected.`);
+      setTimeout(() => setSuccessToast(null), 4000);
+      await loadLiveData();
+    } catch (err: any) {
+      const msg = err?.data?.error || err?.message || 'Failed to reject leave request.';
+      setLoadError(msg);
+      setTimeout(() => setLoadError(null), 5000);
+    }
+  };
+
+  // Create New Leave Type
+  const handleCreateLeaveType = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTypeData.leaveName.trim() || !newTypeData.leaveCode.trim()) return;
 
     try {
-      if (addLeaveType) {
-        addLeaveType({
-          leaveName: newTypeData.leaveName.trim(),
-          leaveCode: newTypeData.leaveCode.toUpperCase().trim(),
-          annualQuota: Number(newTypeData.annualQuota) || 12,
-          monthlyAccrual: Number(newTypeData.monthlyAccrual) || 1,
-          maxConsecutiveDays: Number(newTypeData.maxConsecutiveDays) || 5,
-          carryForwardAllowed: Boolean(newTypeData.carryForwardAllowed),
-          halfDayAllowed: Boolean(newTypeData.halfDayAllowed),
-          attachmentRequired: Boolean(newTypeData.attachmentRequired),
-          status: 'Active',
-        });
-      }
+      await api.hr.leaveTypes.create({
+        leave_name: newTypeData.leaveName.trim(),
+        leave_code: newTypeData.leaveCode.toUpperCase().trim(),
+        annual_quota: Number(newTypeData.annualQuota) || 12,
+        monthly_accrual: Number(newTypeData.monthlyAccrual) || 1,
+        max_consecutive_days: Number(newTypeData.maxConsecutiveDays) || 5,
+        carry_forward_allowed: Boolean(newTypeData.carryForwardAllowed),
+        half_day_allowed: Boolean(newTypeData.halfDayAllowed),
+        attachment_required: Boolean(newTypeData.attachmentRequired),
+        status: 'Active',
+      });
+
       setShowAddTypeModal(false);
       setNewTypeData(initialTypeForm);
       setSuccessToast('New leave policy type created successfully.');
       setTimeout(() => setSuccessToast(null), 4000);
-    } catch (err) {
+      await loadLiveData();
+    } catch (err: any) {
       console.error('Failed to create leave type:', err);
+      const msg = err?.data?.error || err?.message || 'Failed to create leave policy.';
+      setLoadError(msg);
+      setTimeout(() => setLoadError(null), 5000);
     }
   };
 
-  const handleRefresh = () => {
-    setIsLoading(true);
-    setLoadError(null);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 300);
-  };
+  // All combined requests
+  const allRequests = liveLeaveRequests.length > 0 ? liveLeaveRequests : contextLeaveRequests;
 
   // Filtered requests list
   const filteredRequests = useMemo(() => {
-    return (leaveRequests || []).filter((req) => {
+    return allRequests.filter((req) => {
       const empName = (req.employeeName || '').toLowerCase();
       const lName = (req.leaveName || '').toLowerCase();
       const lReason = (req.reason || '').toLowerCase();
@@ -401,7 +521,7 @@ export default function LeaveManagementPage() {
 
       return matchesSearch && matchesStatus && matchesType;
     });
-  }, [leaveRequests, searchTerm, statusFilter, typeFilter]);
+  }, [allRequests, searchTerm, statusFilter, typeFilter]);
 
   // Reset page on filter changes
   useEffect(() => {
@@ -418,7 +538,7 @@ export default function LeaveManagementPage() {
       {/* Toast Notification */}
       {successToast && (
         <div className="fixed top-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
-          <CheckCircle2 className="w-5 h-5 text-emerald-100" />
+          <CheckCircle2 className="w-5 h-5 text-emerald-100 shrink-0" />
           <span className="font-semibold text-sm">{successToast}</span>
         </div>
       )}
@@ -433,15 +553,16 @@ export default function LeaveManagementPage() {
             Leave Policy Master & Application Portal
           </h1>
           <p className="text-xs text-[#70665F] mt-1">
-            Configurable Leave Rules (CL, SL, EL, Comp-Off), Monthly Accruals & Half-Day Application Tracking
+            Configurable Leave Rules (CL, SL, EL, Comp-Off), Live Balances, Working Days Calculation & Approval Scoping
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <button
-            onClick={handleRefresh}
+            onClick={loadLiveData}
+            disabled={isLoading}
             className="flex items-center gap-1.5 px-3 py-2 bg-white border border-[#EBE3DB] hover:bg-[#FAF7F2] text-[#544B45] font-semibold text-xs rounded-xl transition shadow-xs cursor-pointer"
-            title="Reload records"
+            title="Reload live leave records"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
@@ -468,16 +589,16 @@ export default function LeaveManagementPage() {
 
       {/* Error Alert */}
       {loadError && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between gap-3 text-rose-800 text-xs">
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between gap-3 text-rose-800 text-xs shadow-xs animate-in fade-in">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
-            <span>{loadError}</span>
+            <span className="font-semibold">{loadError}</span>
           </div>
           <button
-            onClick={handleRefresh}
-            className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs rounded-lg transition"
+            onClick={() => setLoadError(null)}
+            className="p-1 hover:bg-rose-100 rounded-lg text-rose-700 transition cursor-pointer"
           >
-            Retry
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -488,40 +609,51 @@ export default function LeaveManagementPage() {
           <Sparkles className="w-4 h-4 text-amber-600" /> Active Leave Quotas & Rules ({activeLeaveTypes.length})
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {activeLeaveTypes.map((type) => (
-            <div
-              key={type.id}
-              className="bg-white border border-[#EBE3DB] rounded-2xl p-4.5 space-y-3 shadow-xs hover:border-emerald-300 transition duration-200"
-            >
-              <div className="flex items-center justify-between">
-                <span className="px-2.5 py-1 bg-emerald-50 text-emerald-800 rounded-lg text-xs font-bold font-mono">
-                  {type.leaveCode}
-                </span>
-                <span className="text-[11px] font-semibold text-[#70665F]">
-                  Quota: <strong className="text-[#211B17]">{type.annualQuota} Days/Yr</strong>
-                </span>
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          {activeLeaveTypes.map((type) => {
+            // Find live balance for active user or default
+            const userBalance = liveLeaveBalances.find(
+              (b: any) =>
+                (b.employee === currentUser?.id || b.employee_id === currentUser?.id) &&
+                (b.leave_type === type.id || b.leave_type_id === type.id)
+            );
 
-              <div>
-                <h3 className="font-bold text-sm text-[#211B17] leading-tight">{type.leaveName}</h3>
-                <p className="text-[11px] text-[#70665F] mt-0.5">
-                  Max {type.maxConsecutiveDays} days stretch • {type.halfDayAllowed ? 'Half-day allowed' : 'Full days only'}
-                </p>
-              </div>
+            const quota = userBalance ? Number(userBalance.allocated_days ?? type.annualQuota) : type.annualQuota;
+            const used = userBalance ? Number(userBalance.used_days ?? 0) : 0;
+            const available = userBalance ? Number(userBalance.available_balance ?? quota - used) : quota;
 
-              <div className="pt-2 border-t border-[#EBE3DB]/60 flex items-center justify-between text-[11px] text-[#70665F]">
-                <span>Accrual Rate:</span>
-                <span className="font-semibold text-[#211B17]">{type.monthlyAccrual} day / mo</span>
+            return (
+              <div
+                key={type.id}
+                className="bg-white border border-[#EBE3DB] rounded-2xl p-4 space-y-3 shadow-xs hover:border-emerald-300 transition duration-200"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="px-2.5 py-1 bg-emerald-50 text-emerald-800 rounded-lg text-xs font-bold font-mono">
+                    {type.leaveCode}
+                  </span>
+                  <span className="text-[11px] font-semibold text-[#70665F]">
+                    Quota: <strong className="text-[#211B17]">{quota} Days/Yr</strong>
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-sm text-[#211B17] leading-tight">{type.leaveName}</h3>
+                  <p className="text-[11px] text-[#70665F] mt-0.5">
+                    Max {type.maxConsecutiveDays} days stretch • {type.halfDayAllowed ? 'Half-day allowed' : 'Full only'}
+                  </p>
+                </div>
+
+                <div className="pt-2 border-t border-[#EBE3DB]/60 flex items-center justify-between text-[11px] text-[#70665F]">
+                  <span>Available Balance:</span>
+                  <span className="font-mono font-bold text-emerald-700 text-xs">{available} Days</span>
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-[#70665F]">
+                  <span>Used Days:</span>
+                  <span className="font-semibold text-rose-700">{used} Days</span>
+                </div>
               </div>
-              <div className="flex items-center justify-between text-[11px] text-[#70665F]">
-                <span>Carry Forward:</span>
-                <span className={`font-semibold ${type.carryForwardAllowed ? 'text-emerald-700' : 'text-slate-500'}`}>
-                  {type.carryForwardAllowed ? 'Allowed' : 'No'}
-                </span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -571,7 +703,7 @@ export default function LeaveManagementPage() {
           {isLoading ? (
             <div className="p-12 text-center">
               <RefreshCw className="w-8 h-8 text-emerald-600 animate-spin mx-auto mb-3" />
-              <p className="text-sm font-semibold text-[#544B45]">Loading leave applications...</p>
+              <p className="text-sm font-semibold text-[#544B45]">Loading leave applications from server...</p>
             </div>
           ) : filteredRequests.length === 0 ? (
             <div className="p-12 text-center space-y-3">
@@ -594,76 +726,93 @@ export default function LeaveManagementPage() {
                     <th className="py-3.5 px-4">Dates & Duration</th>
                     <th className="py-3.5 px-4">Reason</th>
                     <th className="py-3.5 px-4">Status</th>
-                    <th className="py-3.5 px-4 text-right">Actions</th>
+                    <th className="py-3.5 px-4 text-right">Approval Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#EBE3DB]/60 text-[#211B17]">
-                  {paginatedRequests.map((req) => (
-                    <tr key={req.id} className="hover:bg-[#FAF7F2]/60 transition">
-                      <td className="py-3.5 px-4 font-mono font-bold text-emerald-800">
-                        {req.leaveNumber || req.id}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <div className="font-bold text-[#211B17]">{req.employeeName}</div>
-                        <div className="text-[11px] text-[#70665F]">{req.department}</div>
-                      </td>
-                      <td className="py-3.5 px-4 font-semibold text-[#544B45]">
-                        {req.leaveName}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <div className="font-mono text-xs font-semibold text-[#211B17]">
-                          {req.fromDate} to {req.toDate}
-                        </div>
-                        <div className="text-[11px] text-emerald-700 font-bold mt-0.5">
-                          {req.numberOfDays} Day(s) {req.isHalfDay ? `(${req.halfDayType || 'Half Day'})` : ''}
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-4 text-[#70665F] max-w-xs truncate">
-                        &ldquo;{req.reason}&rdquo;
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
-                            req.status === 'Approved'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : req.status === 'Rejected'
-                              ? 'bg-rose-50 text-rose-700 border-rose-200'
-                              : 'bg-amber-50 text-amber-700 border-amber-200'
-                          }`}
-                        >
-                          {req.status || 'Pending'}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 text-right">
-                        {req.status === 'Pending' ? (
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              onClick={() => {
-                                updateLeaveRequestStatus(req.id, 'Approved', currentUser?.name || 'HR Manager');
-                                setSuccessToast(`Leave ${req.leaveNumber || req.id} approved successfully.`);
-                                setTimeout(() => setSuccessToast(null), 3000);
-                              }}
-                              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-[11px] transition shadow-xs cursor-pointer"
-                            >
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => {
-                                updateLeaveRequestStatus(req.id, 'Rejected', currentUser?.name || 'HR Manager');
-                                setSuccessToast(`Leave ${req.leaveNumber || req.id} rejected.`);
-                                setTimeout(() => setSuccessToast(null), 3000);
-                              }}
-                              className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-lg text-[11px] transition shadow-xs cursor-pointer"
-                            >
-                              Reject
-                            </button>
+                  {paginatedRequests.map((req) => {
+                    const isSelf =
+                      req.employeeId === currentUser?.id ||
+                      (currentUser as any)?.email === (req as any)?.employeeEmail;
+
+                    return (
+                      <tr key={req.id} className="hover:bg-[#FAF7F2]/60 transition">
+                        <td className="py-3.5 px-4 font-mono font-bold text-emerald-800">
+                          {req.leaveNumber || req.id}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <div className="font-bold text-[#211B17] flex items-center gap-1.5">
+                            {req.employeeName}
+                            {isSelf && (
+                              <span className="text-[10px] font-bold px-1.5 py-0.2 bg-blue-100 text-blue-800 rounded">
+                                (You)
+                              </span>
+                            )}
                           </div>
-                        ) : (
-                          <span className="text-[#A89F91] text-[11px] font-semibold">Completed</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                          <div className="text-[11px] text-[#70665F]">{req.department}</div>
+                        </td>
+                        <td className="py-3.5 px-4 font-semibold text-[#544B45]">
+                          {req.leaveName}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <div className="font-mono text-xs font-semibold text-[#211B17]">
+                            {req.fromDate} to {req.toDate}
+                          </div>
+                          <div className="text-[11px] text-emerald-700 font-bold mt-0.5">
+                            {req.numberOfDays} Day(s) {req.isHalfDay ? `(${req.halfDayType || 'Half Day'})` : ''}
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4 text-[#70665F] max-w-xs truncate">
+                          &ldquo;{req.reason}&rdquo;
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                              req.status === 'Approved'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : req.status === 'Rejected'
+                                ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                : 'bg-amber-50 text-amber-700 border-amber-200'
+                            }`}
+                          >
+                            {req.status || 'Pending'}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          {req.status === 'Pending' ? (
+                            isSelf ? (
+                              <div
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg text-[10px] font-bold cursor-not-allowed"
+                                title="RBAC Rule: You cannot approve your own leave application"
+                              >
+                                <Lock className="w-3 h-3 text-amber-700" />
+                                <span>Self-Approval Not Permitted</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => handleApproveLeave(req)}
+                                  className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-[11px] transition shadow-xs cursor-pointer"
+                                  title="Approve as Department Manager"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => handleRejectLeave(req)}
+                                  className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-lg text-[11px] transition shadow-xs cursor-pointer"
+                                  title="Reject Leave"
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            )
+                          ) : (
+                            <span className="text-[#A89F91] text-[11px] font-semibold">Processed</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -1011,7 +1160,7 @@ export default function LeaveManagementPage() {
                     type="checkbox"
                     checked={newTypeData.halfDayAllowed}
                     onChange={(e) => setNewTypeData({ ...newTypeData, halfDayAllowed: e.target.checked })}
-                    className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+                    className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
                   />
                   <span className="text-[#3E2723]">Allow Half Day Applications</span>
                 </label>
@@ -1020,7 +1169,7 @@ export default function LeaveManagementPage() {
                     type="checkbox"
                     checked={newTypeData.carryForwardAllowed}
                     onChange={(e) => setNewTypeData({ ...newTypeData, carryForwardAllowed: e.target.checked })}
-                    className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+                    className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
                   />
                   <span className="text-[#3E2723]">Allow Year-End Carry Forward</span>
                 </label>
