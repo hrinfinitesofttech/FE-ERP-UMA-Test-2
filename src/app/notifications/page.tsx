@@ -722,7 +722,7 @@ export default function NotificationsPage() {
                   <label className="block text-xs font-bold text-slate-700 mb-1">Record Link (Optional)</label>
                   <input
                     type="text"
-                    placeholder="/crm/leads or /production/jobs"
+                    placeholder="/crm/leads or /production/work-orders"
                     value={newLinkUrl}
                     onChange={(e) => setNewLinkUrl(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#9B4A1B]"
