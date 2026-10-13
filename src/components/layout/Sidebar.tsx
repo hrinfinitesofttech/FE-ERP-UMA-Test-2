@@ -965,10 +965,6 @@ export function Sidebar() {
                 <Cpu className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Asset / Machine Master</span>}
               </Link>
-              <Link href="/maintenance/customer-machines" className={subNavItemClass('/maintenance/customer-machines')}>
-                <Building className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Customer Machines</span>}
-              </Link>
               <Link href="/maintenance/service-requests" className={subNavItemClass('/maintenance/service-requests')}>
                 <PhoneCall className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Service Requests</span>}
@@ -976,10 +972,6 @@ export function Sidebar() {
               <Link href="/maintenance/breakdowns" className={subNavItemClass('/maintenance/breakdowns')}>
                 <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Breakdown Management</span>}
-              </Link>
-              <Link href="/maintenance/preventive" className={subNavItemClass('/maintenance/preventive')}>
-                <RotateCcw className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Preventive Maintenance</span>}
               </Link>
               <Link href="/maintenance/schedule" className={subNavItemClass('/maintenance/schedule')}>
                 <Calendar className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
@@ -997,21 +989,9 @@ export function Sidebar() {
                 <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Service Visits</span>}
               </Link>
-              <Link href="/maintenance/work-orders" className={subNavItemClass('/maintenance/work-orders')}>
-                <ClipboardList className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Service Work Orders</span>}
-              </Link>
               <Link href="/maintenance/spare-parts" className={subNavItemClass('/maintenance/spare-parts')}>
                 <Package className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Spare Parts (Store)</span>}
-              </Link>
-              <Link href="/maintenance/parts-issue" className={subNavItemClass('/maintenance/parts-issue')}>
-                <PackageCheck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Service Parts Issue</span>}
-              </Link>
-              <Link href="/maintenance/parts-return" className={subNavItemClass('/maintenance/parts-return')}>
-                <CornerUpLeft className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Service Parts Return</span>}
+                {!sidebarCollapsed && <span>Spare Parts & Service Inventory</span>}
               </Link>
 
               <Link href="/maintenance/warranty" className={subNavItemClass('/maintenance/warranty')}>
