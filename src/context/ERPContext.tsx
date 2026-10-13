@@ -1856,7 +1856,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const [employees, setEmployees] = useState<Employee[]>([]);
 
   // Authentication State
-  const [currentUser, setCurrentUser] = useState<Employee>(defaultAdminUser);
+  const [currentUser, setCurrentUser] = useState<Employee>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('UMA_ERP_currentUser');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && (parsed.id || parsed.username)) return parsed;
+        }
+      } catch (_) {}
+    }
+    return defaultAdminUser;
+  });
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
 
   // Layout State
@@ -4880,6 +4891,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     );
     if (found) {
       setCurrentUser(found);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_currentUser', JSON.stringify(found)); } catch (_) {}
+      }
       setIsAuthenticated(true);
       logAction('LOGIN', 'Authentication', 'Sign In', found.id, `User ${found.firstName} logged in`);
       return true;
@@ -4889,18 +4903,45 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     logAction('LOGOUT', 'Authentication', 'Sign Out', currentUser.id, `User ${currentUser.firstName} logged out`);
+    if (typeof window !== 'undefined') {
+      try { localStorage.removeItem('UMA_ERP_currentUser'); } catch (_) {}
+    }
     setIsAuthenticated(false);
   };
 
   const updateCurrentUserProfile = (data: Partial<Employee>) => {
-    setCurrentUser((prev) => ({ ...prev, ...data }));
-    setEmployees((prev) => prev.map((e) => (e.id === currentUser.id ? { ...e, ...data } : e)));
+    setCurrentUser((prev) => {
+      const updated = { ...prev, ...data };
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_currentUser', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    setEmployees((prev) => {
+      const updated = prev.map((e) => (e.id === currentUser.id ? { ...e, ...data } : e));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employees', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'User Management', 'My Profile', currentUser.id, 'Updated profile details');
   };
 
   const changePassword = (newPass: string) => {
-    setCurrentUser((prev) => ({ ...prev, password: newPass }));
-    setEmployees((prev) => prev.map((e) => (e.id === currentUser.id ? { ...e, password: newPass } : e)));
+    setCurrentUser((prev) => {
+      const updated = { ...prev, password: newPass };
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_currentUser', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    setEmployees((prev) => {
+      const updated = prev.map((e) => (e.id === currentUser.id ? { ...e, password: newPass } : e));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_employees', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
     logAction('UPDATE', 'User Management', 'Change Password', currentUser.id, 'Password updated successfully');
   };
 
@@ -4925,15 +4966,70 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return false;
     }
 
-    // 3. Module level check against assignedModules
-    const modKey = module?.toLowerCase();
-    if (currentUser.assignedModules && currentUser.assignedModules.length > 0) {
-      const hasMod = currentUser.assignedModules.some((m) => m?.toLowerCase() === modKey);
-      if (!hasMod) return false;
+    // 3. Explicit restrictions check (overrides all grants)
+    const restrictions = currentUser?.explicitRestrictions || currentUser?.explicit_restrictions;
+    if (Array.isArray(restrictions)) {
+      const cleanMod = module?.toLowerCase().trim();
+      const isRestricted = restrictions.some((r: string) => {
+        const cleanR = String(r).toLowerCase().trim();
+        return (
+          cleanR === `${cleanMod}:${action}` ||
+          cleanR === `${cleanMod}:*` ||
+          cleanR === `*:${action}` ||
+          cleanR === '*:*'
+        );
+      });
+      if (isRestricted) return false;
     }
 
-    // 4. Custom Granular Permissions override
+    // 4. Module level check against assignedModules
+    const modKey = module?.toLowerCase().trim();
+    if (currentUser.assignedModules && Array.isArray(currentUser.assignedModules)) {
+      if (currentUser.assignedModules.length > 0) {
+        const hasMod = currentUser.assignedModules.some((m) => {
+          const cleanM = (m || '').toLowerCase().trim();
+          if (modKey === 'accounting' && (cleanM === 'accounts' || cleanM === 'accounting' || cleanM === 'finance' || cleanM === 'accounts & finance')) return true;
+          if (modKey === 'design' && (cleanM === 'designer' || cleanM === 'design' || cleanM === 'bom')) return true;
+          if (modKey === 'projects' && (cleanM === 'project' || cleanM === 'projects' || cleanM === 'planning')) return true;
+          if (modKey === 'quality' && (cleanM === 'qc' || cleanM === 'quality')) return true;
+          if (modKey === 'store' && (cleanM === 'store' || cleanM === 'warehouse' || cleanM === 'inventory')) return true;
+          if (modKey === 'purchase' && (cleanM === 'purchase' || cleanM === 'rfq')) return true;
+          return cleanM === modKey || cleanM.includes(modKey) || modKey.includes(cleanM);
+        });
+        if (!hasMod) return false;
+      } else {
+        return false;
+      }
+    }
+
+    // 5. Custom Granular Permissions override (supports both flat pageKey and moduleKey structures)
     if (currentUser.customPermissions && typeof currentUser.customPermissions === 'object') {
+      // 5a. Direct page title check
+      if (page && currentUser.customPermissions[page]) {
+        const pagePerms = currentUser.customPermissions[page];
+        if (typeof pagePerms === 'object' && pagePerms !== null && pagePerms[action] !== undefined) {
+          return Boolean(pagePerms[action]);
+        }
+        if (Array.isArray(pagePerms)) {
+          return pagePerms.includes(action);
+        }
+      }
+
+      // 5b. Case-insensitive page title check
+      const matchedPageKey = Object.keys(currentUser.customPermissions).find(
+        (k) => page && k.toLowerCase() === page.toLowerCase()
+      );
+      if (matchedPageKey) {
+        const pagePerms = currentUser.customPermissions[matchedPageKey];
+        if (typeof pagePerms === 'object' && pagePerms !== null && pagePerms[action] !== undefined) {
+          return Boolean(pagePerms[action]);
+        }
+        if (Array.isArray(pagePerms)) {
+          return pagePerms.includes(action);
+        }
+      }
+
+      // 5c. Module-nested check
       const customMod = currentUser.customPermissions[modKey] || currentUser.customPermissions[module];
       if (customMod) {
         const pageKey = page?.toLowerCase();
@@ -4951,7 +5047,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // 5. Role-based fallback
+    // 6. Role-based fallback
     const userRole = roles.find((r) => r.id === currentUser.roleId || r.name === currentUser.roleName);
     if (!userRole) {
       return action === 'view';
@@ -4970,13 +5066,28 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     if (
       currentUser.roleType === 'super_admin' ||
       currentUser.roleName === 'Super Admin' ||
-      currentUser.roleType === 'admin' ||
-      currentUser.isFamilyMember
+      currentUser.username === 'admin' ||
+      currentUser.username === 'rajesh.admin'
     ) {
       return true;
     }
-    const cleanDept = deptCode?.toLowerCase();
-    if (currentUser.assignedModules?.some((m) => m?.toLowerCase() === cleanDept)) return true;
+
+    const cleanDept = deptCode?.toLowerCase().trim();
+
+    // If user has specific assignedModules, adhere strictly to assignedModules
+    if (currentUser.assignedModules && Array.isArray(currentUser.assignedModules) && currentUser.assignedModules.length > 0) {
+      return currentUser.assignedModules.some((m) => {
+        const cleanM = (m || '').toLowerCase().trim();
+        if (cleanDept === 'accounting' && (cleanM === 'accounts' || cleanM === 'accounting' || cleanM === 'finance' || cleanM === 'accounts & finance')) return true;
+        if (cleanDept === 'design' && (cleanM === 'designer' || cleanM === 'design' || cleanM === 'bom')) return true;
+        if (cleanDept === 'projects' && (cleanM === 'project' || cleanM === 'projects' || cleanM === 'planning')) return true;
+        if (cleanDept === 'quality' && (cleanM === 'qc' || cleanM === 'quality')) return true;
+        if (cleanDept === 'store' && (cleanM === 'store' || cleanM === 'warehouse' || cleanM === 'inventory')) return true;
+        if (cleanDept === 'purchase' && (cleanM === 'purchase' || cleanM === 'rfq')) return true;
+        return cleanM === cleanDept || cleanM.includes(cleanDept) || cleanDept.includes(cleanM);
+      });
+    }
+
     return Boolean(
       currentUser.departmentId?.toLowerCase() === cleanDept ||
       currentUser.departmentName?.toLowerCase().includes(cleanDept) ||
@@ -5001,24 +5112,47 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   ) => {
     try {
       const res = await api.employees.updatePermissions(employeeId, permissionData);
-      setEmployees((prev) =>
-        prev.map((emp) =>
+      setEmployees((prev) => {
+        const updated = prev.map((emp) =>
           emp.id === employeeId || emp.username === employeeId
             ? { ...emp, ...permissionData, ...(res?.user || {}) }
             : emp
-        )
-      );
+        );
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_employees', JSON.stringify(updated)); } catch (_) {}
+        }
+        return updated;
+      });
       if (currentUser?.id === employeeId || currentUser?.username === employeeId) {
-        setCurrentUser((prev) => ({ ...prev, ...permissionData, ...(res?.user || {}) }));
+        setCurrentUser((prev) => {
+          const updated = { ...prev, ...permissionData, ...(res?.user || {}) };
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_currentUser', JSON.stringify(updated)); } catch (_) {}
+          }
+          return updated;
+        });
       }
       return { success: true, message: res?.message || 'Permissions updated successfully' };
     } catch (err: any) {
       console.warn('Failed to update employee permissions on server:', err);
-      setEmployees((prev) =>
-        prev.map((emp) =>
+      setEmployees((prev) => {
+        const updated = prev.map((emp) =>
           emp.id === employeeId || emp.username === employeeId ? { ...emp, ...permissionData } : emp
-        )
-      );
+        );
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_employees', JSON.stringify(updated)); } catch (_) {}
+        }
+        return updated;
+      });
+      if (currentUser?.id === employeeId || currentUser?.username === employeeId) {
+        setCurrentUser((prev) => {
+          const updated = { ...prev, ...permissionData };
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_currentUser', JSON.stringify(updated)); } catch (_) {}
+          }
+          return updated;
+        });
+      }
       return { success: false, error: err?.message || 'Failed to update permissions' };
     }
   };

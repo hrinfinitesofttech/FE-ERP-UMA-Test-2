@@ -101,7 +101,8 @@ export function Sidebar() {
   const isSuperAdmin =
     currentUser?.roleType === 'super_admin' ||
     currentUser?.roleName === 'Super Admin' ||
-    currentUser?.username === 'admin';
+    currentUser?.username === 'admin' ||
+    currentUser?.username === 'rajesh.admin';
 
   const isSuperAdminOrAdmin =
     isSuperAdmin ||
@@ -109,38 +110,49 @@ export function Sidebar() {
     currentUser?.isFamilyMember;
 
   const hasModule = (moduleKey: string) => {
-    const cleanK = moduleKey.toLowerCase();
+    const cleanK = moduleKey.toLowerCase().trim();
 
-    // Check explicit restrictions first (overrides all grants)
+    // 1. Check explicit restrictions first (overrides all grants)
     const restrictions = currentUser?.explicitRestrictions || currentUser?.explicit_restrictions;
     if (Array.isArray(restrictions)) {
       const isRestricted = restrictions.some((r: string) => {
-        const cleanR = String(r).toLowerCase();
+        const cleanR = String(r).toLowerCase().trim();
         return cleanR === `${cleanK}:*` || cleanR === `${cleanK}:view` || cleanR === '*:*' || cleanR === '*:view';
       });
       if (isRestricted) return false;
     }
 
+    // 2. Only Super Admin has unrestricted access to all modules
     if (isSuperAdmin) return true;
 
-    // Check computed effective permissions from backend if available
+    // 3. Check computed effective permissions from backend if available
     const effMods = currentUser?.effectivePermissions?.allowed_modules || (currentUser as any)?.effective_permissions?.allowed_modules;
     if (Array.isArray(effMods) && effMods.length > 0) {
-      return effMods.some((m: string) => m.toLowerCase() === cleanK);
+      return effMods.some((m: string) => {
+        const cleanM = (m || '').toLowerCase().trim();
+        return cleanM === cleanK || cleanM.includes(cleanK) || cleanK.includes(cleanM);
+      });
     }
 
-    if (isSuperAdminOrAdmin) return true;
-
-    if (currentUser?.assignedModules && currentUser.assignedModules.length > 0) {
-      if (
-        currentUser.assignedModules.some((m: string) => {
-          const cleanM = (m || '').toLowerCase();
+    // 4. Check assignedModules strictly (controls employee & Tier 2 admin module visibility)
+    if (currentUser?.assignedModules && Array.isArray(currentUser.assignedModules)) {
+      if (currentUser.assignedModules.length > 0) {
+        return currentUser.assignedModules.some((m: string) => {
+          const cleanM = (m || '').toLowerCase().trim();
+          if (cleanK === 'accounting' && (cleanM === 'accounts' || cleanM === 'accounting' || cleanM === 'finance' || cleanM === 'accounts & finance')) return true;
+          if (cleanK === 'design' && (cleanM === 'designer' || cleanM === 'design' || cleanM === 'bom')) return true;
+          if (cleanK === 'projects' && (cleanM === 'project' || cleanM === 'projects' || cleanM === 'planning')) return true;
+          if (cleanK === 'quality' && (cleanM === 'qc' || cleanM === 'quality')) return true;
+          if (cleanK === 'store' && (cleanM === 'store' || cleanM === 'warehouse' || cleanM === 'inventory')) return true;
+          if (cleanK === 'purchase' && (cleanM === 'purchase' || cleanM === 'rfq')) return true;
           return cleanM === cleanK || cleanM.includes(cleanK) || cleanK.includes(cleanM);
-        })
-      ) {
-        return true;
+        });
       }
+      // If assignedModules is empty array, user has no operational modules granted
+      return false;
     }
+
+    // 5. Department fallback only when assignedModules is undefined
     return hasDepartmentAccess ? hasDepartmentAccess(moduleKey) : false;
   };
 
@@ -235,7 +247,7 @@ export function Sidebar() {
         </Link>
 
         {/* Employee Self-Service Quick Section (Attendance, Leaves, Assigned Tasks) */}
-        {!isSuperAdminOrAdmin && (
+        {!isSuperAdmin && (
           <div className="py-1 px-1 mb-2 bg-[#F5EFE6] rounded-xl border border-[#E8DFD3] space-y-0.5">
             {!sidebarCollapsed && (
               <div className="px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-crm-brand-800 flex items-center justify-between">
@@ -1064,7 +1076,7 @@ export function Sidebar() {
         )}
 
         {/* MODULE 9: HR & PAYROLL */}
-        {(isSuperAdminOrAdmin || hasModule('hr')) && (
+        {hasModule('hr') && (
         <div className="py-0.5">
           {!sidebarCollapsed && (
             <button
@@ -1264,7 +1276,7 @@ export function Sidebar() {
         )}
 
         {/* MODULE 10: INTEGRATION & MANAGEMENT 360° */}
-        {(isSuperAdminOrAdmin || hasModule('integration')) && (
+        {hasModule('integration') && (
         <div className="py-0.5">
           {!sidebarCollapsed && (
             <button
@@ -1334,7 +1346,7 @@ export function Sidebar() {
         )}
 
         {/* MODULE 11: TESTING, SECURITY & PRODUCTION DEPLOYMENT */}
-        {(isSuperAdminOrAdmin || hasModule('testing')) && (
+        {hasModule('testing') && (
         <div className="py-0.5">
           {!sidebarCollapsed && (
             <button
@@ -1395,7 +1407,7 @@ export function Sidebar() {
         )}
 
         {/* 2. COMMON ERP FOUNDATION & USER/ROLE MANAGEMENT */}
-        {(isSuperAdminOrAdmin || hasModule('settings')) && (
+        {(isSuperAdmin || hasModule('settings') || hasModule('foundation')) && (
         <div className="py-0.5">
           {!sidebarCollapsed && (
             <button

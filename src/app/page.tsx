@@ -56,11 +56,20 @@ export default function DashboardPage() {
     checkOutAttendance,
   } = useERP();
 
-  const isSuperAdminOrAdmin =
+  const isSuperAdmin =
     currentUser?.roleType === 'super_admin' ||
-    currentUser?.roleType === 'admin' ||
     currentUser?.roleName === 'Super Admin' ||
-    currentUser?.isFamilyMember;
+    currentUser?.username === 'admin' ||
+    currentUser?.username === 'rajesh.admin';
+
+  const hasOperationsAccess =
+    isSuperAdmin ||
+    (Array.isArray(currentUser?.assignedModules) &&
+      currentUser.assignedModules.some((m) =>
+        ['production', 'projects', 'crm', 'purchase', 'store'].includes((m || '').toLowerCase())
+      ));
+
+  const isSuperAdminOrAdmin = isSuperAdmin || (currentUser?.roleType === 'admin' && hasOperationsAccess);
 
   const [viewMode, setViewMode] = useState<'executive' | 'employee'>('executive');
   const [stageFilter, setStageFilter] = useState('All');
@@ -70,10 +79,10 @@ export default function DashboardPage() {
   const [currentTime, setCurrentTime] = useState<string>('');
   useEffect(() => {
     setMounted(true);
-    if (currentUser?.roleType === 'employee' || currentUser?.roleType === 'department_manager') {
+    if (!hasOperationsAccess || currentUser?.roleType === 'employee') {
       setViewMode('employee');
     }
-  }, [currentUser?.roleType]);
+  }, [currentUser, hasOperationsAccess]);
 
   useEffect(() => {
     const update = () => {
