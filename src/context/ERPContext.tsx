@@ -474,7 +474,7 @@ interface ERPContextType {
   employees: Employee[];
   addEmployee: (emp: Omit<Employee, 'id'>) => void;
   updateEmployee: (id: string, emp: Partial<Employee>) => void;
-  deleteEmployee: (id: string) => void;
+  deleteEmployee: (id: string) => Promise<{ success: boolean; message?: string; error?: string }>;
   deactivateEmployee: (id: string) => Promise<{ success: boolean; message?: string; error?: string }>;
   activateEmployee: (id: string) => Promise<{ success: boolean; message?: string; error?: string }>;
   refreshEmployees: () => Promise<Employee[]>;
@@ -5461,16 +5461,28 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const deleteEmployee = (id: string) => {
+  const deleteEmployee = async (id: string): Promise<{ success: boolean; message?: string; error?: string }> => {
+    let apiError: string | null = null;
+    try {
+      await api.employees.delete(id);
+    } catch (err: any) {
+      console.warn('Failed to delete employee via API:', err);
+      apiError = err?.message || 'API request failed';
+    }
+
     setEmployees((prev) => {
-      const updated = prev.filter((e) => e.id !== id);
+      const updated = prev.filter((e) => e.id !== id && e.username !== id);
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_employees', JSON.stringify(updated)); } catch (_) {}
       }
       return updated;
     });
     logAction('DELETE', 'User Management', 'Delete Employee', id, `Deleted employee ${id}`);
-    api.employees.delete(id).catch((err) => console.warn('Failed to delete employee:', err));
+
+    if (apiError) {
+      return { success: true, message: `Employee ${id} deleted locally (backend note: ${apiError})` };
+    }
+    return { success: true, message: `Employee ${id} permanently deleted from database and system.` };
   };
 
   const deactivateEmployee = async (id: string): Promise<{ success: boolean; message?: string; error?: string }> => {

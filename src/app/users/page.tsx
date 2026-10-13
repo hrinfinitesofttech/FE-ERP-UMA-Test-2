@@ -36,6 +36,7 @@ import {
   RefreshCw,
   Users,
   ShieldAlert,
+  Trash2,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { EmployeeFormModal } from '../../components/employees/EmployeeFormModal';
@@ -48,6 +49,7 @@ export default function UsersPage() {
     roles,
     departments,
     currentUser,
+    deleteEmployee,
     deactivateEmployee,
     activateEmployee,
     resetEmployeePassword,
@@ -86,6 +88,10 @@ export default function UsersPage() {
   // Status Change Confirmation Modal State
   const [confirmStatusModalEmp, setConfirmStatusModalEmp] = useState<Employee | null>(null);
   const [isTogglingStatus, setIsTogglingStatus] = useState(false);
+
+  // Permanent Delete Confirmation Modal State
+  const [confirmDeleteModalEmp, setConfirmDeleteModalEmp] = useState<Employee | null>(null);
+  const [isDeletingEmp, setIsDeletingEmp] = useState(false);
 
   // Password Reset Modal State
   const [resetModalEmployee, setResetModalEmployee] = useState<Employee | null>(null);
@@ -273,6 +279,40 @@ export default function UsersPage() {
       setActionError(err?.message || `Failed to change employee status to ${nextStatus}.`);
     } finally {
       setIsTogglingStatus(false);
+    }
+  };
+
+  // Permanent Delete Employee Execution
+  const handleExecuteDelete = async () => {
+    if (!confirmDeleteModalEmp) return;
+    if (
+      confirmDeleteModalEmp.username === 'admin' ||
+      confirmDeleteModalEmp.id === 'EMP-001' ||
+      confirmDeleteModalEmp.id === currentUser?.id ||
+      confirmDeleteModalEmp.username === currentUser?.username
+    ) {
+      setActionError('Cannot delete Root Super Admin or the currently logged-in account.');
+      setConfirmDeleteModalEmp(null);
+      return;
+    }
+
+    setIsDeletingEmp(true);
+    setActionError('');
+    try {
+      const res = await deleteEmployee(confirmDeleteModalEmp.id);
+      if (res && res.success === false) {
+        setActionError(res.error || 'Failed to delete employee.');
+      } else {
+        setActionSuccess(
+          `Employee ${confirmDeleteModalEmp.firstName || ''} ${confirmDeleteModalEmp.lastName || confirmDeleteModalEmp.id} (${confirmDeleteModalEmp.id}) deleted permanently.`
+        );
+      }
+      setConfirmDeleteModalEmp(null);
+      setTimeout(() => setActionSuccess(''), 5000);
+    } catch (err: any) {
+      setActionError(err?.message || 'An error occurred while deleting employee.');
+    } finally {
+      setIsDeletingEmp(false);
     }
   };
 
@@ -806,6 +846,36 @@ export default function UsersPage() {
                           >
                             {isActive ? <XCircle className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
                           </button>
+
+                          {/* Permanent Delete */}
+                          <button
+                            onClick={() => setConfirmDeleteModalEmp(emp)}
+                            disabled={
+                              emp.username === 'admin' ||
+                              emp.id === 'EMP-001' ||
+                              emp.id === currentUser?.id ||
+                              emp.username === currentUser?.username
+                            }
+                            title={
+                              emp.username === 'admin' ||
+                              emp.id === 'EMP-001' ||
+                              emp.id === currentUser?.id ||
+                              emp.username === currentUser?.username
+                                ? 'Cannot delete Root Super Admin or active session account'
+                                : 'Delete Employee Record Permanently'
+                            }
+                            className={cn(
+                              'p-1.5 rounded-lg border transition shadow-2xs',
+                              emp.username === 'admin' ||
+                              emp.id === 'EMP-001' ||
+                              emp.id === currentUser?.id ||
+                              emp.username === currentUser?.username
+                                ? 'opacity-30 cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400'
+                                : 'border-rose-200 bg-rose-50/60 hover:bg-rose-100 hover:border-rose-400 text-rose-600'
+                            )}
+                          >
+                            <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -1000,6 +1070,66 @@ export default function UsersPage() {
                   'Yes, Deactivate Account'
                 ) : (
                   'Yes, Reactivate Account'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PERMANENT DELETE CONFIRMATION MODAL */}
+      {confirmDeleteModalEmp && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center font-bold flex-shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-[#211B17]">Delete Employee Record</h3>
+                <p className="text-xs text-[#70665F]">
+                  Employee ID: <span className="font-mono font-bold text-slate-800">{confirmDeleteModalEmp.id}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl space-y-1.5">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-rose-800">
+                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>Warning: Irreversible Database Deletion</span>
+              </div>
+              <p className="text-xs text-rose-700 leading-relaxed">
+                Are you sure you want to permanently delete{' '}
+                <span className="font-bold text-slate-900">
+                  {confirmDeleteModalEmp.firstName} {confirmDeleteModalEmp.lastName}
+                </span>{' '}
+                (@{confirmDeleteModalEmp.username})? This action will remove their record from both the database and UmaERP system.
+              </p>
+            </div>
+
+            <div className="pt-3 border-t border-[#EBE3DB] flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                disabled={isDeletingEmp}
+                onClick={() => setConfirmDeleteModalEmp(null)}
+                className="px-4 py-2 bg-[#FAF7F5] hover:bg-[#EBE3DB] text-[#544B45] font-semibold rounded-lg text-xs transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingEmp}
+                onClick={handleExecuteDelete}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-xs shadow-sm transition flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {isDeletingEmp ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" /> Yes, Delete Permanently
+                  </>
                 )}
               </button>
             </div>

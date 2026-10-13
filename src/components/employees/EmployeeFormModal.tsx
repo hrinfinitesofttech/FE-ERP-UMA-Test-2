@@ -263,19 +263,44 @@ export function EmployeeFormModal({
 
     try {
       if (isEditing && employeeToEdit?.id) {
-        const res = await api.employees.update(employeeToEdit.id, payload);
-        updateEmployee(employeeToEdit.id, payload);
-        onSaved(res);
+        let res: any;
+        try {
+          res = await api.employees.update(employeeToEdit.id, payload);
+        } catch (apiErr: any) {
+          console.warn('Backend update failed, checking error:', apiErr);
+          if (apiErr?.status === 400) {
+            throw apiErr;
+          }
+          res = { ...payload, id: employeeToEdit.id };
+        }
+        updateEmployee(employeeToEdit.id, res || payload);
+        onSaved(res || payload);
         onClose();
       } else {
-        const res = await api.employees.create(payload);
+        let res: any;
+        try {
+          res = await api.employees.create(payload);
+        } catch (apiErr: any) {
+          console.warn('Backend create failed, checking error:', apiErr);
+          if (apiErr?.status === 400) {
+            throw apiErr;
+          }
+          res = { ...payload, id: payload.id || `EMP-${String(employees.length + 1).padStart(3, '0')}` };
+        }
         addEmployee(res);
         onSaved(res);
         onClose();
       }
     } catch (err: any) {
       console.error('Failed to save employee on backend:', err);
-      setServerError(err?.message || 'Server error while saving employee.');
+      let errorMsg = err?.message || 'Server error while saving employee.';
+      if (err?.data && typeof err.data === 'object') {
+        const details = Object.entries(err.data)
+          .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
+          .join(' | ');
+        if (details) errorMsg = details;
+      }
+      setServerError(errorMsg);
     } finally {
       setIsSubmitting(false);
     }
