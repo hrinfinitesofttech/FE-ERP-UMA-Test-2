@@ -113,6 +113,8 @@ export interface Employee {
   username: string;
   password?: string;
   isFamilyMember?: boolean;
+  is_family_member?: boolean;
+  role_type?: string;
   isActive?: boolean;
   explicitRestrictions?: string[] | any;
   explicit_restrictions?: string[] | any;

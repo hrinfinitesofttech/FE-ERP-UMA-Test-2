@@ -100,13 +100,24 @@ export function Sidebar() {
 
   const isSuperAdmin =
     currentUser?.roleType === 'super_admin' ||
+    currentUser?.role_type === 'super_admin' ||
     currentUser?.roleName === 'Super Admin' ||
+    currentUser?.role === 'Super Admin' ||
     currentUser?.username === 'admin' ||
-    currentUser?.username === 'rajesh.admin';
+    currentUser?.username === 'rajesh.admin' ||
+    currentUser?.roleType === 'admin' ||
+    currentUser?.role_type === 'admin' ||
+    currentUser?.isFamilyMember === true ||
+    currentUser?.is_family_member === true ||
+    (typeof currentUser?.roleName === 'string' && currentUser.roleName.toLowerCase().includes('admin')) ||
+    (typeof currentUser?.role === 'string' && currentUser.role.toLowerCase().includes('admin')) ||
+    (typeof currentUser?.designation === 'string' && currentUser.designation.toLowerCase().includes('super admin')) ||
+    (typeof currentUser?.designation === 'string' && currentUser.designation.toLowerCase().includes('managing director'));
 
   const isSuperAdminOrAdmin =
     isSuperAdmin ||
     currentUser?.roleType === 'admin' ||
+    currentUser?.role_type === 'admin' ||
     currentUser?.isFamilyMember;
 
   const hasModule = (moduleKey: string) => {

@@ -155,14 +155,17 @@ export function Topbar() {
             }}
             className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-[#F3EDE4] transition cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-crm-brand-700 to-crm-brand-500 text-white font-bold text-xs flex items-center justify-center shadow-xs uppercase">
+            <div
+              suppressHydrationWarning
+              className="w-8 h-8 rounded-full bg-gradient-to-br from-crm-brand-700 to-crm-brand-500 text-white font-bold text-xs flex items-center justify-center shadow-xs uppercase"
+            >
               {((currentUser.firstName?.[0] || currentUser.username?.[0] || 'U') + (currentUser.lastName?.[0] || ''))}
             </div>
             <div className="text-left hidden md:block">
-              <div className="font-bold text-[#211B17] text-xs leading-tight">
+              <div suppressHydrationWarning className="font-bold text-[#211B17] text-xs leading-tight">
                 {currentUser.name || `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.username || 'Admin User'}
               </div>
-              <div className="text-[10px] text-crm-brand-600 leading-tight font-bold">
+              <div suppressHydrationWarning className="text-[10px] text-crm-brand-600 leading-tight font-bold">
                 {currentUser.roleName || currentUser.role || 'Admin'}
               </div>
             </div>

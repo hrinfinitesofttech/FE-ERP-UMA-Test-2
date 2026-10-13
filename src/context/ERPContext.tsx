@@ -4970,12 +4970,22 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     page: string,
     action: 'view' | 'create' | 'edit' | 'delete' | 'approve' | 'reject' | 'export' | 'print'
   ): boolean => {
-    // 1. Super Admin always has full access
+    // 1. Super Admin and Admins always have full access
     if (
       currentUser.roleType === 'super_admin' ||
+      currentUser.role_type === 'super_admin' ||
       currentUser.roleName === 'Super Admin' ||
+      currentUser.role === 'Super Admin' ||
       currentUser.username === 'admin' ||
-      currentUser.username === 'rajesh.admin'
+      currentUser.username === 'rajesh.admin' ||
+      currentUser.roleType === 'admin' ||
+      currentUser.role_type === 'admin' ||
+      currentUser.isFamilyMember === true ||
+      currentUser.is_family_member === true ||
+      (typeof currentUser.roleName === 'string' && currentUser.roleName.toLowerCase().includes('admin')) ||
+      (typeof currentUser.role === 'string' && currentUser.role.toLowerCase().includes('admin')) ||
+      (typeof currentUser.designation === 'string' && currentUser.designation.toLowerCase().includes('super admin')) ||
+      (typeof currentUser.designation === 'string' && currentUser.designation.toLowerCase().includes('managing director'))
     ) {
       return true;
     }
@@ -5084,9 +5094,19 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const hasDepartmentAccess = (deptCode: string): boolean => {
     if (
       currentUser.roleType === 'super_admin' ||
+      currentUser.role_type === 'super_admin' ||
       currentUser.roleName === 'Super Admin' ||
+      currentUser.role === 'Super Admin' ||
       currentUser.username === 'admin' ||
-      currentUser.username === 'rajesh.admin'
+      currentUser.username === 'rajesh.admin' ||
+      currentUser.roleType === 'admin' ||
+      currentUser.role_type === 'admin' ||
+      currentUser.isFamilyMember === true ||
+      currentUser.is_family_member === true ||
+      (typeof currentUser.roleName === 'string' && currentUser.roleName.toLowerCase().includes('admin')) ||
+      (typeof currentUser.role === 'string' && currentUser.role.toLowerCase().includes('admin')) ||
+      (typeof currentUser.designation === 'string' && currentUser.designation.toLowerCase().includes('super admin')) ||
+      (typeof currentUser.designation === 'string' && currentUser.designation.toLowerCase().includes('managing director'))
     ) {
       return true;
     }

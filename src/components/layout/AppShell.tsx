@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
@@ -30,11 +30,24 @@ function isRouteAllowed(pathname: string, currentUser: any): boolean {
 
   const isSuperAdmin =
     currentUser?.roleType === 'super_admin' ||
+    currentUser?.role_type === 'super_admin' ||
     currentUser?.roleName === 'Super Admin' ||
+    currentUser?.role === 'Super Admin' ||
     currentUser?.username === 'admin' ||
     currentUser?.username === 'rajesh.admin';
 
-  if (isSuperAdmin) {
+  const isAdminOrFamily =
+    isSuperAdmin ||
+    currentUser?.roleType === 'admin' ||
+    currentUser?.role_type === 'admin' ||
+    currentUser?.isFamilyMember === true ||
+    currentUser?.is_family_member === true ||
+    (typeof currentUser?.roleName === 'string' && currentUser.roleName.toLowerCase().includes('admin')) ||
+    (typeof currentUser?.role === 'string' && currentUser.role.toLowerCase().includes('admin')) ||
+    (typeof currentUser?.designation === 'string' && currentUser.designation.toLowerCase().includes('super admin')) ||
+    (typeof currentUser?.designation === 'string' && currentUser.designation.toLowerCase().includes('managing director'));
+
+  if (isAdminOrFamily) {
     return true;
   }
 
@@ -143,6 +156,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { currentUser } = useERP();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const isAuthPage = pathname === '/login' || pathname === '/forgot-password';
 
   if (isAuthPage) {
@@ -153,7 +172,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const allowed = isRouteAllowed(pathname, currentUser);
+  // Pre-mount / SSR always renders children to match server HTML and eliminate hydration crash!
+  const allowed = !isMounted || isRouteAllowed(pathname, currentUser);
   const primaryHref = getPrimaryHref(currentUser);
 
   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useERP } from '../../context/ERPContext';
 import { Employee } from '../../types/crm';
@@ -101,23 +101,32 @@ export default function UsersPage() {
   const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // Mounting State to guarantee 0 hydration mismatches with SSR
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Available unique designations from employees
   const availableDesignations = useMemo(() => {
     const desigs = new Set<string>();
-    employees.forEach((emp) => {
-      if (emp.designation && emp.designation.trim()) desigs.add(emp.designation.trim());
+    const safeEmployees = Array.isArray(employees) ? employees : [];
+    safeEmployees.forEach((emp) => {
+      if (emp && emp.designation && emp.designation.trim()) desigs.add(emp.designation.trim());
     });
     return Array.from(desigs).sort();
   }, [employees]);
 
   // Review Required count
   const reviewRequiredCount = useMemo(() => {
-    return employees.filter((e) => e.permissionsReviewRequired).length;
+    const safeEmployees = Array.isArray(employees) ? employees : [];
+    return safeEmployees.filter((e) => e?.permissionsReviewRequired).length;
   }, [employees]);
 
   // Active / Inactive counts
   const activeCount = useMemo(() => {
-    return employees.filter((e) => e.status === 'active' || e.isActive === true).length;
+    const safeEmployees = Array.isArray(employees) ? employees : [];
+    return safeEmployees.filter((e) => e?.status === 'active' || e?.isActive === true).length;
   }, [employees]);
 
   // Multi-field Filter Logic
@@ -419,7 +428,7 @@ export default function UsersPage() {
             <span>Total Staff</span>
             <Users className="w-4 h-4 text-crm-brand-700" />
           </div>
-          <p className="text-xl font-extrabold text-slate-900">{employees.length}</p>
+          <p suppressHydrationWarning className="text-xl font-extrabold text-slate-900">{employees?.length || 0}</p>
           <span className="text-[10px] text-slate-500">Registered records</span>
         </div>
 
@@ -428,7 +437,7 @@ export default function UsersPage() {
             <span>Active Accounts</span>
             <CheckCircle className="w-4 h-4 text-emerald-600" />
           </div>
-          <p className="text-xl font-extrabold text-emerald-800">{activeCount}</p>
+          <p suppressHydrationWarning className="text-xl font-extrabold text-emerald-800">{activeCount}</p>
           <span className="text-[10px] text-emerald-600 font-medium">Authorized to login</span>
         </div>
 
@@ -437,7 +446,7 @@ export default function UsersPage() {
             <span>Inactive Accounts</span>
             <XCircle className="w-4 h-4 text-rose-600" />
           </div>
-          <p className="text-xl font-extrabold text-rose-800">{employees.length - activeCount}</p>
+          <p suppressHydrationWarning className="text-xl font-extrabold text-rose-800">{(employees?.length || 0) - activeCount}</p>
           <span className="text-[10px] text-rose-600 font-medium">Deactivated / Suspended</span>
         </div>
 
@@ -537,6 +546,7 @@ export default function UsersPage() {
 
           {/* Department Filter */}
           <select
+            suppressHydrationWarning
             value={selectedDept}
             onChange={(e) => {
               setSelectedDept(e.target.value);
@@ -545,15 +555,17 @@ export default function UsersPage() {
             className="px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs text-[#544B45] font-semibold focus:outline-none"
           >
             <option value="all">All Departments</option>
-            {departments.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name || d.departmentName}
-              </option>
-            ))}
+            {isMounted &&
+              (departments || []).map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name || d.departmentName}
+                </option>
+              ))}
           </select>
 
           {/* Role Filter */}
           <select
+            suppressHydrationWarning
             value={selectedRole}
             onChange={(e) => {
               setSelectedRole(e.target.value);
@@ -562,15 +574,17 @@ export default function UsersPage() {
             className="px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs text-[#544B45] font-semibold focus:outline-none font-mono"
           >
             <option value="all">All Roles</option>
-            {roles.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name}
-              </option>
-            ))}
+            {isMounted &&
+              (roles || []).map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name}
+                </option>
+              ))}
           </select>
 
           {/* Designation Filter */}
           <select
+            suppressHydrationWarning
             value={selectedDesignation}
             onChange={(e) => {
               setSelectedDesignation(e.target.value);
@@ -579,15 +593,17 @@ export default function UsersPage() {
             className="px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs text-[#544B45] font-semibold focus:outline-none"
           >
             <option value="all">All Designations</option>
-            {availableDesignations.map((desig) => (
-              <option key={desig} value={desig}>
-                {desig}
-              </option>
-            ))}
+            {isMounted &&
+              availableDesignations.map((desig) => (
+                <option key={desig} value={desig}>
+                  {desig}
+                </option>
+              ))}
           </select>
 
           {/* Status Filter */}
           <select
+            suppressHydrationWarning
             value={selectedStatus}
             onChange={(e) => {
               setSelectedStatus(e.target.value);
@@ -680,7 +696,7 @@ export default function UsersPage() {
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EBE3DB]/60">
+            <tbody suppressHydrationWarning className="divide-y divide-[#EBE3DB]/60">
               {paginatedEmployees.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-500">
@@ -902,7 +918,7 @@ export default function UsersPage() {
               <option value={25}>25</option>
               <option value={50}>50</option>
             </select>
-            <span>of {sortedEmployees.length} records</span>
+            <span suppressHydrationWarning>of {sortedEmployees.length} records</span>
           </div>
 
           <div className="flex items-center gap-1">
