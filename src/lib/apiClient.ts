@@ -23,36 +23,33 @@ async function getOrRefreshToken(): Promise<string | null> {
   const token = localStorage.getItem('access_token');
   if (token) return token;
 
-  // Don't hammer backend repeatedly if recent attempt failed
-  if (Date.now() - lastAuthFailureTime < AUTH_FAILURE_COOLDOWN_MS) {
-    return null;
-  }
+  const refreshToken = localStorage.getItem('refresh_token');
+  if (!refreshToken) return null;
 
-  // Deduplicate concurrent authentication requests
+  // Deduplicate concurrent authentication refresh requests
   if (inflightAuthPromise) {
     return inflightAuthPromise;
   }
 
   inflightAuthPromise = (async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/login/`, {
+      const res = await fetch(`${API_BASE_URL}/auth/token/refresh/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: 'admin', password: 'admin123' }),
+        body: JSON.stringify({ refresh: refreshToken }),
       });
       if (res.ok) {
         const data = await res.json();
         if (data.access) {
           localStorage.setItem('access_token', data.access);
-          if (data.refresh) localStorage.setItem('refresh_token', data.refresh);
           return data.access;
         }
       } else {
-        lastAuthFailureTime = Date.now();
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
       }
     } catch (err) {
-      console.warn('Auto-authentication failed:', err);
-      lastAuthFailureTime = Date.now();
+      console.warn('Auto-refresh token failed:', err);
     } finally {
       inflightAuthPromise = null;
     }
@@ -556,7 +553,11 @@ export function invalidateApiCache(endpointPrefix?: string) {
   }
 }
 
-export async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+export async function request<T>(
+  endpoint: string,
+  options: RequestInit = {},
+  bypassCache = false
+): Promise<T> {
   const method = (options.method || 'GET').toUpperCase();
   const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
   const cacheKey = `GET:${endpoint}`;
@@ -567,9 +568,8 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
     invalidateApiCache(basePrefix);
   }
 
-  // 2. High-speed cache lookup for GET requests
-  if (method === 'GET' && !options.headers) {
-    // Check in-memory cache first (instant 0ms)
+  // 2. High-speed cache lookup for GET requests (only when fresh and NOT bypassing cache)
+  if (method === 'GET' && !bypassCache && !options.headers) {
     const memCached = memoryCache.get(cacheKey);
     const now = Date.now();
 
@@ -578,30 +578,6 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
       if (age < FRESH_TTL_MS) {
         return memCached.data as T;
       }
-      // If stale but within 5 mins, return cached instantly and revalidate in background
-      if (age < STALE_TTL_MS) {
-        // Trigger background revalidation
-        fetchNetworkRequest<T>(url, endpoint, options, cacheKey).catch(() => {});
-        return memCached.data as T;
-      }
-    }
-
-    // Check localStorage fallback for offline/cold-start instant recovery (instant 0ms)
-    if (typeof window !== 'undefined') {
-      try {
-        const localRaw = localStorage.getItem(`UMA_CACHE_${cacheKey}`);
-        if (localRaw) {
-          const parsed = JSON.parse(localRaw) as CacheEntry<T>;
-          if (parsed && parsed.data !== undefined) {
-            memoryCache.set(cacheKey, parsed);
-            // If stale, trigger background revalidation silently
-            if (now - parsed.timestamp >= FRESH_TTL_MS) {
-              fetchNetworkRequest<T>(url, endpoint, options, cacheKey).catch(() => {});
-            }
-            return parsed.data;
-          }
-        }
-      } catch (_) {}
     }
 
     // Inflight Request Deduplication: avoid duplicate network requests for same endpoint
@@ -613,7 +589,7 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
   // 3. Execute network request
   const fetchPromise = fetchNetworkRequest<T>(url, endpoint, options, method === 'GET' ? cacheKey : undefined);
 
-  if (method === 'GET') {
+  if (method === 'GET' && !bypassCache) {
     inflightRequests.set(cacheKey, fetchPromise);
     fetchPromise
       .finally(() => inflightRequests.delete(cacheKey))
@@ -812,8 +788,8 @@ export const api = {
     delete: (id: string) => request<any>(`/roles/${id}/`, { method: 'DELETE' }),
   },
   employees: {
-    list: () => request<any[]>('/employees/'),
-    get: (id: string) => request<any>(`/employees/${id}/`),
+    list: (bypassCache = false) => request<any[]>('/employees/', { method: 'GET' }, bypassCache),
+    get: (id: string, bypassCache = false) => request<any>(`/employees/${id}/`, { method: 'GET' }, bypassCache),
     create: (data: any) => request<any>('/employees/', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: string, data: any) => request<any>(`/employees/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: (id: string) => request<any>(`/employees/${id}/`, { method: 'DELETE' }),
@@ -830,8 +806,8 @@ export const api = {
   // CRM
   crm: {
     leads: {
-      list: () => request<any[]>('/leads/'),
-      get: (id: string) => request<any>(`/leads/${id}/`),
+      list: (bypassCache = false) => request<any[]>('/leads/', { method: 'GET' }, bypassCache),
+      get: (id: string, bypassCache = false) => request<any>(`/leads/${id}/`, { method: 'GET' }, bypassCache),
       create: (data: any) => request<any>('/leads/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/leads/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: string) => request<any>(`/leads/${id}/`, { method: 'DELETE' }),
@@ -839,21 +815,21 @@ export const api = {
       convertToEnquiry: (id: string) => request<any>(`/leads/${id}/convert-to-enquiry/`, { method: 'POST' }),
     },
     customers: {
-      list: () => request<any[]>('/customers/'),
-      get: (id: string) => request<any>(`/customers/${id}/`),
+      list: (bypassCache = false) => request<any[]>('/customers/', { method: 'GET' }, bypassCache),
+      get: (id: string, bypassCache = false) => request<any>(`/customers/${id}/`, { method: 'GET' }, bypassCache),
       create: (data: any) => request<any>('/customers/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/customers/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: string) => request<any>(`/customers/${id}/`, { method: 'DELETE' }),
     },
     contacts: {
-      list: () => request<any[]>('/contacts/'),
+      list: (bypassCache = false) => request<any[]>('/contacts/', { method: 'GET' }, bypassCache),
       create: (data: any) => request<any>('/contacts/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/contacts/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: string) => request<any>(`/contacts/${id}/`, { method: 'DELETE' }),
     },
     enquiries: {
-      list: () => request<any[]>('/enquiries/'),
-      get: (id: string) => request<any>(`/enquiries/${id}/`),
+      list: (bypassCache = false) => request<any[]>('/enquiries/', { method: 'GET' }, bypassCache),
+      get: (id: string, bypassCache = false) => request<any>(`/enquiries/${id}/`, { method: 'GET' }, bypassCache),
       create: (data: any) => request<any>('/enquiries/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/enquiries/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: string) => request<any>(`/enquiries/${id}/`, { method: 'DELETE' }),

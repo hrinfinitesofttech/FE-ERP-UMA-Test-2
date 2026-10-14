@@ -245,7 +245,7 @@ export default function UsersPage() {
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
     try {
-      await refreshEmployees();
+      await refreshEmployees(true);
       setActionSuccess('Employee records synchronized with backend database.');
       setTimeout(() => setActionSuccess(''), 4000);
     } catch {

@@ -263,30 +263,12 @@ export function EmployeeFormModal({
 
     try {
       if (isEditing && employeeToEdit?.id) {
-        let res: any;
-        try {
-          res = await api.employees.update(employeeToEdit.id, payload);
-        } catch (apiErr: any) {
-          console.warn('Backend update failed, checking error:', apiErr);
-          if (apiErr?.status === 400) {
-            throw apiErr;
-          }
-          res = { ...payload, id: employeeToEdit.id };
-        }
+        const res = await api.employees.update(employeeToEdit.id, payload);
         updateEmployee(employeeToEdit.id, res || payload);
         onSaved(res || payload);
         onClose();
       } else {
-        let res: any;
-        try {
-          res = await api.employees.create(payload);
-        } catch (apiErr: any) {
-          console.warn('Backend create failed, checking error:', apiErr);
-          if (apiErr?.status === 400) {
-            throw apiErr;
-          }
-          res = { ...payload, id: payload.id || `EMP-${String(employees.length + 1).padStart(3, '0')}` };
-        }
+        const res = await api.employees.create(payload);
         addEmployee(res);
         onSaved(res);
         onClose();

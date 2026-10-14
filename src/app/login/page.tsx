@@ -24,7 +24,7 @@ import { cn } from '../../lib/utils';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, employees } = useERP();
+  const { login, loginWithBackend, employees } = useERP();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -32,7 +32,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -51,32 +51,47 @@ export default function LoginPage() {
 
     setLoading(true);
 
-    setTimeout(() => {
-      // Check if user exists but is inactive
-      const inactiveUser = employees.find(
-        (emp) =>
-          (emp.username?.toLowerCase() === cleanUser.toLowerCase() ||
-            emp.email?.toLowerCase() === cleanUser.toLowerCase() ||
-            emp.id?.toLowerCase() === cleanUser.toLowerCase()) &&
-          (emp.status === 'inactive' || emp.isActive === false)
-      );
-
-      if (inactiveUser) {
-        setError(
-          `Account for ${inactiveUser.firstName || inactiveUser.username} is currently deactivated. Please contact your Super Admin.`
-        );
-        setLoading(false);
+    try {
+      // 1. Direct Backend Authentication with JWT issuance
+      const res = await loginWithBackend(cleanUser, cleanPass);
+      if (res.success) {
+        router.push('/');
         return;
       }
 
-      const success = login(cleanUser, cleanPass);
-      if (success) {
-        router.push('/');
-      } else {
-        setError('Invalid username or password. Please check your credentials and try again.');
+      if (res.error) {
+        setError(res.error);
         setLoading(false);
+        return;
       }
-    }, 400);
+    } catch (err) {
+      console.warn('Backend login attempt encountered error, checking local fallback:', err);
+    }
+
+    // 2. Offline fallback if backend is unreachable
+    const inactiveUser = employees.find(
+      (emp) =>
+        (emp.username?.toLowerCase() === cleanUser.toLowerCase() ||
+          emp.email?.toLowerCase() === cleanUser.toLowerCase() ||
+          emp.id?.toLowerCase() === cleanUser.toLowerCase()) &&
+        (emp.status === 'inactive' || emp.isActive === false)
+    );
+
+    if (inactiveUser) {
+      setError(
+        `Account for ${inactiveUser.firstName || inactiveUser.username} is currently deactivated. Please contact your Super Admin.`
+      );
+      setLoading(false);
+      return;
+    }
+
+    const success = login(cleanUser, cleanPass);
+    if (success) {
+      router.push('/');
+    } else {
+      setError('Invalid username or password. Please check your credentials and try again.');
+      setLoading(false);
+    }
   };
 
   return (

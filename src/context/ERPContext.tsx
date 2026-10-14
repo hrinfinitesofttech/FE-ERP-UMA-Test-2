@@ -22,7 +22,7 @@ import {
   MOCK_ITEM_360_LIST,
   MOCK_EMPLOYEE_360_LIST,
 } from '../data/mockIntegrationData';
-import { api } from '../lib/apiClient';
+import { api, invalidateApiCache } from '../lib/apiClient';
 import {
   CompanySetting,
   NumberingSetting,
@@ -419,6 +419,7 @@ interface ERPContextType {
   isAuthenticated: boolean;
   isInitialLoading: boolean;
   login: (username: string, pass: string) => boolean;
+  loginWithBackend: (username: string, pass: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   updateCurrentUserProfile: (data: Partial<Employee>) => void;
   changePassword: (newPass: string) => void;
@@ -478,7 +479,7 @@ interface ERPContextType {
   deleteEmployee: (id: string) => Promise<{ success: boolean; message?: string; error?: string }>;
   deactivateEmployee: (id: string) => Promise<{ success: boolean; message?: string; error?: string }>;
   activateEmployee: (id: string) => Promise<{ success: boolean; message?: string; error?: string }>;
-  refreshEmployees: () => Promise<Employee[]>;
+  refreshEmployees: (force?: boolean) => Promise<Employee[]>;
   refreshCurrentUser: () => Promise<void>;
   resetEmployeePassword: (id: string, password: string) => Promise<{ success: boolean; message?: string }>;
 
@@ -2547,7 +2548,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ['notifications', setNotifications],
       ];
 
-      const CURRENT_ERP_CACHE_VERSION = '2026.10.11-clean-v6';
+      const CURRENT_ERP_CACHE_VERSION = '2026.10.14-cross-user-sync-v1';
       if (typeof window !== 'undefined') {
         const storedVer = localStorage.getItem('UMA_ERP_VERSION');
         if (storedVer !== CURRENT_ERP_CACHE_VERSION) {
@@ -2700,7 +2701,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         api.numbering.list(),
         api.departments.list(),
         api.roles.list(),
-        api.employees.list(),
+        api.employees.list(force),
         api.hr.designations(),
       ]);
 
@@ -4266,6 +4267,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         api.hr.exits.list(),
         api.hr.wfhRequests.list(),
         api.hr.missedPunches.list(),
+        api.employees.list(force),
       ]);
 
       applyLive<ShiftMaster>(val(results[0]), setShiftMasters, 'shifts');
@@ -4282,6 +4284,15 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       applyLive<EmployeeExitItem>(val(results[11]), setEmployeeExits, 'employeeExits');
       applyLive<WFHRequest>(val(results[12]), setWFHRequests, 'wfhRequests');
       applyLive<MissedPunchRequest>(val(results[13]), setMissedPunchRequests, 'missedPunchRequests');
+
+      const rawEmployees = val<any[]>(results[14]);
+      if (rawEmployees && Array.isArray(rawEmployees) && rawEmployees.length > 0) {
+        const cleaned = deduplicateEmployees(rawEmployees);
+        setEmployees(cleaned);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_employees', JSON.stringify(cleaned)); } catch (_) {}
+        }
+      }
 
       lastSyncTimes.current['hr'] = Date.now();
     } catch (err) {
@@ -4468,26 +4479,26 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   // Route-Aware On-Demand Module Fetching (Triggered ONLY when user visits a module's routes)
   useEffect(() => {
     if (!pathname) return;
-    if (pathname.startsWith('/crm') || pathname === '/sales') {
-      syncCRM().catch(() => {});
+    if (pathname.startsWith('/users') || pathname.startsWith('/hr') || pathname.startsWith('/payroll')) {
+      syncHR(true).catch(() => {});
+    } else if (pathname.startsWith('/crm') || pathname === '/sales') {
+      syncCRM(true).catch(() => {});
     } else if (pathname.startsWith('/projects') || pathname.startsWith('/project')) {
-      syncProjects().catch(() => {});
+      syncProjects(true).catch(() => {});
     } else if (pathname.startsWith('/designer') || pathname.startsWith('/engineering') || pathname.startsWith('/design')) {
-      syncDesigner().catch(() => {});
+      syncDesigner(true).catch(() => {});
     } else if (pathname.startsWith('/purchase') || pathname.startsWith('/procurement')) {
-      syncPurchase().catch(() => {});
+      syncPurchase(true).catch(() => {});
     } else if (pathname.startsWith('/store') || pathname.startsWith('/inventory') || pathname.startsWith('/warehouse')) {
-      syncStore().catch(() => {});
+      syncStore(true).catch(() => {});
     } else if (pathname.startsWith('/production') || pathname.startsWith('/manufacturing')) {
-      syncProduction().catch(() => {});
+      syncProduction(true).catch(() => {});
     } else if (pathname.startsWith('/maintenance') || pathname.startsWith('/service')) {
-      syncMaintenance().catch(() => {});
-    } else if (pathname.startsWith('/hr') || pathname.startsWith('/payroll')) {
-      syncHR().catch(() => {});
+      syncMaintenance(true).catch(() => {});
     } else if (pathname.startsWith('/accounting') || pathname.startsWith('/accounts') || pathname.startsWith('/finance')) {
-      syncAccounting().catch(() => {});
+      syncAccounting(true).catch(() => {});
     } else if (pathname.startsWith('/integration') || pathname.startsWith('/admin') || pathname === '/' || pathname === '/dashboard') {
-      syncIntegration().catch(() => {});
+      syncIntegration(true).catch(() => {});
     }
   }, [pathname, syncCRM, syncProjects, syncDesigner, syncPurchase, syncStore, syncProduction, syncMaintenance, syncHR, syncAccounting, syncIntegration]);
 
@@ -4884,6 +4895,78 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Authentication Helpers
+  const loginWithBackend = async (
+    userOrEmailOrId: string,
+    pass: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    const cleanUser = (userOrEmailOrId || '').trim();
+    const cleanPass = (pass || '').trim();
+
+    try {
+      const res = await api.auth.login({ username: cleanUser, password: cleanPass });
+      if (res && res.access && res.user) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('access_token', res.access);
+          if (res.refresh) localStorage.setItem('refresh_token', res.refresh);
+        }
+        const serverUser = res.user;
+        const formattedUser: Employee = {
+          id: serverUser.id || 'EMP-001',
+          firstName: serverUser.firstName || serverUser.first_name || '',
+          lastName: serverUser.lastName || serverUser.last_name || '',
+          name: serverUser.name || `${serverUser.firstName || serverUser.first_name || ''} ${serverUser.lastName || serverUser.last_name || ''}`.trim() || serverUser.username,
+          username: serverUser.username,
+          email: serverUser.email,
+          gender: serverUser.gender || 'male',
+          dob: serverUser.dob || '',
+          mobile: serverUser.mobile || serverUser.phone || '',
+          phone: serverUser.phone || serverUser.mobile || '',
+          address: serverUser.address || '',
+          departmentId: serverUser.departmentId || serverUser.department_id || '',
+          department: serverUser.department || serverUser.departmentName || serverUser.department_name || '',
+          departmentName: serverUser.departmentName || serverUser.department_name || serverUser.department || '',
+          designation: serverUser.designation || '',
+          roleId: serverUser.roleId || serverUser.role_id || '',
+          role: serverUser.role || serverUser.roleName || serverUser.role_name || '',
+          roleName: serverUser.roleName || serverUser.role_name || serverUser.role || '',
+          roleType: serverUser.roleType || serverUser.role_type || 'employee',
+          dataScope: serverUser.dataScope || serverUser.data_scope || 'own',
+          assignedModules: serverUser.assignedModules || serverUser.assigned_modules || [],
+          customPermissions: serverUser.customPermissions || serverUser.custom_permissions || {},
+          status: serverUser.status || (serverUser.isActive !== false ? 'active' : 'inactive'),
+          isActive: serverUser.isActive !== false,
+          isFamilyMember: Boolean(serverUser.isFamilyMember || serverUser.is_family_member),
+          profilePhoto: serverUser.profilePhoto || serverUser.profile_photo || '',
+          joiningDate: serverUser.joiningDate || serverUser.joining_date || '',
+          employmentType: serverUser.employmentType || serverUser.employment_type || 'full_time',
+          effectivePermissions: serverUser.effectivePermissions || serverUser.effective_permissions,
+        };
+
+        setCurrentUser(formattedUser);
+        setIsAuthenticated(true);
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('UMA_ERP_currentUser', JSON.stringify(formattedUser));
+          } catch (_) {}
+        }
+        logAction('LOGIN', 'Authentication', 'Sign In', formattedUser.id, `User ${formattedUser.firstName} logged in`);
+
+        // Wipe old device-specific caches and trigger immediate fresh sync from shared backend
+        invalidateApiCache();
+        syncBootstrap(true).catch(() => {});
+        return { success: true };
+      }
+      return { success: false, error: 'Authentication failed. Please verify credentials.' };
+    } catch (err: any) {
+      console.warn('Backend authentication error:', err);
+      const errorMsg =
+        err?.data?.error ||
+        err?.message ||
+        'Invalid username or password. Please check your credentials and try again.';
+      return { success: false, error: errorMsg };
+    }
+  };
+
   const login = (username: string, pass: string): boolean => {
     const cleanUser = (username || '').trim().toLowerCase();
     const cleanPass = (pass || '').trim();
@@ -4911,6 +4994,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         .then((res) => {
           if (res?.access && typeof window !== 'undefined') {
             localStorage.setItem('access_token', res.access);
+            if (res.refresh) localStorage.setItem('refresh_token', res.refresh);
           }
         })
         .catch(() => {});
@@ -4921,9 +5005,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
-    logAction('LOGOUT', 'Authentication', 'Sign Out', currentUser.id, `User ${currentUser.firstName} logged out`);
+    logAction('LOGOUT', 'Authentication', 'Sign Out', currentUser?.id || 'USER', `User ${currentUser?.firstName || 'User'} logged out`);
     if (typeof window !== 'undefined') {
-      try { localStorage.removeItem('UMA_ERP_currentUser'); } catch (_) {}
+      try {
+        localStorage.removeItem('UMA_ERP_currentUser');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        invalidateApiCache();
+      } catch (_) {}
     }
     setIsAuthenticated(false);
   };
@@ -5592,9 +5681,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const refreshEmployees = async (): Promise<Employee[]> => {
+  const refreshEmployees = async (force = false): Promise<Employee[]> => {
     try {
-      const raw = await api.employees.list();
+      const raw = await api.employees.list(force);
       if (Array.isArray(raw)) {
         const cleaned = deduplicateEmployees(raw);
         setEmployees(cleaned);
@@ -12797,6 +12886,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated,
         isInitialLoading,
         login,
+        loginWithBackend,
         logout,
         updateCurrentUserProfile,
         changePassword,
