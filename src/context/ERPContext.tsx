@@ -487,8 +487,8 @@ interface ERPContextType {
   // CRM Entities
   leads: Lead[];
   addLead: (leadData: Omit<Lead, 'id' | 'leadNo' | 'createdDate'>) => Lead;
-  updateLead: (id: string, leadData: Partial<Lead>) => void;
-  deleteLead: (id: string) => void;
+  updateLead: (id: string, leadData: Partial<Lead>) => Promise<void> | void;
+  deleteLead: (id: string) => Promise<void> | void;
   convertLeadToCustomer: (leadId: string) => { customer: Customer; enquiry?: Enquiry; opportunity?: Opportunity };
 
   customers: Customer[];
@@ -1239,18 +1239,31 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const map = new Map<string, Lead>();
     for (const item of list) {
       if (!item) continue;
-      const leadNo = String(item.leadNo || item.lead_no || item.id || '').trim();
-      const id = String(item.id || item.leadNo || item.lead_no || '').trim();
+      const rawLeadNo = String(item.leadNo || item.lead_no || '').trim();
+      const rawId = String(item.id || '').trim();
       const company = String(item.companyName || item.company_name || '').trim();
       const product = String(item.productName || item.product_name || '').trim();
 
-      const key = id || leadNo || (company && product ? `${company.toLowerCase()}__${product.toLowerCase()}` : '');
+      // Skip corrupt ghost records that have no valid ID and no lead number
+      if (!rawId && !rawLeadNo) {
+        continue;
+      }
+
+      // If id or leadNo was set to a legacy composite key containing spaces or underscores, clean it
+      const cleanId = rawId || rawLeadNo;
+      const cleanLeadNo = (rawLeadNo && !rawLeadNo.includes('__') && rawLeadNo.length <= 30)
+        ? rawLeadNo
+        : (cleanId && !cleanId.includes('__') && cleanId.length <= 30)
+        ? cleanId
+        : `LEAD-${Date.now().toString().slice(-4)}`;
+
+      const key = cleanId || cleanLeadNo;
       if (!key) continue;
 
       const normalized: Lead = {
         ...item,
-        id: id || leadNo || key,
-        leadNo: leadNo || id || key,
+        id: cleanId,
+        leadNo: cleanLeadNo,
         companyName: company || item.companyName || 'Unknown Company',
         industry: item.industry || 'Manufacturing',
         website: item.website || '',
@@ -5828,28 +5841,58 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     return newLead;
   };
 
-  const updateLead = (id: string, leadData: Partial<Lead>) => {
+  const updateLead = async (id: string, leadData: Partial<Lead>) => {
+    const rawId = String(id || '').trim();
+    // Locate the matching lead in existing state
+    const existing = leads.find((l) => l.id === rawId || l.leadNo === rawId || l.id?.toLowerCase() === rawId.toLowerCase() || l.leadNo?.toLowerCase() === rawId.toLowerCase());
+    const targetId = existing?.id || existing?.leadNo || rawId;
+
     setLeads((prev) => {
-      const updated = deduplicateLeads(prev.map((l) => (l.id === id || l.leadNo === id ? { ...l, ...leadData } : l)));
+      const updated = deduplicateLeads(prev.map((l) => (l.id === targetId || l.leadNo === targetId || l.id === rawId || l.leadNo === rawId ? { ...l, ...leadData } : l)));
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_leads', JSON.stringify(updated)); } catch (_) {}
       }
       return updated;
     });
-    logAction('UPDATE', 'CRM', 'Leads', id, `Updated lead ${id}`);
-    api.crm.leads.update(id, leadData).catch((err) => console.warn('Failed to update lead on backend:', err));
+    logAction('UPDATE', 'CRM', 'Leads', targetId, `Updated lead ${targetId}`);
+    invalidateApiCache('leads');
+
+    try {
+      const res = await api.crm.leads.update(targetId, leadData);
+      if (res && res.id) {
+        setLeads((prev) => {
+          const updated = deduplicateLeads(prev.map((l) => (l.id === targetId || l.id === res.id || l.leadNo === res.leadNo ? { ...l, ...res } : l)));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_leads', JSON.stringify(updated)); } catch (_) {}
+          }
+          return updated;
+        });
+      }
+    } catch (err) {
+      console.warn('Failed to update lead on backend:', err);
+    }
   };
 
-  const deleteLead = (id: string) => {
+  const deleteLead = async (id: string) => {
+    const rawId = String(id || '').trim();
+    const existing = leads.find((l) => l.id === rawId || l.leadNo === rawId || l.id?.toLowerCase() === rawId.toLowerCase() || l.leadNo?.toLowerCase() === rawId.toLowerCase());
+    const targetId = existing?.id || existing?.leadNo || rawId;
+
     setLeads((prev) => {
-      const updated = prev.filter((l) => l.id !== id && l.leadNo !== id);
+      const updated = prev.filter((l) => l.id !== targetId && l.leadNo !== targetId && l.id !== rawId && l.leadNo !== rawId);
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_leads', JSON.stringify(updated)); } catch (_) {}
       }
       return updated;
     });
-    logAction('DELETE', 'CRM', 'Leads', id, `Deleted lead ${id}`);
-    api.crm.leads.delete(id).catch((err) => console.warn('Failed to delete lead on backend:', err));
+    logAction('DELETE', 'CRM', 'Leads', targetId, `Deleted lead ${targetId}`);
+    invalidateApiCache('leads');
+
+    try {
+      await api.crm.leads.delete(targetId);
+    } catch (err) {
+      console.warn('Failed to delete lead on backend:', err);
+    }
   };
 
   const convertLeadToCustomer = (leadId: string): { customer: Customer; enquiry?: Enquiry; opportunity?: Opportunity } => {

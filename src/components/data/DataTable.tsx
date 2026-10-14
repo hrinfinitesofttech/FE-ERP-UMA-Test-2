@@ -173,7 +173,7 @@ export function DataTable<T extends Record<string, any>>({
           <thead className="bg-[#FAF7F2] text-[#70665F] font-bold border-b border-[#E7DED5] uppercase tracking-wider sticky top-0 z-10 text-[10px]">
             <tr>
               {columns.map((col, idx) => (
-                <th key={idx} className={cn('py-3 px-4 font-bold whitespace-nowrap', col.className)}>
+                <th key={idx} className={cn('py-3.5 px-4 font-bold text-[#70665F]', col.className || 'whitespace-nowrap')}>
                   {col.header}
                 </th>
               ))}
@@ -213,7 +213,7 @@ export function DataTable<T extends Record<string, any>>({
                   )}
                 >
                   {columns.map((col, colIdx) => (
-                    <td key={colIdx} className={cn('py-3.5 px-4 text-[#211B17] font-medium align-middle whitespace-nowrap', col.className)}>
+                    <td key={colIdx} className={cn('py-3 px-4 text-[#211B17] font-medium align-middle', col.className || 'whitespace-nowrap')}>
                       {col.cell ? col.cell(row) : col.accessorKey ? String(row[col.accessorKey] ?? '-') : '-'}
                     </td>
                   ))}

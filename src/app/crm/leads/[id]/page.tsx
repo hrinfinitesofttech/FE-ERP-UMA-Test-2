@@ -153,7 +153,7 @@ export default function LeadDetailPage() {
     setIsEditDirty(true);
   };
 
-  const handleSaveEdit = (e: React.FormEvent) => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editFormData.companyName || !editFormData.contactPerson || !editFormData.mobile || !editFormData.productName) {
       alert('Please fill all required fields (Company, Contact Person, 10-digit Mobile, Product Title).');
@@ -181,15 +181,17 @@ export default function LeadDetailPage() {
       assignedSalesPersonName: assignedName,
     };
 
-    updateLead(lead.id, updatePayload);
-    setConvertSuccess(`Lead "${lead.leadNo}" details updated successfully!`);
+    const targetId = lead.id || lead.leadNo;
+    await updateLead(targetId, updatePayload);
+    setConvertSuccess(`Lead "${lead.leadNo || targetId}" details updated successfully!`);
     setShowEditModal(false);
     setIsEditDirty(false);
     setTimeout(() => setConvertSuccess(''), 4000);
   };
 
-  const handleConfirmDelete = () => {
-    deleteLead(lead.id);
+  const handleConfirmDelete = async () => {
+    const targetId = lead.id || lead.leadNo;
+    await deleteLead(targetId);
     router.push('/crm/leads');
   };
 
@@ -271,7 +273,7 @@ export default function LeadDetailPage() {
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-mono font-bold text-sm bg-crm-brand-700 text-white px-2.5 py-0.5 rounded-lg shadow-sm">
-                {lead.leadNo}
+                {lead.leadNo && !lead.leadNo.includes('__') && lead.leadNo.length <= 25 ? lead.leadNo : (lead.id && !lead.id.includes('__') && lead.id.length <= 25 ? lead.id : 'LEAD-REF')}
               </span>
               <StatusBadge status={lead.status as any} />
               <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-[#FAF7F2] font-mono text-[10px] uppercase font-bold text-slate-600 dark:text-[#70665F]">

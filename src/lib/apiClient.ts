@@ -93,25 +93,54 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
   }
   // CRM
   else if (ep.includes('/leads')) {
-    d.lead_no = d.lead_no || d.leadNo || d.id;
-    d.leadNo = d.lead_no;
-    d.company_name = d.company_name || d.companyName || 'Prospect Co';
-    d.companyName = d.company_name;
-    d.contact_person = d.contact_person || d.contactPerson || 'Contact';
-    d.contactPerson = d.contact_person;
-    d.product_name = d.product_name || d.productName || d.requirementDescription || 'Equipment';
-    d.productName = d.product_name;
-    d.mobile = d.mobile || d.phone || '9999999999';
-    d.alt_mobile = d.alt_mobile || d.altMobile || '';
-    d.machine_type = d.machine_type || d.machineType || '';
-    d.requirement_description = d.requirement_description || d.requirementDescription || '';
-    d.expected_delivery = d.expected_delivery || d.expectedDelivery || null;
-    d.next_follow_up_date = d.next_follow_up_date || d.nextFollowUpDate || null;
-    d.exhibition_id = d.exhibition_id || d.exhibitionId || '';
-    d.exhibition_name = d.exhibition_name || d.exhibitionName || '';
-    d.assigned_sales_person_id = d.assigned_sales_person_id || d.assignedSalesPersonId || '';
-    d.assigned_sales_person_name = d.assigned_sales_person_name || d.assignedSalesPersonName || '';
-    d.created_date = d.created_date || d.createdDate || nowStr;
+    if (isPatchOrPut) {
+      delete d.id;
+      delete d.lead_no;
+      delete d.leadNo;
+      const fieldMap: Record<string, string> = {
+        companyName: 'company_name',
+        contactPerson: 'contact_person',
+        productName: 'product_name',
+        altMobile: 'alt_mobile',
+        machineType: 'machine_type',
+        requirementDescription: 'requirement_description',
+        expectedDelivery: 'expected_delivery',
+        assignedSalesPersonId: 'assigned_sales_person_id',
+        assignedSalesPersonName: 'assigned_sales_person_name',
+        nextFollowUpDate: 'next_follow_up_date',
+        createdDate: 'created_date',
+        convertedCustomerId: 'converted_customer_id',
+        convertedEnquiryId: 'converted_enquiry_id',
+        convertedOpportunityId: 'converted_opportunity_id',
+        exhibitionId: 'exhibition_id',
+        exhibitionName: 'exhibition_name',
+      };
+      for (const [camel, snake] of Object.entries(fieldMap)) {
+        if (d[camel] !== undefined && d[snake] === undefined) {
+          d[snake] = d[camel];
+        }
+      }
+    } else {
+      d.lead_no = d.lead_no || d.leadNo || d.id;
+      d.leadNo = d.lead_no;
+      d.company_name = d.company_name || d.companyName || 'Prospect Co';
+      d.companyName = d.company_name;
+      d.contact_person = d.contact_person || d.contactPerson || 'Contact';
+      d.contactPerson = d.contact_person;
+      d.product_name = d.product_name || d.productName || d.requirementDescription || 'Equipment';
+      d.productName = d.product_name;
+      d.mobile = d.mobile || d.phone || '9999999999';
+      d.alt_mobile = d.alt_mobile || d.altMobile || '';
+      d.machine_type = d.machine_type || d.machineType || '';
+      d.requirement_description = d.requirement_description || d.requirementDescription || '';
+      d.expected_delivery = d.expected_delivery || d.expectedDelivery || null;
+      d.next_follow_up_date = d.next_follow_up_date || d.nextFollowUpDate || null;
+      d.exhibition_id = d.exhibition_id || d.exhibitionId || '';
+      d.exhibition_name = d.exhibition_name || d.exhibitionName || '';
+      d.assigned_sales_person_id = d.assigned_sales_person_id || d.assignedSalesPersonId || '';
+      d.assigned_sales_person_name = d.assigned_sales_person_name || d.assignedSalesPersonName || '';
+      d.created_date = d.created_date || d.createdDate || nowStr;
+    }
   } else if (ep.includes('/customers')) {
     d.companyName = d.companyName || d.company_name || d.name || '';
     d.contactPerson = d.contactPerson || d.contact_person || d.name || '';
@@ -838,12 +867,12 @@ export const api = {
   crm: {
     leads: {
       list: (bypassCache = false) => request<any[]>('/leads/', { method: 'GET' }, bypassCache),
-      get: (id: string, bypassCache = false) => request<any>(`/leads/${id}/`, { method: 'GET' }, bypassCache),
+      get: (id: string, bypassCache = false) => request<any>(`/leads/${encodeURIComponent(String(id || '').trim())}/`, { method: 'GET' }, bypassCache),
       create: (data: any) => request<any>('/leads/', { method: 'POST', body: JSON.stringify(data) }),
-      update: (id: string, data: any) => request<any>(`/leads/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
-      delete: (id: string) => request<any>(`/leads/${id}/`, { method: 'DELETE' }),
-      convert: (id: string) => request<any>(`/leads/${id}/convert/`, { method: 'POST' }),
-      convertToEnquiry: (id: string) => request<any>(`/leads/${id}/convert-to-enquiry/`, { method: 'POST' }),
+      update: (id: string, data: any) => request<any>(`/leads/${encodeURIComponent(String(id || '').trim())}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/leads/${encodeURIComponent(String(id || '').trim())}/`, { method: 'DELETE' }),
+      convert: (id: string) => request<any>(`/leads/${encodeURIComponent(String(id || '').trim())}/convert/`, { method: 'POST' }),
+      convertToEnquiry: (id: string) => request<any>(`/leads/${encodeURIComponent(String(id || '').trim())}/convert-to-enquiry/`, { method: 'POST' }),
     },
     customers: {
       list: (bypassCache = false) => request<any[]>('/customers/', { method: 'GET' }, bypassCache),
