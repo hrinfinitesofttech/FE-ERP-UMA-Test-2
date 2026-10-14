@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useERP } from '../../../../context/ERPContext';
 import {
@@ -22,9 +22,14 @@ import {
 } from 'lucide-react';
 import { LeadSource, LeadStatus, PriorityLevel, Employee } from '../../../../types/crm';
 
-export default function NewLeadPage() {
+function NewLeadForm() {
   const router = useRouter();
-  const { addLead, employees, availableEmployees } = useERP();
+  const searchParams = useSearchParams();
+  const { addLead, employees, availableEmployees, exhibitions } = useERP();
+
+  const querySource = (searchParams.get('source') as LeadSource) || 'direct';
+  const queryExpoId = searchParams.get('expoId') || searchParams.get('exhibitionId') || '';
+  const queryExpoName = searchParams.get('expoName') || searchParams.get('exhibitionName') || '';
 
   const allEmployees: Employee[] =
     availableEmployees && availableEmployees.length > 0
@@ -77,13 +82,30 @@ export default function NewLeadPage() {
     budget: '' as number | string,
     priority: 'medium' as PriorityLevel,
 
-    // 4. CRM
-    source: 'direct' as LeadSource,
+    // 4. CRM & Exhibition Link
+    source: querySource || ('direct' as LeadSource),
+    exhibitionId: queryExpoId || '',
+    exhibitionName: queryExpoName || '',
     assignedSalesPersonId: defaultSalesPersonId,
     status: 'new' as LeadStatus,
     nextFollowUpDate: '',
     remarks: '',
   });
+
+  // If query params are provided, update formData accordingly
+  useEffect(() => {
+    if (querySource && querySource !== formData.source) {
+      setFormData((prev) => ({ ...prev, source: querySource }));
+    }
+    if (queryExpoId && queryExpoId !== formData.exhibitionId) {
+      const expo = exhibitions.find((ex) => ex.id === queryExpoId);
+      setFormData((prev) => ({
+        ...prev,
+        exhibitionId: queryExpoId,
+        exhibitionName: expo ? expo.expoName : queryExpoName || prev.exhibitionName,
+      }));
+    }
+  }, [querySource, queryExpoId, queryExpoName, exhibitions]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -233,6 +255,8 @@ export default function NewLeadPage() {
         quantity: Number(formData.quantity) || 1,
         budget: Number(formData.budget) || 0,
         assignedSalesPersonName: assignedName,
+        exhibitionId: formData.exhibitionId || undefined,
+        exhibitionName: formData.exhibitionName || undefined,
       });
 
       router.push(`/crm/leads?tab=leads&created=${encodeURIComponent(formData.companyName.trim())}`);
@@ -658,17 +682,62 @@ export default function NewLeadPage() {
                 <label className="block text-[#544B45] font-semibold mb-1">Lead Source</label>
                 <select
                   value={formData.source}
-                  onChange={(e) => handleInputChange('source', e.target.value as any)}
+                  onChange={(e) => {
+                    const newSrc = e.target.value as any;
+                    handleInputChange('source', newSrc);
+                    if (newSrc !== 'exhibition') {
+                      setFormData((prev) => ({ ...prev, exhibitionId: '', exhibitionName: '' }));
+                    }
+                  }}
                   className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] font-semibold"
                 >
+                  <option value="direct">Direct Phone Call</option>
                   <option value="exhibition">Exhibition / Expo</option>
                   <option value="website">Website Inquiry</option>
-                  <option value="phone">Direct Phone Call</option>
                   <option value="whatsapp">WhatsApp</option>
                   <option value="referral">Referral</option>
                   <option value="existing_customer">Existing Customer</option>
                 </select>
               </div>
+
+              {formData.source === 'exhibition' && (
+                <div className="md:col-span-12 p-3.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl space-y-2">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                    <label className="text-[#544B45] font-bold text-xs flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-crm-brand-700" />
+                      Linked Exhibition / Trade Show Event
+                    </label>
+                    {formData.exhibitionName && (
+                      <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-mono text-[10px] font-bold">
+                        Linked: {formData.exhibitionName}
+                      </span>
+                    )}
+                  </div>
+                  <select
+                    value={formData.exhibitionId}
+                    onChange={(e) => {
+                      const selId = e.target.value;
+                      const expo = exhibitions.find((ex) => ex.id === selId);
+                      setFormData((prev) => ({
+                        ...prev,
+                        exhibitionId: selId,
+                        exhibitionName: expo ? expo.expoName : '',
+                      }));
+                    }}
+                    className="w-full px-3.5 py-2 bg-white border border-[#EBE3DB] rounded-xl text-[#211B17] font-semibold text-xs"
+                  >
+                    <option value="">-- Select Registered Exhibition --</option>
+                    {exhibitions.map((expo) => (
+                      <option key={expo.id} value={expo.id}>
+                        {expo.expoName} ({expo.location || 'Venue'} • {expo.startDate})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] text-[#70665F]">
+                    Associating this lead with a registered Exhibition tracks stall ROI and prevents duplicate lead entry.
+                  </p>
+                </div>
+              )}
 
               <div className="md:col-span-3" data-invalid={Boolean(errors.assignedSalesPersonId && (touched.assignedSalesPersonId || submitAttempted))}>
                 <label className="block text-[#544B45] font-semibold mb-1">
@@ -773,5 +842,13 @@ export default function NewLeadPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function NewLeadPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-xs text-[#70665F]">Loading Lead Form...</div>}>
+      <NewLeadForm />
+    </Suspense>
   );
 }

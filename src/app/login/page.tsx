@@ -52,7 +52,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // 1. Direct Backend Authentication with JWT issuance
+      // Direct Backend Authentication with JWT issuance
       const res = await loginWithBackend(cleanUser, cleanPass);
       if (res.success) {
         router.push('/');
@@ -64,32 +64,13 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
-    } catch (err) {
-      console.warn('Backend login attempt encountered error, checking local fallback:', err);
-    }
 
-    // 2. Offline fallback if backend is unreachable
-    const inactiveUser = employees.find(
-      (emp) =>
-        (emp.username?.toLowerCase() === cleanUser.toLowerCase() ||
-          emp.email?.toLowerCase() === cleanUser.toLowerCase() ||
-          emp.id?.toLowerCase() === cleanUser.toLowerCase()) &&
-        (emp.status === 'inactive' || emp.isActive === false)
-    );
-
-    if (inactiveUser) {
-      setError(
-        `Account for ${inactiveUser.firstName || inactiveUser.username} is currently deactivated. Please contact your Super Admin.`
-      );
+      setError('Invalid username or password. Please verify your credentials.');
       setLoading(false);
-      return;
-    }
-
-    const success = login(cleanUser, cleanPass);
-    if (success) {
-      router.push('/');
-    } else {
-      setError('Invalid username or password. Please check your credentials and try again.');
+    } catch (err: any) {
+      console.warn('Backend login attempt encountered error:', err);
+      const msg = err?.data?.error || err?.message || 'Authentication service error. Please try again.';
+      setError(msg);
       setLoading(false);
     }
   };

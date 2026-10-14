@@ -66,9 +66,17 @@ export default function UsersPage() {
 
   // Sorting & Pagination States
   const [sortField, setSortField] = useState<'id' | 'name' | 'department' | 'role' | 'status'>('id');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  const prevEmpCountRef = React.useRef(employees.length);
+  React.useEffect(() => {
+    if (employees.length > prevEmpCountRef.current) {
+      setCurrentPage(1);
+    }
+    prevEmpCountRef.current = employees.length;
+  }, [employees.length]);
 
   // Notification States
   const [actionSuccess, setActionSuccess] = useState('');
@@ -199,10 +207,22 @@ export default function UsersPage() {
       let valB: string = '';
 
       switch (sortField) {
-        case 'id':
+        case 'id': {
+          const empA = a as any;
+          const empB = b as any;
+          const timeA = empA.createdAt || empA.created_at || empA.date_joined || empA.joiningDate;
+          const timeB = empB.createdAt || empB.created_at || empB.date_joined || empB.joiningDate;
+          if (timeA && timeB && timeA !== timeB) {
+            const dtA = new Date(timeA).getTime();
+            const dtB = new Date(timeB).getTime();
+            if (!isNaN(dtA) && !isNaN(dtB) && dtA !== dtB) {
+              return sortOrder === 'asc' ? dtA - dtB : dtB - dtA;
+            }
+          }
           valA = a.id || '';
           valB = b.id || '';
           break;
+        }
         case 'name':
           valA = `${a.firstName || ''} ${a.lastName || ''}`.trim() || a.name || a.username;
           valB = `${b.firstName || ''} ${b.lastName || ''}`.trim() || b.name || b.username;

@@ -1830,47 +1830,83 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     return sortByLatestDesc(Array.from(map.values()));
   };
 
-  const defaultAdminUser: Employee = {
-    id: 'EMP-001',
-    firstName: 'Admin',
-    lastName: 'User',
-    name: 'Admin User',
-    username: 'admin',
-    email: 'admin@umatechnofab.com',
+  const emptyUnauthenticatedUser: Employee = {
+    id: '',
+    firstName: '',
+    lastName: '',
+    name: '',
+    username: '',
+    email: '',
     gender: 'male',
-    dob: '1990-01-01',
-    mobile: '9825012345',
-    phone: '9825012345',
-    address: 'Plot 45, GIDC Vatva, Ahmedabad, Gujarat',
-    departmentId: 'DEPT-MGT',
-    department: 'Management',
-    departmentName: 'Management',
-    designation: 'Administrator',
-    roleId: 'ROLE-ADMIN',
-    role: 'Super Admin',
-    roleName: 'Super Admin',
-    joiningDate: '2020-01-01',
-    joinedDate: '2020-01-01',
+    dob: '',
+    mobile: '',
+    phone: '',
+    address: '',
+    departmentId: '',
+    department: '',
+    departmentName: '',
+    designation: '',
+    roleId: '',
+    role: '',
+    roleName: '',
+    roleType: 'employee',
+    dataScope: 'own',
+    assignedModules: [],
+    customPermissions: {},
+    explicitRestrictions: [],
+    status: 'inactive',
+    isActive: false,
+    joiningDate: '',
     employmentType: 'full_time',
-    status: 'active',
   };
 
   const [employees, setEmployees] = useState<Employee[]>([]);
 
-  // Authentication State
+  // Authentication State: Strictly database/token-backed, NO auto-admin fallback
   const [currentUser, setCurrentUser] = useState<Employee>(() => {
     if (typeof window !== 'undefined') {
       try {
+        const token = localStorage.getItem('access_token');
         const saved = localStorage.getItem('UMA_ERP_currentUser');
-        if (saved) {
+        if (token && saved) {
           const parsed = JSON.parse(saved);
           if (parsed && (parsed.id || parsed.username)) return parsed;
         }
       } catch (_) {}
     }
-    return defaultAdminUser;
+    return emptyUnauthenticatedUser;
   });
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const token = localStorage.getItem('access_token');
+        const saved = localStorage.getItem('UMA_ERP_currentUser');
+        return Boolean(token && saved);
+      } catch (_) {
+        return false;
+      }
+    }
+    return false;
+  });
+
+  // Listen for session expiry events (e.g. 401 token refresh rejection)
+  useEffect(() => {
+    const handleExpired = () => {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('UMA_ERP_currentUser');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        invalidateApiCache();
+      }
+      setCurrentUser(emptyUnauthenticatedUser);
+      setIsAuthenticated(false);
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('uma_session_expired', handleExpired);
+      return () => window.removeEventListener('uma_session_expired', handleExpired);
+    }
+  }, []);
 
   // Layout State
   const [activeDepartment, setActiveDepartment] = useState<DepartmentType | 'all'>('all');
@@ -4968,52 +5004,28 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const login = (username: string, pass: string): boolean => {
-    const cleanUser = (username || '').trim().toLowerCase();
-    const cleanPass = (pass || '').trim();
-
-    const found = employees.find(
-      (e) =>
-        (e.username?.toLowerCase() === cleanUser ||
-         e.email?.toLowerCase() === cleanUser ||
-         e.id?.toLowerCase() === cleanUser) &&
-        (e.status === 'active' || e.isActive !== false)
-    );
-    if (found) {
-      if (found.password && cleanPass && found.password !== cleanPass && cleanPass !== 'admin123' && cleanPass !== 'password123') {
-        return false;
-      }
-      setCurrentUser(found);
-      if (typeof window !== 'undefined') {
-        try { localStorage.setItem('UMA_ERP_currentUser', JSON.stringify(found)); } catch (_) {}
-      }
-      setIsAuthenticated(true);
-      logAction('LOGIN', 'Authentication', 'Sign In', found.id, `User ${found.firstName} logged in`);
-
-      // Sync JWT access token in background if credentials match
-      api.auth.login({ username: found.username || 'admin', password: cleanPass || 'admin123' })
-        .then((res) => {
-          if (res?.access && typeof window !== 'undefined') {
-            localStorage.setItem('access_token', res.access);
-            if (res.refresh) localStorage.setItem('refresh_token', res.refresh);
-          }
-        })
-        .catch(() => {});
-
-      return true;
-    }
+    console.warn('Direct offline login is disabled. All authentications must use loginWithBackend.');
     return false;
   };
 
   const logout = () => {
-    logAction('LOGOUT', 'Authentication', 'Sign Out', currentUser?.id || 'USER', `User ${currentUser?.firstName || 'User'} logged out`);
+    const currentId = currentUser?.id || 'USER';
+    const currentName = currentUser?.firstName || 'User';
+    logAction('LOGOUT', 'Authentication', 'Sign Out', currentId, `User ${currentName} logged out`);
+
     if (typeof window !== 'undefined') {
       try {
+        const refreshToken = localStorage.getItem('refresh_token');
+        if (refreshToken) {
+          api.auth.logout({ refresh: refreshToken }).catch(() => {});
+        }
         localStorage.removeItem('UMA_ERP_currentUser');
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         invalidateApiCache();
       } catch (_) {}
     }
+    setCurrentUser(emptyUnauthenticatedUser);
     setIsAuthenticated(false);
   };
 
@@ -5059,22 +5071,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     page: string,
     action: 'view' | 'create' | 'edit' | 'delete' | 'approve' | 'reject' | 'export' | 'print'
   ): boolean => {
-    // 1. Super Admin and Admins always have full access
+    // 0. Deny if unauthenticated or inactive
+    if (!isAuthenticated || !currentUser?.id || currentUser.status === 'inactive' || currentUser.isActive === false) {
+      return false;
+    }
+
+    // 1. Super Admin always has full access
     if (
       currentUser.roleType === 'super_admin' ||
       currentUser.role_type === 'super_admin' ||
       currentUser.roleName === 'Super Admin' ||
       currentUser.role === 'Super Admin' ||
-      currentUser.username === 'admin' ||
-      currentUser.username === 'rajesh.admin' ||
-      currentUser.roleType === 'admin' ||
-      currentUser.role_type === 'admin' ||
-      currentUser.isFamilyMember === true ||
-      currentUser.is_family_member === true ||
-      (typeof currentUser.roleName === 'string' && currentUser.roleName.toLowerCase().includes('admin')) ||
-      (typeof currentUser.role === 'string' && currentUser.role.toLowerCase().includes('admin')) ||
-      (typeof currentUser.designation === 'string' && currentUser.designation.toLowerCase().includes('super admin')) ||
-      (typeof currentUser.designation === 'string' && currentUser.designation.toLowerCase().includes('managing director'))
+      currentUser.username === 'admin'
     ) {
       return true;
     }
@@ -5374,7 +5382,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       samplePreview: nextPreview,
     };
     setNumbering((prev) => {
-      const updated = [...prev, newRule];
+      const updated = [newRule, ...prev];
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_numbering', JSON.stringify(updated)); } catch (_) {}
       }
@@ -5401,7 +5409,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       employeeCount: dept.employeeCount || 0,
     };
     setDepartments((prev) => {
-      const updated = [...prev.filter((d) => d.id !== newDept.id), newDept];
+      const updated = [newDept, ...prev.filter((d) => d.id !== newDept.id)];
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_departments', JSON.stringify(updated)); } catch (_) {}
       }
@@ -5455,7 +5463,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       ...role,
       id: `role-${Date.now().toString().slice(-4)}`,
     };
-    setRoles((prev) => [...prev, newRole]);
+    setRoles((prev) => [newRole, ...prev]);
     logAction('CREATE', 'Role Management', 'Add Role', newRole.id, `Created role ${newRole.name}`);
     api.roles.create(newRole).catch((err) => console.warn('Failed to add role:', err));
   };
@@ -5536,7 +5544,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           id: newId,
           name: emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || 'Staff',
         };
-        updated = [...cleanPrev, newEmp];
+        updated = [newEmp, ...cleanPrev];
         logAction('CREATE', 'User Management', 'Add Employee', newEmp.id, `Created employee ${newEmp.firstName} ${newEmp.lastName} with ID ${newEmp.id}`);
         api.employees.create(newEmp).catch((err) => console.warn('Failed to add employee via API:', err));
       }
@@ -5587,7 +5595,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             id: newId,
             name: emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || 'Staff',
           };
-          updated = [...cleanPrev, newEmp];
+          updated = [newEmp, ...cleanPrev];
         }
       }
 
@@ -5723,6 +5731,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       ...leadData,
       id: leadNo,
       leadNo,
+      createdAt: new Date().toISOString(),
       createdDate: new Date().toISOString().split('T')[0],
     };
     setLeads((prev) => {
@@ -5951,7 +5960,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       ...contact,
       id: `CONT-${Date.now().toString().slice(-4)}`,
     };
-    setContacts((prev) => [...prev, newContact]);
+    setContacts((prev) => [newContact, ...prev]);
     logAction('CREATE', 'CRM', 'Contacts', newContact.id, `Added Contact ${newContact.name}`);
     api.crm.contacts.create(newContact).then((res) => {
       if (res && res.id) {
@@ -5967,6 +5976,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       ...enqData,
       id: enqNo,
       enquiryNo: enqNo,
+      createdAt: new Date().toISOString(),
       enquiryDate: new Date().toISOString().split('T')[0],
     };
     setEnquiries((prev) => {
@@ -6125,6 +6135,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           followUpNo: res.followUpNo || res.follow_up_no || newFlw.followUpNo,
           leadOrCustomerId: res.leadOrCustomerId || res.lead_or_customer_id || newFlw.leadOrCustomerId,
           leadOrCustomerName: res.leadOrCustomerName || res.lead_or_customer_name || newFlw.leadOrCustomerName,
+          entityType: res.entityType || res.entity_type || newFlw.entityType,
+          enquiryId: res.enquiryId || res.enquiry_id || newFlw.enquiryId,
+          quotationId: res.quotationId || res.quotation_id || newFlw.quotationId,
+          outcome: res.outcome || newFlw.outcome,
+          customerResponse: res.customerResponse || res.customer_response || newFlw.customerResponse,
           nextFollowUpDate: res.nextFollowUpDate || res.next_follow_up_date || newFlw.nextFollowUpDate,
         };
         setFollowUps((prev) => {
@@ -6175,6 +6190,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           visitNo: res.visitNo || res.visit_no || visitNo,
           customerId: res.customerId || res.customer_id || newVisit.customerId,
           customerName: res.customerName || res.customer_name || newVisit.customerName,
+          leadId: res.leadId || res.lead_id || newVisit.leadId,
+          enquiryId: res.enquiryId || res.enquiry_id || newVisit.enquiryId,
           contactPerson: res.contactPerson || res.contact_person || newVisit.contactPerson,
           contactMobile: res.contactMobile || res.contact_mobile || newVisit.contactMobile,
           visitDate: res.visitDate || res.visit_date || newVisit.visitDate,
@@ -6184,6 +6201,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           purpose: res.purpose || newVisit.purpose,
           discussionNotes: res.discussionNotes || res.discussion_notes || res.discussionSummary || newVisit.discussionNotes,
           requirementDetails: res.requirementDetails || res.requirement_details || newVisit.requirementDetails,
+          siteMeasurements: res.siteMeasurements || res.site_measurements || newVisit.siteMeasurements,
+          operatingConditions: res.operatingConditions || res.operating_conditions || newVisit.operatingConditions,
+          technicalObservations: res.technicalObservations || res.technical_observations || newVisit.technicalObservations,
+          pendingClarifications: res.pendingClarifications || res.pending_clarifications || newVisit.pendingClarifications,
+          attachments: res.attachments || newVisit.attachments || [],
+          status: res.status || newVisit.status || 'scheduled',
           outcome: res.outcome || newVisit.outcome,
           nextAction: res.nextAction || res.next_action || newVisit.nextAction,
           nextFollowUpDate: res.nextFollowUpDate || res.next_follow_up_date || newVisit.nextFollowUpDate,
@@ -6252,11 +6275,16 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           expoName: res.expoName || res.expo_name || newExpo.expoName,
           organizer: res.organizer || newExpo.organizer,
           location: res.location || newExpo.location,
+          venue: res.venue || newExpo.venue || '',
+          city: res.city || newExpo.city || '',
+          country: res.country || newExpo.country || 'India',
+          participationStatus: res.participationStatus || res.participation_status || newExpo.participationStatus || 'upcoming',
           startDate: res.startDate || res.start_date || newExpo.startDate,
           endDate: res.endDate || res.end_date || newExpo.endDate,
           stallNumber: res.stallNumber || res.stall_number || newExpo.stallNumber,
           contactPerson: res.contactPerson || res.contact_person || newExpo.contactPerson,
           budget: Number(res.budget) || newExpo.budget,
+          actualExpenses: Number(res.actualExpenses || res.actual_expenses || newExpo.actualExpenses || 0),
           assignedTeam: Array.isArray(res.assignedTeam) ? res.assignedTeam : (Array.isArray(res.assigned_team) ? res.assigned_team : newExpo.assignedTeam),
           productsDisplayed: res.productsDisplayed || res.products_displayed || newExpo.productsDisplayed,
           notes: res.notes || newExpo.notes,
@@ -9220,7 +9248,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   // Module 5: Store Management Handlers
   const addItemMaster = (data: Omit<ItemMaster, 'id' | 'createdAt'>) => {
     const id = data.itemCode || `ITEM-${String(itemMasters.length + 1).padStart(3, '0')}`;
-    const newItem: ItemMaster = { ...data, id, createdAt: new Date().toISOString().split('T')[0] };
+    const newItem: ItemMaster = { ...data, id, createdAt: new Date().toISOString() };
     setItemMasters((prev) => {
       const updated = [newItem, ...prev.filter((i) => i.id !== id && i.itemCode !== data.itemCode)];
       if (typeof window !== 'undefined') {
@@ -9272,7 +9300,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const id = data.categoryCode || `CAT-${String(itemCategories.length + 1).padStart(3, '0')}`;
     const newCat: ItemCategory = { ...data, id };
     setItemCategories((prev) => {
-      const updated = [...prev.filter((c) => c.id !== id && c.categoryCode !== data.categoryCode), newCat];
+      const updated = [newCat, ...prev.filter((c) => c.id !== id && c.categoryCode !== data.categoryCode)];
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_itemCategories', JSON.stringify(updated)); } catch (_) {}
       }
@@ -9295,7 +9323,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const id = data.uomCode || `UOM-${String(uoms.length + 1).padStart(3, '0')}`;
     const newUom: UOMMaster = { ...data, id };
     setUoms((prev) => {
-      const updated = [...prev.filter((u) => u.id !== id && u.uomCode !== data.uomCode), newUom];
+      const updated = [newUom, ...prev.filter((u) => u.id !== id && u.uomCode !== data.uomCode)];
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_uoms', JSON.stringify(updated)); } catch (_) {}
       }
@@ -9315,7 +9343,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addWarehouse = (data: Omit<Warehouse, 'id'>) => {
     const id = `WH-${String(warehouses.length + 1).padStart(3, '0')}`;
     const newWh: Warehouse = { ...data, id };
-    setWarehouses((prev) => [...prev, newWh]);
+    setWarehouses((prev) => [newWh, ...prev]);
     logAction('CREATE', 'Store', 'Warehouse Master', id, `Added Warehouse ${data.warehouseName}`);
     api.store.warehouses.create(newWh).catch((err) => console.warn('Failed to add warehouse:', err));
   };
@@ -9328,7 +9356,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addWarehouseLocation = (data: Omit<WarehouseLocation, 'id'>) => {
     const id = `LOC-${String(warehouseLocations.length + 1).padStart(3, '0')}`;
     const newLoc: WarehouseLocation = { ...data, id };
-    setWarehouseLocations((prev) => [...prev, newLoc]);
+    setWarehouseLocations((prev) => [newLoc, ...prev]);
     api.post('/warehouse-locations/', newLoc).catch((err) => console.warn('Failed to add warehouse location:', err));
   };
 
@@ -10335,7 +10363,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const id = `OP-${(routingOperations.length + 1) * 10}`;
     const newOp: RoutingOperation = { ...op, id };
     setRoutingOperations((prev) => {
-      const updated = [...prev, newOp];
+      const updated = [newOp, ...prev];
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_routingOperations', JSON.stringify(updated)); } catch (_) {}
       }
@@ -10348,7 +10376,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addWorkCenter = (wc: Omit<WorkCenter, 'id'>) => {
     const id = `WC-${String(workCenters.length + 1).padStart(3, '0')}`;
     const newWc: WorkCenter = { ...wc, id };
-    setWorkCenters((prev) => [...prev, newWc]);
+    setWorkCenters((prev) => [newWc, ...prev]);
     logAction('CREATE', 'Production', 'Work Centers', newWc.id, `Created Work Center ${newWc.workCenterCode}`);
     api.post('/work-centers/', newWc).catch((err) => console.warn('Failed to add work center:', err));
   };
@@ -10769,7 +10797,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addChartOfAccount = (account: Omit<ChartOfAccount, 'id' | 'currentBalance'>) => {
     const id = `ACC-${String(chartOfAccounts.length + 1).padStart(3, '0')}`;
     const newAcc: ChartOfAccount = { ...account, id, currentBalance: account.openingBalance };
-    setChartOfAccounts((prev) => [...prev, newAcc]);
+    setChartOfAccounts((prev) => [newAcc, ...prev]);
     logAction('CREATE', 'Accounting', 'Chart of Accounts', id, `Added Account ${account.accountCode} - ${account.accountName}`);
     api.post('/chart-of-accounts/', newAcc).catch((err) => console.warn('Failed to add COA:', err));
   };
@@ -10777,14 +10805,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addAccountGroup = (group: Omit<AccountGroup, 'id'>) => {
     const id = `AGRP-${String(accountGroups.length + 1).padStart(3, '0')}`;
     const newGrp: AccountGroup = { ...group, id };
-    setAccountGroups((prev) => [...prev, newGrp]);
+    setAccountGroups((prev) => [newGrp, ...prev]);
     logAction('CREATE', 'Accounting', 'Account Groups', id, `Added Account Group ${group.groupName}`);
   };
 
   const addTaxMaster = (tax: Omit<TaxMaster, 'id'>) => {
     const id = `TAX-${String(taxMasters.length + 1).padStart(2, '0')}`;
     const newTax: TaxMaster = { ...tax, id };
-    setTaxMasters((prev) => [...prev, newTax]);
+    setTaxMasters((prev) => [newTax, ...prev]);
     logAction('CREATE', 'Accounting', 'Tax Master', id, `Added Tax ${tax.taxCode} (${tax.rate}%)`);
     api.post('/taxes/', newTax).catch((err) => console.warn('Failed to add tax:', err));
   };
@@ -10792,14 +10820,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addTDSMaster = (tds: Omit<TDSMaster, 'id'>) => {
     const id = `TDS-${String(tdsMasters.length + 1).padStart(2, '0')}`;
     const newTDS: TDSMaster = { ...tds, id };
-    setTdsMasters((prev) => [...prev, newTDS]);
+    setTdsMasters((prev) => [newTDS, ...prev]);
     logAction('CREATE', 'Accounting', 'TDS Master', id, `Added TDS Section ${tds.sectionCode}`);
   };
 
   const addCostCenter = (cc: Omit<CostCenter, 'id'>) => {
     const id = `CC-${String(costCenters.length + 1).padStart(3, '0')}`;
     const newCC: CostCenter = { ...cc, id };
-    setCostCenters((prev) => [...prev, newCC]);
+    setCostCenters((prev) => [newCC, ...prev]);
     logAction('CREATE', 'Accounting', 'Cost Centers', id, `Added Cost Center ${cc.costCenterCode}`);
     api.post('/cost-centers/', newCC).catch((err) => console.warn('Failed to add cost center:', err));
   };
@@ -11159,7 +11187,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const id = `BANK-${String(bankAccounts.length + 1).padStart(2, '0')}`;
     const newBank: BankAccount = { ...bank, id, currentBalance: bank.openingBalance };
     setBankAccounts((prev) => {
-      const updated = [...prev, newBank];
+      const updated = [newBank, ...prev];
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_bankAccounts', JSON.stringify(updated)); } catch (_) {}
       }
@@ -11202,7 +11230,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const id = `AST-${String(fixedAssets.length + 1).padStart(3, '0')}`;
     const newAsset: FixedAsset = { ...asset, id };
     setFixedAssets((prev) => {
-      const updated = [...prev, newAsset];
+      const updated = [newAsset, ...prev];
       try { localStorage.setItem('UMA_ERP_fixedAssets', JSON.stringify(updated)); } catch (_) {}
       return updated;
     });
@@ -11921,7 +11949,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newId = rawCode ? `DESG-${rawCode.replace(/[^A-Za-z0-9]/g, '').slice(0, 8)}` : `DESG-0${designations.length + 1}`;
     const newDesg: Designation = { ...desg, id: newId };
     setDesignations((prev) => {
-      const updated = [...prev.filter((d) => d.id !== newId), newDesg];
+      const updated = [newDesg, ...prev.filter((d) => d.id !== newId)];
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_designations', JSON.stringify(updated)); } catch (_) {}
       }
@@ -12235,7 +12263,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newId = `SHIFT-0${shiftMasters.length + 1}`;
     const newShift = { ...shift, id: newId };
     setShiftMasters((prev) => {
-      const updated = [...prev, newShift];
+      const updated = [newShift, ...prev];
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_shiftMasters', JSON.stringify(updated)); } catch (_) {}
       }
@@ -12313,7 +12341,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       isOptional: Boolean(holiday.isOptional),
     };
     setHolidays((prev) => {
-      const updated = [...prev, newHol];
+      const updated = [newHol, ...prev];
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_holidays', JSON.stringify(updated)); } catch (_) {}
       }
@@ -12363,7 +12391,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newId = `LT-0${leaveTypes.length + 1}`;
     const newLt = { ...lt, id: newId };
     setLeaveTypes((prev) => {
-      const updated = [...prev, newLt];
+      const updated = [newLt, ...prev];
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_leaveTypes', JSON.stringify(updated)); } catch (_) {}
       }
@@ -12645,7 +12673,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addSalaryComponent = (comp: Omit<SalaryComponent, 'id'>) => {
     const newId = `SAL-COMP-0${salaryComponents.length + 1}`;
     const newComp = { ...comp, id: newId };
-    setSalaryComponents((prev) => [...prev, newComp]);
+    setSalaryComponents((prev) => [newComp, ...prev]);
     logAction('CREATE', 'hr', 'salary-components', newId, `Added Salary Component ${comp.componentName}`);
     api.post('/salary-components/', newComp).catch((err) => console.warn('Failed to add salary component:', err));
   };
@@ -12657,7 +12685,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addSalaryStructure = (sal: Omit<SalaryStructure, 'id'>) => {
     const newId = `SAL-STR-0${salaryStructures.length + 1}`;
     const newSal = { ...sal, id: newId };
-    setSalaryStructures((prev) => [...prev, newSal]);
+    setSalaryStructures((prev) => [newSal, ...prev]);
     logAction('CREATE', 'hr', 'salary-structure', newId, `Created Salary Structure for ${sal.employeeName}`);
     api.post('/salary-structures/', newSal).catch((err) => console.warn('Failed to add salary structure:', err));
   };
@@ -12742,7 +12770,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addKPIMaster = (kpi: Omit<KPIMaster, 'id'>) => {
     const kNo = `KPI-0${kpiMasters.length + 1}`;
     const newKpi = { ...kpi, id: kNo };
-    setKPIMasters((prev) => [...prev, newKpi]);
+    setKPIMasters((prev) => [newKpi, ...prev]);
     logAction('CREATE', 'hr', 'kpi-management', kNo, `Added KPI ${kpi.kpiName}`);
   };
 
@@ -12816,7 +12844,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addTrainingProgram = (tr: Omit<TrainingProgram, 'id'>) => {
     const tNo = `TRN-PROG-0${trainingPrograms.length + 1}`;
     const newTr = { ...tr, id: tNo };
-    setTrainingPrograms((prev) => [...prev, newTr]);
+    setTrainingPrograms((prev) => [newTr, ...prev]);
     logAction('CREATE', 'hr', 'training', tNo, `Scheduled Training ${tr.title}`);
   };
   const updateTrainingStatus = (id: string, status: TrainingProgram['status']) => {
@@ -12827,7 +12855,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addJobPosition = (pos: Omit<JobPosition, 'id'>) => {
     const pNo = `JOB-POS-0${jobPositions.length + 1}`;
     const newPos = { ...pos, id: pNo };
-    setJobPositions((prev) => [...prev, newPos]);
+    setJobPositions((prev) => [newPos, ...prev]);
     logAction('CREATE', 'hr', 'recruitment-positions', pNo, `Opened Job Position ${pos.title}`);
   };
   const updateJobPositionStatus = (id: string, status: JobPosition['status']) => {

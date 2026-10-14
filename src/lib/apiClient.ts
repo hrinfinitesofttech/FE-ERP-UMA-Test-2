@@ -47,6 +47,10 @@ async function getOrRefreshToken(): Promise<string | null> {
       } else {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+        localStorage.removeItem('UMA_ERP_currentUser');
+        if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+          window.dispatchEvent(new Event('uma_session_expired'));
+        }
       }
     } catch (err) {
       console.warn('Auto-refresh token failed:', err);
@@ -103,6 +107,8 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
     d.requirement_description = d.requirement_description || d.requirementDescription || '';
     d.expected_delivery = d.expected_delivery || d.expectedDelivery || null;
     d.next_follow_up_date = d.next_follow_up_date || d.nextFollowUpDate || null;
+    d.exhibition_id = d.exhibition_id || d.exhibitionId || '';
+    d.exhibition_name = d.exhibition_name || d.exhibitionName || '';
     d.assigned_sales_person_id = d.assigned_sales_person_id || d.assignedSalesPersonId || '';
     d.assigned_sales_person_name = d.assigned_sales_person_name || d.assignedSalesPersonName || '';
     d.created_date = d.created_date || d.createdDate || nowStr;
@@ -116,6 +122,26 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
     d.requirement = d.requirement || d.title || d.specification || '';
     d.machineProduct = d.machineProduct || d.productName || '';
     d.date = d.date || d.enquiryDate || nowStr;
+    d.machine_type = d.machine_type || d.machineType || '';
+    d.material_grade = d.material_grade || d.materialGrade || '';
+    d.unit_of_measure = d.unit_of_measure || d.unitOfMeasure || 'Unit';
+    d.operating_conditions = d.operating_conditions || d.operatingConditions || '';
+    d.technical_clarifications = d.technical_clarifications || d.technicalClarifications || '';
+  } else if (ep.includes('/followups')) {
+    d.lead_or_customer_id = d.lead_or_customer_id || d.leadOrCustomerId || d.customerId || d.leadId || '';
+    d.lead_or_customer_name = d.lead_or_customer_name || d.leadOrCustomerName || d.customerName || '';
+    d.entity_type = d.entity_type || d.entityType || 'lead';
+    d.enquiry_id = d.enquiry_id || d.enquiryId || '';
+    d.quotation_id = d.quotation_id || d.quotationId || '';
+    d.outcome = d.outcome || '';
+    d.customer_response = d.customer_response || d.customerResponse || '';
+  } else if (ep.includes('/visits')) {
+    d.lead_id = d.lead_id || d.leadId || '';
+    d.enquiry_id = d.enquiry_id || d.enquiryId || '';
+    d.site_measurements = d.site_measurements || d.siteMeasurements || '';
+    d.operating_conditions = d.operating_conditions || d.operatingConditions || '';
+    d.technical_observations = d.technical_observations || d.technicalObservations || '';
+    d.pending_clarifications = d.pending_clarifications || d.pendingClarifications || '';
   } else if (ep.includes('/opportunities')) {
     d.customerId = d.customerId || d.customer_id || '';
     d.customerName = d.customerName || d.customer_name || '';
@@ -744,6 +770,11 @@ export const api = {
       request<{ access: string; refresh: string; user: any }>('/auth/login/', {
         method: 'POST',
         body: JSON.stringify(credentials),
+      }),
+    logout: (data?: { refresh?: string }) =>
+      request<{ success: boolean; message: string }>('/auth/logout/', {
+        method: 'POST',
+        body: JSON.stringify(data || {}),
       }),
     me: () => request<any>('/auth/me/'),
     changePassword: (data: { oldPassword: string; newPassword: string }) =>

@@ -59,6 +59,11 @@ export default function EnquiriesRegisterPage() {
   const [contactPerson, setContactPerson] = useState('');
   const [contactMobile, setContactMobile] = useState('');
   const [machineProduct, setMachineProduct] = useState('');
+  const [machineType, setMachineType] = useState('');
+  const [application, setApplication] = useState('');
+  const [capacity, setCapacity] = useState('');
+  const [materialGrade, setMaterialGrade] = useState('');
+  const [budget, setBudget] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [specification, setSpecification] = useState('');
   const [requirement, setRequirement] = useState('');
@@ -81,6 +86,10 @@ export default function EnquiriesRegisterPage() {
       setContactPerson(lead.contactPerson || '');
       setContactMobile(lead.mobile || '');
       setMachineProduct(lead.productName || '');
+      setMachineType(lead.machineType || '');
+      setApplication(lead.application || '');
+      setCapacity(lead.capacity || '');
+      setBudget(lead.budget ? Number(lead.budget) : 0);
       setQuantity(lead.quantity || 1);
       setSpecification(lead.capacity ? `Capacity: ${lead.capacity} (${lead.machineType || 'Industrial Equipment'})` : (lead.machineType || ''));
       setRequirement(lead.requirementDescription || `Customer requirement for ${lead.productName}`);
@@ -100,6 +109,11 @@ export default function EnquiriesRegisterPage() {
     setContactPerson('');
     setContactMobile('');
     setMachineProduct('');
+    setMachineType('');
+    setApplication('');
+    setCapacity('');
+    setMaterialGrade('');
+    setBudget(0);
     setQuantity(1);
     setSpecification('');
     setRequirement('');
@@ -119,6 +133,11 @@ export default function EnquiriesRegisterPage() {
     setContactPerson(enq.contactPerson || '');
     setContactMobile(enq.contactMobile || '');
     setMachineProduct(enq.machineProduct || '');
+    setMachineType(enq.machineType || '');
+    setApplication(enq.application || '');
+    setCapacity(enq.capacity || '');
+    setMaterialGrade(enq.materialGrade || '');
+    setBudget(enq.budget ? Number(enq.budget) : 0);
     setQuantity(enq.quantity || 1);
     setSpecification(enq.specification || '');
     setRequirement(enq.requirement || '');
@@ -149,6 +168,11 @@ export default function EnquiriesRegisterPage() {
           contactPerson: contactPerson.trim(),
           contactMobile: contactMobile.trim(),
           machineProduct: machineProduct.trim(),
+          machineType: machineType.trim() || undefined,
+          application: application.trim() || undefined,
+          capacity: capacity.trim() || undefined,
+          materialGrade: materialGrade.trim() || undefined,
+          budget: Number(budget) || undefined,
           quantity: Number(quantity) || 1,
           specification: specification.trim(),
           requirement: requirement.trim() || `Enquiry for ${machineProduct.trim()}`,
@@ -166,6 +190,11 @@ export default function EnquiriesRegisterPage() {
           contactPerson: contactPerson.trim(),
           contactMobile: contactMobile.trim(),
           machineProduct: machineProduct.trim(),
+          machineType: machineType.trim() || undefined,
+          application: application.trim() || undefined,
+          capacity: capacity.trim() || undefined,
+          materialGrade: materialGrade.trim() || undefined,
+          budget: Number(budget) || undefined,
           quantity: Number(quantity) || 1,
           specification: specification.trim(),
           requirement: requirement.trim() || `Enquiry for ${machineProduct.trim()}`,
@@ -271,11 +300,21 @@ export default function EnquiriesRegisterPage() {
       exportValue: (e) => `${e.machineProduct} (Qty: ${e.quantity || 1})`,
       cell: (e) => (
         <div className="space-y-0.5 max-w-[260px]">
-          <div className="font-bold text-[#211B17] flex items-center gap-1.5">
+          <div className="font-bold text-[#211B17] flex items-center gap-1.5 flex-wrap">
             <span className="truncate" title={e.machineProduct}>{e.machineProduct}</span>
             <span className="px-1.5 py-0.2 bg-[#FAF7F2] text-[#75401F] border border-[#E7DED5] rounded text-[10px] font-bold shrink-0">
               Qty: {e.quantity || 1}
             </span>
+            {e.capacity && (
+              <span className="px-1.5 py-0.2 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded text-[9px] font-mono font-bold shrink-0">
+                {e.capacity}
+              </span>
+            )}
+            {e.materialGrade && (
+              <span className="px-1.5 py-0.2 bg-blue-50 text-blue-800 border border-blue-200 rounded text-[9px] font-mono font-bold shrink-0">
+                {e.materialGrade}
+              </span>
+            )}
           </div>
           {e.specification && (
             <div className="text-[10px] text-[#70665F] line-clamp-1" title={e.specification}>
@@ -644,6 +683,66 @@ export default function EnquiriesRegisterPage() {
                       </option>
                     ))}
                   </select>
+                </div>
+              </div>
+
+              {/* Manufacturing & Equipment Technical Specs */}
+              <div className="p-3 bg-[#FAF7F2] border border-[#E7DED5] rounded-xl space-y-2.5">
+                <h4 className="font-bold text-[#75401F] text-xs">Manufacturing & Metallurgy Specifications</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#70665F] mb-1">Machine / Vessel Type</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Reaction Vessel / Heat Exchanger"
+                      value={machineType}
+                      onChange={(e) => setMachineType(e.target.value)}
+                      className="w-full px-2.5 py-1.5 bg-white border border-[#E7DED5] rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#70665F] mb-1">Capacity / Size</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 10 KL / 2000 mm Dia"
+                      value={capacity}
+                      onChange={(e) => setCapacity(e.target.value)}
+                      className="w-full px-2.5 py-1.5 bg-white border border-[#E7DED5] rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#70665F] mb-1">Material Grade (MOC)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. SS316L / Hastelloy C-276"
+                      value={materialGrade}
+                      onChange={(e) => setMaterialGrade(e.target.value)}
+                      className="w-full px-2.5 py-1.5 bg-white border border-[#E7DED5] rounded-lg text-xs"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#70665F] mb-1">Application / Industry</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Pharma API / Agrochemical"
+                      value={application}
+                      onChange={(e) => setApplication(e.target.value)}
+                      className="w-full px-2.5 py-1.5 bg-white border border-[#E7DED5] rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#70665F] mb-1">Estimated Budget (₹)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      placeholder="0"
+                      value={budget || ''}
+                      onChange={(e) => setBudget(Number(e.target.value) || 0)}
+                      className="w-full px-2.5 py-1.5 bg-white border border-[#E7DED5] rounded-lg text-xs font-mono font-bold text-emerald-700"
+                    />
+                  </div>
                 </div>
               </div>
 

@@ -10,7 +10,7 @@ import { useERP } from '../../context/ERPContext';
 import { ShieldAlert, ArrowLeft, Home } from 'lucide-react';
 
 function isRouteAllowed(pathname: string, currentUser: any): boolean {
-  if (!pathname || pathname === '/' || pathname === '/login' || pathname === '/forgot-password') {
+  if (!pathname || pathname === '/login' || pathname === '/forgot-password') {
     return true;
   }
 
@@ -33,21 +33,9 @@ function isRouteAllowed(pathname: string, currentUser: any): boolean {
     currentUser?.role_type === 'super_admin' ||
     currentUser?.roleName === 'Super Admin' ||
     currentUser?.role === 'Super Admin' ||
-    currentUser?.username === 'admin' ||
-    currentUser?.username === 'rajesh.admin';
+    currentUser?.username === 'admin';
 
-  const isAdminOrFamily =
-    isSuperAdmin ||
-    currentUser?.roleType === 'admin' ||
-    currentUser?.role_type === 'admin' ||
-    currentUser?.isFamilyMember === true ||
-    currentUser?.is_family_member === true ||
-    (typeof currentUser?.roleName === 'string' && currentUser.roleName.toLowerCase().includes('admin')) ||
-    (typeof currentUser?.role === 'string' && currentUser.role.toLowerCase().includes('admin')) ||
-    (typeof currentUser?.designation === 'string' && currentUser.designation.toLowerCase().includes('super admin')) ||
-    (typeof currentUser?.designation === 'string' && currentUser.designation.toLowerCase().includes('managing director'));
-
-  if (isAdminOrFamily) {
+  if (isSuperAdmin) {
     return true;
   }
 
@@ -64,7 +52,7 @@ function isRouteAllowed(pathname: string, currentUser: any): boolean {
     if (Array.isArray(assigned)) {
       return assigned.some((m: string) => {
         const clean = (m || '').toLowerCase().trim();
-        return clean === 'settings' || clean === 'foundation' || clean === 'admin';
+        return clean === 'settings' || clean === 'foundation' || clean === 'admin' || clean === 'users';
       });
     }
     return false;
@@ -155,7 +143,7 @@ function getPrimaryHref(currentUser: any): string {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { currentUser } = useERP();
+  const { currentUser, isAuthenticated } = useERP();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -163,6 +151,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   const isAuthPage = pathname === '/login' || pathname === '/forgot-password';
+
+  // Strict Authentication Guard: Unauthenticated users on protected routes are redirected immediately
+  useEffect(() => {
+    if (isMounted && !isAuthPage && !isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isMounted, isAuthPage, isAuthenticated, router]);
 
   if (isAuthPage) {
     return (
@@ -172,8 +167,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Pre-mount / SSR always renders children to match server HTML and eliminate hydration crash!
-  const allowed = !isMounted || isRouteAllowed(pathname, currentUser);
+  // If not authenticated on a protected route, render clean branded splash screen while redirecting
+  if (!isMounted || !isAuthenticated) {
+    return (
+      <div className="min-h-screen w-screen bg-[#FAF7F2] flex flex-col items-center justify-center font-sans antialiased">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-white border border-[#E7DED5] shadow-lg flex items-center justify-center">
+            <div className="w-6 h-6 border-2 border-[#75401F] border-t-transparent rounded-full animate-spin" />
+          </div>
+          <p className="text-xs font-semibold text-[#75401F] tracking-wide">
+            {!isAuthenticated ? 'Redirecting to Login...' : 'Initializing UmaERP...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const allowed = isRouteAllowed(pathname, currentUser);
   const primaryHref = getPrimaryHref(currentUser);
 
   return (

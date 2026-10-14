@@ -25,12 +25,15 @@ import {
 } from 'lucide-react';
 
 export default function VisitsPage() {
-  const { siteVisits, addSiteVisit, updateSiteVisit, deleteSiteVisit, customers, leads, employees } = useERP();
+  const { siteVisits, addSiteVisit, updateSiteVisit, deleteSiteVisit, customers, leads, enquiries, employees } = useERP();
 
   const [showModal, setShowModal] = useState(false);
   const [viewingVisit, setViewingVisit] = useState<SiteVisit | null>(null);
   const [editingVisit, setEditingVisit] = useState<SiteVisit | null>(null);
 
+  const [targetType, setTargetType] = useState<'customer' | 'lead' | 'enquiry'>('customer');
+  const [leadId, setLeadId] = useState('');
+  const [enquiryId, setEnquiryId] = useState('');
   const [customerId, setCustomerId] = useState(customers[0]?.id || '');
   const [customerName, setCustomerName] = useState(customers[0]?.companyName || '');
   const [contactPerson, setContactPerson] = useState(customers[0]?.contactPerson || '');
@@ -41,6 +44,10 @@ export default function VisitsPage() {
   const [purpose, setPurpose] = useState('');
   const [discussionNotes, setDiscussionNotes] = useState('');
   const [requirementDetails, setRequirementDetails] = useState('');
+  const [siteMeasurements, setSiteMeasurements] = useState('');
+  const [operatingConditions, setOperatingConditions] = useState('');
+  const [technicalObservations, setTechnicalObservations] = useState('');
+  const [pendingClarifications, setPendingClarifications] = useState('');
   const [outcome, setOutcome] = useState<SiteVisit['outcome']>('positive');
   const [nextAction, setNextAction] = useState('');
   const [nextFollowUpDate, setNextFollowUpDate] = useState('');
@@ -63,7 +70,9 @@ export default function VisitsPage() {
     const emp = employees.find((e) => e.id === employeeId);
 
     addSiteVisit({
-      customerId,
+      customerId: targetType === 'customer' ? customerId : undefined,
+      leadId: targetType === 'lead' ? leadId : undefined,
+      enquiryId: targetType === 'enquiry' ? enquiryId : undefined,
       customerName: cust?.companyName || customerName || 'Valued Customer',
       contactPerson,
       contactMobile,
@@ -74,6 +83,10 @@ export default function VisitsPage() {
       purpose,
       discussionNotes,
       requirementDetails,
+      siteMeasurements: siteMeasurements.trim() || undefined,
+      operatingConditions: operatingConditions.trim() || undefined,
+      technicalObservations: technicalObservations.trim() || undefined,
+      pendingClarifications: pendingClarifications.trim() || undefined,
       outcome,
       nextAction,
       nextFollowUpDate: nextFollowUpDate || undefined,
@@ -83,6 +96,10 @@ export default function VisitsPage() {
     setPurpose('');
     setDiscussionNotes('');
     setRequirementDetails('');
+    setSiteMeasurements('');
+    setOperatingConditions('');
+    setTechnicalObservations('');
+    setPendingClarifications('');
     setNextAction('');
     setNextFollowUpDate('');
     setShowModal(false);
@@ -258,34 +275,124 @@ export default function VisitsPage() {
             </div>
 
             <form onSubmit={handleCreate} className="space-y-3.5 text-xs">
+              {/* Target Entity Selector */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Customer / Client *</label>
+                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Target Account / Entity</label>
                   <select
-                    value={customerId}
-                    onChange={(e) => handleCustomerChange(e.target.value)}
+                    value={targetType}
+                    onChange={(e) => {
+                      const t = e.target.value as 'customer' | 'lead' | 'enquiry';
+                      setTargetType(t);
+                      if (t === 'customer' && customers[0]) {
+                        handleCustomerChange(customers[0].id);
+                      } else if (t === 'lead' && leads[0]) {
+                        setLeadId(leads[0].id);
+                        setCustomerName(leads[0].companyName);
+                        setContactPerson(leads[0].contactPerson || '');
+                        setContactMobile(leads[0].mobile || '');
+                        setLocation(leads[0].city || 'Client Site');
+                      } else if (t === 'enquiry' && enquiries[0]) {
+                        setEnquiryId(enquiries[0].id);
+                        setCustomerName(enquiries[0].customerName);
+                        setContactPerson(enquiries[0].contactPerson || '');
+                        setContactMobile(enquiries[0].contactMobile || '');
+                      }
+                    }}
                     className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-semibold text-[#211B17]"
                   >
-                    {customers.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.companyName}
-                      </option>
-                    ))}
+                    <option value="customer">Existing Customer</option>
+                    <option value="lead">Sales Lead</option>
+                    <option value="enquiry">Technical Inquiry (RFQ)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Visiting Engineer *</label>
-                  <select
-                    value={employeeId}
-                    onChange={(e) => setEmployeeId(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
-                  >
-                    {employees.map((emp) => (
-                      <option key={emp.id} value={emp.id}>
-                        {emp.firstName} {emp.lastName} ({emp.designation || 'Engineer'})
-                      </option>
-                    ))}
-                  </select>
+                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Select Record</label>
+                  {targetType === 'customer' && (
+                    <select
+                      value={customerId}
+                      onChange={(e) => handleCustomerChange(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-semibold text-[#211B17]"
+                    >
+                      {customers.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.companyName}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  {targetType === 'lead' && (
+                    <select
+                      value={leadId}
+                      onChange={(e) => {
+                        const lId = e.target.value;
+                        setLeadId(lId);
+                        const l = leads.find((x) => x.id === lId);
+                        if (l) {
+                          setCustomerName(l.companyName);
+                          setContactPerson(l.contactPerson || '');
+                          setContactMobile(l.mobile || '');
+                          setLocation(l.city || 'Client Site');
+                        }
+                      }}
+                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-semibold text-[#211B17]"
+                    >
+                      {leads.map((l) => (
+                        <option key={l.id} value={l.id}>
+                          {l.companyName} ({l.leadNo})
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  {targetType === 'enquiry' && (
+                    <select
+                      value={enquiryId}
+                      onChange={(e) => {
+                        const enId = e.target.value;
+                        setEnquiryId(enId);
+                        const en = enquiries.find((x) => x.id === enId);
+                        if (en) {
+                          setCustomerName(en.customerName);
+                          setContactPerson(en.contactPerson || '');
+                          setContactMobile(en.contactMobile || '');
+                        }
+                      }}
+                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-semibold text-[#211B17]"
+                    >
+                      {enquiries.map((en) => (
+                        <option key={en.id} value={en.id}>
+                          {en.enquiryNo || en.id} - {en.customerName}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              </div>
+
+              {/* Manufacturing Site Specifics */}
+              <div className="p-3 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl space-y-2">
+                <h4 className="font-bold text-[#544B45] text-xs">Technical Site Measurements & Utility Conditions</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[11px] text-[#70665F] font-medium mb-1">Site Measurements / Dimensions</label>
+                    <input
+                      type="text"
+                      value={siteMeasurements}
+                      onChange={(e) => setSiteMeasurements(e.target.value)}
+                      placeholder="e.g. Bay height 8m, crane capacity 10 Ton, door clearance 4m"
+                      className="w-full px-2.5 py-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-[#70665F] font-medium mb-1">Operating / Utility Conditions</label>
+                    <input
+                      type="text"
+                      value={operatingConditions}
+                      onChange={(e) => setOperatingConditions(e.target.value)}
+                      placeholder="e.g. 3-Phase 415V, Cooling water 4 bar, Compressed air 6 bar"
+                      className="w-full px-2.5 py-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -480,6 +587,25 @@ export default function VisitsPage() {
                   <p className="text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
                     {viewingVisit.requirementDetails}
                   </p>
+                </div>
+              )}
+
+              {/* Technical Measurements & Utility Conditions */}
+              {(viewingVisit.siteMeasurements || viewingVisit.operatingConditions) && (
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-[11px]">
+                  <strong className="block text-slate-800 font-semibold">Technical Site Inspection Findings:</strong>
+                  {viewingVisit.siteMeasurements && (
+                    <div>
+                      <span className="text-[#70665F] block text-[10px]">Site Measurements / Clearances</span>
+                      <p className="text-slate-800 font-mono">{viewingVisit.siteMeasurements}</p>
+                    </div>
+                  )}
+                  {viewingVisit.operatingConditions && (
+                    <div>
+                      <span className="text-[#70665F] block text-[10px]">Plant Utilities & Operating Conditions</span>
+                      <p className="text-slate-800 font-mono">{viewingVisit.operatingConditions}</p>
+                    </div>
+                  )}
                 </div>
               )}
 

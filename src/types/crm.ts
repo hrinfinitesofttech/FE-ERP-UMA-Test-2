@@ -190,12 +190,16 @@ export interface Lead {
   budget: number;
   priority: PriorityLevel;
   source: LeadSource;
+  exhibitionId?: string;
+  exhibitionName?: string;
   assignedSalesPersonId: string;
   assignedSalesPersonName: string;
   status: LeadStatus;
   nextFollowUpDate?: string;
   remarks?: string;
   createdDate: string;
+  createdAt?: string;
+  created_at?: string;
   convertedCustomerId?: string;
   convertedEnquiryId?: string;
   convertedOpportunityId?: string;
@@ -218,7 +222,9 @@ export interface FollowUp {
   followUpNo: string;
   leadOrCustomerId: string;
   leadOrCustomerName: string;
-  entityType: 'lead' | 'customer' | 'opportunity';
+  entityType: 'lead' | 'customer' | 'opportunity' | 'enquiry' | 'quotation';
+  enquiryId?: string;
+  quotationId?: string;
   type: 'call' | 'whatsapp' | 'email' | 'meeting' | 'visit';
   assignedToId: string;
   assignedToName: string;
@@ -229,14 +235,18 @@ export interface FollowUp {
   notes: string;
   nextFollowUpDate?: string;
   status: 'pending' | 'completed' | 'rescheduled' | 'cancelled';
+  outcome?: string;
+  customerResponse?: string;
   completedNotes?: string;
 }
 
 export interface SiteVisit {
   id: string; // e.g. VST-2026-0001
   visitNo: string;
-  customerId: string;
+  customerId?: string;
   customerName: string;
+  leadId?: string;
+  enquiryId?: string;
   contactPerson: string;
   contactMobile: string;
   visitDate: string;
@@ -246,9 +256,15 @@ export interface SiteVisit {
   purpose: string;
   discussionNotes: string;
   requirementDetails: string;
+  siteMeasurements?: string;
+  operatingConditions?: string;
+  technicalObservations?: string;
+  pendingClarifications?: string;
+  attachments?: string[];
   outcome: 'positive' | 'follow_up_required' | 'quotation_required' | 'not_interested' | 'order_expected';
   nextAction: string;
   nextFollowUpDate?: string;
+  status?: string;
 }
 
 export interface Exhibition {
@@ -256,11 +272,16 @@ export interface Exhibition {
   expoName: string;
   organizer: string;
   location: string;
+  venue?: string;
+  city?: string;
+  country?: string;
+  participationStatus?: string;
   startDate: string;
   endDate: string;
   stallNumber: string;
   contactPerson: string;
   budget: number;
+  actualExpenses?: number;
   assignedTeam: string[];
   productsDisplayed: string;
   notes: string;
@@ -282,13 +303,25 @@ export interface Enquiry {
   enquiryDate: string;
   requirement: string;
   machineProduct: string;
+  machineType?: string;
+  application?: string;
+  capacity?: string;
+  materialGrade?: string;
   quantity: number;
+  unitOfMeasure?: string;
+  operatingConditions?: string;
+  budget?: number;
   specification: string;
+  technicalClarifications?: string;
+  attachments?: any[];
+  remarks?: string;
   expectedDelivery: string;
   assignedPersonId: string;
   assignedPersonName: string;
   status: 'new' | 'under_review' | 'requirement_pending' | 'technical_review' | 'quotation_ready' | 'quotation_sent' | 'converted' | 'closed';
   quotationId?: string;
+  createdAt?: string;
+  created_at?: string;
 }
 
 export interface Customer {
@@ -317,6 +350,8 @@ export interface Customer {
   category: 'platinum' | 'gold' | 'silver' | 'standard';
   assignedSalesPerson: string;
   createdDate: string;
+  createdAt?: string;
+  created_at?: string;
 }
 
 export interface Contact {

@@ -103,22 +103,7 @@ export function Sidebar() {
     currentUser?.role_type === 'super_admin' ||
     currentUser?.roleName === 'Super Admin' ||
     currentUser?.role === 'Super Admin' ||
-    currentUser?.username === 'admin' ||
-    currentUser?.username === 'rajesh.admin' ||
-    currentUser?.roleType === 'admin' ||
-    currentUser?.role_type === 'admin' ||
-    currentUser?.isFamilyMember === true ||
-    currentUser?.is_family_member === true ||
-    (typeof currentUser?.roleName === 'string' && currentUser.roleName.toLowerCase().includes('admin')) ||
-    (typeof currentUser?.role === 'string' && currentUser.role.toLowerCase().includes('admin')) ||
-    (typeof currentUser?.designation === 'string' && currentUser.designation.toLowerCase().includes('super admin')) ||
-    (typeof currentUser?.designation === 'string' && currentUser.designation.toLowerCase().includes('managing director'));
-
-  const isSuperAdminOrAdmin =
-    isSuperAdmin ||
-    currentUser?.roleType === 'admin' ||
-    currentUser?.role_type === 'admin' ||
-    currentUser?.isFamilyMember;
+    currentUser?.username === 'admin';
 
   const hasModule = (moduleKey: string) => {
     const cleanK = moduleKey.toLowerCase().trim();
@@ -323,6 +308,19 @@ export function Sidebar() {
                     <span suppressHydrationWarning className="px-1.5 py-0.2 rounded-full bg-crm-brand-100 text-crm-brand-800 font-mono text-[9px] font-bold border border-crm-brand-200">
                       {leads.length}
                     </span>
+                  </div>
+                )}
+              </Link>
+              <Link href="/crm/enquiries" className={subNavItemClass('/crm/enquiries')}>
+                <ClipboardList className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                {!sidebarCollapsed && (
+                  <div className="flex items-center justify-between w-full">
+                    <span>Inquiries</span>
+                    {enquiries.length > 0 && (
+                      <span suppressHydrationWarning className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                        {enquiries.length}
+                      </span>
+                    )}
                   </div>
                 )}
               </Link>

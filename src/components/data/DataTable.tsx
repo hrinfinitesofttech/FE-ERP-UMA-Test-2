@@ -53,6 +53,14 @@ export function DataTable<T extends Record<string, any>>({
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(pageSizeDefault);
 
+  const prevDataLengthRef = React.useRef(data.length);
+  React.useEffect(() => {
+    if (data.length > prevDataLengthRef.current) {
+      setCurrentPage(1);
+    }
+    prevDataLengthRef.current = data.length;
+  }, [data.length]);
+
   // Sort records descending by latest entry (ORDER BY 1 DESC)
   const sortedData = React.useMemo(() => sortByLatestDesc(data), [data]);
 

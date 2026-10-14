@@ -33,7 +33,7 @@ import {
 export default function LeadDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { leads, updateLead, deleteLead, convertLeadToCustomer, convertLeadToEnquiry, followUps, addFollowUp, siteVisits, addSiteVisit, quotations, employees, availableEmployees } = useERP();
+  const { leads, updateLead, deleteLead, convertLeadToCustomer, convertLeadToEnquiry, enquiries, addEnquiry, followUps, addFollowUp, siteVisits, addSiteVisit, quotations, employees, availableEmployees } = useERP();
 
   const allEmployees =
     availableEmployees && availableEmployees.length > 0
@@ -74,7 +74,7 @@ export default function LeadDetailPage() {
   }
 
   const todayStr = new Date().toISOString().split('T')[0];
-  const [activeTab, setActiveTab] = useState<'timeline' | 'followups' | 'visits' | 'quotations' | 'specs'>('timeline');
+  const [activeTab, setActiveTab] = useState<'timeline' | 'enquiries' | 'followups' | 'visits' | 'quotations' | 'specs'>('timeline');
   const [newNote, setNewNote] = useState('');
   const [convertSuccess, setConvertSuccess] = useState('');
 
@@ -231,6 +231,13 @@ export default function LeadDetailPage() {
     setShowFlwModal(false);
   };
 
+  const relatedEnquiries = enquiries.filter(
+    (e) =>
+      e.leadId === lead.id ||
+      e.leadId === lead.leadNo ||
+      e.id === lead.convertedEnquiryId ||
+      (e.customerName && lead.companyName && e.customerName.toLowerCase() === lead.companyName.toLowerCase())
+  );
   const relatedFollowUps = followUps.filter(
     (f) =>
       f.leadOrCustomerId === lead.id ||
@@ -270,6 +277,15 @@ export default function LeadDetailPage() {
               <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-[#FAF7F2] font-mono text-[10px] uppercase font-bold text-slate-600 dark:text-[#70665F]">
                 Source: {lead.source?.replace('_', ' ')}
               </span>
+              {lead.exhibitionName && (
+                <Link
+                  href="/crm/exhibitions"
+                  className="px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-mono text-[10px] uppercase font-bold hover:bg-amber-100 transition"
+                  title="View linked Trade Show / Exhibition"
+                >
+                  Expo: {lead.exhibitionName}
+                </Link>
+              )}
             </div>
             <h1 className="text-lg font-bold text-slate-900 dark:text-[#211B17] mt-1">{lead.companyName}</h1>
             <p className="text-[#70665F]">{lead.productName} • Quantity: {lead.quantity}</p>
@@ -380,9 +396,10 @@ export default function LeadDetailPage() {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex border-b border-slate-200 dark:border-[#EBE3DB] space-x-2 font-medium">
+      <div className="flex border-b border-slate-200 dark:border-[#EBE3DB] space-x-2 font-medium overflow-x-auto">
         {[
           { id: 'timeline', label: '360° Activity Timeline', icon: Clock },
+          { id: 'enquiries', label: `Inquiries (${relatedEnquiries.length})`, icon: ClipboardList },
           { id: 'followups', label: `Follow-ups (${relatedFollowUps.length})`, icon: PhoneCall },
           { id: 'visits', label: `Site Visits (${relatedVisits.length})`, icon: MapPin },
           { id: 'quotations', label: `Quotations (${relatedQuotations.length})`, icon: FileCheck2 },
@@ -394,7 +411,7 @@ export default function LeadDetailPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-1.5 py-2.5 px-3.5 border-b-2 transition ${
+              className={`flex items-center gap-1.5 py-2.5 px-3.5 border-b-2 transition whitespace-nowrap ${
                 isActive
                   ? 'border-crm-brand-700 text-crm-brand-700 font-bold'
                   : 'border-transparent text-[#70665F] hover:text-slate-800'
@@ -409,6 +426,65 @@ export default function LeadDetailPage() {
 
       {/* Tab Body */}
       <div className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl p-5 shadow-sm space-y-4">
+        {activeTab === 'enquiries' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Technical Inquiries (RFQs)</h3>
+                <p className="text-[11px] text-[#70665F]">Formal engineering requirements and machine specifications linked to this lead.</p>
+              </div>
+              <button
+                onClick={handleConvertToEnquiry}
+                className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold flex items-center gap-1.5 transition shadow-2xs cursor-pointer text-xs"
+              >
+                <ClipboardList className="w-3.5 h-3.5" />
+                <span>+ Create Technical Inquiry</span>
+              </button>
+            </div>
+
+            {relatedEnquiries.length === 0 ? (
+              <div className="p-8 text-center text-[#70665F] bg-[#FAF7F2]/50 rounded-xl border border-dashed border-[#EBE3DB]">
+                <p className="font-medium">No formal inquiries registered for this lead yet.</p>
+                <p className="text-[11px] mt-1">Click &ldquo;+ Create Technical Inquiry&rdquo; above to generate a machine specification RFQ.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {relatedEnquiries.map((enq) => (
+                  <div key={enq.id} className="p-4 bg-slate-50 dark:bg-[#FAF7F2]/60 rounded-xl border border-[#EBE3DB] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-mono font-bold text-xs bg-amber-100 text-amber-900 px-2 py-0.5 rounded border border-amber-300">
+                          {enq.enquiryNo || enq.id}
+                        </span>
+                        <StatusBadge status={enq.status as any} />
+                        {enq.expectedDelivery && (
+                          <span className="text-[10px] text-[#70665F] font-mono">
+                            Target Delivery: {formatDate(enq.expectedDelivery)}
+                          </span>
+                        )}
+                      </div>
+                      <span className="font-bold text-sm text-slate-900 dark:text-[#211B17] block">
+                        {enq.machineProduct} (Qty: {enq.quantity || 1})
+                      </span>
+                      {enq.specification && (
+                        <p className="text-[#70665F] text-[11px]">{enq.specification}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Link
+                        href={`/crm/quotations/new?leadId=${lead.id}&enquiryId=${enq.id}&customerId=${lead.convertedCustomerId || ''}`}
+                        className="px-3 py-1.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-lg font-bold text-xs flex items-center gap-1 transition shadow-xs"
+                      >
+                        <FileCheck2 className="w-3.5 h-3.5" />
+                        <span>Create Quotation</span>
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         {activeTab === 'timeline' && (
           <div className="space-y-4">
             <h3 className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Live 360° Lead Activity Trail</h3>

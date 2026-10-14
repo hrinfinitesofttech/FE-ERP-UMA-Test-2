@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useERP } from '../../../context/ERPContext';
 import { DataTable, Column } from '../../../components/data/DataTable';
 import { Exhibition } from '../../../types/crm';
@@ -20,11 +21,13 @@ import {
   MapPin,
   CheckCircle,
   FileText,
-  Briefcase
+  Briefcase,
+  ExternalLink,
+  UserPlus
 } from 'lucide-react';
 
 export default function ExhibitionsPage() {
-  const { exhibitions, addExhibition, updateExhibition, deleteExhibition, employees } = useERP();
+  const { exhibitions, addExhibition, updateExhibition, deleteExhibition, employees, leads } = useERP();
   
   // Modals
   const [showModal, setShowModal] = useState(false);
@@ -193,11 +196,15 @@ export default function ExhibitionsPage() {
     },
     {
       header: 'Total Leads Captured',
-      cell: (expo) => (
-        <span className="px-2.5 py-1 rounded-md bg-sky-50 text-sky-800 border border-sky-200 font-mono font-bold text-xs">
-          {expo.totalContacts || 0} Contacts
-        </span>
-      ),
+      cell: (expo) => {
+        const liveCount = leads.filter((l) => l.exhibitionId === expo.id || l.exhibitionName === expo.expoName).length;
+        const count = liveCount > 0 ? liveCount : (expo.totalContacts || 0);
+        return (
+          <span className="px-2.5 py-1 rounded-md bg-sky-50 text-sky-800 border border-sky-200 font-mono font-bold text-xs">
+            {count} Leads
+          </span>
+        );
+      },
     },
     {
       header: 'Qualified Capex Deals',
@@ -219,9 +226,16 @@ export default function ExhibitionsPage() {
       header: 'Actions',
       cell: (expo) => (
         <div className="flex items-center gap-1.5">
+          <Link
+            href={`/crm/leads/new?source=exhibition&expoId=${expo.id}&expoName=${encodeURIComponent(expo.expoName)}`}
+            title="+ Add Lead from this Expo"
+            className="p-1.5 text-emerald-700 hover:text-emerald-900 hover:bg-emerald-50 rounded-lg transition"
+          >
+            <UserPlus className="w-4 h-4" />
+          </Link>
           <button
             onClick={() => openViewModal(expo)}
-            title="View Details"
+            title="View Details & Linked Leads"
             className="p-1.5 text-slate-500 hover:text-[#5C3A21] hover:bg-[#FAF7F2] rounded-lg transition"
           >
             <Eye className="w-4 h-4" />
@@ -740,6 +754,54 @@ export default function ExhibitionsPage() {
                   <p className="text-slate-700 bg-slate-50 p-2.5 rounded-lg">{selectedExpo.notes}</p>
                 </div>
               )}
+
+              {/* Linked Leads Section */}
+              <div className="pt-3 border-t border-slate-100 space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                    <Users className="w-4 h-4 text-crm-brand-700" />
+                    Linked Leads from this Trade Show ({leads.filter((l) => l.exhibitionId === selectedExpo.id || l.exhibitionName === selectedExpo.expoName).length})
+                  </h4>
+                  <Link
+                    href={`/crm/leads/new?source=exhibition&expoId=${selectedExpo.id}&expoName=${encodeURIComponent(selectedExpo.expoName)}`}
+                    className="px-2.5 py-1 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-lg font-bold text-[11px] flex items-center gap-1 transition"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>+ Add Lead from Expo</span>
+                  </Link>
+                </div>
+
+                {(() => {
+                  const linkedLeads = leads.filter((l) => l.exhibitionId === selectedExpo.id || l.exhibitionName === selectedExpo.expoName);
+                  if (linkedLeads.length === 0) {
+                    return (
+                      <p className="text-[#70665F] text-[11px] bg-slate-50 p-3 rounded-lg text-center">
+                        No leads recorded for this exhibition yet. Click &ldquo;+ Add Lead from Expo&rdquo; to register visitor cards.
+                      </p>
+                    );
+                  }
+                  return (
+                    <div className="max-h-48 overflow-y-auto divide-y divide-slate-100 rounded-lg border border-slate-200 bg-slate-50/50">
+                      {linkedLeads.map((l) => (
+                        <div key={l.id} className="p-2.5 flex items-center justify-between gap-2 text-xs hover:bg-slate-50">
+                          <div>
+                            <Link href={`/crm/leads/${l.id}`} className="font-bold text-slate-900 hover:text-crm-brand-700 flex items-center gap-1">
+                              <span>{l.companyName}</span>
+                              <ExternalLink className="w-3 h-3 text-[#70665F]" />
+                            </Link>
+                            <span className="text-[10px] text-[#70665F]">
+                              {l.contactPerson} • {l.mobile} • {l.productName}
+                            </span>
+                          </div>
+                          <span className="px-2 py-0.5 rounded font-mono text-[9px] font-bold uppercase bg-amber-100 text-amber-800">
+                            {l.status}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
 
             <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">

@@ -1,23 +1,58 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { useERP } from '../../../context/ERPContext';
 import { DataTable, Column } from '../../../components/data/DataTable';
 import { FollowUp } from '../../../types/crm';
 import { formatDate } from '../../../lib/utils';
-import { PhoneCall, CheckCircle2, Clock, AlertTriangle, MessageSquare, Plus, X, AlertCircle, Calendar } from 'lucide-react';
+import {
+  PhoneCall,
+  CheckCircle2,
+  Clock,
+  AlertTriangle,
+  MessageSquare,
+  Plus,
+  X,
+  AlertCircle,
+  Calendar,
+  ExternalLink,
+  Send,
+  Building,
+  Filter,
+  Search,
+  Phone,
+  FileCheck2,
+  ClipboardList,
+  User,
+} from 'lucide-react';
 
 export default function FollowUpsPage() {
-  const { followUps, completeFollowUp, addFollowUp, customers, leads, employees, availableEmployees } = useERP();
-  const [viewFilter, setViewFilter] = useState<'all' | 'today' | 'overdue'>('all');
-  
+  const {
+    followUps,
+    completeFollowUp,
+    addFollowUp,
+    customers,
+    leads,
+    enquiries,
+    quotations,
+    employees,
+    availableEmployees,
+  } = useERP();
+
+  const [viewFilter, setViewFilter] = useState<'all' | 'today' | 'upcoming' | 'overdue' | 'completed'>('today');
+  const [entityFilter, setEntityFilter] = useState<'all' | 'lead' | 'enquiry' | 'quotation' | 'customer'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
   // Modals state
   const [showAddModal, setShowAddModal] = useState(false);
   const [completeModalId, setCompleteModalId] = useState<string | null>(null);
-  
+
   // Completion modal form state
   const [completionNotes, setCompletionNotes] = useState('');
+  const [outcome, setOutcome] = useState('connected');
   const todayStr = new Date().toISOString().split('T')[0];
+  const [scheduleNext, setScheduleNext] = useState(true);
   const [nextFollowUpDate, setNextFollowUpDate] = useState(
     new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
   );
@@ -26,13 +61,15 @@ export default function FollowUpsPage() {
   // Counts
   const todayCount = followUps.filter((f) => f.date === todayStr && f.status === 'pending').length;
   const overdueCount = followUps.filter((f) => f.date < todayStr && f.status === 'pending').length;
+  const upcomingCount = followUps.filter((f) => f.date > todayStr && f.status === 'pending').length;
+  const completedCount = followUps.filter((f) => f.status === 'completed').length;
   const allCount = followUps.length;
 
   // Add Follow-up form state
   const allStaff = availableEmployees && availableEmployees.length > 0 ? availableEmployees : employees || [];
-  const [targetType, setTargetType] = useState<'lead' | 'customer'>('lead');
+  const [targetType, setTargetType] = useState<'lead' | 'enquiry' | 'quotation' | 'customer'>('lead');
   const [targetId, setTargetId] = useState(leads[0]?.id || '');
-  const [followUpType, setFollowUpType] = useState<'call' | 'email' | 'meeting' | 'whatsapp' | 'visit'>('call');
+  const [followUpType, setFollowUpType] = useState<'call' | 'whatsapp' | 'email' | 'meeting' | 'visit'>('call');
   const [scheduledDate, setScheduledDate] = useState(todayStr);
   const [scheduledTime, setScheduledTime] = useState('11:00 AM');
   const [purpose, setPurpose] = useState('');
@@ -40,23 +77,119 @@ export default function FollowUpsPage() {
   const [assignedToId, setAssignedToId] = useState(allStaff[0]?.id || 'EMP-001');
   const [addErrors, setAddErrors] = useState<Record<string, string>>({});
 
-  const filteredFollowUps = followUps.filter((f) => {
-    if (viewFilter === 'today') return f.date === todayStr && f.status === 'pending';
-    if (viewFilter === 'overdue') return f.date < todayStr && f.status === 'pending';
-    return true;
-  });
+  // Preset next date helper
+  const setQuickNextDate = (days: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    setNextFollowUpDate(d.toISOString().split('T')[0]);
+  };
+
+  // Helper to resolve entity mobile for WhatsApp click-to-chat
+  const getEntityMobile = (f: FollowUp): string => {
+    if (f.entityType === 'lead' || (!f.entityType && f.leadOrCustomerId?.startsWith('LEAD'))) {
+      const l = leads.find((x) => x.id === f.leadOrCustomerId || x.leadNo === f.leadOrCustomerId);
+      if (l) return l.whatsapp || l.mobile || '';
+    }
+    if (f.entityType === 'customer' || (!f.entityType && f.leadOrCustomerId?.startsWith('CUST'))) {
+      const c = customers.find((x) => x.id === f.leadOrCustomerId || x.customerCode === f.leadOrCustomerId);
+      if (c) return c.whatsapp || c.mobile || '';
+    }
+    if (f.entityType === 'enquiry' || f.enquiryId) {
+      const e = enquiries.find((x) => x.id === f.enquiryId || x.enquiryNo === f.enquiryId || x.id === f.leadOrCustomerId);
+      if (e) return e.contactMobile || '';
+    }
+    if (f.entityType === 'quotation' || f.quotationId) {
+      const q = quotations.find((x) => x.id === f.quotationId || x.quotationNumber === f.quotationId || x.id === f.leadOrCustomerId);
+      if (q) return q.contactMobile || '';
+    }
+    return '';
+  };
+
+  // Helper to resolve link URL for the entity
+  const getEntityLink = (f: FollowUp): string | null => {
+    if (f.entityType === 'lead') {
+      const l = leads.find((x) => x.id === f.leadOrCustomerId || x.leadNo === f.leadOrCustomerId);
+      return l ? `/crm/leads/${encodeURIComponent(l.id)}` : `/crm/leads`;
+    }
+    if (f.entityType === 'enquiry' || f.enquiryId) {
+      return `/crm/enquiries`;
+    }
+    if (f.entityType === 'quotation' || f.quotationId) {
+      const q = quotations.find((x) => x.id === f.quotationId || x.id === f.leadOrCustomerId);
+      return q ? `/crm/quotations/${q.id}` : `/crm/quotations`;
+    }
+    if (f.entityType === 'customer') {
+      return `/crm/customers`;
+    }
+    return null;
+  };
+
+  const filteredFollowUps = useMemo(() => {
+    return followUps.filter((f) => {
+      // 1. Status / Date View filter
+      if (viewFilter === 'today' && (f.date !== todayStr || f.status !== 'pending')) return false;
+      if (viewFilter === 'upcoming' && (f.date <= todayStr || f.status !== 'pending')) return false;
+      if (viewFilter === 'overdue' && (f.date >= todayStr || f.status !== 'pending')) return false;
+      if (viewFilter === 'completed' && f.status !== 'completed') return false;
+
+      // 2. Entity Filter
+      if (entityFilter !== 'all') {
+        const ent = f.entityType || 'lead';
+        if (ent !== entityFilter) return false;
+      }
+
+      // 3. Search query
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchesNo = (f.followUpNo || f.id || '').toLowerCase().includes(q);
+        const matchesName = (f.leadOrCustomerName || '').toLowerCase().includes(q);
+        const matchesPurpose = (f.purpose || '').toLowerCase().includes(q);
+        const matchesAssign = (f.assignedToName || '').toLowerCase().includes(q);
+        if (!matchesNo && !matchesName && !matchesPurpose && !matchesAssign) return false;
+      }
+
+      return true;
+    });
+  }, [followUps, viewFilter, entityFilter, searchQuery, todayStr]);
 
   const handleComplete = (id: string) => {
     if (!completionNotes.trim()) {
       setCompleteError('Discussion outcome / summary is required.');
       return;
     }
-    if (nextFollowUpDate && nextFollowUpDate < todayStr) {
+    if (scheduleNext && nextFollowUpDate && nextFollowUpDate < todayStr) {
       setCompleteError('Next follow-up date cannot be in the past.');
       return;
     }
 
-    completeFollowUp(id, completionNotes.trim(), nextFollowUpDate);
+    const currentF = followUps.find((f) => f.id === id);
+    completeFollowUp(id, completionNotes.trim(), scheduleNext ? nextFollowUpDate : undefined);
+
+    // If next follow-up requested, also schedule it explicitly if needed
+    if (scheduleNext && currentF) {
+      const assignedStaff = allStaff.find((s) => s.id === currentF.assignedToId);
+      const assignedName = assignedStaff
+        ? assignedStaff.name || `${assignedStaff.firstName || ''} ${assignedStaff.lastName || ''}`.trim()
+        : currentF.assignedToName;
+
+      addFollowUp({
+        leadOrCustomerId: currentF.leadOrCustomerId,
+        leadOrCustomerName: currentF.leadOrCustomerName,
+        entityType: currentF.entityType || 'lead',
+        enquiryId: currentF.enquiryId,
+        quotationId: currentF.quotationId,
+        type: currentF.type,
+        assignedToId: currentF.assignedToId,
+        assignedToName: assignedName,
+        date: nextFollowUpDate,
+        time: '11:00 AM',
+        priority: currentF.priority || 'medium',
+        purpose: `Follow-up after ${outcome.replace('_', ' ')}: ${completionNotes.trim().slice(0, 50)}...`,
+        notes: `Previous outcome: ${outcome}. Notes: ${completionNotes.trim()}`,
+        status: 'pending',
+      });
+    }
+
     setCompleteModalId(null);
     setCompletionNotes('');
     setCompleteError('');
@@ -84,11 +217,21 @@ export default function FollowUpsPage() {
     let targetName = 'Client';
     let customerId: string | undefined;
     let leadId: string | undefined;
+    let enquiryId: string | undefined;
+    let quotationId: string | undefined;
 
     if (targetType === 'lead') {
       const selectedLead = leads.find((l) => l.id === targetId) || leads[0];
       targetName = selectedLead ? `${selectedLead.companyName} (${selectedLead.contactPerson})` : 'New Lead';
       leadId = selectedLead?.id;
+    } else if (targetType === 'enquiry') {
+      const selectedEnq = enquiries.find((en) => en.id === targetId) || enquiries[0];
+      targetName = selectedEnq ? `${selectedEnq.customerName} - ${selectedEnq.enquiryNo || selectedEnq.machineProduct}` : 'Technical Inquiry';
+      enquiryId = selectedEnq?.id;
+    } else if (targetType === 'quotation') {
+      const selectedQuot = quotations.find((q) => q.id === targetId) || quotations[0];
+      targetName = selectedQuot ? `${selectedQuot.customerName} (${selectedQuot.quotationNumber})` : 'Formal Quotation';
+      quotationId = selectedQuot?.id;
     } else {
       const selectedCust = customers.find((c) => c.id === targetId) || customers[0];
       targetName = selectedCust ? `${selectedCust.companyName} (${selectedCust.contactPerson})` : 'Customer';
@@ -96,14 +239,20 @@ export default function FollowUpsPage() {
     }
 
     const assignedStaff = allStaff.find((s) => s.id === assignedToId);
-    const assignedName = assignedStaff ? (assignedStaff.name || `${assignedStaff.firstName || ''} ${assignedStaff.lastName || ''}`.trim()) : 'Sales Team';
+    const assignedName = assignedStaff
+      ? assignedStaff.name || `${assignedStaff.firstName || ''} ${assignedStaff.lastName || ''}`.trim()
+      : 'Sales Team';
+
+    const entityRecordId = (targetType === 'lead' ? leadId : targetType === 'enquiry' ? enquiryId : targetType === 'quotation' ? quotationId : customerId) || 'ID-001';
 
     const newFollowUpItem: FollowUp = {
       id: `FU-${Date.now()}`,
       followUpNo: `FLW-2026-${Math.floor(100 + Math.random() * 900)}`,
-      leadOrCustomerId: (targetType === 'lead' ? leadId : customerId) || 'ID-001',
+      leadOrCustomerId: entityRecordId,
       leadOrCustomerName: targetName,
       entityType: targetType,
+      enquiryId,
+      quotationId,
       type: followUpType,
       assignedToId,
       assignedToName: assignedName,
@@ -126,17 +275,57 @@ export default function FollowUpsPage() {
     {
       header: 'Follow-up #',
       accessorKey: 'followUpNo',
-      cell: (f) => <span className="font-mono font-bold text-crm-brand-700">{f.followUpNo}</span>,
-    },
-    {
-      header: 'Lead / Customer',
-      accessorKey: 'leadOrCustomerName',
-      cell: (f) => <span className="font-bold text-slate-900 dark:text-[#211B17]">{f.leadOrCustomerName}</span>,
-    },
-    {
-      header: 'Type',
       cell: (f) => (
-        <span className="px-2 py-0.5 rounded font-mono text-[10px] font-bold uppercase bg-slate-100 text-slate-700">
+        <span className="font-mono font-bold text-crm-brand-700">
+          {f.followUpNo || f.id}
+        </span>
+      ),
+    },
+    {
+      header: 'Linked Account / Entity',
+      cell: (f) => {
+        const link = getEntityLink(f);
+        const badgeColor =
+          f.entityType === 'quotation'
+            ? 'bg-purple-50 text-purple-800 border-purple-200'
+            : f.entityType === 'enquiry'
+            ? 'bg-amber-50 text-amber-800 border-amber-200'
+            : f.entityType === 'customer'
+            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+            : 'bg-blue-50 text-blue-800 border-blue-200';
+
+        return (
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className={`px-1.5 py-0.2 rounded font-mono text-[9px] uppercase font-bold border ${badgeColor}`}>
+                {f.entityType || 'lead'}
+              </span>
+              {link ? (
+                <Link
+                  href={link}
+                  className="font-bold text-slate-900 dark:text-[#211B17] hover:text-crm-brand-700 flex items-center gap-1"
+                >
+                  <span>{f.leadOrCustomerName}</span>
+                  <ExternalLink className="w-3 h-3 text-[#70665F]" />
+                </Link>
+              ) : (
+                <span className="font-bold text-slate-900 dark:text-[#211B17]">{f.leadOrCustomerName}</span>
+              )}
+            </div>
+            {f.quotationId && (
+              <span className="text-[10px] text-purple-700 font-mono block">Linked Quote: {f.quotationId}</span>
+            )}
+            {f.enquiryId && (
+              <span className="text-[10px] text-amber-700 font-mono block">Linked RFQ: {f.enquiryId}</span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      header: 'Channel',
+      cell: (f) => (
+        <span className="px-2 py-0.5 rounded font-mono text-[10px] font-bold uppercase bg-[#FAF7F2] text-[#544B45] border border-[#EBE3DB]">
           {f.type}
         </span>
       ),
@@ -145,23 +334,29 @@ export default function FollowUpsPage() {
       header: 'Scheduled Date & Time',
       cell: (f) => (
         <div className="font-mono">
-          <span className="font-semibold block">{formatDate(f.date)}</span>
+          <span className="font-semibold block text-slate-800 dark:text-[#211B17]">{formatDate(f.date)}</span>
           <span className="text-[10px] text-[#70665F]">{f.time}</span>
         </div>
       ),
     },
     {
-      header: 'Discussion Purpose & Notes',
+      header: 'Purpose & Remarks',
       cell: (f) => (
         <div className="max-w-xs">
           <span className="font-medium text-slate-800 dark:text-[#544B45] block truncate">{f.purpose}</span>
           <span className="text-[10px] text-[#70665F] block truncate">{f.notes}</span>
+          {f.outcome && (
+            <span className="mt-0.5 inline-block px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-[9px] font-bold">
+              Outcome: {f.outcome.replace('_', ' ')}
+            </span>
+          )}
         </div>
       ),
     },
     {
-      header: 'Assigned To',
+      header: 'Assigned Engineer',
       accessorKey: 'assignedToName',
+      cell: (f) => <span className="font-semibold text-slate-800 dark:text-[#544B45]">{f.assignedToName}</span>,
     },
     {
       header: 'Status',
@@ -171,95 +366,188 @@ export default function FollowUpsPage() {
             f.status === 'completed'
               ? 'bg-emerald-100 text-emerald-800'
               : f.date < todayStr
-              ? 'bg-rose-100 text-rose-800'
-              : 'bg-amber-100 text-amber-800'
+              ? 'bg-rose-100 text-rose-800 font-bold'
+              : 'bg-amber-100 text-amber-800 font-bold'
           }`}
         >
-          {f.status}
+          {f.status === 'pending' && f.date < todayStr ? 'Overdue' : f.status}
         </span>
       ),
     },
     {
       header: 'Actions',
-      cell: (f) =>
-        f.status === 'pending' ? (
-          <button
-            onClick={() => {
-              setCompleteModalId(f.id);
-              setCompletionNotes('');
-              setCompleteError('');
-            }}
-            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-bold flex items-center gap-1 cursor-pointer"
-          >
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Mark Done</span>
-          </button>
-        ) : (
-          <span className="text-[11px] text-[#70665F] font-mono">Completed</span>
-        ),
+      cell: (f) => {
+        const mobile = getEntityMobile(f);
+        const cleanMobile = mobile.replace(/\D/g, '');
+
+        return (
+          <div className="flex items-center gap-1.5">
+            {cleanMobile && (
+              <a
+                href={`https://wa.me/91${cleanMobile.slice(-10)}?text=${encodeURIComponent(
+                  `Hello from UMA Techno Fab Pvt. Ltd. Regarding your requirement: "${f.purpose}". How can we assist you today?`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={`Chat with customer on WhatsApp (+91 ${cleanMobile.slice(-10)})`}
+                className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+              </a>
+            )}
+
+            {f.status === 'pending' ? (
+              <button
+                onClick={() => {
+                  setCompleteModalId(f.id);
+                  setCompletionNotes('');
+                  setOutcome('connected');
+                  setCompleteError('');
+                }}
+                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 cursor-pointer shadow-2xs"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Mark Done</span>
+              </button>
+            ) : (
+              <span className="text-[11px] text-[#70665F] font-mono">Completed</span>
+            )}
+          </div>
+        );
+      },
     },
   ];
 
   return (
     <div className="space-y-4 text-xs">
-      <div className="bg-white dark:bg-white p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+      {/* Top Banner */}
+      <div className="bg-white dark:bg-white p-4 rounded-2xl border border-slate-200 dark:border-[#EBE3DB] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xs">
         <div>
           <h1 className="text-lg font-bold text-slate-900 dark:text-[#211B17] flex items-center gap-2">
             <PhoneCall className="w-5 h-5 text-crm-brand-700" />
-            Follow-up & Communication Management
+            Unified Follow-up & Interaction Center
           </h1>
           <p className="text-[#70665F] mt-0.5">
-            Call logs, WhatsApp interactions, and client meeting schedules with automated alerts.
+            Single central workspace for Lead, Technical Inquiry, Quotation, and Customer communication schedules.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap"
+        >
+          <Plus className="w-4 h-4" />
+          <span>+ Schedule Follow-up</span>
+        </button>
+      </div>
+
+      {/* Filter Tabs & Entity Filter Bar */}
+      <div className="bg-white dark:bg-white p-3.5 rounded-xl border border-slate-200 dark:border-[#EBE3DB] flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 shadow-xs">
+        {/* Date / Status Views */}
+        <div className="flex items-center gap-1.5 flex-wrap">
           <button
             onClick={() => setViewFilter('today')}
-            className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition ${
-              viewFilter === 'today' ? 'bg-amber-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition text-xs ${
+              viewFilter === 'today' ? 'bg-amber-600 text-white shadow-xs' : 'bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200'
             }`}
           >
-            <span>Today&apos;s Follow-ups</span>
-            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${viewFilter === 'today' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-900'}`}>
+            <span>Today</span>
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${viewFilter === 'today' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-900'}`}>
               {todayCount}
-            </span>
-          </button>
-          <button
-            onClick={() => setViewFilter('overdue')}
-            className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition ${
-              viewFilter === 'overdue' ? 'bg-rose-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            <span>Overdue</span>
-            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${viewFilter === 'overdue' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-900'}`}>
-              {overdueCount}
-            </span>
-          </button>
-          <button
-            onClick={() => setViewFilter('all')}
-            className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition ${
-              viewFilter === 'all' ? 'bg-crm-brand-700 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            <span>All Follow-ups</span>
-            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${viewFilter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-900'}`}>
-              {allCount}
             </span>
           </button>
 
           <button
-            onClick={() => setShowAddModal(true)}
-            className="px-3 py-1.5 bg-[#3E2723] hover:bg-[#2C1810] text-white rounded-lg font-bold flex items-center gap-1 shadow-xs cursor-pointer ml-2"
+            onClick={() => setViewFilter('upcoming')}
+            className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition text-xs ${
+              viewFilter === 'upcoming' ? 'bg-blue-600 text-white shadow-xs' : 'bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200'
+            }`}
           >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Schedule Follow-up</span>
+            <span>Upcoming</span>
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${viewFilter === 'upcoming' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-900'}`}>
+              {upcomingCount}
+            </span>
           </button>
+
+          <button
+            onClick={() => setViewFilter('overdue')}
+            className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition text-xs ${
+              viewFilter === 'overdue' ? 'bg-rose-600 text-white shadow-xs' : 'bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200'
+            }`}
+          >
+            <span>Overdue</span>
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${viewFilter === 'overdue' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-900'}`}>
+              {overdueCount}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setViewFilter('completed')}
+            className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition text-xs ${
+              viewFilter === 'completed' ? 'bg-emerald-700 text-white shadow-xs' : 'bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200'
+            }`}
+          >
+            <span>Completed</span>
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${viewFilter === 'completed' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-900'}`}>
+              {completedCount}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setViewFilter('all')}
+            className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition text-xs ${
+              viewFilter === 'all' ? 'bg-crm-brand-700 text-white shadow-xs' : 'bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200'
+            }`}
+          >
+            <span>All Records</span>
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${viewFilter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-900'}`}>
+              {allCount}
+            </span>
+          </button>
+        </div>
+
+        {/* Entity Type Filter & Search Bar */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1 bg-[#FAF7F2] p-1 rounded-lg border border-[#EBE3DB]">
+            <span className="text-[10px] font-bold text-[#70665F] uppercase px-1">Entity:</span>
+            {(['all', 'lead', 'enquiry', 'quotation', 'customer'] as const).map((ent) => (
+              <button
+                key={ent}
+                onClick={() => setEntityFilter(ent)}
+                className={`px-2 py-0.5 rounded text-[11px] font-semibold capitalize transition ${
+                  entityFilter === ent ? 'bg-white text-crm-brand-700 shadow-2xs font-bold' : 'text-[#70665F] hover:text-[#211B17]'
+                }`}
+              >
+                {ent === 'all' ? 'All' : ent}
+              </button>
+            ))}
+          </div>
+
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-[#70665F] absolute left-2.5 top-2.5" />
+            <input
+              type="text"
+              placeholder="Filter by account, staff..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 pr-3 py-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] w-44"
+            />
+          </div>
         </div>
       </div>
 
       <DataTable
-        title={viewFilter === 'today' ? "Today's Follow-up Schedule" : viewFilter === 'overdue' ? 'Overdue Follow-ups' : 'All Follow-up Records'}
+        title={
+          viewFilter === 'today'
+            ? "Today's Follow-up Schedule"
+            : viewFilter === 'upcoming'
+            ? 'Upcoming Follow-ups'
+            : viewFilter === 'overdue'
+            ? 'Overdue Follow-ups'
+            : viewFilter === 'completed'
+            ? 'Completed Interaction History'
+            : 'Unified Follow-up Register'
+        }
         columns={columns}
         data={filteredFollowUps}
       />
@@ -271,7 +559,7 @@ export default function FollowUpsPage() {
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-slate-900 dark:text-[#211B17] flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-crm-brand-700" />
-                Schedule New Client Follow-up
+                Schedule Client Follow-up
               </h3>
               <button onClick={() => setShowAddModal(false)} className="text-[#70665F] hover:text-[#211B17]">
                 <X className="w-4 h-4" />
@@ -281,49 +569,67 @@ export default function FollowUpsPage() {
             <form onSubmit={handleAddFollowUp} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Target Type</label>
+                  <label className="block font-semibold text-[#544B45] mb-1">Target Entity Type</label>
                   <select
                     value={targetType}
                     onChange={(e) => {
-                      const type = e.target.value as 'lead' | 'customer';
+                      const type = e.target.value as 'lead' | 'enquiry' | 'quotation' | 'customer';
                       setTargetType(type);
-                      setTargetId(type === 'lead' ? (leads[0]?.id || '') : (customers[0]?.id || ''));
+                      if (type === 'lead') setTargetId(leads[0]?.id || '');
+                      else if (type === 'enquiry') setTargetId(enquiries[0]?.id || '');
+                      else if (type === 'quotation') setTargetId(quotations[0]?.id || '');
+                      else setTargetId(customers[0]?.id || '');
                     }}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17]"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] text-xs font-semibold"
                   >
                     <option value="lead">Sales Lead</option>
-                    <option value="customer">Existing Customer</option>
+                    <option value="enquiry">Technical Inquiry (RFQ)</option>
+                    <option value="quotation">Formal Quotation</option>
+                    <option value="customer">Customer Account</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Select Account</label>
+                  <label className="block font-semibold text-[#544B45] mb-1">Select Linked Record</label>
                   <select
                     value={targetId}
                     onChange={(e) => setTargetId(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17]"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] text-xs"
                   >
-                    {targetType === 'lead'
-                      ? leads.map((l) => (
-                          <option key={l.id} value={l.id}>
-                            {l.companyName} - {l.contactPerson}
-                          </option>
-                        ))
-                      : customers.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.companyName} ({c.customerCode})
-                          </option>
-                        ))}
+                    {targetType === 'lead' &&
+                      leads.map((l) => (
+                        <option key={l.id} value={l.id}>
+                          {l.companyName} ({l.contactPerson || l.leadNo})
+                        </option>
+                      ))}
+                    {targetType === 'enquiry' &&
+                      enquiries.map((en) => (
+                        <option key={en.id} value={en.id}>
+                          {en.enquiryNo || en.id} - {en.customerName} ({en.machineProduct})
+                        </option>
+                      ))}
+                    {targetType === 'quotation' &&
+                      quotations.map((q) => (
+                        <option key={q.id} value={q.id}>
+                          {q.quotationNumber} - {q.customerName}
+                        </option>
+                      ))}
+                    {targetType === 'customer' &&
+                      customers.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.companyName} ({c.customerCode})
+                        </option>
+                      ))}
                   </select>
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Follow-up Type</label>
+                  <label className="block font-semibold text-[#544B45] mb-1">Channel</label>
                   <select
                     value={followUpType}
                     onChange={(e) => setFollowUpType(e.target.value as any)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17]"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] text-xs"
                   >
                     <option value="call">Phone Call</option>
                     <option value="whatsapp">WhatsApp</option>
@@ -333,16 +639,16 @@ export default function FollowUpsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Date (No Past Dates) *</label>
+                  <label className="block font-semibold text-[#544B45] mb-1">Date *</label>
                   <input
                     type="date"
                     min={todayStr}
                     value={scheduledDate}
                     onChange={(e) => {
                       setScheduledDate(e.target.value);
-                      if (addErrors.scheduledDate) setAddErrors(prev => ({ ...prev, scheduledDate: '' }));
+                      if (addErrors.scheduledDate) setAddErrors((prev) => ({ ...prev, scheduledDate: '' }));
                     }}
-                    className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] font-mono ${
+                    className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] font-mono text-xs ${
                       addErrors.scheduledDate ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
                     }`}
                   />
@@ -359,7 +665,7 @@ export default function FollowUpsPage() {
                     value={scheduledTime}
                     onChange={(e) => setScheduledTime(e.target.value)}
                     placeholder="11:00 AM"
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17]"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] text-xs"
                   />
                 </div>
               </div>
@@ -372,10 +678,10 @@ export default function FollowUpsPage() {
                   value={purpose}
                   onChange={(e) => {
                     setPurpose(e.target.value);
-                    if (addErrors.purpose) setAddErrors(prev => ({ ...prev, purpose: '' }));
+                    if (addErrors.purpose) setAddErrors((prev) => ({ ...prev, purpose: '' }));
                   }}
                   placeholder="e.g. Commercial negotiation on Reactor Vessel Qty 2"
-                  className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] font-semibold ${
+                  className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] font-semibold text-xs ${
                     addErrors.purpose ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
                   }`}
                 />
@@ -391,7 +697,7 @@ export default function FollowUpsPage() {
                 <select
                   value={assignedToId}
                   onChange={(e) => setAssignedToId(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17]"
+                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] text-xs"
                 >
                   {allStaff.map((s) => (
                     <option key={s.id} value={s.id}>
@@ -408,7 +714,7 @@ export default function FollowUpsPage() {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Additional context or background points for the discussion..."
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17]"
+                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] text-xs"
                 />
               </div>
 
@@ -416,7 +722,7 @@ export default function FollowUpsPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 border rounded-lg font-semibold text-[#544B45]"
+                  className="px-4 py-2 border border-[#EBE3DB] rounded-lg font-semibold text-[#544B45]"
                 >
                   Cancel
                 </button>
@@ -432,14 +738,14 @@ export default function FollowUpsPage() {
         </div>
       )}
 
-      {/* COMPLETION MODAL */}
+      {/* COMPLETION & LOG INTERACTION MODAL */}
       {completeModalId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-slate-900 dark:text-[#211B17] flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                Log Follow-up Outcome
+                Log Interaction & Complete Follow-up
               </h3>
               <button onClick={() => setCompleteModalId(null)} className="text-[#70665F] hover:text-[#211B17]">
                 <X className="w-4 h-4" />
@@ -455,7 +761,24 @@ export default function FollowUpsPage() {
 
             <div className="space-y-3">
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Discussion Summary / Outcome *</label>
+                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Interaction Outcome *</label>
+                <select
+                  value={outcome}
+                  onChange={(e) => setOutcome(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs font-semibold"
+                >
+                  <option value="connected">Connected & Discussed</option>
+                  <option value="callback_requested">Callback Requested</option>
+                  <option value="busy">Client Busy / Try Later</option>
+                  <option value="no_response">No Response / Unreachable</option>
+                  <option value="interested">High Interest / Quote Requested</option>
+                  <option value="negotiation">Commercial Negotiation Ongoing</option>
+                  <option value="not_interested">Not Interested / Closed</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Discussion Summary / Customer Response *</label>
                 <textarea
                   rows={3}
                   required
@@ -465,22 +788,63 @@ export default function FollowUpsPage() {
                     if (completeError) setCompleteError('');
                   }}
                   placeholder="Customer agreed on delivery timeline, requested revised commercial terms..."
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-xs"
                 />
               </div>
 
-              <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Schedule Next Action Date (Cannot be past date)</label>
-                <input
-                  type="date"
-                  min={todayStr}
-                  value={nextFollowUpDate}
-                  onChange={(e) => {
-                    setNextFollowUpDate(e.target.value);
-                    if (completeError) setCompleteError('');
-                  }}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg font-mono"
-                />
+              <div className="pt-2 border-t border-[#EBE3DB] space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 font-semibold text-[#544B45] cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={scheduleNext}
+                      onChange={(e) => setScheduleNext(e.target.checked)}
+                      className="rounded text-crm-brand-700"
+                    />
+                    <span>Schedule Next Follow-up</span>
+                  </label>
+                  {scheduleNext && (
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setQuickNextDate(2)}
+                        className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[#544B45] text-[10px] font-bold"
+                      >
+                        +2 Days
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuickNextDate(7)}
+                        className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[#544B45] text-[10px] font-bold"
+                      >
+                        +7 Days
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuickNextDate(15)}
+                        className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[#544B45] text-[10px] font-bold"
+                      >
+                        +15 Days
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {scheduleNext && (
+                  <div>
+                    <label className="block text-[#70665F] text-[11px] mb-1">Next Follow-up Due Date</label>
+                    <input
+                      type="date"
+                      min={todayStr}
+                      value={nextFollowUpDate}
+                      onChange={(e) => {
+                        setNextFollowUpDate(e.target.value);
+                        if (completeError) setCompleteError('');
+                      }}
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg font-mono text-xs"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end gap-2 pt-2">

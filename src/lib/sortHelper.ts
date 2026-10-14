@@ -11,17 +11,50 @@ export function sortByLatestDesc<T extends Record<string, any>>(list: T[]): T[] 
     if (!b) return -1;
 
     // 1. High precision timestamp (createdAt, created_at, timestamp, etc.)
-    const timeA_raw = a.createdAt || a.created_at || a.timestamp || a.created_time;
-    const timeB_raw = b.createdAt || b.created_at || b.timestamp || b.created_time;
-    if (timeA_raw && timeB_raw && timeA_raw !== timeB_raw) {
-      const tA = new Date(timeA_raw).getTime();
-      const tB = new Date(timeB_raw).getTime();
-      if (!isNaN(tA) && !isNaN(tB) && tA !== tB) {
-        return tB - tA; // Newest timestamp first
+    const timeA_raw = a.createdAt || a.created_at || a.timestamp || a.created_time || a.dateTime || a.datetime;
+    const timeB_raw = b.createdAt || b.created_at || b.timestamp || b.created_time || b.dateTime || b.datetime;
+    
+    const tA = timeA_raw ? new Date(timeA_raw).getTime() : NaN;
+    const tB = timeB_raw ? new Date(timeB_raw).getTime() : NaN;
+    const validA = !isNaN(tA);
+    const validB = !isNaN(tB);
+
+    if (validA && validB) {
+      if (tA !== tB) return tB - tA; // Newest timestamp first
+    } else if (validA && !validB) {
+      return -1; // 'a' has an authoritative timestamp, place it before 'b'
+    } else if (!validA && validB) {
+      return 1; // 'b' has an authoritative timestamp, place it before 'a'
+    }
+
+    // 2. Date field comparison (if dates are distinctly on different days)
+    const dateA_raw = a.createdDate || a.created_date || a.issueDate || a.issue_date || 
+                      a.requisitionDate || a.request_date || a.prDate || a.date || 
+                      a.entryDate || a.entry_date || a.invoiceDate || a.soDate || a.poDate;
+    const dateB_raw = b.createdDate || b.created_date || b.issueDate || b.issue_date || 
+                      b.requisitionDate || b.request_date || b.prDate || b.date || 
+                      b.entryDate || b.entry_date || b.invoiceDate || b.soDate || b.poDate;
+
+    if (dateA_raw || dateB_raw) {
+      const dtA = dateA_raw ? new Date(dateA_raw).getTime() : NaN;
+      const dtB = dateB_raw ? new Date(dateB_raw).getTime() : NaN;
+      const dateValidA = !isNaN(dtA);
+      const dateValidB = !isNaN(dtB);
+
+      if (dateValidA && dateValidB) {
+        const dayA = String(dateA_raw).slice(0, 10);
+        const dayB = String(dateB_raw).slice(0, 10);
+        if (dayA !== dayB) {
+          return dtB - dtA; // Latest date first
+        }
+      } else if (dateValidA && !dateValidB) {
+        return -1;
+      } else if (!dateValidA && dateValidB) {
+        return 1;
       }
     }
 
-    // 2. Document Code / Unique ID extraction
+    // 3. Document Code / Unique ID extraction
     const codeA = String(
       a.issueNumber || a.issue_number ||
       a.prNumber || a.pr_number ||
@@ -82,38 +115,19 @@ export function sortByLatestDesc<T extends Record<string, any>>(list: T[]): T[] 
       b.id || ''
     ).trim();
 
-    // 3. Date field comparison (if dates are distinctly on different days)
-    const dateA = a.createdDate || a.created_date || a.issueDate || a.issue_date || 
-                  a.requisitionDate || a.request_date || a.prDate || a.date || 
-                  a.entryDate || a.entry_date || a.invoiceDate || a.soDate || a.poDate;
-    const dateB = b.createdDate || b.created_date || b.issueDate || b.issue_date || 
-                  b.requisitionDate || b.request_date || b.prDate || b.date || 
-                  b.entryDate || b.entry_date || b.invoiceDate || b.soDate || b.poDate;
-    if (dateA && dateB && dateA !== dateB) {
-      const dtA = new Date(dateA).getTime();
-      const dtB = new Date(dateB).getTime();
-      if (!isNaN(dtA) && !isNaN(dtB) && dtA !== dtB) {
-        const dayA = String(dateA).slice(0, 10);
-        const dayB = String(dateB).slice(0, 10);
-        if (dayA !== dayB) {
-          return dtB - dtA; // Latest date first
-        }
-      }
-    }
-
-    // 4. Numeric sequence inside ID / Document number
-    // E.g. "PR-2026-0005" -> 5, "PR-2026-0012" -> 12
+    // 4. Numeric sequence inside matching document prefixes
+    // Extract year & sequence together (e.g. "LEAD-2026-0004" -> 202600004 vs "LEAD-005" -> 5)
     const numsA = (codeA.match(/\d+/g) || []).map(Number);
     const numsB = (codeB.match(/\d+/g) || []).map(Number);
     if (numsA.length > 0 && numsB.length > 0) {
-      const lastA = numsA[numsA.length - 1];
-      const lastB = numsB[numsB.length - 1];
-      if (lastA !== lastB) {
-        return lastB - lastA; // Higher sequence number first (DESC)
+      const valA = numsA.length >= 2 ? numsA[0] * 1000000 + numsA[numsA.length - 1] : numsA[0];
+      const valB = numsB.length >= 2 ? numsB[0] * 1000000 + numsB[numsB.length - 1] : numsB[0];
+      if (valA !== valB) {
+        return valB - valA; // Higher year/sequence number first (DESC)
       }
     }
 
-    // 5. Fallback alphanumeric natural descending
-    return codeB.localeCompare(codeA, undefined, { numeric: true, sensitivity: 'base' });
+    // 5. Stable order fallback: maintain original insertion / prepend order (new record at index 0 stays at Row 1)
+    return 0;
   });
 }

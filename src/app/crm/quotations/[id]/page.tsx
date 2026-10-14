@@ -18,13 +18,15 @@ import {
   Calendar,
   Layers,
   Sparkles,
+  PhoneCall,
+  MessageSquare,
 } from 'lucide-react';
 import { QuotationRevision } from '../../../../types/crm';
 
 export default function QuotationDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { quotations, addQuotationRevision, updateQuotationStatus, currentUser, addCustomerPO } = useERP();
+  const { quotations, addQuotationRevision, updateQuotationStatus, currentUser, addCustomerPO, addFollowUp } = useERP();
 
   const quotationId = String(params.id);
   const quotation = quotations.find((q) => q.id === quotationId);
@@ -41,6 +43,23 @@ export default function QuotationDetailPage() {
   });
   const [remarks, setRemarks] = useState('');
   const [actionMsg, setActionMsg] = useState('');
+
+  // Quotation Follow-up Modal State
+  const [showFlwModal, setShowFlwModal] = useState(false);
+  const [flwDate, setFlwDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 2);
+    return d.toISOString().split('T')[0];
+  });
+  const [flwTime, setFlwTime] = useState('11:30 AM');
+  const [flwPurpose, setFlwPurpose] = useState('');
+  const [flwChannel, setFlwChannel] = useState<'call' | 'whatsapp' | 'email' | 'meeting'>('call');
+
+  const setQuickFlwDate = (days: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    setFlwDate(d.toISOString().split('T')[0]);
+  };
 
   if (!quotation) {
     return (
@@ -234,6 +253,34 @@ export default function QuotationDetailPage() {
                 </Link>
               </div>
             )}
+
+            {/* WhatsApp Direct Share */}
+            {quotation.contactMobile && (
+              <a
+                href={`https://wa.me/91${quotation.contactMobile.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(
+                  `Dear ${quotation.contactPerson || quotation.customerName},\n\nGreetings from UMA Techno Fab Pvt. Ltd.\n\nPlease find details for Quotation ${quotation.quotationNumber} (${currentRev.revisionNumber}) for ${formatCurrency(currentRev.grandTotal)}.\nValidity: ${formatDate(quotation.validUntil)}.\n\nKindly review and let us know your feedback.`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={`Share quotation via WhatsApp (+91 ${quotation.contactMobile.slice(-10)})`}
+                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold flex items-center gap-1 shadow-sm text-xs cursor-pointer transition"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>WhatsApp Quote</span>
+              </a>
+            )}
+
+            {/* Schedule Follow-up button */}
+            <button
+              onClick={() => {
+                setFlwPurpose(`Quotation follow-up for ${quotation.quotationNumber} (${currentRev.revisionNumber})`);
+                setShowFlwModal(true);
+              }}
+              className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#F3ECE4] text-[#75401F] border border-[#E7DED5] rounded-lg font-bold text-xs flex items-center gap-1 transition cursor-pointer"
+            >
+              <PhoneCall className="w-3.5 h-3.5" />
+              <span>Schedule Follow-up</span>
+            </button>
           </div>
         </div>
       </div>
@@ -415,6 +462,126 @@ export default function QuotationDetailPage() {
                   className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold shadow-xs cursor-pointer"
                 >
                   Confirm & Inward PO
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Schedule Quotation Follow-up Modal */}
+      {showFlwModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-white dark:bg-white border border-[#E7DED5] rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
+            <h3 className="text-base font-bold text-slate-900 dark:text-[#211B17] flex items-center gap-2">
+              <PhoneCall className="w-5 h-5 text-crm-brand-700" />
+              Schedule Quotation Follow-up
+            </h3>
+            <p className="text-[#70665F] text-xs">
+              Keep track of client feedback and next steps for {quotation.quotationNumber} ({currentRev.revisionNumber}).
+            </p>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                addFollowUp({
+                  leadOrCustomerId: quotation.id,
+                  leadOrCustomerName: `${quotation.customerName} (${quotation.quotationNumber})`,
+                  entityType: 'quotation',
+                  quotationId: quotation.id,
+                  type: flwChannel,
+                  assignedToId: currentUser?.id || 'EMP-001',
+                  assignedToName: `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim() || 'Sales Team',
+                  date: flwDate,
+                  time: flwTime,
+                  priority: 'high',
+                  purpose: flwPurpose || `Follow-up on quotation ${quotation.quotationNumber}`,
+                  notes: `Commercial follow-up for ${formatCurrency(currentRev.grandTotal)}`,
+                  status: 'pending',
+                });
+                setShowFlwModal(false);
+                setActionMsg(`Scheduled next follow-up on ${formatDate(flwDate)}.`);
+                setTimeout(() => setActionMsg(''), 4000);
+              }}
+              className="space-y-3 text-xs"
+            >
+              <div>
+                <label className="block text-[#544B45] font-semibold mb-1">Quick Date Presets</label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setQuickFlwDate(2)}
+                    className="flex-1 py-1 px-2 rounded-lg bg-[#FAF7F2] hover:bg-[#F3ECE4] text-[#75401F] font-bold border border-[#E7DED5] text-center"
+                  >
+                    In 2 Days
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQuickFlwDate(7)}
+                    className="flex-1 py-1 px-2 rounded-lg bg-[#FAF7F2] hover:bg-[#F3ECE4] text-[#75401F] font-bold border border-[#E7DED5] text-center"
+                  >
+                    In 7 Days
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQuickFlwDate(15)}
+                    className="flex-1 py-1 px-2 rounded-lg bg-[#FAF7F2] hover:bg-[#F3ECE4] text-[#75401F] font-bold border border-[#E7DED5] text-center"
+                  >
+                    In 15 Days
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[#544B45] font-semibold mb-1">Follow-up Due Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={flwDate}
+                    onChange={(e) => setFlwDate(e.target.value)}
+                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-lg font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#544B45] font-semibold mb-1">Channel</label>
+                  <select
+                    value={flwChannel}
+                    onChange={(e) => setFlwChannel(e.target.value as any)}
+                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-lg"
+                  >
+                    <option value="call">Phone Call</option>
+                    <option value="whatsapp">WhatsApp</option>
+                    <option value="email">Email</option>
+                    <option value="meeting">In-Person Meeting</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[#544B45] font-semibold mb-1">Discussion Purpose / Next Action *</label>
+                <input
+                  type="text"
+                  required
+                  value={flwPurpose}
+                  onChange={(e) => setFlwPurpose(e.target.value)}
+                  placeholder="e.g. Call client purchase head to review Limpet jacket specs"
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-lg font-semibold"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-[#E7DED5]">
+                <button
+                  type="button"
+                  onClick={() => setShowFlwModal(false)}
+                  className="px-4 py-2 border border-[#E7DED5] rounded-lg font-semibold text-[#544B45]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-lg font-bold shadow-xs cursor-pointer"
+                >
+                  Save in Follow-up Center
                 </button>
               </div>
             </form>
