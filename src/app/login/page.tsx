@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useERP } from '../../context/ERPContext';
@@ -24,13 +24,20 @@ import { cn } from '../../lib/utils';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, loginWithBackend, employees } = useERP();
+  const { loginWithBackend, isAuthenticated, isAuthReady } = useERP();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // If user is already authenticated, redirect straight to workspace/dashboard
+  useEffect(() => {
+    if (isAuthReady && isAuthenticated) {
+      router.replace('/');
+    }
+  }, [isAuthReady, isAuthenticated, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

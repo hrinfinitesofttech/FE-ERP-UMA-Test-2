@@ -143,7 +143,7 @@ function getPrimaryHref(currentUser: any): string {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { currentUser, isAuthenticated } = useERP();
+  const { currentUser, isAuthenticated, isAuthReady } = useERP();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -152,12 +152,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const isAuthPage = pathname === '/login' || pathname === '/forgot-password';
 
-  // Strict Authentication Guard: Unauthenticated users on protected routes are redirected immediately
+  // Strict Authentication Guard: ONLY redirect after client-side auth rehydration is confirmed ready
   useEffect(() => {
-    if (isMounted && !isAuthPage && !isAuthenticated) {
+    if (isMounted && isAuthReady && !isAuthPage && !isAuthenticated) {
       router.replace('/login');
     }
-  }, [isMounted, isAuthPage, isAuthenticated, router]);
+  }, [isMounted, isAuthReady, isAuthPage, isAuthenticated, router]);
 
   if (isAuthPage) {
     return (
@@ -167,8 +167,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // If not authenticated on a protected route, render clean branded splash screen while redirecting
-  if (!isMounted || !isAuthenticated) {
+  // If session is still loading from browser storage, or user is unauthenticated, render splash screen
+  if (!isMounted || !isAuthReady || !isAuthenticated) {
     return (
       <div className="min-h-screen w-screen bg-[#FAF7F2] flex flex-col items-center justify-center font-sans antialiased">
         <div className="flex flex-col items-center gap-4">
@@ -176,7 +176,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="w-6 h-6 border-2 border-[#75401F] border-t-transparent rounded-full animate-spin" />
           </div>
           <p className="text-xs font-semibold text-[#75401F] tracking-wide">
-            {!isAuthenticated ? 'Redirecting to Login...' : 'Initializing UmaERP...'}
+            {!isAuthReady ? 'Verifying session...' : !isAuthenticated ? 'Redirecting to Login...' : 'Initializing UmaERP...'}
           </p>
         </div>
       </div>

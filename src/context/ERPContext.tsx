@@ -418,6 +418,7 @@ interface ERPContextType {
   availableEmployees: Employee[];
   isAuthenticated: boolean;
   isInitialLoading: boolean;
+  isAuthReady: boolean;
   login: (username: string, pass: string) => boolean;
   loginWithBackend: (username: string, pass: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
@@ -1024,9 +1025,9 @@ interface ERPContextType {
   toggleGoLiveItem: (id: string) => void;
 }
 
-export const CURRENT_ERP_CACHE_VERSION = '2026.10.11-clean-v6';
+export const CURRENT_ERP_CACHE_VERSION = '2026.10.14-stable-v1';
 
-// Synchronous nuclear wipe if version is older (runs before any useState initializer):
+// Synchronous wipe if version is older (runs before any useState initializer):
 if (typeof window !== 'undefined') {
   try {
     const v = localStorage.getItem('UMA_ERP_VERSION');
@@ -1034,7 +1035,10 @@ if (typeof window !== 'undefined') {
       for (let i = localStorage.length - 1; i >= 0; i--) {
         const k = localStorage.key(i);
         if (k && (k.startsWith('UMA_ERP_') || k.startsWith('UMA_CACHE_') || k.startsWith('UMA_'))) {
-          localStorage.removeItem(k);
+          // Strictly protect active session and credentials from being wiped during cache refresh
+          if (k !== 'UMA_ERP_currentUser' && k !== 'access_token' && k !== 'refresh_token') {
+            localStorage.removeItem(k);
+          }
         }
       }
       localStorage.setItem('UMA_ERP_VERSION', CURRENT_ERP_CACHE_VERSION);
@@ -1888,6 +1892,34 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
     return false;
   });
+  const [isAuthReady, setIsAuthReady] = useState<boolean>(false);
+
+  // Synchronously re-verify and rehydrate authentication on client mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const token = localStorage.getItem('access_token');
+        const saved = localStorage.getItem('UMA_ERP_currentUser');
+        if (token && saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && (parsed.id || parsed.username)) {
+            setCurrentUser(parsed);
+            setIsAuthenticated(true);
+          } else {
+            setIsAuthenticated(false);
+          }
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch (_) {
+        setIsAuthenticated(false);
+      } finally {
+        setIsAuthReady(true);
+      }
+    } else {
+      setIsAuthReady(true);
+    }
+  }, []);
 
   // Listen for session expiry events (e.g. 401 token refresh rejection)
   useEffect(() => {
@@ -2584,14 +2616,15 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         ['notifications', setNotifications],
       ];
 
-      const CURRENT_ERP_CACHE_VERSION = '2026.10.14-cross-user-sync-v1';
       if (typeof window !== 'undefined') {
         const storedVer = localStorage.getItem('UMA_ERP_VERSION');
         if (storedVer !== CURRENT_ERP_CACHE_VERSION) {
           for (let i = localStorage.length - 1; i >= 0; i--) {
             const k = localStorage.key(i);
             if (k && (k.startsWith('UMA_ERP_') || k.startsWith('UMA_CACHE_'))) {
-              localStorage.removeItem(k);
+              if (k !== 'UMA_ERP_currentUser' && k !== 'access_token' && k !== 'refresh_token') {
+                localStorage.removeItem(k);
+              }
             }
           }
           api.invalidateCache();
@@ -12913,6 +12946,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         availableEmployees: deduplicateEmployees(employees || []),
         isAuthenticated,
         isInitialLoading,
+        isAuthReady,
         login,
         loginWithBackend,
         logout,
