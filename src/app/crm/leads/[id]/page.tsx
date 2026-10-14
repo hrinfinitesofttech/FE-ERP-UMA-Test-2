@@ -395,6 +395,14 @@ export default function LeadDetailPage() {
             <span className="text-[#70665F] block">Priority: {lead.priority?.toUpperCase()}</span>
           </div>
         </div>
+
+        {lead.address && (
+          <div className="pt-2.5 border-t border-slate-100 dark:border-[#EBE3DB] text-[11px] flex items-center gap-1.5 text-[#544B45]">
+            <MapPin className="w-3.5 h-3.5 text-[#8C5229] shrink-0" />
+            <span className="font-semibold text-[#70665F]">Address:</span>
+            <span>{lead.address}</span>
+          </div>
+        )}
       </div>
 
       {/* Tabs Navigation */}
@@ -770,6 +778,16 @@ export default function LeadDetailPage() {
                       type="text"
                       value={editFormData.city || ''}
                       onChange={(e) => handleEditChange('city', e.target.value)}
+                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
+                    />
+                  </div>
+                  <div className="md:col-span-12">
+                    <label className="block text-[#544B45] font-semibold mb-1">Office / Factory Address</label>
+                    <textarea
+                      rows={2}
+                      value={editFormData.address || ''}
+                      onChange={(e) => handleEditChange('address', e.target.value)}
+                      placeholder="e.g. Plot No. 42, GIDC Industrial Estate, Makarpura, Vadodara"
                       className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
                     />
                   </div>

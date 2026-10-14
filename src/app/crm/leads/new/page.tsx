@@ -8,17 +8,14 @@ import {
   ArrowLeft,
   UserPlus,
   Building,
+  User,
   Phone,
-  Wrench,
-  Shield,
+  Mail,
+  MapPin,
   AlertCircle,
   CheckCircle2,
-  Calendar,
-  DollarSign,
-  Layers,
-  Mail,
-  Smartphone,
-  Hash,
+  Save,
+  Info,
 } from 'lucide-react';
 import { LeadSource, LeadStatus, PriorityLevel, Employee } from '../../../../types/crm';
 
@@ -46,66 +43,14 @@ function NewLeadForm() {
 
   const defaultSalesPersonId = salesEngineers[0]?.id || allEmployees[0]?.id || '';
 
-  // Current today date in YYYY-MM-DD
-  const todayStr = new Date().toISOString().split('T')[0];
-  const defaultFollowUp = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-  const defaultDelivery = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-
+  // Requested 5 Fields: Company name, Contact person name, Mobile number, Email, Address
   const [formData, setFormData] = useState({
-    // 1. Company
     companyName: '',
-    industry: '',
-    website: '',
-    gstin: '',
-    address: '',
-    city: '',
-    state: '',
-    country: 'India',
-    pincode: '',
-
-    // 2. Contact
     contactPerson: '',
-    designation: '',
     mobile: '',
-    altMobile: '',
     email: '',
-    whatsapp: '',
-
-    // 3. Requirement
-    productName: '',
-    machineType: '',
-    quantity: 1 as number | string,
-    capacity: '',
-    application: '',
-    requirementDescription: '',
-    expectedDelivery: '',
-    budget: '' as number | string,
-    priority: 'medium' as PriorityLevel,
-
-    // 4. CRM & Exhibition Link
-    source: querySource || ('direct' as LeadSource),
-    exhibitionId: queryExpoId || '',
-    exhibitionName: queryExpoName || '',
-    assignedSalesPersonId: defaultSalesPersonId,
-    status: 'new' as LeadStatus,
-    nextFollowUpDate: '',
-    remarks: '',
+    address: '',
   });
-
-  // If query params are provided, update formData accordingly
-  useEffect(() => {
-    if (querySource && querySource !== formData.source) {
-      setFormData((prev) => ({ ...prev, source: querySource }));
-    }
-    if (queryExpoId && queryExpoId !== formData.exhibitionId) {
-      const expo = exhibitions.find((ex) => ex.id === queryExpoId);
-      setFormData((prev) => ({
-        ...prev,
-        exhibitionId: queryExpoId,
-        exhibitionName: expo ? expo.expoName : queryExpoName || prev.exhibitionName,
-      }));
-    }
-  }, [querySource, queryExpoId, queryExpoName, exhibitions]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -114,110 +59,62 @@ function NewLeadForm() {
 
   // Email regex for valid standard emails (e.g. user@domain.com)
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  // GSTIN 15-character format
-  const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 
-  // Validate single field
-  const validateField = (name: string, value: any): string => {
+  const validateField = (name: string, value: string): string => {
     switch (name) {
       case 'companyName':
         if (!value || value.trim().length < 2) return 'Company name is required (at least 2 characters).';
-        return '';
-      case 'city':
-        if (!value || value.trim().length < 2) return 'City & State is required.';
-        return '';
-      case 'gstin':
-        if (value && value.trim()) {
-          if (!gstinRegex.test(value.trim().toUpperCase())) {
-            return 'Invalid GSTIN (Must be 15 chars, e.g. 24AAACX0000X1Z1).';
-          }
-        }
-        return '';
-      case 'website':
-        if (value && value.trim()) {
-          const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/i;
-          if (!urlPattern.test(value.trim())) return 'Invalid URL (e.g. https://example.com).';
-        }
         return '';
       case 'contactPerson':
         if (!value || value.trim().length < 2) return 'Contact person name is required (at least 2 characters).';
         return '';
       case 'mobile': {
-        if (!value || value.trim() === '') return 'Mobile contact number is required.';
+        if (!value || value.trim() === '') return 'Mobile number is required.';
         const clean = value.replace(/\D/g, '');
-        if (clean.length !== 10) return 'Mobile number must be exactly 10 digits (digits only).';
+        if (clean.length !== 10) return 'Mobile number must be exactly 10 digits.';
         return '';
       }
       case 'email':
-        if (!value || value.trim() === '') return 'Email address is required.';
-        if (!emailRegex.test(value.trim())) return 'Invalid email format (Must contain "@" and domain, e.g. name@company.com).';
-        return '';
-      case 'whatsapp':
-        if (value && value.trim()) {
-          const clean = value.replace(/\D/g, '');
-          if (clean.length !== 10) return 'WhatsApp number must be 10 digits.';
+        if (value && value.trim() !== '') {
+          if (!emailRegex.test(value.trim())) return 'Invalid email format (e.g. name@company.com).';
         }
-        return '';
-      case 'productName':
-        if (!value || value.trim().length < 3) return 'Product / Machine title is required (at least 3 characters).';
-        return '';
-      case 'quantity':
-        if (value === '' || Number(value) < 1) return 'Quantity must be at least 1.';
-        return '';
-      case 'expectedDelivery':
-        if (!value || value.trim() === '') return 'Target delivery date is required.';
-        if (value < todayStr) return 'Target delivery date cannot be in the past.';
-        return '';
-      case 'nextFollowUpDate':
-        if (!value || value.trim() === '') return 'Follow-up date is required.';
-        if (value < todayStr) return 'Follow-up date cannot be in the past (Must be today or future).';
-        return '';
-      case 'budget':
-        if (value !== '' && Number(value) < 0) return 'Estimated budget cannot be negative.';
-        return '';
-      case 'assignedSalesPersonId':
-        if (!value) return 'Please assign a sales engineer.';
         return '';
       default:
         return '';
     }
   };
 
-  // Full validation
   const validateAll = () => {
     const errs: Record<string, string> = {};
-    Object.keys(formData).forEach((key) => {
-      const err = validateField(key, (formData as any)[key]);
-      if (err) errs[key] = err;
-    });
+    const cErr = validateField('companyName', formData.companyName);
+    if (cErr) errs.companyName = cErr;
+    const pErr = validateField('contactPerson', formData.contactPerson);
+    if (pErr) errs.contactPerson = pErr;
+    const mErr = validateField('mobile', formData.mobile);
+    if (mErr) errs.mobile = mErr;
+    const eErr = validateField('email', formData.email);
+    if (eErr) errs.email = eErr;
+
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  const handleInputChange = (field: string, rawVal: any) => {
+  const handleInputChange = (field: keyof typeof formData, rawVal: string) => {
     let sanitizedVal = rawVal;
-
-    // Mobile & WhatsApp: strictly allow digits only, max 10 chars
-    if (field === 'mobile' || field === 'whatsapp' || field === 'altMobile') {
+    if (field === 'mobile') {
       sanitizedVal = rawVal.replace(/\D/g, '').slice(0, 10);
     }
-    // GSTIN: uppercase alphanumeric only, max 15 chars
-    if (field === 'gstin') {
-      sanitizedVal = rawVal.toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, 15);
-    }
-
     setFormData((prev) => ({ ...prev, [field]: sanitizedVal }));
 
-    // Instant validation on type if field was touched or submit was attempted
     if (touched[field] || submitAttempted) {
       const err = validateField(field, sanitizedVal);
       setErrors((prev) => ({ ...prev, [field]: err }));
     }
   };
 
-  const handleBlur = (field: string) => {
+  const handleBlur = (field: keyof typeof formData) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
-    const err = validateField(field, (formData as any)[field]);
+    const err = validateField(field, formData[field]);
     setErrors((prev) => ({ ...prev, [field]: err }));
   };
 
@@ -227,17 +124,13 @@ function NewLeadForm() {
     setSubmitAttempted(true);
 
     if (!validateAll()) {
-      const firstErrorField = document.querySelector('[data-invalid="true"]');
-      if (firstErrorField) {
-        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const assignedPerson = allEmployees.find((emp) => emp.id === formData.assignedSalesPersonId);
+      const assignedPerson = allEmployees.find((emp) => emp.id === defaultSalesPersonId);
       const assignedName = assignedPerson
         ? assignedPerson.name ||
           (assignedPerson as any).employeeName ||
@@ -245,18 +138,43 @@ function NewLeadForm() {
           'Pravin Patel'
         : 'Pravin Patel';
 
+      const expo = exhibitions.find((ex) => ex.id === queryExpoId);
+
       addLead({
-        ...formData,
         companyName: formData.companyName.trim(),
         contactPerson: formData.contactPerson.trim(),
         mobile: formData.mobile.trim(),
         email: formData.email.trim(),
-        productName: formData.productName.trim(),
-        quantity: Number(formData.quantity) || 1,
-        budget: Number(formData.budget) || 0,
+        address: formData.address.trim(),
+
+        // Default initial values for other fields (editable later via Update Lead)
+        industry: '',
+        website: '',
+        gstin: '',
+        city: '',
+        state: '',
+        country: 'India',
+        pincode: '',
+        designation: '',
+        altMobile: '',
+        whatsapp: '',
+        productName: 'General Inquiry / Equipment Requirement',
+        machineType: '',
+        quantity: 1,
+        capacity: '',
+        application: '',
+        requirementDescription: '',
+        expectedDelivery: '',
+        budget: 0,
+        priority: 'medium' as PriorityLevel,
+        source: querySource || ('direct' as LeadSource),
+        exhibitionId: queryExpoId || undefined,
+        exhibitionName: expo ? expo.expoName : queryExpoName || undefined,
+        assignedSalesPersonId: defaultSalesPersonId,
         assignedSalesPersonName: assignedName,
-        exhibitionId: formData.exhibitionId || undefined,
-        exhibitionName: formData.exhibitionName || undefined,
+        status: 'new' as LeadStatus,
+        nextFollowUpDate: '',
+        remarks: '',
       });
 
       router.push(`/crm/leads?tab=leads&created=${encodeURIComponent(formData.companyName.trim())}`);
@@ -267,7 +185,7 @@ function NewLeadForm() {
   };
 
   return (
-    <div className="w-full space-y-4 text-xs pb-10">
+    <div className="max-w-2xl mx-auto space-y-4 text-xs pb-10">
       <Link
         href="/crm/leads"
         className="inline-flex items-center gap-1.5 text-crm-brand-700 hover:text-crm-brand-800 font-semibold"
@@ -276,13 +194,19 @@ function NewLeadForm() {
       </Link>
 
       <div className="bg-white border border-[#EBE3DB] rounded-2xl p-6 shadow-sm space-y-6">
+        {/* Header */}
         <div className="border-b border-[#EBE3DB] pb-4">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="px-2.5 py-0.5 rounded-full bg-[#F5E6D8] text-[#8C5229] border border-[#E7DED5] font-mono text-[10px] font-bold uppercase tracking-wider">
+              Quick Lead Creation
+            </span>
+          </div>
           <h1 className="text-lg font-bold text-[#211B17] flex items-center gap-2">
             <UserPlus className="w-5 h-5 text-crm-brand-700" />
-            New Customer Lead & Technical Inquiry Registration
+            Add New Lead
           </h1>
-          <p className="text-[#70665F] mt-0.5">
-            Capture prospective customer requirement, machine specifications, commercial budget, and sales assignment.
+          <p className="text-[#70665F] mt-1 text-xs">
+            Enter initial prospect details below. Additional machinery specifications, budget, and follow-ups can be updated anytime after creation.
           </p>
         </div>
 
@@ -305,538 +229,153 @@ function NewLeadForm() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} noValidate className="space-y-6">
-          {/* SECTION 1: COMPANY */}
-          <div className="space-y-3">
-            <h3 className="font-bold text-sm text-[#544B45] flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center text-[10px] font-bold border border-crm-brand-200">
-                1
-              </span>
-              Company & Enterprise Details
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-              <div className="md:col-span-6" data-invalid={Boolean(errors.companyName && (touched.companyName || submitAttempted))}>
-                <label className="block text-[#544B45] font-semibold mb-1">
-                  Company Name <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.companyName}
-                  onChange={(e) => handleInputChange('companyName', e.target.value)}
-                  onBlur={() => handleBlur('companyName')}
-                  placeholder="e.g. Industrial Enterprises Ltd."
-                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
-                    errors.companyName && (touched.companyName || submitAttempted)
-                      ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
-                      : 'border-[#EBE3DB]'
-                  } rounded-xl text-[#211B17] font-bold`}
-                />
-                {errors.companyName && (touched.companyName || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
-                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.companyName}
-                  </p>
-                )}
-              </div>
-              <div className="md:col-span-6">
-                <label className="block text-[#544B45] font-semibold mb-1">Industry Sector</label>
-                <input
-                  type="text"
-                  value={formData.industry}
-                  onChange={(e) => handleInputChange('industry', e.target.value)}
-                  placeholder="e.g. Speciality Chemicals / Pharma / Heavy Engineering"
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17]"
-                />
-              </div>
-
-              <div className="md:col-span-4" data-invalid={Boolean(errors.gstin && (touched.gstin || submitAttempted))}>
-                <label className="block text-[#544B45] font-semibold mb-1">GSTIN Number (15 digits)</label>
-                <input
-                  type="text"
-                  maxLength={15}
-                  value={formData.gstin}
-                  onChange={(e) => handleInputChange('gstin', e.target.value)}
-                  onBlur={() => handleBlur('gstin')}
-                  placeholder="24AAACX0000X1Z1"
-                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
-                    errors.gstin && (touched.gstin || submitAttempted)
-                      ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
-                      : 'border-[#EBE3DB]'
-                  } rounded-xl font-mono uppercase text-[#211B17]`}
-                />
-                {errors.gstin && (touched.gstin || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
-                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.gstin}
-                  </p>
-                )}
-              </div>
-
-              <div className="md:col-span-4" data-invalid={Boolean(errors.website && (touched.website || submitAttempted))}>
-                <label className="block text-[#544B45] font-semibold mb-1">Website URL</label>
-                <input
-                  type="url"
-                  value={formData.website}
-                  onChange={(e) => handleInputChange('website', e.target.value)}
-                  onBlur={() => handleBlur('website')}
-                  placeholder="https://example.com"
-                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
-                    errors.website && (touched.website || submitAttempted)
-                      ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
-                      : 'border-[#EBE3DB]'
-                  } rounded-xl text-[#211B17]`}
-                />
-                {errors.website && (touched.website || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
-                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.website}
-                  </p>
-                )}
-              </div>
-
-              <div className="md:col-span-4" data-invalid={Boolean(errors.city && (touched.city || submitAttempted))}>
-                <label className="block text-[#544B45] font-semibold mb-1">
-                  City & State <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.city}
-                  onChange={(e) => handleInputChange('city', e.target.value)}
-                  onBlur={() => handleBlur('city')}
-                  placeholder="e.g. Vadodara, Gujarat"
-                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
-                    errors.city && (touched.city || submitAttempted)
-                      ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
-                      : 'border-[#EBE3DB]'
-                  } rounded-xl text-[#211B17]`}
-                />
-                {errors.city && (touched.city || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
-                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.city}
-                  </p>
-                )}
-              </div>
-            </div>
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          {/* 1. Company Name */}
+          <div>
+            <label className="block text-[#544B45] font-semibold mb-1 flex items-center gap-1.5">
+              <Building className="w-3.5 h-3.5 text-[#8C5229]" />
+              <span>Company Name</span>
+              <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.companyName}
+              onChange={(e) => handleInputChange('companyName', e.target.value)}
+              onBlur={() => handleBlur('companyName')}
+              placeholder="e.g. Reliance Industries Ltd. / ABC Pharma Machinery"
+              className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
+                errors.companyName && (touched.companyName || submitAttempted)
+                  ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
+                  : 'border-[#EBE3DB]'
+              } rounded-xl text-[#211B17] font-bold focus:outline-none focus:border-[#75401F]`}
+            />
+            {errors.companyName && (touched.companyName || submitAttempted) && (
+              <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
+                <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.companyName}
+              </p>
+            )}
           </div>
 
-          {/* SECTION 2: CONTACT */}
-          <div className="space-y-3 pt-4 border-t border-[#EBE3DB]">
-            <h3 className="font-bold text-sm text-[#544B45] flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center text-[10px] font-bold border border-crm-brand-200">
-                2
-              </span>
-              Contact Person Information
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-              <div className="md:col-span-4" data-invalid={Boolean(errors.contactPerson && (touched.contactPerson || submitAttempted))}>
-                <label className="block text-[#544B45] font-semibold mb-1">
-                  Contact Person Name <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.contactPerson}
-                  onChange={(e) => handleInputChange('contactPerson', e.target.value)}
-                  onBlur={() => handleBlur('contactPerson')}
-                  placeholder="e.g. Harish Trivedi"
-                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
-                    errors.contactPerson && (touched.contactPerson || submitAttempted)
-                      ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
-                      : 'border-[#EBE3DB]'
-                  } rounded-xl text-[#211B17] font-semibold`}
-                />
-                {errors.contactPerson && (touched.contactPerson || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
-                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.contactPerson}
-                  </p>
-                )}
-              </div>
-
-              <div className="md:col-span-4">
-                <label className="block text-[#544B45] font-semibold mb-1">Designation</label>
-                <input
-                  type="text"
-                  value={formData.designation}
-                  onChange={(e) => handleInputChange('designation', e.target.value)}
-                  placeholder="e.g. Project Lead / Purchase Head"
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17]"
-                />
-              </div>
-
-              <div className="md:col-span-4" data-invalid={Boolean(errors.mobile && (touched.mobile || submitAttempted))}>
-                <label className="block text-[#544B45] font-semibold mb-1">
-                  Mobile Contact (10 digits) <span className="text-rose-500">*</span>
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 font-mono text-[#70665F] font-bold">+91</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={10}
-                    value={formData.mobile}
-                    onChange={(e) => handleInputChange('mobile', e.target.value)}
-                    onBlur={() => handleBlur('mobile')}
-                    placeholder="9825012345"
-                    className={`w-full pl-11 pr-3.5 py-2.5 bg-[#FAF7F2] border ${
-                      errors.mobile && (touched.mobile || submitAttempted)
-                        ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
-                        : 'border-[#EBE3DB]'
-                    } rounded-xl text-[#211B17] font-mono font-semibold tracking-wider`}
-                  />
-                </div>
-                {errors.mobile && (touched.mobile || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
-                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.mobile}
-                  </p>
-                )}
-              </div>
-
-              <div className="md:col-span-6" data-invalid={Boolean(errors.email && (touched.email || submitAttempted))}>
-                <label className="block text-[#544B45] font-semibold mb-1">
-                  Email Address <span className="text-rose-500">*</span>
-                </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-[#70665F] absolute left-3 top-3" />
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    onBlur={() => handleBlur('email')}
-                    placeholder="name@company.com"
-                    className={`w-full pl-9 pr-3.5 py-2.5 bg-[#FAF7F2] border ${
-                      errors.email && (touched.email || submitAttempted)
-                        ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
-                        : 'border-[#EBE3DB]'
-                    } rounded-xl text-[#211B17] font-medium`}
-                  />
-                </div>
-                {errors.email && (touched.email || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
-                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.email}
-                  </p>
-                )}
-              </div>
-
-              <div className="md:col-span-6" data-invalid={Boolean(errors.whatsapp && (touched.whatsapp || submitAttempted))}>
-                <label className="block text-[#544B45] font-semibold mb-1">WhatsApp Number (10 digits)</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 font-mono text-[#70665F] font-bold">+91</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={10}
-                    value={formData.whatsapp}
-                    onChange={(e) => handleInputChange('whatsapp', e.target.value)}
-                    onBlur={() => handleBlur('whatsapp')}
-                    placeholder="9825012345"
-                    className={`w-full pl-11 pr-3.5 py-2.5 bg-[#FAF7F2] border ${
-                      errors.whatsapp && (touched.whatsapp || submitAttempted)
-                        ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
-                        : 'border-[#EBE3DB]'
-                    } rounded-xl text-[#211B17] font-mono font-semibold tracking-wider`}
-                  />
-                </div>
-                {errors.whatsapp && (touched.whatsapp || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
-                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.whatsapp}
-                  </p>
-                )}
-              </div>
-            </div>
+          {/* 2. Contact Person Name */}
+          <div>
+            <label className="block text-[#544B45] font-semibold mb-1 flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-[#8C5229]" />
+              <span>Contact Person Name</span>
+              <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.contactPerson}
+              onChange={(e) => handleInputChange('contactPerson', e.target.value)}
+              onBlur={() => handleBlur('contactPerson')}
+              placeholder="e.g. Rajesh Sharma / Harish Trivedi"
+              className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
+                errors.contactPerson && (touched.contactPerson || submitAttempted)
+                  ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
+                  : 'border-[#EBE3DB]'
+              } rounded-xl text-[#211B17] font-semibold focus:outline-none focus:border-[#75401F]`}
+            />
+            {errors.contactPerson && (touched.contactPerson || submitAttempted) && (
+              <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
+                <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.contactPerson}
+              </p>
+            )}
           </div>
 
-          {/* SECTION 3: MACHINE / EQUIPMENT REQUIREMENT */}
-          <div className="space-y-3 pt-4 border-t border-[#EBE3DB]">
-            <h3 className="font-bold text-sm text-[#544B45] flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center text-[10px] font-bold border border-crm-brand-200">
-                3
-              </span>
-              Machine & Equipment Technical Requirement
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-              <div
-                className="md:col-span-8"
-                data-invalid={Boolean(errors.productName && (touched.productName || submitAttempted))}
-              >
-                <label className="block text-[#544B45] font-semibold mb-1">
-                  Product / Machine Title <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.productName}
-                  onChange={(e) => handleInputChange('productName', e.target.value)}
-                  onBlur={() => handleBlur('productName')}
-                  placeholder="e.g. 10 KL SS 316L Chemical Reactor Vessel with Limpet Jacket"
-                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
-                    errors.productName && (touched.productName || submitAttempted)
-                      ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
-                      : 'border-[#EBE3DB]'
-                  } rounded-xl font-bold text-[#211B17]`}
-                />
-                {errors.productName && (touched.productName || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
-                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.productName}
-                  </p>
-                )}
-              </div>
-
-              <div className="md:col-span-4" data-invalid={Boolean(errors.quantity && (touched.quantity || submitAttempted))}>
-                <label className="block text-[#544B45] font-semibold mb-1">
-                  Quantity <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  placeholder="1"
-                  value={formData.quantity}
-                  onChange={(e) => handleInputChange('quantity', e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))}
-                  onBlur={() => handleBlur('quantity')}
-                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
-                    errors.quantity && (touched.quantity || submitAttempted)
-                      ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
-                      : 'border-[#EBE3DB]'
-                  } rounded-xl font-mono text-[#211B17]`}
-                />
-                {errors.quantity && (touched.quantity || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
-                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.quantity}
-                  </p>
-                )}
-              </div>
-
-              <div className="md:col-span-4">
-                <label className="block text-[#544B45] font-semibold mb-1">Capacity / Dimensions</label>
-                <input
-                  type="text"
-                  value={formData.capacity}
-                  onChange={(e) => handleInputChange('capacity', e.target.value)}
-                  placeholder="e.g. 10,000 Litres / 150 Kg / 2000 mm Dia"
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17]"
-                />
-              </div>
-
-              <div className="md:col-span-4" data-invalid={Boolean(errors.expectedDelivery && (touched.expectedDelivery || submitAttempted))}>
-                <label className="block text-[#544B45] font-semibold mb-1">
-                  Target Delivery Date <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="date"
-                  min={todayStr}
-                  value={formData.expectedDelivery}
-                  onChange={(e) => handleInputChange('expectedDelivery', e.target.value)}
-                  onBlur={() => handleBlur('expectedDelivery')}
-                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
-                    errors.expectedDelivery && (touched.expectedDelivery || submitAttempted)
-                      ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
-                      : 'border-[#EBE3DB]'
-                  } rounded-xl text-[#211B17] font-mono`}
-                />
-                {errors.expectedDelivery && (touched.expectedDelivery || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
-                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.expectedDelivery}
-                  </p>
-                )}
-              </div>
-
-              <div className="md:col-span-4" data-invalid={Boolean(errors.budget && (touched.budget || submitAttempted))}>
-                <label className="block text-[#544B45] font-semibold mb-1">Estimated Budget (₹)</label>
-                <input
-                  type="number"
-                  min={0}
-                  placeholder="0"
-                  value={formData.budget}
-                  onChange={(e) => handleInputChange('budget', e.target.value === '' ? '' : Number(e.target.value))}
-                  onBlur={() => handleBlur('budget')}
-                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
-                    errors.budget && (touched.budget || submitAttempted)
-                      ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
-                      : 'border-[#EBE3DB]'
-                  } rounded-xl font-bold text-emerald-600`}
-                />
-                {errors.budget && (touched.budget || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
-                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.budget}
-                  </p>
-                )}
-              </div>
-
-              <div className="md:col-span-12">
-                <label className="block text-[#544B45] font-semibold mb-1">Technical Scope & Description</label>
-                <textarea
-                  rows={3}
-                  value={formData.requirementDescription}
-                  onChange={(e) => handleInputChange('requirementDescription', e.target.value)}
-                  placeholder="Pressure ratings, material of construction (SS304/SS316/Hastelloy), testing requirements (Hydro/Radiography), cGMP standards..."
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17]"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 4: CRM & ASSIGNMENT */}
-          <div className="space-y-3 pt-4 border-t border-[#EBE3DB]">
-            <h3 className="font-bold text-sm text-[#544B45] flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center text-[10px] font-bold border border-crm-brand-200">
-                4
-              </span>
-              Lead Source & Sales Assignment
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-              <div className="md:col-span-3">
-                <label className="block text-[#544B45] font-semibold mb-1">Lead Source</label>
-                <select
-                  value={formData.source}
-                  onChange={(e) => {
-                    const newSrc = e.target.value as any;
-                    handleInputChange('source', newSrc);
-                    if (newSrc !== 'exhibition') {
-                      setFormData((prev) => ({ ...prev, exhibitionId: '', exhibitionName: '' }));
-                    }
-                  }}
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] font-semibold"
-                >
-                  <option value="direct">Direct Phone Call</option>
-                  <option value="exhibition">Exhibition / Expo</option>
-                  <option value="website">Website Inquiry</option>
-                  <option value="whatsapp">WhatsApp</option>
-                  <option value="referral">Referral</option>
-                  <option value="existing_customer">Existing Customer</option>
-                </select>
-              </div>
-
-              {formData.source === 'exhibition' && (
-                <div className="md:col-span-12 p-3.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl space-y-2">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                    <label className="text-[#544B45] font-bold text-xs flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-crm-brand-700" />
-                      Linked Exhibition / Trade Show Event
-                    </label>
-                    {formData.exhibitionName && (
-                      <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-mono text-[10px] font-bold">
-                        Linked: {formData.exhibitionName}
-                      </span>
-                    )}
-                  </div>
-                  <select
-                    value={formData.exhibitionId}
-                    onChange={(e) => {
-                      const selId = e.target.value;
-                      const expo = exhibitions.find((ex) => ex.id === selId);
-                      setFormData((prev) => ({
-                        ...prev,
-                        exhibitionId: selId,
-                        exhibitionName: expo ? expo.expoName : '',
-                      }));
-                    }}
-                    className="w-full px-3.5 py-2 bg-white border border-[#EBE3DB] rounded-xl text-[#211B17] font-semibold text-xs"
-                  >
-                    <option value="">-- Select Registered Exhibition --</option>
-                    {exhibitions.map((expo) => (
-                      <option key={expo.id} value={expo.id}>
-                        {expo.expoName} ({expo.location || 'Venue'} • {expo.startDate})
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-[11px] text-[#70665F]">
-                    Associating this lead with a registered Exhibition tracks stall ROI and prevents duplicate lead entry.
-                  </p>
-                </div>
+          {/* 3. Mobile Number & 4. Email in a 2-column grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[#544B45] font-semibold mb-1 flex items-center gap-1.5">
+                <Phone className="w-3.5 h-3.5 text-[#8C5229]" />
+                <span>Mobile Number</span>
+                <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                maxLength={10}
+                value={formData.mobile}
+                onChange={(e) => handleInputChange('mobile', e.target.value)}
+                onBlur={() => handleBlur('mobile')}
+                placeholder="10-digit mobile (e.g. 9825012345)"
+                className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
+                  errors.mobile && (touched.mobile || submitAttempted)
+                    ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
+                    : 'border-[#EBE3DB]'
+                } rounded-xl font-mono text-[#211B17] focus:outline-none focus:border-[#75401F]`}
+              />
+              {errors.mobile && (touched.mobile || submitAttempted) && (
+                <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
+                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.mobile}
+                </p>
               )}
+            </div>
 
-              <div className="md:col-span-3" data-invalid={Boolean(errors.assignedSalesPersonId && (touched.assignedSalesPersonId || submitAttempted))}>
-                <label className="block text-[#544B45] font-semibold mb-1">
-                  Assigned Sales Engineer <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={formData.assignedSalesPersonId}
-                  onChange={(e) => handleInputChange('assignedSalesPersonId', e.target.value)}
-                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
-                    errors.assignedSalesPersonId && (touched.assignedSalesPersonId || submitAttempted)
-                      ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
-                      : 'border-[#EBE3DB]'
-                  } rounded-xl text-[#211B17] font-medium`}
-                >
-                  {allEmployees.length === 0 && (
-                    <option value="">No sales engineers loaded (Add staff in Users module)</option>
-                  )}
-                  {allEmployees.map((emp) => {
-                    const name =
-                      emp.name ||
-                      (emp as any).employeeName ||
-                      `${emp.firstName || ''} ${emp.lastName || ''}`.trim() ||
-                      emp.id;
-                    const dept = emp.department || (emp as any).departmentName || 'CRM';
-                    return (
-                      <option key={emp.id} value={emp.id}>
-                        {name} ({dept})
-                      </option>
-                    );
-                  })}
-                </select>
-                {errors.assignedSalesPersonId && (touched.assignedSalesPersonId || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
-                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.assignedSalesPersonId}
-                  </p>
-                )}
-              </div>
-
-              <div className="md:col-span-3">
-                <label className="block text-[#544B45] font-semibold mb-1">Priority</label>
-                <select
-                  value={formData.priority}
-                  onChange={(e) => handleInputChange('priority', e.target.value as any)}
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] font-bold"
-                >
-                  <option value="low">Low Priority</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High Priority</option>
-                  <option value="urgent">URGENT Fast-Track</option>
-                </select>
-              </div>
-
-              <div className="md:col-span-3" data-invalid={Boolean(errors.nextFollowUpDate && (touched.nextFollowUpDate || submitAttempted))}>
-                <label className="block text-[#544B45] font-semibold mb-1">
-                  Next Follow-up Date <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="date"
-                  min={todayStr}
-                  value={formData.nextFollowUpDate}
-                  onChange={(e) => handleInputChange('nextFollowUpDate', e.target.value)}
-                  onBlur={() => handleBlur('nextFollowUpDate')}
-                  className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
-                    errors.nextFollowUpDate && (touched.nextFollowUpDate || submitAttempted)
-                      ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
-                      : 'border-[#EBE3DB]'
-                  } rounded-xl text-[#211B17] font-mono`}
-                />
-                {errors.nextFollowUpDate && (touched.nextFollowUpDate || submitAttempted) && (
-                  <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
-                    <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.nextFollowUpDate}
-                  </p>
-                )}
-              </div>
+            <div>
+              <label className="block text-[#544B45] font-semibold mb-1 flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5 text-[#8C5229]" />
+                <span>Email Address</span>
+              </label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                onBlur={() => handleBlur('email')}
+                placeholder="e.g. purchase@company.com"
+                className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
+                  errors.email && (touched.email || submitAttempted)
+                    ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
+                    : 'border-[#EBE3DB]'
+                } rounded-xl text-[#211B17] focus:outline-none focus:border-[#75401F]`}
+              />
+              {errors.email && (touched.email || submitAttempted) && (
+                <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
+                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.email}
+                </p>
+              )}
             </div>
           </div>
 
-          <div className="pt-4 flex justify-end gap-3 border-t border-[#EBE3DB]">
+          {/* 5. Address */}
+          <div>
+            <label className="block text-[#544B45] font-semibold mb-1 flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-[#8C5229]" />
+              <span>Address</span>
+            </label>
+            <textarea
+              rows={3}
+              value={formData.address}
+              onChange={(e) => handleInputChange('address', e.target.value)}
+              placeholder="e.g. Plot No. 42, GIDC Industrial Estate, Makarpura, Vadodara, Gujarat - 390010"
+              className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] focus:outline-none focus:border-[#75401F] leading-relaxed"
+            />
+          </div>
+
+          {/* Note informing that other fields are updated later */}
+          <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl text-[11px] text-amber-900 flex items-start gap-2">
+            <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+            <span>
+              <strong>Note:</strong> All additional fields (Equipment requirement, machine capacity, budget, pipeline status, and follow-ups) can be filled when updating the lead.
+            </span>
+          </div>
+
+          {/* Form Actions */}
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#EBE3DB]">
             <Link
               href="/crm/leads"
-              className="px-4 py-2 border border-[#EBE3DB] rounded-lg hover:bg-slate-50 font-semibold text-[#544B45] transition"
+              className="px-4 py-2.5 border border-[#EBE3DB] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs"
             >
               Cancel
             </Link>
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`px-6 py-2.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-xl font-bold shadow-md transition transform active:scale-95 flex items-center gap-2 ${
-                isSubmitting ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''
-              }`}
+              className="px-6 py-2.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-xl font-bold transition flex items-center gap-2 shadow-sm disabled:opacity-50 cursor-pointer text-xs"
             >
-              {isSubmitting ? (
-                <>
-                  <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Saving Lead...
-                </>
-              ) : (
-                'Register & Save Lead'
-              )}
+              <Save className="w-4 h-4" />
+              <span>{isSubmitting ? 'Saving Lead...' : 'Save & Register Lead'}</span>
             </button>
           </div>
         </form>

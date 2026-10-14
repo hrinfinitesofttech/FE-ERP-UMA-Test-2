@@ -52,51 +52,70 @@ export default function EnquiriesRegisterPage() {
   const [editingEnquiry, setEditingEnquiry] = useState<Enquiry | null>(null);
   const [deletingEnquiry, setDeletingEnletingEnquiry] = useState<Enquiry | null>(null);
 
-  // Form states
+  // Form states: Select customer (Lead), Product name, quantity, description
   const [selectedLeadId, setSelectedLeadId] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [contactPerson, setContactPerson] = useState('');
   const [contactMobile, setContactMobile] = useState('');
   const [machineProduct, setMachineProduct] = useState('');
-  const [machineType, setMachineType] = useState('');
-  const [application, setApplication] = useState('');
-  const [capacity, setCapacity] = useState('');
-  const [materialGrade, setMaterialGrade] = useState('');
-  const [budget, setBudget] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [specification, setSpecification] = useState('');
   const [requirement, setRequirement] = useState('');
-  const [expectedDelivery, setExpectedDelivery] = useState('');
-  const [assignedPersonId, setAssignedPersonId] = useState('');
-  const [assignedPersonName, setAssignedPersonName] = useState('');
   const [status, setStatus] = useState<Enquiry['status']>('new');
   const [formError, setFormError] = useState('');
   const [successToast, setSuccessToast] = useState('');
 
-  // Handle lead selection for autofill
-  const handleLeadSelect = (leadId: string) => {
-    setSelectedLeadId(leadId);
-    if (!leadId) return;
+  // Handle lead or customer selection for the enquiry
+  const handleLeadSelect = (val: string) => {
+    if (!val) {
+      setSelectedLeadId('');
+      setCustomerName('');
+      setCustomerEmail('');
+      setContactPerson('');
+      setContactMobile('');
+      return;
+    }
 
-    const lead = leads.find((l) => l.id === leadId || l.leadNo === leadId);
-    if (lead) {
-      setCustomerName(lead.companyName || '');
-      setCustomerEmail(lead.email || '');
-      setContactPerson(lead.contactPerson || '');
-      setContactMobile(lead.mobile || '');
-      setMachineProduct(lead.productName || '');
-      setMachineType(lead.machineType || '');
-      setApplication(lead.application || '');
-      setCapacity(lead.capacity || '');
-      setBudget(lead.budget ? Number(lead.budget) : 0);
-      setQuantity(lead.quantity || 1);
-      setSpecification(lead.capacity ? `Capacity: ${lead.capacity} (${lead.machineType || 'Industrial Equipment'})` : (lead.machineType || ''));
-      setRequirement(lead.requirementDescription || `Customer requirement for ${lead.productName}`);
-      setExpectedDelivery(lead.expectedDelivery || '');
-      if (lead.assignedSalesPersonId) {
-        setAssignedPersonId(lead.assignedSalesPersonId);
-        setAssignedPersonName(lead.assignedSalesPersonName || '');
+    if (val.startsWith('lead:')) {
+      const id = val.replace('lead:', '');
+      setSelectedLeadId(id);
+      const lead = leads.find((l) => l.id === id || l.leadNo === id);
+      if (lead) {
+        setCustomerName(lead.companyName || '');
+        setCustomerEmail(lead.email || '');
+        setContactPerson(lead.contactPerson || '');
+        setContactMobile(lead.mobile || '');
+        if (!machineProduct && lead.productName) {
+          setMachineProduct(lead.productName);
+        }
+        if (lead.quantity && quantity === 1) {
+          setQuantity(lead.quantity);
+        }
+        if (!requirement && lead.requirementDescription) {
+          setRequirement(lead.requirementDescription);
+        }
+      }
+    } else if (val.startsWith('cust:')) {
+      const id = val.replace('cust:', '');
+      setSelectedLeadId('');
+      const cust = customers.find((c) => c.id === id || c.customerCode === id);
+      if (cust) {
+        setCustomerName(cust.companyName || '');
+        setCustomerEmail(cust.email || '');
+        setContactPerson(cust.contactPerson || '');
+        setContactMobile(cust.mobile || '');
+      }
+    } else {
+      setSelectedLeadId(val);
+      const lead = leads.find((l) => l.id === val || l.leadNo === val);
+      if (lead) {
+        setCustomerName(lead.companyName || '');
+        setCustomerEmail(lead.email || '');
+        setContactPerson(lead.contactPerson || '');
+        setContactMobile(lead.mobile || '');
+        if (!machineProduct && lead.productName) {
+          setMachineProduct(lead.productName);
+        }
       }
     }
   };
@@ -109,17 +128,8 @@ export default function EnquiriesRegisterPage() {
     setContactPerson('');
     setContactMobile('');
     setMachineProduct('');
-    setMachineType('');
-    setApplication('');
-    setCapacity('');
-    setMaterialGrade('');
-    setBudget(0);
     setQuantity(1);
-    setSpecification('');
     setRequirement('');
-    setExpectedDelivery('');
-    setAssignedPersonId(currentUser?.id || '');
-    setAssignedPersonName(currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'Pravin Patel');
     setStatus('new');
     setFormError('');
     setIsModalOpen(true);
@@ -133,17 +143,8 @@ export default function EnquiriesRegisterPage() {
     setContactPerson(enq.contactPerson || '');
     setContactMobile(enq.contactMobile || '');
     setMachineProduct(enq.machineProduct || '');
-    setMachineType(enq.machineType || '');
-    setApplication(enq.application || '');
-    setCapacity(enq.capacity || '');
-    setMaterialGrade(enq.materialGrade || '');
-    setBudget(enq.budget ? Number(enq.budget) : 0);
     setQuantity(enq.quantity || 1);
-    setSpecification(enq.specification || '');
-    setRequirement(enq.requirement || '');
-    setExpectedDelivery(enq.expectedDelivery || '');
-    setAssignedPersonId(enq.assignedPersonId || '');
-    setAssignedPersonName(enq.assignedPersonName || '');
+    setRequirement(enq.requirement || enq.specification || '');
     setStatus(enq.status || 'new');
     setFormError('');
     setIsModalOpen(true);
@@ -152,33 +153,30 @@ export default function EnquiriesRegisterPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerName.trim()) {
-      setFormError('Customer / Company Name is required.');
+      setFormError('Please select a Customer (Lead).');
       return;
     }
     if (!machineProduct.trim()) {
-      setFormError('Machine / Equipment Name is required.');
+      setFormError('Product Name is required.');
+      return;
+    }
+    if (quantity < 1) {
+      setFormError('Quantity must be at least 1.');
       return;
     }
 
     try {
       if (editingEnquiry) {
         updateEnquiry(editingEnquiry.id, {
+          leadId: selectedLeadId || editingEnquiry.leadId || undefined,
           customerName: customerName.trim(),
-          customerEmail: customerEmail.trim(),
-          contactPerson: contactPerson.trim(),
-          contactMobile: contactMobile.trim(),
+          customerEmail: customerEmail.trim() || editingEnquiry.customerEmail,
+          contactPerson: contactPerson.trim() || editingEnquiry.contactPerson,
+          contactMobile: contactMobile.trim() || editingEnquiry.contactMobile,
           machineProduct: machineProduct.trim(),
-          machineType: machineType.trim() || undefined,
-          application: application.trim() || undefined,
-          capacity: capacity.trim() || undefined,
-          materialGrade: materialGrade.trim() || undefined,
-          budget: Number(budget) || undefined,
           quantity: Number(quantity) || 1,
-          specification: specification.trim(),
           requirement: requirement.trim() || `Enquiry for ${machineProduct.trim()}`,
-          expectedDelivery,
-          assignedPersonId,
-          assignedPersonName,
+          specification: requirement.trim(),
           status,
         });
         setSuccessToast(`Enquiry ${editingEnquiry.enquiryNo || editingEnquiry.id} updated successfully!`);
@@ -186,22 +184,17 @@ export default function EnquiriesRegisterPage() {
         const created = addEnquiry({
           leadId: selectedLeadId || undefined,
           customerName: customerName.trim(),
-          customerEmail: customerEmail.trim(),
-          contactPerson: contactPerson.trim(),
-          contactMobile: contactMobile.trim(),
+          customerEmail: customerEmail.trim() || '',
+          contactPerson: contactPerson.trim() || '',
+          contactMobile: contactMobile.trim() || '',
           machineProduct: machineProduct.trim(),
-          machineType: machineType.trim() || undefined,
-          application: application.trim() || undefined,
-          capacity: capacity.trim() || undefined,
-          materialGrade: materialGrade.trim() || undefined,
-          budget: Number(budget) || undefined,
           quantity: Number(quantity) || 1,
-          specification: specification.trim(),
           requirement: requirement.trim() || `Enquiry for ${machineProduct.trim()}`,
-          expectedDelivery,
-          assignedPersonId,
-          assignedPersonName,
-          status,
+          specification: requirement.trim(),
+          expectedDelivery: '',
+          assignedPersonId: currentUser?.id || '',
+          assignedPersonName: currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'Pravin Patel',
+          status: 'new',
         });
         setSuccessToast(`New Enquiry ${created.enquiryNo} created successfully!`);
       }
@@ -548,227 +541,102 @@ export default function EnquiriesRegisterPage() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Lead Pre-fill Selector (Only in Create Mode) */}
-              {!editingEnquiry && leads.length > 0 && (
-                <div className="p-3.5 bg-amber-50/60 border border-amber-200/80 rounded-xl space-y-1.5">
-                  <label className="text-[11px] font-bold text-amber-900 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Auto-Fill from Existing Lead (Optional)</span>
-                  </label>
-                  <select
-                    value={selectedLeadId}
-                    onChange={(e) => handleLeadSelect(e.target.value)}
-                    className="w-full px-3 py-1.5 bg-white border border-amber-300 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-amber-600"
-                  >
-                    <option value="">-- Manual Entry / Select a Lead to Auto-Fill --</option>
-                    {leads.map((l) => (
-                      <option key={l.id} value={l.id}>
-                        {l.leadNo} — {l.companyName} ({l.productName})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                  <label className="block text-[11px] font-bold text-[#70665F] mb-1">
-                    Customer / Company Name <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Gujarat Alkalies & Chemicals Ltd."
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#75401F]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold text-[#70665F] mb-1">
-                    Customer Email ID
-                  </label>
-                  <input
-                    type="email"
-                    placeholder="e.g. procurement@gacl.co.in"
-                    value={customerEmail}
-                    onChange={(e) => setCustomerEmail(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#75401F]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold text-[#70665F] mb-1">
-                    Contact Person Name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Harish Trivedi (General Manager)"
-                    value={contactPerson}
-                    onChange={(e) => setContactPerson(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#75401F]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold text-[#70665F] mb-1">
-                    Contact Mobile Number
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. +91 98251 99881"
-                    value={contactMobile}
-                    onChange={(e) => setContactMobile(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#75401F]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold text-[#70665F] mb-1">
-                    Machine / Equipment Required <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Stainless Steel SS316 Reaction Vessel"
-                    value={machineProduct}
-                    onChange={(e) => setMachineProduct(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#75401F]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold text-[#70665F] mb-1">
-                    Quantity Required
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={quantity}
-                    onChange={(e) => setQuantity(Number(e.target.value) || 1)}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#75401F]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold text-[#70665F] mb-1">
-                    Expected Delivery Date
-                  </label>
-                  <input
-                    type="date"
-                    value={expectedDelivery}
-                    onChange={(e) => setExpectedDelivery(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#75401F]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold text-[#70665F] mb-1">
-                    Assigned Sales Engineer
-                  </label>
-                  <select
-                    value={assignedPersonId}
-                    onChange={(e) => {
-                      setAssignedPersonId(e.target.value);
-                      const emp = (availableEmployees || employees).find((em) => em.id === e.target.value);
-                      if (emp) setAssignedPersonName(emp.name || `${emp.firstName} ${emp.lastName}`);
-                    }}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#75401F]"
-                  >
-                    <option value="">-- Select Sales Engineer --</option>
-                    {(availableEmployees || employees).map((em) => (
-                      <option key={em.id} value={em.id}>
-                        {em.name || `${em.firstName} ${em.lastName}`} ({em.departmentName || 'Sales'})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Manufacturing & Equipment Technical Specs */}
-              <div className="p-3 bg-[#FAF7F2] border border-[#E7DED5] rounded-xl space-y-2.5">
-                <h4 className="font-bold text-[#75401F] text-xs">Manufacturing & Metallurgy Specifications</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                  <div>
-                    <label className="block text-[10px] font-bold text-[#70665F] mb-1">Machine / Vessel Type</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Reaction Vessel / Heat Exchanger"
-                      value={machineType}
-                      onChange={(e) => setMachineType(e.target.value)}
-                      className="w-full px-2.5 py-1.5 bg-white border border-[#E7DED5] rounded-lg text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-[#70665F] mb-1">Capacity / Size</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 10 KL / 2000 mm Dia"
-                      value={capacity}
-                      onChange={(e) => setCapacity(e.target.value)}
-                      className="w-full px-2.5 py-1.5 bg-white border border-[#E7DED5] rounded-lg text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-[#70665F] mb-1">Material Grade (MOC)</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. SS316L / Hastelloy C-276"
-                      value={materialGrade}
-                      onChange={(e) => setMaterialGrade(e.target.value)}
-                      className="w-full px-2.5 py-1.5 bg-white border border-[#E7DED5] rounded-lg text-xs"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  <div>
-                    <label className="block text-[10px] font-bold text-[#70665F] mb-1">Application / Industry</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Pharma API / Agrochemical"
-                      value={application}
-                      onChange={(e) => setApplication(e.target.value)}
-                      className="w-full px-2.5 py-1.5 bg-white border border-[#E7DED5] rounded-lg text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-[#70665F] mb-1">Estimated Budget (₹)</label>
-                    <input
-                      type="number"
-                      min={0}
-                      placeholder="0"
-                      value={budget || ''}
-                      onChange={(e) => setBudget(Number(e.target.value) || 0)}
-                      className="w-full px-2.5 py-1.5 bg-white border border-[#E7DED5] rounded-lg text-xs font-mono font-bold text-emerald-700"
-                    />
-                  </div>
-                </div>
-              </div>
-
+              {/* 1. Select Customer (Lead) */}
               <div>
-                <label className="block text-[11px] font-bold text-[#70665F] mb-1">
-                  Technical Specifications & Operating Parameters
+                <label className="block text-[11px] font-bold text-[#70665F] mb-1 flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 text-[#8C5229]" />
+                  <span>Select customer (Lead)</span>
+                  <span className="text-rose-500">*</span>
                 </label>
-                <textarea
-                  rows={2}
-                  placeholder="Design pressure, operating temperature, material grade (SS316L), capacity, MOC, motor power..."
-                  value={specification}
-                  onChange={(e) => setSpecification(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#75401F]"
+                <select
+                  required
+                  value={
+                    selectedLeadId
+                      ? `lead:${selectedLeadId}`
+                      : customerName
+                      ? `name:${customerName}`
+                      : ''
+                  }
+                  onChange={(e) => handleLeadSelect(e.target.value)}
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-xl text-xs text-slate-900 focus:outline-none focus:border-[#75401F] font-semibold"
+                >
+                  <option value="">-- Select Customer / Lead --</option>
+                  {leads.length > 0 && (
+                    <optgroup label="Prospective Leads">
+                      {leads.map((l) => (
+                        <option key={`lead-${l.id}`} value={`lead:${l.id}`}>
+                          {l.leadNo} — {l.companyName} {l.contactPerson ? `(${l.contactPerson})` : ''}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {customers.length > 0 && (
+                    <optgroup label="Registered Customers">
+                      {customers.map((c) => (
+                        <option key={`cust-${c.id}`} value={`cust:${c.id}`}>
+                          {c.customerCode} — {c.companyName}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {customerName && !leads.some((l) => l.companyName === customerName) && !customers.some((c) => c.companyName === customerName) && (
+                    <option value={`name:${customerName}`}>{customerName} (Selected)</option>
+                  )}
+                </select>
+                {customerName && (
+                  <p className="text-[11px] text-emerald-700 mt-1 font-semibold flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                    Selected: {customerName} {contactPerson ? `• Contact: ${contactPerson}` : ''}
+                  </p>
+                )}
+              </div>
+
+              {/* 2. Product Name */}
+              <div>
+                <label className="block text-[11px] font-bold text-[#70665F] mb-1 flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-[#8C5229]" />
+                  <span>Product Name</span>
+                  <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Stainless Steel SS316 Reaction Vessel"
+                  value={machineProduct}
+                  onChange={(e) => setMachineProduct(e.target.value)}
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-xl text-xs text-slate-900 focus:outline-none focus:border-[#75401F] font-semibold"
                 />
               </div>
 
+              {/* 3. Quantity */}
               <div>
                 <label className="block text-[11px] font-bold text-[#70665F] mb-1">
-                  Scope of Requirement / Notes
+                  Quantity <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  required
+                  min={1}
+                  value={quantity}
+                  onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-xl text-xs text-slate-900 focus:outline-none focus:border-[#75401F] font-mono font-bold"
+                />
+              </div>
+
+              {/* 4. Description */}
+              <div>
+                <label className="block text-[11px] font-bold text-[#70665F] mb-1 flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5 text-[#8C5229]" />
+                  <span>Description</span>
+                  <span className="text-rose-500">*</span>
                 </label>
                 <textarea
-                  rows={2}
-                  placeholder="Customer scope, site inspection notes, special testing (Hydro 1.5x, DP test), delivery terms..."
+                  rows={4}
+                  required
+                  placeholder="Enter equipment technical specifications, customer requirements, design parameters..."
                   value={requirement}
                   onChange={(e) => setRequirement(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#75401F]"
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-xl text-xs text-slate-900 focus:outline-none focus:border-[#75401F] leading-relaxed"
                 />
               </div>
 
@@ -780,7 +648,7 @@ export default function EnquiriesRegisterPage() {
                   <select
                     value={status}
                     onChange={(e) => setStatus(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#75401F]"
+                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-xl text-xs text-slate-900 focus:outline-none focus:border-[#75401F]"
                   >
                     <option value="new">New / Fresh</option>
                     <option value="under_review">Under Review</option>
@@ -798,13 +666,13 @@ export default function EnquiriesRegisterPage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 border border-[#E7DED5] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs"
+                  className="px-4 py-2 border border-[#E7DED5] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#3E2723] hover:bg-[#2C1810] text-white rounded-xl font-bold transition text-xs shadow-xs"
+                  className="px-5 py-2 bg-[#3E2723] hover:bg-[#2C1810] text-white rounded-xl font-bold transition text-xs shadow-xs cursor-pointer"
                 >
                   {editingEnquiry ? 'Save Changes' : 'Create Technical Enquiry'}
                 </button>

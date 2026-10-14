@@ -141,6 +141,7 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
       mobile: lead.mobile || '',
       altMobile: lead.altMobile || '',
       email: lead.email || '',
+      address: lead.address || '',
       city: lead.city || 'Vadodara',
       state: lead.state || 'Gujarat',
       productName: lead.productName || '',
@@ -704,6 +705,17 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
                     placeholder="e.g. Vadodara, Ahmedabad"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-[#544B45] font-semibold mb-1">Office / Factory Address</label>
+                <textarea
+                  rows={2}
+                  value={editLeadData.address || ''}
+                  onChange={(e) => setEditLeadData((prev) => ({ ...prev, address: e.target.value }))}
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                  placeholder="e.g. Plot No. 42, GIDC Industrial Estate, Makarpura, Vadodara"
+                />
               </div>
 
               <div>

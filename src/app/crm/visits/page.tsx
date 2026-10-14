@@ -31,77 +31,40 @@ export default function VisitsPage() {
   const [viewingVisit, setViewingVisit] = useState<SiteVisit | null>(null);
   const [editingVisit, setEditingVisit] = useState<SiteVisit | null>(null);
 
-  const [targetType, setTargetType] = useState<'customer' | 'lead' | 'enquiry'>('customer');
   const [leadId, setLeadId] = useState('');
-  const [enquiryId, setEnquiryId] = useState('');
-  const [customerId, setCustomerId] = useState(customers[0]?.id || '');
-  const [customerName, setCustomerName] = useState(customers[0]?.companyName || '');
-  const [contactPerson, setContactPerson] = useState(customers[0]?.contactPerson || '');
-  const [contactMobile, setContactMobile] = useState(customers[0]?.mobile || '');
-  const [visitDate, setVisitDate] = useState(new Date().toISOString().split('T')[0]);
-  const [location, setLocation] = useState(customers[0]?.city || 'Client Plant Site');
-  const [employeeId, setEmployeeId] = useState(employees[0]?.id || '');
   const [purpose, setPurpose] = useState('');
   const [discussionNotes, setDiscussionNotes] = useState('');
   const [requirementDetails, setRequirementDetails] = useState('');
-  const [siteMeasurements, setSiteMeasurements] = useState('');
-  const [operatingConditions, setOperatingConditions] = useState('');
-  const [technicalObservations, setTechnicalObservations] = useState('');
-  const [pendingClarifications, setPendingClarifications] = useState('');
   const [outcome, setOutcome] = useState<SiteVisit['outcome']>('positive');
-  const [nextAction, setNextAction] = useState('');
-  const [nextFollowUpDate, setNextFollowUpDate] = useState('');
-
-  // Auto-fill when customer changes in modal
-  const handleCustomerChange = (cId: string) => {
-    setCustomerId(cId);
-    const foundCust = customers.find((c) => c.id === cId);
-    if (foundCust) {
-      setCustomerName(foundCust.companyName);
-      setContactPerson(foundCust.contactPerson || '');
-      setContactMobile(foundCust.mobile || foundCust.whatsapp || '');
-      setLocation(`${foundCust.city || ''}, ${foundCust.state || ''}`.trim() || 'Client Site');
-    }
-  };
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    const cust = customers.find((c) => c.id === customerId);
-    const emp = employees.find((e) => e.id === employeeId);
+    const selectedLead = leads.find((l) => l.id === leadId);
+    const emp = employees[0];
 
     addSiteVisit({
-      customerId: targetType === 'customer' ? customerId : undefined,
-      leadId: targetType === 'lead' ? leadId : undefined,
-      enquiryId: targetType === 'enquiry' ? enquiryId : undefined,
-      customerName: cust?.companyName || customerName || 'Valued Customer',
-      contactPerson,
-      contactMobile,
-      visitDate,
-      location,
-      employeeId,
+      leadId: leadId || undefined,
+      customerId: selectedLead?.id || 'LEAD-CUSTOMER',
+      customerName: selectedLead?.companyName || 'Valued Lead Client',
+      contactPerson: selectedLead?.contactPerson || 'N/A',
+      contactMobile: selectedLead?.mobile || '',
+      visitDate: new Date().toISOString().split('T')[0],
+      location: selectedLead?.address || selectedLead?.city || 'Client Site',
+      employeeId: emp?.id || '',
       employeeName: emp ? `${emp.firstName || ''} ${emp.lastName || ''}`.trim() : 'Sales Engineer',
       purpose,
       discussionNotes,
       requirementDetails,
-      siteMeasurements: siteMeasurements.trim() || undefined,
-      operatingConditions: operatingConditions.trim() || undefined,
-      technicalObservations: technicalObservations.trim() || undefined,
-      pendingClarifications: pendingClarifications.trim() || undefined,
       outcome,
-      nextAction,
-      nextFollowUpDate: nextFollowUpDate || undefined,
+      nextAction: '',
     });
 
     // Reset form
+    setLeadId('');
     setPurpose('');
     setDiscussionNotes('');
     setRequirementDetails('');
-    setSiteMeasurements('');
-    setOperatingConditions('');
-    setTechnicalObservations('');
-    setPendingClarifications('');
-    setNextAction('');
-    setNextFollowUpDate('');
+    setOutcome('positive');
     setShowModal(false);
   };
 
@@ -239,8 +202,8 @@ export default function VisitsPage() {
 
         <button
           onClick={() => {
-            if (customers.length > 0 && !customerId) {
-              handleCustomerChange(customers[0].id);
+            if (leads.length > 0 && !leadId) {
+              setLeadId(leads[0].id);
             }
             setShowModal(true);
           }}
@@ -274,245 +237,87 @@ export default function VisitsPage() {
               </button>
             </div>
 
-            <form onSubmit={handleCreate} className="space-y-3.5 text-xs">
-              {/* Target Entity Selector */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Target Account / Entity</label>
-                  <select
-                    value={targetType}
-                    onChange={(e) => {
-                      const t = e.target.value as 'customer' | 'lead' | 'enquiry';
-                      setTargetType(t);
-                      if (t === 'customer' && customers[0]) {
-                        handleCustomerChange(customers[0].id);
-                      } else if (t === 'lead' && leads[0]) {
-                        setLeadId(leads[0].id);
-                        setCustomerName(leads[0].companyName);
-                        setContactPerson(leads[0].contactPerson || '');
-                        setContactMobile(leads[0].mobile || '');
-                        setLocation(leads[0].city || 'Client Site');
-                      } else if (t === 'enquiry' && enquiries[0]) {
-                        setEnquiryId(enquiries[0].id);
-                        setCustomerName(enquiries[0].customerName);
-                        setContactPerson(enquiries[0].contactPerson || '');
-                        setContactMobile(enquiries[0].contactMobile || '');
-                      }
-                    }}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-semibold text-[#211B17]"
-                  >
-                    <option value="customer">Existing Customer</option>
-                    <option value="lead">Sales Lead</option>
-                    <option value="enquiry">Technical Inquiry (RFQ)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Select Record</label>
-                  {targetType === 'customer' && (
-                    <select
-                      value={customerId}
-                      onChange={(e) => handleCustomerChange(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-semibold text-[#211B17]"
-                    >
-                      {customers.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.companyName}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                  {targetType === 'lead' && (
-                    <select
-                      value={leadId}
-                      onChange={(e) => {
-                        const lId = e.target.value;
-                        setLeadId(lId);
-                        const l = leads.find((x) => x.id === lId);
-                        if (l) {
-                          setCustomerName(l.companyName);
-                          setContactPerson(l.contactPerson || '');
-                          setContactMobile(l.mobile || '');
-                          setLocation(l.city || 'Client Site');
-                        }
-                      }}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-semibold text-[#211B17]"
-                    >
-                      {leads.map((l) => (
-                        <option key={l.id} value={l.id}>
-                          {l.companyName} ({l.leadNo})
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                  {targetType === 'enquiry' && (
-                    <select
-                      value={enquiryId}
-                      onChange={(e) => {
-                        const enId = e.target.value;
-                        setEnquiryId(enId);
-                        const en = enquiries.find((x) => x.id === enId);
-                        if (en) {
-                          setCustomerName(en.customerName);
-                          setContactPerson(en.contactPerson || '');
-                          setContactMobile(en.contactMobile || '');
-                        }
-                      }}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-semibold text-[#211B17]"
-                    >
-                      {enquiries.map((en) => (
-                        <option key={en.id} value={en.id}>
-                          {en.enquiryNo || en.id} - {en.customerName}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                </div>
-              </div>
-
-              {/* Manufacturing Site Specifics */}
-              <div className="p-3 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl space-y-2">
-                <h4 className="font-bold text-[#544B45] text-xs">Technical Site Measurements & Utility Conditions</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-[11px] text-[#70665F] font-medium mb-1">Site Measurements / Dimensions</label>
-                    <input
-                      type="text"
-                      value={siteMeasurements}
-                      onChange={(e) => setSiteMeasurements(e.target.value)}
-                      placeholder="e.g. Bay height 8m, crane capacity 10 Ton, door clearance 4m"
-                      className="w-full px-2.5 py-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] text-[#70665F] font-medium mb-1">Operating / Utility Conditions</label>
-                    <input
-                      type="text"
-                      value={operatingConditions}
-                      onChange={(e) => setOperatingConditions(e.target.value)}
-                      placeholder="e.g. 3-Phase 415V, Cooling water 4 bar, Compressed air 6 bar"
-                      className="w-full px-2.5 py-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Contact Person *</label>
-                  <input
-                    type="text"
-                    required
-                    value={contactPerson}
-                    onChange={(e) => setContactPerson(e.target.value)}
-                    placeholder="e.g. Harish Trivedi"
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Contact Mobile</label>
-                  <input
-                    type="tel"
-                    value={contactMobile}
-                    onChange={(e) => setContactMobile(e.target.value)}
-                    placeholder="+91 98250 XXXXX"
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Visit Date *</label>
-                  <input
-                    type="date"
-                    required
-                    value={visitDate}
-                    onChange={(e) => setVisitDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Location / Plant Address *</label>
-                  <input
-                    type="text"
-                    required
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="e.g. Dahej Plant 2, Bay 4"
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
-                  />
-                </div>
-              </div>
-
+            <form onSubmit={handleCreate} className="space-y-4 text-xs">
+              {/* Select lead */}
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Visit Purpose *</label>
+                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">
+                  Select Lead *
+                </label>
+                <select
+                  required
+                  value={leadId}
+                  onChange={(e) => setLeadId(e.target.value)}
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-semibold text-[#211B17] focus:outline-none focus:ring-1 focus:ring-[#5C3A21]"
+                >
+                  <option value="">-- Select Lead --</option>
+                  {leads.map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {l.companyName} {l.contactPerson ? `(${l.contactPerson})` : ''} - {l.leadNo}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Visit Purpose */}
+              <div>
+                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">
+                  Visit Purpose *
+                </label>
                 <input
                   type="text"
                   required
                   value={purpose}
                   onChange={(e) => setPurpose(e.target.value)}
-                  placeholder="e.g. Foundation civil layout & nozzle orientation check"
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
+                  placeholder="e.g. Technical site inspection & layout survey"
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:ring-1 focus:ring-[#5C3A21]"
                 />
               </div>
 
+              {/* Discussion Details */}
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Discussion Details & Observations</label>
+                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">
+                  Discussion Details
+                </label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   value={discussionNotes}
                   onChange={(e) => setDiscussionNotes(e.target.value)}
-                  placeholder="Technical findings, crane reach, foundation pad measurements..."
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
+                  placeholder="Enter discussion details, minutes of meeting, observations..."
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:ring-1 focus:ring-[#5C3A21]"
                 />
               </div>
 
+              {/* Technical Requirement */}
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Customer Technical Requirements</label>
+                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">
+                  Technical Requirement
+                </label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   value={requirementDetails}
                   onChange={(e) => setRequirementDetails(e.target.value)}
-                  placeholder="Special client modifications or statutory requirements..."
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
+                  placeholder="Enter machinery requirements, plant specifications, parameters..."
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:ring-1 focus:ring-[#5C3A21]"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Business Outcome</label>
-                  <select
-                    value={outcome}
-                    onChange={(e) => setOutcome(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-bold text-[#211B17]"
-                  >
-                    <option value="positive">Positive Progress</option>
-                    <option value="order_expected">Order Expected</option>
-                    <option value="quotation_required">Quotation Required</option>
-                    <option value="follow_up_required">Follow-up Required</option>
-                    <option value="not_interested">Not Interested</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Next Follow-Up Date</label>
-                  <input
-                    type="date"
-                    value={nextFollowUpDate}
-                    onChange={(e) => setNextFollowUpDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
-                  />
-                </div>
-              </div>
-
+              {/* Business Outcome (Dropdown) */}
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Next Action Plan</label>
-                <input
-                  type="text"
-                  value={nextAction}
-                  onChange={(e) => setNextAction(e.target.value)}
-                  placeholder="e.g. Update GA drawing Rev 02 and submit revised BOM"
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
-                />
+                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">
+                  Business Outcome *
+                </label>
+                <select
+                  required
+                  value={outcome}
+                  onChange={(e) => setOutcome(e.target.value as SiteVisit['outcome'])}
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-bold text-[#211B17] focus:outline-none focus:ring-1 focus:ring-[#5C3A21]"
+                >
+                  <option value="positive">Positive Progress</option>
+                  <option value="order_expected">Order Expected</option>
+                  <option value="quotation_required">Quotation Required</option>
+                  <option value="follow_up_required">Follow-up Required</option>
+                  <option value="not_interested">Not Interested</option>
+                </select>
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
@@ -527,7 +332,7 @@ export default function VisitsPage() {
                   type="submit"
                   className="px-5 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-lg font-bold shadow-sm"
                 >
-                  Save & Sync Visit
+                  Save Site Visit
                 </button>
               </div>
             </form>
@@ -650,107 +455,77 @@ export default function VisitsPage() {
               </button>
             </div>
 
-            <form onSubmit={handleUpdate} className="space-y-3.5 text-xs">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Contact Person</label>
-                  <input
-                    type="text"
-                    required
-                    value={editingVisit.contactPerson}
-                    onChange={(e) => setEditingVisit({ ...editingVisit, contactPerson: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Contact Mobile</label>
-                  <input
-                    type="tel"
-                    value={editingVisit.contactMobile}
-                    onChange={(e) => setEditingVisit({ ...editingVisit, contactMobile: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Visit Date</label>
-                  <input
-                    type="date"
-                    required
-                    value={editingVisit.visitDate}
-                    onChange={(e) => setEditingVisit({ ...editingVisit, visitDate: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Location</label>
-                  <input
-                    type="text"
-                    required
-                    value={editingVisit.location}
-                    onChange={(e) => setEditingVisit({ ...editingVisit, location: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg"
-                  />
-                </div>
+            <form onSubmit={handleUpdate} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1">Select Lead</label>
+                <select
+                  value={editingVisit.leadId || ''}
+                  onChange={(e) => {
+                    const l = leads.find((x) => x.id === e.target.value);
+                    setEditingVisit({
+                      ...editingVisit,
+                      leadId: e.target.value,
+                      customerName: l?.companyName || editingVisit.customerName,
+                      contactPerson: l?.contactPerson || editingVisit.contactPerson,
+                      contactMobile: l?.mobile || editingVisit.contactMobile,
+                      location: l?.address || l?.city || editingVisit.location,
+                    });
+                  }}
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-semibold text-[#211B17]"
+                >
+                  <option value="">-- {editingVisit.customerName} --</option>
+                  {leads.map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {l.companyName} {l.contactPerson ? `(${l.contactPerson})` : ''} - {l.leadNo}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">Purpose</label>
+                <label className="block text-slate-700 font-semibold mb-1">Visit Purpose *</label>
                 <input
                   type="text"
                   required
                   value={editingVisit.purpose}
                   onChange={(e) => setEditingVisit({ ...editingVisit, purpose: e.target.value })}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg"
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">Discussion Details & Observations</label>
+                <label className="block text-slate-700 font-semibold mb-1">Discussion Details</label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   value={editingVisit.discussionNotes}
                   onChange={(e) => setEditingVisit({ ...editingVisit, discussionNotes: e.target.value })}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg"
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
                 />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Outcome</label>
-                  <select
-                    value={editingVisit.outcome}
-                    onChange={(e) => setEditingVisit({ ...editingVisit, outcome: e.target.value as any })}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-bold"
-                  >
-                    <option value="positive">Positive Progress</option>
-                    <option value="order_expected">Order Expected</option>
-                    <option value="quotation_required">Quotation Required</option>
-                    <option value="follow_up_required">Follow-up Required</option>
-                    <option value="not_interested">Not Interested</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Next Follow-Up Date</label>
-                  <input
-                    type="date"
-                    value={editingVisit.nextFollowUpDate || ''}
-                    onChange={(e) => setEditingVisit({ ...editingVisit, nextFollowUpDate: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg"
-                  />
-                </div>
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">Next Action</label>
-                <input
-                  type="text"
-                  value={editingVisit.nextAction}
-                  onChange={(e) => setEditingVisit({ ...editingVisit, nextAction: e.target.value })}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg"
+                <label className="block text-slate-700 font-semibold mb-1">Technical Requirement</label>
+                <textarea
+                  rows={3}
+                  value={editingVisit.requirementDetails || ''}
+                  onChange={(e) => setEditingVisit({ ...editingVisit, requirementDetails: e.target.value })}
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
                 />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1">Business Outcome</label>
+                <select
+                  value={editingVisit.outcome}
+                  onChange={(e) => setEditingVisit({ ...editingVisit, outcome: e.target.value as any })}
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-bold text-[#211B17]"
+                >
+                  <option value="positive">Positive Progress</option>
+                  <option value="order_expected">Order Expected</option>
+                  <option value="quotation_required">Quotation Required</option>
+                  <option value="follow_up_required">Follow-up Required</option>
+                  <option value="not_interested">Not Interested</option>
+                </select>
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">

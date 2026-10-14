@@ -368,29 +368,6 @@ export default function ExhibitionsPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Organizer / Body</label>
-                  <input
-                    type="text"
-                    value={organizer}
-                    onChange={(e) => setOrganizer(e.target.value)}
-                    placeholder="e.g. K and D Communication"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#5C3A21]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Stall / Booth Number</label>
-                  <input
-                    type="text"
-                    value={stallNumber}
-                    onChange={(e) => setStallNumber(e.target.value)}
-                    placeholder="e.g. Hall 8 / D-24"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#5C3A21]"
-                  />
-                </div>
-              </div>
-
               <div>
                 <label className="block text-slate-700 font-semibold mb-1">Exhibition Venue & City *</label>
                 <input
@@ -401,6 +378,30 @@ export default function ExhibitionsPage() {
                   placeholder="e.g. Helipad Exhibition Centre, Gandhinagar"
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#5C3A21]"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1">Stall / Booth Number</label>
+                  <input
+                    type="text"
+                    value={stallNumber}
+                    onChange={(e) => setStallNumber(e.target.value)}
+                    placeholder="e.g. Hall 8 / D-24"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#5C3A21]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1">Allocated Budget (₹) *</label>
+                  <input
+                    type="number"
+                    required
+                    min={0}
+                    value={budget}
+                    onChange={(e) => setBudget(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono font-bold text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#5C3A21]"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -426,30 +427,6 @@ export default function ExhibitionsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Allocated Budget (₹) *</label>
-                  <input
-                    type="number"
-                    required
-                    min={0}
-                    value={budget}
-                    onChange={(e) => setBudget(Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono font-bold text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#5C3A21]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Lead Contact / Coordinator</label>
-                  <input
-                    type="text"
-                    value={contactPerson}
-                    onChange={(e) => setContactPerson(e.target.value)}
-                    placeholder="e.g. Pravin Patel"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#5C3A21]"
-                  />
-                </div>
-              </div>
-
               <div>
                 <label className="block text-slate-700 font-semibold mb-1">Products / Equipment Displayed</label>
                 <input
@@ -457,17 +434,6 @@ export default function ExhibitionsPage() {
                   value={productsDisplayed}
                   onChange={(e) => setProductsDisplayed(e.target.value)}
                   placeholder="e.g. Chemical Reactors, Pressure Vessels, Shell & Tube Exchangers"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#5C3A21]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">Strategic Objective / Notes</label>
-                <textarea
-                  rows={2}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Key targets, marketing collaterals, EPC contractor engagements..."
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#5C3A21]"
                 />
               </div>
