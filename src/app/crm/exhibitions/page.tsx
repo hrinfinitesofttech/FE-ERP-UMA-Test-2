@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useERP } from '../../../context/ERPContext';
-import { DataTable, Column } from '../../../components/data/DataTable';
+import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
 import { Exhibition } from '../../../types/crm';
 import { formatCurrency, formatDate } from '../../../lib/utils';
 import {
@@ -163,38 +163,44 @@ export default function ExhibitionsPage() {
   const totalQualified = exhibitions.reduce((acc, curr) => acc + (curr.qualifiedLeads || 0), 0);
   const totalWon = exhibitions.reduce((acc, curr) => acc + (curr.convertedCustomers || 0), 0);
 
-  const columns: Column<Exhibition>[] = [
+  const columns: ERPColumn<Exhibition>[] = [
     {
+      key: 'expoName',
       header: 'Exhibition / Trade Show',
+      isCodeLink: true,
+      onCodeClick: (expo) => openViewModal(expo),
       cell: (expo) => (
         <div>
-          <span className="font-bold text-slate-900 dark:text-[#211B17] block hover:text-[#5C3A21] cursor-pointer" onClick={() => openViewModal(expo)}>
+          <span className="font-bold text-slate-900 block hover:text-[#7C3AED] cursor-pointer" onClick={() => openViewModal(expo)}>
             {expo.expoName}
           </span>
-          <span className="text-[11px] text-[#70665F] flex items-center gap-1 mt-0.5">
-            <MapPin className="w-3 h-3 text-[#5C3A21]" />
+          <span className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+            <MapPin className="w-3 h-3 text-[#7C3AED]" />
             {expo.location} • Stall: {expo.stallNumber || 'TBD'}
           </span>
         </div>
       ),
     },
     {
+      key: 'startDate',
       header: 'Dates',
       cell: (expo) => (
-        <span className="font-mono text-slate-700 dark:text-[#544B45]">
+        <span className="font-mono text-slate-700">
           {formatDate(expo.startDate)} - {formatDate(expo.endDate)}
         </span>
       ),
     },
     {
+      key: 'budget',
       header: 'Budget',
       cell: (expo) => (
-        <span className="font-mono font-bold text-slate-800 dark:text-[#544B45]">
+        <span className="font-mono font-bold text-slate-800">
           {formatCurrency(expo.budget)}
         </span>
       ),
     },
     {
+      key: 'totalContacts',
       header: 'Total Leads Captured',
       cell: (expo) => {
         const liveCount = leads.filter((l) => l.exhibitionId === expo.id || l.exhibitionName === expo.expoName).length;
@@ -207,6 +213,7 @@ export default function ExhibitionsPage() {
       },
     },
     {
+      key: 'qualifiedLeads',
       header: 'Qualified Capex Deals',
       cell: (expo) => (
         <span className="px-2.5 py-1 rounded-md bg-amber-50 text-amber-800 border border-amber-200 font-mono font-bold text-xs">
@@ -215,6 +222,7 @@ export default function ExhibitionsPage() {
       ),
     },
     {
+      key: 'convertedCustomers',
       header: 'Won Customers',
       cell: (expo) => (
         <span className="px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 font-mono font-bold text-xs">
@@ -223,6 +231,7 @@ export default function ExhibitionsPage() {
       ),
     },
     {
+      key: 'actions',
       header: 'Actions',
       cell: (expo) => (
         <div className="flex items-center gap-1.5">
@@ -236,7 +245,7 @@ export default function ExhibitionsPage() {
           <button
             onClick={() => openViewModal(expo)}
             title="View Details & Linked Leads"
-            className="p-1.5 text-slate-500 hover:text-[#5C3A21] hover:bg-[#FAF7F2] rounded-lg transition"
+            className="p-1.5 text-slate-500 hover:text-[#7C3AED] hover:bg-slate-100 rounded-lg transition"
           >
             <Eye className="w-4 h-4" />
           </button>
@@ -260,81 +269,84 @@ export default function ExhibitionsPage() {
   ];
 
   return (
-    <div className="space-y-5 text-xs">
-      {/* Header Banner */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200 dark:border-[#EBE3DB] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
-        <div>
-          <h1 className="text-xl font-black text-slate-900 dark:text-[#211B17] flex items-center gap-2.5">
-            <div className="p-2 bg-[#FAF7F2] rounded-xl text-[#5C3A21] border border-[#EBE3DB]">
-              <Calendar className="w-5 h-5" />
-            </div>
-            Exhibitions & Industrial Expo ROI Tracker
-          </h1>
-          <p className="text-[#70665F] mt-1 text-xs">
-            Manage trade show budgets, stall visitor captures, booth staff assignments, and downstream quotation conversions.
-          </p>
-        </div>
-
-        <button
-          onClick={() => {
-            resetCreateForm();
-            setShowModal(true);
-          }}
-          className="px-4 py-2.5 bg-[#3E2723] hover:bg-[#2C1810] text-white rounded-xl font-bold transition flex items-center gap-2 shadow-xs cursor-pointer text-xs"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Register New Expo</span>
-        </button>
-      </div>
-
+    <div className="space-y-4">
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] shadow-xs flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-purple-50 text-purple-700 border border-purple-200">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-purple-50 text-[#7C3AED] border border-purple-200">
             <Building2 className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] text-[#70665F] font-medium uppercase tracking-wider">Total Expos</p>
+            <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">Total Expos</p>
             <h3 className="text-lg font-bold text-slate-900">{exhibitions.length} Events</h3>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] shadow-xs flex items-center gap-3">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-blue-50 text-blue-700 border border-blue-200">
             <DollarSign className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] text-[#70665F] font-medium uppercase tracking-wider">Total Budget</p>
+            <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">Total Budget</p>
             <h3 className="text-lg font-bold text-slate-900">{formatCurrency(totalBudget)}</h3>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] shadow-xs flex items-center gap-3">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-amber-50 text-amber-700 border border-amber-200">
             <Users className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] text-[#70665F] font-medium uppercase tracking-wider">Contacts / Qualified</p>
+            <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">Contacts / Qualified</p>
             <h3 className="text-lg font-bold text-slate-900">{totalContacts} / {totalQualified}</h3>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 dark:border-[#EBE3DB] shadow-xs flex items-center gap-3">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
             <Award className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] text-[#70665F] font-medium uppercase tracking-wider">Orders Won</p>
+            <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">Orders Won</p>
             <h3 className="text-lg font-bold text-emerald-700">{totalWon} Customers</h3>
           </div>
         </div>
       </div>
 
-      {/* Main Table */}
-      <DataTable
-        title="Industrial Trade Shows & Expo History"
+      {/* Main Shasvatm ERP Standard List View */}
+      <ERPListPageLayout<Exhibition>
+        breadcrumbs={['DASHBOARD', 'CRM & SALES', 'EXHIBITIONS & TRADE SHOWS']}
         columns={columns}
         data={exhibitions}
+        addNewLabel="+ Register New Expo"
+        onAddNew={() => {
+          resetCreateForm();
+          setShowModal(true);
+        }}
+        onExport={() => {
+          const csv = [
+            ['Exhibition Name', 'Organizer', 'Location', 'Start Date', 'End Date', 'Stall No', 'Budget', 'Leads Captured', 'Qualified', 'Orders Won'].join(','),
+            ...exhibitions.map(e => [
+              `"${(e.expoName || '').replace(/"/g, '""')}"`,
+              `"${(e.organizer || '').replace(/"/g, '""')}"`,
+              `"${(e.location || '').replace(/"/g, '""')}"`,
+              e.startDate || '',
+              e.endDate || '',
+              `"${e.stallNumber || ''}"`,
+              e.budget || 0,
+              e.totalContacts || 0,
+              e.qualifiedLeads || 0,
+              e.convertedCustomers || 0
+            ].join(','))
+          ].join('\n');
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `crm_exhibitions_${new Date().toISOString().slice(0, 10)}.csv`;
+          a.click();
+        }}
+        searchPlaceholder="Search exhibitions, location, organizer, stall..."
       />
 
       {/* Create Modal */}

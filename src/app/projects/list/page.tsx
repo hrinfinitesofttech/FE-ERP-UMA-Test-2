@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
-import { DataTable, Column } from '../../../components/data/DataTable';
+import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
 import { StatusBadge } from '../../../components/workflow/StatusBadge';
 import { ProjectJobMaster } from '../../../types/crm';
 import { formatCurrency, formatDate } from '../../../lib/utils';
@@ -219,29 +219,28 @@ export default function ProjectListPage() {
   };
 
   // Table Columns
-  const columns: Column<ProjectJobMaster>[] = [
+  const columns: ERPColumn<ProjectJobMaster>[] = [
     {
+      key: 'projectNumber',
       header: 'Project & Job No',
-      accessorKey: 'projectNumber',
+      isCodeLink: true,
+      onCodeClick: (p) => router.push(`/projects/${p.id}`),
       cell: (p) => (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <Link
-              href={`/projects/${p.id}`}
-              onClick={(e) => e.stopPropagation()}
-              className="font-mono font-bold text-crm-brand-700 hover:text-crm-brand-800 hover:underline"
-            >
+            <span className="font-mono font-bold text-[#7C3AED] hover:underline cursor-pointer">
               {p.projectNumber}
-            </Link>
+            </span>
             <span className="font-mono font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 text-[10px]">
               {p.jobNumber}
             </span>
           </div>
-          <span className="text-[10px] text-[#70665F] block">Start: {formatDate(p.startDate)}</span>
+          <span className="text-[10px] text-slate-500 block">Start: {formatDate(p.startDate)}</span>
         </div>
       ),
     },
     {
+      key: 'customerName',
       header: 'Customer & References',
       cell: (p) => {
         const linkedSo = salesOrders.find(
@@ -256,8 +255,8 @@ export default function ProjectListPage() {
 
         return (
           <div className="space-y-0.5">
-            <span className="font-bold text-[#211B17] block truncate max-w-[200px]">{displayName}</span>
-            <div className="text-[10px] text-[#70665F] font-mono flex items-center gap-1.5">
+            <span className="font-bold text-slate-900 block truncate max-w-[200px]">{displayName}</span>
+            <div className="text-[10px] text-slate-500 font-mono flex items-center gap-1.5">
               <span>SO: <strong>{p.salesOrderNumber || linkedSo?.salesOrderNumber || 'N/A'}</strong></span>
               <span>•</span>
               <span>PO: <strong>{p.customerPoNumber || linkedSo?.customerPoNumber || 'N/A'}</strong></span>
@@ -267,6 +266,7 @@ export default function ProjectListPage() {
       },
     },
     {
+      key: 'productName',
       header: 'Machine / Equipment Scope',
       cell: (p) => {
         const linkedSo = salesOrders.find(
@@ -285,22 +285,23 @@ export default function ProjectListPage() {
 
         return (
           <div className="max-w-[220px]">
-            <span className="font-semibold text-[#211B17] block truncate">{displayProduct}</span>
-            <span className="text-[11px] text-[#70665F] block truncate">{displaySpec}</span>
+            <span className="font-semibold text-slate-900 block truncate">{displayProduct}</span>
+            <span className="text-[11px] text-slate-500 block truncate">{displaySpec}</span>
           </div>
         );
       },
     },
     {
+      key: 'projectManager',
       header: 'Project Manager',
-      accessorKey: 'projectManager',
       cell: (p) => (
-        <span className="font-semibold text-[#544B45] text-xs">
+        <span className="font-semibold text-slate-700 text-xs">
           {p.projectManager || 'Unassigned'}
         </span>
       ),
     },
     {
+      key: 'deliveryDate',
       header: 'Delivery Target',
       cell: (p) => {
         const linkedSo = salesOrders.find(
@@ -314,7 +315,7 @@ export default function ProjectListPage() {
 
         return (
           <div className="space-y-0.5">
-            <span className="text-[#211B17] font-mono text-[11px] font-semibold block">
+            <span className="text-slate-900 font-mono text-[11px] font-semibold block">
               {formatDate(targetDate)}
             </span>
             {p.expectedDeliveryDate && new Date(p.expectedDeliveryDate) > new Date(targetDate) && (
@@ -327,25 +328,26 @@ export default function ProjectListPage() {
       },
     },
     {
+      key: 'progressPercent',
       header: 'Progress %',
       cell: (p) => {
         const pct = p.progressPercent || 0;
         return (
           <div className="w-24 space-y-1">
             <div className="flex justify-between text-[10px] font-mono">
-              <span className="text-[#70665F] font-medium truncate max-w-[60px]">
+              <span className="text-slate-500 font-medium truncate max-w-[60px]">
                 {p.currentStage || p.status || 'Planning'}
               </span>
-              <span className="font-bold text-crm-brand-700">{pct}%</span>
+              <span className="font-bold text-[#7C3AED]">{pct}%</span>
             </div>
-            <div className="w-full bg-[#EBE3DB]/60 h-2 rounded-full overflow-hidden">
+            <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${
                   pct >= 100
                     ? 'bg-emerald-500'
                     : pct >= 50
-                    ? 'bg-gradient-to-r from-crm-brand-700 to-emerald-500'
-                    : 'bg-crm-brand-700'
+                    ? 'bg-gradient-to-r from-[#7C3AED] to-emerald-500'
+                    : 'bg-[#7C3AED]'
                 }`}
                 style={{ width: `${Math.min(pct, 100)}%` }}
               />
@@ -355,6 +357,7 @@ export default function ProjectListPage() {
       },
     },
     {
+      key: 'priority',
       header: 'Priority',
       cell: (p) => {
         const priority = p.priority || 'medium';
@@ -376,10 +379,12 @@ export default function ProjectListPage() {
       },
     },
     {
+      key: 'status',
       header: 'Status',
       cell: (p) => <StatusBadge status={(p.status || 'planning') as any} />,
     },
     {
+      key: 'actions',
       header: 'Actions',
       cell: (p) => {
         const isPlanningSaved = Boolean(
@@ -483,7 +488,7 @@ export default function ProjectListPage() {
   ];
 
   return (
-    <div className="space-y-6 text-xs pb-10 bg-white min-h-screen text-[#211B17] p-6">
+    <div className="space-y-4">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-3 bg-emerald-600 text-white rounded-xl shadow-2xl border border-emerald-400 animate-bounce">
@@ -492,119 +497,68 @@ export default function ProjectListPage() {
         </div>
       )}
 
-      {/* Header Banner */}
-      <div className="bg-white p-5 rounded-2xl border border-[#EBE3DB] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full bg-crm-brand-50 text-crm-brand-700 font-mono text-[10px] font-bold uppercase tracking-wider border border-crm-brand-200">
-              Project Master Directory
-            </span>
-          </div>
-          <h1 className="text-xl font-black text-[#211B17] flex items-center gap-2">
-            <Briefcase className="w-6 h-6 text-crm-brand-700" />
-            Active Make-to-Order Projects & Jobs
-          </h1>
-          <p className="text-[#70665F] mt-0.5">
-            Every project listed here originates from a Confirmed Sales Order and maintains complete shop floor traceability.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            title="Refresh projects from live API"
-            className="px-3 py-2.5 bg-white hover:bg-slate-50 text-[#544B45] font-semibold rounded-xl flex items-center gap-1.5 border border-[#EBE3DB] shadow-sm transition transform active:scale-95 cursor-pointer text-xs disabled:opacity-50"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 text-crm-brand-700 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span>{isRefreshing ? 'Syncing...' : 'Sync Live'}</span>
-          </button>
-
-          {can('project', 'projects', 'create') && (
-            <button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="px-4 py-2.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold rounded-xl flex items-center gap-2 shadow-md transition transform active:scale-95 cursor-pointer text-xs"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Create Project (From SO)</span>
-            </button>
-          )}
-        </div>
-      </div>
-
       {/* KPI Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-[#70665F]">
+        <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-slate-500">
             <span className="text-xs font-semibold uppercase tracking-wider">Total Projects</span>
-            <Layers className="w-4 h-4 text-crm-brand-700" />
+            <Layers className="w-4 h-4 text-[#7C3AED]" />
           </div>
           {isProjectsLoading && projectJobs.length === 0 ? (
-            <div className="h-8 w-16 bg-[#EBE3DB]/60 rounded animate-pulse" />
+            <div className="h-8 w-16 bg-slate-100 rounded animate-pulse" />
           ) : (
-            <div className="text-2xl font-black text-[#211B17]">{totalCount}</div>
+            <div className="text-2xl font-black text-slate-900">{totalCount}</div>
           )}
-          <div className="text-xs text-[#70665F]">All registered MTO jobs</div>
+          <div className="text-xs text-slate-500">All registered MTO jobs</div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-[#70665F]">
+        <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-slate-500">
             <span className="text-xs font-semibold uppercase tracking-wider">In Planning</span>
             <Clock className="w-4 h-4 text-amber-500" />
           </div>
           {isProjectsLoading && projectJobs.length === 0 ? (
-            <div className="h-8 w-16 bg-[#EBE3DB]/60 rounded animate-pulse" />
+            <div className="h-8 w-16 bg-slate-100 rounded animate-pulse" />
           ) : (
             <div className="text-2xl font-black text-amber-600">{planningCount}</div>
           )}
-          <div className="text-xs text-[#70665F]">Pre-production & scope stages</div>
+          <div className="text-xs text-slate-500">Pre-production & scope stages</div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-[#70665F]">
+        <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-slate-500">
             <span className="text-xs font-semibold uppercase tracking-wider">In Execution</span>
             <Activity className="w-4 h-4 text-blue-600" />
           </div>
           {isProjectsLoading && projectJobs.length === 0 ? (
-            <div className="h-8 w-16 bg-[#EBE3DB]/60 rounded animate-pulse" />
+            <div className="h-8 w-16 bg-slate-100 rounded animate-pulse" />
           ) : (
             <div className="text-2xl font-black text-blue-600">{inProgressCount}</div>
           )}
-          <div className="text-xs text-[#70665F]">Design, purchase & shop floor</div>
+          <div className="text-xs text-slate-500">Design, purchase & shop floor</div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-[#70665F]">
+        <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-slate-500">
             <span className="text-xs font-semibold uppercase tracking-wider">Completed</span>
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
           </div>
           {isProjectsLoading && projectJobs.length === 0 ? (
-            <div className="h-8 w-16 bg-[#EBE3DB]/60 rounded animate-pulse" />
+            <div className="h-8 w-16 bg-slate-100 rounded animate-pulse" />
           ) : (
             <div className="text-2xl font-black text-emerald-600">{completedCount}</div>
           )}
-          <div className="text-xs text-[#70665F]">Delivered / QC passed</div>
+          <div className="text-xs text-slate-500">Delivered / QC passed</div>
         </div>
       </div>
 
-      {/* Filter Bar */}
-      <div className="bg-[#FAF7F2] p-3.5 rounded-xl border border-[#EBE3DB] flex flex-wrap items-center justify-between gap-3">
-        <div className="relative flex-1 min-w-[240px]">
-          <Search className="w-4 h-4 text-[#70665F] absolute left-3 top-2.5" />
-          <input
-            type="text"
-            placeholder="Search by Project #, Job #, Customer, Machine, Manager..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-crm-brand-700 text-[#211B17]"
-          />
-        </div>
-
+      {/* Filter Bar with Live Sync */}
+      <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-xs">
         <div className="flex flex-wrap items-center gap-2">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-semibold text-[#211B17] focus:outline-none"
+            className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none"
           >
             <option value="all">All Statuses ({totalCount})</option>
             <option value="planning">Planning</option>
@@ -619,7 +573,7 @@ export default function ProjectListPage() {
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="px-3 py-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-semibold text-[#211B17] focus:outline-none"
+            className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none"
           >
             <option value="all">All Priorities</option>
             <option value="urgent">Urgent</option>
@@ -628,19 +582,50 @@ export default function ProjectListPage() {
             <option value="low">Low</option>
           </select>
         </div>
+
+        <button
+          type="button"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          title="Refresh projects from live API"
+          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg flex items-center gap-1.5 border border-slate-200 transition cursor-pointer text-xs disabled:opacity-50"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 text-[#7C3AED] ${isRefreshing ? 'animate-spin' : ''}`} />
+          <span>{isRefreshing ? 'Syncing...' : 'Sync Live'}</span>
+        </button>
       </div>
 
-      {/* Projects Table */}
-      <div className="bg-white rounded-xl border border-[#EBE3DB] overflow-hidden shadow-sm">
-        <DataTable
-          title="Project & Job Repository"
-          subtitle={`Total ${filteredProjects.length} Projects found`}
-          columns={columns}
-          data={filteredProjects}
-          isLoading={isProjectsLoading || isRefreshing}
-          onRowClick={(p) => router.push(`/projects/${p.id}`)}
-        />
-      </div>
+      {/* Main Shasvatm ERP Standard List View */}
+      <ERPListPageLayout<ProjectJobMaster>
+        breadcrumbs={['DASHBOARD', 'PROJECTS', 'PROJECT DIRECTORY']}
+        columns={columns}
+        data={filteredProjects}
+        addNewLabel={can('project', 'projects', 'create') ? "+ Create Project (From SO)" : undefined}
+        onAddNew={can('project', 'projects', 'create') ? () => setIsCreateModalOpen(true) : undefined}
+        onExport={() => {
+          const csv = [
+            ['Project Number', 'Job Number', 'Customer', 'Product', 'Project Manager', 'Target Delivery', 'Progress %', 'Priority', 'Status'].join(','),
+            ...filteredProjects.map(p => [
+              `"${p.projectNumber}"`,
+              `"${p.jobNumber}"`,
+              `"${(p.customerName || '').replace(/"/g, '""')}"`,
+              `"${(p.productName || '').replace(/"/g, '""')}"`,
+              `"${(p.projectManager || '').replace(/"/g, '""')}"`,
+              p.deliveryDate || '',
+              p.progressPercent || 0,
+              p.priority || '',
+              p.status || ''
+            ].join(','))
+          ].join('\n');
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `projects_directory_${new Date().toISOString().slice(0, 10)}.csv`;
+          a.click();
+        }}
+        searchPlaceholder="Search by Project #, Job #, Customer, Machine, Manager..."
+      />
 
       {/* MODAL: EDIT PROJECT */}
       {editingProject && (

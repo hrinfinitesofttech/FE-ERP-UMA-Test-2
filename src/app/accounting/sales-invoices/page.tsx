@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { SalesInvoice } from '../../../types/accounting';
+import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
 import { Receipt, Search, Plus, Filter, CheckCircle2, Clock, Eye, Download, FileSpreadsheet, Building, Users, Printer, X, Coins } from 'lucide-react';
 
 export default function SalesInvoicesPage() {
@@ -167,155 +168,186 @@ export default function SalesInvoicesPage() {
     setIsModalOpen(false);
   };
 
+  const invoiceColumns: ERPColumn<SalesInvoice>[] = [
+    {
+      key: 'invoiceNumber',
+      header: 'INVOICE NO',
+      isCodeLink: true,
+      onCodeClick: (inv) => setSelectedInvoiceForPrint(inv),
+    },
+    {
+      key: 'invoiceDate',
+      header: 'DATE',
+      cell: (inv) => <span className="font-mono text-xs text-slate-600">{inv.invoiceDate}</span>,
+    },
+    {
+      key: 'customerName',
+      header: 'CUSTOMER',
+      cell: (inv) => (
+        <div className="flex items-center gap-1.5 font-semibold text-slate-800">
+          <Building className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          <span>{inv.customerName}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'salesOrderNumber',
+      header: 'SALES ORDER / JOB',
+      cell: (inv) => (
+        <div className="text-xs">
+          <span className="font-medium text-slate-800">{inv.salesOrderNumber || 'Direct'}</span>
+          {inv.jobNumber && (
+            <span className="ml-1 text-[11px] font-mono text-slate-500 font-semibold">({inv.jobNumber})</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'subTotal',
+      header: 'TAXABLE SUBTOTAL',
+      cell: (inv) => (
+        <span className="font-mono text-xs text-slate-700">
+          ₹{Number(inv.subTotal ?? inv.subtotal ?? (inv as any).taxable_amount ?? inv.taxableAmount ?? 0).toLocaleString('en-IN')}
+        </span>
+      ),
+    },
+    {
+      key: 'taxTotal',
+      header: 'GST TOTAL',
+      cell: (inv) => (
+        <span className="font-mono text-xs font-semibold text-amber-700">
+          ₹{Number(inv.taxTotal ?? (Number((inv as any).cgst_amount || inv.cgstAmount || 0) + Number((inv as any).sgst_amount || inv.sgstAmount || 0) + Number((inv as any).igst_amount || inv.igstAmount || 0))).toLocaleString('en-IN')}
+        </span>
+      ),
+    },
+    {
+      key: 'grandTotal',
+      header: 'GRAND TOTAL',
+      cell: (inv) => (
+        <span className="font-mono text-xs font-black text-slate-900">
+          ₹{Number(inv.grandTotal ?? (inv as any).grand_total ?? 0).toLocaleString('en-IN')}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'STATUS & PAYMENT',
+      cell: (inv) => (
+        <div className="flex flex-col items-start gap-1">
+          <span
+            className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+              inv.status === 'Approved'
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                : inv.status === 'Posted'
+                ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                : 'bg-amber-50 text-amber-700 border border-amber-200'
+            }`}
+          >
+            {inv.status}
+          </span>
+          <span
+            className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
+              inv.paymentStatus === 'Paid'
+                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                : inv.paymentStatus === 'Partially Paid'
+                ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                : 'bg-amber-50 text-amber-700 border border-amber-200'
+            }`}
+          >
+            {inv.paymentStatus || 'Unpaid'}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'ACTIONS',
+      cell: (inv) => (
+        <div className="flex items-center gap-1.5">
+          {inv.status === 'Draft' || (inv.status as string)?.toLowerCase() === 'draft' ? (
+            <button
+              type="button"
+              onClick={() => approveSalesInvoice(inv.id || inv.invoiceNumber || (inv as any).invoice_number)}
+              className="px-2 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-semibold rounded-lg transition shadow-xs cursor-pointer"
+            >
+              Approve
+            </button>
+          ) : (
+            <span className="inline-flex items-center gap-0.5 text-emerald-600 font-semibold text-[10px]">
+              <CheckCircle2 className="w-3 h-3" /> Approved
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={() => router.push(`/accounting/customer-receipts?customerId=${inv.customerId}&invoiceId=${inv.invoiceNumber || inv.id}`)}
+            className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-bold rounded-lg transition shadow-xs flex items-center gap-1 cursor-pointer"
+            title="Record Inward Customer Receipt"
+          >
+            <Coins className="w-3 h-3 text-emerald-700" />
+            Receipt
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedInvoiceForPrint(inv)}
+            className="p-1.5 text-slate-500 hover:text-amber-800 hover:bg-amber-50 rounded-lg transition cursor-pointer"
+            title="View & Print Official GST Tax Invoice"
+          >
+            <Printer className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <div className="p-6 space-y-6 bg-[#FAF7F2]  text-[#211B17]">
-      <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-[#EBE3DB]">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-emerald-500/20 rounded-xl text-emerald-400">
-            <Receipt className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-[#211B17]">Sales Invoices & GST Output Register</h1>
-            <p className="text-xs text-[#70665F] mt-0.5">Automated GST Invoicing • Linked to Sales Order & Job Traceability</p>
-          </div>
-        </div>
-
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] text-xs font-semibold px-4 py-2.5 rounded-xl transition"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Sales Invoice</span>
-        </button>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl border border-[#EBE3DB]">
-        <div className="relative w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
-          <input
-            type="text"
-            placeholder="Search invoice no, customer..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-4 py-2 text-xs text-[#3E2723]"
-          />
-        </div>
-
+    <div className="space-y-4">
+      {/* Status Filter Bar */}
+      <div className="bg-white border border-slate-200 rounded-xl px-5 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
+          <Filter className="w-4 h-4 text-purple-600" />
+          <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">Status:</span>
           {['All', 'Draft', 'Approved', 'Posted'].map((st) => (
             <button
               key={st}
               onClick={() => setSelectedStatus(st)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                selectedStatus === st ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-[#FAF7F2] text-[#70665F] border border-[#EBE3DB]'
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                selectedStatus === st
+                  ? 'bg-purple-600 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               {st}
             </button>
           ))}
         </div>
+        <div className="text-xs text-slate-500">
+          Showing <span className="font-bold text-slate-800">{filteredInvoices.length}</span> invoices
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden">
-        <table className="w-full text-left text-xs text-[#544B45]">
-          <thead className="bg-[#FAF7F2]/80 text-[#70665F] uppercase font-semibold text-[10px] tracking-wider border-b border-[#EBE3DB]">
-            <tr>
-              <th className="py-3.5 px-4">Invoice No</th>
-              <th className="py-3.5 px-4">Date</th>
-              <th className="py-3.5 px-4">Customer</th>
-              <th className="py-3.5 px-4">Sales Order / Job</th>
-              <th className="py-3.5 px-4 text-right">Taxable SubTotal</th>
-              <th className="py-3.5 px-4 text-right">GST Total</th>
-              <th className="py-3.5 px-4 text-right">Grand Total</th>
-              <th className="py-3.5 px-4 text-center">Status</th>
-              <th className="py-3.5 px-4 text-center">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#EBE3DB] font-mono">
-            {filteredInvoices.map((inv) => (
-              <tr key={inv.id} className="hover:bg-white/40 transition">
-                <td className="py-3 px-4 font-bold text-emerald-400">{inv.invoiceNumber}</td>
-                <td className="py-3 px-4 text-[#70665F] font-sans">{inv.invoiceDate}</td>
-                <td className="py-3 px-4 font-sans font-semibold text-[#3E2723]">{inv.customerName}</td>
-                <td className="py-3 px-4 font-sans text-[#70665F]">
-                  {inv.salesOrderNumber} {inv.jobNumber && `(${inv.jobNumber})`}
-                </td>
-                <td className="py-3 px-4 text-right text-[#544B45]">
-                  ₹{Number(inv.subTotal ?? inv.subtotal ?? (inv as any).taxable_amount ?? inv.taxableAmount ?? 0).toLocaleString('en-IN')}
-                </td>
-                <td className="py-3 px-4 text-right text-yellow-600 dark:text-yellow-400">
-                  ₹{Number(inv.taxTotal ?? (Number((inv as any).cgst_amount || inv.cgstAmount || 0) + Number((inv as any).sgst_amount || inv.sgstAmount || 0) + Number((inv as any).igst_amount || inv.igstAmount || 0))).toLocaleString('en-IN')}
-                </td>
-                <td className="py-3 px-4 text-right font-bold text-[#211B17]">
-                  ₹{Number(inv.grandTotal ?? (inv as any).grand_total ?? 0).toLocaleString('en-IN')}
-                </td>
-                <td className="py-3 px-4 text-center font-sans">
-                  <div className="flex flex-col items-center gap-1">
-                    <span
-                      className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                        inv.status === 'Approved'
-                          ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
-                          : inv.status === 'Posted'
-                          ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30'
-                          : 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30'
-                      }`}
-                    >
-                      {inv.status}
-                    </span>
-                    <span
-                      className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
-                        inv.paymentStatus === 'Paid'
-                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                          : inv.paymentStatus === 'Partially Paid'
-                          ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                          : 'bg-amber-50 text-amber-700 border border-amber-200'
-                      }`}
-                    >
-                      {inv.paymentStatus || 'Unpaid'}
-                    </span>
-                  </div>
-                </td>
-                <td className="py-3 px-4 text-center font-sans">
-                  <div className="flex items-center justify-center gap-1.5">
-                    {inv.status === 'Draft' || (inv.status as string)?.toLowerCase() === 'draft' ? (
-                      <button
-                        type="button"
-                        onClick={() => approveSalesInvoice(inv.id || inv.invoiceNumber || (inv as any).invoice_number)}
-                        className="px-2 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-semibold rounded-lg transition shadow-xs cursor-pointer"
-                      >
-                        Approve
-                      </button>
-                    ) : (
-                      <span className="inline-flex items-center gap-0.5 text-emerald-600 font-semibold text-[10px]">
-                        <CheckCircle2 className="w-3 h-3" /> Approved
-                      </span>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => router.push(`/accounting/customer-receipts?customerId=${inv.customerId}&invoiceId=${inv.invoiceNumber || inv.id}`)}
-                      className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-bold rounded-lg transition shadow-xs flex items-center gap-1 cursor-pointer"
-                      title="Record Inward Customer Receipt"
-                    >
-                      <Coins className="w-3 h-3 text-emerald-700" />
-                      Receipt
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedInvoiceForPrint(inv)}
-                      className="p-1.5 text-[#544B45] hover:text-amber-800 hover:bg-amber-50 rounded-lg transition cursor-pointer"
-                      title="View & Print Official GST Tax Invoice"
-                    >
-                      <Printer className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ERPListPageLayout<SalesInvoice>
+        breadcrumbs={['DASHBOARD', 'ACCOUNTS & FINANCE', 'SALES INVOICES']}
+        title="Sales Invoices & GST Output Register"
+        columns={invoiceColumns}
+        data={filteredInvoices}
+        searchPlaceholder="Search invoice no, customer, or sales order..."
+        addNewLabel="New Sales Invoice"
+        onAddNew={() => setIsModalOpen(true)}
+        onExport={() => {
+          const csv = [
+            'Invoice No,Date,Customer,Sales Order,Job,Taxable SubTotal,GST Total,Grand Total,Status,Payment Status',
+            ...filteredInvoices.map(
+              inv => `"${inv.invoiceNumber}","${inv.invoiceDate}","${inv.customerName}","${inv.salesOrderNumber || ''}","${inv.jobNumber || ''}","${inv.subTotal || 0}","${inv.taxTotal || 0}","${inv.grandTotal || 0}","${inv.status}","${inv.paymentStatus || 'Unpaid'}"`
+            )
+          ].join('\n');
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `sales_invoices_${new Date().toISOString().slice(0, 10)}.csv`;
+          a.click();
+        }}
+      />
 
       {/* New Invoice Modal */}
       {isModalOpen && (

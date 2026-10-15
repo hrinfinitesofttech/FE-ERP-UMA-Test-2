@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useERP } from '../../context/ERPContext';
-import { DataTable, Column } from '../../components/data/DataTable';
+import { ERPListPageLayout, ERPColumn } from '../../components/ui/ERPListPageLayout';
 import { Department } from '../../types/crm';
 import {
   Building,
@@ -113,32 +113,37 @@ export default function DepartmentsPage() {
     }
   };
 
-  const columns: Column<Department>[] = [
+  const columns: ERPColumn<Department>[] = [
     {
+      key: 'code',
       header: 'Code',
-      accessorKey: 'code',
+      isCodeLink: true,
+      onCodeClick: (dept) => openEditModal(dept),
       cell: (dept) => (
-        <span className="font-mono font-bold text-crm-brand-700 bg-crm-brand-50 px-2 py-0.5 rounded border border-crm-brand-200">
+        <span className="font-mono font-bold text-[#7C3AED] hover:underline cursor-pointer">
           {dept.code}
         </span>
       ),
     },
     {
+      key: 'name',
       header: 'Department Name',
       cell: (dept) => (
         <div>
           <span className="font-bold text-slate-900 block">{dept.name}</span>
-          <span className="text-[11px] text-[#70665F]">{dept.description}</span>
+          <span className="text-[11px] text-slate-500">{dept.description}</span>
         </div>
       ),
     },
     {
+      key: 'managerName',
       header: 'Department Head / Manager',
       cell: (dept) => (
         <span className="font-semibold text-slate-800">{dept.managerName || 'Unassigned'}</span>
       ),
     },
     {
+      key: 'employeeCount',
       header: 'Active Staff',
       cell: (dept) => (
         <span className="px-2 py-0.5 rounded-full bg-slate-100 font-mono text-slate-700 font-bold text-[11px]">
@@ -147,6 +152,7 @@ export default function DepartmentsPage() {
       ),
     },
     {
+      key: 'status',
       header: 'Status',
       cell: (dept) => (
         <span
@@ -163,20 +169,23 @@ export default function DepartmentsPage() {
       ),
     },
     {
+      key: 'actions',
       header: 'Actions',
       cell: (dept) => (
         <div className="flex items-center gap-1.5">
           {/* Edit Button */}
           <button
+            type="button"
             onClick={() => openEditModal(dept)}
             title="Edit Department Details"
-            className="p-1.5 rounded-lg border border-blue-200 bg-blue-50/60 hover:bg-blue-100 hover:border-blue-400 text-blue-700 transition shadow-2xs"
+            className="p-1.5 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 transition shadow-2xs cursor-pointer"
           >
-            <Edit2 className="w-3.5 h-3.5 text-blue-700" />
+            <Edit2 className="w-3.5 h-3.5" />
           </button>
 
           {/* Toggle Status Button */}
           <button
+            type="button"
             onClick={() => {
               const newStatus = dept.status === 'active' ? 'inactive' : 'active';
               updateDepartment(dept.id, { status: newStatus });
@@ -185,10 +194,10 @@ export default function DepartmentsPage() {
             }}
             title={dept.status === 'active' ? 'Deactivate Department' : 'Activate Department'}
             className={cn(
-              'p-1.5 rounded-lg border transition shadow-2xs',
+              'p-1.5 rounded-lg border transition shadow-2xs cursor-pointer',
               dept.status === 'active'
-                ? 'border-gray-200 hover:bg-rose-50 hover:border-rose-300 text-rose-600'
-                : 'border-gray-200 hover:bg-emerald-50 hover:border-emerald-300 text-emerald-600'
+                ? 'border-slate-200 hover:bg-rose-50 text-rose-600'
+                : 'border-slate-200 hover:bg-emerald-50 text-emerald-600'
             )}
           >
             {dept.status === 'active' ? <XCircle className="w-3.5 h-3.5" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
@@ -196,11 +205,12 @@ export default function DepartmentsPage() {
 
           {/* Delete Button */}
           <button
+            type="button"
             onClick={() => setConfirmDeleteDept(dept)}
             title="Delete Department"
-            className="p-1.5 rounded-lg border border-rose-200 bg-rose-50/60 hover:bg-rose-100 hover:border-rose-400 text-rose-600 transition shadow-2xs"
+            className="p-1.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 transition shadow-2xs cursor-pointer"
           >
-            <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+            <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
       ),
@@ -209,27 +219,6 @@ export default function DepartmentsPage() {
 
   return (
     <div className="space-y-4">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200">
-        <div>
-          <h1 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <Building className="w-5 h-5 text-crm-brand-700" />
-            Departments Management (9 Core Manufacturing Units)
-          </h1>
-          <p className="text-xs text-[#70665F]">
-            Define structural departments, assign department managers and govern cross-department workflows.
-          </p>
-        </div>
-
-        <button
-          onClick={() => setShowModal(true)}
-          className="px-3.5 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Custom Department</span>
-        </button>
-      </div>
-
       {/* Notification Messages */}
       {actionSuccess && (
         <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-semibold border border-emerald-200 flex items-center justify-between shadow-2xs animate-in fade-in duration-200">
@@ -237,7 +226,7 @@ export default function DepartmentsPage() {
             <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
             <span>{actionSuccess}</span>
           </div>
-          <button onClick={() => setActionSuccess('')} className="text-emerald-700 hover:text-emerald-900">
+          <button onClick={() => setActionSuccess('')} className="text-emerald-700 hover:text-emerald-900 cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -249,18 +238,39 @@ export default function DepartmentsPage() {
             <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
             <span>{actionError}</span>
           </div>
-          <button onClick={() => setActionError('')} className="text-rose-700 hover:text-rose-900">
+          <button onClick={() => setActionError('')} className="text-rose-700 hover:text-rose-900 cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
-      {/* Departments Table */}
-      <DataTable
-        title="Departments Master"
+      {/* Main Shasvatm ERP Standard List View */}
+      <ERPListPageLayout<Department>
+        breadcrumbs={['DASHBOARD', 'SETTINGS', 'DEPARTMENTS']}
         columns={columns}
         data={departments}
-        searchPlaceholder="Filter departments..."
+        addNewLabel="+ Add Custom Department"
+        onAddNew={() => setShowModal(true)}
+        onExport={() => {
+          const csv = [
+            ['Code', 'Department Name', 'Head / Manager', 'Active Staff', 'Status', 'Description'].join(','),
+            ...departments.map(d => [
+              `"${d.code}"`,
+              `"${(d.name || '').replace(/"/g, '""')}"`,
+              `"${(d.managerName || '').replace(/"/g, '""')}"`,
+              d.employeeCount || 0,
+              d.status || '',
+              `"${(d.description || '').replace(/"/g, '""')}"`
+            ].join(','))
+          ].join('\n');
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `departments_${new Date().toISOString().slice(0, 10)}.csv`;
+          a.click();
+        }}
+        searchPlaceholder="Search departments by code, name, manager..."
       />
 
       {/* CREATE MODAL */}

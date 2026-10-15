@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { MaterialReturn, ReturnCondition, MaterialIssue, MaterialIssueItem } from '../../../types/store';
 import { CornerUpLeft, Plus, Search, Cpu, CheckCircle, Printer, X, Eye, AlertCircle } from 'lucide-react';
+import { ERPListPageLayout } from '../../../components/ui/ERPListPageLayout';
 
 function MaterialReturnContent() {
   const searchParams = useSearchParams();
@@ -281,6 +282,124 @@ function MaterialReturnContent() {
     });
   }, [materialReturns, searchTerm]);
 
+  const columns = [
+    {
+      key: 'returnNumber',
+      header: 'RETURN SLIP NO',
+      isCodeLink: true,
+      onCodeClick: (r: MaterialReturn) => setSelectedVoucher(r),
+      cell: (r: MaterialReturn) => {
+        const retNo = r.returnNumber || (r as any).return_number || r.id;
+        const retDate = r.returnDate || (r as any).return_date || new Date().toISOString().split('T')[0];
+        return (
+          <div>
+            <div className="font-semibold text-[#7C3AED] hover:underline cursor-pointer">{retNo}</div>
+            <div className="text-[11px] text-gray-400">{retDate}</div>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'jobId',
+      header: 'JOB / ISSUE SLIP',
+      cell: (r: MaterialReturn) => {
+        const jobCode = r.jobId || (r as any).job_number || (r as any).jobNumber || '—';
+        const issueSlip = r.materialIssueNumber || (r as any).material_issue_number || '—';
+        return (
+          <div>
+            <div className="font-semibold text-gray-800 flex items-center gap-1">
+              <Cpu className="w-3.5 h-3.5 text-[#7C3AED]" />
+              {jobCode}
+            </div>
+            <div className="text-[11px] text-gray-400">Issue: {issueSlip}</div>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'returnedBy',
+      header: 'RETURNED BY',
+      cell: (r: MaterialReturn) => (
+        <span className="font-medium text-gray-800">{r.returnedBy || (r as any).returned_by || '—'}</span>
+      ),
+    },
+    {
+      key: 'warehouseName',
+      header: 'RECEIVING WAREHOUSE',
+      cell: (r: MaterialReturn) => (
+        <span className="text-gray-600">{r.warehouseName || (r as any).warehouse_name || 'Raw Material Yard'}</span>
+      ),
+    },
+    {
+      key: 'totalReturnValue',
+      header: 'RETURN VALUE (₹)',
+      cell: (r: MaterialReturn) => {
+        const retVal = Number(r.totalReturnValue ?? (r as any).total_return_value ?? 0);
+        return (
+          <span className="font-mono font-semibold text-emerald-700">
+            ₹{retVal.toLocaleString('en-IN')}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'condition',
+      header: 'CONDITION',
+      cell: (r: MaterialReturn) => {
+        const firstItem = r.items?.[0];
+        const cond = firstItem?.condition || 'Usable';
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+            {cond}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'receivedBy',
+      header: 'STORE RECEIVER',
+      cell: (r: MaterialReturn) => (
+        <span className="text-gray-600">{r.receivedBy || (r as any).received_by || 'Store Incharge'}</span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'ACTION',
+      cell: (r: MaterialReturn) => (
+        <button
+          onClick={() => setSelectedVoucher(r)}
+          className="p-1 hover:bg-purple-50 rounded text-gray-500 hover:text-[#7C3AED] transition cursor-pointer"
+          title="View Official Return Slip"
+        >
+          <Eye className="w-4 h-4" />
+        </button>
+      ),
+    },
+  ];
+
+  const handleExport = () => {
+    if (materialReturns.length === 0) return;
+    const headers = ['Return No', 'Date', 'Job No', 'Issue No', 'Returned By', 'Warehouse', 'Value (INR)', 'Receiver'];
+    const rows = materialReturns.map((r) => [
+      r.returnNumber || (r as any).return_number || r.id,
+      r.returnDate || '',
+      r.jobId || '',
+      r.materialIssueNumber || '',
+      `"${r.returnedBy || ''}"`,
+      `"${r.warehouseName || ''}"`,
+      Number(r.totalReturnValue || 0),
+      `"${r.receivedBy || ''}"`,
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `material_returns_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedItem || !selectedWh) {
@@ -353,40 +472,10 @@ function MaterialReturnContent() {
   };
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 bg-[#FAF7F2] min-h-screen text-[#544B45]">
-      {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#EBE3DB] shadow-xs">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-amber-50 rounded-xl text-amber-700 border border-amber-200">
-            <CornerUpLeft className="w-7 h-7" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 text-xs font-mono font-bold">
-                UNUSED MATERIAL & OFFCUT INWARD
-              </span>
-            </div>
-            <h1 className="text-xl sm:text-2xl font-black text-[#211B17] tracking-tight mt-1">
-              Material Return to Store Portal
-            </h1>
-            <p className="text-[#70665F] text-xs mt-1">
-              Return unconsumed plates, offcut pieces & bought-outs back into warehouse usable stock matrix.
-            </p>
-          </div>
-        </div>
-
-        <button
-          onClick={handleOpenModal}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#8B2500] hover:bg-[#701E00] text-white text-xs font-bold shadow-xs transition active:scale-95 cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Create Material Return Slip</span>
-        </button>
-      </div>
-
+    <div className="space-y-4">
       {/* Success Banner */}
       {successMessage && (
-        <div className="flex items-center justify-between p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-900 shadow-xs animate-in fade-in">
+        <div className="flex items-center justify-between p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 shadow-sm animate-in fade-in">
           <div className="flex items-center gap-3">
             <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
             <span className="text-xs font-bold">{successMessage}</span>
@@ -400,99 +489,15 @@ function MaterialReturnContent() {
         </div>
       )}
 
-      {/* Filter and Search Bar */}
-      <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
-        <div className="relative w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8C827A]" />
-          <input
-            type="text"
-            placeholder="Search return slip #, job #, returned by..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl text-xs text-[#211B17] placeholder-[#8C827A] focus:outline-hidden focus:border-[#8B2500]"
-          />
-        </div>
-        <div className="text-xs text-[#70665F] font-mono">
-          Return Slips: <span className="text-[#211B17] font-bold">{filtered.length}</span>
-        </div>
-      </div>
-
-      {/* Return Slips Table */}
-      <div className="bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden shadow-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-[#544B45]">
-            <thead className="bg-[#FAF7F2] text-[#70665F] font-bold text-[10px] uppercase tracking-wider border-b border-[#EBE3DB]">
-              <tr>
-                <th className="p-3.5">Return Slip No & Date</th>
-                <th className="p-3.5">Job No & Issue Slip</th>
-                <th className="p-3.5">Returned By</th>
-                <th className="p-3.5">Receiving Warehouse</th>
-                <th className="p-3.5 text-right">Returned Value (₹)</th>
-                <th className="p-3.5">Store Receiver</th>
-                <th className="p-3.5">Condition</th>
-                <th className="p-3.5 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#EBE3DB]">
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="p-8 text-center text-[#8C827A]">
-                    No material return slips recorded. Click &quot;Create Material Return Slip&quot; above to log returned items.
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((r) => {
-                  const retNo = r.returnNumber || (r as any).return_number || r.id;
-                  const retDate = r.returnDate || (r as any).return_date || new Date().toISOString().split('T')[0];
-                  const jobCode = r.jobId || (r as any).job_number || (r as any).jobNumber || '—';
-                  const issueSlip = r.materialIssueNumber || (r as any).material_issue_number || '—';
-                  const retBy = r.returnedBy || (r as any).returned_by || '—';
-                  const whName = r.warehouseName || (r as any).warehouse_name || 'Raw Material Yard';
-                  const retVal = Number(r.totalReturnValue ?? (r as any).total_return_value ?? 0);
-                  const recBy = r.receivedBy || (r as any).received_by || 'Store Incharge';
-                  const firstItem = r.items?.[0];
-
-                  return (
-                    <tr key={r.id} className="hover:bg-[#FAF7F2]/60 transition">
-                      <td className="p-3.5 font-medium">
-                        <div className="font-bold text-[#8B2500] text-xs font-mono">{retNo}</div>
-                        <div className="text-[10px] text-[#70665F] mt-0.5">{retDate}</div>
-                      </td>
-                      <td className="p-3.5 font-mono">
-                        <div className="font-bold text-[#211B17] text-xs flex items-center gap-1">
-                          <Cpu className="w-3.5 h-3.5 text-[#8B2500]" />
-                          {jobCode}
-                        </div>
-                        <div className="text-[10px] text-[#70665F] mt-0.5">Issue: {issueSlip}</div>
-                      </td>
-                      <td className="p-3.5 font-semibold text-[#211B17]">{retBy}</td>
-                      <td className="p-3.5 text-[#544B45]">{whName}</td>
-                      <td className="p-3.5 text-right font-mono font-black text-emerald-800 text-sm">
-                        ₹{retVal.toLocaleString('en-IN')}
-                      </td>
-                      <td className="p-3.5 text-[#544B45]">{recBy}</td>
-                      <td className="p-3.5">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
-                          {firstItem?.condition || 'Usable Offcut'}
-                        </span>
-                      </td>
-                      <td className="p-3.5 text-right">
-                        <button
-                          onClick={() => setSelectedVoucher(r)}
-                          className="p-1.5 hover:bg-[#FAF7F2] rounded-lg text-[#8B2500] transition cursor-pointer"
-                          title="View Official Return Slip"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <ERPListPageLayout<MaterialReturn>
+        breadcrumbs={['DASHBOARD', 'STORE', 'MATERIAL RETURNS']}
+        columns={columns}
+        data={materialReturns}
+        addNewLabel="+ Return Material / Offcut"
+        onAddNew={handleOpenModal}
+        onExport={handleExport}
+        searchPlaceholder="Search return slip #, job #, returned by..."
+      />
 
       {/* Add Return Slip Modal */}
       {isModalOpen && (

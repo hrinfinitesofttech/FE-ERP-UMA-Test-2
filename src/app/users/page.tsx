@@ -42,6 +42,7 @@ import { cn } from '../../lib/utils';
 import { EmployeeFormModal } from '../../components/employees/EmployeeFormModal';
 import { PermissionMatrixModal } from '../../components/employees/PermissionMatrixModal';
 import { EmployeeProfileModal } from '../../components/employees/EmployeeProfileModal';
+import { ERPListPageLayout } from '../../components/ui/ERPListPageLayout';
 
 export default function UsersPage() {
   const {
@@ -246,20 +247,226 @@ export default function UsersPage() {
     });
   }, [filteredEmployees, sortField, sortOrder]);
 
-  // Pagination Logic
-  const totalPages = Math.max(1, Math.ceil(sortedEmployees.length / pageSize));
-  const paginatedEmployees = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return sortedEmployees.slice(start, start + pageSize);
-  }, [sortedEmployees, currentPage, pageSize]);
+  const columns = [
+    {
+      key: 'id',
+      header: 'EMPLOYEE ID',
+      isCodeLink: true,
+      onCodeClick: (emp: Employee) => {
+        setEmployeeForProfile(emp);
+        setIsProfileModalOpen(true);
+      },
+      cell: (emp: Employee) => (
+        <div>
+          <span className="font-mono font-semibold text-[#7C3AED] hover:underline cursor-pointer block">{emp.id}</span>
+          {emp.permissionsReviewRequired && (
+            <span
+              title="Transferred department: review permissions"
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[9px] font-extrabold mt-0.5 border border-amber-300"
+            >
+              <AlertTriangle className="w-2.5 h-2.5 text-amber-600" /> Review
+            </span>
+          )}
+          {Array.isArray(emp.explicitRestrictions) && emp.explicitRestrictions.length > 0 && (
+            <span
+              title="Active explicit restrictions"
+              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 text-[9px] font-bold mt-0.5 border border-rose-200"
+            >
+              🚫 Restricted
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'name',
+      header: 'EMPLOYEE & IDENTITY',
+      cell: (emp: Employee) => {
+        const fullName = `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || emp.name || emp.username;
+        return (
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-purple-100 text-[#7C3AED] font-bold text-xs flex items-center justify-center border border-purple-200 flex-shrink-0">
+              {emp.firstName ? emp.firstName.slice(0, 1).toUpperCase() : emp.username?.slice(0, 1).toUpperCase() || 'U'}
+              {emp.lastName ? emp.lastName.slice(0, 1).toUpperCase() : ''}
+            </div>
+            <div>
+              <span className="font-semibold text-gray-900 block">{fullName}</span>
+              <span className="text-[11px] text-gray-400 font-mono">@{emp.username}</span>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'department',
+      header: 'DEPARTMENT & DESIGNATION',
+      cell: (emp: Employee) => (
+        <div>
+          <span className="font-semibold text-gray-800 block">{emp.designation || 'Staff'}</span>
+          <span className="text-[11px] text-gray-500">{emp.departmentName || emp.department || 'General'}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'role',
+      header: 'ROLE & SCOPE',
+      cell: (emp: Employee) => (
+        <div>
+          <span className="px-2 py-0.5 rounded bg-purple-50 text-purple-700 font-mono text-[10px] font-bold border border-purple-200 block w-max">
+            {emp.roleName || emp.role || 'Staff'}
+          </span>
+          <span className="text-[10px] text-gray-400 block mt-0.5 capitalize">
+            Scope: {emp.dataScope || 'own'}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: 'contact',
+      header: 'CONTACT DETAILS',
+      cell: (emp: Employee) => (
+        <div className="space-y-0.5 text-[11px]">
+          <span className="text-gray-600 block flex items-center gap-1">
+            <Mail className="w-3 h-3 text-gray-400" /> {emp.email || 'N/A'}
+          </span>
+          <span className="text-gray-600 block flex items-center gap-1">
+            <Phone className="w-3 h-3 text-gray-400" /> {emp.mobile || emp.phone || 'N/A'}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'STATUS',
+      cell: (emp: Employee) => {
+        const isActive = emp.status === 'active' || emp.isActive === true;
+        return (
+          <span
+            className={cn(
+              'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase',
+              isActive
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                : 'bg-rose-50 text-rose-700 border border-rose-200'
+            )}
+          >
+            <span className={cn('w-1.5 h-1.5 rounded-full', isActive ? 'bg-emerald-500' : 'bg-rose-500')} />
+            {emp.status || (isActive ? 'active' : 'inactive')}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'actions',
+      header: 'ACTIONS',
+      cell: (emp: Employee) => {
+        const isActive = emp.status === 'active' || emp.isActive === true;
+        return (
+          <div className="flex items-center justify-end gap-1.5">
+            <button
+              onClick={() => {
+                setEmployeeForProfile(emp);
+                setIsProfileModalOpen(true);
+              }}
+              title="View Full Staff Profile"
+              className="p-1 hover:bg-gray-100 rounded text-gray-600 hover:text-gray-900 transition cursor-pointer"
+            >
+              <Eye className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => {
+                setEmployeeToEdit(emp);
+                setIsFormModalOpen(true);
+              }}
+              title="Edit Staff Member Details"
+              className="p-1 hover:bg-blue-50 rounded text-blue-600 hover:text-blue-800 transition cursor-pointer"
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => {
+                setEmployeeForPermissions(emp);
+                setIsPermissionsModalOpen(true);
+              }}
+              title="Configure Granular RBAC Permissions Matrix"
+              className={cn(
+                'p-1 rounded transition cursor-pointer',
+                emp.permissionsReviewRequired
+                  ? 'bg-amber-100 text-amber-800 animate-pulse'
+                  : 'hover:bg-purple-50 text-purple-600 hover:text-purple-800'
+              )}
+            >
+              <Sliders className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => openResetPasswordModal(emp)}
+              title="Reset Password"
+              className="p-1 hover:bg-amber-50 rounded text-amber-600 hover:text-amber-800 transition cursor-pointer"
+            >
+              <KeyRound className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setConfirmStatusModalEmp(emp)}
+              title={isActive ? 'Deactivate Employee Account' : 'Reactivate Employee Account'}
+              className="p-1 hover:bg-gray-100 rounded text-gray-500 hover:text-gray-700 transition cursor-pointer"
+            >
+              {isActive ? <XCircle className="w-3.5 h-3.5 text-rose-500" /> : <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />}
+            </button>
+            <button
+              onClick={() => setConfirmDeleteModalEmp(emp)}
+              disabled={
+                emp.username === 'admin' ||
+                emp.id === 'EMP-001' ||
+                emp.id === currentUser?.id ||
+                emp.username === currentUser?.username
+              }
+              title={
+                emp.username === 'admin' ||
+                emp.id === 'EMP-001' ||
+                emp.id === currentUser?.id ||
+                emp.username === currentUser?.username
+                  ? 'Cannot delete Root Super Admin or active session account'
+                  : 'Delete Employee Record Permanently'
+              }
+              className={cn(
+                'p-1 rounded transition cursor-pointer',
+                emp.username === 'admin' ||
+                emp.id === 'EMP-001' ||
+                emp.id === currentUser?.id ||
+                emp.username === currentUser?.username
+                  ? 'opacity-30 cursor-not-allowed text-gray-400'
+                  : 'hover:bg-rose-50 text-rose-600 hover:text-rose-800'
+              )}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        );
+      },
+    },
+  ];
 
-  const handleSort = (field: 'id' | 'name' | 'department' | 'role' | 'status') => {
-    if (sortField === field) {
-      setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortField(field);
-      setSortOrder('asc');
-    }
+  const handleExport = () => {
+    if (employees.length === 0) return;
+    const headers = ['Employee ID', 'Name', 'Username', 'Email', 'Phone', 'Department', 'Designation', 'Role', 'Status'];
+    const rows = employees.map((emp) => [
+      emp.id,
+      `"${(`${emp.firstName || ''} ${emp.lastName || ''}`).trim() || emp.name || ''}"`,
+      `"${emp.username || ''}"`,
+      `"${emp.email || ''}"`,
+      `"${emp.mobile || emp.phone || ''}"`,
+      `"${emp.departmentName || emp.department || ''}"`,
+      `"${emp.designation || ''}"`,
+      `"${emp.roleName || emp.role || ''}"`,
+      emp.status || (emp.isActive ? 'active' : 'inactive'),
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `employees_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleManualRefresh = async () => {
@@ -538,430 +745,96 @@ export default function UsersPage() {
         </div>
       )}
 
-      {/* Search and Filters Toolbar */}
-      <div className="bg-white p-3.5 rounded-xl border border-[#EBE3DB] shadow-2xs space-y-3">
-        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2.5">
-          {/* Live Search Input */}
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="Search by employee name, ID (EMP-001), email, phone, username..."
-              className="w-full pl-9 pr-8 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-crm-brand-500"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
+      {/* Department & Role Quick Filter Pills */}
+      <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-xs flex flex-wrap items-center gap-2.5">
+        <select
+          suppressHydrationWarning
+          value={selectedDept}
+          onChange={(e) => setSelectedDept(e.target.value)}
+          className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-700 font-medium focus:outline-none focus:border-[#7C3AED]"
+        >
+          <option value="all">All Departments</option>
+          {isMounted &&
+            (departments || []).map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name || d.departmentName}
+              </option>
+            ))}
+        </select>
 
-          {/* Department Filter */}
-          <select
-            suppressHydrationWarning
-            value={selectedDept}
-            onChange={(e) => {
-              setSelectedDept(e.target.value);
-              setCurrentPage(1);
+        <select
+          suppressHydrationWarning
+          value={selectedRole}
+          onChange={(e) => setSelectedRole(e.target.value)}
+          className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-700 font-medium focus:outline-none focus:border-[#7C3AED]"
+        >
+          <option value="all">All Roles</option>
+          {isMounted &&
+            (roles || []).map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.name}
+              </option>
+            ))}
+        </select>
+
+        <select
+          suppressHydrationWarning
+          value={selectedDesignation}
+          onChange={(e) => setSelectedDesignation(e.target.value)}
+          className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-700 font-medium focus:outline-none focus:border-[#7C3AED]"
+        >
+          <option value="all">All Designations</option>
+          {isMounted &&
+            availableDesignations.map((desig) => (
+              <option key={desig} value={desig}>
+                {desig}
+              </option>
+            ))}
+        </select>
+
+        <select
+          suppressHydrationWarning
+          value={selectedStatus}
+          onChange={(e) => setSelectedStatus(e.target.value)}
+          className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-700 font-medium focus:outline-none focus:border-[#7C3AED]"
+        >
+          <option value="all">All Status</option>
+          <option value="active">Active Only</option>
+          <option value="inactive">Inactive Only</option>
+        </select>
+
+        {(selectedDept !== 'all' ||
+          selectedRole !== 'all' ||
+          selectedStatus !== 'all' ||
+          selectedDesignation !== 'all' ||
+          filterReviewRequiredOnly) && (
+          <button
+            onClick={() => {
+              setSelectedDept('all');
+              setSelectedRole('all');
+              setSelectedStatus('all');
+              setSelectedDesignation('all');
+              setFilterReviewRequiredOnly(false);
             }}
-            className="px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs text-[#544B45] font-semibold focus:outline-none"
+            className="px-3 py-1.5 bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-semibold transition flex items-center gap-1 cursor-pointer"
           >
-            <option value="all">All Departments</option>
-            {isMounted &&
-              (departments || []).map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name || d.departmentName}
-                </option>
-              ))}
-          </select>
-
-          {/* Role Filter */}
-          <select
-            suppressHydrationWarning
-            value={selectedRole}
-            onChange={(e) => {
-              setSelectedRole(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs text-[#544B45] font-semibold focus:outline-none font-mono"
-          >
-            <option value="all">All Roles</option>
-            {isMounted &&
-              (roles || []).map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
-              ))}
-          </select>
-
-          {/* Designation Filter */}
-          <select
-            suppressHydrationWarning
-            value={selectedDesignation}
-            onChange={(e) => {
-              setSelectedDesignation(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs text-[#544B45] font-semibold focus:outline-none"
-          >
-            <option value="all">All Designations</option>
-            {isMounted &&
-              availableDesignations.map((desig) => (
-                <option key={desig} value={desig}>
-                  {desig}
-                </option>
-              ))}
-          </select>
-
-          {/* Status Filter */}
-          <select
-            suppressHydrationWarning
-            value={selectedStatus}
-            onChange={(e) => {
-              setSelectedStatus(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs text-[#544B45] font-semibold focus:outline-none"
-          >
-            <option value="all">All Status</option>
-            <option value="active">Active Only</option>
-            <option value="inactive">Inactive Only</option>
-          </select>
-
-          {/* Reset Filters */}
-          {(searchQuery ||
-            selectedDept !== 'all' ||
-            selectedRole !== 'all' ||
-            selectedStatus !== 'all' ||
-            selectedDesignation !== 'all' ||
-            filterReviewRequiredOnly) && (
-            <button
-              onClick={() => {
-                setSearchQuery('');
-                setSelectedDept('all');
-                setSelectedRole('all');
-                setSelectedStatus('all');
-                setSelectedDesignation('all');
-                setFilterReviewRequiredOnly(false);
-                setCurrentPage(1);
-              }}
-              className="px-3 py-2 bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-bold transition flex items-center gap-1"
-            >
-              <X className="w-3.5 h-3.5" /> Clear
-            </button>
-          )}
-        </div>
+            <X className="w-3.5 h-3.5" /> Clear Filters
+          </button>
+        )}
       </div>
 
-      {/* Employee Data Table */}
-      <div className="bg-white rounded-xl border border-[#EBE3DB] shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead className="bg-[#FAF7F2] text-[#544B45] font-bold border-b border-[#EBE3DB] select-none">
-              <tr>
-                <th
-                  onClick={() => handleSort('id')}
-                  className="py-3 px-4 cursor-pointer hover:bg-[#F3ECE4] transition"
-                >
-                  <div className="flex items-center gap-1.5">
-                    <span>Employee ID</span>
-                    <ArrowUpDown className="w-3 h-3 text-[#70665F]" />
-                  </div>
-                </th>
-                <th
-                  onClick={() => handleSort('name')}
-                  className="py-3 px-4 cursor-pointer hover:bg-[#F3ECE4] transition"
-                >
-                  <div className="flex items-center gap-1.5">
-                    <span>Employee & Identity</span>
-                    <ArrowUpDown className="w-3 h-3 text-[#70665F]" />
-                  </div>
-                </th>
-                <th
-                  onClick={() => handleSort('department')}
-                  className="py-3 px-4 cursor-pointer hover:bg-[#F3ECE4] transition"
-                >
-                  <div className="flex items-center gap-1.5">
-                    <span>Department & Designation</span>
-                    <ArrowUpDown className="w-3 h-3 text-[#70665F]" />
-                  </div>
-                </th>
-                <th
-                  onClick={() => handleSort('role')}
-                  className="py-3 px-4 cursor-pointer hover:bg-[#F3ECE4] transition"
-                >
-                  <div className="flex items-center gap-1.5">
-                    <span>Role & Scope</span>
-                    <ArrowUpDown className="w-3 h-3 text-[#70665F]" />
-                  </div>
-                </th>
-                <th className="py-3 px-4">Contact Details</th>
-                <th
-                  onClick={() => handleSort('status')}
-                  className="py-3 px-4 cursor-pointer hover:bg-[#F3ECE4] transition"
-                >
-                  <div className="flex items-center gap-1.5">
-                    <span>Status</span>
-                    <ArrowUpDown className="w-3 h-3 text-[#70665F]" />
-                  </div>
-                </th>
-                <th className="py-3 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody suppressHydrationWarning className="divide-y divide-[#EBE3DB]/60">
-              {paginatedEmployees.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-500">
-                    <User className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                    <p className="font-semibold text-sm text-slate-700">No staff records match your criteria.</p>
-                    <p className="text-xs text-[#70665F] mt-1">Try adjusting your filters or search terms.</p>
-                  </td>
-                </tr>
-              ) : (
-                paginatedEmployees.map((emp) => {
-                  const isActive = emp.status === 'active' || emp.isActive === true;
-                  const fullName =
-                    `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || emp.name || emp.username;
-
-                  const hasExplicitRestrictions =
-                    Array.isArray(emp.explicitRestrictions) && emp.explicitRestrictions.length > 0;
-
-                  return (
-                    <tr key={emp.id} className="hover:bg-[#FAF7F2]/60 transition">
-                      {/* ID & Flags */}
-                      <td className="py-3 px-4">
-                        <span className="font-mono font-bold text-crm-brand-700 block">{emp.id}</span>
-                        {emp.permissionsReviewRequired && (
-                          <span
-                            title="Transferred department: review permissions"
-                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[9px] font-extrabold mt-1 border border-amber-300"
-                          >
-                            <AlertTriangle className="w-2.5 h-2.5 text-amber-600" /> Review
-                          </span>
-                        )}
-                        {hasExplicitRestrictions && (
-                          <span
-                            title="Active explicit restrictions"
-                            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 text-[9px] font-bold mt-1 border border-rose-200 ml-1"
-                          >
-                            🚫 Restricted
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Employee Photo & Name */}
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-crm-brand-100 text-crm-brand-800 font-bold text-xs flex items-center justify-center border border-crm-brand-200 flex-shrink-0">
-                            {emp.firstName ? emp.firstName.slice(0, 1).toUpperCase() : emp.username?.slice(0, 1).toUpperCase() || 'U'}
-                            {emp.lastName ? emp.lastName.slice(0, 1).toUpperCase() : ''}
-                          </div>
-                          <div>
-                            <span className="font-bold text-slate-900 block">{fullName}</span>
-                            <span className="text-[11px] text-[#70665F] font-mono">@{emp.username}</span>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Department & Designation */}
-                      <td className="py-3 px-4">
-                        <span className="font-semibold text-slate-800 block">{emp.designation || 'Staff'}</span>
-                        <span className="text-[11px] text-[#70665F]">
-                          {emp.departmentName || emp.department || 'General'}
-                        </span>
-                      </td>
-
-                      {/* Role & Scope */}
-                      <td className="py-3 px-4">
-                        <span className="px-2 py-0.5 rounded bg-crm-brand-50 text-crm-brand-800 font-mono text-[10px] font-bold border border-crm-brand-200 block w-max">
-                          {emp.roleName || emp.role || 'Staff'}
-                        </span>
-                        <span className="text-[10px] text-[#70665F] block mt-0.5 capitalize">
-                          Scope: {emp.dataScope || 'own'}
-                        </span>
-                      </td>
-
-                      {/* Contact Info */}
-                      <td className="py-3 px-4">
-                        <div className="space-y-0.5 text-[11px]">
-                          <span className="text-slate-600 block flex items-center gap-1">
-                            <Mail className="w-3 h-3 text-[#70665F]" /> {emp.email || 'N/A'}
-                          </span>
-                          <span className="text-slate-600 block flex items-center gap-1">
-                            <Phone className="w-3 h-3 text-[#70665F]" /> {emp.mobile || emp.phone || 'N/A'}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Status */}
-                      <td className="py-3 px-4">
-                        <span
-                          className={cn(
-                            'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase',
-                            isActive
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : 'bg-rose-50 text-rose-700 border border-rose-200'
-                          )}
-                        >
-                          <span className={cn('w-1.5 h-1.5 rounded-full', isActive ? 'bg-emerald-500' : 'bg-rose-500')} />
-                          {emp.status || (isActive ? 'active' : 'inactive')}
-                        </span>
-                      </td>
-
-                      {/* Action Buttons */}
-                      <td className="py-3 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {/* View Profile */}
-                          <button
-                            onClick={() => {
-                              setEmployeeForProfile(emp);
-                              setIsProfileModalOpen(true);
-                            }}
-                            title="View Full Staff Profile"
-                            className="p-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 transition shadow-2xs"
-                          >
-                            <Eye className="w-3.5 h-3.5 text-slate-700" />
-                          </button>
-
-                          {/* Edit Details */}
-                          <button
-                            onClick={() => {
-                              setEmployeeToEdit(emp);
-                              setIsFormModalOpen(true);
-                            }}
-                            title="Edit Staff Member Details"
-                            className="p-1.5 rounded-lg border border-blue-200 bg-blue-50/60 hover:bg-blue-100 hover:border-blue-400 text-blue-700 transition shadow-2xs"
-                          >
-                            <Edit2 className="w-3.5 h-3.5 text-blue-700" />
-                          </button>
-
-                          {/* Manage Permissions */}
-                          <button
-                            onClick={() => {
-                              setEmployeeForPermissions(emp);
-                              setIsPermissionsModalOpen(true);
-                            }}
-                            title="Configure Granular RBAC Permissions Matrix"
-                            className={cn(
-                              'p-1.5 rounded-lg border transition shadow-2xs',
-                              emp.permissionsReviewRequired
-                                ? 'border-amber-300 bg-amber-100 text-amber-800 animate-pulse'
-                                : 'border-purple-200 bg-purple-50/60 hover:bg-purple-100 text-purple-700'
-                            )}
-                          >
-                            <Sliders className="w-3.5 h-3.5" />
-                          </button>
-
-                          {/* Reset Password */}
-                          <button
-                            onClick={() => openResetPasswordModal(emp)}
-                            title="Reset Password"
-                            className="p-1.5 rounded-lg border border-amber-200 bg-amber-50/60 hover:bg-amber-100 hover:border-amber-400 text-amber-600 transition shadow-2xs"
-                          >
-                            <KeyRound className="w-3.5 h-3.5 text-amber-600" />
-                          </button>
-
-                          {/* Activate / Deactivate Toggle */}
-                          <button
-                            onClick={() => setConfirmStatusModalEmp(emp)}
-                            title={isActive ? 'Deactivate Employee Account' : 'Reactivate Employee Account'}
-                            className={cn(
-                              'p-1.5 rounded-lg border transition shadow-2xs',
-                              isActive
-                                ? 'border-gray-200 hover:bg-rose-50 hover:border-rose-300 text-rose-600'
-                                : 'border-gray-200 hover:bg-emerald-50 hover:border-emerald-300 text-emerald-600'
-                            )}
-                          >
-                            {isActive ? <XCircle className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
-                          </button>
-
-                          {/* Permanent Delete */}
-                          <button
-                            onClick={() => setConfirmDeleteModalEmp(emp)}
-                            disabled={
-                              emp.username === 'admin' ||
-                              emp.id === 'EMP-001' ||
-                              emp.id === currentUser?.id ||
-                              emp.username === currentUser?.username
-                            }
-                            title={
-                              emp.username === 'admin' ||
-                              emp.id === 'EMP-001' ||
-                              emp.id === currentUser?.id ||
-                              emp.username === currentUser?.username
-                                ? 'Cannot delete Root Super Admin or active session account'
-                                : 'Delete Employee Record Permanently'
-                            }
-                            className={cn(
-                              'p-1.5 rounded-lg border transition shadow-2xs',
-                              emp.username === 'admin' ||
-                              emp.id === 'EMP-001' ||
-                              emp.id === currentUser?.id ||
-                              emp.username === currentUser?.username
-                                ? 'opacity-30 cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400'
-                                : 'border-rose-200 bg-rose-50/60 hover:bg-rose-100 hover:border-rose-400 text-rose-600'
-                            )}
-                          >
-                            <Trash2 className="w-3.5 h-3.5 text-rose-600" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination Bar */}
-        <div className="p-3.5 bg-[#FAF7F2] border-t border-[#EBE3DB] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#544B45]">
-          <div className="flex items-center gap-2">
-            <span>Showing</span>
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="px-2 py-1 bg-white border border-[#EBE3DB] rounded font-semibold focus:outline-none"
-            >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-            </select>
-            <span suppressHydrationWarning>of {sortedEmployees.length} records</span>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage <= 1}
-              className="p-1.5 rounded border border-[#EBE3DB] bg-white hover:bg-gray-100 disabled:opacity-40 transition"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span className="px-2 font-semibold">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage >= totalPages}
-              className="p-1.5 rounded border border-[#EBE3DB] bg-white hover:bg-gray-100 disabled:opacity-40 transition"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
+      <ERPListPageLayout<Employee>
+        breadcrumbs={['DASHBOARD', 'SETTINGS', 'USERS & RBAC DIRECTORY']}
+        columns={columns}
+        data={filteredEmployees}
+        addNewLabel="+ Add Employee"
+        onAddNew={() => {
+          setEmployeeToEdit(null);
+          setIsFormModalOpen(true);
+        }}
+        onExport={handleExport}
+        searchPlaceholder="Search by name, ID, email, username, phone..."
+      />
 
       {/* ADD / EDIT EMPLOYEE MODAL */}
       <EmployeeFormModal

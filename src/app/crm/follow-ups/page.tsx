@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useERP } from '../../../context/ERPContext';
-import { DataTable, Column } from '../../../components/data/DataTable';
+import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
 import { FollowUp } from '../../../types/crm';
 import { formatDate } from '../../../lib/utils';
 import {
@@ -271,31 +271,56 @@ export default function FollowUpsPage() {
     setAddErrors({});
   };
 
-  const columns: Column<FollowUp>[] = [
+  const handleExportCSV = () => {
+    const csv = [
+      'Follow-up #,Account/Entity,Type,Channel,Date,Time,Purpose,Remarks,Assigned Engineer,Status,Outcome',
+      ...filteredFollowUps.map((f) => {
+        return `"${f.followUpNo || f.id}","${f.leadOrCustomerName || ''}","${f.entityType || 'lead'}","${f.type}","${f.date}","${f.time}","${f.purpose || ''}","${f.notes || ''}","${f.assignedToName || ''}","${f.status}","${f.outcome || ''}"`;
+      }),
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `FollowUps_Register_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+  };
+
+  const columns: ERPColumn<FollowUp>[] = [
     {
-      header: 'Follow-up #',
-      accessorKey: 'followUpNo',
+      key: 'followUpNo',
+      header: 'FOLLOW-UP #',
+      isCodeLink: true,
+      onCodeClick: (f) => {
+        if (f.status === 'pending') {
+          setCompleteModalId(f.id);
+          setCompletionNotes('');
+          setOutcome('connected');
+          setCompleteError('');
+        }
+      },
       cell: (f) => (
-        <span className="font-mono font-bold text-crm-brand-700">
+        <span className="font-mono font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200 text-xs whitespace-nowrap inline-block">
           {f.followUpNo || f.id}
         </span>
       ),
     },
     {
-      header: 'Linked Account / Entity',
+      key: 'leadOrCustomerName',
+      header: 'LINKED ACCOUNT / ENTITY',
       cell: (f) => {
         const link = getEntityLink(f);
         const badgeColor =
           f.entityType === 'quotation'
-            ? 'bg-purple-50 text-purple-800 border-purple-200'
+            ? 'bg-purple-100 text-purple-800 border-purple-200'
             : f.entityType === 'enquiry'
-            ? 'bg-amber-50 text-amber-800 border-amber-200'
+            ? 'bg-amber-100 text-amber-800 border-amber-200'
             : f.entityType === 'customer'
-            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-            : 'bg-blue-50 text-blue-800 border-blue-200';
+            ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+            : 'bg-blue-100 text-blue-800 border-blue-200';
 
         return (
-          <div className="space-y-0.5">
+          <div className="space-y-0.5 min-w-[180px]">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className={`px-1.5 py-0.2 rounded font-mono text-[9px] uppercase font-bold border ${badgeColor}`}>
                 {f.entityType || 'lead'}
@@ -303,13 +328,13 @@ export default function FollowUpsPage() {
               {link ? (
                 <Link
                   href={link}
-                  className="font-bold text-slate-900 dark:text-[#211B17] hover:text-crm-brand-700 flex items-center gap-1"
+                  className="font-bold text-slate-800 hover:text-purple-700 flex items-center gap-1 text-xs"
                 >
-                  <span>{f.leadOrCustomerName}</span>
-                  <ExternalLink className="w-3 h-3 text-[#70665F]" />
+                  <span className="truncate max-w-[150px]">{f.leadOrCustomerName}</span>
+                  <ExternalLink className="w-3 h-3 text-slate-400" />
                 </Link>
               ) : (
-                <span className="font-bold text-slate-900 dark:text-[#211B17]">{f.leadOrCustomerName}</span>
+                <span className="font-bold text-slate-800 text-xs truncate max-w-[150px]">{f.leadOrCustomerName}</span>
               )}
             </div>
             {f.quotationId && (
@@ -323,28 +348,31 @@ export default function FollowUpsPage() {
       },
     },
     {
-      header: 'Channel',
+      key: 'type',
+      header: 'CHANNEL',
       cell: (f) => (
-        <span className="px-2 py-0.5 rounded font-mono text-[10px] font-bold uppercase bg-[#FAF7F2] text-[#544B45] border border-[#EBE3DB]">
+        <span className="px-2 py-0.5 rounded font-mono text-[10px] font-bold uppercase bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap">
           {f.type}
         </span>
       ),
     },
     {
-      header: 'Scheduled Date & Time',
+      key: 'date',
+      header: 'SCHEDULED DATE & TIME',
       cell: (f) => (
-        <div className="font-mono">
-          <span className="font-semibold block text-slate-800 dark:text-[#211B17]">{formatDate(f.date)}</span>
-          <span className="text-[10px] text-[#70665F]">{f.time}</span>
+        <div className="font-mono text-xs whitespace-nowrap">
+          <span className="font-semibold block text-slate-800">{formatDate(f.date)}</span>
+          <span className="text-[10px] text-slate-500">{f.time}</span>
         </div>
       ),
     },
     {
-      header: 'Purpose & Remarks',
+      key: 'purpose',
+      header: 'PURPOSE & REMARKS',
       cell: (f) => (
         <div className="max-w-xs">
-          <span className="font-medium text-slate-800 dark:text-[#544B45] block truncate">{f.purpose}</span>
-          <span className="text-[10px] text-[#70665F] block truncate">{f.notes}</span>
+          <span className="font-medium text-slate-800 block truncate text-xs">{f.purpose}</span>
+          <span className="text-[10px] text-slate-500 block truncate">{f.notes}</span>
           {f.outcome && (
             <span className="mt-0.5 inline-block px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-[9px] font-bold">
               Outcome: {f.outcome.replace('_', ' ')}
@@ -354,20 +382,21 @@ export default function FollowUpsPage() {
       ),
     },
     {
-      header: 'Assigned Engineer',
-      accessorKey: 'assignedToName',
-      cell: (f) => <span className="font-semibold text-slate-800 dark:text-[#544B45]">{f.assignedToName}</span>,
+      key: 'assignedToName',
+      header: 'ASSIGNED ENGINEER',
+      cell: (f) => <span className="font-medium text-slate-700 text-xs whitespace-nowrap">{f.assignedToName}</span>,
     },
     {
-      header: 'Status',
+      key: 'status',
+      header: 'STATUS',
       cell: (f) => (
         <span
-          className={`px-2 py-0.5 rounded font-mono text-[10px] font-bold uppercase ${
+          className={`px-2 py-0.5 rounded-full font-mono text-[10px] font-bold uppercase whitespace-nowrap ${
             f.status === 'completed'
-              ? 'bg-emerald-100 text-emerald-800'
+              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
               : f.date < todayStr
-              ? 'bg-rose-100 text-rose-800 font-bold'
-              : 'bg-amber-100 text-amber-800 font-bold'
+              ? 'bg-rose-100 text-rose-800 border border-rose-200 font-bold'
+              : 'bg-amber-100 text-amber-800 border border-amber-200 font-bold'
           }`}
         >
           {f.status === 'pending' && f.date < todayStr ? 'Overdue' : f.status}
@@ -375,13 +404,14 @@ export default function FollowUpsPage() {
       ),
     },
     {
-      header: 'Actions',
+      key: 'actions',
+      header: 'ACTIONS',
       cell: (f) => {
         const mobile = getEntityMobile(f);
         const cleanMobile = mobile.replace(/\D/g, '');
 
         return (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 whitespace-nowrap">
             {cleanMobile && (
               <a
                 href={`https://wa.me/91${cleanMobile.slice(-10)}?text=${encodeURIComponent(
@@ -390,7 +420,7 @@ export default function FollowUpsPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 title={`Chat with customer on WhatsApp (+91 ${cleanMobile.slice(-10)})`}
-                className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition"
+                className="p-1 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition"
               >
                 <MessageSquare className="w-3.5 h-3.5" />
               </a>
@@ -404,13 +434,13 @@ export default function FollowUpsPage() {
                   setOutcome('connected');
                   setCompleteError('');
                 }}
-                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 cursor-pointer shadow-2xs"
+                className="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-bold flex items-center gap-1 cursor-pointer shadow-2xs"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>Mark Done</span>
               </button>
             ) : (
-              <span className="text-[11px] text-[#70665F] font-mono">Completed</span>
+              <span className="text-[11px] text-slate-500 font-mono">Completed</span>
             )}
           </div>
         );
@@ -419,137 +449,124 @@ export default function FollowUpsPage() {
   ];
 
   return (
-    <div className="space-y-4 text-xs">
-      {/* Top Banner */}
-      <div className="bg-white dark:bg-white p-4 rounded-2xl border border-slate-200 dark:border-[#EBE3DB] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xs">
-        <div>
-          <h1 className="text-lg font-bold text-slate-900 dark:text-[#211B17] flex items-center gap-2">
-            <PhoneCall className="w-5 h-5 text-crm-brand-700" />
-            Unified Follow-up & Interaction Center
-          </h1>
-          <p className="text-[#70665F] mt-0.5">
-            Single central workspace for Lead, Technical Inquiry, Quotation, and Customer communication schedules.
-          </p>
-        </div>
-
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap"
-        >
-          <Plus className="w-4 h-4" />
-          <span>+ Schedule Follow-up</span>
-        </button>
-      </div>
-
-      {/* Filter Tabs & Entity Filter Bar */}
-      <div className="bg-white dark:bg-white p-3.5 rounded-xl border border-slate-200 dark:border-[#EBE3DB] flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 shadow-xs">
+    <div className="space-y-4">
+      {/* Date / Status & Entity Filter Bar */}
+      <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 shadow-xs">
         {/* Date / Status Views */}
         <div className="flex items-center gap-1.5 flex-wrap">
           <button
+            type="button"
             onClick={() => setViewFilter('today')}
-            className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition text-xs ${
-              viewFilter === 'today' ? 'bg-amber-600 text-white shadow-xs' : 'bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200'
+            className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition text-xs cursor-pointer ${
+              viewFilter === 'today' ? 'bg-amber-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
             <span>Today</span>
-            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${viewFilter === 'today' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-900'}`}>
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${viewFilter === 'today' ? 'bg-white/25 text-white' : 'bg-amber-100 text-amber-900'}`}>
               {todayCount}
             </span>
           </button>
 
           <button
+            type="button"
             onClick={() => setViewFilter('upcoming')}
-            className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition text-xs ${
-              viewFilter === 'upcoming' ? 'bg-blue-600 text-white shadow-xs' : 'bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200'
+            className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition text-xs cursor-pointer ${
+              viewFilter === 'upcoming' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
             <span>Upcoming</span>
-            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${viewFilter === 'upcoming' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-900'}`}>
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${viewFilter === 'upcoming' ? 'bg-white/25 text-white' : 'bg-blue-100 text-blue-900'}`}>
               {upcomingCount}
             </span>
           </button>
 
           <button
+            type="button"
             onClick={() => setViewFilter('overdue')}
-            className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition text-xs ${
-              viewFilter === 'overdue' ? 'bg-rose-600 text-white shadow-xs' : 'bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200'
+            className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition text-xs cursor-pointer ${
+              viewFilter === 'overdue' ? 'bg-rose-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
             <span>Overdue</span>
-            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${viewFilter === 'overdue' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-900'}`}>
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${viewFilter === 'overdue' ? 'bg-white/25 text-white' : 'bg-rose-100 text-rose-900'}`}>
               {overdueCount}
             </span>
           </button>
 
           <button
+            type="button"
             onClick={() => setViewFilter('completed')}
-            className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition text-xs ${
-              viewFilter === 'completed' ? 'bg-emerald-700 text-white shadow-xs' : 'bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200'
+            className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition text-xs cursor-pointer ${
+              viewFilter === 'completed' ? 'bg-emerald-700 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
             <span>Completed</span>
-            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${viewFilter === 'completed' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-900'}`}>
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${viewFilter === 'completed' ? 'bg-white/25 text-white' : 'bg-emerald-100 text-emerald-900'}`}>
               {completedCount}
             </span>
           </button>
 
           <button
+            type="button"
             onClick={() => setViewFilter('all')}
-            className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition text-xs ${
-              viewFilter === 'all' ? 'bg-crm-brand-700 text-white shadow-xs' : 'bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200'
+            className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition text-xs cursor-pointer ${
+              viewFilter === 'all' ? 'bg-[#7C3AED] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
             <span>All Records</span>
-            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${viewFilter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-900'}`}>
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${viewFilter === 'all' ? 'bg-white/25 text-white' : 'bg-slate-200 text-slate-900'}`}>
               {allCount}
             </span>
           </button>
         </div>
 
-        {/* Entity Type Filter & Search Bar */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-1 bg-[#FAF7F2] p-1 rounded-lg border border-[#EBE3DB]">
-            <span className="text-[10px] font-bold text-[#70665F] uppercase px-1">Entity:</span>
-            {(['all', 'lead', 'enquiry', 'quotation', 'customer'] as const).map((ent) => (
-              <button
-                key={ent}
-                onClick={() => setEntityFilter(ent)}
-                className={`px-2 py-0.5 rounded text-[11px] font-semibold capitalize transition ${
-                  entityFilter === ent ? 'bg-white text-crm-brand-700 shadow-2xs font-bold' : 'text-[#70665F] hover:text-[#211B17]'
-                }`}
-              >
-                {ent === 'all' ? 'All' : ent}
-              </button>
-            ))}
-          </div>
-
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-[#70665F] absolute left-2.5 top-2.5" />
-            <input
-              type="text"
-              placeholder="Filter by account, staff..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 pr-3 py-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] w-44"
-            />
-          </div>
+        {/* Entity Type Filter Bar */}
+        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
+          <span className="text-[10px] font-bold text-slate-500 uppercase px-1.5">Target:</span>
+          {(['all', 'lead', 'enquiry', 'quotation', 'customer'] as const).map((ent) => (
+            <button
+              key={ent}
+              type="button"
+              onClick={() => setEntityFilter(ent)}
+              className={`px-2.5 py-1 rounded text-[11px] font-bold capitalize transition cursor-pointer ${
+                entityFilter === ent ? 'bg-white text-[#7C3AED] shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              {ent === 'all' ? 'All' : ent}
+            </button>
+          ))}
         </div>
       </div>
 
-      <DataTable
-        title={
-          viewFilter === 'today'
-            ? "Today's Follow-up Schedule"
-            : viewFilter === 'upcoming'
-            ? 'Upcoming Follow-ups'
-            : viewFilter === 'overdue'
-            ? 'Overdue Follow-ups'
-            : viewFilter === 'completed'
-            ? 'Completed Interaction History'
-            : 'Unified Follow-up Register'
-        }
+      {/* Main Shasvatm ERP Standard List View */}
+      <ERPListPageLayout<FollowUp>
+        breadcrumbs={['DASHBOARD', 'CRM & SALES', 'FOLLOW-UPS']}
         columns={columns}
         data={filteredFollowUps}
+        addNewLabel="+ Schedule Follow-up"
+        onAddNew={() => setShowAddModal(true)}
+        onExport={() => {
+          const csv = [
+            ['Follow-up No', 'Entity Type', 'Target', 'Assigned To', 'Due Date', 'Status', 'Outcome', 'Notes'].join(','),
+            ...filteredFollowUps.map(f => [
+              f.followUpNo || f.id,
+              f.entityType,
+              `"${(f.leadOrCustomerName || '').replace(/"/g, '""')}"`,
+              `"${(f.assignedToName || '').replace(/"/g, '""')}"`,
+              f.date || '',
+              f.status || '',
+              f.outcome || '',
+              `"${(f.notes || '').replace(/"/g, '""')}"`
+            ].join(','))
+          ].join('\n');
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `crm_follow_ups_${new Date().toISOString().slice(0, 10)}.csv`;
+          a.click();
+        }}
+        searchPlaceholder="Search follow-ups, clients, assignee, notes..."
       />
 
       {/* SCHEDULE NEW FOLLOW-UP MODAL */}

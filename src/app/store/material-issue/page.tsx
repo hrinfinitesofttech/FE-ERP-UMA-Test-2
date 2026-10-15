@@ -22,6 +22,8 @@ import {
   Trash2,
   Sparkles,
 } from 'lucide-react';
+import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
+import { formatCurrency, formatDate } from '../../../lib/utils';
 
 export interface IssueLineItem {
   lineId: string;
@@ -601,155 +603,124 @@ function MaterialIssueContent() {
         </div>
       </div>
 
-      {/* Filter Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-sm">
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="relative w-full sm:w-80">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
-            <input
-              type="text"
-              placeholder="Search issue slip no, job no, customer..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] placeholder-[#70665F] focus:outline-none focus:border-emerald-500"
-            />
-          </div>
-
-          <select
-            value={filterJob}
-            onChange={(e) => setFilterJob(e.target.value)}
-            className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] focus:outline-none focus:border-emerald-500 font-mono"
-          >
-            <option value="ALL">All Jobs</option>
-            {projectJobs.map((j) => (
-              <option key={`filter-job-${j.id}`} value={j.jobNumber}>
-                {j.jobNumber} {j.customerName ? `(${j.customerName})` : ''}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="text-xs text-[#70665F] font-mono">
-          Showing <span className="text-[#211B17] font-bold">{filtered.length}</span> of{' '}
-          <span className="text-[#211B17] font-bold">{materialIssues.length}</span> Slips
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-[#544B45]">
-            <thead className="bg-[#FAF7F2] text-[#70665F] font-mono text-[11px] uppercase tracking-wider border-b border-[#EBE3DB]">
-              <tr>
-                <th className="p-3.5">Issue Slip No & Date</th>
-                <th className="p-3.5">Job No & Customer</th>
-                <th className="p-3.5">BOM & Production Stage</th>
-                <th className="p-3.5">Issued Material Items</th>
-                <th className="p-3.5">Requested By</th>
-                <th className="p-3.5 text-right">Issued Value (₹)</th>
-                <th className="p-3.5 text-center">Status</th>
-                <th className="p-3.5 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#EBE3DB]">
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="p-8 text-center text-[#70665F]">
-                    No material issues found matching current filters. Click &quot;Issue Material Slip&quot; to issue raw materials.
-                  </td>
-                </tr>
+      {/* ERP Standard List Table */}
+      <ERPListPageLayout<any>
+        breadcrumbs={['DASHBOARD', 'STORE', 'MATERIAL ISSUE TO PRODUCTION']}
+        data={filtered}
+        columns={[
+          {
+            key: 'issueNumber',
+            header: 'ISSUE SLIP NO',
+            isCodeLink: true,
+            onCodeClick: (i) => setViewVoucher(i),
+            cell: (i) => {
+              const issNo = i.issueNumber || i.issue_number || i.id;
+              return (
+                <button
+                  onClick={() => setViewVoucher(i)}
+                  className="text-[#2563EB] hover:text-[#1D4ED8] underline font-bold font-mono text-xs cursor-pointer text-left"
+                >
+                  {issNo}
+                </button>
+              );
+            },
+          },
+          {
+            key: 'issueDate',
+            header: 'DATE',
+            cell: (i) => (
+              <span className="font-mono text-[#64748B] text-xs">
+                {formatDate(i.issueDate || i.issue_date || i.createdAt)}
+              </span>
+            ),
+          },
+          {
+            key: 'job',
+            header: 'JOB NO & CUSTOMER',
+            cell: (i) => {
+              const jobCode = i.jobId || i.job_number || i.jobNumber || '—';
+              const matchedJob = projectJobs.find((j) => j.jobNumber === jobCode || j.id === jobCode);
+              const custName = i.customerName || matchedJob?.customerName || '—';
+              return (
+                <div>
+                  <span className="font-bold text-[#7C3AED] text-xs font-mono block">{jobCode}</span>
+                  <span className="text-[11px] font-semibold text-[#1E293B]">{custName}</span>
+                </div>
+              );
+            },
+          },
+          {
+            key: 'bomStage',
+            header: 'BOM & PRODUCTION STAGE',
+            cell: (i) => (
+              <div>
+                <span className="font-semibold text-[#1E293B] block">
+                  {i.bomNumber || i.bom_number || 'BOM'} ({i.bomRevision || 'Rev-01'})
+                </span>
+                <span className="text-[10px] text-[#64748B]">
+                  {i.productionStage || 'Shell & Dish End Cutting'}
+                </span>
+              </div>
+            ),
+          },
+          {
+            key: 'items',
+            header: 'ISSUED ITEMS',
+            cell: (i) => {
+              const itemsCount = Array.isArray(i.items) ? i.items.length : 1;
+              const firstItem = Array.isArray(i.items) && i.items[0] ? i.items[0] : null;
+              return firstItem ? (
+                <div className="max-w-xs">
+                  <span className="font-semibold text-[#1E293B] block truncate">{firstItem.itemName}</span>
+                  <span className="text-[10px] text-[#64748B] font-mono">
+                    Qty: {firstItem.issuedQuantity || firstItem.requiredQuantity} {firstItem.uom}
+                    {itemsCount > 1 ? ` (+${itemsCount - 1} more)` : ''}
+                  </span>
+                </div>
               ) : (
-                filtered.map((i, idx) => {
-                  const issNo = i.issueNumber || (i as any).issue_number || i.id;
-                  const issDate = i.issueDate || (i as any).issue_date || new Date().toISOString().split('T')[0];
-                  const jobCode = i.jobId || (i as any).job_number || (i as any).jobNumber || '—';
-                  const matchedJob = projectJobs.find((j) => j.jobNumber === jobCode || j.id === jobCode);
-                  const custName = (i as any).customerName || matchedJob?.customerName || '—';
-                  const woCode = i.workOrderNumber || (i as any).work_order_number || '—';
-                  const bomCode = i.bomNumber || (i as any).bom_number || '—';
-                  const bomRevVal = i.bomRevision || (i as any).bom_revision || '—';
-                  const prodStage = i.productionStage || (i as any).production_stage || 'Shell & Dish End Cutting / Rolling';
-                  const reqBy = i.requestedBy || (i as any).requested_by || (i as any).issued_to || '—';
-                  const issVal = Number(i.totalIssueValue ?? (i as any).total_issue_value ?? 0);
-                  const issStatus = i.status || 'Fully Issued';
-                  const itemsCount = Array.isArray(i.items) ? i.items.length : 1;
-                  const firstItem = Array.isArray(i.items) && i.items[0] ? i.items[0] : null;
-
-                  return (
-                    <tr key={`${i.id || 'iss'}-${idx}`} className="hover:bg-[#FAF7F2]/60 transition">
-                      <td className="p-3.5 font-medium">
-                        <div className="font-bold text-emerald-700 text-xs font-mono">{issNo}</div>
-                        <div className="text-[10px] text-[#70665F] mt-0.5">{issDate}</div>
-                      </td>
-                      <td className="p-3.5">
-                        <div className="font-bold text-amber-700 text-xs flex items-center gap-1 font-mono">
-                          <Cpu className="w-3.5 h-3.5 text-amber-500" />
-                          {jobCode}
-                        </div>
-                        <div className="text-[11px] font-semibold text-[#211B17] mt-0.5">{custName}</div>
-                        <div className="text-[10px] text-[#70665F]">WO: {woCode}</div>
-                      </td>
-                      <td className="p-3.5 text-[#544B45]">
-                        <div className="font-semibold text-[#211B17]">
-                          {bomCode} ({bomRevVal})
-                        </div>
-                        <div className="text-[10px] text-[#70665F] mt-0.5">{prodStage}</div>
-                      </td>
-                      <td className="p-3.5">
-                        {firstItem ? (
-                          <div>
-                            <div className="font-bold text-[#211B17]">{firstItem.itemName}</div>
-                            <div className="text-[10px] text-[#70665F] font-mono">
-                              Qty: {firstItem.issuedQuantity || firstItem.requiredQuantity} {firstItem.uom} | Lot: {firstItem.batchLot || 'HEAT-98421'}
-                            </div>
-                            {itemsCount > 1 && (
-                              <div className="text-[10px] text-emerald-600 font-semibold mt-0.5">
-                                + {itemsCount - 1} more items
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-[#70665F]">{itemsCount} Items</span>
-                        )}
-                      </td>
-                      <td className="p-3.5 font-medium text-[#211B17]">{reqBy}</td>
-                      <td className="p-3.5 text-right font-mono font-bold text-emerald-700">
-                        ₹{issVal.toLocaleString('en-IN')}
-                      </td>
-                      <td className="p-3.5 text-center">
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-700 border border-emerald-500/30">
-                          {issStatus}
-                        </span>
-                      </td>
-                      <td className="p-3.5 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => setViewVoucher(i)}
-                            className="px-2.5 py-1 rounded-lg bg-[#FAF7F2] hover:bg-emerald-50 text-emerald-700 border border-[#EBE3DB] hover:border-emerald-300 text-[11px] font-bold transition flex items-center gap-1"
-                            title="View Dispatch Slip"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            Voucher
-                          </button>
-                          {openJobModal && (
-                            <button
-                              onClick={() => openJobModal(jobCode)}
-                              className="px-2.5 py-1 rounded-lg bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 text-[11px] font-bold transition"
-                              title="Trace Job 360°"
-                            >
-                              Trace
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                <span className="text-[#64748B]">{itemsCount} Items</span>
+              );
+            },
+          },
+          {
+            key: 'requestedBy',
+            header: 'REQUESTED BY',
+            cell: (i) => (
+              <span className="text-[#334155] font-semibold">
+                {i.requestedBy || i.requested_by || 'Production Head'}
+              </span>
+            ),
+          },
+          {
+            key: 'totalCost',
+            header: 'ISSUED VALUE',
+            cell: (i) => {
+              const issVal = Number(i.totalIssueValue ?? i.total_issue_value ?? 0);
+              return (
+                <span className="font-mono font-bold text-[#1E293B]">
+                  {formatCurrency(issVal)}
+                </span>
+              );
+            },
+          },
+          {
+            key: 'status',
+            header: 'STATUS',
+            cell: (i) => (
+              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                {i.status || 'Fully Issued'}
+              </span>
+            ),
+          },
+        ]}
+        searchPlaceholder="Search issue slip #, job #, customer..."
+        onAddNew={openNewModal}
+        addNewLabel="Issue Material Slip"
+        onView={(i) => setViewVoucher(i)}
+        defaultPageSize={50}
+        pageSizeOptions={[10, 25, 50, 100]}
+        getRowKey={(i, idx) => i.id || i.issueNumber || idx}
+      />
 
       {/* Modal: Issue Material Slip */}
       {isModalOpen && (

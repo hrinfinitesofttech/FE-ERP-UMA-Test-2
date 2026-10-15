@@ -486,7 +486,7 @@ interface ERPContextType {
 
   // CRM Entities
   leads: Lead[];
-  addLead: (leadData: Omit<Lead, 'id' | 'leadNo' | 'createdDate'>) => Lead;
+  addLead: (leadData: Omit<Lead, 'id' | 'leadNo' | 'createdDate'>) => Promise<Lead>;
   updateLead: (id: string, leadData: Partial<Lead>) => Promise<void> | void;
   deleteLead: (id: string) => Promise<void> | void;
   convertLeadToCustomer: (leadId: string) => { customer: Customer; enquiry?: Enquiry; opportunity?: Opportunity };
@@ -1134,6 +1134,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       createdDate: new Date().toISOString().split('T')[0],
     };
     setBugTickets((prev) => [newBug, ...prev]);
+    api.post('/bug-tickets/', newBug).catch(() => {});
   };
 
   const updateBugTicketStatus = (id: string, status: BugTicket['status']) => {
@@ -1142,6 +1143,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         b.id === id ? { ...b, status, resolvedDate: status === 'Closed' || status === 'Fixed' ? new Date().toISOString().split('T')[0] : b.resolvedDate } : b
       )
     );
+    api.patch(`/bug-tickets/${id}/`, { status }).catch(() => {});
   };
 
   const createBackupRecord = (type: BackupRecord['type']) => {
@@ -5091,6 +5093,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
     logAction('UPDATE', 'User Management', 'My Profile', currentUser.id, 'Updated profile details');
+    api.patch(`/employees/${currentUser.id}/`, data).catch((err) => console.warn('Failed to update profile:', err));
   };
 
   const changePassword = (newPass: string) => {
@@ -5109,6 +5112,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
     logAction('UPDATE', 'User Management', 'Change Password', currentUser.id, 'Password updated successfully');
+    api.auth.changePassword({ oldPassword: currentUser.password || '', newPassword: newPass }).catch(() => {
+      api.patch(`/employees/${currentUser.id}/`, { password: newPass }).catch((err) => console.warn('Failed to update password:', err));
+    });
   };
 
   // RBAC Permission Engine
@@ -5771,15 +5777,29 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   // CRM: Leads
-  const addLead = (leadData: Omit<Lead, 'id' | 'leadNo' | 'createdDate'>): Lead => {
+  const addLead = async (leadData: Omit<Lead, 'id' | 'leadNo' | 'createdDate'>): Promise<Lead> => {
     const leadNo = getNextDocNumber('lead');
-    const newLead: Lead = {
+    let newLead: Lead = {
       ...leadData,
       id: leadNo,
       leadNo,
       createdAt: new Date().toISOString(),
       createdDate: new Date().toISOString().split('T')[0],
     };
+
+    // 1. Sync to PythonAnywhere Backend & await real database confirmation
+    try {
+      const res = await api.crm.leads.create(newLead);
+      if (res && (res.id || (res as any).lead_no || (res as any).leadNo)) {
+        const finalId = res.id || newLead.id;
+        const finalNo = (res as any).lead_no || (res as any).leadNo || finalId;
+        newLead = { ...newLead, ...res, id: finalId, leadNo: finalNo };
+      }
+    } catch (err: any) {
+      console.warn('Backend lead sync warning:', err);
+    }
+
+    // 2. Persist in local state and storage
     setLeads((prev) => {
       const updated = deduplicateLeads([newLead, ...prev]);
       if (typeof window !== 'undefined') {
@@ -5787,7 +5807,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
       return updated;
     });
-    logAction('CREATE', 'CRM', 'Leads', leadNo, `New Lead for ${newLead.companyName} (${newLead.productName})`);
+    logAction('CREATE', 'CRM', 'Leads', newLead.id, `New Lead for ${newLead.companyName} (${newLead.productName})`);
     sendNotification({
       title: 'New Lead Registered',
       message: `${newLead.leadNo}: ${newLead.companyName} requires ${newLead.productName}.`,
@@ -5826,18 +5846,6 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       api.crm.followUps.create(initialFlw).catch((err) => console.warn('Failed to sync initial follow-up:', err));
     }
 
-    // Sync to PythonAnywhere Backend
-    api.crm.leads.create(newLead).then((res) => {
-      if (res && (res.id || (res as any).lead_no || (res as any).leadNo)) {
-        setLeads((prev) => {
-          const updated = deduplicateLeads(prev.map((l) => (l.id === leadNo || l.leadNo === leadNo ? { ...l, ...res } : l)));
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_leads', JSON.stringify(updated)); } catch (_) {}
-          }
-          return updated;
-        });
-      }
-    }).catch((err) => console.warn('Failed to sync lead to backend:', err));
     return newLead;
   };
 
@@ -8010,6 +8018,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     setProjectMilestones((prev) =>
       prev.map((m) => (m.id === id ? { ...m, ...updates } : m))
     );
+    api.patch(`/project-milestones/${id}/`, updates).catch((err) => console.warn('Failed to update project milestone on backend:', err));
   };
 
   const addProjectIssue = (data: Omit<ProjectIssue, 'id' | 'issueNo' | 'reportedDate'>): ProjectIssue => {
@@ -8048,6 +8057,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
       return updated;
     });
+    api.patch(`/project-issues/${id}/`, { status: 'resolved', resolution }).catch((err) => console.warn('Failed to resolve issue on backend:', err));
   };
 
   const addProjectDelay = (data: Omit<ProjectDelay, 'id' | 'delayNo'>): ProjectDelay => {
@@ -8195,6 +8205,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         };
       })
     );
+    api.patch(`/project-costs/${id}/`, costUpdates).catch((err) => console.warn('Failed to update project cost on backend:', err));
   };
 
   const addProjectComment = (data: Omit<ProjectComment, 'id' | 'date' | 'time' | 'resolved'>): ProjectComment => {
@@ -8207,6 +8218,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       resolved: false,
     };
     setProjectComments((prev) => [newCmt, ...prev]);
+    const commentText = (data as any).text || (data as any).comment || '';
+    api.post('/project-documents/', {
+      projectId: data.projectId,
+      jobNumber: data.jobNumber,
+      documentName: `Comment: ${commentText.slice(0, 30)}`,
+      documentType: 'Project Note',
+      description: commentText,
+    }).catch(() => {});
     return newCmt;
   };
 
@@ -8224,6 +8243,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           : a
       )
     );
+    api.patch(`/change-requests/${id}/`, { status, comments }).catch(() => {
+      api.post(`/approvals/${id}/${status === 'approved' ? 'approve' : 'reject'}/`).catch((err) =>
+        console.warn('Failed to sync project approval:', err)
+      );
+    });
   };
 
   // Module 3: Designer Management Handlers
@@ -8437,6 +8461,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newPrt: PartDrawing = { ...data, id };
     setPartDrawings((prev) => [newPrt, ...prev]);
     logAction('CREATE', 'Designer', 'Part Drawings', id, `Uploaded Part Drawing ${data.partNumber}`);
+    api.post('/drawings-2d/', newPrt).catch((err) => console.warn('Failed to add part drawing on backend:', err));
   };
 
   const addBOM = (data: Omit<BOMHeader, 'id'>) => {
@@ -8570,6 +8595,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newRev: BOMRevision = { ...data, id, changedDate: new Date().toISOString().split('T')[0] };
     setBomRevisions((prev) => [newRev, ...prev]);
     logAction('CREATE', 'Designer', 'BOM Revisions', id, `Created BOM Revision ${data.revisionNumber} for ${data.jobNumber}`);
+    api.post('/design-revisions/', newRev).catch((err) => console.warn('Failed to add BOM revision:', err));
   };
 
   const addDesignRevision = (data: Omit<DesignRevisionLog, 'id' | 'createdDate'>) => {
@@ -8577,6 +8603,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newRev: DesignRevisionLog = { ...data, id, createdDate: new Date().toISOString().split('T')[0] };
     setDesignRevisions((prev) => [newRev, ...prev]);
     logAction('CREATE', 'Designer', 'Design Revisions', id, `Recorded Design Revision ${data.revisionNumber} for ${data.jobNumber}`);
+    api.post('/design-revisions/', newRev).catch((err) => console.warn('Failed to add design revision:', err));
   };
 
   const addDesignReview = (data: Omit<DesignReviewChecklist, 'id' | 'reviewDate'>) => {
@@ -8584,6 +8611,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newRev: DesignReviewChecklist = { ...data, id, reviewDate: new Date().toISOString().split('T')[0] };
     setDesignReviews((prev) => [newRev, ...prev]);
     logAction('CREATE', 'Designer', 'Design Reviews', id, `Submitted Design Review for ${data.jobNumber}`);
+    api.post('/technical-documents/', { ...newRev, documentType: 'Design Review Checklist' }).catch((err) => console.warn('Failed to add design review:', err));
   };
 
   const addTechnicalDocument = (data: Omit<TechnicalDocumentItem, 'id' | 'uploadDate'>) => {
@@ -9299,6 +9327,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       revisedDate: new Date().toISOString().split('T')[0],
     };
     setPoRevisions((prev) => [newRev, ...prev]);
+    const reasonText = (data as any).reasonForRevision || (data as any).reason || (data as any).changeReason || '';
+    api.patch(`/purchase-orders/${data.poNumber}/`, { revisionNumber: data.revisionNumber, remarks: reasonText }).catch(() => {});
   };
 
   const addPurchaseFollowUp = (data: Omit<PurchaseFollowUp, 'id'>) => {
@@ -9306,6 +9336,15 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newFol: PurchaseFollowUp = { ...data, id };
     setPurchaseFollowUps((prev) => [newFol, ...prev]);
     logAction('CREATE', 'Purchase', 'Purchase Follow-up', id, `Recorded follow-up for PO ${data.poNumber}`);
+    api.post('/followups/', {
+      entityType: 'po',
+      leadOrCustomerId: data.poNumber,
+      leadOrCustomerName: `PO-${data.poNumber}`,
+      followUpType: 'Call',
+      outcome: data.status,
+      discussionPoints: data.remarks,
+      nextFollowUpDate: data.nextFollowUpDate,
+    }).catch(() => {});
   };
 
   const addPurchaseReturn = (data: Omit<PurchaseReturn, 'id' | 'returnDate'>) => {
@@ -9460,6 +9499,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       userName: currentUser.firstName,
       remarks: data.remarks,
     });
+    api.post('/stock-adjustments/', {
+      itemCode: data.itemCode,
+      itemName: data.itemName,
+      warehouseName: data.warehouseName,
+      adjustedQty: data.quantity,
+      reason: 'Opening Stock Entry',
+      referenceNumber: id,
+    }).catch(() => {});
   };
 
   const addGRN = (data: Omit<GoodsReceiptNote, 'id' | 'grnNumber' | 'createdAt'>) => {
@@ -10058,6 +10105,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
   const updateStockBalance = (id: string, updates: Partial<StockBalance>) => {
     setStockBalances((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
+    api.patch(`/stock-balances/${id}/`, updates).catch((err) => console.warn('Failed to update stock balance on backend:', err));
   };
 
   const addStockReservation = (data: Omit<StockReservation, 'id' | 'reservationNumber' | 'createdAt'>) => {
@@ -10075,6 +10123,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
   const releaseStockReservation = (id: string) => {
     setStockReservations((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'Released' } : r)));
+    api.patch(`/stock-reservations/${id}/`, { status: 'Released' }).catch((err) => console.warn('Failed to release reservation on backend:', err));
   };
 
   const addMaterialIssue = async (data: Omit<MaterialIssue, 'id' | 'issueNumber' | 'createdAt'>): Promise<MaterialIssue> => {
@@ -10334,6 +10383,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const countNumber = `CNT-${new Date().getFullYear()}-${String(physicalStockCounts.length + 1).padStart(4, '0')}`;
     const newCount: PhysicalStockCount = { ...data, id: countNumber, countNumber };
     setPhysicalStockCounts((prev) => [newCount, ...prev]);
+    const firstItem = data.items?.[0];
+    const itemCode = (data as any).itemCode || firstItem?.itemCode || '';
+    const itemName = (data as any).itemName || firstItem?.itemName || '';
+    const adjustedQty = (data as any).countedQuantity || firstItem?.physicalQuantity || 0;
+    api.post('/stock-adjustments/', {
+      itemCode,
+      itemName,
+      warehouseName: data.warehouseName,
+      adjustedQty,
+      reason: `Physical Count ${countNumber}`,
+      referenceNumber: countNumber,
+    }).catch(() => {});
   };
 
   const logStockLedgerEntry = (entry: Omit<StockLedgerEntry, 'id'>) => {
@@ -10365,6 +10426,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       try { localStorage.setItem('UMA_ERP_manufacturingJobs', JSON.stringify(updated)); } catch (_) {}
       return updated;
     });
+    logAction('UPDATE', 'Production', 'Manufacturing Jobs', id, `Updated manufacturing job ${id}`);
+    api.patch(`/manufacturing-jobs/${id}/`, updates).catch((err) => console.warn('Failed to update manufacturing job:', err));
   };
 
   const addProductionPlan = (data: Omit<ProductionPlan, 'id' | 'createdAt'>) => {
@@ -10822,6 +10885,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       })
     );
     logAction('UPDATE', 'Job Traceability', 'Step Progress', jobNumber, `Step ${stepId} changed to ${status}`);
+    api.patch(`/manufacturing-jobs/${jobNumber}/`, {
+      status: status === 'completed' ? 'Completed' : status === 'in_progress' ? 'In Progress' : 'Pending',
+    }).catch(() => {});
   };
 
   const markNotificationRead = (id: string) => {
@@ -10868,6 +10934,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const closeFinancialYear = (id: string, closedBy: string) => {
     setFinancialYears((prev) => prev.map((fy) => (fy.id === id ? { ...fy, status: 'Closed', closedBy, closedAt: new Date().toISOString().split('T')[0] } : fy)));
     logAction('UPDATE', 'Accounting', 'Financial Year', id, `Closed Financial Year ${id} by ${closedBy}`);
+    api.patch(`/financial-years/${id}/`, { status: 'Closed', closedBy, closedAt: new Date().toISOString().split('T')[0] }).catch((err) => console.warn('Failed to close FY on backend:', err));
   };
 
   const addChartOfAccount = (account: Omit<ChartOfAccount, 'id' | 'currentBalance'>) => {
@@ -10883,6 +10950,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newGrp: AccountGroup = { ...group, id };
     setAccountGroups((prev) => [newGrp, ...prev]);
     logAction('CREATE', 'Accounting', 'Account Groups', id, `Added Account Group ${group.groupName}`);
+    api.post('/chart-of-accounts/', { ...newGrp, isGroup: true, accountName: newGrp.groupName, accountType: newGrp.category }).catch(() => {});
   };
 
   const addTaxMaster = (tax: Omit<TaxMaster, 'id'>) => {
@@ -10897,7 +10965,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const id = `TDS-${String(tdsMasters.length + 1).padStart(2, '0')}`;
     const newTDS: TDSMaster = { ...tds, id };
     setTdsMasters((prev) => [newTDS, ...prev]);
-    logAction('CREATE', 'Accounting', 'TDS Master', id, `Added TDS Section ${tds.sectionCode}`);
+    const taxName = newTDS.description || (newTDS as any).natureOfPayment || newTDS.sectionCode;
+    const rate = newTDS.rate ?? newTDS.ratePercent ?? (newTDS as any).tdsRate ?? 0;
+    api.post('/taxes/', { id: newTDS.id, taxCode: newTDS.sectionCode, taxName, rate, taxType: 'TDS' }).catch(() => {});
   };
 
   const addCostCenter = (cc: Omit<CostCenter, 'id'>) => {
@@ -11300,6 +11370,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const reconcileBankTransaction = (transactionId: string, matchedErpDocNumber: string) => {
     setBankTransactions((prev) => prev.map((tx) => (tx.id === transactionId ? { ...tx, isReconciled: true, matchedErpDocNumber, reconciliationStatus: 'Reconciled' } : tx)));
     logAction('UPDATE', 'Accounting', 'Bank Reconciliation', transactionId, `Reconciled bank transaction ${transactionId} with ERP Doc ${matchedErpDocNumber}`);
+    api.patch(`/bank-accounts/${transactionId}/`, { isReconciled: true, matchedErpDocNumber, reconciliationStatus: 'Reconciled' }).catch(() => {});
   };
 
   const addFixedAsset = (asset: Omit<FixedAsset, 'id'>) => {
@@ -11358,6 +11429,17 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       )
     );
     logAction('CREATE', 'Accounting', 'Depreciation', assetId, `Ran Depreciation of ₹${amount?.toLocaleString()} for ${period}`);
+    api.post('/journal-entries/', {
+      entryNumber: entry.journalEntryNumber,
+      date: entry.depreciationDate,
+      referenceType: 'Depreciation',
+      referenceNumber: assetId,
+      narration: `Depreciation for ${period} on Asset ${assetId}`,
+      debitAccount: 'Depreciation Expense',
+      creditAccount: 'Accumulated Depreciation',
+      amount: amount,
+      totalAmount: amount,
+    }).catch(() => {});
   };
 
   // Module 8 Maintenance & Services State
@@ -11644,6 +11726,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
     logAction('UPDATE', 'maintenance', 'customer-machines', id, `Updated customer machine ${id}`);
+    api.patch(`/customer-machines/${id}/`, cmData).catch((err) => console.warn('Failed to update customer machine:', err));
   };
 
   const addServiceRequest = (sr: Omit<ServiceRequest, 'id' | 'requestNumber' | 'requestDate' | 'createdAt'>): ServiceRequest => {
@@ -11693,6 +11776,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
     logAction('UPDATE', 'maintenance', 'service-requests', id, `Updated SR status to ${status}`);
+    api.patch(`/service-requests/${id}/`, {
+      status,
+      ...(assignedTechId ? { assignedTechnicianId: assignedTechId, assignedTechnicianName: assignedTechName } : {}),
+      ...(status === 'Closed' || status === 'Resolved' ? { closedAt: new Date().toISOString() } : {}),
+    }).catch((err) => console.warn('Failed to update SR status on backend:', err));
   };
 
   const addBreakdown = (bd: Omit<BreakdownRecord, 'id' | 'breakdownNumber'>) => {
@@ -11727,6 +11815,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
     logAction('UPDATE', 'maintenance', 'breakdowns', id, `Updated breakdown status to ${status}`);
+    api.patch(`/breakdowns/${id}/`, { status, ...(remarks ? { remarks } : {}) }).catch((err) => console.warn('Failed to update breakdown status:', err));
   };
 
   const addPreventivePlan = (plan: Omit<PreventiveMaintenancePlan, 'id' | 'planNumber'>) => {
@@ -11766,6 +11855,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
     logAction('UPDATE', 'maintenance', 'service-visits', id, `Updated visit status to ${status}`);
+    api.patch(`/service-visits/${id}/`, { status }).catch((err) => console.warn('Failed to update service visit status:', err));
   };
 
   const addServiceWorkOrder = (swo: Omit<ServiceWorkOrder, 'id' | 'workOrderNumber'>) => {
@@ -11865,8 +11955,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
       return updated;
     });
-    setDowntimeRecords((prev) => [newDt, ...prev]);
     logAction('CREATE', 'maintenance', 'downtime', dtNo, `Logged downtime ${dtNo} for ${newDt.machineName}`);
+    api.post('/downtime-records/', newDt).catch((err) => console.warn('Failed to add downtime record on backend:', err));
   };
 
   const addMaintenanceCost = (mc: Omit<MaintenanceCostRecord, 'id'>) => {
@@ -11874,6 +11964,15 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newCost: MaintenanceCostRecord = { ...mc, id: newId };
     setMaintenanceCosts((prev) => [newCost, ...prev]);
     logAction('CREATE', 'maintenance', 'costs', newId, `Recorded maintenance cost ${newId}`);
+    const machineDesc = newCost.machineName || (newCost as any).assetName || newId;
+    const costAmount = Number(newCost.totalCost || (newCost as any).amount || 0);
+    api.post('/expenses/', {
+      category: 'Maintenance',
+      description: `Maintenance Cost for ${machineDesc}`,
+      amount: costAmount,
+      paymentMode: 'Direct',
+      referenceNumber: newId,
+    }).catch(() => {});
   };
 
   // Module 9 HR & Payroll State
@@ -12461,6 +12560,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const updateAttendanceRecord = (id: string, record: Partial<AttendanceRecord>) => {
     setAttendanceRecords((prev) => prev.map((a) => (a.id === id ? { ...a, ...record } : a)));
     logAction('UPDATE', 'hr', 'attendance', id, `Updated attendance record ${id}`);
+    api.patch(`/attendance-records/${id}/`, record).catch((err) => console.warn('Failed to update attendance on backend:', err));
   };
 
   const addLeaveType = (lt: Omit<LeaveType, 'id'>) => {
@@ -12474,6 +12574,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
     logAction('CREATE', 'hr', 'leave-management', newId, `Added Leave Type ${lt.leaveName}`);
+    api.post('/leave-types/', newLt).catch((err) => console.warn('Failed to add leave type on backend:', err));
   };
 
   const addLeaveRequest = (req: Omit<LeaveRequest, 'id' | 'leaveNumber' | 'appliedDate' | 'status'>) => {
@@ -12624,6 +12725,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const updateAttendanceRegularizationStatus = (id: string, status: LeaveApprovalStatus) => {
     setAttendanceRegularizations((prev) => prev.map((r) => (r.id === id || r.regularizationNo === id ? { ...r, status } : r)));
     logAction('UPDATE', 'hr', 'attendance-regularization', id, `Regularization status updated to ${status}`);
+    api.patch(`/regularizations/${id}/`, { status }).catch(() => {
+      api.post(`/regularizations/${id}/${status === 'Approved' ? 'approve' : 'reject'}/`).catch((err) =>
+        console.warn('Failed to update regularization status on backend:', err)
+      );
+    });
   };
 
   const addOvertimeRecord = (ot: Omit<OvertimeRecord, 'id' | 'overtimeNo' | 'status'>) => {
@@ -12756,6 +12862,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const updateSalaryComponent = (id: string, comp: Partial<SalaryComponent>) => {
     setSalaryComponents((prev) => prev.map((c) => (c.id === id ? { ...c, ...comp } : c)));
     logAction('UPDATE', 'hr', 'salary-components', id, `Updated Salary Component ${id}`);
+    api.patch(`/salary-components/${id}/`, comp).catch((err) => console.warn('Failed to update salary component:', err));
   };
 
   const addSalaryStructure = (sal: Omit<SalaryStructure, 'id'>) => {
@@ -12768,12 +12875,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const updateSalaryStructure = (id: string, sal: Partial<SalaryStructure>) => {
     setSalaryStructures((prev) => prev.map((s) => (s.id === id ? { ...s, ...sal } : s)));
     logAction('UPDATE', 'hr', 'salary-structure', id, `Updated Salary Structure for ${id}`);
+    api.patch(`/salary-structures/${id}/`, sal).catch((err) => console.warn('Failed to update salary structure:', err));
   };
 
   const generateMonthlyPayroll = (monthYear: string, financialYear: string) => {
     const newRecords: PayrollRecord[] = salaryStructures.map((struct, idx) => {
       const pNo = `PAY-2026-${monthYear.substring(0, 3)?.toUpperCase()}-0${idx + 1}`;
-      return {
+      const rec: PayrollRecord = {
         id: pNo,
         payrollNumber: pNo,
         monthYear,
@@ -12806,6 +12914,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         status: 'Draft',
         processedDate: new Date().toISOString().split('T')[0],
       };
+      api.post('/payrolls/', rec).catch(() => {});
+      return rec;
     });
     setPayrollRecords((prev) => [...newRecords, ...prev]);
     logAction('CREATE', 'hr', 'monthly-payroll', monthYear, `Generated monthly payroll for ${monthYear}`);
@@ -12815,6 +12925,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       prev.map((p) => (p.id === id || p.payrollNumber === id ? { ...p, status, approvedBy: approvedBy || p.approvedBy } : p))
     );
     logAction('UPDATE', 'hr', 'payroll-approvals', id, `Updated payroll status to ${status}`);
+    api.patch(`/payrolls/${id}/`, { status, approvedBy }).catch(() => {});
   };
 
   const addEmployeeAdvanceLoan = (loan: Omit<EmployeeAdvanceLoan, 'id' | 'loanNumber' | 'status'>) => {
@@ -12827,6 +12938,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const updateEmployeeAdvanceLoan = (id: string, loan: Partial<EmployeeAdvanceLoan>) => {
     setEmployeeAdvanceLoans((prev) => prev.map((l) => (l.id === id || l.loanNumber === id ? { ...l, ...loan } : l)));
     logAction('UPDATE', 'hr', 'advances-loans', id, `Updated advance/loan ${id}`);
+    api.patch(`/advance-loans/${id}/`, loan).catch((err) => console.warn('Failed to update advance loan:', err));
   };
 
   const addReimbursementExpense = (exp: Omit<ReimbursementExpense, 'id' | 'reimbursementNo' | 'status'>) => {
@@ -12841,6 +12953,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       prev.map((r) => (r.id === id || r.reimbursementNo === id ? { ...r, status, approvedBy: approvedBy || r.approvedBy } : r))
     );
     logAction('UPDATE', 'hr', 'reimbursements', id, `Updated reimbursement status to ${status}`);
+    api.patch(`/reimbursements/${id}/`, { status, approvedBy }).catch(() => {
+      api.post(`/reimbursements/${id}/${status === 'Approved' ? 'approve' : 'reject'}/`).catch((err) =>
+        console.warn('Failed to update reimbursement on backend:', err)
+      );
+    });
   };
 
   const addKPIMaster = (kpi: Omit<KPIMaster, 'id'>) => {
@@ -12848,6 +12965,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newKpi = { ...kpi, id: kNo };
     setKPIMasters((prev) => [newKpi, ...prev]);
     logAction('CREATE', 'hr', 'kpi-management', kNo, `Added KPI ${kpi.kpiName}`);
+    api.post('/kpi-masters/', newKpi).catch((err) => console.warn('Failed to add KPI master:', err));
   };
 
   const addEmployeeAppraisal = (app: Omit<EmployeeAppraisal, 'id' | 'appraisalNumber' | 'status'> & { id?: string; appraisalNumber?: string; status?: EmployeeAppraisal['status'] }) => {
@@ -12922,10 +13040,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newTr = { ...tr, id: tNo };
     setTrainingPrograms((prev) => [newTr, ...prev]);
     logAction('CREATE', 'hr', 'training', tNo, `Scheduled Training ${tr.title}`);
+    api.post('/trainings/', newTr).catch((err) => console.warn('Failed to add training program:', err));
   };
   const updateTrainingStatus = (id: string, status: TrainingProgram['status']) => {
     setTrainingPrograms((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)));
     logAction('UPDATE', 'hr', 'training', id, `Updated training status to ${status}`);
+    api.patch(`/trainings/${id}/`, { status }).catch((err) => console.warn('Failed to update training status:', err));
   };
 
   const addJobPosition = (pos: Omit<JobPosition, 'id'>) => {
@@ -12933,10 +13053,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newPos = { ...pos, id: pNo };
     setJobPositions((prev) => [newPos, ...prev]);
     logAction('CREATE', 'hr', 'recruitment-positions', pNo, `Opened Job Position ${pos.title}`);
+    api.post('/job-positions/', newPos).catch((err) => console.warn('Failed to add job position:', err));
   };
   const updateJobPositionStatus = (id: string, status: JobPosition['status']) => {
     setJobPositions((prev) => prev.map((p) => (p.id === id ? { ...p, status } : p)));
     logAction('UPDATE', 'hr', 'recruitment-positions', id, `Updated position status to ${status}`);
+    api.patch(`/job-positions/${id}/`, { status }).catch((err) => console.warn('Failed to update job position status:', err));
   };
 
   const addCandidateProfile = (cand: Omit<CandidateProfile, 'id' | 'candidateCode'>) => {
@@ -12944,10 +13066,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newCand = { ...cand, id: cNo, candidateCode: cNo };
     setCandidateProfiles((prev) => [newCand, ...prev]);
     logAction('CREATE', 'hr', 'recruitment-candidates', cNo, `Added candidate ${cand.candidateName}`);
+    api.post('/candidates/', newCand).catch((err) => console.warn('Failed to add candidate profile:', err));
   };
   const updateCandidateStatus = (id: string, status: CandidateProfile['status']) => {
     setCandidateProfiles((prev) => prev.map((c) => (c.id === id || c.candidateCode === id ? { ...c, status } : c)));
     logAction('UPDATE', 'hr', 'recruitment-candidates', id, `Updated candidate status to ${status}`);
+    api.patch(`/candidates/${id}/`, { status }).catch((err) => console.warn('Failed to update candidate status:', err));
   };
 
   const addInterviewRecord = (interview: Omit<InterviewRecord, 'id'>) => {
@@ -12955,6 +13079,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newInt = { ...interview, id: iNo };
     setInterviewRecords((prev) => [newInt, ...prev]);
     logAction('CREATE', 'hr', 'interview-management', iNo, `Logged interview for ${interview.candidateName}`);
+    api.post('/interviews/', newInt).catch((err) => console.warn('Failed to add interview record:', err));
   };
 
   const addOfferLetter = (offer: Omit<OfferLetter, 'id' | 'offerNumber' | 'status'>) => {
@@ -12962,19 +13087,27 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newOffer: OfferLetter = { ...offer, id: oNo, offerNumber: oNo, status: 'Sent' };
     setOfferLetters((prev) => [newOffer, ...prev]);
     logAction('CREATE', 'hr', 'offer-management', oNo, `Generated Offer Letter ${oNo} for ${offer.candidateName}`);
+    api.post('/offer-letters/', newOffer).catch((err) => console.warn('Failed to add offer letter:', err));
   };
   const updateOfferLetterStatus = (id: string, status: OfferLetter['status']) => {
     setOfferLetters((prev) => prev.map((o) => (o.id === id || o.offerNumber === id ? { ...o, status } : o)));
     logAction('UPDATE', 'hr', 'offer-management', id, `Updated offer letter status to ${status}`);
+    api.patch(`/offer-letters/${id}/`, { status }).catch((err) => console.warn('Failed to update offer letter status:', err));
   };
   const approveCentralItem = (id: string, approverName: string) => {
     setCentralApprovals((prev) => prev.map((item) => (item.id === id ? { ...item, status: 'Approved' } : item)));
     logAction('APPROVE', 'Integration', 'Approval Center', id, `Approved request ${id} by ${approverName}`);
+    api.integration.approvals.approve(id).catch((err) =>
+      console.warn('Failed to approve central approval item on backend:', err)
+    );
   };
 
   const rejectCentralItem = (id: string, remarks: string) => {
     setCentralApprovals((prev) => prev.map((item) => (item.id === id ? { ...item, status: 'Rejected', remarks } : item)));
     logAction('REJECT', 'Integration', 'Approval Center', id, `Rejected request ${id}. Remarks: ${remarks}`);
+    api.integration.approvals.reject(id).catch((err) =>
+      console.warn('Failed to reject central approval item on backend:', err)
+    );
   };
 
   const dismissCentralAlert = (id: string) => {

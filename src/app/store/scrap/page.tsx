@@ -3,11 +3,11 @@
 import React, { useState } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import { ScrapEntry, ScrapStatus } from '../../../types/store';
-import { Trash2, Plus, Search, AlertTriangle, Cpu, DollarSign, CheckCircle } from 'lucide-react';
+import { Trash2, Plus, AlertTriangle, Cpu } from 'lucide-react';
+import { ERPListPageLayout } from '../../../components/ui/ERPListPageLayout';
 
 export default function ScrapPage() {
   const { scrapEntries, addScrapEntry, itemMasters, warehouses, projectJobs } = useERP();
-  const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Form State
@@ -21,15 +21,111 @@ export default function ScrapPage() {
   const selectedItem = itemMasters.find((i) => i.id === itemId) || itemMasters[0];
   const selectedWh = warehouses[0] || null;
 
-  const filtered = scrapEntries.filter(
-    (s) =>
+  const columns = [
+    {
+      key: 'scrapNumber',
+      header: 'SCRAP ENTRY NO & DATE',
+      isCodeLink: true,
+      onCodeClick: (s: ScrapEntry) => alert(`Scrap Entry #${s.scrapNumber}\nReason: ${s.reason || 'N/A'}\nCreated By: ${s.createdBy || 'N/A'}`),
+      cell: (s: ScrapEntry) => (
+        <div>
+          <div className="font-semibold text-[#7C3AED] hover:underline cursor-pointer">{s.scrapNumber}</div>
+          <div className="text-[11px] text-gray-400">{s.entryDate}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'itemCode',
+      header: 'ITEM CODE & NAME',
+      cell: (s: ScrapEntry) => (
+        <div>
+          <div className="font-semibold text-gray-800">{s.itemCode}</div>
+          <div className="text-[11px] text-gray-500">{s.itemName}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'source',
+      header: 'SOURCE & JOB NO',
+      cell: (s: ScrapEntry) => (
+        <div>
+          <div className="font-medium text-amber-700">{s.source}</div>
+          <div className="text-[11px] text-gray-400 font-mono">{s.jobId || 'Shop Floor General'}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'quantity',
+      header: 'SCRAP QTY',
+      cell: (s: ScrapEntry) => (
+        <span className="font-mono font-semibold text-gray-800">
+          {s.quantity?.toLocaleString('en-IN')} {s.uom}
+        </span>
+      ),
+    },
+    {
+      key: 'estimatedValue',
+      header: 'EST. VALUE (₹)',
+      cell: (s: ScrapEntry) => (
+        <span className="font-mono font-semibold text-emerald-700">
+          ₹{s.estimatedValue?.toLocaleString('en-IN')}
+        </span>
+      ),
+    },
+    {
+      key: 'warehouseName',
+      header: 'SCRAP YARD & LOCATION',
+      cell: (s: ScrapEntry) => (
+        <div>
+          <div className="text-gray-700">{s.warehouseName}</div>
+          <div className="text-[11px] font-mono text-gray-400">{s.scrapLocation}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'disposalStatus',
+      header: 'STATUS',
+      cell: (s: ScrapEntry) => (
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+          {s.disposalStatus}
+        </span>
+      ),
+    },
+    {
+      key: 'createdBy',
+      header: 'CREATED BY',
+      cell: (s: ScrapEntry) => (
+        <span className="text-gray-600">{s.createdBy}</span>
+      ),
+    },
+  ];
 
-      !searchTerm?.trim() ||
-
-      s.scrapNumber?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      s.itemName?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      s.reason?.toLowerCase().includes(searchTerm?.toLowerCase())
-  );
+  const handleExport = () => {
+    if (scrapEntries.length === 0) return;
+    const headers = ['Scrap No', 'Date', 'Item Code', 'Item Name', 'Source', 'Job', 'Qty', 'UoM', 'Value (INR)', 'Warehouse', 'Location', 'Status'];
+    const rows = scrapEntries.map((s) => [
+      s.scrapNumber,
+      s.entryDate,
+      `"${s.itemCode}"`,
+      `"${s.itemName}"`,
+      `"${s.source}"`,
+      `"${s.jobId || ''}"`,
+      s.quantity,
+      `"${s.uom}"`,
+      s.estimatedValue,
+      `"${s.warehouseName}"`,
+      `"${s.scrapLocation}"`,
+      `"${s.disposalStatus}"`,
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `scrap_register_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,100 +154,16 @@ export default function ScrapPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-[#FAF7F2] text-[#544B45] ">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-xl">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-md bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 text-xs font-mono font-semibold">
-              SCRAP RECOVERY & AUCTION
-            </span>
-            <h1 className="text-2xl font-black text-[#211B17] tracking-tight">Scrap & Rejection Yard Manager</h1>
-          </div>
-          <p className="text-[#70665F] text-xs mt-1">
-            Track turning chips, plate offcut scrap, quality rejected components, and auction sale recovery ledgers.
-          </p>
-        </div>
-
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-yellow-600 text-[#211B17] text-xs font-bold shadow-lg shadow-yellow-600/30 hover:bg-yellow-500 transition"
-        >
-          <Plus className="w-4 h-4" />
-          Add Scrap Entry
-        </button>
-      </div>
-
-      {/* Filter */}
-      <div className="flex items-center justify-between bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB]">
-        <div className="relative w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
-          <input
-            type="text"
-            placeholder="Search scrap entry no, item, reason..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] placeholder-slate-400 focus:outline-none focus:border-yellow-500"
-          />
-        </div>
-        <div className="text-xs text-[#70665F] font-mono">
-          Total Scrap Records: <span className="text-[#211B17] font-bold">{filtered.length}</span>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden shadow-xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-[#544B45]">
-            <thead className="bg-[#FAF7F2]/90 text-[#70665F] font-mono text-[11px] uppercase tracking-wider border-b border-[#EBE3DB]">
-              <tr>
-                <th className="p-3.5">Scrap Entry No & Date</th>
-                <th className="p-3.5">Item Code & Name</th>
-                <th className="p-3.5">Source & Job No</th>
-                <th className="p-3.5 text-right">Scrap Qty</th>
-                <th className="p-3.5 text-right font-mono">Est Scrap Value (₹)</th>
-                <th className="p-3.5">Scrap Yard Location</th>
-                <th className="p-3.5 text-center">Status</th>
-                <th className="p-3.5">Created By</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#EBE3DB]">
-              {filtered.map((s) => (
-                <tr key={s.id} className="hover:bg-[#FAF7F2]/40 transition">
-                  <td className="p-3.5 font-medium">
-                    <div className="font-bold text-yellow-400 text-xs font-mono">{s.scrapNumber}</div>
-                    <div className="text-[10px] text-[#70665F] mt-0.5">{s.entryDate}</div>
-                  </td>
-                  <td className="p-3.5 font-medium">
-                    <div className="font-bold text-[#211B17] text-xs">{s.itemCode}</div>
-                    <div className="text-[11px] text-[#70665F] mt-0.5">{s.itemName}</div>
-                  </td>
-                  <td className="p-3.5 font-mono">
-                    <div className="font-semibold text-amber-400">{s.source}</div>
-                    <div className="text-[10px] text-[#70665F] mt-0.5">{s.jobId || 'General Shop Floor'}</div>
-                  </td>
-                  <td className="p-3.5 text-right font-mono font-bold text-yellow-400">
-                    {s.quantity?.toLocaleString('en-IN')} {s.uom}
-                  </td>
-                  <td className="p-3.5 text-right font-mono font-bold text-emerald-400">
-                    ₹{s.estimatedValue?.toLocaleString('en-IN')}
-                  </td>
-                  <td className="p-3.5 text-[#544B45]">
-                    <div>{s.warehouseName}</div>
-                    <div className="text-[10px] font-mono text-teal-400 mt-0.5">{s.scrapLocation}</div>
-                  </td>
-                  <td className="p-3.5 text-center">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
-                      {s.disposalStatus}
-                    </span>
-                  </td>
-                  <td className="p-3.5 font-medium text-[#544B45]">{s.createdBy}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <div className="space-y-4">
+      <ERPListPageLayout<ScrapEntry>
+        breadcrumbs={['DASHBOARD', 'STORE', 'SCRAP & REJECTION REGISTER']}
+        columns={columns}
+        data={scrapEntries}
+        addNewLabel="+ Add Scrap Entry"
+        onAddNew={() => setIsModalOpen(true)}
+        onExport={handleExport}
+        searchPlaceholder="Search scrap entry no, item, reason..."
+      />
 
       {/* Add Modal */}
       {isModalOpen && (

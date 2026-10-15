@@ -107,6 +107,36 @@ export interface Supplier {
   gstin: string;
   pan?: string;
   panNumber: string;
+  aadhar?: string;
+  cin?: string;
+  activity?: string;
+  vendorTaxType?: string;
+  currency?: string;
+  vendorStatus?: string;
+  chequeName?: string;
+  alias?: string;
+  gstRetentionApplicable?: boolean;
+  createdBy?: string;
+  approvedBy?: string;
+  approvalStatus?: string;
+  docStatus?: string;
+  addresses?: Array<{
+    id: string;
+    addressType?: string;
+    addressLine: string;
+    city: string;
+    state: string;
+    pinCode?: string;
+    isDefault?: boolean;
+  }>;
+  contacts?: Array<{
+    id: string;
+    contactPerson: string;
+    designation?: string;
+    phone: string;
+    email?: string;
+    isPrimary?: boolean;
+  }>;
   msmeStatus?: boolean;
   msmeRegistered: boolean;
   msmeNumber: string;

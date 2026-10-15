@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useERP } from '@/context/ERPContext';
-import { DataTable, Column } from '@/components/data/DataTable';
+import { ERPListPageLayout, ERPColumn } from '@/components/ui/ERPListPageLayout';
 import { SalesOrder, SalesOrderItem } from '@/types/crm';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import {
@@ -295,50 +295,84 @@ export default function SalesOrdersPage() {
   }).length;
   const awaitingCount = Math.max(0, totalOrders - projectsCreatedCount);
 
-  const columns: Column<SalesOrder>[] = [
+  const handleExportCSV = () => {
+    const csv = [
+      'Sales Order #,Customer,Customer PO,Equipment Scope,Total Order Value,Delivery Target,Job #,Status',
+      ...salesOrders.map((so) => {
+        const linkedPrj = getLinkedProject(so);
+        const displayJob = so.jobNumber || linkedPrj?.jobNumber || '';
+        const equip = so.items?.[0]?.productName || (so as any).machineProduct || 'Custom Manufacturing Machine';
+        const val = Number(so.orderValue) || Number((so as any).grand_total) || 0;
+        return `"${so.salesOrderNumber}","${so.customerName}","${so.customerPoNumber || ''}","${equip}","${val}","${so.deliveryDate || ''}","${displayJob}","${so.status || ''}"`;
+      }),
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Sales_Orders_Register_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+  };
+
+  const columns: ERPColumn<SalesOrder>[] = [
     {
+      key: 'salesOrderNumber',
       header: 'SALES ORDER #',
-      accessorKey: 'salesOrderNumber',
+      isCodeLink: true,
+      onCodeClick: (so) => {
+        const linkedPrj = getLinkedProject(so);
+        const displayJob = so.jobNumber || linkedPrj?.jobNumber;
+        if (displayJob) {
+          openJobModal(displayJob);
+        } else if (so.projectId) {
+          router.push(`/projects/${so.projectId}`);
+        }
+      },
       cell: (so) => (
-        <span className="font-mono font-bold text-[#0E91B2] bg-[#E0F2FE] px-2.5 py-1 rounded-lg border border-[#BAE6FD] text-xs whitespace-nowrap inline-block">
+        <span className="font-mono font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200 text-xs whitespace-nowrap inline-block">
           {so.salesOrderNumber}
         </span>
       ),
     },
     {
+      key: 'customerName',
       header: 'CUSTOMER & PO REFERENCE',
       cell: (so) => (
         <div className="min-w-[180px]">
-          <span className="font-bold text-[#211B17] block">{so.customerName}</span>
-          <span className="text-[11px] text-[#70665F] font-mono">PO: {so.customerPoNumber || 'Direct Booking'}</span>
+          <span className="font-bold text-slate-800 block text-xs">{so.customerName}</span>
+          <span className="text-[11px] text-slate-500 font-mono">PO: {so.customerPoNumber || 'Direct Booking'}</span>
         </div>
       ),
     },
     {
+      key: 'equipmentScope',
       header: 'EQUIPMENT SCOPE',
       cell: (so) => (
-        <span className="font-semibold text-[#544B45] block max-w-sm truncate" title={so.items?.[0]?.productName || (so as any).machineProduct || 'Custom Manufacturing Machine'}>
+        <span className="font-medium text-slate-700 block max-w-sm truncate text-xs" title={so.items?.[0]?.productName || (so as any).machineProduct || 'Custom Manufacturing Machine'}>
           {so.items?.[0]?.productName || (so as any).machineProduct || (so as any).machine_product || 'Custom Manufacturing Machine'}
         </span>
       ),
     },
     {
+      key: 'orderValue',
       header: 'TOTAL ORDER VALUE',
       cell: (so) => (
-        <span className="font-mono font-bold text-[#169B62] text-xs whitespace-nowrap inline-block">
+        <span className="font-mono font-bold text-emerald-700 text-xs whitespace-nowrap inline-block">
           {formatCurrency(Number(so.orderValue) || Number((so as any).grand_total) || Number((so as any).total_amount) || 0)}
         </span>
       ),
     },
     {
+      key: 'deliveryDate',
       header: 'DELIVERY TARGET',
       cell: (so) => (
-        <span className="text-[#70665F] font-mono text-[11px] whitespace-nowrap inline-block">
+        <span className="text-slate-500 font-mono text-[11px] whitespace-nowrap inline-block">
           {formatDate(so.deliveryDate || (so as any).target_delivery_date || (so as any).delivery_date)}
         </span>
       ),
     },
     {
+      key: 'status',
       header: 'MTO INTEGRATION STATUS',
       cell: (so) => {
         const linkedPrj = getLinkedProject(so);
@@ -354,12 +388,12 @@ export default function SalesOrdersPage() {
         return (
           <div className="whitespace-nowrap">
             {isCreated ? (
-              <span className="px-2.5 py-1 rounded-full font-mono text-[10px] font-bold bg-[#DCFCE7] text-[#15803D] border border-[#BBF7D0] inline-flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-[#169B62]" />
+              <span className="px-2 py-0.5 rounded-full font-mono text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                 <span>Already Created {displayJob ? `(${displayJob})` : ''}</span>
               </span>
             ) : (
-              <span className="px-2.5 py-1 rounded-full font-mono text-[10px] font-bold bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A]">
+              <span className="px-2 py-0.5 rounded-full font-mono text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
                 Awaiting Job Creation
               </span>
             )}
@@ -368,6 +402,7 @@ export default function SalesOrdersPage() {
       },
     },
     {
+      key: 'actions',
       header: 'ACTIONS (CRM → PROJECT)',
       cell: (so) => {
         const linkedPrj = getLinkedProject(so);
@@ -383,47 +418,41 @@ export default function SalesOrdersPage() {
         const isThisCreating = isCreatingProject === so.id;
 
         return (
-          <div className="whitespace-nowrap flex items-center gap-2">
+          <div className="whitespace-nowrap flex items-center gap-1.5">
             {isCreated ? (
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-1.5 bg-[#F0FDF4] border border-[#BBF7D0] text-[#15803D] rounded-xl text-xs font-bold font-mono inline-flex items-center gap-1.5 shadow-xs">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#169B62]" />
-                  <span>Already Created Project</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (displayJob) {
-                      openJobModal(displayJob);
-                    } else if (displayPrj) {
-                      router.push(`/projects/${displayPrj}`);
-                    } else {
-                      router.push('/projects');
-                    }
-                  }}
-                  className="px-3 py-1.5 bg-[#FAF0E6] hover:bg-[#F3E5D8] text-[#75401F] border border-[#E7DED5] rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition cursor-pointer shadow-xs"
-                  title="View Linked Project / Job Modal"
-                >
-                  <ExternalLink className="w-3.5 h-3.5 text-[#75401F]" />
-                  <span>{displayPrj || displayJob || 'View Project'}</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (displayJob) {
+                    openJobModal(displayJob);
+                  } else if (displayPrj) {
+                    router.push(`/projects/${displayPrj}`);
+                  } else {
+                    router.push('/projects');
+                  }
+                }}
+                className="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
+                title="View Linked Project / Job Modal"
+              >
+                <ExternalLink className="w-3.5 h-3.5 text-purple-700" />
+                <span>{displayPrj || displayJob || 'View Project'}</span>
+              </button>
             ) : (
               <button
                 type="button"
                 disabled={Boolean(isCreatingProject)}
                 onClick={() => handleCreateProject(so.id)}
-                className="px-3.5 py-1.5 bg-[#3E2723] hover:bg-[#2C1810] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition cursor-pointer disabled:opacity-50"
+                className="px-3 py-1 bg-purple-700 hover:bg-purple-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs transition cursor-pointer disabled:opacity-50"
               >
                 {isThisCreating ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-300" />
-                    <span>Saving to DB...</span>
+                    <span>Saving...</span>
                   </>
                 ) : (
                   <>
                     <Zap className="w-3.5 h-3.5 text-amber-300" />
-                    <span>Create Project / Job</span>
+                    <span>Create Project</span>
                   </>
                 )}
               </button>
@@ -433,7 +462,7 @@ export default function SalesOrdersPage() {
             <button
               type="button"
               onClick={() => handleOpenEdit(so)}
-              className="p-1.5 text-[#70665F] hover:text-[#75401F] hover:bg-[#FAF0E6] rounded-lg transition cursor-pointer border border-transparent hover:border-[#E7DED5]"
+              className="p-1.5 text-slate-500 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition cursor-pointer border border-transparent hover:border-purple-200"
               title="Edit Sales Order in Database"
             >
               <Edit2 className="w-3.5 h-3.5" />
@@ -456,14 +485,12 @@ export default function SalesOrdersPage() {
 
   if (!mounted) {
     return null;
-  }
-
-  return (
-    <div className="space-y-5 text-xs pb-10">
+  }  return (
+    <div className="space-y-4">
       {/* Banner Notifications */}
       {bannerNotice && (
         <div
-          className={`p-3.5 rounded-2xl font-bold flex items-center justify-between shadow-xs transition-all animate-in fade-in ${
+          className={`p-3 rounded-xl font-bold flex items-center justify-between shadow-xs transition-all animate-in fade-in ${
             bannerNotice.type === 'success'
               ? 'bg-emerald-50 border border-emerald-200 text-emerald-900'
               : 'bg-rose-50 border border-rose-200 text-rose-900'
@@ -487,86 +514,65 @@ export default function SalesOrdersPage() {
         </div>
       )}
 
-      {/* Page Header */}
-      <div className="bg-gradient-to-r from-[#FAF3EA] via-[#F8EDE0] to-[#F1DFC9] p-5 sm:p-6 rounded-2xl border border-[#E9DFD3] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xs text-[#211B17]">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full bg-[#FAF0E6] text-[#75401F] font-mono text-[10px] font-bold uppercase tracking-wider border border-[#E7DED5]">
-              CRM → Project Handover Hub
-            </span>
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-mono text-[10px] font-bold border border-emerald-200 inline-flex items-center gap-1">
-              <Database className="w-2.5 h-2.5 text-emerald-700" />
-              <span>Database Synced</span>
-            </span>
-          </div>
-          <h1 className="text-lg font-black text-[#211B17] flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-[#FAF0E6] text-[#75401F] flex items-center justify-center border border-[#E7DED5] shadow-xs">
-              <Layers className="w-4.5 h-4.5" />
-            </div>
-            Confirmed Sales Orders Master
-          </h1>
-          <p className="text-[#70665F] mt-1 text-xs">
-            Approved client contracts initiating engineering jobs, BOM release, and shop floor procurement. Click &ldquo;Create Project / Job&rdquo; to instantly generate linked Project (`PRJ-2026-XXXX`) and Shop Floor Job Number (`JOB-2026-XXXX`).
-          </p>
+      {/* Top Bar with DB status & Refresh */}
+      <div className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 flex items-center justify-between shadow-xs">
+        <div className="flex items-center gap-2">
+          <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-mono text-[10px] font-bold border border-emerald-200 inline-flex items-center gap-1">
+            <Database className="w-3 h-3 text-emerald-700" />
+            <span>Database Synced</span>
+          </span>
+          <span className="text-xs text-slate-500 font-medium">
+            Make-to-Order contracts ready for Shop Floor Engineering & Production
+          </span>
         </div>
-
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <button
-            type="button"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="px-3.5 py-2 bg-white hover:bg-slate-50 text-[#75401F] border border-[#E7DED5] rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition shadow-xs cursor-pointer disabled:opacity-50"
-            title="Reload latest records from Database"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-amber-600' : ''}`} />
-            <span>{isRefreshing ? 'Refreshing...' : 'Refresh DB'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setIsCreateModalOpen(true)}
-            className="px-4 py-2 bg-[#75401F] hover:bg-[#5C3218] text-white rounded-xl text-xs font-bold inline-flex items-center gap-1.5 shadow-xs transition cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>+ New Sales Order</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
+          title="Reload latest records from Database"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-purple-600' : ''}`} />
+          <span>{isRefreshing ? 'Refreshing...' : 'Refresh DB'}</span>
+        </button>
       </div>
 
       {/* KPI Stats Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-[#EBE3DB] shadow-xs flex flex-col justify-between">
-          <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider">Total Sales Orders</span>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-xl font-black text-[#211B17] font-mono">{totalOrders}</span>
-            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Sales Orders</span>
+          <div className="mt-1 flex items-baseline justify-between">
+            <span className="text-xl font-black text-slate-900 font-mono">{totalOrders}</span>
+            <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
               In Database
             </span>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-[#EBE3DB] shadow-xs flex flex-col justify-between">
-          <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider">Order Book Value</span>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-lg font-black text-[#169B62] font-mono">{formatCurrency(totalValue)}</span>
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Booking Value</span>
+          <div className="mt-1 flex items-baseline justify-between">
+            <span className="text-base font-black text-emerald-700 font-mono">{formatCurrency(totalValue)}</span>
+            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+              INR
+            </span>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-[#EBE3DB] shadow-xs flex flex-col justify-between">
-          <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider">Handed Over to Projects</span>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-xl font-black text-[#15803D] font-mono">{projectsCreatedCount}</span>
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Project Handover</span>
+          <div className="mt-1 flex items-baseline justify-between">
+            <span className="text-xl font-black text-emerald-700 font-mono">{projectsCreatedCount}</span>
             <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
               Active Jobs
             </span>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-[#EBE3DB] shadow-xs flex flex-col justify-between">
-          <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider">Awaiting Job Creation</span>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-xl font-black text-[#B45309] font-mono">{awaitingCount}</span>
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Awaiting Job Creation</span>
+          <div className="mt-1 flex items-baseline justify-between">
+            <span className="text-xl font-black text-amber-700 font-mono">{awaitingCount}</span>
             <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
               Ready for MTO
             </span>
@@ -575,11 +581,11 @@ export default function SalesOrdersPage() {
       </div>
 
       {successInfo && (
-        <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-900 rounded-2xl font-bold flex items-center justify-between shadow-xs animate-in fade-in duration-200">
+        <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-xl font-bold flex items-center justify-between shadow-xs animate-in fade-in duration-200">
           <div className="flex items-center gap-3">
             <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
             <div>
-              <span className="text-[#211B17] text-sm">CRM → Project Handover Saved to Database!</span>
+              <span className="text-slate-900 text-xs">CRM → Project Handover Saved to Database!</span>
               <p className="text-[11px] font-normal text-emerald-800 mt-0.5">
                 Created Project: <strong>{successInfo.prj}</strong> | Master Job Number: <strong>{successInfo.job}</strong>. Redirecting to Shop Floor Projects...
               </p>
@@ -589,12 +595,16 @@ export default function SalesOrdersPage() {
         </div>
       )}
 
-      {/* Main Data Table */}
-      <DataTable
-        title="Active Sales Orders Register"
-        subtitle="Make-to-Order contracts ready for Shop Floor Engineering and Fabrication"
+      {/* Main ERP List Page Layout */}
+      <ERPListPageLayout<SalesOrder>
+        breadcrumbs={['DASHBOARD', 'CRM & SALES', 'SALES ORDERS']}
+        title="Confirmed Sales Orders Master"
         columns={columns}
         data={salesOrders}
+        searchPlaceholder="Search sales order #, customer, PO reference, or equipment..."
+        addNewLabel="New Sales Order"
+        onAddNew={() => setIsCreateModalOpen(true)}
+        onExport={handleExportCSV}
       />
 
       {/* CREATE NEW SALES ORDER MODAL */}

@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
-import { DataTable, Column } from '../../../components/data/DataTable';
+import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
 import { StatusBadge } from '../../../components/workflow/StatusBadge';
 import { Enquiry, Lead } from '../../../types/crm';
 import { formatDate } from '../../../lib/utils';
@@ -245,72 +245,77 @@ export default function EnquiriesRegisterPage() {
     });
   }, [enquiries, statusFilter, searchQuery]);
 
+  const handleExportCSV = () => {
+    const csv = [
+      'Enquiry No,Customer,Contact Person,Email,Equipment,Qty,Date,Target Date,Assigned Engineer,Status',
+      ...filteredEnquiries.map((e) => {
+        return `"${e.enquiryNo || e.id}","${e.customerName || ''}","${e.contactPerson || ''}","${e.customerEmail || ''}","${e.machineProduct || ''}","${e.quantity || 1}","${e.enquiryDate || ''}","${e.expectedDelivery || ''}","${e.assignedPersonName || ''}","${e.status || ''}"`;
+      }),
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Enquiries_Register_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+  };
+
   // Columns definition
-  const columns: Column<Enquiry>[] = [
+  const columns: ERPColumn<Enquiry>[] = [
     {
+      key: 'enquiryNo',
       header: 'ENQUIRY NO',
-      exportValue: (e) => e.enquiryNo || e.id,
+      isCodeLink: true,
+      onCodeClick: (e) => openEditModal(e),
       cell: (e) => (
-        <div className="space-y-0.5">
-          <span className="font-mono font-black text-crm-brand-800 text-xs tracking-tight">
+        <div className="space-y-0.5 whitespace-nowrap">
+          <span className="font-mono font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200 text-xs inline-block">
             {e.enquiryNo || e.id}
           </span>
           {e.leadId ? (
-            <div className="flex items-center gap-1">
-              <span className="text-[10px] px-1.5 py-0.2 bg-amber-50 text-amber-700 border border-amber-200 rounded font-semibold">
-                Lead: {e.leadId}
-              </span>
+            <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+              Lead: <strong className="text-slate-700">{e.leadId}</strong>
             </div>
           ) : (
-            <span className="text-[10px] text-[#A09891] block">Direct Enquiry</span>
+            <span className="text-[10px] text-slate-400 block">Direct</span>
           )}
         </div>
       ),
     },
     {
+      key: 'customerName',
       header: 'CUSTOMER & CONTACT',
-      exportValue: (e) => `${e.customerName} (${e.contactPerson || ''})`,
       cell: (e) => (
-        <div className="space-y-0.5 max-w-[220px]">
-          <div className="font-bold text-slate-900 truncate" title={e.customerName}>
+        <div className="space-y-0.5 min-w-[180px]">
+          <div className="font-bold text-slate-800 text-xs truncate" title={e.customerName}>
             {e.customerName}
           </div>
-          <div className="text-[11px] text-[#70665F] truncate flex items-center gap-1">
-            <User className="w-3 h-3 text-[#A09891] shrink-0" />
+          <div className="text-[11px] text-slate-500 truncate flex items-center gap-1">
+            <User className="w-3 h-3 text-slate-400 shrink-0" />
             <span>{e.contactPerson || 'N/A'}</span>
           </div>
           {e.customerEmail && (
-            <div className="text-[10px] text-[#70665F] truncate flex items-center gap-1">
-              <Mail className="w-3 h-3 text-[#A09891] shrink-0" />
-              <span className="font-mono text-[#544B45]">{e.customerEmail}</span>
+            <div className="text-[10px] text-slate-500 truncate flex items-center gap-1">
+              <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+              <span className="font-mono">{e.customerEmail}</span>
             </div>
           )}
         </div>
       ),
     },
     {
+      key: 'machineProduct',
       header: 'EQUIPMENT / PRODUCT',
-      exportValue: (e) => `${e.machineProduct} (Qty: ${e.quantity || 1})`,
       cell: (e) => (
-        <div className="space-y-0.5 max-w-[260px]">
-          <div className="font-bold text-[#211B17] flex items-center gap-1.5 flex-wrap">
-            <span className="truncate" title={e.machineProduct}>{e.machineProduct}</span>
-            <span className="px-1.5 py-0.2 bg-[#FAF7F2] text-[#75401F] border border-[#E7DED5] rounded text-[10px] font-bold shrink-0">
+        <div className="space-y-0.5 min-w-[200px]">
+          <div className="font-bold text-slate-800 flex items-center gap-1.5 flex-wrap text-xs">
+            <span className="truncate max-w-xs" title={e.machineProduct}>{e.machineProduct}</span>
+            <span className="px-1.5 py-0.2 bg-slate-100 text-slate-700 border border-slate-200 rounded text-[10px] font-bold shrink-0">
               Qty: {e.quantity || 1}
             </span>
-            {e.capacity && (
-              <span className="px-1.5 py-0.2 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded text-[9px] font-mono font-bold shrink-0">
-                {e.capacity}
-              </span>
-            )}
-            {e.materialGrade && (
-              <span className="px-1.5 py-0.2 bg-blue-50 text-blue-800 border border-blue-200 rounded text-[9px] font-mono font-bold shrink-0">
-                {e.materialGrade}
-              </span>
-            )}
           </div>
           {e.specification && (
-            <div className="text-[10px] text-[#70665F] line-clamp-1" title={e.specification}>
+            <div className="text-[10px] text-slate-500 line-clamp-1" title={e.specification}>
               {e.specification}
             </div>
           )}
@@ -318,16 +323,16 @@ export default function EnquiriesRegisterPage() {
       ),
     },
     {
+      key: 'enquiryDate',
       header: 'DATE & TARGET',
-      exportValue: (e) => `${e.enquiryDate} / ${e.expectedDelivery || 'N/A'}`,
       cell: (e) => (
         <div className="space-y-0.5 whitespace-nowrap text-[11px]">
-          <div className="flex items-center gap-1 text-[#544B45]">
-            <Calendar className="w-3 h-3 text-[#A09891]" />
+          <div className="flex items-center gap-1 text-slate-600 font-mono">
+            <Calendar className="w-3 h-3 text-slate-400" />
             <span>{e.enquiryDate ? formatDate(e.enquiryDate) : 'N/A'}</span>
           </div>
           {e.expectedDelivery && (
-            <div className="text-[10px] text-amber-700 flex items-center gap-1">
+            <div className="text-[10px] text-amber-700 font-mono flex items-center gap-1">
               <Clock className="w-3 h-3 text-amber-500" />
               <span>Target: {formatDate(e.expectedDelivery)}</span>
             </div>
@@ -336,17 +341,17 @@ export default function EnquiriesRegisterPage() {
       ),
     },
     {
+      key: 'assignedPersonName',
       header: 'ASSIGNED ENGINEER',
-      exportValue: (e) => e.assignedPersonName || 'Unassigned',
       cell: (e) => (
-        <span className="text-xs text-[#544B45] font-medium whitespace-nowrap">
+        <span className="text-xs text-slate-700 font-medium whitespace-nowrap">
           {e.assignedPersonName || 'Pravin Patel'}
         </span>
       ),
     },
     {
+      key: 'status',
       header: 'STATUS',
-      exportValue: (e) => e.status?.toUpperCase(),
       cell: (e) => (
         <div className="whitespace-nowrap">
           <StatusBadge status={e.status as any} />
@@ -354,8 +359,8 @@ export default function EnquiriesRegisterPage() {
       ),
     },
     {
+      key: 'actions',
       header: 'ACTIONS',
-      exportValue: () => '',
       cell: (e) => {
         const hasQuotation = !!e.quotationId;
         return (
@@ -363,7 +368,7 @@ export default function EnquiriesRegisterPage() {
             {hasQuotation ? (
               <Link
                 href={`/crm/quotations/${e.quotationId}`}
-                className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg font-bold text-xs inline-flex items-center gap-1 transition shadow-2xs"
+                className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded text-xs font-bold inline-flex items-center gap-1 transition shadow-2xs"
                 title="View linked Quotation proposal"
               >
                 <span>View Quotation</span>
@@ -372,7 +377,7 @@ export default function EnquiriesRegisterPage() {
             ) : (
               <Link
                 href={`/crm/quotations/new?enquiryId=${e.id || e.enquiryNo}&customerId=${e.customerId || ''}`}
-                className="px-2.5 py-1 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-lg font-bold text-xs inline-flex items-center gap-1 transition shadow-xs cursor-pointer active:scale-95"
+                className="px-2.5 py-1 bg-purple-700 hover:bg-purple-800 text-white rounded text-xs font-bold inline-flex items-center gap-1 transition shadow-xs cursor-pointer active:scale-95"
                 title="Generate formal commercial Quotation"
               >
                 <Send className="w-3 h-3" />
@@ -382,14 +387,14 @@ export default function EnquiriesRegisterPage() {
             <button
               onClick={() => openEditModal(e)}
               title="Edit Enquiry"
-              className="p-1 text-[#70665F] hover:text-slate-900 hover:bg-[#FAF7F2] rounded border border-transparent hover:border-[#EBE3DB]"
+              className="p-1 text-slate-500 hover:text-purple-700 hover:bg-purple-50 rounded transition cursor-pointer"
             >
               <Pencil className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => setDeletingEnletingEnquiry(e)}
               title="Delete Enquiry"
-              className="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded border border-transparent hover:border-rose-200"
+              className="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded transition cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -414,111 +419,88 @@ export default function EnquiriesRegisterPage() {
         </div>
       )}
 
-      {/* Hero Header */}
-      <div className="bg-gradient-to-r from-[#FAF3EA] via-[#F8EDE0] to-[#F1DFC9] p-5 sm:p-6 rounded-2xl border border-[#E9DFD3] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
-        <div>
-          <h1 className="text-lg font-black text-[#211B17] flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-[#FAF0E6] text-[#75401F] flex items-center justify-center border border-[#E7DED5] shadow-xs">
-              <ClipboardList className="w-4.5 h-4.5" />
-            </div>
-            Customer Enquiries & Technical Requirements Register
-          </h1>
-          <p className="text-[#70665F] mt-1 text-xs">
-            Manage incoming equipment enquiries, link converted leads, log customer technical specifications, and trigger commercial quotations.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 self-stretch sm:self-auto">
-          <button
-            onClick={openCreateModal}
-            className="px-4 py-2.5 bg-[#3E2723] hover:bg-[#2C1810] active:scale-95 text-white rounded-xl font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer whitespace-nowrap"
-          >
-            <Plus className="w-4 h-4" />
-            <span>+ New Enquiry</span>
-          </button>
-        </div>
-      </div>
-
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-        <div className="p-4 bg-white border border-[#EBE3DB] rounded-xl shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-[#70665F]">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Total Enquiries</span>
-            <ClipboardList className="w-4 h-4 text-[#75401F]" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-[10px] font-bold uppercase tracking-wider">Total Enquiries</span>
+            <ClipboardList className="w-4 h-4 text-purple-600" />
           </div>
-          <div className="text-2xl font-black text-[#211B17]">{totalEnquiries}</div>
-          <div className="text-[10px] text-[#A09891]">All registered RFQs</div>
+          <div className="text-xl font-black text-slate-900 font-mono">{totalEnquiries}</div>
+          <div className="text-[10px] text-slate-400">All registered RFQs</div>
         </div>
 
-        <div className="p-4 bg-white border border-[#EBE3DB] rounded-xl shadow-2xs space-y-1">
+        <div className="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs space-y-1">
           <div className="flex items-center justify-between text-amber-700">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Active / Pending</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider">Active / Pending</span>
             <Clock className="w-4 h-4 text-amber-600" />
           </div>
-          <div className="text-2xl font-black text-amber-900">{activeEnquiries}</div>
+          <div className="text-xl font-black text-amber-800 font-mono">{activeEnquiries}</div>
           <div className="text-[10px] text-amber-700/80">Under technical evaluation</div>
         </div>
 
-        <div className="p-4 bg-white border border-[#EBE3DB] rounded-xl shadow-2xs space-y-1">
+        <div className="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs space-y-1">
           <div className="flex items-center justify-between text-blue-700">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Quotations Sent</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider">Quotations Sent</span>
             <Send className="w-4 h-4 text-blue-600" />
           </div>
-          <div className="text-2xl font-black text-blue-900">{quotationsDispatched}</div>
+          <div className="text-xl font-black text-blue-800 font-mono">{quotationsDispatched}</div>
           <div className="text-[10px] text-blue-700/80">Proposals submitted to client</div>
         </div>
 
-        <div className="p-4 bg-white border border-[#EBE3DB] rounded-xl shadow-2xs space-y-1">
+        <div className="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs space-y-1">
           <div className="flex items-center justify-between text-emerald-700">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Converted</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider">Converted</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="text-2xl font-black text-emerald-900">{convertedEnquiries}</div>
+          <div className="text-xl font-black text-emerald-800 font-mono">{convertedEnquiries}</div>
           <div className="text-[10px] text-emerald-700/80">Converted to Sales Orders</div>
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="bg-white p-3.5 rounded-xl border border-[#EBE3DB] shadow-2xs flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 flex-1 min-w-[240px]">
-          <div className="relative flex-1">
-            <Search className="w-3.5 h-3.5 text-[#A09891] absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search enquiries by number, company, email, equipment..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 bg-[#FAF7F2] border border-[#E7DED5] rounded-lg text-xs text-slate-800 placeholder-[#A09891] focus:outline-none focus:border-[#75401F]"
-            />
-          </div>
+      {/* Status Filter Bar */}
+      <div className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-xs font-bold text-slate-700 uppercase tracking-wider mr-1">Status:</span>
+          {[
+            { id: 'all', label: `All (${enquiries.length})` },
+            { id: 'new', label: 'New / Fresh' },
+            { id: 'under_review', label: 'Under Review' },
+            { id: 'technical_review', label: 'Technical Review' },
+            { id: 'quotation_ready', label: 'Quotation Ready' },
+            { id: 'quotation_sent', label: 'Quotation Sent' },
+            { id: 'converted', label: 'Converted' },
+            { id: 'closed', label: 'Closed' },
+          ].map((st) => (
+            <button
+              key={st.id}
+              onClick={() => setStatusFilter(st.id)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                statusFilter === st.id
+                  ? 'bg-purple-600 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              {st.label}
+            </button>
+          ))}
         </div>
-
-        <div className="flex items-center gap-2">
-          <label className="text-[11px] font-bold text-[#70665F]">Filter Status:</label>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-2.5 py-1.5 bg-[#FAF7F2] border border-[#E7DED5] rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#75401F]"
-          >
-            <option value="all">All Enquiries ({enquiries.length})</option>
-            <option value="new">New / Fresh</option>
-            <option value="under_review">Under Review</option>
-            <option value="technical_review">Technical Review</option>
-            <option value="quotation_ready">Quotation Ready</option>
-            <option value="quotation_sent">Quotation Sent</option>
-            <option value="converted">Converted to Order</option>
-            <option value="closed">Closed / Dropped</option>
-          </select>
+        <div className="text-xs text-slate-500 font-medium">
+          Showing <span className="font-bold text-slate-800">{filteredEnquiries.length}</span> enquiries
         </div>
       </div>
 
-      {/* Main Table */}
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl shadow-2xs overflow-hidden">
-        <DataTable
-          columns={columns}
-          data={filteredEnquiries}
-          searchPlaceholder="Search enquiries by number, customer, product..."
-        />
-      </div>
+      {/* Main ERP List Page Layout */}
+      <ERPListPageLayout<Enquiry>
+        breadcrumbs={['DASHBOARD', 'CRM & SALES', 'ENQUIRIES']}
+        title="Customer Enquiries & Technical Requirements Register"
+        columns={columns}
+        data={filteredEnquiries}
+        searchPlaceholder="Search enquiries by number, customer, product..."
+        addNewLabel="New Enquiry"
+        onAddNew={openCreateModal}
+        onExport={handleExportCSV}
+      />
 
       {/* Add / Edit Enquiry Modal */}
       {isModalOpen && (

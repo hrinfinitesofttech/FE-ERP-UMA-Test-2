@@ -2,22 +2,16 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 import { useERP } from '../../../../context/ERPContext';
-import {
-  ArrowLeft,
-  UserPlus,
-  Building,
-  User,
-  Phone,
-  Mail,
-  MapPin,
-  AlertCircle,
-  CheckCircle2,
-  Save,
-  Info,
-} from 'lucide-react';
 import { LeadSource, LeadStatus, PriorityLevel, Employee } from '../../../../types/crm';
+import {
+  ERPFormLayout,
+  ERPFormSection,
+  ERPFormGrid,
+  ERPInput,
+  ERPSelect,
+  ERPSubTableCard,
+} from '../../../../components/ui/ERPFormLayout';
 
 function NewLeadForm() {
   const router = useRouter();
@@ -43,21 +37,38 @@ function NewLeadForm() {
 
   const defaultSalesPersonId = salesEngineers[0]?.id || allEmployees[0]?.id || '';
 
-  // Requested 5 Fields: Company name, Contact person name, Mobile number, Email, Address
+  // Core Fields
   const [formData, setFormData] = useState({
     companyName: '',
     contactPerson: '',
     mobile: '',
     email: '',
     address: '',
+    city: '',
+    state: '',
+    country: 'India',
+    pincode: '',
+    whatsapp: '',
+    altMobile: '',
+    industry: '',
+    productName: 'General Inquiry / Equipment Requirement',
+    source: (querySource || 'direct') as LeadSource,
+    priority: 'medium' as PriorityLevel,
+    assignedSalesPersonId: defaultSalesPersonId,
   });
+
+  useEffect(() => {
+    if (!formData.assignedSalesPersonId && defaultSalesPersonId) {
+      setFormData((prev) => ({ ...prev, assignedSalesPersonId: defaultSalesPersonId }));
+    }
+  }, [defaultSalesPersonId, formData.assignedSalesPersonId]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Email regex for valid standard emails (e.g. user@domain.com)
+  // Email regex
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
   const validateField = (name: string, value: string): string => {
@@ -101,7 +112,7 @@ function NewLeadForm() {
 
   const handleInputChange = (field: keyof typeof formData, rawVal: string) => {
     let sanitizedVal = rawVal;
-    if (field === 'mobile') {
+    if (field === 'mobile' || field === 'whatsapp' || field === 'altMobile') {
       sanitizedVal = rawVal.replace(/\D/g, '').slice(0, 10);
     }
     setFormData((prev) => ({ ...prev, [field]: sanitizedVal }));
@@ -118,7 +129,7 @@ function NewLeadForm() {
     setErrors((prev) => ({ ...prev, [field]: err }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
     setSubmitAttempted(true);
@@ -130,7 +141,7 @@ function NewLeadForm() {
     setIsSubmitting(true);
 
     try {
-      const assignedPerson = allEmployees.find((emp) => emp.id === defaultSalesPersonId);
+      const assignedPerson = allEmployees.find((emp) => emp.id === formData.assignedSalesPersonId);
       const assignedName = assignedPerson
         ? assignedPerson.name ||
           (assignedPerson as any).employeeName ||
@@ -140,253 +151,236 @@ function NewLeadForm() {
 
       const expo = exhibitions.find((ex) => ex.id === queryExpoId);
 
-      addLead({
+      await addLead({
         companyName: formData.companyName.trim(),
         contactPerson: formData.contactPerson.trim(),
         mobile: formData.mobile.trim(),
         email: formData.email.trim(),
         address: formData.address.trim(),
-
-        // Default initial values for other fields (editable later via Update Lead)
-        industry: '',
-        website: '',
-        gstin: '',
-        city: '',
-        state: '',
-        country: 'India',
-        pincode: '',
+        city: formData.city.trim(),
+        state: formData.state.trim(),
+        country: formData.country.trim() || 'India',
+        pincode: formData.pincode.trim(),
+        whatsapp: formData.whatsapp.trim(),
+        altMobile: formData.altMobile.trim(),
+        industry: formData.industry.trim(),
         designation: '',
-        altMobile: '',
-        whatsapp: '',
-        productName: 'General Inquiry / Equipment Requirement',
         machineType: '',
+        productName: formData.productName.trim() || 'General Inquiry / Equipment Requirement',
+        source: formData.source,
+        priority: formData.priority,
+        assignedSalesPersonId: formData.assignedSalesPersonId,
+        assignedSalesPersonName: assignedName,
+        exhibitionId: queryExpoId || undefined,
+        exhibitionName: expo ? expo.expoName : queryExpoName || undefined,
+        status: 'new' as LeadStatus,
         quantity: 1,
         capacity: '',
         application: '',
         requirementDescription: '',
         expectedDelivery: '',
         budget: 0,
-        priority: 'medium' as PriorityLevel,
-        source: querySource || ('direct' as LeadSource),
-        exhibitionId: queryExpoId || undefined,
-        exhibitionName: expo ? expo.expoName : queryExpoName || undefined,
-        assignedSalesPersonId: defaultSalesPersonId,
-        assignedSalesPersonName: assignedName,
-        status: 'new' as LeadStatus,
         nextFollowUpDate: '',
         remarks: '',
       });
 
       router.push(`/crm/leads?tab=leads&created=${encodeURIComponent(formData.companyName.trim())}`);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to create lead:', err);
       setIsSubmitting(false);
+      setErrors((prev) => ({ ...prev, submit: err?.message || 'Failed to save lead in database. Please try again.' }));
     }
   };
 
+  const sourceOptions = [
+    { label: 'Direct Inward / Call', value: 'direct' },
+    { label: 'Exhibition / Trade Fair', value: 'exhibition' },
+    { label: 'Client Referral', value: 'referral' },
+    { label: 'Website / Digital Inquiry', value: 'website' },
+    { label: 'Indiamart / B2B Portal', value: 'indiamart' },
+    { label: 'Other', value: 'other' },
+  ];
+
+  const priorityOptions = [
+    { label: 'Low', value: 'low' },
+    { label: 'Medium', value: 'medium' },
+    { label: 'High', value: 'high' },
+    { label: 'Urgent', value: 'urgent' },
+  ];
+
+  const salesEmployeeOptions = allEmployees.map((emp) => ({
+    label: `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || emp.name || emp.username,
+    value: emp.id,
+  }));
+
+  const errorSummary =
+    submitAttempted && Object.values(errors).some(Boolean)
+      ? `Please correct ${Object.values(errors).filter(Boolean).length} validation error(s) before saving the lead.`
+      : undefined;
+
   return (
-    <div className="max-w-2xl mx-auto space-y-4 text-xs pb-10">
-      <Link
-        href="/crm/leads"
-        className="inline-flex items-center gap-1.5 text-crm-brand-700 hover:text-crm-brand-800 font-semibold"
+    <ERPFormLayout
+      breadcrumbs={['DASHBOARD', 'CRM', 'LEADS', 'CREATE']}
+      actionTitle="CREATE"
+      backHref="/crm/leads"
+      onSubmit={handleSubmit}
+      onSaveDraft={() => handleSubmit({ preventDefault: () => {} } as any)}
+      isSubmitting={isSubmitting}
+      submitLabel="Save & Register Lead"
+      errorSummary={errorSummary}
+    >
+      {/* 1. Lead & Company Details */}
+      <ERPFormSection number="1." title="Lead & Company Details" subtitle="Primary Prospect Profile">
+        <ERPFormGrid>
+          <ERPInput
+            label="Company Name"
+            required
+            value={formData.companyName}
+            onChange={(e) => handleInputChange('companyName', e.target.value)}
+            placeholder="e.g. Reliance Industries Ltd."
+            error={touched.companyName || submitAttempted ? errors.companyName : undefined}
+          />
+
+          <ERPInput
+            label="Contact Person Name"
+            required
+            value={formData.contactPerson}
+            onChange={(e) => handleInputChange('contactPerson', e.target.value)}
+            placeholder="e.g. Rajesh Sharma"
+            error={touched.contactPerson || submitAttempted ? errors.contactPerson : undefined}
+          />
+
+          <ERPInput
+            label="Mobile Number"
+            required
+            value={formData.mobile}
+            onChange={(e) => handleInputChange('mobile', e.target.value)}
+            placeholder="10-digit mobile"
+            prefix="+91"
+            error={touched.mobile || submitAttempted ? errors.mobile : undefined}
+          />
+
+          <ERPInput
+            label="Email Address"
+            type="email"
+            value={formData.email}
+            onChange={(e) => handleInputChange('email', e.target.value)}
+            placeholder="e.g. purchase@company.com"
+            error={touched.email || submitAttempted ? errors.email : undefined}
+          />
+
+          <ERPSelect
+            label="Lead Source"
+            value={formData.source}
+            onChange={(e) => setFormData((prev) => ({ ...prev, source: e.target.value as LeadSource }))}
+            options={sourceOptions}
+          />
+
+          <ERPSelect
+            label="Priority Level"
+            value={formData.priority}
+            onChange={(e) => setFormData((prev) => ({ ...prev, priority: e.target.value as PriorityLevel }))}
+            options={priorityOptions}
+          />
+
+          <ERPSelect
+            label="Assigned Sales Engineer"
+            value={formData.assignedSalesPersonId}
+            onChange={(e) => setFormData((prev) => ({ ...prev, assignedSalesPersonId: e.target.value }))}
+            options={salesEmployeeOptions.length > 0 ? salesEmployeeOptions : [{ label: 'Pravin Patel', value: 'EMP-001' }]}
+          />
+
+          <ERPInput
+            label="Product Requirement"
+            value={formData.productName}
+            onChange={(e) => handleInputChange('productName', e.target.value)}
+            placeholder="e.g. 5000L Reactor / Mixing Tank"
+          />
+        </ERPFormGrid>
+      </ERPFormSection>
+
+      {/* 2. Basic Details Accordion */}
+      <ERPFormSection
+        number="2."
+        title="Basic Details"
+        subtitle="Address & Regional Details"
+        isCollapsible
+        defaultExpanded
       >
-        <ArrowLeft className="w-3.5 h-3.5" /> Back to Leads
-      </Link>
+        <ERPFormGrid>
+          <ERPInput
+            label="Address Line"
+            value={formData.address}
+            onChange={(e) => handleInputChange('address', e.target.value)}
+            placeholder="Plot / Street / GIDC Industrial Area"
+          />
 
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl p-6 shadow-sm space-y-6">
-        {/* Header */}
-        <div className="border-b border-[#EBE3DB] pb-4">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full bg-[#F5E6D8] text-[#8C5229] border border-[#E7DED5] font-mono text-[10px] font-bold uppercase tracking-wider">
-              Quick Lead Creation
-            </span>
-          </div>
-          <h1 className="text-lg font-bold text-[#211B17] flex items-center gap-2">
-            <UserPlus className="w-5 h-5 text-crm-brand-700" />
-            Add New Lead
-          </h1>
-          <p className="text-[#70665F] mt-1 text-xs">
-            Enter initial prospect details below. Additional machinery specifications, budget, and follow-ups can be updated anytime after creation.
-          </p>
+          <ERPInput
+            label="City"
+            value={formData.city}
+            onChange={(e) => handleInputChange('city', e.target.value)}
+            placeholder="e.g. Vadodara / Ahmedabad"
+          />
+
+          <ERPInput
+            label="State"
+            value={formData.state}
+            onChange={(e) => handleInputChange('state', e.target.value)}
+            placeholder="e.g. Gujarat"
+          />
+
+          <ERPInput
+            label="Country"
+            value={formData.country}
+            onChange={(e) => handleInputChange('country', e.target.value)}
+            placeholder="India"
+          />
+
+          <ERPInput
+            label="Pincode"
+            value={formData.pincode}
+            onChange={(e) => handleInputChange('pincode', e.target.value)}
+            placeholder="e.g. 390010"
+          />
+
+          <ERPInput
+            label="WhatsApp Number"
+            value={formData.whatsapp}
+            onChange={(e) => handleInputChange('whatsapp', e.target.value)}
+            placeholder="10-digit mobile"
+            prefix="+91"
+          />
+
+          <ERPInput
+            label="Alternate Mobile"
+            value={formData.altMobile}
+            onChange={(e) => handleInputChange('altMobile', e.target.value)}
+            placeholder="Office landline or alternate contact"
+          />
+
+          <ERPInput
+            label="Industry / Sector"
+            value={formData.industry}
+            onChange={(e) => handleInputChange('industry', e.target.value)}
+            placeholder="e.g. Pharmaceutical / Chemical / FMCG"
+          />
+        </ERPFormGrid>
+
+        <div className="pt-2">
+          <ERPSubTableCard
+            title="Contact Directory & Key Personnel"
+            isEmpty
+            emptyText="Initial contact person configured above. Add additional key stakeholders anytime after lead registration."
+          />
         </div>
-
-        {/* Global Validation Warning Banner */}
-        {submitAttempted && Object.values(errors).some(Boolean) && (
-          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-start gap-2.5 animate-in fade-in duration-200">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-rose-600" />
-            <div>
-              <span className="font-bold block">
-                Please correct the following {Object.values(errors).filter(Boolean).length} validation errors:
-              </span>
-              <ul className="list-disc list-inside mt-1 space-y-0.5 text-[11px] text-rose-600 font-medium">
-                {Object.entries(errors)
-                  .filter(([_, msg]) => Boolean(msg))
-                  .map(([key, err], i) => (
-                    <li key={i}>{err}</li>
-                  ))}
-              </ul>
-            </div>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} noValidate className="space-y-4">
-          {/* 1. Company Name */}
-          <div>
-            <label className="block text-[#544B45] font-semibold mb-1 flex items-center gap-1.5">
-              <Building className="w-3.5 h-3.5 text-[#8C5229]" />
-              <span>Company Name</span>
-              <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.companyName}
-              onChange={(e) => handleInputChange('companyName', e.target.value)}
-              onBlur={() => handleBlur('companyName')}
-              placeholder="e.g. Reliance Industries Ltd. / ABC Pharma Machinery"
-              className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
-                errors.companyName && (touched.companyName || submitAttempted)
-                  ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
-                  : 'border-[#EBE3DB]'
-              } rounded-xl text-[#211B17] font-bold focus:outline-none focus:border-[#75401F]`}
-            />
-            {errors.companyName && (touched.companyName || submitAttempted) && (
-              <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
-                <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.companyName}
-              </p>
-            )}
-          </div>
-
-          {/* 2. Contact Person Name */}
-          <div>
-            <label className="block text-[#544B45] font-semibold mb-1 flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-[#8C5229]" />
-              <span>Contact Person Name</span>
-              <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.contactPerson}
-              onChange={(e) => handleInputChange('contactPerson', e.target.value)}
-              onBlur={() => handleBlur('contactPerson')}
-              placeholder="e.g. Rajesh Sharma / Harish Trivedi"
-              className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
-                errors.contactPerson && (touched.contactPerson || submitAttempted)
-                  ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
-                  : 'border-[#EBE3DB]'
-              } rounded-xl text-[#211B17] font-semibold focus:outline-none focus:border-[#75401F]`}
-            />
-            {errors.contactPerson && (touched.contactPerson || submitAttempted) && (
-              <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
-                <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.contactPerson}
-              </p>
-            )}
-          </div>
-
-          {/* 3. Mobile Number & 4. Email in a 2-column grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[#544B45] font-semibold mb-1 flex items-center gap-1.5">
-                <Phone className="w-3.5 h-3.5 text-[#8C5229]" />
-                <span>Mobile Number</span>
-                <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
-                required
-                maxLength={10}
-                value={formData.mobile}
-                onChange={(e) => handleInputChange('mobile', e.target.value)}
-                onBlur={() => handleBlur('mobile')}
-                placeholder="10-digit mobile (e.g. 9825012345)"
-                className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
-                  errors.mobile && (touched.mobile || submitAttempted)
-                    ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
-                    : 'border-[#EBE3DB]'
-                } rounded-xl font-mono text-[#211B17] focus:outline-none focus:border-[#75401F]`}
-              />
-              {errors.mobile && (touched.mobile || submitAttempted) && (
-                <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
-                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.mobile}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-[#544B45] font-semibold mb-1 flex items-center gap-1.5">
-                <Mail className="w-3.5 h-3.5 text-[#8C5229]" />
-                <span>Email Address</span>
-              </label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                onBlur={() => handleBlur('email')}
-                placeholder="e.g. purchase@company.com"
-                className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border ${
-                  errors.email && (touched.email || submitAttempted)
-                    ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/30'
-                    : 'border-[#EBE3DB]'
-                } rounded-xl text-[#211B17] focus:outline-none focus:border-[#75401F]`}
-              />
-              {errors.email && (touched.email || submitAttempted) && (
-                <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-medium">
-                  <AlertCircle className="w-3 h-3 flex-shrink-0" /> {errors.email}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* 5. Address */}
-          <div>
-            <label className="block text-[#544B45] font-semibold mb-1 flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-[#8C5229]" />
-              <span>Address</span>
-            </label>
-            <textarea
-              rows={3}
-              value={formData.address}
-              onChange={(e) => handleInputChange('address', e.target.value)}
-              placeholder="e.g. Plot No. 42, GIDC Industrial Estate, Makarpura, Vadodara, Gujarat - 390010"
-              className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] focus:outline-none focus:border-[#75401F] leading-relaxed"
-            />
-          </div>
-
-          {/* Note informing that other fields are updated later */}
-          <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl text-[11px] text-amber-900 flex items-start gap-2">
-            <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-            <span>
-              <strong>Note:</strong> All additional fields (Equipment requirement, machine capacity, budget, pipeline status, and follow-ups) can be filled when updating the lead.
-            </span>
-          </div>
-
-          {/* Form Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#EBE3DB]">
-            <Link
-              href="/crm/leads"
-              className="px-4 py-2.5 border border-[#EBE3DB] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs"
-            >
-              Cancel
-            </Link>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-6 py-2.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-xl font-bold transition flex items-center gap-2 shadow-sm disabled:opacity-50 cursor-pointer text-xs"
-            >
-              <Save className="w-4 h-4" />
-              <span>{isSubmitting ? 'Saving Lead...' : 'Save & Register Lead'}</span>
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </ERPFormSection>
+    </ERPFormLayout>
   );
 }
 
 export default function NewLeadPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-xs text-[#70665F]">Loading Lead Form...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-xs text-gray-500 font-semibold">Loading Lead Form...</div>}>
       <NewLeadForm />
     </Suspense>
   );

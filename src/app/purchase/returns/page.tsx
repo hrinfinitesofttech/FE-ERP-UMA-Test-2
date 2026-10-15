@@ -14,6 +14,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { PurchaseReturn, PurchaseReturnItem } from '../../../types/purchase';
+import { ERPListPageLayout } from '../../../components/ui/ERPListPageLayout';
 
 export default function PurchaseReturnsPage() {
   const { purchaseReturns, purchaseOrders, suppliers, addPurchaseReturn, currentUser } = useERP();
@@ -85,88 +86,106 @@ export default function PurchaseReturnsPage() {
     setShowAddModal(false);
   };
 
+  const columns = [
+    {
+      key: 'returnNumber',
+      header: 'RETURN NOTE NO',
+      isCodeLink: true,
+      onCodeClick: (r: PurchaseReturn) =>
+        alert(`Purchase Return: ${r.returnNumber}\nSupplier: ${r.supplierName}\nPO Ref: ${r.poNumber}\nDebit Note: ${r.debitNoteNumber}\nReason: ${r.reasonForReturn || 'N/A'}`),
+      cell: (r: PurchaseReturn) => (
+        <span className="font-semibold text-[#7C3AED] hover:underline cursor-pointer">{r.returnNumber}</span>
+      ),
+    },
+    {
+      key: 'debitNoteNumber',
+      header: 'DEBIT NOTE REF',
+      cell: (r: PurchaseReturn) => (
+        <span className="font-mono font-semibold text-emerald-700">{r.debitNoteNumber}</span>
+      ),
+    },
+    {
+      key: 'poNumber',
+      header: 'PO NUMBER',
+      cell: (r: PurchaseReturn) => (
+        <span className="font-mono font-semibold text-gray-800">{r.poNumber}</span>
+      ),
+    },
+    {
+      key: 'supplierName',
+      header: 'SUPPLIER NAME',
+      cell: (r: PurchaseReturn) => (
+        <span className="font-semibold text-gray-900">{r.supplierName}</span>
+      ),
+    },
+    {
+      key: 'returnDate',
+      header: 'RETURN DATE',
+      cell: (r: PurchaseReturn) => <span className="text-gray-600 font-mono text-[11px]">{r.returnDate}</span>,
+    },
+    {
+      key: 'actionRequested',
+      header: 'ACTION REQUESTED',
+      cell: (r: PurchaseReturn) => (
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200">
+          {r.actionRequested}
+        </span>
+      ),
+    },
+    {
+      key: 'totalReturnAmount',
+      header: 'RETURN VALUE (₹)',
+      cell: (r: PurchaseReturn) => (
+        <span className="font-mono font-bold text-gray-900">
+          ₹{r.totalReturnAmount?.toLocaleString('en-IN')}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'STATUS',
+      cell: (r: PurchaseReturn) => (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+          {r.status}
+        </span>
+      ),
+    },
+  ];
+
+  const handleExport = () => {
+    if (purchaseReturns.length === 0) return;
+    const headers = ['Return Note No', 'Debit Note Ref', 'PO Number', 'Supplier', 'Return Date', 'Action', 'Value (INR)', 'Status'];
+    const rows = purchaseReturns.map((r) => [
+      r.returnNumber,
+      `"${r.debitNoteNumber}"`,
+      `"${r.poNumber}"`,
+      `"${r.supplierName}"`,
+      r.returnDate,
+      `"${r.actionRequested}"`,
+      r.totalReturnAmount,
+      `"${r.status}"`,
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `purchase_returns_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
-    <div className="p-6 space-y-6 bg-[#FAF7F2] text-[#544B45] ">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#EBE3DB]">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-xs font-mono font-bold border border-orange-500/30">
-              PURCHASE RETURNS (RTV)
-            </span>
-            <h1 className="text-2xl font-black text-[#211B17] tracking-tight">Purchase Returns & Debit Notes Manager</h1>
-          </div>
-          <p className="text-[#70665F] text-xs mt-1">
-            Return to Vendor (RTV) tracking for rejected materials, QC non-conformance & debit note integration.
-          </p>
-        </div>
-
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-500 text-[#211B17] font-bold text-xs rounded-xl shadow-lg shadow-orange-600/30 transition"
-        >
-          <Plus className="w-4 h-4" />
-          Create Purchase Return Note
-        </button>
-      </div>
-
-      {/* Filter Toolbar */}
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl p-4 flex items-center justify-between gap-4">
-        <div className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#70665F]" />
-          <input
-            type="text"
-            placeholder="Search Return No, PO No, Supplier, Debit Note..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-4 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-orange-500 w-72"
-          />
-        </div>
-
-        <div className="text-xs text-[#70665F]">
-          Showing <span className="text-[#211B17] font-bold">{filteredReturns.length}</span> return notes
-        </div>
-      </div>
-
-      {/* Returns Table */}
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left text-[#544B45]">
-            <thead className="bg-[#FAF7F2] text-[#70665F] font-semibold border-b border-[#EBE3DB]">
-              <tr>
-                <th className="p-3">Return Note No</th>
-                <th className="p-3">Debit Note Ref</th>
-                <th className="p-3">PO Number</th>
-                <th className="p-3">Supplier Name</th>
-                <th className="p-3">Return Date</th>
-                <th className="p-3">Action Requested</th>
-                <th className="p-3 text-right">Return Value</th>
-                <th className="p-3">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#EBE3DB]">
-              {filteredReturns.map(r => (
-                <tr key={r.id} className="hover:bg-[#FAF7F2]/40 transition">
-                  <td className="p-3 font-mono font-bold text-orange-400">{r.returnNumber}</td>
-                  <td className="p-3 font-mono font-bold text-emerald-400">{r.debitNoteNumber}</td>
-                  <td className="p-3 font-mono text-sky-400">{r.poNumber}</td>
-                  <td className="p-3 font-semibold text-[#211B17]">{r.supplierName}</td>
-                  <td className="p-3 text-[#544B45] font-mono text-[11px]">{r.returnDate}</td>
-                  <td className="p-3 font-semibold text-[#211B17]">{r.actionRequested}</td>
-                  <td className="p-3 text-right font-mono font-extrabold text-amber-400">
-                    ₹{r.totalReturnAmount?.toLocaleString('en-IN')}
-                  </td>
-                  <td className="p-3">
-                    <span className="px-2.5 py-1 rounded-full bg-orange-500/20 text-orange-300 text-[10px] font-semibold border border-orange-500/30">
-                      {r.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <div className="space-y-4">
+      <ERPListPageLayout<PurchaseReturn>
+        breadcrumbs={['DASHBOARD', 'PURCHASE', 'PURCHASE RETURNS & DEBIT NOTES']}
+        columns={columns}
+        data={purchaseReturns}
+        addNewLabel="+ Create Purchase Return Note"
+        onAddNew={() => setShowAddModal(true)}
+        onExport={handleExport}
+        searchPlaceholder="Search Return No, PO No, Supplier, Debit Note..."
+      />
 
       {/* CREATE RETURN MODAL */}
       {showAddModal && (

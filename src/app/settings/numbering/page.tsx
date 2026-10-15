@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useERP } from '../../../context/ERPContext';
-import { DataTable, Column } from '../../../components/data/DataTable';
+import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
 import { NumberingSetting } from '../../../types/crm';
 import { INITIAL_NUMBERING } from '../../../data/dbStore';
 import {
@@ -79,27 +79,29 @@ export default function NumberingSettingsPage() {
     setTimeout(() => setSavedMsg(''), 3000);
   };
 
-  const columns: Column<NumberingSetting>[] = [
+  const columns: ERPColumn<NumberingSetting>[] = [
     {
+      key: 'module',
       header: 'Module',
-      accessorKey: 'module',
       cell: (n) => (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-pink-50 text-pink-700 border border-pink-200">
-          <Layers className="w-3 h-3 text-pink-500" />
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-[#7C3AED] border border-purple-200">
+          <Layers className="w-3 h-3 text-[#7C3AED]" />
           {n.module}
         </span>
       ),
     },
     {
+      key: 'docType',
       header: 'Document Type',
       cell: (n) => (
         <div className="flex items-center gap-1.5 font-mono">
-          <FileText className="w-3.5 h-3.5 text-[#70665F]" />
-          <span className="uppercase font-bold text-[#211B17]">{n.docType?.replace(/_/g, ' ')}</span>
+          <FileText className="w-3.5 h-3.5 text-slate-500" />
+          <span className="uppercase font-bold text-slate-900">{n.docType?.replace(/_/g, ' ')}</span>
         </div>
       ),
     },
     {
+      key: 'prefix',
       header: 'Prefix Pattern',
       cell: (n) =>
         editingId === n.id ? (
@@ -107,16 +109,17 @@ export default function NumberingSettingsPage() {
             type="text"
             value={editPrefix}
             onChange={(e) => setEditPrefix(e.target.value)}
-            className="px-2.5 py-1 bg-white border border-pink-400 rounded-lg font-mono font-bold text-xs text-[#211B17] focus:outline-none ring-1 ring-pink-500/20"
+            className="px-2.5 py-1 bg-white border border-[#7C3AED] rounded-lg font-mono font-bold text-xs text-slate-900 focus:outline-none ring-1 ring-purple-500/20"
             placeholder="e.g. QT-2026-"
           />
         ) : (
-          <span className="font-mono font-bold text-[#211B17] px-2 py-0.5 rounded bg-[#FAF7F2] border border-[#EBE3DB]">
+          <span className="font-mono font-bold text-[#7C3AED] px-2 py-0.5 rounded bg-purple-50 border border-purple-100">
             {n.prefix}
           </span>
         ),
     },
     {
+      key: 'currentNumber',
       header: 'Current Counter',
       cell: (n) =>
         editingId === n.id ? (
@@ -125,20 +128,21 @@ export default function NumberingSettingsPage() {
             min={0}
             value={editCurrentNum}
             onChange={(e) => setEditCurrentNum(Math.max(0, parseInt(e.target.value) || 0))}
-            className="w-20 px-2.5 py-1 bg-white border border-pink-400 rounded-lg font-mono text-xs text-[#211B17] focus:outline-none"
+            className="w-20 px-2.5 py-1 bg-white border border-[#7C3AED] rounded-lg font-mono text-xs text-slate-900 focus:outline-none"
           />
         ) : (
           <span className="font-mono text-slate-700 font-semibold">{n.currentNumber}</span>
         ),
     },
     {
+      key: 'digitCount',
       header: 'Digit Padding',
       cell: (n) =>
         editingId === n.id ? (
           <select
             value={editDigits}
             onChange={(e) => setEditDigits(Number(e.target.value))}
-            className="px-2 py-1 bg-white border border-pink-400 rounded-lg font-mono text-xs text-[#211B17] focus:outline-none"
+            className="px-2 py-1 bg-white border border-[#7C3AED] rounded-lg font-mono text-xs text-slate-900 focus:outline-none"
           >
             <option value={3}>3 digits (001)</option>
             <option value={4}>4 digits (0001)</option>
@@ -146,10 +150,11 @@ export default function NumberingSettingsPage() {
             <option value={6}>6 digits (000001)</option>
           </select>
         ) : (
-          <span className="font-mono text-xs text-[#70665F]">{n.digitCount || 4} digits</span>
+          <span className="font-mono text-xs text-slate-500">{n.digitCount || 4} digits</span>
         ),
     },
     {
+      key: 'samplePreview',
       header: 'Next Auto Number Preview',
       cell: (n) => {
         const preview =
@@ -165,19 +170,22 @@ export default function NumberingSettingsPage() {
       },
     },
     {
+      key: 'actions',
       header: 'Actions',
       cell: (n) =>
         editingId === n.id ? (
           <div className="flex items-center gap-1.5">
             <button
+              type="button"
               onClick={() => saveEdit(n)}
-              className="px-2.5 py-1 bg-pink-600 hover:bg-pink-500 text-white rounded-md font-bold text-xs flex items-center gap-1 transition shadow-xs"
+              className="px-2.5 py-1 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-md font-bold text-xs flex items-center gap-1 transition shadow-xs cursor-pointer"
             >
               <Save className="w-3 h-3" /> Save
             </button>
             <button
+              type="button"
               onClick={() => setEditingId(null)}
-              className="p-1 rounded text-slate-500 hover:bg-slate-100"
+              className="p-1 rounded text-slate-500 hover:bg-slate-100 cursor-pointer"
               title="Cancel"
             >
               <X className="w-3.5 h-3.5" />
@@ -185,8 +193,9 @@ export default function NumberingSettingsPage() {
           </div>
         ) : (
           <button
+            type="button"
             onClick={() => startEdit(n)}
-            className="p-1.5 rounded-md text-slate-600 hover:text-pink-600 hover:bg-[#FAF7F2] transition border border-transparent hover:border-[#EBE3DB]"
+            className="p-1.5 rounded-md text-slate-600 hover:text-[#7C3AED] hover:bg-slate-100 transition border border-transparent hover:border-slate-200 cursor-pointer"
             title="Edit Pattern & Counter"
           >
             <Edit className="w-3.5 h-3.5" />
@@ -198,45 +207,7 @@ export default function NumberingSettingsPage() {
   const modules = ['ALL', 'CRM & Sales', 'Project Management', 'Production & Shopfloor', 'Accounting & Finance'];
 
   return (
-    <div className="space-y-4 text-xs">
-      {/* Header Banner */}
-      <div className="bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-extrabold text-[#211B17] flex items-center gap-2 tracking-tight">
-            <Hash className="w-6 h-6 text-pink-600" />
-            Configurable Document Numbering Series
-          </h1>
-          <p className="text-xs text-[#70665F] mt-1">
-            Define automatic prefixes, fiscal year codes, starting counters, and zero-padding for all ERP generated documents.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => {
-              if (confirm('Are you sure you want to restore all standard ERP document numbering series to default?')) {
-                resetNumbering();
-                setSavedMsg('Restored all document numbering rules to default ERP standard series.');
-                setTimeout(() => setSavedMsg(''), 3000);
-              }
-            }}
-            className="px-3 py-2 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold text-xs rounded-lg border border-[#EBE3DB] transition flex items-center gap-1.5"
-            title="Reset series to default"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>Restore Defaults</span>
-          </button>
-
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="px-4 py-2 bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs rounded-lg shadow-sm transition flex items-center gap-1.5"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Series Rule</span>
-          </button>
-        </div>
-      </div>
-
+    <div className="space-y-4">
       {/* Info Card Explaining the Feature */}
       <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3.5 flex items-start gap-3">
         <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
@@ -252,28 +223,69 @@ export default function NumberingSettingsPage() {
         </div>
       )}
 
-      {/* Module Filter Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        {modules.map((m) => (
-          <button
-            key={m}
-            onClick={() => setModuleFilter(m)}
-            className={`px-3 py-1.5 rounded-lg font-bold text-xs whitespace-nowrap transition ${
-              moduleFilter === m
-                ? 'bg-pink-600 text-white shadow-xs'
-                : 'bg-white text-[#70665F] hover:bg-[#FAF7F2] border border-[#EBE3DB]'
-            }`}
-          >
-            {m === 'ALL' ? 'All Document Series' : m}
-          </button>
-        ))}
+      {/* Module Filter Tabs Toolbar */}
+      <div className="bg-white p-3 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          {modules.map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setModuleFilter(m)}
+              className={`px-3 py-1.5 rounded-lg font-bold text-xs whitespace-nowrap transition cursor-pointer ${
+                moduleFilter === m
+                  ? 'bg-[#7C3AED] text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              {m === 'ALL' ? 'All Document Series' : m}
+            </button>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            if (confirm('Are you sure you want to restore all standard ERP document numbering series to default?')) {
+              resetNumbering();
+              setSavedMsg('Restored all document numbering rules to default ERP standard series.');
+              setTimeout(() => setSavedMsg(''), 3000);
+            }
+          }}
+          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg border border-slate-200 transition flex items-center gap-1.5 cursor-pointer"
+          title="Reset series to default"
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+          <span>Restore Defaults</span>
+        </button>
       </div>
 
-      {/* Table */}
-      <DataTable
-        title={`Numbering Rules (${filteredNumbering.length} Series Configured)`}
+      {/* Main Shasvatm ERP Standard List View */}
+      <ERPListPageLayout<NumberingSetting>
+        breadcrumbs={['DASHBOARD', 'SETTINGS', 'DOCUMENT NUMBERING SERIES']}
         columns={columns}
         data={filteredNumbering}
+        addNewLabel="+ Add Series Rule"
+        onAddNew={() => setShowAddModal(true)}
+        onExport={() => {
+          const csv = [
+            ['Module', 'Document Type', 'Prefix Pattern', 'Current Counter', 'Digit Padding', 'Sample Preview'].join(','),
+            ...filteredNumbering.map(n => [
+              `"${n.module || ''}"`,
+              `"${(n.docType || '').replace(/_/g, ' ')}"`,
+              `"${n.prefix || ''}"`,
+              n.currentNumber || 0,
+              n.digitCount || 4,
+              `"${n.samplePreview || ''}"`
+            ].join(','))
+          ].join('\n');
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `numbering_settings_${new Date().toISOString().slice(0, 10)}.csv`;
+          a.click();
+        }}
+        searchPlaceholder="Search numbering rules by module, prefix, document..."
       />
 
       {/* Add Custom Series Modal */}

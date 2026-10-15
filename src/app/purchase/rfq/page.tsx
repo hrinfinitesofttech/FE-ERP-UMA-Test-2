@@ -16,6 +16,7 @@ import {
   X,
 } from 'lucide-react';
 import { RequestForQuotations, RFQItem } from '../../../types/purchase';
+import { ERPListPageLayout } from '../../../components/ui/ERPListPageLayout';
 
 export default function RFQPage() {
   const { rfqs, addRFQ, purchaseRequisitions, suppliers, projectJobs, currentUser } = useERP();
@@ -125,138 +126,134 @@ export default function RFQPage() {
     setShowCreateModal(false);
   };
 
-  return (
-    <div className="p-6 space-y-6 bg-[#FAF7F2] text-[#544B45] ">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#EBE3DB]">
+  const columns = [
+    {
+      key: 'rfqNumber',
+      header: 'RFQ NUMBER',
+      isCodeLink: true,
+      onCodeClick: (rfq: RequestForQuotations) => setViewRFQ(rfq),
+      cell: (rfq: RequestForQuotations) => (
+        <span className="font-semibold text-[#7C3AED] hover:underline cursor-pointer">{rfq.rfqNumber}</span>
+      ),
+    },
+    {
+      key: 'jobId',
+      header: 'PR & JOB REFERENCE',
+      cell: (rfq: RequestForQuotations) => (
         <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-crm-brand-600/20 text-crm-brand-500 text-xs font-mono font-bold border border-crm-brand-600/30">
-              RFQ MANAGEMENT
-            </span>
-            <h1 className="text-2xl font-black text-[#211B17] tracking-tight">Request for Quotation (RFQ) Register</h1>
-          </div>
-          <p className="text-[#70665F] text-xs mt-1">
-            Issue digital RFQs to multiple verified suppliers for competitive quotation comparison.
-          </p>
+          <div className="font-semibold text-gray-800">{rfq.jobId}</div>
+          <div className="text-[11px] text-gray-400">PR Ref: {rfq.prNumber}</div>
         </div>
-
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-crm-brand-700/30 transition"
-        >
-          <Plus className="w-4 h-4" />
-          Create New RFQ
-        </button>
-      </div>
-
-      {/* Filter Toolbar */}
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#70665F]" />
-            <input
-              type="text"
-              placeholder="Search RFQ No, PR No, Job ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-4 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-crm-brand-600 w-64"
-            />
-          </div>
-
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-[#70665F]">Status:</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-1.5 text-xs text-[#211B17] focus:outline-none cursor-pointer"
+      ),
+    },
+    {
+      key: 'rfqDate',
+      header: 'ISSUE DATE',
+      cell: (rfq: RequestForQuotations) => <span className="text-gray-600 font-mono text-[11px]">{rfq.rfqDate}</span>,
+    },
+    {
+      key: 'dueDate',
+      header: 'DUE DATE',
+      cell: (rfq: RequestForQuotations) => <span className="font-semibold text-amber-700 font-mono text-[11px]">{rfq.dueDate}</span>,
+    },
+    {
+      key: 'invitedSuppliers',
+      header: 'INVITED SUPPLIERS',
+      cell: (rfq: RequestForQuotations) => (
+        <div className="flex flex-wrap gap-1 max-w-xs">
+          {rfq.invitedSuppliers.map((s, idx) => (
+            <span
+              key={idx}
+              className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                s.quotationReceived
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  : 'bg-gray-100 text-gray-600 border border-gray-200'
+              }`}
             >
-              <option value="ALL">All Statuses</option>
-              <option value="Draft">Draft</option>
-              <option value="Sent to Suppliers">Sent to Suppliers</option>
-              <option value="Quotation Received">Quotation Received</option>
-              <option value="Closed">Closed</option>
-            </select>
-          </div>
+              {s.supplierName}
+            </span>
+          ))}
         </div>
+      ),
+    },
+    {
+      key: 'quotesRecv',
+      header: 'QUOTES RECV',
+      cell: (rfq: RequestForQuotations) => {
+        const receivedCount = rfq.invitedSuppliers.filter(s => s.quotationReceived).length;
+        return (
+          <span className="font-mono font-semibold text-gray-800">
+            {receivedCount} / {rfq.invitedSuppliers.length}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'status',
+      header: 'STATUS',
+      cell: (rfq: RequestForQuotations) => (
+        <span
+          className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border ${
+            rfq.status === 'Sent to Suppliers'
+              ? 'bg-purple-50 text-purple-700 border-purple-200'
+              : rfq.status === 'Quotation Received'
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              : 'bg-gray-50 text-gray-700 border-gray-200'
+          }`}
+        >
+          {rfq.status}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'ACTION',
+      cell: (rfq: RequestForQuotations) => (
+        <button
+          onClick={() => setViewRFQ(rfq)}
+          className="p-1 hover:bg-purple-50 rounded text-gray-500 hover:text-[#7C3AED] transition cursor-pointer"
+          title="View RFQ"
+        >
+          <Eye className="w-4 h-4" />
+        </button>
+      ),
+    },
+  ];
 
-        <div className="text-xs text-[#70665F]">
-          Showing <span className="text-[#211B17] font-bold">{filteredRFQs.length}</span> RFQs
-        </div>
-      </div>
+  const handleExport = () => {
+    if (rfqs.length === 0) return;
+    const headers = ['RFQ No', 'Job ID', 'PR Ref', 'Issue Date', 'Due Date', 'Suppliers Count', 'Quotes Recv', 'Status'];
+    const rows = rfqs.map((r) => [
+      r.rfqNumber,
+      `"${r.jobId}"`,
+      `"${r.prNumber}"`,
+      r.rfqDate,
+      r.dueDate,
+      r.invitedSuppliers.length,
+      r.invitedSuppliers.filter(s => s.quotationReceived).length,
+      `"${r.status}"`,
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `rfqs_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
-      {/* RFQ List Table */}
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left text-[#544B45]">
-            <thead className="bg-[#FAF7F2] text-[#70665F] font-semibold border-b border-[#EBE3DB]">
-              <tr>
-                <th className="p-3">RFQ Number</th>
-                <th className="p-3">PR & Job Reference</th>
-                <th className="p-3">Issue Date</th>
-                <th className="p-3">Due Date</th>
-                <th className="p-3">Invited Suppliers</th>
-                <th className="p-3 text-center">Quotes Recv</th>
-                <th className="p-3">Status</th>
-                <th className="p-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#EBE3DB]">
-              {filteredRFQs.map(rfq => {
-                const receivedCount = rfq.invitedSuppliers.filter(s => s.quotationReceived).length;
-
-                return (
-                  <tr key={rfq.id} className="hover:bg-[#FAF7F2]/40 transition">
-                    <td className="p-3 font-mono font-bold text-crm-brand-500">{rfq.rfqNumber}</td>
-                    <td className="p-3">
-                      <div className="font-bold text-amber-400">{rfq.jobId}</div>
-                      <div className="text-[10px] text-[#70665F]">PR Ref: {rfq.prNumber}</div>
-                    </td>
-                    <td className="p-3 text-[#544B45] font-mono text-[11px]">{rfq.rfqDate}</td>
-                    <td className="p-3 font-mono text-amber-400 font-semibold text-[11px]">{rfq.dueDate}</td>
-                    <td className="p-3">
-                      <div className="flex flex-wrap gap-1">
-                        {rfq.invitedSuppliers.map((s, idx) => (
-                          <span
-                            key={idx}
-                            className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${
-                              s.quotationReceived
-                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                                : 'bg-[#FAF7F2] text-[#70665F]'
-                            }`}
-                          >
-                            {s.supplierName}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="p-3 text-center font-mono font-bold text-[#211B17]">
-                      {receivedCount} / {rfq.invitedSuppliers.length}
-                    </td>
-                    <td className="p-3">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
-                        rfq.status === 'Sent to Suppliers' ? 'bg-crm-brand-600/20 text-crm-brand- border-crm-brand-600/30' :
-                        rfq.status === 'Quotation Received' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 'bg-[#FAF7F2] text-[#70665F]'
-                      }`}>
-                        {rfq.status}
-                      </span>
-                    </td>
-                    <td className="p-3 text-right">
-                      <button
-                        onClick={() => setViewRFQ(rfq)}
-                        className="p-1.5 rounded-lg bg-[#FAF7F2] hover:bg-[#FAF7F2] text-[#544B45] hover:text-[#211B17] transition"
-                        title="View RFQ"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+  return (
+    <div className="space-y-4">
+      <ERPListPageLayout<RequestForQuotations>
+        breadcrumbs={['DASHBOARD', 'PURCHASE', 'REQUEST FOR QUOTATIONS (RFQ)']}
+        columns={columns}
+        data={rfqs}
+        addNewLabel="+ Create New RFQ"
+        onAddNew={() => setShowCreateModal(true)}
+        onExport={handleExport}
+        searchPlaceholder="Search RFQ No, PR No, Job ID..."
+      />
 
       {/* VIEW RFQ MODAL */}
       {viewRFQ && (
