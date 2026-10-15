@@ -915,8 +915,8 @@ export const api = {
         request<any>(`/quotations/${id}/approve/`, { method: 'POST', body: JSON.stringify({ reason: reason || 'Approved' }) }),
       reject: (id: string, reason: string) =>
         request<any>(`/quotations/${id}/reject/`, { method: 'POST', body: JSON.stringify({ reason }) }),
-      sendEmail: (id: string, recipientEmail?: string) =>
-        request<any>(`/quotations/${id}/send-email/`, { method: 'POST', body: JSON.stringify({ recipientEmail }) }),
+      sendEmail: (id: string, recipientEmail?: string, quotationPayload?: any) =>
+        request<any>(`/quotations/${id}/send-email/`, { method: 'POST', body: JSON.stringify({ recipientEmail, quotation: quotationPayload }) }),
     },
     customerPos: {
       list: () => request<any[]>('/customer-pos/'),

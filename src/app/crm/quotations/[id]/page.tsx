@@ -103,7 +103,7 @@ export default function QuotationDetailPage() {
 
     try {
       // Dispatch email via Django backend SMTP endpoint
-      const res = await api.crm.quotations.sendEmail(quotation.id, recipient);
+      const res = await api.crm.quotations.sendEmail(quotation.id, recipient, quotation);
 
       if (res && res.success === false) {
         showFeedback(
