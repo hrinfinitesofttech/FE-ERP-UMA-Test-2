@@ -5795,8 +5795,10 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         const finalNo = (res as any).lead_no || (res as any).leadNo || finalId;
         newLead = { ...newLead, ...res, id: finalId, leadNo: finalNo };
       }
+      invalidateApiCache('leads');
     } catch (err: any) {
-      console.warn('Backend lead sync warning:', err);
+      console.error('Backend lead sync error:', err);
+      throw err;
     }
 
     // 2. Persist in local state and storage

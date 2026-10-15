@@ -120,6 +120,8 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
           d[snake] = d[camel];
         }
       }
+      if (d.expected_delivery === null) d.expected_delivery = '';
+      if (d.next_follow_up_date === null) d.next_follow_up_date = '';
     } else {
       d.lead_no = d.lead_no || d.leadNo || d.id;
       d.leadNo = d.lead_no;
@@ -131,10 +133,11 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
       d.productName = d.product_name;
       d.mobile = d.mobile || d.phone || '9999999999';
       d.alt_mobile = d.alt_mobile || d.altMobile || '';
+      d.country = d.country || 'India';
       d.machine_type = d.machine_type || d.machineType || '';
       d.requirement_description = d.requirement_description || d.requirementDescription || '';
-      d.expected_delivery = d.expected_delivery || d.expectedDelivery || null;
-      d.next_follow_up_date = d.next_follow_up_date || d.nextFollowUpDate || null;
+      d.expected_delivery = (d.expected_delivery !== undefined && d.expected_delivery !== null) ? String(d.expected_delivery) : (d.expectedDelivery ? String(d.expectedDelivery) : '');
+      d.next_follow_up_date = (d.next_follow_up_date !== undefined && d.next_follow_up_date !== null) ? String(d.next_follow_up_date) : (d.nextFollowUpDate ? String(d.nextFollowUpDate) : '');
       d.exhibition_id = d.exhibition_id || d.exhibitionId || '';
       d.exhibition_name = d.exhibition_name || d.exhibitionName || '';
       d.assigned_sales_person_id = d.assigned_sales_person_id || d.assignedSalesPersonId || '';
