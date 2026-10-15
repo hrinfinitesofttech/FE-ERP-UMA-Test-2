@@ -103,6 +103,16 @@ export default function ProjectPlanningPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingStage, setEditingStage] = useState<ProjectPlanningStage | null>(null);
   const [quickCompleteModalStage, setQuickCompleteModalStage] = useState<ProjectPlanningStage | null>(null);
+  const [assigneePopoverStageId, setAssigneePopoverStageId] = useState<string | null>(null);
+
+  // Close popover on Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setAssigneePopoverStageId(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Form Fields
   const [formStageName, setFormStageName] = useState('');
@@ -827,12 +837,12 @@ export default function ProjectPlanningPage() {
 
                     return (
                       <tr key={stage.id} className="hover:bg-[#FAF7F2]/60 transition">
-                        {/* Order & Reordering buttons (Removed '#' prefix as requested) */}
-                        <td className="p-3.5 whitespace-nowrap align-middle text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <span className="font-mono font-black text-[#211B17] w-6">
+                        {/* Order & Reordering buttons (Clean square badge, no '#') */}
+                        <td className="p-3 whitespace-nowrap align-middle text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <div className="w-6 h-6 rounded-md bg-[#FAF7F2] border border-[#E7DED5] flex items-center justify-center font-mono font-black text-xs text-[#211B17] shadow-2xs">
                               {stage.stageNumber}
-                            </span>
+                            </div>
                             <div className="flex flex-col gap-0.5">
                               <button
                                 onClick={() => handleMoveStage(idx, 'up')}
@@ -840,7 +850,7 @@ export default function ProjectPlanningPage() {
                                 title="Move Stage Up"
                                 className="p-0.5 hover:bg-white rounded text-[#70665F] hover:text-[#75401F] disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
                               >
-                                <ChevronUp className="w-3.5 h-3.5" />
+                                <ChevronUp className="w-3 h-3" />
                               </button>
                               <button
                                 onClick={() => handleMoveStage(idx, 'down')}
@@ -848,15 +858,15 @@ export default function ProjectPlanningPage() {
                                 title="Move Stage Down"
                                 className="p-0.5 hover:bg-white rounded text-[#70665F] hover:text-[#75401F] disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed"
                               >
-                                <ChevronDown className="w-3.5 h-3.5" />
+                                <ChevronDown className="w-3 h-3" />
                               </button>
                             </div>
                           </div>
                         </td>
 
                         {/* Stage Name & Deliverables */}
-                        <td className="p-3.5 align-middle min-w-[200px]">
-                          <span className="font-bold text-[#211B17] text-xs block">{stage.stageName}</span>
+                        <td className="p-3 align-middle min-w-[200px]">
+                          <span className="font-bold text-[#211B17] text-xs block leading-snug">{stage.stageName}</span>
                           {stage.deliverables && (
                             <span className="inline-flex items-center gap-1 text-[10px] text-[#75401F] font-semibold mt-0.5">
                               <FileCheck2 className="w-3 h-3 text-[#75401F]" />
@@ -870,202 +880,274 @@ export default function ProjectPlanningPage() {
                           )}
                         </td>
 
-                        {/* Department (Direct Inline Select) */}
-                        <td className="p-3.5 whitespace-nowrap align-middle">
-                          <select
-                            value={(stage.responsibleDepartment || 'production').toLowerCase()}
-                            onChange={(e) => {
-                              const newDept = e.target.value;
-                              updatePlanningStage(stage.id, {
-                                responsibleDepartment: newDept,
-                              });
-                            }}
-                            title="Click to change department directly"
-                            className={`px-2 py-1 rounded-md font-mono text-[10px] font-bold uppercase border cursor-pointer focus:outline-none transition ${getDeptBadge(
-                              stage.responsibleDepartment
-                            )}`}
-                          >
-                            <option value="crm">CRM</option>
-                            <option value="project">PROJECT</option>
-                            <option value="designer">DESIGNER</option>
-                            <option value="purchase">PURCHASE</option>
-                            <option value="store">STORE</option>
-                            <option value="production">PRODUCTION</option>
-                            <option value="maintenance">MAINTENANCE</option>
-                            <option value="accounting">ACCOUNTING</option>
-                          </select>
-                        </td>
-
-                        {/* Assigned Team / Assignees (Direct Inline Selection from Employee & Staff Management) */}
-                        <td className="p-3.5 align-middle min-w-[240px]">
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            {assigneesList.length > 0 ? (
-                              assigneesList.map((a, aIdx) => (
-                                <span
-                                  key={a.id || aIdx}
-                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#FAF7F2] text-[#4A3E39] border border-[#E7DED5] text-[10px] font-semibold group hover:border-rose-300 transition"
-                                  title={`${a.name} (${a.role || a.department || 'Staff'})`}
-                                >
-                                  <div className="w-3.5 h-3.5 rounded-full bg-[#75401F] text-white text-[8px] font-black flex items-center justify-center">
-                                    {a.name?.slice(0, 1)?.toUpperCase() || 'U'}
-                                  </div>
-                                  <span className="truncate max-w-[100px]">{a.name}</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      const updated = assigneesList.filter((_, idx) => idx !== aIdx);
-                                      updatePlanningStage(stage.id, {
-                                        assignedEmployees: updated,
-                                        assignedEmployeeIds: updated.map((u) => u.id),
-                                        responsibleEmployee: updated.map((u) => u.name).join(', ') || 'Unassigned',
-                                      });
-                                    }}
-                                    className="text-[#70665F] hover:text-rose-600 ml-0.5 cursor-pointer"
-                                    title="Remove this staff member from stage"
-                                  >
-                                    <X className="w-2.5 h-2.5" />
-                                  </button>
-                                </span>
-                              ))
-                            ) : stage.responsibleEmployee && stage.responsibleEmployee !== 'Unassigned' ? (
-                              <span
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#FAF7F2] text-[#4A3E39] border border-[#E7DED5] text-[10px] font-semibold"
-                                title={stage.responsibleEmployee}
-                              >
-                                <div className="w-3.5 h-3.5 rounded-full bg-[#75401F] text-white text-[8px] font-black flex items-center justify-center">
-                                  {stage.responsibleEmployee.slice(0, 1).toUpperCase()}
-                                </div>
-                                <span className="truncate max-w-[100px]">{stage.responsibleEmployee}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    updatePlanningStage(stage.id, {
-                                      assignedEmployees: [],
-                                      assignedEmployeeIds: [],
-                                      responsibleEmployee: 'Unassigned',
-                                    });
-                                  }}
-                                  className="text-[#70665F] hover:text-rose-600 ml-0.5 cursor-pointer"
-                                  title="Clear Assignee"
-                                >
-                                  <X className="w-2.5 h-2.5" />
-                                </button>
-                              </span>
-                            ) : null}
-
-                            {/* Dropdown to assign from Employee & Staff Management (One employee can be assigned to multiple stages) */}
+                        {/* Department (Sleek Rounded Pill Badge) */}
+                        <td className="p-3 whitespace-nowrap align-middle">
+                          <div className="relative inline-block">
                             <select
-                              value=""
+                              value={(stage.responsibleDepartment || 'production').toLowerCase()}
                               onChange={(e) => {
-                                const empId = e.target.value;
-                                if (!empId) return;
-                                const found = staffList.find((emp) => emp.id === empId || emp.username === empId);
-                                if (!found) return;
-                                const empName = found.name || `${found.firstName} ${found.lastName}`.trim();
-                                const existing = stage.assignedEmployees && stage.assignedEmployees.length > 0
-                                  ? stage.assignedEmployees
-                                  : stage.responsibleEmployee && stage.responsibleEmployee !== 'Unassigned'
-                                  ? [{ id: `emp_${Date.now()}`, name: stage.responsibleEmployee, role: 'Staff', department: stage.responsibleDepartment }]
-                                  : [];
-                                if (existing.some((x) => x.id === found.id || x.name === empName)) return;
-                                const newAssignees: PlanningStageAssignee[] = [
-                                  ...existing,
-                                  {
-                                    id: found.id,
-                                    name: empName,
-                                    role: found.designation || found.roleName || 'Team Member',
-                                    department: found.departmentName || stage.responsibleDepartment,
-                                  },
-                                ];
                                 updatePlanningStage(stage.id, {
-                                  assignedEmployees: newAssignees,
-                                  assignedEmployeeIds: newAssignees.map((u) => u.id),
-                                  responsibleEmployee: newAssignees.map((u) => u.name).join(', '),
+                                  responsibleDepartment: e.target.value,
                                 });
                               }}
-                              className="px-1.5 py-0.5 bg-white hover:bg-[#FAF7F2] border border-dashed border-[#75401F]/40 text-[#75401F] rounded text-[10px] font-bold cursor-pointer focus:outline-none transition max-w-[125px]"
-                              title="Assign employee from Employee & Staff Management directory"
+                              title="Click to change department directly"
+                              className={`appearance-none pl-2.5 pr-6 py-1 rounded-full font-mono text-[10px] font-extrabold uppercase border cursor-pointer focus:outline-none transition shadow-2xs ${getDeptBadge(
+                                stage.responsibleDepartment
+                              )}`}
                             >
-                              <option value="">+ Assign Staff</option>
-                              {staffList.map((emp) => {
-                                const empName = emp.name || `${emp.firstName} ${emp.lastName}`.trim();
-                                return (
-                                  <option key={emp.id} value={emp.id}>
-                                    {empName} ({emp.departmentName || emp.designation || 'Staff'})
-                                  </option>
-                                );
-                              })}
+                              <option value="crm">CRM</option>
+                              <option value="project">PROJECT</option>
+                              <option value="designer">DESIGNER</option>
+                              <option value="purchase">PURCHASE</option>
+                              <option value="store">STORE</option>
+                              <option value="production">PRODUCTION</option>
+                              <option value="maintenance">MAINTENANCE</option>
+                              <option value="accounting">ACCOUNTING</option>
                             </select>
+                            <ChevronDown className="w-2.5 h-2.5 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-60" />
                           </div>
                         </td>
 
-                        {/* Planned Schedule (Direct Inline Date Inputs) */}
-                        <td className="p-3.5 whitespace-nowrap align-middle">
-                          <div className="flex flex-col gap-1 text-[10px] font-mono">
-                            <div className="flex items-center gap-1">
-                              <span className="text-[9px] font-bold text-[#70665F] uppercase w-8">Plan:</span>
-                              <input
-                                type="date"
-                                value={stage.plannedStart ? stage.plannedStart.slice(0, 10) : ''}
-                                onChange={(e) => {
-                                  updatePlanningStage(stage.id, {
-                                    plannedStart: e.target.value,
-                                  });
-                                }}
-                                title="Planned Start Date"
-                                className="px-1.5 py-0.5 bg-white border border-[#E7DED5] rounded text-[10px] text-[#211B17] focus:outline-none focus:border-[#75401F] cursor-pointer"
+                        {/* Assigned Team / Assignees (Compact Avatar Stack + Popover Manager) */}
+                        <td className="p-3 align-middle relative min-w-[210px]">
+                          <div className="flex items-center gap-1.5 flex-nowrap">
+                            {assigneesList.length > 0 ? (
+                              <>
+                                {/* Show first 2 assignees as compact chips */}
+                                {assigneesList.slice(0, 2).map((a, aIdx) => (
+                                  <span
+                                    key={a.id || aIdx}
+                                    onClick={() => setAssigneePopoverStageId(stage.id)}
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FAF7F2] text-[#4A3E39] border border-[#E7DED5] text-[10px] font-semibold hover:border-[#75401F] cursor-pointer transition shadow-2xs"
+                                    title={`${a.name} (${a.role || a.department || 'Staff'}) - Click to manage`}
+                                  >
+                                    <div className="w-3.5 h-3.5 rounded-full bg-[#75401F] text-white text-[8px] font-black flex items-center justify-center shrink-0">
+                                      {a.name?.slice(0, 1)?.toUpperCase() || 'U'}
+                                    </div>
+                                    <span className="truncate max-w-[80px]">{a.name}</span>
+                                  </span>
+                                ))}
+
+                                {/* More badge if > 2 */}
+                                {assigneesList.length > 2 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setAssigneePopoverStageId(stage.id)}
+                                    className="px-1.5 py-0.5 rounded-full bg-[#FAF3EA] text-[#75401F] border border-[#E7DED5] text-[9px] font-bold hover:bg-[#75401F] hover:text-white transition cursor-pointer shadow-2xs"
+                                    title={`+${assigneesList.length - 2} more staff members assigned. Click to view.`}
+                                  >
+                                    +{assigneesList.length - 2}
+                                  </button>
+                                )}
+                              </>
+                            ) : stage.responsibleEmployee && stage.responsibleEmployee !== 'Unassigned' ? (
+                              <span
+                                onClick={() => setAssigneePopoverStageId(stage.id)}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FAF7F2] text-[#4A3E39] border border-[#E7DED5] text-[10px] font-semibold hover:border-[#75401F] cursor-pointer transition shadow-2xs"
+                                title={stage.responsibleEmployee}
+                              >
+                                <div className="w-3.5 h-3.5 rounded-full bg-[#75401F] text-white text-[8px] font-black flex items-center justify-center shrink-0">
+                                  {stage.responsibleEmployee.slice(0, 1).toUpperCase()}
+                                </div>
+                                <span className="truncate max-w-[85px]">{stage.responsibleEmployee}</span>
+                              </span>
+                            ) : (
+                              <span
+                                onClick={() => setAssigneePopoverStageId(stage.id)}
+                                className="text-[10px] text-[#70665F] italic cursor-pointer hover:underline"
+                              >
+                                Unassigned
+                              </span>
+                            )}
+
+                            {/* Add / Manage Button */}
+                            <button
+                              type="button"
+                              onClick={() => setAssigneePopoverStageId(assigneePopoverStageId === stage.id ? null : stage.id)}
+                              className="w-5 h-5 rounded-full bg-white hover:bg-[#FAF3EA] border border-dashed border-[#75401F]/50 text-[#75401F] flex items-center justify-center hover:scale-105 transition cursor-pointer shrink-0 shadow-2xs"
+                              title="Add or remove assigned staff from Employee & Staff Management directory"
+                            >
+                              <Plus className="w-3 h-3 text-[#75401F]" />
+                            </button>
+                          </div>
+
+                          {/* Floating Popover: Multi-Staff Manager */}
+                          {assigneePopoverStageId === stage.id && (
+                            <>
+                              <div
+                                className="fixed inset-0 z-40"
+                                onClick={() => setAssigneePopoverStageId(null)}
                               />
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <span className="text-[9px] font-bold text-[#70665F] uppercase w-8">Due:</span>
-                              <input
-                                type="date"
-                                value={stage.plannedEnd ? stage.plannedEnd.slice(0, 10) : ''}
-                                onChange={(e) => {
-                                  updatePlanningStage(stage.id, {
-                                    plannedEnd: e.target.value,
-                                  });
-                                }}
-                                title="Planned End Date"
-                                className="px-1.5 py-0.5 bg-white border border-[#E7DED5] rounded text-[10px] text-[#211B17] focus:outline-none focus:border-[#75401F] cursor-pointer"
-                              />
-                            </div>
+                              <div className="absolute left-0 top-full mt-1.5 z-50 w-72 bg-white rounded-xl border border-[#E7DED5] shadow-xl p-3 animate-in fade-in zoom-in-95 duration-150">
+                                <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#E7DED5]">
+                                  <div className="flex items-center gap-1.5 font-bold text-xs text-[#211B17]">
+                                    <Users className="w-3.5 h-3.5 text-[#75401F]" />
+                                    <span>Manage Assigned Staff</span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => setAssigneePopoverStageId(null)}
+                                    className="p-1 text-[#70665F] hover:text-[#211B17] rounded-md hover:bg-[#FAF7F2]"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+
+                                {/* Current Assignees List */}
+                                <div className="space-y-1.5 max-h-36 overflow-y-auto mb-2.5 pr-0.5">
+                                  {assigneesList.length > 0 ? (
+                                    assigneesList.map((a, aIdx) => (
+                                      <div
+                                        key={a.id || aIdx}
+                                        className="flex items-center justify-between p-1.5 bg-[#FAF7F2] rounded-lg border border-[#E7DED5] text-xs"
+                                      >
+                                        <div className="flex items-center gap-2 min-w-0">
+                                          <div className="w-5 h-5 rounded-full bg-[#75401F] text-white text-[9px] font-black flex items-center justify-center shrink-0">
+                                            {a.name?.slice(0, 1)?.toUpperCase() || 'U'}
+                                          </div>
+                                          <div className="min-w-0">
+                                            <p className="font-bold text-[#211B17] text-[11px] truncate">{a.name}</p>
+                                            <p className="text-[9px] text-[#70665F] truncate">{a.role || a.department || 'Staff'}</p>
+                                          </div>
+                                        </div>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const updated = assigneesList.filter((_, idx) => idx !== aIdx);
+                                            updatePlanningStage(stage.id, {
+                                              assignedEmployees: updated,
+                                              assignedEmployeeIds: updated.map((u) => u.id),
+                                              responsibleEmployee: updated.map((u) => u.name).join(', ') || 'Unassigned',
+                                            });
+                                          }}
+                                          className="p-1 text-[#70665F] hover:text-rose-600 rounded hover:bg-white"
+                                          title="Remove this staff member"
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <p className="text-[10px] text-[#70665F] italic py-1 text-center">No staff assigned yet.</p>
+                                  )}
+                                </div>
+
+                                {/* Add Staff Select */}
+                                <div>
+                                  <label className="block text-[10px] font-bold text-[#4A3E39] mb-1">
+                                    + Assign Staff Member:
+                                  </label>
+                                  <select
+                                    value=""
+                                    onChange={(e) => {
+                                      const empId = e.target.value;
+                                      if (!empId) return;
+                                      const found = staffList.find((emp) => emp.id === empId || emp.username === empId);
+                                      if (!found) return;
+                                      const empName = found.name || `${found.firstName} ${found.lastName}`.trim();
+                                      const existing = stage.assignedEmployees && stage.assignedEmployees.length > 0
+                                        ? stage.assignedEmployees
+                                        : stage.responsibleEmployee && stage.responsibleEmployee !== 'Unassigned'
+                                        ? [{ id: `emp_${Date.now()}`, name: stage.responsibleEmployee, role: 'Staff', department: stage.responsibleDepartment }]
+                                        : [];
+                                      if (existing.some((x) => x.id === found.id || x.name === empName)) return;
+                                      const newAssignees: PlanningStageAssignee[] = [
+                                        ...existing,
+                                        {
+                                          id: found.id,
+                                          name: empName,
+                                          role: found.designation || found.roleName || 'Team Member',
+                                          department: found.departmentName || stage.responsibleDepartment,
+                                        },
+                                      ];
+                                      updatePlanningStage(stage.id, {
+                                        assignedEmployees: newAssignees,
+                                        assignedEmployeeIds: newAssignees.map((u) => u.id),
+                                        responsibleEmployee: newAssignees.map((u) => u.name).join(', '),
+                                      });
+                                    }}
+                                    className="w-full px-2 py-1.5 bg-white border border-[#E7DED5] rounded-lg text-xs font-semibold text-[#211B17] focus:outline-none focus:border-[#75401F] cursor-pointer"
+                                  >
+                                    <option value="">Select Staff to Assign...</option>
+                                    {staffList.map((emp) => {
+                                      const empName = emp.name || `${emp.firstName} ${emp.lastName}`.trim();
+                                      const isAlready = assigneesList.some((x) => x.id === emp.id || x.name === empName);
+                                      return (
+                                        <option key={emp.id} value={emp.id} disabled={isAlready}>
+                                          {empName} ({emp.departmentName || emp.designation || 'Staff'}) {isAlready ? '✓ Added' : ''}
+                                        </option>
+                                      );
+                                    })}
+                                  </select>
+                                </div>
+                              </div>
+                            </>
+                          )}
+                        </td>
+
+                        {/* Planned Schedule (Sleek Single Horizontal Capsule) */}
+                        <td className="p-3 whitespace-nowrap align-middle">
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#FAF7F2] border border-[#E7DED5] text-[10px] font-mono text-[#4A3E39] shadow-2xs hover:border-[#75401F] transition">
+                            <Calendar className="w-3.5 h-3.5 text-[#75401F] shrink-0" />
+                            <input
+                              type="date"
+                              value={stage.plannedStart ? stage.plannedStart.slice(0, 10) : ''}
+                              onChange={(e) => {
+                                updatePlanningStage(stage.id, {
+                                  plannedStart: e.target.value,
+                                });
+                              }}
+                              title="Planned Start Date"
+                              className="bg-transparent border-0 p-0 text-[10px] font-mono font-bold text-[#211B17] focus:outline-none cursor-pointer w-[88px]"
+                            />
+                            <span className="text-[#8C7A6E] font-bold">→</span>
+                            <input
+                              type="date"
+                              value={stage.plannedEnd ? stage.plannedEnd.slice(0, 10) : ''}
+                              onChange={(e) => {
+                                updatePlanningStage(stage.id, {
+                                  plannedEnd: e.target.value,
+                                });
+                              }}
+                              title="Planned End Date"
+                              className="bg-transparent border-0 p-0 text-[10px] font-mono font-bold text-[#211B17] focus:outline-none cursor-pointer w-[88px]"
+                            />
                           </div>
                         </td>
 
-                        {/* Actual Dates (Direct Inline Date Inputs) */}
-                        <td className="p-3.5 whitespace-nowrap align-middle">
-                          <div className="flex flex-col gap-1 text-[10px] font-mono">
-                            <div className="flex items-center gap-1">
-                              <span className="text-[9px] font-bold text-[#70665F] uppercase w-8">Start:</span>
-                              <input
-                                type="date"
-                                value={stage.actualStart ? stage.actualStart.slice(0, 10) : ''}
-                                onChange={(e) => {
-                                  updatePlanningStage(stage.id, {
-                                    actualStart: e.target.value,
-                                  });
-                                }}
-                                title="Actual Start Date"
-                                className="px-1.5 py-0.5 bg-white border border-[#E7DED5] rounded text-[10px] text-[#211B17] focus:outline-none focus:border-[#75401F] cursor-pointer"
-                              />
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <span className="text-[9px] font-bold text-[#70665F] uppercase w-8">End:</span>
-                              <input
-                                type="date"
-                                value={stage.actualEnd ? stage.actualEnd.slice(0, 10) : ''}
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  updatePlanningStage(stage.id, {
-                                    actualEnd: val,
-                                    ...(val ? { status: 'completed', progressPercent: 100 } : {}),
-                                  });
-                                }}
-                                title="Actual End Date"
-                                className="px-1.5 py-0.5 bg-white border border-[#E7DED5] rounded text-[10px] text-[#211B17] focus:outline-none focus:border-[#75401F] cursor-pointer"
-                              />
-                            </div>
+                        {/* Actual Dates (Sleek Single Horizontal Capsule) */}
+                        <td className="p-3 whitespace-nowrap align-middle">
+                          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-mono shadow-2xs transition ${
+                            stage.status === 'completed'
+                              ? 'bg-emerald-50/70 border-emerald-300 text-emerald-950'
+                              : 'bg-[#FAF7F2] border-[#E7DED5] text-[#4A3E39] hover:border-[#75401F]'
+                          }`}>
+                            <Clock className={`w-3.5 h-3.5 shrink-0 ${stage.status === 'completed' ? 'text-emerald-600' : 'text-[#70665F]'}`} />
+                            <input
+                              type="date"
+                              value={stage.actualStart ? stage.actualStart.slice(0, 10) : ''}
+                              onChange={(e) => {
+                                updatePlanningStage(stage.id, {
+                                  actualStart: e.target.value,
+                                });
+                              }}
+                              title="Actual Start Date"
+                              className="bg-transparent border-0 p-0 text-[10px] font-mono font-bold text-[#211B17] focus:outline-none cursor-pointer w-[88px]"
+                            />
+                            <span className="text-[#8C7A6E] font-bold">→</span>
+                            <input
+                              type="date"
+                              value={stage.actualEnd ? stage.actualEnd.slice(0, 10) : ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                updatePlanningStage(stage.id, {
+                                  actualEnd: val,
+                                  ...(val ? { status: 'completed', progressPercent: 100 } : {}),
+                                });
+                              }}
+                              title="Actual End Date (Setting date marks Completed)"
+                              className="bg-transparent border-0 p-0 text-[10px] font-mono font-bold text-[#211B17] focus:outline-none cursor-pointer w-[88px]"
+                            />
                           </div>
                           {stage.completedBy && (
                             <span className="text-[9px] text-emerald-700 font-sans block mt-0.5">
@@ -1074,10 +1156,10 @@ export default function ProjectPlanningPage() {
                           )}
                         </td>
 
-                        {/* Progress (Direct Inline Input & Animated Bar) */}
-                        <td className="p-3.5 whitespace-nowrap align-middle">
-                          <div className="w-24">
-                            <div className="flex items-center gap-1 mb-1">
+                        {/* Progress (Sleek Inline Control) */}
+                        <td className="p-3 whitespace-nowrap align-middle">
+                          <div className="w-20">
+                            <div className="flex items-center justify-between mb-1">
                               <input
                                 type="number"
                                 min={0}
@@ -1093,8 +1175,8 @@ export default function ProjectPlanningPage() {
                                     ...(isComp && !stage.actualEnd ? { actualEnd: new Date().toISOString().split('T')[0] } : {}),
                                   });
                                 }}
-                                title="Directly edit Progress Percentage (0 to 100%)"
-                                className="w-12 px-1 py-0.5 bg-white border border-[#E7DED5] rounded font-mono font-bold text-[10px] text-[#211B17] text-center focus:outline-none focus:border-[#75401F]"
+                                title="Edit progress percentage (0 - 100)"
+                                className="w-10 bg-transparent border-0 p-0 font-mono font-black text-xs text-[#211B17] text-right focus:outline-none focus:underline"
                               />
                               <span className="font-mono text-[10px] text-[#70665F] font-bold">%</span>
                             </div>
@@ -1110,20 +1192,23 @@ export default function ProjectPlanningPage() {
                           </div>
                         </td>
 
-                        {/* Status Dropdown */}
-                        <td className="p-3.5 whitespace-nowrap align-middle">
-                          <select
-                            value={stage.status}
-                            onChange={(e) => handleStatusChange(stage.id, e.target.value as any)}
-                            className={`px-2 py-1 rounded-lg text-[10px] font-bold border focus:outline-none cursor-pointer transition ${getStatusBadge(
-                              stage.status
-                            )}`}
-                          >
-                            <option value="pending">Pending</option>
-                            <option value="in_progress">In Progress</option>
-                            <option value="completed">Completed</option>
-                            <option value="delayed">Delayed</option>
-                          </select>
+                        {/* Status Dropdown (Sleek Rounded Pill Badge) */}
+                        <td className="p-3 whitespace-nowrap align-middle">
+                          <div className="relative inline-block">
+                            <select
+                              value={stage.status}
+                              onChange={(e) => handleStatusChange(stage.id, e.target.value as any)}
+                              className={`appearance-none pl-2.5 pr-6 py-1 rounded-full text-[10px] font-bold border cursor-pointer focus:outline-none transition shadow-2xs ${getStatusBadge(
+                                stage.status
+                              )}`}
+                            >
+                              <option value="pending">Pending</option>
+                              <option value="in_progress">In Progress</option>
+                              <option value="completed">Completed</option>
+                              <option value="delayed">Delayed</option>
+                            </select>
+                            <ChevronDown className="w-2.5 h-2.5 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-60" />
+                          </div>
                         </td>
 
                         {/* Action Buttons */}
