@@ -382,8 +382,11 @@ export function deduplicatePlanningStages(stages: ProjectPlanningStage[]): Proje
     stg.progressPercent = Number(stg.progressPercent ?? (stg as any).progress ?? 0);
     stg.responsibleDepartment = stg.responsibleDepartment || (stg as any).department || 'production';
     stg.responsibleEmployee = stg.responsibleEmployee || (stg as any).assignedEmployeeName || (stg as any).assigned_employee_name || '';
+    stg.assignedEmployees = Array.isArray(stg.assignedEmployees) ? stg.assignedEmployees : (Array.isArray((stg as any).assigned_employees) ? (stg as any).assigned_employees : []);
     stg.plannedStart = stg.plannedStart || (stg as any).startDate || (stg as any).start_date || '';
     stg.plannedEnd = stg.plannedEnd || (stg as any).endDate || (stg as any).end_date || '';
+    stg.actualStart = stg.actualStart || (stg as any).actual_start || '';
+    stg.actualEnd = stg.actualEnd || (stg as any).actual_end || '';
     stg.remarks = stg.remarks || (stg as any).description || '';
 
     const prjKey = normalizeProjectKey(stg);
