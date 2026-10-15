@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useERP } from '../../../../context/ERPContext';
+import { api } from '../../../../lib/apiClient';
 import { StatusBadge } from '../../../../components/workflow/StatusBadge';
 import { formatCurrency, formatDate } from '../../../../lib/utils';
 import {
@@ -20,6 +21,8 @@ import {
   Sparkles,
   PhoneCall,
   MessageSquare,
+  Mail,
+  Loader2,
 } from 'lucide-react';
 import { QuotationRevision } from '../../../../types/crm';
 
@@ -80,10 +83,41 @@ export default function QuotationDetailPage() {
     setTimeout(() => setActionMsg(''), 3000);
   };
 
-  const handleSendToCustomer = () => {
-    updateQuotationStatus(quotation.id, currentRev.revisionNumber, 'sent');
-    setActionMsg(`Quotation revision ${currentRev.revisionNumber} sent to client.`);
-    setTimeout(() => setActionMsg(''), 3000);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+
+  const handleSendEmailQuotation = async () => {
+    const recipient = String(quotation.contactEmail || '').trim();
+    if (!recipient) {
+      alert(`No customer email address is linked to quotation ${quotation.quotationNumber}. Please ensure a valid customer email exists.`);
+      return;
+    }
+
+    setIsSendingEmail(true);
+    setActionMsg(`Sending quotation proposal to ${recipient}...`);
+
+    try {
+      // Dispatch email via Django backend SMTP endpoint
+      const res = await api.crm.quotations.sendEmail(quotation.id, recipient);
+
+      // Update quotation status to sent in local context
+      updateQuotationStatus(quotation.id, currentRev.revisionNumber, 'sent');
+
+      if (res && res.success === false) {
+        setActionMsg(`Quotation updated to Sent. Email notice: ${res.error || 'Check SMTP configuration.'}`);
+      } else {
+        setActionMsg(`Quotation ${quotation.quotationNumber} (${currentRev.revisionNumber}) email successfully sent to ${recipient}!`);
+      }
+      setTimeout(() => setActionMsg(''), 7000);
+    } catch (err: any) {
+      console.warn('Backend email dispatch notice:', err);
+      // Still transition status so commercial workflow is never blocked
+      updateQuotationStatus(quotation.id, currentRev.revisionNumber, 'sent');
+      const errDetail = err?.data?.error || err?.message || 'SMTP server error.';
+      setActionMsg(`Quotation marked as Sent. Email dispatch notice: ${errDetail}`);
+      setTimeout(() => setActionMsg(''), 8000);
+    } finally {
+      setIsSendingEmail(false);
+    }
   };
 
   const handleCustomerAccept = () => {
@@ -216,13 +250,24 @@ export default function QuotationDetailPage() {
               </button>
             )}
 
-            {currentRev.status === 'approved' && (
+            {(currentRev.status === 'approved' || currentRev.status === 'sent') && (
               <button
-                onClick={handleSendToCustomer}
-                className="px-3.5 py-1.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-lg font-bold flex items-center gap-1 shadow-sm"
+                onClick={handleSendEmailQuotation}
+                disabled={isSendingEmail}
+                className="px-3.5 py-1.5 bg-crm-brand-700 hover:bg-crm-brand-800 disabled:opacity-60 text-white rounded-lg font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer"
+                title={`Send Quotation via Email to ${quotation.contactEmail || quotation.customerName}`}
               >
-                <Send className="w-3.5 h-3.5" />
-                <span>Dispatch to Customer</span>
+                {isSendingEmail ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Sending Email...</span>
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>{currentRev.status === 'sent' ? 'Resend Email Quotation' : 'Send Email Quotation'}</span>
+                  </>
+                )}
               </button>
             )}
 
