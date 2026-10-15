@@ -24,7 +24,6 @@ import {
   AlertTriangle,
   TrendingUp,
   FileCheck2,
-  ClipboardList,
   Building,
   MapPin,
   Tag,
@@ -47,7 +46,6 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
     updateLead,
     deleteLead,
     convertLeadToCustomer,
-    convertLeadToEnquiry,
     quotations,
     employees,
     availableEmployees,
@@ -116,19 +114,6 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
       setTimeout(() => setSuccessMsg(''), 8000);
     } catch (err) {
       console.error('Error converting lead:', err);
-    }
-  };
-
-  const handleConvertToEnquiry = async (leadId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      const enq = await convertLeadToEnquiry(leadId);
-      setSuccessMsg(
-        `Lead successfully converted to Enquiry "${enq.enquiryNo}"! Ready for technical review or quotation generation.`
-      );
-      setTimeout(() => setSuccessMsg(''), 8000);
-    } catch (err) {
-      console.error('Error converting lead to enquiry:', err);
     }
   };
 
@@ -379,33 +364,11 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
     },
     {
       header: 'Actions',
-      className: 'w-[185px] whitespace-nowrap text-right align-top',
+      className: 'w-[140px] whitespace-nowrap text-right align-top',
       cell: (lead) => {
         const isConverted = lead.status === 'won' || !!lead.convertedCustomerId;
         return (
           <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
-            {/* Primary Action Button */}
-            {!lead.convertedEnquiryId ? (
-              <button
-                onClick={(e) => handleConvertToEnquiry(lead.id, e)}
-                title="Convert Lead to Technical Enquiry (RFQ)"
-                className="px-2 py-1 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white rounded-lg text-[10px] font-bold transition flex items-center gap-1 shadow-2xs cursor-pointer whitespace-nowrap"
-              >
-                <ClipboardList className="w-3 h-3" /> + Enquiry
-              </button>
-            ) : (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  router.push('/crm/enquiries');
-                }}
-                title={`Linked to Enquiry ${lead.convertedEnquiryId}`}
-                className="px-2 py-0.5 rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-300 text-[10px] font-bold flex items-center gap-1 whitespace-nowrap cursor-pointer"
-              >
-                <CheckCircle2 className="w-3 h-3 text-amber-600" /> {lead.convertedEnquiryId}
-              </button>
-            )}
-
             {!isConverted ? (
               <button
                 onClick={(e) => handleConvertLead(lead.id, e)}
