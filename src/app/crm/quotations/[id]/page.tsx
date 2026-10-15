@@ -45,7 +45,14 @@ export default function QuotationDetailPage() {
     return d.toISOString().split('T')[0];
   });
   const [remarks, setRemarks] = useState('');
-  const [actionMsg, setActionMsg] = useState('');
+  const [actionFeedback, setActionFeedback] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+
+  const showFeedback = (type: 'success' | 'error' | 'info', message: string, duration = 6000) => {
+    setActionFeedback({ type, message });
+    if (duration > 0) {
+      setTimeout(() => setActionFeedback(null), duration);
+    }
+  };
 
   // Quotation Follow-up Modal State
   const [showFlwModal, setShowFlwModal] = useState(false);
@@ -79,8 +86,7 @@ export default function QuotationDetailPage() {
 
   const handleApprove = () => {
     updateQuotationStatus(quotation.id, currentRev.revisionNumber, 'approved');
-    setActionMsg(`Quotation revision ${currentRev.revisionNumber} officially APPROVED.`);
-    setTimeout(() => setActionMsg(''), 3000);
+    showFeedback('success', `Quotation revision ${currentRev.revisionNumber} officially APPROVED.`);
   };
 
   const [isSendingEmail, setIsSendingEmail] = useState(false);
@@ -93,28 +99,27 @@ export default function QuotationDetailPage() {
     }
 
     setIsSendingEmail(true);
-    setActionMsg(`Sending quotation proposal to ${recipient}...`);
+    showFeedback('info', `Sending quotation proposal to ${recipient}...`, 0);
 
     try {
       // Dispatch email via Django backend SMTP endpoint
       const res = await api.crm.quotations.sendEmail(quotation.id, recipient);
 
-      // Update quotation status to sent in local context
-      updateQuotationStatus(quotation.id, currentRev.revisionNumber, 'sent');
-
       if (res && res.success === false) {
-        setActionMsg(`Quotation updated to Sent. Email notice: ${res.error || 'Check SMTP configuration.'}`);
+        showFeedback(
+          'error',
+          `Quotation updated, but Email sending failed: ${res.error || 'SMTP Authentication required'}.`,
+          10000
+        );
       } else {
-        setActionMsg(`Quotation ${quotation.quotationNumber} (${currentRev.revisionNumber}) email successfully sent to ${recipient}!`);
+        // Update quotation status to sent in local context
+        updateQuotationStatus(quotation.id, currentRev.revisionNumber, 'sent');
+        showFeedback('success', `Quotation ${quotation.quotationNumber} (${currentRev.revisionNumber}) email successfully sent to ${recipient}!`, 7000);
       }
-      setTimeout(() => setActionMsg(''), 7000);
     } catch (err: any) {
       console.warn('Backend email dispatch notice:', err);
-      // Still transition status so commercial workflow is never blocked
-      updateQuotationStatus(quotation.id, currentRev.revisionNumber, 'sent');
       const errDetail = err?.data?.error || err?.message || 'SMTP server error.';
-      setActionMsg(`Quotation marked as Sent. Email dispatch notice: ${errDetail}`);
-      setTimeout(() => setActionMsg(''), 8000);
+      showFeedback('error', `Email sending error: ${errDetail}`, 10000);
     } finally {
       setIsSendingEmail(false);
     }
@@ -160,8 +165,7 @@ export default function QuotationDetailPage() {
 
     addQuotationRevision(quotation.id, newRev);
     setSelectedRevNum(nextRevNum);
-    setActionMsg(`Created new editable revision: ${nextRevNum}`);
-    setTimeout(() => setActionMsg(''), 3000);
+    showFeedback('info', `Created new editable revision: ${nextRevNum}`, 4000);
   };
 
   return (
@@ -179,9 +183,22 @@ export default function QuotationDetailPage() {
         </button>
       </div>
 
-      {actionMsg && (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl font-semibold print:hidden">
-          ✓ {actionMsg}
+      {actionFeedback && (
+        <div
+          className={`p-3.5 rounded-xl font-semibold print:hidden flex items-start gap-2.5 border transition-all ${
+            actionFeedback.type === 'success'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+              : actionFeedback.type === 'error'
+              ? 'bg-rose-50 border-rose-300 text-rose-800 shadow-sm'
+              : 'bg-amber-50 border-amber-200 text-amber-900'
+          }`}
+        >
+          <span className="text-sm font-black">
+            {actionFeedback.type === 'success' ? '✓' : actionFeedback.type === 'error' ? '⚠️' : 'ℹ️'}
+          </span>
+          <div className="flex-1 text-xs leading-relaxed">
+            {actionFeedback.message}
+          </div>
         </div>
       )}
 
@@ -544,8 +561,7 @@ export default function QuotationDetailPage() {
                   status: 'pending',
                 });
                 setShowFlwModal(false);
-                setActionMsg(`Scheduled next follow-up on ${formatDate(flwDate)}.`);
-                setTimeout(() => setActionMsg(''), 4000);
+                showFeedback('success', `Scheduled next follow-up on ${formatDate(flwDate)}.`);
               }}
               className="space-y-3 text-xs"
             >
