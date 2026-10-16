@@ -223,13 +223,6 @@ function WorkOrderCompletionContent() {
 
         <div className="flex items-center gap-2.5">
           <button
-            onClick={() => router.push('/production/finished-goods')}
-            className="flex items-center gap-1.5 bg-[#FAF7F2] hover:bg-[#EFE8DF] text-[#544B45] text-xs font-bold px-3.5 py-2.5 rounded-xl border border-[#E5DCD3] transition cursor-pointer"
-          >
-            <PackageCheck className="w-4 h-4 text-sky-700" />
-            <span>View Finished Goods Warehouse</span>
-          </button>
-          <button
             onClick={() => {
               const pendingWo = workOrders.find((w) => w.status !== 'Completed') || workOrders[0];
               if (pendingWo) {
@@ -265,13 +258,6 @@ function WorkOrderCompletionContent() {
             </div>
           </div>
           <div className="flex items-center gap-2 self-end sm:self-auto">
-            <button
-              onClick={() => router.push('/production/finished-goods')}
-              className="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs cursor-pointer flex items-center gap-1.5 transition active:scale-95"
-            >
-              <PackageCheck className="w-4 h-4" />
-              <span>View in Finished Goods →</span>
-            </button>
             <button
               onClick={() => setSuccessNotification(null)}
               className="p-2 text-emerald-700 hover:text-emerald-900 rounded-lg hover:bg-emerald-100 cursor-pointer"
@@ -660,19 +646,6 @@ function WorkOrderCompletionContent() {
                     <p className="text-[11px] text-emerald-800 leading-relaxed">
                       Work Order <strong>{currentWo.workOrderNumber}</strong> ({currentWo.productName}) has already been certified and transferred to Finished Goods Warehouse.
                     </p>
-                    <div className="flex items-center gap-2 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          closeModal();
-                          router.push('/production/finished-goods');
-                        }}
-                        className="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[11px] cursor-pointer flex items-center gap-1"
-                      >
-                        <PackageCheck className="w-3.5 h-3.5" />
-                        <span>View in Finished Goods Warehouse →</span>
-                      </button>
-                    </div>
                   </div>
                 </div>
               )}

@@ -443,14 +443,6 @@ export default function ProjectListPage() {
               <CheckSquare className="w-3.5 h-3.5" />
             </Link>
 
-            {/* Assign Department */}
-            <Link
-              href={`/projects/department-assignments?projectId=${p.id}`}
-              title="Assign Department"
-              className="p-1.5 text-purple-700 hover:text-purple-900 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg transition"
-            >
-              <Users className="w-3.5 h-3.5" />
-            </Link>
 
             {/* Delete Button */}
             <button

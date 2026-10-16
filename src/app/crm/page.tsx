@@ -286,18 +286,18 @@ export default function CRMDashboardPage() {
             <span className="font-bold text-[#211B17] flex items-center gap-1.5">
               <Briefcase className="w-4 h-4 text-[#75401F]" /> CRM → Project Handover
             </span>
-            <Link href="/crm/sales-orders" className="text-[#75401F] hover:underline text-[11px] font-bold">
-              Sales Orders
+            <Link href="/crm/customer-po" className="text-[#75401F] hover:underline text-[11px] font-bold">
+              Customer POs
             </Link>
           </div>
           <p className="text-[#70665F] text-[11px] leading-relaxed">
-            Confirmed sales orders can immediately initiate an Engineering Project and Job Number (`JOB-2026-XXX`) with 1-click.
+            Received customer purchase orders can be managed and converted into active projects seamlessly.
           </p>
           <Link
-            href="/crm/sales-orders"
+            href="/crm/customer-po"
             className="w-full py-2 bg-[#FAF7F2] text-[#75401F] hover:bg-[#F3ECE4] border border-[#E7DED5] rounded-xl font-bold flex items-center justify-center gap-1.5 transition"
           >
-            <span>Open Sales Orders to Convert</span>
+            <span>Open Customer POs</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>

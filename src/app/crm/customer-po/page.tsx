@@ -19,8 +19,7 @@ export default function CustomerPOPage() {
     setSuccessMsg(`Generated Sales Order ${newSO.salesOrderNumber} from Customer PO.`);
     setTimeout(() => {
       setSuccessMsg('');
-      router.push('/crm/sales-orders');
-    }, 1500);
+    }, 2500);
   };
 
   const handleExportCSV = () => {
@@ -49,8 +48,6 @@ export default function CustomerPOPage() {
       onCodeClick: (po) => {
         if (po.quotationId) {
           router.push(`/crm/quotations/${po.quotationId}`);
-        } else {
-          router.push('/crm/sales-orders');
         }
       },
       cell: (po) => (
@@ -125,13 +122,9 @@ export default function CustomerPOPage() {
         return (
           <div className="whitespace-nowrap">
             {isConverted ? (
-              <Link
-                href="/crm/sales-orders"
-                className="font-mono font-bold text-purple-700 hover:underline text-xs inline-flex items-center gap-1 bg-purple-50 px-2 py-0.5 rounded border border-purple-200"
-              >
-                <span>SO: {soNumber || 'View SO'}</span>
-                <ArrowUpRight className="w-3 h-3" />
-              </Link>
+              <span className="font-mono font-bold text-purple-700 text-xs inline-flex items-center gap-1 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+                <span>SO: {soNumber || 'Generated'}</span>
+              </span>
             ) : (
               <button
                 onClick={() => handleCreateSalesOrder(po.id)}

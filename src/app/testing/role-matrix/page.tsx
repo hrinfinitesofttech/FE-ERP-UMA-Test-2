@@ -54,14 +54,14 @@ export default function RoleMatrixPage() {
   const erpModulesAccess = [
     { name: 'ERP Foundation', route: '/users', superAdmin: true, plantDir: true, sales: false, design: false, purchase: false, store: false, prod: false, acc: false, hr: false, service: false },
     { name: 'CRM & Sales', route: '/crm/leads', superAdmin: true, plantDir: true, sales: true, design: false, purchase: false, store: false, prod: false, acc: true, hr: false, service: true },
-    { name: 'Project & Job 360°', route: '/projects/jobs', superAdmin: true, plantDir: true, sales: true, design: true, purchase: true, store: true, prod: true, acc: true, hr: true, service: true },
+    { name: 'Project & Planning', route: '/projects/planning', superAdmin: true, plantDir: true, sales: true, design: true, purchase: true, store: true, prod: true, acc: true, hr: true, service: true },
     { name: 'Design & BOM', route: '/designer/boms', superAdmin: true, plantDir: true, sales: false, design: true, purchase: true, store: true, prod: true, acc: false, hr: false, service: false },
     { name: 'Purchase & RFQ', route: '/purchase/pos', superAdmin: true, plantDir: true, sales: false, design: false, purchase: true, store: true, prod: true, acc: true, hr: false, service: false },
     { name: 'Store & Inventory', route: '/store/inventory', superAdmin: true, plantDir: true, sales: false, design: false, purchase: true, store: true, prod: true, acc: true, hr: false, service: false },
     { name: 'Production & MRP', route: '/production/work-orders', superAdmin: true, plantDir: true, sales: false, design: false, purchase: false, store: true, prod: true, acc: false, hr: false, service: false },
     { name: 'Accounting & GST', route: '/accounting/vouchers', superAdmin: true, plantDir: true, sales: false, design: false, purchase: false, store: false, prod: false, acc: true, hr: false, service: false },
     { name: 'HR & Payroll', route: '/hr/monthly-payroll', superAdmin: true, plantDir: true, sales: false, design: false, purchase: false, store: false, prod: false, acc: false, hr: true, service: false },
-    { name: 'Maintenance & Service', route: '/maintenance/amc', superAdmin: true, plantDir: true, sales: false, design: false, purchase: false, store: false, prod: false, acc: false, hr: false, service: true },
+    { name: 'Maintenance & Service', route: '/maintenance/breakdowns', superAdmin: true, plantDir: true, sales: false, design: false, purchase: false, store: false, prod: false, acc: false, hr: false, service: true },
   ];
 
   const handleRunPermissionSimulation = () => {
@@ -170,8 +170,8 @@ export default function RoleMatrixPage() {
               <option value="/store/inventory" className="bg-white">/store/inventory (Store & Warehouse)</option>
               <option value="/production/work-orders" className="bg-white">/production/work-orders (Production & Shop Floor)</option>
               <option value="/crm/leads" className="bg-white">/crm/leads (CRM & Sales)</option>
-              <option value="/projects/jobs" className="bg-white">/projects/jobs (Project & Job 360°)</option>
-              <option value="/maintenance/amc" className="bg-white">/maintenance/amc (Maintenance)</option>
+              <option value="/projects/planning" className="bg-white">/projects/planning (Project Planning)</option>
+              <option value="/maintenance/breakdowns" className="bg-white">/maintenance/breakdowns (Maintenance & Breakdowns)</option>
               <option value="/users" className="bg-white">/users (ERP Foundation / System Admin)</option>
             </select>
           </div>

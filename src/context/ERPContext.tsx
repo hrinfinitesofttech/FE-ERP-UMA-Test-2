@@ -6594,7 +6594,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       message: `${soNo} created for ${po.customerName}. Click to create Project / Job.`,
       type: 'success',
       department: 'crm',
-      linkUrl: '/crm/sales-orders',
+      linkUrl: '/crm/customer-po',
       priority: 'high',
     });
     const soPayload = {
@@ -7943,7 +7943,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       message: `${issNo} reported in ${data.department} department for ${data.jobNumber}`,
       type: 'warning',
       department: 'project',
-      linkUrl: '/projects/jobs',
+      linkUrl: '/projects/planning',
       priority: 'high',
     });
     api.post('/project-issues/', newIssue).catch((err) => console.warn('Failed to add project issue:', err));
@@ -8008,7 +8008,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       message: `${crNo} submitted for ${data.jobNumber} (Cost Impact: ₹${data.costImpact})`,
       type: 'approval_request',
       department: 'project',
-      linkUrl: '/projects/jobs',
+      linkUrl: '/projects/planning',
       priority: 'high',
     });
     api.projects.createChangeRequest(newCR).then((res) => {

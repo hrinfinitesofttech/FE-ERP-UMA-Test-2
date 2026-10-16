@@ -184,12 +184,6 @@ export default function ProductionDashboardPage() {
           >
             <Plus className="w-4 h-4" /> Create Work Order
           </Link>
-          <Link
-            href="/production/entry"
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-[#FAF7F2] text-[#544B45] font-medium text-xs border border-[#EBE3DB] transition"
-          >
-            <Activity className="w-4 h-4 text-emerald-400" /> Operator Entry
-          </Link>
           <button
             onClick={() => openJobModal(manufacturingJobs[0]?.jobNumber || '')}
             className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-crm-brand-700/20 text-crm-brand- font-medium text-xs border border-crm-brand-600/30 hover:bg-crm-brand-700/30 transition"

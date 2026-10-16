@@ -353,20 +353,6 @@ export function Sidebar() {
                 <Briefcase className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Customer POs</span>}
               </Link>
-              <Link href="/crm/sales-orders" className={subNavItemClass('/crm/sales-orders')}>
-                <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && (
-                  <div className="flex items-center justify-between w-full">
-                    <span>Sales Orders</span>
-                    {salesOrders.length > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
-                      {salesOrders.length}
-                    </span>
-                  )}
-                  </div>
-                )}
-              </Link>
-
             </div>
           )}
         </div>
@@ -415,10 +401,6 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/projects/jobs" className={subNavItemClass('/projects/jobs')}>
-                <Cpu className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Jobs (360° View)</span>}
-              </Link>
               <Link href="/projects/planning" className={subNavItemClass('/projects/planning')}>
                 <Workflow className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Project Planning</span>}
@@ -427,25 +409,6 @@ export function Sidebar() {
                 <CheckSquare className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Tasks & Dependencies</span>}
               </Link>
-
-              <Link href="/projects/department-assignments" className={subNavItemClass('/projects/department-assignments')}>
-                <Users className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Dept Assignments</span>}
-              </Link>
-              <Link href="/projects/timeline" className={subNavItemClass('/projects/timeline')}>
-                <Clock className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Project Timeline</span>}
-              </Link>
-              <Link href="/projects/documents" className={subNavItemClass('/projects/documents')}>
-                <Folder className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Project Documents</span>}
-              </Link>
-              <Link href="/projects/cost" className={subNavItemClass('/projects/cost')}>
-                <DollarSign className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Project Cost</span>}
-              </Link>
-
-
             </div>
           )}
         </div>
@@ -553,21 +516,6 @@ export function Sidebar() {
               <Link href="/purchase/suppliers" className={subNavItemClass('/purchase/suppliers')}>
                 <Building className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Supplier Master</span>}
-              </Link>
-              <Link href="/purchase/rfq" className={subNavItemClass('/purchase/rfq')}>
-                <ClipboardList className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>RFQ (Request for Quotation)</span>}
-              </Link>
-              <Link href="/purchase/quotations" className={subNavItemClass('/purchase/quotations')}>
-                <FileCheck2 className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && (
-                  <div className="flex items-center justify-between w-full">
-                    <span>Quotations & Comparison</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 font-mono text-[9px] font-bold border border-emerald-300">
-                      L1 Compare
-                    </span>
-                  </div>
-                )}
               </Link>
               <Link href="/purchase/po" className={subNavItemClass('/purchase/po')}>
                 <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
@@ -738,57 +686,21 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/production/routing" className={subNavItemClass('/production/routing')}>
-                <GitBranch className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Routing & Operations</span>}
-              </Link>
-              <Link href="/production/work-centers" className={subNavItemClass('/production/work-centers')}>
-                <Wrench className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Work Centers & Machines</span>}
-              </Link>
-              <Link href="/production/schedule" className={subNavItemClass('/production/schedule')}>
-                <Calendar className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Production Schedule</span>}
-              </Link>
               <Link href="/production/mrp" className={subNavItemClass('/production/mrp')}>
                 <Cpu className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Material Planning & Issue (MRP)</span>}
-              </Link>
-              <Link href="/production/wip" className={subNavItemClass('/production/wip')}>
-                <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>WIP Tracking Matrix</span>}
-              </Link>
-              <Link href="/production/entry" className={subNavItemClass('/production/entry')}>
-                <PlayCircle className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Operator Production Entry</span>}
-              </Link>
-              <Link href="/production/operation-production" className={subNavItemClass('/production/operation-production')}>
-                <Workflow className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Operation Progress</span>}
               </Link>
               <Link href="/production/rework" className={subNavItemClass('/production/rework')}>
                 <RotateCcw className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Rework Order Manager</span>}
               </Link>
-              <Link href="/production/scrap" className={subNavItemClass('/production/scrap')}>
-                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Production Scrap Tracker</span>}
-              </Link>
               <Link href="/production/completion" className={subNavItemClass('/production/completion')}>
                 <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Completion & QC Clearance</span>}
               </Link>
-              <Link href="/production/finished-goods" className={subNavItemClass('/production/finished-goods')}>
-                <PackageCheck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Finished Goods Warehouse</span>}
-              </Link>
               <Link href="/production/dispatch" className={subNavItemClass('/production/dispatch')}>
                 <Truck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Dispatch & Delivery Challan</span>}
-              </Link>
-              <Link href="/production/cost" className={subNavItemClass('/production/cost')}>
-                <DollarSign className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Job Production Costing</span>}
               </Link>
 
             </div>
@@ -982,56 +894,6 @@ export function Sidebar() {
                 <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Breakdown Management</span>}
               </Link>
-              <Link href="/maintenance/schedule" className={subNavItemClass('/maintenance/schedule')}>
-                <Calendar className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Maintenance Schedule</span>}
-              </Link>
-              <Link href="/maintenance/service-planning" className={subNavItemClass('/maintenance/service-planning')}>
-                <Workflow className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Service Planning</span>}
-              </Link>
-              <Link href="/maintenance/technicians" className={subNavItemClass('/maintenance/technicians')}>
-                <Users className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Technician Assignment</span>}
-              </Link>
-              <Link href="/maintenance/service-visits" className={subNavItemClass('/maintenance/service-visits')}>
-                <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Service Visits</span>}
-              </Link>
-              <Link href="/maintenance/spare-parts" className={subNavItemClass('/maintenance/spare-parts')}>
-                <Package className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Spare Parts & Service Inventory</span>}
-              </Link>
-
-              <Link href="/maintenance/warranty" className={subNavItemClass('/maintenance/warranty')}>
-                <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Warranty Management</span>}
-              </Link>
-              <Link href="/maintenance/amc" className={subNavItemClass('/maintenance/amc')}>
-                <FileCheck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>AMC Management</span>}
-              </Link>
-              <Link href="/maintenance/contracts" className={subNavItemClass('/maintenance/contracts')}>
-                <FileSpreadsheet className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Service Contracts</span>}
-              </Link>
-              <Link href="/maintenance/customer-history" className={subNavItemClass('/maintenance/customer-history')}>
-                <History className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Customer Service History</span>}
-              </Link>
-              <Link href="/maintenance/internal-maintenance" className={subNavItemClass('/maintenance/internal-maintenance')}>
-                <Factory className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Internal Maintenance</span>}
-              </Link>
-              <Link href="/maintenance/downtime" className={subNavItemClass('/maintenance/downtime')}>
-                <Clock className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Downtime Tracking</span>}
-              </Link>
-              <Link href="/maintenance/costs" className={subNavItemClass('/maintenance/costs')}>
-                <DollarSign className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Maintenance Costs</span>}
-              </Link>
-
             </div>
           )}
         </div>

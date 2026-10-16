@@ -584,10 +584,10 @@ export default function MaintenanceDashboardPage() {
                   </td>
                   <td className="py-3 px-4 text-right space-x-1">
                     <Link
-                      href="/maintenance/service-visits"
+                      href="/maintenance/service-requests"
                       className="px-2.5 py-1 rounded bg-crm-brand- dark:bg-crm-brand-/40 text-crm-brand-700 dark:text-crm-brand-500 font-medium hover:underline text-[11px]"
                     >
-                      Visit Details
+                      View Requests
                     </Link>
                   </td>
                 </tr>

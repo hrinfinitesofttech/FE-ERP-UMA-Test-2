@@ -339,13 +339,6 @@ export default function PurchaseRequisitionPage() {
                     Approve PR & Release to RFQ
                   </button>
                 )}
-                <Link
-                  href={`/purchase/quotations?tab=verify&prNumber=${viewPR.prNumber}`}
-                  className="px-4 py-2 bg-[#EDE9FE] hover:bg-[#DDD6FE] text-[#7C3AED] font-bold text-xs rounded-lg transition flex items-center gap-1.5"
-                >
-                  <span>Verify Vendor Quotes</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
               </div>
 
               <button

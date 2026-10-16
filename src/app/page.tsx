@@ -729,7 +729,7 @@ export default function DashboardPage() {
               {(dashboardData?.moduleShortcuts && dashboardData.moduleShortcuts.length > 0
                 ? dashboardData.moduleShortcuts
                 : [
-                    { module: 'production', label: 'Shift Entry', href: '/production/entry', icon: 'Play' },
+                    { module: 'production', label: 'Work Orders', href: '/production/work-orders', icon: 'Play' },
                     { module: 'projects', label: 'Projects & Tasks', href: '/projects/tasks', icon: 'Factory' },
                     { module: 'store', label: 'Stock Matrix', href: '/store/stock', icon: 'Box' },
                     { module: 'designer', label: 'Designer BOM', href: '/designer/bom', icon: 'Palette' },
