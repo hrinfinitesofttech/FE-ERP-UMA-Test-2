@@ -4616,8 +4616,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           ? 'in_progress'
           : 'assigned';
 
-      let currentDesignJobId = '';
-
+      // 1. SYNC WITH ENGINEERING & DESIGN MODULE (designJobs)
+      // Only update if a design job was explicitly created by the user
       setDesignJobs((prev) => {
         const existingIdx = prev.findIndex(
           (j) => j.projectId === prj.id || j.jobNumber === prj.jobNumber
@@ -4625,7 +4625,6 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
         if (existingIdx >= 0) {
           const existing = prev[existingIdx];
-          currentDesignJobId = existing.id;
           if (
             existing.assignedDesigner !== assignedDesignerNames ||
             existing.status !== designStatus ||
@@ -4641,40 +4640,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             };
             return updated;
           }
-          return prev;
-        } else {
-          const desNumber = `DES-2026-${String(prev.length + 1).padStart(4, '0')}`;
-          currentDesignJobId = desNumber;
-          const newDesJob: DesignJob = {
-            id: desNumber,
-            designJobNumber: desNumber,
-            projectId: prj.id,
-            projectNumber: prj.projectNumber,
-            jobNumber: prj.jobNumber,
-            customerId: prj.customerId,
-            customerName: prj.customerName,
-            customerPoNumber: prj.customerPoNumber,
-            salesOrderNumber: prj.salesOrderNumber,
-            productName: prj.productName,
-            machineType: prj.productName.includes('Reactor')
-              ? 'Chemical Reaction Pressure Vessel'
-              : 'Process Equipment Unit',
-            quantity: prj.quantity,
-            deliveryDate: prj.deliveryDate,
-            designManager: designStage?.responsibleEmployee || prj.projectManager || '',
-            assignedDesigner: assignedDesignerNames,
-            priority: (prj.priority as any) || 'high',
-            requiredDate: designStage?.plannedEnd || prj.deliveryDate,
-            status: designStatus,
-            activeRevision: 'REV-00',
-            createdDate: prj.startDate,
-            remarks: `Auto-synchronized from ${prj.projectNumber} Planning Matrix (${designStage?.stageName || 'Design Phase'})`,
-          };
-          return [newDesJob, ...prev];
         }
+        return prev;
       });
 
       // 2. SYNC WITH PRODUCTION MODULE (manufacturingJobs)
+      // Only update if a manufacturing job was explicitly created by the user
       const prodStage = prjStages.find(
         (s) =>
           s.responsibleDepartment?.toLowerCase().includes('production') ||
@@ -4706,96 +4677,27 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             };
             return updated;
           }
-          return prev;
-        } else {
-          const mjNo = `MJ-2026-${String(prev.length + 1).padStart(3, '0')}`;
-          const newMfgJob: ManufacturingJob = {
-            id: mjNo,
-            jobNumber: prj.jobNumber,
-            projectId: prj.id,
-            projectNumber: prj.projectNumber,
-            customerId: prj.customerId,
-            customerName: prj.customerName,
-            salesOrderId: prj.salesOrderId,
-            salesOrderNumber: prj.salesOrderNumber,
-            customerPoNumber: prj.customerPoNumber,
-            productName: prj.productName,
-            specification: prj.specification,
-            quantity: prj.quantity,
-            unit: prj.unit || 'Unit',
-            designRevision: 'REV-00',
-            bomRevision: 'REV-00',
-            projectManager: prj.projectManager || '',
-            productionManager: prodSupervisor,
-            plannedStartDate: prodStage?.plannedStart || prj.startDate,
-            plannedCompletionDate: prodStage?.plannedEnd || prj.deliveryDate,
-            productionProgress: prj.progressPercent || 0,
-            status: 'Planning',
-            createdAt: prj.startDate,
-          };
-          return [newMfgJob, ...prev];
-        }
-      });
-
-      // 4. SYNC WITH PRODUCTION WORK ORDERS (workOrders)
-      setWorkOrders((prev) => {
-        const existing = prev.find((w) => w.projectId === prj.id || w.jobNumber === prj.jobNumber);
-        if (!existing) {
-          const woNo = `WO-2026-${String(prev.length + 1).padStart(3, '0')}`;
-          const newWO: WorkOrder = {
-            id: woNo,
-            workOrderNumber: woNo,
-            jobId: prj.id,
-            jobNumber: prj.jobNumber,
-            projectId: prj.id,
-            customerId: prj.customerId,
-            customerName: prj.customerName,
-            salesOrderNumber: prj.salesOrderNumber,
-            designRevision: 'REV-00',
-            bomRevision: 'REV-00',
-            productName: prj.productName,
-            productionQuantity: prj.quantity,
-            uom: prj.unit || 'Unit',
-            plannedStartDate: prodStage?.plannedStart || prj.startDate,
-            plannedEndDate: prodStage?.plannedEnd || prj.deliveryDate,
-            productionManager: prodSupervisor,
-            priority: (prj.priority as any) || 'High',
-            status: prj.progressPercent >= 100 ? 'Completed' : 'Planned',
-            remarks: `Auto-generated from Project Planning (${prj.projectNumber})`,
-            createdAt: prj.startDate,
-          };
-          api.production.workOrders.create(newWO).catch(() => {});
-          return [newWO, ...prev];
         }
         return prev;
       });
 
-      // 6. SYNC WITH PRODUCTION PLANS (productionPlans)
-      setProductionPlans((prev) => {
-        const existing = prev.find((p) => p.projectId === prj.id || p.jobNumber === prj.jobNumber);
-        if (!existing) {
-          const planNo = `PLAN-2026-${String(prev.length + 1).padStart(3, '0')}`;
-          const newPlan: ProductionPlan = {
-            id: planNo,
-            planNumber: planNo,
-            jobId: prj.id,
-            jobNumber: prj.jobNumber,
-            projectId: prj.id,
-            productName: prj.productName,
-            requiredQuantity: prj.quantity,
-            bomId: `BOM-${prj.jobNumber.slice(-4)}`,
-            bomRevision: 'REV-00',
-            materialAvailabilityStatus: 'Fully Available',
-            plannedStartDate: prodStage?.plannedStart || prj.startDate,
-            plannedCompletionDate: prodStage?.plannedEnd || prj.deliveryDate,
-            assignedWorkCenters: ['WC-001 Fabrication Shop', 'WC-002 Welding & Fitting'],
-            plannedManpowerCount: 6,
-            productionManager: prodSupervisor,
-            status: 'Approved',
-            createdAt: prj.startDate,
-          };
-          return [newPlan, ...prev];
+      // 3. WORK ORDERS - Only update if existing, never auto-create
+      setWorkOrders((prev) => {
+        const existingIdx = prev.findIndex((w) => w.projectId === prj.id || w.jobNumber === prj.jobNumber);
+        if (existingIdx >= 0) {
+          const existing = prev[existingIdx];
+          const newStatus = prj.progressPercent >= 100 ? 'Completed' : existing.status;
+          if (existing.status !== newStatus) {
+            const updated = [...prev];
+            updated[existingIdx] = { ...existing, status: newStatus };
+            return updated;
+          }
         }
+        return prev;
+      });
+
+      // 4. PRODUCTION PLANS - Only update if existing, never auto-create
+      setProductionPlans((prev) => {
         return prev;
       });
 
