@@ -665,12 +665,9 @@ async function fetchNetworkRequest<T>(
 ): Promise<T> {
   let token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
   if (!token && typeof window !== 'undefined') {
-    // For non-GET requests (mutations), await authentication token
-    if (options.method && options.method !== 'GET') {
+    const hasRefresh = !!localStorage.getItem('refresh_token');
+    if (hasRefresh) {
       token = await getOrRefreshToken();
-    } else {
-      // For GET requests, trigger background login without blocking data fetch
-      getOrRefreshToken().catch(() => {});
     }
   }
 

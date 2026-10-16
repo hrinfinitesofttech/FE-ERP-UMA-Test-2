@@ -1034,11 +1034,9 @@ if (typeof window !== 'undefined') {
     if (v !== CURRENT_ERP_CACHE_VERSION) {
       for (let i = localStorage.length - 1; i >= 0; i--) {
         const k = localStorage.key(i);
-        if (k && (k.startsWith('UMA_ERP_') || k.startsWith('UMA_CACHE_') || k.startsWith('UMA_'))) {
-          // Strictly protect active session and credentials from being wiped during cache refresh
-          if (k !== 'UMA_ERP_currentUser' && k !== 'access_token' && k !== 'refresh_token') {
-            localStorage.removeItem(k);
-          }
+        // Only invalidate API response caches, NEVER wipe operational user data (UMA_ERP_*)
+        if (k && k.startsWith('UMA_CACHE_')) {
+          localStorage.removeItem(k);
         }
       }
       localStorage.setItem('UMA_ERP_VERSION', CURRENT_ERP_CACHE_VERSION);
@@ -2636,10 +2634,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         if (storedVer !== CURRENT_ERP_CACHE_VERSION) {
           for (let i = localStorage.length - 1; i >= 0; i--) {
             const k = localStorage.key(i);
-            if (k && (k.startsWith('UMA_ERP_') || k.startsWith('UMA_CACHE_'))) {
-              if (k !== 'UMA_ERP_currentUser' && k !== 'access_token' && k !== 'refresh_token') {
-                localStorage.removeItem(k);
-              }
+            // Only invalidate API response caches, NEVER wipe operational user data
+            if (k && k.startsWith('UMA_CACHE_')) {
+              localStorage.removeItem(k);
             }
           }
           api.invalidateCache();
