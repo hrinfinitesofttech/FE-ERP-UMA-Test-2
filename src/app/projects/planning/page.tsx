@@ -817,7 +817,6 @@ export default function ProjectPlanningPage() {
                   <th className="p-3.5 whitespace-nowrap">Department</th>
                   <th className="p-3.5 whitespace-nowrap">Assigned Team / Assignees</th>
                   <th className="p-3.5 whitespace-nowrap">Planned Schedule</th>
-                  <th className="p-3.5 whitespace-nowrap">Actual Dates</th>
                   <th className="p-3.5 whitespace-nowrap">Progress</th>
                   <th className="p-3.5 whitespace-nowrap">Status</th>
                   <th className="p-3.5 whitespace-nowrap text-right">Actions</th>
@@ -826,7 +825,7 @@ export default function ProjectPlanningPage() {
               <tbody className="divide-y divide-[#E7DED5]">
                 {filteredStages.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="p-8 text-center text-[#70665F]">
+                    <td colSpan={8} className="p-8 text-center text-[#70665F]">
                       No stages match the search or filter criteria.
                     </td>
                   </tr>
@@ -1113,47 +1112,6 @@ export default function ProjectPlanningPage() {
                               className="bg-transparent border-0 p-0 text-[10px] font-mono font-bold text-[#211B17] focus:outline-none cursor-pointer w-[88px]"
                             />
                           </div>
-                        </td>
-
-                        {/* Actual Dates (Sleek Single Horizontal Capsule) */}
-                        <td className="p-3 whitespace-nowrap align-middle">
-                          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-mono shadow-2xs transition ${
-                            stage.status === 'completed'
-                              ? 'bg-emerald-50/70 border-emerald-300 text-emerald-950'
-                              : 'bg-[#FAF7F2] border-[#E7DED5] text-[#4A3E39] hover:border-[#75401F]'
-                          }`}>
-                            <Clock className={`w-3.5 h-3.5 shrink-0 ${stage.status === 'completed' ? 'text-emerald-600' : 'text-[#70665F]'}`} />
-                            <input
-                              type="date"
-                              value={stage.actualStart ? stage.actualStart.slice(0, 10) : ''}
-                              onChange={(e) => {
-                                updatePlanningStage(stage.id, {
-                                  actualStart: e.target.value,
-                                });
-                              }}
-                              title="Actual Start Date"
-                              className="bg-transparent border-0 p-0 text-[10px] font-mono font-bold text-[#211B17] focus:outline-none cursor-pointer w-[88px]"
-                            />
-                            <span className="text-[#8C7A6E] font-bold">→</span>
-                            <input
-                              type="date"
-                              value={stage.actualEnd ? stage.actualEnd.slice(0, 10) : ''}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                updatePlanningStage(stage.id, {
-                                  actualEnd: val,
-                                  ...(val ? { status: 'completed', progressPercent: 100 } : {}),
-                                });
-                              }}
-                              title="Actual End Date (Setting date marks Completed)"
-                              className="bg-transparent border-0 p-0 text-[10px] font-mono font-bold text-[#211B17] focus:outline-none cursor-pointer w-[88px]"
-                            />
-                          </div>
-                          {stage.completedBy && (
-                            <span className="text-[9px] text-emerald-700 font-sans block mt-0.5">
-                              Done by: {stage.completedBy}
-                            </span>
-                          )}
                         </td>
 
                         {/* Progress (Sleek Inline Control) */}
