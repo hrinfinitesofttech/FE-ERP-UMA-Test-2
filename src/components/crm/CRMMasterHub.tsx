@@ -364,31 +364,10 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
     },
     {
       header: 'Actions',
-      className: 'w-[140px] whitespace-nowrap text-right align-top',
+      className: 'w-[90px] whitespace-nowrap text-right align-top',
       cell: (lead) => {
-        const isConverted = lead.status === 'won' || !!lead.convertedCustomerId;
         return (
           <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
-            {!isConverted ? (
-              <button
-                onClick={(e) => handleConvertLead(lead.id, e)}
-                title="Convert Lead to Customer Account"
-                className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-lg text-[10px] font-bold transition flex items-center gap-1 shadow-2xs cursor-pointer whitespace-nowrap"
-              >
-                <Sparkles className="w-3 h-3" /> Convert
-              </button>
-            ) : (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  router.push(`/crm/quotations/new?leadId=${lead.id}&customerId=${lead.convertedCustomerId || ''}&enquiryId=${lead.convertedEnquiryId || ''}`);
-                }}
-                title="Send formal Quotation for this converted lead"
-                className="px-2 py-1 bg-crm-brand-700 hover:bg-crm-brand-800 active:scale-95 text-white rounded-lg text-[10px] font-bold transition flex items-center gap-1 shadow-2xs cursor-pointer whitespace-nowrap"
-              >
-                <FileText className="w-3 h-3" /> Quote
-              </button>
-            )}
 
             {/* Quick Edit Button */}
             <button
