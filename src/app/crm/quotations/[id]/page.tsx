@@ -102,8 +102,18 @@ export default function QuotationDetailPage() {
     showFeedback('info', `Sending quotation proposal to ${recipient}...`, 0);
 
     try {
-      // Dispatch email via Django backend SMTP endpoint
-      const res = await api.crm.quotations.sendEmail(quotation.id, recipient, quotation);
+      // Dispatch email via Django backend SMTP endpoint with active revision details
+      const quoAny = quotation as any;
+      const enrichedQuotation = {
+        ...quotation,
+        currentRevision: currentRev?.revisionNumber || quotation.currentRevision || 'Rev-00',
+        items: currentRev?.items || quoAny.items || [],
+        subtotal: currentRev?.subTotal ?? (currentRev as any)?.subtotal ?? quoAny.subtotal ?? 0,
+        taxAmount: currentRev?.taxAmount ?? quoAny.taxAmount ?? 0,
+        grandTotal: currentRev?.grandTotal ?? quoAny.grandTotal ?? 0,
+        machineProduct: currentRev?.items?.[0]?.productName || quoAny.machineProduct || '',
+      };
+      const res = await api.crm.quotations.sendEmail(quotation.id, recipient, enrichedQuotation);
 
       if (res && res.success === false) {
         showFeedback(
