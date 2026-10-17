@@ -71,11 +71,42 @@ export default function FollowUpsPage() {
   const [targetId, setTargetId] = useState(leads[0]?.id || '');
   const [followUpType, setFollowUpType] = useState<'call' | 'whatsapp' | 'email' | 'meeting' | 'visit'>('call');
   const [scheduledDate, setScheduledDate] = useState(todayStr);
-  const [scheduledTime, setScheduledTime] = useState('11:00 AM');
+  const [scheduledTime, setScheduledTime] = useState('11:00');
   const [purpose, setPurpose] = useState('');
+  const [productItem, setProductItem] = useState('');
+  const [interestStatus, setInterestStatus] = useState<'interested' | 'not_interested' | 'in_discussion'>('interested');
   const [notes, setNotes] = useState('');
+  const [addNextFollowUpDate, setAddNextFollowUpDate] = useState(
+    new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  );
   const [assignedToId, setAssignedToId] = useState(allStaff[0]?.id || 'EMP-001');
   const [addErrors, setAddErrors] = useState<Record<string, string>>({});
+
+  // Helper to sync product/item from enquiry when selecting entity
+  const handleEntitySelection = (type: 'lead' | 'enquiry' | 'quotation' | 'customer', id: string) => {
+    setTargetType(type);
+    setTargetId(id);
+
+    if (type === 'enquiry') {
+      const enq = enquiries.find((e) => e.id === id || e.enquiryNo === id);
+      if (enq) {
+        setProductItem(enq.machineProduct || '');
+        setPurpose(`Inquiry follow-up for ${enq.machineProduct}`);
+      }
+    } else if (type === 'lead') {
+      const lead = leads.find((l) => l.id === id || l.leadNo === id);
+      const enq = enquiries.find((e) => e.leadId === id || (lead && e.customerName === lead.companyName));
+      if (enq) {
+        setProductItem(enq.machineProduct || '');
+      } else if (lead?.productName || lead?.machineType) {
+        const prod = lead.productName || lead.machineType || '';
+        setProductItem(prod);
+        setPurpose(`Discussion regarding ${prod}`);
+      } else if (lead) {
+        setPurpose(`Discussion with ${lead.contactPerson || lead.companyName}`);
+      }
+    }
+  };
 
   // Preset next date helper
   const setQuickNextDate = (days: number) => {
@@ -245,6 +276,15 @@ export default function FollowUpsPage() {
 
     const entityRecordId = (targetType === 'lead' ? leadId : targetType === 'enquiry' ? enquiryId : targetType === 'quotation' ? quotationId : customerId) || 'ID-001';
 
+    let timeDisplay = scheduledTime || '11:00 AM';
+    if (scheduledTime && scheduledTime.includes(':')) {
+      const [h, m] = scheduledTime.split(':');
+      const hour = parseInt(h, 10);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const hour12 = hour % 12 || 12;
+      timeDisplay = `${hour12}:${m} ${ampm}`;
+    }
+
     const newFollowUpItem: FollowUp = {
       id: `FU-${Date.now()}`,
       followUpNo: `FLW-2026-${Math.floor(100 + Math.random() * 900)}`,
@@ -257,16 +297,20 @@ export default function FollowUpsPage() {
       assignedToId,
       assignedToName: assignedName,
       date: scheduledDate,
-      time: scheduledTime,
+      time: timeDisplay,
       priority: 'medium',
       purpose: purpose.trim(),
       notes: notes.trim(),
+      interestStatus,
+      productItem: productItem.trim() || undefined,
+      nextFollowUpDate: addNextFollowUpDate || undefined,
       status: 'pending',
     };
 
     addFollowUp(newFollowUpItem);
     setShowAddModal(false);
     setPurpose('');
+    setProductItem('');
     setNotes('');
     setAddErrors({});
   };
@@ -368,11 +412,24 @@ export default function FollowUpsPage() {
     },
     {
       key: 'purpose',
-      header: 'PURPOSE & REMARKS',
+      header: 'PURPOSE, ITEM & REMARKS',
       cell: (f) => (
-        <div className="max-w-xs">
-          <span className="font-medium text-slate-800 block truncate text-xs">{f.purpose}</span>
-          <span className="text-[10px] text-slate-500 block truncate">{f.notes}</span>
+        <div className="max-w-xs space-y-1">
+          <span className="font-semibold text-slate-800 block truncate text-xs">{f.purpose}</span>
+          {f.productItem && (
+            <span className="inline-block px-1.5 py-0.2 bg-purple-50 text-purple-700 border border-purple-200 rounded text-[9px] font-bold">
+              Item: {f.productItem}
+            </span>
+          )}
+          {f.notes && (
+            <span className="text-[10px] text-slate-500 block truncate">{f.notes}</span>
+          )}
+          {f.nextFollowUpDate && (
+            <div className="text-[10px] text-purple-700 font-mono flex items-center gap-1 font-semibold">
+              <Calendar className="w-3 h-3 text-purple-600" />
+              <span>Next: {formatDate(f.nextFollowUpDate)}</span>
+            </div>
+          )}
           {f.outcome && (
             <span className="mt-0.5 inline-block px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-[9px] font-bold">
               Outcome: {f.outcome.replace('_', ' ')}
@@ -388,19 +445,40 @@ export default function FollowUpsPage() {
     },
     {
       key: 'status',
-      header: 'STATUS',
+      header: 'STATUS & INTEREST',
       cell: (f) => (
-        <span
-          className={`px-2 py-0.5 rounded-full font-mono text-[10px] font-bold uppercase whitespace-nowrap ${
-            f.status === 'completed'
-              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-              : f.date < todayStr
-              ? 'bg-rose-100 text-rose-800 border border-rose-200 font-bold'
-              : 'bg-amber-100 text-amber-800 border border-amber-200 font-bold'
-          }`}
-        >
-          {f.status === 'pending' && f.date < todayStr ? 'Overdue' : f.status}
-        </span>
+        <div className="space-y-1 whitespace-nowrap">
+          <span
+            className={`px-2 py-0.5 rounded-full font-mono text-[10px] font-bold uppercase inline-block ${
+              f.status === 'completed'
+                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                : f.date < todayStr
+                ? 'bg-rose-100 text-rose-800 border border-rose-200 font-bold'
+                : 'bg-amber-100 text-amber-800 border border-amber-200 font-bold'
+            }`}
+          >
+            {f.status === 'pending' && f.date < todayStr ? 'Overdue' : f.status}
+          </span>
+          {f.interestStatus && (
+            <div>
+              <span
+                className={`px-1.5 py-0.2 rounded font-mono text-[9px] font-bold uppercase inline-block border ${
+                  f.interestStatus === 'interested'
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                    : f.interestStatus === 'not_interested'
+                    ? 'bg-slate-100 text-slate-600 border-slate-300'
+                    : 'bg-blue-50 text-blue-700 border-blue-200'
+                }`}
+              >
+                {f.interestStatus === 'interested'
+                  ? 'Interested'
+                  : f.interestStatus === 'not_interested'
+                  ? 'Not Interested'
+                  : 'In Discussion'}
+              </span>
+            </div>
+          )}
+        </div>
       ),
     },
     {
@@ -544,7 +622,13 @@ export default function FollowUpsPage() {
         columns={columns}
         data={filteredFollowUps}
         addNewLabel="+ Schedule Follow-up"
-        onAddNew={() => setShowAddModal(true)}
+        onAddNew={() => {
+          setShowAddModal(true);
+          const firstLead = leads[0];
+          if (firstLead) {
+            handleEntitySelection('lead', firstLead.id);
+          }
+        }}
         onExport={() => {
           const csv = [
             ['Follow-up No', 'Entity Type', 'Target', 'Assigned To', 'Due Date', 'Status', 'Outcome', 'Notes'].join(','),
@@ -591,11 +675,12 @@ export default function FollowUpsPage() {
                     value={targetType}
                     onChange={(e) => {
                       const type = e.target.value as 'lead' | 'enquiry' | 'quotation' | 'customer';
-                      setTargetType(type);
-                      if (type === 'lead') setTargetId(leads[0]?.id || '');
-                      else if (type === 'enquiry') setTargetId(enquiries[0]?.id || '');
-                      else if (type === 'quotation') setTargetId(quotations[0]?.id || '');
-                      else setTargetId(customers[0]?.id || '');
+                      let defaultId = '';
+                      if (type === 'lead') defaultId = leads[0]?.id || '';
+                      else if (type === 'enquiry') defaultId = enquiries[0]?.id || '';
+                      else if (type === 'quotation') defaultId = quotations[0]?.id || '';
+                      else defaultId = customers[0]?.id || '';
+                      handleEntitySelection(type, defaultId);
                     }}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] text-xs font-semibold"
                   >
@@ -609,13 +694,13 @@ export default function FollowUpsPage() {
                   <label className="block font-semibold text-[#544B45] mb-1">Select Linked Record</label>
                   <select
                     value={targetId}
-                    onChange={(e) => setTargetId(e.target.value)}
+                    onChange={(e) => handleEntitySelection(targetType, e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] text-xs"
                   >
                     {targetType === 'lead' &&
                       leads.map((l) => (
                         <option key={l.id} value={l.id}>
-                          {l.companyName} ({l.contactPerson || l.leadNo})
+                          {l.leadNo ? `${l.leadNo} - ` : ''}{l.companyName} ({l.contactPerson || 'Lead'})
                         </option>
                       ))}
                     {targetType === 'enquiry' &&
@@ -656,7 +741,10 @@ export default function FollowUpsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Date *</label>
+                  <label className="block font-semibold text-[#544B45] mb-1 flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-purple-700" />
+                    <span>Date *</span>
+                  </label>
                   <input
                     type="date"
                     min={todayStr}
@@ -676,39 +764,58 @@ export default function FollowUpsPage() {
                   )}
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Time</label>
+                  <label className="block font-semibold text-[#544B45] mb-1 flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5 text-purple-700" />
+                    <span>Time (Clock) *</span>
+                  </label>
                   <input
-                    type="text"
+                    type="time"
+                    required
                     value={scheduledTime}
                     onChange={(e) => setScheduledTime(e.target.value)}
-                    placeholder="11:00 AM"
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] text-xs"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] font-mono text-xs cursor-pointer focus:outline-none focus:border-purple-600"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block font-semibold text-[#544B45] mb-1">Discussion Purpose *</label>
-                <input
-                  type="text"
-                  required
-                  value={purpose}
-                  onChange={(e) => {
-                    setPurpose(e.target.value);
-                    if (addErrors.purpose) setAddErrors((prev) => ({ ...prev, purpose: '' }));
-                  }}
-                  placeholder="e.g. Commercial negotiation on Reactor Vessel Qty 2"
-                  className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] font-semibold text-xs ${
-                    addErrors.purpose ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
-                  }`}
-                />
-                {addErrors.purpose && (
-                  <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
-                    <AlertCircle className="w-3 h-3" /> {addErrors.purpose}
-                  </p>
-                )}
+              {/* Product / Item & Discussion Purpose */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-[#544B45] mb-1">
+                    Product / Item (ઇન્કવાયરી માંથી)
+                  </label>
+                  <input
+                    type="text"
+                    value={productItem}
+                    onChange={(e) => setProductItem(e.target.value)}
+                    placeholder="e.g. Reactor Vessel, Pressure Filter..."
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] text-xs font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#544B45] mb-1">Discussion Purpose *</label>
+                  <input
+                    type="text"
+                    required
+                    value={purpose}
+                    onChange={(e) => {
+                      setPurpose(e.target.value);
+                      if (addErrors.purpose) setAddErrors((prev) => ({ ...prev, purpose: '' }));
+                    }}
+                    placeholder="e.g. Follow-up on inquiry for Reactor Vessel"
+                    className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] font-semibold text-xs ${
+                      addErrors.purpose ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                    }`}
+                  />
+                  {addErrors.purpose && (
+                    <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
+                      <AlertCircle className="w-3 h-3" /> {addErrors.purpose}
+                    </p>
+                  )}
+                </div>
               </div>
 
+              {/* Assigned Sales Engineer */}
               <div>
                 <label className="block font-semibold text-[#544B45] mb-1">Assigned Sales Engineer</label>
                 <select
@@ -724,6 +831,23 @@ export default function FollowUpsPage() {
                 </select>
               </div>
 
+              {/* Status Dropdown between Assigned Sales Engineer and Notes */}
+              <div>
+                <label className="block font-semibold text-[#544B45] mb-1">
+                  Client Status (ઇન્ટરેસ્ટેડ / નોટ ઇન્ટરેસ્ટેડ) *
+                </label>
+                <select
+                  value={interestStatus}
+                  onChange={(e) => setInterestStatus(e.target.value as any)}
+                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] text-xs font-semibold"
+                >
+                  <option value="interested">Interested (ઇન્ટરેસ્ટેડ)</option>
+                  <option value="in_discussion">In Discussion / Follow-up Needed (ચર્ચા ચાલુ છે)</option>
+                  <option value="not_interested">Not Interested (નોટ ઇન્ટરેસ્ટેડ)</option>
+                </select>
+              </div>
+
+              {/* Notes / Instructions */}
               <div>
                 <label className="block font-semibold text-[#544B45] mb-1">Notes / Instructions</label>
                 <textarea
@@ -732,6 +856,57 @@ export default function FollowUpsPage() {
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Additional context or background points for the discussion..."
                   className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] text-xs"
+                />
+              </div>
+
+              {/* Next Follow-up field under Notes */}
+              <div className="p-3 bg-purple-50/50 rounded-xl border border-purple-100 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-semibold text-purple-900 flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-purple-700" />
+                    <span>Next Follow-up Date (નેક્સ્ટ ફોલોઅપ તારીખ)</span>
+                  </label>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const d = new Date();
+                        d.setDate(d.getDate() + 2);
+                        setAddNextFollowUpDate(d.toISOString().split('T')[0]);
+                      }}
+                      className="px-2 py-0.5 rounded bg-white hover:bg-purple-100 text-purple-800 border border-purple-200 text-[10px] font-bold transition"
+                    >
+                      +2 Days
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const d = new Date();
+                        d.setDate(d.getDate() + 7);
+                        setAddNextFollowUpDate(d.toISOString().split('T')[0]);
+                      }}
+                      className="px-2 py-0.5 rounded bg-white hover:bg-purple-100 text-purple-800 border border-purple-200 text-[10px] font-bold transition"
+                    >
+                      +7 Days
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const d = new Date();
+                        d.setDate(d.getDate() + 15);
+                        setAddNextFollowUpDate(d.toISOString().split('T')[0]);
+                      }}
+                      className="px-2 py-0.5 rounded bg-white hover:bg-purple-100 text-purple-800 border border-purple-200 text-[10px] font-bold transition"
+                    >
+                      +15 Days
+                    </button>
+                  </div>
+                </div>
+                <input
+                  type="date"
+                  value={addNextFollowUpDate}
+                  onChange={(e) => setAddNextFollowUpDate(e.target.value)}
+                  className="w-full bg-white border border-purple-200 rounded-lg px-3 py-2 text-[#211B17] font-mono text-xs focus:outline-none focus:border-purple-600"
                 />
               </div>
 

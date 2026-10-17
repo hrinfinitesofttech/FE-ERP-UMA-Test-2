@@ -238,6 +238,8 @@ export interface FollowUp {
   outcome?: string;
   customerResponse?: string;
   completedNotes?: string;
+  interestStatus?: 'interested' | 'not_interested' | 'in_discussion' | string;
+  productItem?: string;
 }
 
 export interface SiteVisit {

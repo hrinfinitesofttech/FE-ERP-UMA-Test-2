@@ -6126,6 +6126,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           outcome: res.outcome || newFlw.outcome,
           customerResponse: res.customerResponse || res.customer_response || newFlw.customerResponse,
           nextFollowUpDate: res.nextFollowUpDate || res.next_follow_up_date || newFlw.nextFollowUpDate,
+          interestStatus: res.interestStatus || res.interest_status || newFlw.interestStatus,
+          productItem: res.productItem || res.product_item || newFlw.productItem,
         };
         setFollowUps((prev) => {
           const updated = prev.map((f) => (f.id === flwNo ? syncedFlw : f));
