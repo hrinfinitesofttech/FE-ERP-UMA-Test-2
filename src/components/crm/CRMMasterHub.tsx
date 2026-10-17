@@ -276,67 +276,6 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
       ),
     },
     {
-      header: 'Machine Requirement',
-      className: 'min-w-[220px] max-w-[280px] align-top',
-      cell: (lead) => {
-        if (!lead.productName && !lead.machineType) {
-          return (
-            <div className="text-[11px] text-[#A89F91] italic py-1">
-              No requirement specified
-            </div>
-          );
-        }
-        return (
-          <div className="space-y-1">
-            <span
-              className="font-semibold text-xs text-[#211B17] line-clamp-2 leading-snug block"
-              title={lead.productName || lead.machineType}
-            >
-              {lead.productName || lead.machineType}
-            </span>
-            {(lead.quantity > 0 || lead.capacity) ? (
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {lead.quantity > 0 && (
-                  <span className="text-[10px] font-mono font-medium bg-[#FAF7F2] border border-[#EBE3DB] px-1.5 py-0.5 rounded text-[#544B45]">
-                    Qty: <strong className="text-slate-900">{lead.quantity}</strong>
-                  </span>
-                )}
-                {lead.capacity && (
-                  <span className="text-[10px] font-mono text-[#70665F] bg-[#FAF7F2] border border-[#EBE3DB] px-1.5 py-0.5 rounded truncate max-w-[130px]" title={lead.capacity}>
-                    Cap: {lead.capacity}
-                  </span>
-                )}
-              </div>
-            ) : null}
-          </div>
-        );
-      },
-    },
-    {
-      header: 'Commercial & Priority',
-      accessorKey: 'budget',
-      className: 'w-[130px] whitespace-nowrap align-top',
-      cell: (lead) => {
-        const p = lead.priority || 'medium';
-        const colors: Record<string, string> = {
-          urgent: 'bg-rose-50 text-rose-800 border-rose-200',
-          high: 'bg-amber-50 text-amber-800 border-amber-200',
-          medium: 'bg-blue-50 text-blue-800 border-blue-200',
-          low: 'bg-slate-100 text-slate-700 border-slate-200',
-        };
-        return (
-          <div className="space-y-1">
-            <span className="font-mono font-extrabold text-xs text-emerald-800 block">
-              {lead.budget ? formatCurrency(lead.budget) : '₹0'}
-            </span>
-            <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold border uppercase tracking-wider inline-block ${colors[p]}`}>
-              {p}
-            </span>
-          </div>
-        );
-      },
-    },
-    {
       header: 'Status',
       accessorKey: 'status',
       className: 'w-[145px] whitespace-nowrap align-top',
@@ -368,10 +307,22 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
     },
     {
       header: 'Actions',
-      className: 'w-[90px] whitespace-nowrap text-right align-top',
+      className: 'min-w-[170px] whitespace-nowrap text-right align-top',
       cell: (lead) => {
         return (
           <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
+            {/* Inquiries Action Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/crm/enquiries/new?leadId=${encodeURIComponent(lead.id || lead.leadNo)}`);
+              }}
+              className="px-2.5 py-1 bg-[#75401F] hover:bg-[#5C3218] text-white rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
+              title="Create Enquiry for this Lead"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Inquiries</span>
+            </button>
 
             {/* Quick Edit Button */}
             <button

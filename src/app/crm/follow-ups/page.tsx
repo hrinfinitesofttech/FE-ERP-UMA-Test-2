@@ -26,6 +26,7 @@ import {
   FileCheck2,
   ClipboardList,
   User,
+  Pencil,
 } from 'lucide-react';
 
 export default function FollowUpsPage() {
@@ -505,6 +506,15 @@ export default function FollowUpsPage() {
                 <MessageSquare className="w-3.5 h-3.5" />
               </a>
             )}
+
+            {/* Edit / Add Discussion Button */}
+            <button
+              onClick={() => router.push(`/crm/follow-ups/new?id=${encodeURIComponent(f.id)}&step=2`)}
+              title="Edit / Add Discussion Notes"
+              className="p-1 rounded bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 transition cursor-pointer"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
 
             {f.status === 'pending' ? (
               <button

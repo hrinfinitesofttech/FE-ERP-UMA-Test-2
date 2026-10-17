@@ -30,10 +30,13 @@ function FollowUpFormContent() {
   const paramEnquiryId = searchParams.get('enquiryId');
   const paramLeadId = searchParams.get('leadId');
   const paramCustomerId = searchParams.get('customerId');
+  const paramEditId = searchParams.get('id');
+  const paramStep = searchParams.get('step');
 
   const {
     followUps,
     addFollowUp,
+    updateFollowUp,
     addSiteVisit,
     updateLead,
     leads,
@@ -91,6 +94,7 @@ function FollowUpFormContent() {
 
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingFollowUp, setEditingFollowUp] = useState<FollowUp | null>(null);
 
   // Handle record selection
   const handleRecordSelect = (val: string) => {
@@ -185,6 +189,49 @@ function FollowUpFormContent() {
     }
   }, [paramEnquiryId, paramLeadId, paramCustomerId, enquiries, leads]);
 
+  // Load existing follow-up if editing
+  useEffect(() => {
+    if (paramEditId && followUps.length > 0) {
+      const flw = followUps.find((f) => f.id === paramEditId || f.followUpNo === paramEditId);
+      if (flw) {
+        setEditingFollowUp(flw);
+        if (flw.entityType === 'enquiry' || flw.enquiryId) {
+          handleRecordSelect(`enquiry:${flw.enquiryId || flw.leadOrCustomerId}`);
+        } else if (flw.entityType === 'lead') {
+          handleRecordSelect(`lead:${flw.leadOrCustomerId}`);
+        } else if (flw.entityType === 'customer') {
+          handleRecordSelect(`customer:${flw.leadOrCustomerId}`);
+        }
+        if (flw.type) setFollowUpType(flw.type);
+        if (flw.date) setScheduledDate(flw.date);
+        if (flw.time) {
+          const t = flw.time;
+          if (t.includes('AM') || t.includes('PM')) {
+            const [timePart, meridiem] = t.split(' ');
+            const [hStr, mStr] = timePart.split(':');
+            let h = parseInt(hStr, 10);
+            if (meridiem === 'PM' && h < 12) h += 12;
+            if (meridiem === 'AM' && h === 12) h = 0;
+            setScheduledTime(`${String(h).padStart(2, '0')}:${mStr}`);
+          } else {
+            setScheduledTime(t);
+          }
+        }
+        if (flw.productItem) setProductItem(flw.productItem);
+        if (flw.purpose) setPurpose(flw.purpose);
+        if (flw.interestStatus) setInterestStatus(flw.interestStatus);
+        if (flw.notes) setNotes(flw.notes);
+        if (flw.nextFollowUpDate) {
+          setHasScheduleNext(true);
+          setNextFollowUpDate(flw.nextFollowUpDate);
+        }
+        if (paramStep === '2') {
+          setCurrentStep(2);
+        }
+      }
+    }
+  }, [paramEditId, paramStep, followUps]);
+
   // Validation before going to Step 2
   const handleProceedToStep2 = () => {
     setFormError('');
@@ -203,8 +250,7 @@ function FollowUpFormContent() {
     setCurrentStep(2);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveFollowUp = async (fromSlide1 = false) => {
     setFormError('');
 
     if (!selectedRecordKey || !selectedEntityInfo) {
@@ -212,20 +258,26 @@ function FollowUpFormContent() {
       setCurrentStep(1);
       return;
     }
-
-    if (!purpose.trim()) {
-      setFormError('Discussion purpose is required.');
+    if (!scheduledDate) {
+      setFormError('Please select a follow-up date.');
+      setCurrentStep(1);
+      return;
+    }
+    if (!scheduledTime) {
+      setFormError('Please select a follow-up time.');
+      setCurrentStep(1);
       return;
     }
 
-    if (hasScheduleNext && !nextFollowUpDate) {
-      setFormError('Please select the Next Follow-up date or cancel.');
-      return;
-    }
-
-    if (hasScheduleVisit && !visitDate) {
-      setFormError('Please select the Site Visit date or cancel.');
-      return;
+    if (!fromSlide1) {
+      if (hasScheduleNext && !nextFollowUpDate) {
+        setFormError('Please select the Next Follow-up date or cancel.');
+        return;
+      }
+      if (hasScheduleVisit && !visitDate) {
+        setFormError('Please select the Site Visit date or cancel.');
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -261,47 +313,33 @@ function FollowUpFormContent() {
       const targetName = `${selectedEntityInfo.name}${selectedEntityInfo.contactPerson ? ` (${selectedEntityInfo.contactPerson})` : ''}`;
       const enquiryId = entityType === 'enquiry' ? selectedEntityInfo.id : undefined;
 
-      // 1. Create main Follow-up Record
-      const newFollowUpItem: FollowUp = {
-        id: `FU-${Date.now()}`,
-        followUpNo: `FLW-2026-${Math.floor(100 + Math.random() * 900)}`,
-        leadOrCustomerId: selectedEntityInfo.id,
-        leadOrCustomerName: targetName,
-        entityType,
-        enquiryId,
-        type: followUpType,
-        assignedToId,
-        assignedToName: assignedName,
-        date: scheduledDate,
-        time: timeDisplay,
-        priority: 'medium',
-        purpose: purpose.trim(),
-        notes: notes.trim(),
-        interestStatus,
-        productItem: productItem.trim() || undefined,
-        nextFollowUpDate: hasScheduleNext && nextFollowUpDate ? nextFollowUpDate : undefined,
-        nextFollowUpTime: hasScheduleNext && nextTimeDisplay ? nextTimeDisplay : undefined,
-        status: 'pending',
-      };
+      const finalPurpose =
+        purpose.trim() ||
+        (productItem
+          ? `Follow-up for ${productItem}`
+          : `Follow-up discussion with ${selectedEntityInfo.name}`);
 
-      addFollowUp(newFollowUpItem);
-
-      // 2. If Next Follow-up enabled, update lead and create upcoming follow-up entry
-      if (hasScheduleNext && nextFollowUpDate) {
-        if (entityType === 'lead') {
-          try {
-            updateLead(selectedEntityInfo.id, { nextFollowUpDate });
-          } catch (_) {}
-        } else if (entityType === 'enquiry') {
-          const enq = enquiries.find((e) => e.id === selectedEntityInfo.id);
-          if (enq?.leadId) {
-            try {
-              updateLead(enq.leadId, { nextFollowUpDate });
-            } catch (_) {}
-          }
-        }
-
-        addFollowUp({
+      if (editingFollowUp) {
+        updateFollowUp(editingFollowUp.id, {
+          leadOrCustomerId: selectedEntityInfo.id,
+          leadOrCustomerName: targetName,
+          entityType,
+          enquiryId,
+          type: followUpType,
+          date: scheduledDate,
+          time: timeDisplay,
+          purpose: finalPurpose,
+          notes: notes.trim(),
+          interestStatus,
+          productItem: productItem.trim() || undefined,
+          nextFollowUpDate: hasScheduleNext && nextFollowUpDate ? nextFollowUpDate : undefined,
+          nextFollowUpTime: hasScheduleNext && nextTimeDisplay ? nextTimeDisplay : undefined,
+        });
+      } else {
+        // 1. Create main Follow-up Record
+        const newFollowUpItem: FollowUp = {
+          id: `FU-${Date.now()}`,
+          followUpNo: `FLW-2026-${Math.floor(100 + Math.random() * 900)}`,
           leadOrCustomerId: selectedEntityInfo.id,
           leadOrCustomerName: targetName,
           entityType,
@@ -309,19 +347,57 @@ function FollowUpFormContent() {
           type: followUpType,
           assignedToId,
           assignedToName: assignedName,
-          date: nextFollowUpDate,
-          time: nextTimeDisplay || '11:00 AM',
+          date: scheduledDate,
+          time: timeDisplay,
           priority: 'medium',
-          purpose: `Next Follow-up: ${purpose.trim()}`,
-          notes: notes ? `Scheduled next discussion. Prior notes: ${notes.trim()}` : 'Scheduled next discussion.',
-          interestStatus,
+          purpose: finalPurpose,
+          notes: notes.trim(),
+          interestStatus: interestStatus || 'in_discussion',
           productItem: productItem.trim() || undefined,
+          nextFollowUpDate: hasScheduleNext && nextFollowUpDate ? nextFollowUpDate : undefined,
+          nextFollowUpTime: hasScheduleNext && nextTimeDisplay ? nextTimeDisplay : undefined,
           status: 'pending',
-        });
+        };
+
+        addFollowUp(newFollowUpItem);
+
+        // 2. If Next Follow-up enabled, update lead and create upcoming follow-up entry
+        if (!fromSlide1 && hasScheduleNext && nextFollowUpDate) {
+          if (entityType === 'lead') {
+            try {
+              updateLead(selectedEntityInfo.id, { nextFollowUpDate });
+            } catch (_) {}
+          } else if (entityType === 'enquiry') {
+            const enq = enquiries.find((e) => e.id === selectedEntityInfo.id);
+            if (enq?.leadId) {
+              try {
+                updateLead(enq.leadId, { nextFollowUpDate });
+              } catch (_) {}
+            }
+          }
+
+          addFollowUp({
+            leadOrCustomerId: selectedEntityInfo.id,
+            leadOrCustomerName: targetName,
+            entityType,
+            enquiryId,
+            type: followUpType,
+            assignedToId,
+            assignedToName: assignedName,
+            date: nextFollowUpDate,
+            time: nextTimeDisplay || '11:00 AM',
+            priority: 'medium',
+            purpose: `Next Follow-up: ${finalPurpose}`,
+            notes: notes ? `Scheduled next discussion. Prior notes: ${notes.trim()}` : 'Scheduled next discussion.',
+            interestStatus,
+            productItem: productItem.trim() || undefined,
+            status: 'pending',
+          });
+        }
       }
 
       // 3. If Site Visit enabled from Follow-up
-      if (hasScheduleVisit && visitDate) {
+      if (!fromSlide1 && hasScheduleVisit && visitDate) {
         let visitTimeDisplay = visitTime || '14:00';
         if (visitTime && visitTime.includes(':')) {
           const [vh, vm] = visitTime.split(':');
@@ -343,7 +419,7 @@ function FollowUpFormContent() {
           employeeId: assignedToId,
           employeeName: assignedName,
           purpose: visitPurpose.trim() || `Site Inspection for ${productItem || selectedEntityInfo.name}`,
-          discussionNotes: `Scheduled from follow-up: ${purpose.trim()} (${visitTimeDisplay})`,
+          discussionNotes: `Scheduled from follow-up: ${finalPurpose} (${visitTimeDisplay})`,
           requirementDetails: productItem ? `Equipment: ${productItem}` : '',
           outcome: 'positive',
           nextAction: 'Site survey and measurements',
@@ -352,9 +428,14 @@ function FollowUpFormContent() {
 
       router.push('/crm/follow-ups');
     } catch (err: any) {
-      setFormError(err.message || 'Failed to schedule follow-up.');
+      setFormError(err.message || 'Failed to save follow-up.');
       setIsSubmitting(false);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSaveFollowUp(currentStep === 1);
   };
 
   return (
@@ -384,7 +465,7 @@ function FollowUpFormContent() {
                   Schedule Client Follow-up
                 </h1>
                 <p className="text-xs text-[#70665F] mt-1 leading-relaxed">
-                  2-Slide Form: Slide 1 for Schedule & Customer, Slide 2 for Discussion, Outcome & Actions.
+                  2-Slide Form: Save Slide 1 directly for scheduling, and add Slide 2 notes later after the discussion.
                 </p>
               </div>
             </div>
@@ -403,7 +484,7 @@ function FollowUpFormContent() {
                 <span className="w-4 h-4 rounded-full bg-white/20 text-center text-[10px] flex items-center justify-center">
                   1
                 </span>
-                <span>Slide 1: Schedule & Customer</span>
+                <span>Slide 1: Schedule</span>
               </button>
 
               <button
@@ -418,7 +499,7 @@ function FollowUpFormContent() {
                 <span className="w-4 h-4 rounded-full bg-white/20 text-center text-[10px] flex items-center justify-center">
                   2
                 </span>
-                <span>Slide 2: Discussion & Actions</span>
+                <span>Slide 2: Discussion & Notes (Optional)</span>
               </button>
             </div>
           </div>
@@ -606,21 +687,36 @@ function FollowUpFormContent() {
               </div>
 
               {/* Step 1 Actions */}
-              <div className="flex items-center justify-between pt-6 border-t border-[#EBE3DB]">
+              <div className="flex items-center justify-between pt-6 border-t border-[#EBE3DB] flex-wrap gap-3">
                 <Link
                   href="/crm/follow-ups"
                   className="px-5 py-2.5 border border-[#EBE3DB] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs"
                 >
                   Cancel
                 </Link>
-                <button
-                  type="button"
-                  onClick={handleProceedToStep2}
-                  className="px-6 py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl font-bold transition text-xs shadow-xs active:scale-95 flex items-center gap-2 cursor-pointer"
-                >
-                  <span>Slide 2: Discussion, Outcome & Actions</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleProceedToStep2}
+                    className="px-4 py-2.5 border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-900 rounded-xl font-bold transition text-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                  >
+                    <span>Proceed to Slide 2 (Optional)</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleSaveFollowUp(true);
+                    }}
+                    disabled={isSubmitting}
+                    className="px-6 py-2.5 bg-purple-700 hover:bg-purple-800 disabled:opacity-50 text-white rounded-xl font-bold transition text-xs shadow-xs active:scale-95 flex items-center gap-2 cursor-pointer"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>{isSubmitting ? 'Saving...' : 'Save Follow-up'}</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -650,32 +746,18 @@ function FollowUpFormContent() {
                 </div>
               </div>
 
-              {/* Discussion Purpose & Status */}
+              {/* Client Status & Notes */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
                     4
                   </span>
                   <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
-                    Discussion Details & Client Status
+                    Client Status & Discussion Notes
                   </h2>
                 </div>
 
                 <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                      Discussion Purpose <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={purpose}
-                      onChange={(e) => setPurpose(e.target.value)}
-                      placeholder="e.g. Price negotiation, technical parameters approval, delivery timeline"
-                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-purple-600"
-                    />
-                  </div>
-
                   <div>
                     <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
                       Client Status <span className="text-rose-500">*</span>

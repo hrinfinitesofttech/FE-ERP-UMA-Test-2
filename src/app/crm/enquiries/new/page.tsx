@@ -26,6 +26,7 @@ function EnquiryFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get('id');
+  const leadIdParam = searchParams.get('leadId');
 
   const {
     enquiries,
@@ -86,6 +87,13 @@ function EnquiryFormContent() {
     }
   }, [editId, enquiries]);
 
+  // Pre-select lead if passed in URL query param
+  useEffect(() => {
+    if (!editId && leadIdParam && leads.length > 0) {
+      handleEntitySelect(`lead:${leadIdParam}`);
+    }
+  }, [editId, leadIdParam, leads]);
+
   // Handle lead or customer selection
   const handleEntitySelect = (val: string) => {
     setSelectedEntityVal(val);
@@ -100,9 +108,10 @@ function EnquiryFormContent() {
 
     if (val.startsWith('lead:')) {
       const id = val.replace('lead:', '');
-      setSelectedLeadId(id);
       const lead = leads.find((l) => l.id === id || l.leadNo === id);
       if (lead) {
+        setSelectedLeadId(lead.id);
+        setSelectedEntityVal(`lead:${lead.id}`);
         setCustomerName(lead.companyName || '');
         setCustomerEmail(lead.email || '');
         setContactPerson(
@@ -111,9 +120,14 @@ function EnquiryFormContent() {
             : ''
         );
         setContactMobile(lead.mobile && lead.mobile !== '9999999999' ? lead.mobile : '');
-        if (lead.productName && !machineProduct) {
-          setMachineProduct(lead.productName);
+        if ((lead.productName || lead.machineType) && !machineProduct) {
+          setMachineProduct(lead.productName || lead.machineType || '');
         }
+        if (lead.quantity) {
+          setQuantity(lead.quantity);
+        }
+      } else {
+        setSelectedLeadId(id);
       }
     } else if (val.startsWith('cust:')) {
       const id = val.replace('cust:', '');

@@ -512,6 +512,7 @@ interface ERPContextType {
 
   followUps: FollowUp[];
   addFollowUp: (flwData: Omit<FollowUp, 'id' | 'followUpNo'>) => FollowUp;
+  updateFollowUp: (id: string, updates: Partial<FollowUp>) => void;
   completeFollowUp: (id: string, notes: string, nextDate?: string) => void;
 
   siteVisits: SiteVisit[];
@@ -6172,6 +6173,20 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
     }).catch((err) => console.warn('Failed to sync follow-up:', err));
     return newFlw;
+  };
+
+  const updateFollowUp = (id: string, updates: Partial<FollowUp>) => {
+    setFollowUps((prev) => {
+      const updated = prev.map((f) =>
+        f.id === id || f.followUpNo === id ? { ...f, ...updates } : f
+      );
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_followUps', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('UPDATE', 'CRM', 'Follow-ups', id, `Updated follow-up: ${id}`);
+    api.crm.followUps.update(id, updates).catch((err) => console.warn('Failed to update follow-up:', err));
   };
 
   const completeFollowUp = (id: string, notes: string, nextDate?: string) => {
@@ -13120,6 +13135,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         updateOpportunity,
         followUps: sortByLatestDesc(followUps),
         addFollowUp,
+        updateFollowUp,
         completeFollowUp,
         siteVisits: sortByLatestDesc(siteVisits),
         addSiteVisit,
