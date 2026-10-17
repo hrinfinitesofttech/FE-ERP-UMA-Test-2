@@ -19,7 +19,9 @@ import {
   Save,
   CheckCircle2,
   AlertCircle,
-  Sparkles,
+  Plus,
+  X,
+  CalendarPlus,
 } from 'lucide-react';
 
 function FollowUpFormContent() {
@@ -27,16 +29,15 @@ function FollowUpFormContent() {
   const searchParams = useSearchParams();
   const paramEnquiryId = searchParams.get('enquiryId');
   const paramLeadId = searchParams.get('leadId');
-  const paramQuotationId = searchParams.get('quotationId');
   const paramCustomerId = searchParams.get('customerId');
 
   const {
     followUps,
     addFollowUp,
+    updateLead,
     leads,
     customers,
     enquiries,
-    quotations,
     employees,
     availableEmployees,
   } = useERP();
@@ -50,86 +51,128 @@ function FollowUpFormContent() {
 
   const todayStr = new Date().toISOString().split('T')[0];
 
-  const [targetType, setTargetType] = useState<'lead' | 'enquiry' | 'quotation' | 'customer'>('lead');
-  const [targetId, setTargetId] = useState('');
+  // Selected Record State (unified without Target Entity Type dropdown)
+  const [selectedRecordKey, setSelectedRecordKey] = useState<string>('');
+  const [selectedEntityInfo, setSelectedEntityInfo] = useState<{
+    type: 'lead' | 'enquiry' | 'customer';
+    id: string;
+    name: string;
+    contactPerson: string;
+    mobile: string;
+    product?: string;
+  } | null>(null);
+
+  // Main follow-up schedule fields
   const [followUpType, setFollowUpType] = useState<'call' | 'whatsapp' | 'email' | 'meeting' | 'visit'>('call');
   const [scheduledDate, setScheduledDate] = useState(todayStr);
   const [scheduledTime, setScheduledTime] = useState('11:00');
   const [productItem, setProductItem] = useState('');
   const [purpose, setPurpose] = useState('');
-  const [assignedToId, setAssignedToId] = useState(allStaff[0]?.id || 'EMP-001');
   const [interestStatus, setInterestStatus] = useState<'interested' | 'not_interested' | 'in_discussion'>('interested');
   const [notes, setNotes] = useState('');
-  const [nextFollowUpDate, setNextFollowUpDate] = useState(
-    new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-  );
+
+  // Next Follow-up (by default clear and hidden)
+  const [hasScheduleNext, setHasScheduleNext] = useState(false);
+  const [nextFollowUpDate, setNextFollowUpDate] = useState('');
+  const [nextFollowUpTime, setNextFollowUpTime] = useState('');
 
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Sync selected target details
-  const applyTarget = (type: 'lead' | 'enquiry' | 'quotation' | 'customer', id: string) => {
-    setTargetType(type);
-    setTargetId(id);
+  // Handle record selection (lead, enquiry, or customer)
+  const handleRecordSelect = (val: string) => {
+    setSelectedRecordKey(val);
+    if (!val) {
+      setSelectedEntityInfo(null);
+      setProductItem('');
+      setPurpose('');
+      return;
+    }
+
+    const [type, id] = val.split(':');
 
     if (type === 'enquiry') {
       const enq = enquiries.find((e) => e.id === id || e.enquiryNo === id);
       if (enq) {
+        setSelectedEntityInfo({
+          type: 'enquiry',
+          id: enq.id,
+          name: enq.customerName,
+          contactPerson: enq.contactPerson || '',
+          mobile: enq.contactMobile || '',
+          product: enq.machineProduct,
+        });
         setProductItem(enq.machineProduct || '');
         setPurpose(`Inquiry follow-up for ${enq.machineProduct}`);
-        if (enq.assignedPersonId) {
-          setAssignedToId(enq.assignedPersonId);
-        }
       }
     } else if (type === 'lead') {
       const lead = leads.find((l) => l.id === id || l.leadNo === id);
-      const enq = enquiries.find((e) => e.leadId === id || (lead && e.customerName === lead.companyName));
-      if (enq) {
-        setProductItem(enq.machineProduct || '');
-        setPurpose(`Follow-up on inquiry for ${enq.machineProduct}`);
-      } else if (lead?.productName || lead?.machineType) {
-        const prod = lead.productName || lead.machineType || '';
+      if (lead) {
+        const enq = enquiries.find((e) => e.leadId === id || e.customerName === lead.companyName);
+        const prod = enq?.machineProduct || lead.productName || lead.machineType || '';
+        setSelectedEntityInfo({
+          type: 'lead',
+          id: lead.id,
+          name: lead.companyName,
+          contactPerson: lead.contactPerson || '',
+          mobile: lead.mobile || '',
+          product: prod,
+        });
         setProductItem(prod);
-        setPurpose(`Discussion regarding ${prod}`);
-      } else if (lead) {
-        setPurpose(`Discussion with ${lead.contactPerson || lead.companyName}`);
-      }
-    } else if (type === 'quotation') {
-      const quot = quotations.find((q) => q.id === id || q.quotationNumber === id);
-      if (quot) {
-        setProductItem(
-          quot.latestSummary?.machineProduct ||
-          quot.revisions?.[0]?.items?.[0]?.description ||
-          ''
-        );
-        setPurpose(`Proposal commercial follow-up for Quote ${quot.quotationNumber}`);
+        setPurpose(prod ? `Follow-up regarding ${prod}` : `Follow-up with ${lead.contactPerson || lead.companyName}`);
       }
     } else if (type === 'customer') {
       const cust = customers.find((c) => c.id === id || c.customerCode === id);
       if (cust) {
+        setSelectedEntityInfo({
+          type: 'customer',
+          id: cust.id,
+          name: cust.companyName,
+          contactPerson: cust.contactPerson || '',
+          mobile: cust.mobile || '',
+        });
         setPurpose(`Account relationship follow-up with ${cust.companyName}`);
       }
     }
   };
 
-  // Pre-fill from query params or initial defaults
+  // Pre-fill from URL parameters (e.g. from Enquiries page or Leads page)
   useEffect(() => {
     if (paramEnquiryId) {
-      applyTarget('enquiry', paramEnquiryId);
-    } else if (paramLeadId) {
-      applyTarget('lead', paramLeadId);
-    } else if (paramQuotationId) {
-      applyTarget('quotation', paramQuotationId);
-    } else if (paramCustomerId) {
-      applyTarget('customer', paramCustomerId);
-    } else if (leads.length > 0 && !targetId) {
-      applyTarget('lead', leads[0].id);
+      const enq = enquiries.find((e) => e.id === paramEnquiryId || e.enquiryNo === paramEnquiryId);
+      if (enq) {
+        handleRecordSelect(`enquiry:${enq.id}`);
+        return;
+      }
     }
-  }, [paramEnquiryId, paramLeadId, paramQuotationId, paramCustomerId, enquiries, leads]);
+    if (paramLeadId) {
+      const lead = leads.find((l) => l.id === paramLeadId || l.leadNo === paramLeadId);
+      if (lead) {
+        handleRecordSelect(`lead:${lead.id}`);
+        return;
+      }
+    }
+    if (paramCustomerId) {
+      const cust = customers.find((c) => c.id === paramCustomerId || c.customerCode === paramCustomerId);
+      if (cust) {
+        handleRecordSelect(`customer:${cust.id}`);
+        return;
+      }
+    }
+    // Default to first lead if available
+    if (!selectedRecordKey && leads.length > 0) {
+      handleRecordSelect(`lead:${leads[0].id}`);
+    }
+  }, [paramEnquiryId, paramLeadId, paramCustomerId, enquiries, leads]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
+
+    if (!selectedRecordKey || !selectedEntityInfo) {
+      setFormError('Please select a Customer or Lead.');
+      return;
+    }
 
     if (!purpose.trim()) {
       setFormError('Discussion purpose is required.');
@@ -141,40 +184,24 @@ function FollowUpFormContent() {
       return;
     }
 
+    if (hasScheduleNext) {
+      if (!nextFollowUpDate) {
+        setFormError('Please select the Next Follow-up Date or remove the next follow-up section.');
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     try {
-      let targetName = 'Client';
-      let customerId: string | undefined;
-      let leadId: string | undefined;
-      let enquiryId: string | undefined;
-      let quotationId: string | undefined;
-
-      if (targetType === 'lead') {
-        const selectedLead = leads.find((l) => l.id === targetId) || leads[0];
-        targetName = selectedLead ? `${selectedLead.companyName} (${selectedLead.contactPerson})` : 'New Lead';
-        leadId = selectedLead?.id;
-      } else if (targetType === 'enquiry') {
-        const selectedEnq = enquiries.find((en) => en.id === targetId || en.enquiryNo === targetId) || enquiries[0];
-        targetName = selectedEnq ? `${selectedEnq.customerName} - ${selectedEnq.enquiryNo || selectedEnq.machineProduct}` : 'Technical Inquiry';
-        enquiryId = selectedEnq?.id;
-      } else if (targetType === 'quotation') {
-        const selectedQuot = quotations.find((q) => q.id === targetId || q.quotationNumber === targetId) || quotations[0];
-        targetName = selectedQuot ? `${selectedQuot.customerName} (${selectedQuot.quotationNumber})` : 'Formal Quotation';
-        quotationId = selectedQuot?.id;
-      } else {
-        const selectedCust = customers.find((c) => c.id === targetId || c.customerCode === targetId) || customers[0];
-        targetName = selectedCust ? `${selectedCust.companyName} (${selectedCust.contactPerson})` : 'Customer';
-        customerId = selectedCust?.id;
-      }
-
+      // Default sales engineer automatically in background without showing the field
+      const assignedToId = allStaff[0]?.id || 'EMP-001';
       const assignedStaff = allStaff.find((s) => s.id === assignedToId);
       const assignedName = assignedStaff
         ? assignedStaff.name || `${assignedStaff.firstName || ''} ${assignedStaff.lastName || ''}`.trim()
         : 'Sales Team';
 
-      const entityRecordId = (targetType === 'lead' ? leadId : targetType === 'enquiry' ? enquiryId : targetType === 'quotation' ? quotationId : customerId) || 'ID-001';
-
+      // Format time with AM/PM
       let timeDisplay = scheduledTime || '11:00 AM';
       if (scheduledTime && scheduledTime.includes(':')) {
         const [h, m] = scheduledTime.split(':');
@@ -184,14 +211,28 @@ function FollowUpFormContent() {
         timeDisplay = `${hour12}:${m} ${ampm}`;
       }
 
+      // Format next follow-up time
+      let nextTimeDisplay: string | undefined = undefined;
+      if (nextFollowUpTime && nextFollowUpTime.includes(':')) {
+        const [nh, nm] = nextFollowUpTime.split(':');
+        const nhour = parseInt(nh, 10);
+        const nampm = nhour >= 12 ? 'PM' : 'AM';
+        const nhour12 = nhour % 12 || 12;
+        nextTimeDisplay = `${nhour12}:${nm} ${nampm}`;
+      }
+
+      const entityType = selectedEntityInfo.type;
+      const targetName = `${selectedEntityInfo.name}${selectedEntityInfo.contactPerson ? ` (${selectedEntityInfo.contactPerson})` : ''}`;
+      const enquiryId = entityType === 'enquiry' ? selectedEntityInfo.id : undefined;
+
+      // 1. Create main follow-up record
       const newFollowUpItem: FollowUp = {
         id: `FU-${Date.now()}`,
         followUpNo: `FLW-2026-${Math.floor(100 + Math.random() * 900)}`,
-        leadOrCustomerId: entityRecordId,
+        leadOrCustomerId: selectedEntityInfo.id,
         leadOrCustomerName: targetName,
-        entityType: targetType,
+        entityType,
         enquiryId,
-        quotationId,
         type: followUpType,
         assignedToId,
         assignedToName: assignedName,
@@ -202,11 +243,49 @@ function FollowUpFormContent() {
         notes: notes.trim(),
         interestStatus,
         productItem: productItem.trim() || undefined,
-        nextFollowUpDate: nextFollowUpDate || undefined,
+        nextFollowUpDate: hasScheduleNext && nextFollowUpDate ? nextFollowUpDate : undefined,
+        nextFollowUpTime: hasScheduleNext && nextTimeDisplay ? nextTimeDisplay : undefined,
         status: 'pending',
       };
 
       addFollowUp(newFollowUpItem);
+
+      // 2. If Next Follow-up was added, update lead and schedule the upcoming follow-up
+      if (hasScheduleNext && nextFollowUpDate) {
+        // Update linked lead if applicable
+        if (entityType === 'lead') {
+          try {
+            updateLead(selectedEntityInfo.id, { nextFollowUpDate });
+          } catch (_) {}
+        } else if (entityType === 'enquiry') {
+          const enq = enquiries.find((e) => e.id === selectedEntityInfo.id);
+          if (enq?.leadId) {
+            try {
+              updateLead(enq.leadId, { nextFollowUpDate });
+            } catch (_) {}
+          }
+        }
+
+        // Also schedule the upcoming follow-up entry
+        addFollowUp({
+          leadOrCustomerId: selectedEntityInfo.id,
+          leadOrCustomerName: targetName,
+          entityType,
+          enquiryId,
+          type: followUpType,
+          assignedToId,
+          assignedToName: assignedName,
+          date: nextFollowUpDate,
+          time: nextTimeDisplay || '11:00 AM',
+          priority: 'medium',
+          purpose: `Next Follow-up: ${purpose.trim()}`,
+          notes: notes ? `Scheduled next discussion. Prior notes: ${notes.trim()}` : 'Scheduled next discussion.',
+          interestStatus,
+          productItem: productItem.trim() || undefined,
+          status: 'pending',
+        });
+      }
+
       router.push('/crm/follow-ups');
     } catch (err: any) {
       setFormError(err.message || 'Failed to schedule follow-up.');
@@ -253,81 +332,88 @@ function FollowUpFormContent() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Section 1: Target Entity & Account Selection */}
+          {/* Section 1: Customer / Lead Selection (No Target Entity Type dropdown) */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
                 1
               </span>
               <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
-                Target Entity & Customer Account
+                Select Customer / Lead (કસ્ટમર / લીડ પસંદ કરો)
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                  Target Entity Type
-                </label>
-                <select
-                  value={targetType}
-                  onChange={(e) => {
-                    const type = e.target.value as 'lead' | 'enquiry' | 'quotation' | 'customer';
-                    let defaultId = '';
-                    if (type === 'lead') defaultId = leads[0]?.id || '';
-                    else if (type === 'enquiry') defaultId = enquiries[0]?.id || '';
-                    else if (type === 'quotation') defaultId = quotations[0]?.id || '';
-                    else defaultId = customers[0]?.id || '';
-                    applyTarget(type, defaultId);
-                  }}
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-purple-600 transition"
-                >
-                  <option value="lead">Sales Lead</option>
-                  <option value="enquiry">Technical Inquiry (RFQ)</option>
-                  <option value="quotation">Formal Commercial Quotation</option>
-                  <option value="customer">Existing Customer Account</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                  Select Linked Record <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={targetId}
-                  onChange={(e) => applyTarget(targetType, e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-purple-600 transition"
-                >
-                  {targetType === 'lead' &&
-                    leads.map((l) => (
-                      <option key={l.id} value={l.id}>
+            <div>
+              <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5 text-purple-700" />
+                <span>Select Customer / Lead <span className="text-rose-500">*</span></span>
+              </label>
+              <select
+                required
+                value={selectedRecordKey}
+                onChange={(e) => handleRecordSelect(e.target.value)}
+                className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-purple-600 transition"
+              >
+                <option value="">-- Select Customer / Lead / Inquiry --</option>
+                {leads.length > 0 && (
+                  <optgroup label="Prospective Leads (લીડ્સ)">
+                    {leads.map((l) => (
+                      <option key={`lead-${l.id}`} value={`lead:${l.id}`}>
                         {l.leadNo ? `${l.leadNo} - ` : ''}{l.companyName} ({l.contactPerson || 'Lead'})
                       </option>
                     ))}
-                  {targetType === 'enquiry' &&
-                    enquiries.map((en) => (
-                      <option key={en.id} value={en.id}>
+                  </optgroup>
+                )}
+                {enquiries.length > 0 && (
+                  <optgroup label="Technical Inquiries (ઇન્કવાયરી RFQ)">
+                    {enquiries.map((en) => (
+                      <option key={`enq-${en.id}`} value={`enquiry:${en.id}`}>
                         {en.enquiryNo || en.id} - {en.customerName} ({en.machineProduct})
                       </option>
                     ))}
-                  {targetType === 'quotation' &&
-                    quotations.map((q) => (
-                      <option key={q.id} value={q.id}>
-                        {q.quotationNumber} - {q.customerName}
+                  </optgroup>
+                )}
+                {customers.length > 0 && (
+                  <optgroup label="Registered Customers (ગ્રાહકો)">
+                    {customers.map((c) => (
+                      <option key={`cust-${c.id}`} value={`customer:${c.id}`}>
+                        {c.companyName} ({c.customerCode || 'CUST'}) - {c.contactPerson || 'Customer'}
                       </option>
                     ))}
-                  {targetType === 'customer' &&
-                    customers.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.companyName} ({c.customerCode})
-                      </option>
-                    ))}
-                </select>
-              </div>
+                  </optgroup>
+                )}
+              </select>
+
+              {/* Selection Summary Pill */}
+              {selectedEntityInfo && (
+                <div className="mt-2.5 p-3 bg-purple-50/60 border border-purple-200/80 rounded-xl flex items-center justify-between flex-wrap gap-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-purple-700 shrink-0" />
+                    <div>
+                      <strong className="text-purple-950 font-bold">{selectedEntityInfo.name}</strong>
+                      {selectedEntityInfo.contactPerson && (
+                        <span className="text-purple-700 ml-1.5 font-medium">
+                          • Contact: {selectedEntityInfo.contactPerson}
+                        </span>
+                      )}
+                      {selectedEntityInfo.mobile && (
+                        <span className="text-slate-600 ml-1.5 font-mono">
+                          ({selectedEntityInfo.mobile})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {selectedEntityInfo.product && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white text-purple-800 border border-purple-200 shadow-2xs">
+                      {selectedEntityInfo.product}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Section 2: Channel, Date & Time */}
+          {/* Section 2: Channel, Schedule Date & Time */}
           <div className="space-y-4 pt-4 border-t border-[#EBE3DB]">
             <div className="flex items-center gap-2">
               <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
@@ -387,7 +473,7 @@ function FollowUpFormContent() {
             </div>
           </div>
 
-          {/* Section 3: Product & Purpose */}
+          {/* Section 3: Product / Item & Discussion Purpose */}
           <div className="space-y-4 pt-4 border-t border-[#EBE3DB]">
             <div className="flex items-center gap-2">
               <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
@@ -429,35 +515,18 @@ function FollowUpFormContent() {
             </div>
           </div>
 
-          {/* Section 4: Assignment & Status */}
+          {/* Section 4: Client Interest Status & Notes (NO Assigned Sales Engineer) */}
           <div className="space-y-4 pt-4 border-t border-[#EBE3DB]">
             <div className="flex items-center gap-2">
               <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
                 4
               </span>
               <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
-                Sales Engineer & Client Interest Status
+                Client Interest Status & Discussion Notes
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                  Assigned Sales Engineer
-                </label>
-                <select
-                  value={assignedToId}
-                  onChange={(e) => setAssignedToId(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-purple-600"
-                >
-                  {allStaff.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name || `${s.firstName || ''} ${s.lastName || ''}`.trim()} ({s.department || s.departmentName || 'CRM'})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
+            <div className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
                   Client Status (ઇન્ટરેસ્ટેડ / નોટ ઇન્ટરેસ્ટેડ) <span className="text-rose-500">*</span>
@@ -473,7 +542,7 @@ function FollowUpFormContent() {
                 </select>
               </div>
 
-              <div className="md:col-span-2">
+              <div>
                 <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
                   Notes / Instructions
                 </label>
@@ -488,66 +557,139 @@ function FollowUpFormContent() {
             </div>
           </div>
 
-          {/* Section 5: Next Follow-up Planning */}
+          {/* Section 5: Next Follow-up (By default CLEAR with explicit Add button) */}
           <div className="space-y-4 pt-4 border-t border-[#EBE3DB]">
-            <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
-                5
-              </span>
-              <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
-                Next Follow-up Due Date (નેક્સ્ટ ફોલોઅપ)
-              </h2>
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
+                  5
+                </span>
+                <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
+                  Next Follow-up (નેક્સ્ટ ફોલોઅપ)
+                </h2>
+              </div>
+
+              {!hasScheduleNext && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHasScheduleNext(true);
+                    setNextFollowUpDate('');
+                    setNextFollowUpTime('');
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>+ Add Next Follow-up (નેક્સ્ટ ફોલોઅપ એડ કરો)</span>
+                </button>
+              )}
             </div>
 
-            <div className="p-4 bg-purple-50/50 rounded-xl border border-purple-100 space-y-3">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <label className="text-xs font-bold text-purple-900 flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 text-purple-700" />
-                  <span>Next Follow-up Due Date</span>
-                </label>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const d = new Date();
-                      d.setDate(d.getDate() + 2);
-                      setNextFollowUpDate(d.toISOString().split('T')[0]);
-                    }}
-                    className="px-2.5 py-1 text-xs font-bold bg-white text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-100 transition shadow-2xs cursor-pointer"
-                  >
-                    +2 Days
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const d = new Date();
-                      d.setDate(d.getDate() + 7);
-                      setNextFollowUpDate(d.toISOString().split('T')[0]);
-                    }}
-                    className="px-2.5 py-1 text-xs font-bold bg-white text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-100 transition shadow-2xs cursor-pointer"
-                  >
-                    +7 Days
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const d = new Date();
-                      d.setDate(d.getDate() + 15);
-                      setNextFollowUpDate(d.toISOString().split('T')[0]);
-                    }}
-                    className="px-2.5 py-1 text-xs font-bold bg-white text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-100 transition shadow-2xs cursor-pointer"
-                  >
-                    +15 Days
-                  </button>
+            {/* If not enabled: Show clear default message */}
+            {!hasScheduleNext ? (
+              <div className="p-4 bg-[#FAF7F2] border border-dashed border-[#EBE3DB] rounded-xl flex items-center justify-between text-xs text-[#70665F]">
+                <div className="flex items-center gap-2">
+                  <CalendarPlus className="w-4 h-4 text-purple-600 shrink-0" />
+                  <span>બાય ડિફોલ્ટ નેક્સ્ટ ફોલોઅપ ક્લિયર છે. જો બીજી તારીખ/સમય સેટ કરવો હોય તો ઉપર આપેલા બટન પર ક્લિક કરો.</span>
                 </div>
               </div>
-              <input
-                type="date"
-                value={nextFollowUpDate}
-                onChange={(e) => setNextFollowUpDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-purple-200 rounded-xl text-xs font-mono text-[#211B17] focus:outline-none focus:border-purple-600"
-              />
-            </div>
+            ) : (
+              /* If enabled: Show Date AND Time fields (initially clear/blank) with option to remove */
+              <div className="p-4 bg-purple-50/50 rounded-2xl border border-purple-200 space-y-4 animate-in fade-in">
+                <div className="flex items-center justify-between border-b border-purple-100 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-purple-700" />
+                    <span className="text-xs font-bold text-purple-950">
+                      Schedule Next Follow-up (તારીખ અને સમય સેટ કરો)
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setHasScheduleNext(false);
+                      setNextFollowUpDate('');
+                      setNextFollowUpTime('');
+                    }}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-600 hover:text-rose-800 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200 transition cursor-pointer"
+                  >
+                    <X className="w-3 h-3" />
+                    <span>Cancel / Clear (રીમુવ કરો)</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Next Date */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-bold text-[#4A3B32] flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5 text-purple-700" />
+                        <span>Next Follow-up Date <span className="text-rose-500">*</span></span>
+                      </label>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const d = new Date();
+                            d.setDate(d.getDate() + 2);
+                            setNextFollowUpDate(d.toISOString().split('T')[0]);
+                          }}
+                          className="px-2 py-0.5 text-[10px] font-bold bg-white text-purple-700 border border-purple-200 rounded hover:bg-purple-100 transition shadow-2xs cursor-pointer"
+                        >
+                          +2D
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const d = new Date();
+                            d.setDate(d.getDate() + 7);
+                            setNextFollowUpDate(d.toISOString().split('T')[0]);
+                          }}
+                          className="px-2 py-0.5 text-[10px] font-bold bg-white text-purple-700 border border-purple-200 rounded hover:bg-purple-100 transition shadow-2xs cursor-pointer"
+                        >
+                          +7D
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const d = new Date();
+                            d.setDate(d.getDate() + 15);
+                            setNextFollowUpDate(d.toISOString().split('T')[0]);
+                          }}
+                          className="px-2 py-0.5 text-[10px] font-bold bg-white text-purple-700 border border-purple-200 rounded hover:bg-purple-100 transition shadow-2xs cursor-pointer"
+                        >
+                          +15D
+                        </button>
+                      </div>
+                    </div>
+                    <input
+                      type="date"
+                      required={hasScheduleNext}
+                      value={nextFollowUpDate}
+                      onChange={(e) => setNextFollowUpDate(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-white border border-purple-200 rounded-xl text-xs font-mono text-[#211B17] focus:outline-none focus:border-purple-600"
+                    />
+                  </div>
+
+                  {/* Next Time */}
+                  <div>
+                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-purple-700" />
+                      <span>Next Follow-up Time (Clock)</span>
+                    </label>
+                    <input
+                      type="time"
+                      value={nextFollowUpTime}
+                      onChange={(e) => setNextFollowUpTime(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-white border border-purple-200 rounded-xl text-xs font-mono text-[#211B17] focus:outline-none focus:border-purple-600 cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-purple-900 font-medium">
+                  • આ નેક્સ્ટ ફોલોઅપ સેવ થવાથી આપોઆપ લીડમાં નેક્સ્ટ ડેટ અપડેટ થશે અને અપકમિંગ લિસ્ટમાં પણ જોવા મળશે.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Form Actions */}
@@ -564,7 +706,7 @@ function FollowUpFormContent() {
               className="px-6 py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl font-bold transition text-xs shadow-xs active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
               <PhoneCall className="w-4 h-4" />
-              <span>Schedule Follow-up</span>
+              <span>{isSubmitting ? 'Scheduling...' : 'Schedule Follow-up'}</span>
             </button>
           </div>
         </form>

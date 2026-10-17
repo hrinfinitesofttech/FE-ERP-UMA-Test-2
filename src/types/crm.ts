@@ -234,6 +234,7 @@ export interface FollowUp {
   purpose: string;
   notes: string;
   nextFollowUpDate?: string;
+  nextFollowUpTime?: string;
   status: 'pending' | 'completed' | 'rescheduled' | 'cancelled';
   outcome?: string;
   customerResponse?: string;
