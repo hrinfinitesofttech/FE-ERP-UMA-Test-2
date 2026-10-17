@@ -108,33 +108,10 @@ export default function LeadDetailPage() {
   const handleOpenEdit = () => {
     setEditFormData({
       companyName: lead.companyName || '',
-      industry: lead.industry || 'Speciality Chemicals',
-      gstin: lead.gstin || '',
-      website: lead.website || '',
-      city: lead.city || 'Vadodara',
-      state: lead.state || 'Gujarat',
-      address: lead.address || '',
       contactPerson: lead.contactPerson || '',
-      designation: lead.designation || 'Project Lead',
       mobile: lead.mobile || '',
-      altMobile: lead.altMobile || '',
       email: lead.email || '',
-      whatsapp: lead.whatsapp || '',
-      productName: lead.productName || '',
-      machineType: lead.machineType || 'Chemical Pressure Vessel / Reactor',
-      quantity: lead.quantity || 1,
-      capacity: lead.capacity || '',
-      application: lead.application || '',
-      requirementDescription: lead.requirementDescription || '',
-      expectedDelivery: lead.expectedDelivery || '',
-      budget: lead.budget ?? '',
-      priority: lead.priority || 'high',
-      source: lead.source || 'exhibition',
-      assignedSalesPersonId: lead.assignedSalesPersonId || '',
-      assignedSalesPersonName: lead.assignedSalesPersonName || '',
-      status: lead.status || 'new',
-      nextFollowUpDate: lead.nextFollowUpDate || '',
-      remarks: lead.remarks || '',
+      address: lead.address || '',
     });
     setEditErrors({});
     setIsEditDirty(false);
@@ -143,11 +120,8 @@ export default function LeadDetailPage() {
 
   const handleEditChange = (field: string, value: any) => {
     let cleanVal = value;
-    if (field === 'mobile' || field === 'whatsapp' || field === 'altMobile') {
+    if (field === 'mobile') {
       cleanVal = String(value).replace(/\D/g, '').slice(0, 10);
-    }
-    if (field === 'gstin') {
-      cleanVal = String(value).toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, 15);
     }
     setEditFormData((prev: Partial<Lead>) => ({ ...prev, [field]: cleanVal }));
     setIsEditDirty(true);
@@ -155,30 +129,17 @@ export default function LeadDetailPage() {
 
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editFormData.companyName || !editFormData.contactPerson || !editFormData.mobile || !editFormData.productName) {
-      alert('Please fill all required fields (Company, Contact Person, 10-digit Mobile, Product Title).');
+    if (!editFormData.companyName || !editFormData.contactPerson || !editFormData.mobile) {
+      alert('Please fill all required fields (Company Name, Contact Person, 10-digit Mobile).');
       return;
     }
 
-    const assignedPerson = allEmployees.find((emp) => emp.id === editFormData.assignedSalesPersonId);
-    const assignedName = assignedPerson
-      ? assignedPerson.name ||
-        (assignedPerson as any).employeeName ||
-        `${assignedPerson.firstName || ''} ${assignedPerson.lastName || ''}`.trim() ||
-        editFormData.assignedSalesPersonName ||
-        'Pravin Patel'
-      : editFormData.assignedSalesPersonName || 'Pravin Patel';
-
     const updatePayload: Partial<Lead> = {
-      ...editFormData,
       companyName: editFormData.companyName?.trim(),
       contactPerson: editFormData.contactPerson?.trim(),
       mobile: editFormData.mobile?.trim(),
       email: editFormData.email?.trim(),
-      productName: editFormData.productName?.trim(),
-      quantity: Number(editFormData.quantity) || 1,
-      budget: Number(editFormData.budget) || 0,
-      assignedSalesPersonName: assignedName,
+      address: editFormData.address?.trim(),
     };
 
     const targetId = lead.id || lead.leadNo;
@@ -726,272 +687,79 @@ export default function LeadDetailPage() {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSaveEdit} className="p-6 space-y-5 max-h-[75vh] overflow-y-auto text-xs">
-              {/* SECTION 1: Company Details */}
-              <div className="space-y-3">
-                <h3 className="font-bold text-xs text-[#75401F] uppercase tracking-wider flex items-center gap-2">
-                  <span className="w-4.5 h-4.5 rounded-full bg-amber-100 text-amber-900 flex items-center justify-center text-[10px] font-bold">1</span>
-                  Company & Enterprise Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-                  <div className="md:col-span-6">
-                    <label className="block text-[#544B45] font-semibold mb-1">Company Name *</label>
-                    <input
-                      type="text"
-                      required
-                      value={editFormData.companyName || ''}
-                      onChange={(e) => handleEditChange('companyName', e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] font-bold"
-                    />
-                  </div>
-                  <div className="md:col-span-6">
-                    <label className="block text-[#544B45] font-semibold mb-1">Industry Sector</label>
-                    <input
-                      type="text"
-                      value={editFormData.industry || ''}
-                      onChange={(e) => handleEditChange('industry', e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
-                    />
-                  </div>
-                  <div className="md:col-span-4">
-                    <label className="block text-[#544B45] font-semibold mb-1">GSTIN (15 Digits)</label>
-                    <input
-                      type="text"
-                      maxLength={15}
-                      value={editFormData.gstin || ''}
-                      onChange={(e) => handleEditChange('gstin', e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-mono uppercase text-[#211B17]"
-                    />
-                  </div>
-                  <div className="md:col-span-4">
-                    <label className="block text-[#544B45] font-semibold mb-1">Website URL</label>
-                    <input
-                      type="url"
-                      value={editFormData.website || ''}
-                      onChange={(e) => handleEditChange('website', e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
-                    />
-                  </div>
-                  <div className="md:col-span-4">
-                    <label className="block text-[#544B45] font-semibold mb-1">City & State</label>
-                    <input
-                      type="text"
-                      value={editFormData.city || ''}
-                      onChange={(e) => handleEditChange('city', e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
-                    />
-                  </div>
-                  <div className="md:col-span-12">
-                    <label className="block text-[#544B45] font-semibold mb-1">Office / Factory Address</label>
-                    <textarea
-                      rows={2}
-                      value={editFormData.address || ''}
-                      onChange={(e) => handleEditChange('address', e.target.value)}
-                      placeholder="e.g. Plot No. 42, GIDC Industrial Estate, Makarpura, Vadodara"
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
-                    />
-                  </div>
+            <form onSubmit={handleSaveEdit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto text-xs">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+                    Company Name <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editFormData.companyName || ''}
+                    onChange={(e) => handleEditChange('companyName', e.target.value)}
+                    placeholder="e.g. Industrial Enterprises Ltd."
+                    className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-bold text-[#211B17] focus:outline-none focus:ring-2 focus:ring-[#75401F]/20 focus:border-[#75401F]"
+                  />
                 </div>
-              </div>
 
-              {/* SECTION 2: Contact Information */}
-              <div className="space-y-3 pt-3 border-t border-[#EBE3DB]">
-                <h3 className="font-bold text-xs text-[#75401F] uppercase tracking-wider flex items-center gap-2">
-                  <span className="w-4.5 h-4.5 rounded-full bg-amber-100 text-amber-900 flex items-center justify-center text-[10px] font-bold">2</span>
-                  Contact Person Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-                  <div className="md:col-span-4">
-                    <label className="block text-[#544B45] font-semibold mb-1">Contact Person Name *</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+                      Person Name (Contact Person) <span className="text-rose-500">*</span>
+                    </label>
                     <input
                       type="text"
                       required
                       value={editFormData.contactPerson || ''}
                       onChange={(e) => handleEditChange('contactPerson', e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] font-semibold"
+                      placeholder="e.g. Harish Trivedi"
+                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:ring-2 focus:ring-[#75401F]/20 focus:border-[#75401F]"
                     />
                   </div>
-                  <div className="md:col-span-4">
-                    <label className="block text-[#544B45] font-semibold mb-1">Designation</label>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+                      Number (Mobile Contact) <span className="text-rose-500">*</span>
+                    </label>
                     <input
                       type="text"
-                      value={editFormData.designation || ''}
-                      onChange={(e) => handleEditChange('designation', e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
-                    />
-                  </div>
-                  <div className="md:col-span-4">
-                    <label className="block text-[#544B45] font-semibold mb-1">Mobile Contact (10 digits) *</label>
-                    <input
-                      type="text"
-                      maxLength={10}
                       required
+                      maxLength={10}
                       value={editFormData.mobile || ''}
                       onChange={(e) => handleEditChange('mobile', e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-mono text-[#211B17]"
-                    />
-                  </div>
-                  <div className="md:col-span-6">
-                    <label className="block text-[#544B45] font-semibold mb-1">Email Address *</label>
-                    <input
-                      type="email"
-                      required
-                      value={editFormData.email || ''}
-                      onChange={(e) => handleEditChange('email', e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
-                    />
-                  </div>
-                  <div className="md:col-span-6">
-                    <label className="block text-[#544B45] font-semibold mb-1">WhatsApp Number</label>
-                    <input
-                      type="text"
-                      maxLength={10}
-                      value={editFormData.whatsapp || ''}
-                      onChange={(e) => handleEditChange('whatsapp', e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-mono text-[#211B17]"
+                      placeholder="9825012345"
+                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:ring-2 focus:ring-[#75401F]/20 focus:border-[#75401F]"
                     />
                   </div>
                 </div>
-              </div>
 
-              {/* SECTION 3: Technical Requirement */}
-              <div className="space-y-3 pt-3 border-t border-[#EBE3DB]">
-                <h3 className="font-bold text-xs text-[#75401F] uppercase tracking-wider flex items-center gap-2">
-                  <span className="w-4.5 h-4.5 rounded-full bg-amber-100 text-amber-900 flex items-center justify-center text-[10px] font-bold">3</span>
-                  Machine & Equipment Technical Requirement
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-                  <div className="md:col-span-8">
-                    <label className="block text-[#544B45] font-semibold mb-1">Product / Machine Title *</label>
-                    <input
-                      type="text"
-                      required
-                      value={editFormData.productName || ''}
-                      onChange={(e) => handleEditChange('productName', e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] font-bold"
-                    />
-                  </div>
-                  <div className="md:col-span-4">
-                    <label className="block text-[#544B45] font-semibold mb-1">Quantity *</label>
-                    <input
-                      type="number"
-                      min={1}
-                      value={editFormData.quantity ?? 1}
-                      onChange={(e) => handleEditChange('quantity', e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-mono text-[#211B17]"
-                    />
-                  </div>
-                  <div className="md:col-span-4">
-                    <label className="block text-[#544B45] font-semibold mb-1">Capacity / Dimensions</label>
-                    <input
-                      type="text"
-                      value={editFormData.capacity || ''}
-                      onChange={(e) => handleEditChange('capacity', e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
-                    />
-                  </div>
-                  <div className="md:col-span-4">
-                    <label className="block text-[#544B45] font-semibold mb-1">Target Delivery Date</label>
-                    <input
-                      type="date"
-                      value={editFormData.expectedDelivery || ''}
-                      onChange={(e) => handleEditChange('expectedDelivery', e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-mono text-[#211B17]"
-                    />
-                  </div>
-                  <div className="md:col-span-4">
-                    <label className="block text-[#544B45] font-semibold mb-1">Estimated Budget (₹)</label>
-                    <input
-                      type="number"
-                      min={0}
-                      value={editFormData.budget ?? ''}
-                      onChange={(e) => handleEditChange('budget', e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-bold text-emerald-600"
-                    />
-                  </div>
-                  <div className="md:col-span-12">
-                    <label className="block text-[#544B45] font-semibold mb-1">Technical Scope & Description</label>
-                    <textarea
-                      rows={2}
-                      value={editFormData.requirementDescription || ''}
-                      onChange={(e) => handleEditChange('requirementDescription', e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+                    Email Address <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={editFormData.email || ''}
+                    onChange={(e) => handleEditChange('email', e.target.value)}
+                    placeholder="name@company.com"
+                    className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:ring-2 focus:ring-[#75401F]/20 focus:border-[#75401F]"
+                  />
                 </div>
-              </div>
 
-              {/* SECTION 4: Status & Assignment */}
-              <div className="space-y-3 pt-3 border-t border-[#EBE3DB]">
-                <h3 className="font-bold text-xs text-[#75401F] uppercase tracking-wider flex items-center gap-2">
-                  <span className="w-4.5 h-4.5 rounded-full bg-amber-100 text-amber-900 flex items-center justify-center text-[10px] font-bold">4</span>
-                  Sales Assignment & Status
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-                  <div className="md:col-span-3">
-                    <label className="block text-[#544B45] font-semibold mb-1">Lead Source</label>
-                    <select
-                      value={editFormData.source || 'exhibition'}
-                      onChange={(e) => handleEditChange('source', e.target.value as LeadSource)}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] font-semibold"
-                    >
-                      <option value="exhibition">Exhibition / Expo</option>
-                      <option value="website">Website Inquiry</option>
-                      <option value="phone">Direct Phone Call</option>
-                      <option value="whatsapp">WhatsApp</option>
-                      <option value="referral">Referral</option>
-                      <option value="existing_customer">Existing Customer</option>
-                    </select>
-                  </div>
-
-                  <div className="md:col-span-3">
-                    <label className="block text-[#544B45] font-semibold mb-1">Assigned Sales Engineer</label>
-                    <select
-                      value={editFormData.assignedSalesPersonId || ''}
-                      onChange={(e) => handleEditChange('assignedSalesPersonId', e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17]"
-                    >
-                      {allEmployees.map((emp) => {
-                        const name =
-                          emp.name ||
-                          (emp as any).employeeName ||
-                          `${emp.firstName || ''} ${emp.lastName || ''}`.trim() ||
-                          emp.id;
-                        return (
-                          <option key={emp.id} value={emp.id}>
-                            {name}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </div>
-
-                  <div className="md:col-span-3">
-                    <label className="block text-[#544B45] font-semibold mb-1">Lead Status</label>
-                    <select
-                      value={editFormData.status || 'new'}
-                      onChange={(e) => handleEditChange('status', e.target.value as LeadStatus)}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] font-bold"
-                    >
-                      <option value="new">New</option>
-                      <option value="contacted">Contacted</option>
-                      <option value="qualified">Qualified</option>
-                      <option value="requirement_received">Requirement Received</option>
-                      <option value="quotation_sent">Quotation Sent</option>
-                      <option value="won">Won Orders</option>
-                      <option value="lost">Lost</option>
-                    </select>
-                  </div>
-
-                  <div className="md:col-span-3">
-                    <label className="block text-[#544B45] font-semibold mb-1">Next Follow-up Date</label>
-                    <input
-                      type="date"
-                      value={editFormData.nextFollowUpDate || ''}
-                      onChange={(e) => handleEditChange('nextFollowUpDate', e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-mono text-[#211B17]"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+                    Address <span className="text-rose-500">*</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    required
+                    value={editFormData.address || ''}
+                    onChange={(e) => handleEditChange('address', e.target.value)}
+                    placeholder="e.g. Plot No. 42, GIDC Industrial Estate..."
+                    className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:ring-2 focus:ring-[#75401F]/20 focus:border-[#75401F]"
+                  />
                 </div>
               </div>
 

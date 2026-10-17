@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, Suspense } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useERP } from '../../../../context/ERPContext';
-import { LeadStatus } from '../../../../types/crm';
+import { LeadStatus, LeadSource } from '../../../../types/crm';
 import {
   Building2,
   User,
@@ -19,6 +19,11 @@ import {
 
 function NewLeadForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const sourceParam = searchParams.get('source') || '';
+  const expoIdParam = searchParams.get('expoId') || searchParams.get('exhibitionId') || '';
+  const expoNameParam = searchParams.get('expoName') || searchParams.get('exhibitionName') || '';
+
   const { addLead, employees, availableEmployees } = useERP();
 
   const allEmployees =
@@ -127,15 +132,8 @@ function NewLeadForm() {
     setIsSubmitting(true);
 
     try {
-      // Derive city if provided in address, fallback to Vadodara
-      let extractedCity = 'Vadodara';
-      const addrParts = formData.address.split(',');
-      if (addrParts.length > 1) {
-        const potentialCity = addrParts[addrParts.length - 2].trim();
-        if (potentialCity && potentialCity.length < 30) {
-          extractedCity = potentialCity;
-        }
-      }
+      const isFromExpo = Boolean(expoIdParam) || sourceParam === 'exhibition';
+      const leadSource: LeadSource = isFromExpo ? 'exhibition' : ((sourceParam as LeadSource) || 'phone');
 
       await addLead({
         companyName: formData.companyName.trim(),
@@ -143,32 +141,38 @@ function NewLeadForm() {
         mobile: formData.mobile.trim(),
         email: formData.email.trim(),
         address: formData.address.trim(),
-        city: extractedCity,
-        state: 'Gujarat',
-        country: 'India',
+        city: '',
+        state: '',
+        country: '',
         pincode: '',
         whatsapp: formData.mobile.trim(),
         altMobile: '',
-        industry: 'Manufacturing / Engineering',
-        designation: 'Contact Person / Representative',
+        industry: '',
+        designation: '',
         machineType: '',
-        productName: 'General Inquiry / Process Equipment',
-        source: 'phone',
+        productName: '',
+        source: leadSource,
+        exhibitionId: expoIdParam || undefined,
+        exhibitionName: expoNameParam || undefined,
         priority: 'medium',
         assignedSalesPersonId: defaultSalesPersonId,
         assignedSalesPersonName: defaultSalesPersonName,
         status: 'new' as LeadStatus,
-        quantity: 1,
+        quantity: 0,
         capacity: '',
         application: '',
-        requirementDescription: `New lead registered for ${formData.companyName.trim()} by ${formData.contactPerson.trim()}`,
+        requirementDescription: '',
         expectedDelivery: '',
         budget: 0,
         nextFollowUpDate: '',
         remarks: '',
       });
 
-      router.push(`/crm/leads?tab=leads&created=${encodeURIComponent(formData.companyName.trim())}`);
+      if (expoIdParam) {
+        router.push(`/crm/exhibitions?view=${encodeURIComponent(expoIdParam)}`);
+      } else {
+        router.push(`/crm/leads?tab=leads&created=${encodeURIComponent(formData.companyName.trim())}`);
+      }
     } catch (err: any) {
       console.error('Failed to create lead:', err);
       setIsSubmitting(false);
@@ -181,11 +185,11 @@ function NewLeadForm() {
       {/* Back Link */}
       <div>
         <Link
-          href="/crm/leads"
+          href={expoIdParam ? `/crm/exhibitions?view=${encodeURIComponent(expoIdParam)}` : '/crm/leads'}
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#70665F] hover:text-[#211B17] transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Leads</span>
+          <span>{expoIdParam ? 'Back to Exhibition' : 'Back to Leads'}</span>
         </Link>
       </div>
 
@@ -205,6 +209,23 @@ function NewLeadForm() {
             </p>
           </div>
         </div>
+
+        {/* Exhibition Context Banner if registered from an Expo */}
+        {(expoNameParam || expoIdParam) && (
+          <div className="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl text-xs flex items-center justify-between text-indigo-950 font-medium">
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 bg-indigo-600 text-white rounded font-mono font-bold text-[10px] uppercase">
+                Exhibition Lead
+              </span>
+              <span>Registering Lead for Trade Show: <strong>{expoNameParam || expoIdParam}</strong></span>
+            </div>
+            {expoIdParam && (
+              <span className="font-mono text-indigo-700 text-[11px] font-semibold">
+                {expoIdParam}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Global Error Banner if any */}
         {errors.submit && (

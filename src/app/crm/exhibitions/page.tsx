@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
 import { Exhibition } from '../../../types/crm';
@@ -27,8 +27,11 @@ import {
   UserPlus
 } from 'lucide-react';
 
-export default function ExhibitionsPage() {
+function ExhibitionsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const viewId = searchParams.get('view');
+
   const { exhibitions, addExhibition, updateExhibition, deleteExhibition, employees, leads } = useERP();
   
   // Modals
@@ -36,6 +39,16 @@ export default function ExhibitionsPage() {
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedExpo, setSelectedExpo] = useState<Exhibition | null>(null);
+
+  useEffect(() => {
+    if (viewId && exhibitions && exhibitions.length > 0) {
+      const match = exhibitions.find((e) => e.id === viewId);
+      if (match) {
+        setSelectedExpo(match);
+        setShowViewModal(true);
+      }
+    }
+  }, [viewId, exhibitions]);
 
   // New Expo Form State
   const [expoName, setExpoName] = useState('');
@@ -628,7 +641,13 @@ export default function ExhibitionsPage() {
                 </div>
 
                 {(() => {
-                  const linkedLeads = leads.filter((l) => l.exhibitionId === selectedExpo.id || l.exhibitionName === selectedExpo.expoName);
+                  const linkedLeads = leads.filter(
+                    (l) =>
+                      l.exhibitionId === selectedExpo.id ||
+                      (Boolean(selectedExpo.expoName) &&
+                        Boolean(l.exhibitionName) &&
+                        l.exhibitionName?.trim().toLowerCase() === selectedExpo.expoName?.trim().toLowerCase())
+                  );
                   if (linkedLeads.length === 0) {
                     return (
                       <p className="text-[#70665F] text-[11px] bg-slate-50 p-3 rounded-lg text-center">
@@ -646,7 +665,7 @@ export default function ExhibitionsPage() {
                               <ExternalLink className="w-3 h-3 text-[#70665F]" />
                             </Link>
                             <span className="text-[10px] text-[#70665F]">
-                              {l.contactPerson} • {l.mobile} • {l.productName}
+                              {[l.contactPerson, l.mobile, l.productName].filter(Boolean).join(' • ')}
                             </span>
                           </div>
                           <span className="px-2 py-0.5 rounded font-mono text-[9px] font-bold uppercase bg-amber-100 text-amber-800">
@@ -683,5 +702,13 @@ export default function ExhibitionsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ExhibitionsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-xs text-gray-500 font-semibold">Loading Exhibitions...</div>}>
+      <ExhibitionsContent />
+    </Suspense>
   );
 }

@@ -31,14 +31,12 @@ function ExhibitionFormContent() {
       : [];
 
   const [expoName, setExpoName] = useState('');
-  const [organizer, setOrganizer] = useState('');
   const [location, setLocation] = useState('');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(
     new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]
   );
   const [stallNumber, setStallNumber] = useState('');
-  const [contactPerson, setContactPerson] = useState('');
   const [budget, setBudget] = useState<number | ''>(150000);
   const [assignedTeam, setAssignedTeam] = useState<string[]>(
     allStaff[0]?.id ? [allStaff[0].id] : []
@@ -67,12 +65,12 @@ function ExhibitionFormContent() {
     try {
       addExhibition({
         expoName: expoName.trim(),
-        organizer: organizer.trim() || 'Industry Trade Council',
+        organizer: '',
         location: location.trim(),
         startDate,
         endDate,
         stallNumber: stallNumber.trim() || 'TBD',
-        contactPerson: contactPerson.trim() || 'Event Manager',
+        contactPerson: '',
         budget: typeof budget === 'number' ? budget : 0,
         assignedTeam,
         productsDisplayed: productsDisplayed.trim(),
@@ -159,21 +157,7 @@ function ExhibitionFormContent() {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>Organizer Name</span>
-                </label>
-                <input
-                  type="text"
-                  value={organizer}
-                  onChange={(e) => setOrganizer(e.target.value)}
-                  placeholder="e.g. Confederation of Indian Industry (CII)"
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-indigo-600"
-                />
-              </div>
-
-              <div>
+              <div className="md:col-span-2">
                 <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-indigo-600" />
                   <span>Venue & City <span className="text-rose-500">*</span></span>
@@ -244,36 +228,20 @@ function ExhibitionFormContent() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1.5">
-                  <DollarSign className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>Allocated Budget (₹) *</span>
-                </label>
-                <input
-                  type="number"
-                  required
-                  min={0}
-                  value={budget}
-                  onChange={(e) => setBudget(e.target.value === '' ? '' : Number(e.target.value))}
-                  placeholder="150000"
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-indigo-600"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>Contact Person / Stall Head</span>
-                </label>
-                <input
-                  type="text"
-                  value={contactPerson}
-                  onChange={(e) => setContactPerson(e.target.value)}
-                  placeholder="e.g. Mr. Rajesh Patel (Sales Lead)"
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-indigo-600"
-                />
-              </div>
+            <div>
+              <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1.5">
+                <DollarSign className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Allocated Budget (₹) *</span>
+              </label>
+              <input
+                type="number"
+                required
+                min={0}
+                value={budget}
+                onChange={(e) => setBudget(e.target.value === '' ? '' : Number(e.target.value))}
+                placeholder="150000"
+                className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-indigo-600"
+              />
             </div>
           </div>
 

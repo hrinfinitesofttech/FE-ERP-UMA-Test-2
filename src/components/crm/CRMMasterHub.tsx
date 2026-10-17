@@ -124,21 +124,8 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
       companyName: lead.companyName || '',
       contactPerson: lead.contactPerson || '',
       mobile: lead.mobile || '',
-      altMobile: lead.altMobile || '',
       email: lead.email || '',
       address: lead.address || '',
-      city: lead.city || 'Vadodara',
-      state: lead.state || 'Gujarat',
-      productName: lead.productName || '',
-      machineType: lead.machineType || '',
-      quantity: lead.quantity || 1,
-      capacity: lead.capacity || '',
-      budget: lead.budget || 0,
-      priority: lead.priority || 'medium',
-      status: lead.status || 'new',
-      assignedSalesPersonId: lead.assignedSalesPersonId || '',
-      assignedSalesPersonName: lead.assignedSalesPersonName || 'Pravin Patel',
-      remarks: lead.remarks || '',
     });
   };
 
@@ -148,24 +135,12 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
     setIsSavingEdit(true);
 
     try {
-      const assignedPerson = allEmployees.find((emp) => emp.id === editLeadData.assignedSalesPersonId);
-      const assignedName = assignedPerson
-        ? assignedPerson.name ||
-          (assignedPerson as any).employeeName ||
-          `${assignedPerson.firstName || ''} ${assignedPerson.lastName || ''}`.trim() ||
-          editLeadData.assignedSalesPersonName ||
-          'Pravin Patel'
-        : editLeadData.assignedSalesPersonName || 'Pravin Patel';
-
       const payload: Partial<Lead> = {
-        ...editLeadData,
         companyName: editLeadData.companyName?.trim(),
         contactPerson: editLeadData.contactPerson?.trim(),
         mobile: editLeadData.mobile?.trim(),
-        productName: editLeadData.productName?.trim(),
-        quantity: Number(editLeadData.quantity) || 1,
-        budget: Number(editLeadData.budget) || 0,
-        assignedSalesPersonName: assignedName,
+        email: editLeadData.email?.trim(),
+        address: editLeadData.address?.trim(),
       };
 
       const targetId = editingLead.id || editingLead.leadNo;
@@ -175,7 +150,7 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
       setTimeout(() => setSuccessMsg(''), 4000);
     } catch (err: any) {
       console.error('Failed to update lead:', err);
-      alert('Error updating lead: ' + (err?.message || 'Server error'));
+      alert('Failed to update lead: ' + (err?.message || 'Unknown error'));
     } finally {
       setIsSavingEdit(false);
     }
@@ -277,36 +252,56 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
             )}
           </div>
 
-          <div className="text-[10px] text-[#8D827A] flex items-center gap-1">
-            <MapPin className="w-2.5 h-2.5 text-[#A89F91] shrink-0" />
-            <span className="truncate">{lead.city || 'Vadodara'}, {lead.state || 'Gujarat'}</span>
-          </div>
+          {lead.address ? (
+            <div className="text-[10px] text-[#8D827A] flex items-center gap-1" title={lead.address}>
+              <MapPin className="w-2.5 h-2.5 text-[#A89F91] shrink-0" />
+              <span className="truncate max-w-[200px]">{lead.address}</span>
+            </div>
+          ) : lead.city ? (
+            <div className="text-[10px] text-[#8D827A] flex items-center gap-1">
+              <MapPin className="w-2.5 h-2.5 text-[#A89F91] shrink-0" />
+              <span className="truncate">{lead.city}{lead.state ? `, ${lead.state}` : ''}</span>
+            </div>
+          ) : null}
         </div>
       ),
     },
     {
       header: 'Machine Requirement',
       className: 'min-w-[220px] max-w-[280px] align-top',
-      cell: (lead) => (
-        <div className="space-y-1">
-          <span
-            className="font-semibold text-xs text-[#211B17] line-clamp-2 leading-snug block"
-            title={lead.productName}
-          >
-            {lead.productName}
-          </span>
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[10px] font-mono font-medium bg-[#FAF7F2] border border-[#EBE3DB] px-1.5 py-0.5 rounded text-[#544B45]">
-              Qty: <strong className="text-slate-900">{lead.quantity || 1}</strong>
+      cell: (lead) => {
+        if (!lead.productName && !lead.machineType) {
+          return (
+            <div className="text-[11px] text-[#A89F91] italic py-1">
+              No requirement specified
+            </div>
+          );
+        }
+        return (
+          <div className="space-y-1">
+            <span
+              className="font-semibold text-xs text-[#211B17] line-clamp-2 leading-snug block"
+              title={lead.productName || lead.machineType}
+            >
+              {lead.productName || lead.machineType}
             </span>
-            {lead.capacity && (
-              <span className="text-[10px] font-mono text-[#70665F] bg-[#FAF7F2] border border-[#EBE3DB] px-1.5 py-0.5 rounded truncate max-w-[130px]" title={lead.capacity}>
-                Cap: {lead.capacity}
-              </span>
-            )}
+            {(lead.quantity > 0 || lead.capacity) ? (
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {lead.quantity > 0 && (
+                  <span className="text-[10px] font-mono font-medium bg-[#FAF7F2] border border-[#EBE3DB] px-1.5 py-0.5 rounded text-[#544B45]">
+                    Qty: <strong className="text-slate-900">{lead.quantity}</strong>
+                  </span>
+                )}
+                {lead.capacity && (
+                  <span className="text-[10px] font-mono text-[#70665F] bg-[#FAF7F2] border border-[#EBE3DB] px-1.5 py-0.5 rounded truncate max-w-[130px]" title={lead.capacity}>
+                    Cap: {lead.capacity}
+                  </span>
+                )}
+              </div>
+            ) : null}
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       header: 'Commercial & Priority',
@@ -627,150 +622,31 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Email Address</label>
-                  <input
-                    type="email"
-                    value={editLeadData.email || ''}
-                    onChange={(e) => setEditLeadData((prev) => ({ ...prev, email: e.target.value }))}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">City / Location</label>
-                  <input
-                    type="text"
-                    value={editLeadData.city || ''}
-                    onChange={(e) => setEditLeadData((prev) => ({ ...prev, city: e.target.value }))}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
-                    placeholder="e.g. Vadodara, Ahmedabad"
-                  />
-                </div>
-              </div>
-
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Office / Factory Address</label>
-                <textarea
-                  rows={2}
-                  value={editLeadData.address || ''}
-                  onChange={(e) => setEditLeadData((prev) => ({ ...prev, address: e.target.value }))}
+                <label className="block text-[#544B45] font-semibold mb-1">
+                  Email Address <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={editLeadData.email || ''}
+                  onChange={(e) => setEditLeadData((prev) => ({ ...prev, email: e.target.value }))}
                   className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
-                  placeholder="e.g. Plot No. 42, GIDC Industrial Estate, Makarpura, Vadodara"
+                  placeholder="name@company.com"
                 />
               </div>
 
               <div>
                 <label className="block text-[#544B45] font-semibold mb-1">
-                  Machine / Equipment Required <span className="text-rose-500">*</span>
+                  Address <span className="text-rose-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  required
-                  value={editLeadData.productName || ''}
-                  onChange={(e) => setEditLeadData((prev) => ({ ...prev, productName: e.target.value }))}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl font-semibold text-[#211B17] focus:outline-none focus:border-[#75401F]"
-                  placeholder="e.g. 15 KL Hastelloy Reactor Vessel with Limpet Coil"
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Quantity</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={editLeadData.quantity || 1}
-                    onChange={(e) => setEditLeadData((prev) => ({ ...prev, quantity: Number(e.target.value) }))}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl font-mono focus:outline-none focus:border-[#75401F]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Capacity</label>
-                  <input
-                    type="text"
-                    value={editLeadData.capacity || ''}
-                    onChange={(e) => setEditLeadData((prev) => ({ ...prev, capacity: e.target.value }))}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl font-mono focus:outline-none focus:border-[#75401F]"
-                    placeholder="e.g. 15 KL"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Budget (₹)</label>
-                  <input
-                    type="number"
-                    value={editLeadData.budget || 0}
-                    onChange={(e) => setEditLeadData((prev) => ({ ...prev, budget: Number(e.target.value) }))}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl font-mono font-bold text-emerald-700 focus:outline-none focus:border-[#75401F]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Priority</label>
-                  <select
-                    value={editLeadData.priority || 'medium'}
-                    onChange={(e) => setEditLeadData((prev) => ({ ...prev, priority: e.target.value as any }))}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl font-semibold focus:outline-none focus:border-[#75401F]"
-                  >
-                    <option value="urgent">Urgent</option>
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Status</label>
-                  <select
-                    value={editLeadData.status || 'new'}
-                    onChange={(e) => setEditLeadData((prev) => ({ ...prev, status: e.target.value as any }))}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl font-semibold focus:outline-none focus:border-[#75401F]"
-                  >
-                    <option value="new">New Lead</option>
-                    <option value="contacted">Contacted</option>
-                    <option value="qualified">Qualified</option>
-                    <option value="requirement_received">Requirement Received</option>
-                    <option value="quotation_sent">Quotation Sent</option>
-                    <option value="won">Won / Converted</option>
-                    <option value="lost">Lost</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Sales Engineer</label>
-                  <select
-                    value={editLeadData.assignedSalesPersonId || ''}
-                    onChange={(e) => {
-                      const empId = e.target.value;
-                      const emp = allEmployees.find((m) => m.id === empId);
-                      setEditLeadData((prev) => ({
-                        ...prev,
-                        assignedSalesPersonId: empId,
-                        assignedSalesPersonName: emp ? (emp.name || (emp as any).employeeName || 'Pravin Patel') : 'Pravin Patel',
-                      }));
-                    }}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl font-semibold focus:outline-none focus:border-[#75401F]"
-                  >
-                    <option value="">-- Assign Engineer --</option>
-                    {allEmployees.map((emp) => (
-                      <option key={emp.id} value={emp.id}>
-                        {emp.name || (emp as any).employeeName || `${emp.firstName || ''} ${emp.lastName || ''}`.trim()}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Remarks / Technical Notes</label>
                 <textarea
-                  rows={2}
-                  value={editLeadData.remarks || ''}
-                  onChange={(e) => setEditLeadData((prev) => ({ ...prev, remarks: e.target.value }))}
+                  rows={3}
+                  required
+                  value={editLeadData.address || ''}
+                  onChange={(e) => setEditLeadData((prev) => ({ ...prev, address: e.target.value }))}
                   className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
-                  placeholder="Additional client requirements, operating conditions..."
+                  placeholder="e.g. Plot No. 42, GIDC Industrial Estate..."
                 />
               </div>
 
