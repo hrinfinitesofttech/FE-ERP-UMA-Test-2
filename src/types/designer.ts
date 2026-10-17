@@ -315,7 +315,11 @@ export interface BOMItem {
   estimatedRate: number;
   rate?: number;
   totalEstimatedAmount: number;
-  parentItemId?: string; // For Multi-level hierarchy
+  pCode?: 'C' | 'B' | 'OC' | 'P' | 'M' | string;
+  thk?: string;
+  thickness?: string;
+  size?: string;
+  mat?: string;
   remarks?: string;
   [key: string]: any;
 }

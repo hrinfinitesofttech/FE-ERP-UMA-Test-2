@@ -36,15 +36,65 @@ import {
 
 interface NewBOMFormItem {
   id: string;
-  partNumber: string;
-  material: string;
+  partNumber: string; // BOM Code (બી એમ નો કોડ નંબર)
+  description: string; // DISCRIPTION
+  pCode: string; // P. (C, B, OC, P, M)
+  thk: string; // THK
+  size: string; // SIZE
+  mat: string; // MAT
+  quantity: number; // QTY
+  remarks?: string; // REMARK
+  unit?: string;
+  estimatedRate?: number;
+  material?: string;
   specification?: string;
-  quantity: number;
-  unit: string;
-  procurement: 'PURCHASE' | 'FABRICATE';
-  item_type: 'RAW_MATERIAL' | 'FABRICATED' | 'BOUGHT_OUT' | 'CONSUMABLE' | 'HARDWARE' | 'ELECTRICAL';
-  estimatedRate: number;
+  procurement?: 'PURCHASE' | 'FABRICATE';
+  item_type?: 'RAW_MATERIAL' | 'FABRICATED' | 'BOUGHT_OUT' | 'CONSUMABLE' | 'HARDWARE' | 'ELECTRICAL';
 }
+
+const renderPBadge = (code?: string) => {
+  const c = (code || 'C').toUpperCase();
+  if (c === 'C') {
+    return (
+      <span className="px-2 py-0.5 rounded font-mono font-black text-[11px] bg-blue-100 text-blue-900 border border-blue-300" title="C = CUTTING LASER & PLASMA">
+        C
+      </span>
+    );
+  }
+  if (c === 'B') {
+    return (
+      <span className="px-2 py-0.5 rounded font-mono font-black text-[11px] bg-purple-100 text-purple-900 border border-purple-300" title="B = BENDING">
+        B
+      </span>
+    );
+  }
+  if (c === 'OC') {
+    return (
+      <span className="px-2 py-0.5 rounded font-mono font-black text-[11px] bg-amber-100 text-amber-900 border border-amber-300" title="OC = OTHER CUTTING">
+        OC
+      </span>
+    );
+  }
+  if (c === 'P') {
+    return (
+      <span className="px-2 py-0.5 rounded font-mono font-black text-[11px] bg-emerald-100 text-emerald-900 border border-emerald-300" title="P = PURCHASE & STORE">
+        P
+      </span>
+    );
+  }
+  if (c === 'M') {
+    return (
+      <span className="px-2 py-0.5 rounded font-mono font-black text-[11px] bg-rose-100 text-rose-900 border border-rose-300" title="M = MACHINING">
+        M
+      </span>
+    );
+  }
+  return (
+    <span className="px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-slate-100 text-slate-800 border border-slate-300">
+      {c}
+    </span>
+  );
+};
 
 export default function MasterBOMPage() {
   const [mounted, setMounted] = useState(false);
@@ -174,59 +224,50 @@ export default function MasterBOMPage() {
 
     const csvRows: string[][] = [
       ['UMA TECHNO FAB PRIVATE LIMITED'],
-      ['CUSTOM HEAVY FABRICATION & EQUIPMENT MANUFACTURER'],
-      ['MASTER BILL OF MATERIALS (BOM) SPECIFICATION SHEET'],
+      ['Production Report (JOB CARD / BOM) - Doc No: F-PRO 04'],
+      ['PROCESS CODES: C = CUTTING LASER & PLASMA | B = BENDING | OC = OTHER CUTTING | P = PURCHASE & STORE | M = MACHINING'],
       [''],
-      ['Project Number:', projNumber, 'Project / Equipment:', projectName],
-      ['Customer Name:', customerName, 'Job Number:', jobNumber],
+      ['Project Number:', projNumber, 'Job Name:', projectName],
+      ['Party Name:', customerName, 'Job Number:', jobNumber],
       ['BOM Number:', bomNumber, 'Version / Revision:', version],
       ['Approval Status:', status.toUpperCase(), 'Export Date:', new Date().toLocaleDateString('en-IN')],
       [''],
       [
-        'Item #',
-        'Material / Part Ref',
-        'Item Name & Specification',
-        'Item Type',
-        'Procurement',
-        'Quantity',
-        'Unit',
-        'Estimated Rate (INR)',
-        'Total Amount (INR)',
-        'Make / Brand',
-        'Remarks',
+        'SR. NO',
+        'BOM CODE',
+        'DISCRIPTION',
+        'P.',
+        'THK',
+        'SIZE',
+        'MAT',
+        'QTY',
+        'REMARK',
       ],
     ];
 
-    let grandTotal = 0;
     const itemsList = targetBOM.items || [];
     itemsList.forEach((itm, idx) => {
+      const partRef = itm.partNumber || (itm as any).part_number || `UTF-26-${idx + 1}`;
+      const desc = itm.description || itm.itemName || (itm as any).material || '';
+      const pCode = itm.pCode || (itm.procurement === 'PURCHASE' ? 'P' : 'C');
+      const thk = itm.thk || itm.thickness || '';
+      const size = itm.size || itm.specification || '';
+      const mat = itm.mat || itm.materialGrade || itm.material || 'SS 316';
       const qty = Number(itm.quantity ?? (itm as any).qty ?? 1);
-      const rate = Number(itm.estimatedRate ?? (itm as any).rate ?? 0);
-      const total = Number(itm.totalEstimatedAmount ?? qty * rate);
-      grandTotal += total;
-
-      const partRef = itm.partNumber || (itm as any).part_number || '';
-      const nameSpec = `${itm.itemName || (itm as any).material || ''} ${itm.specification ? `- ${itm.specification}` : ''}`.trim();
-      const iType = itm.item_type || itm.itemType || 'RAW_MATERIAL';
-      const proc = itm.procurement || itm.procurementType || 'PURCHASE';
+      const remark = itm.remarks || '';
 
       csvRows.push([
         String(idx + 1),
         `"${partRef.replace(/"/g, '""')}"`,
-        `"${nameSpec.replace(/"/g, '""')}"`,
-        `"${String(iType).replace(/"/g, '""')}"`,
-        `"${String(proc).replace(/"/g, '""')}"`,
+        `"${desc.replace(/"/g, '""')}"`,
+        `"${pCode.replace(/"/g, '""')}"`,
+        `"${thk.replace(/"/g, '""')}"`,
+        `"${size.replace(/"/g, '""')}"`,
+        `"${mat.replace(/"/g, '""')}"`,
         String(qty),
-        `"${(itm.unit || 'PCS').replace(/"/g, '""')}"`,
-        String(rate),
-        String(total),
-        `"${(itm.makeBrand || '').replace(/"/g, '""')}"`,
-        `"${(itm.remarks || '').replace(/"/g, '""')}"`,
+        `"${remark.replace(/"/g, '""')}"`,
       ]);
     });
-
-    csvRows.push(['']);
-    csvRows.push(['', '', '', '', '', '', 'TOTAL BOM COST (INR):', '', String(grandTotal)]);
 
     const csvContent = '\uFEFF' + csvRows.map((r) => r.join(',')).join('\r\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -254,18 +295,40 @@ export default function MasterBOMPage() {
   const [createVersion, setCreateVersion] = useState<string>('V1');
   const [createProductQuantity, setCreateProductQuantity] = useState<number>(1);
 
-  // Dynamic material lines inside Create BOM Modal (starts clean and empty)
+  // Dynamic material lines inside Create BOM Modal (starts with standard job card lines)
   const [createMaterialLines, setCreateMaterialLines] = useState<NewBOMFormItem[]>([
     {
       id: 'init-1',
-      partNumber: '101',
-      material: '',
-      specification: '',
+      partNumber: 'UTF-26-01',
+      description: 'TANK SHELL',
+      pCode: 'C',
+      thk: '5',
+      size: '7868 X 5500 LG',
+      mat: 'SS 316',
       quantity: 1,
-      unit: 'NOS',
-      procurement: 'PURCHASE',
-      item_type: 'RAW_MATERIAL',
-      estimatedRate: 0,
+      remarks: '',
+    },
+    {
+      id: 'init-2',
+      partNumber: 'UTF-26-02',
+      description: 'TOP CONE',
+      pCode: 'C',
+      thk: '4 THK',
+      size: '2518 X 2518',
+      mat: 'SS 316',
+      quantity: 1,
+      remarks: '',
+    },
+    {
+      id: 'init-3',
+      partNumber: 'UTF-26-03',
+      description: 'BASE PLATE',
+      pCode: 'C',
+      thk: '8',
+      size: 'OD 2540 MM',
+      mat: 'SS 316',
+      quantity: 1,
+      remarks: '',
     },
   ]);
 
@@ -296,14 +359,36 @@ export default function MasterBOMPage() {
     setCreateMaterialLines([
       {
         id: `line-${Date.now()}-1`,
-        partNumber: '101',
-        material: '',
-        specification: '',
+        partNumber: 'UTF-26-01',
+        description: 'TANK SHELL',
+        pCode: 'C',
+        thk: '5',
+        size: '7868 X 5500 LG',
+        mat: 'SS 316',
         quantity: 1,
-        unit: 'NOS',
-        procurement: 'PURCHASE',
-        item_type: 'RAW_MATERIAL',
-        estimatedRate: 0,
+        remarks: '',
+      },
+      {
+        id: `line-${Date.now()}-2`,
+        partNumber: 'UTF-26-02',
+        description: 'TOP CONE',
+        pCode: 'C',
+        thk: '4 THK',
+        size: '2518 X 2518',
+        mat: 'SS 316',
+        quantity: 1,
+        remarks: '',
+      },
+      {
+        id: `line-${Date.now()}-3`,
+        partNumber: 'UTF-26-03',
+        description: 'BASE PLATE',
+        pCode: 'C',
+        thk: '8',
+        size: 'OD 2540 MM',
+        mat: 'SS 316',
+        quantity: 1,
+        remarks: '',
       },
     ]);
     setIsCreateBOMModalOpen(true);
@@ -337,14 +422,14 @@ export default function MasterBOMPage() {
     const nextNum = createMaterialLines.length + 1;
     const newLine: NewBOMFormItem = {
       id: `line-${Date.now()}-${nextNum}`,
-      partNumber: `PRT-${nextNum.toString().padStart(3, '0')}`,
-      material: '',
-      specification: '',
+      partNumber: `UTF-26-${nextNum.toString().padStart(2, '0')}`,
+      description: '',
+      pCode: 'C',
+      thk: '',
+      size: '',
+      mat: 'SS 316',
       quantity: 1,
-      unit: 'PCS',
-      procurement: 'PURCHASE',
-      item_type: 'RAW_MATERIAL',
-      estimatedRate: 100,
+      remarks: '',
     };
     setCreateMaterialLines([...createMaterialLines, newLine]);
   };
@@ -385,44 +470,30 @@ export default function MasterBOMPage() {
     const jobNo = createJobNumber.trim() || `JOB-2026-${Date.now().toString().slice(-4)}`;
     const bomNo = `BOM-${jobNo}`;
 
-    // Convert form lines to BOMItems
-    let totalCost = 0;
+    // Convert form lines to BOMItems matching shopfloor card
     const finalItems: BOMItem[] = createMaterialLines.map((line, idx) => {
       const qty = Number(line.quantity) || 1;
-      const rate = Number(line.estimatedRate) || 0;
-      const amt = qty * rate;
-      totalCost += amt;
-
-      const itemTypeLabel: BOMItemType =
-        line.item_type === 'RAW_MATERIAL'
-          ? 'Raw Material'
-          : line.item_type === 'FABRICATED'
-          ? 'Fabricated'
-          : line.item_type === 'BOUGHT_OUT'
-          ? 'Bought-Out'
-          : line.item_type === 'CONSUMABLE'
-          ? 'Consumable'
-          : line.item_type === 'HARDWARE'
-          ? 'Hardware'
-          : 'Electrical';
 
       return {
         id: `bi-${Date.now()}-${idx + 1}`,
         itemNo: idx + 1,
-        partNumber: line.partNumber || `PRT-${idx + 1}`,
-        itemName: line.material || 'Material Item',
-        description: line.specification || '',
-        specification: line.specification || '',
-        itemType: itemTypeLabel,
-        material: line.material || '',
+        partNumber: line.partNumber || `UTF-26-${idx + 1}`,
+        itemName: line.description || 'Component Item',
+        description: line.description || '',
+        specification: line.size || '',
+        pCode: line.pCode || 'C',
+        thk: line.thk || '',
+        size: line.size || '',
+        mat: line.mat || 'SS 316',
+        material: line.mat || 'SS 316',
         quantity: qty,
-        unit: line.unit || 'PCS',
-        makeBrand: 'Standard',
-        procurementType: line.procurement === 'FABRICATE' ? 'In-House' : 'Purchase',
-        procurement: line.procurement,
-        item_type: line.item_type,
-        estimatedRate: rate,
-        totalEstimatedAmount: amt,
+        unit: 'NOS',
+        remarks: line.remarks || '',
+        procurement: (line.pCode === 'P' ? 'PURCHASE' : 'FABRICATE') as any,
+        procurementType: (line.pCode === 'P' ? 'Purchase' : 'In-House') as any,
+        itemType: (line.pCode === 'P' ? 'Bought-Out' : 'Fabricated') as any,
+        estimatedRate: 0,
+        totalEstimatedAmount: 0,
       };
     });
 
@@ -459,50 +530,40 @@ export default function MasterBOMPage() {
   // SINGLE MATERIAL LINE MODAL (ADD / EDIT)
   // ---------------------------------------------------------------------------
   const [partNumber, setPartNumber] = useState('');
-  const [itemName, setItemName] = useState('');
   const [description, setDescription] = useState('');
-  const [itemType, setItemType] = useState<BOMItemType>('Raw Material');
-  const [material, setMaterial] = useState('SS 316L');
-  const [specification, setSpecification] = useState('');
+  const [pCode, setPCode] = useState<string>('C');
+  const [thk, setThk] = useState('');
+  const [size, setSize] = useState('');
+  const [mat, setMat] = useState('SS 316');
   const [quantity, setQuantity] = useState(1);
-  const [unit, setUnit] = useState('Nos');
-  const [makeBrand, setMakeBrand] = useState('');
-  const [procurementType, setProcurementType] = useState<ProcurementType>('Purchase');
-  const [estimatedRate, setEstimatedRate] = useState(0);
+  const [remarks, setRemarks] = useState('');
 
   const handleOpenAddItem = () => {
     if (!activeBOM || activeBOM.isLocked) return;
+    const nextIdx = (activeBOM.items?.length || 0) + 1;
     setEditingItemId(null);
-    setPartNumber(`PRT-${(activeBOM.items.length + 1).toString().padStart(3, '0')}`);
-    setItemName('');
+    setPartNumber(`UTF-${(activeBOM.jobNumber || '26').replace(/\D/g, '').slice(-2) || '26'}-${nextIdx.toString().padStart(2, '0')}`);
     setDescription('');
-    setItemType('Raw Material');
-    setMaterial('SS 316L');
-    setSpecification('');
+    setPCode('C');
+    setThk('');
+    setSize('');
+    setMat('SS 316');
     setQuantity(1);
-    setUnit('Kg');
-    setMakeBrand('Tata Steel / Local');
-    setProcurementType('Purchase');
-    setEstimatedRate(250);
+    setRemarks('');
     setIsAddItemModalOpen(true);
   };
 
   const handleOpenEditItem = (item: BOMItem) => {
     if (!activeBOM || activeBOM.isLocked) return;
     setEditingItemId(item.id);
-    setPartNumber(item.partNumber || '');
-    setItemName(item.itemName || item.partName || (item as any).part_name || '');
-    setDescription(item.description || '');
-    setItemType(item.itemType || 'Raw Material');
-    setMaterial(item.material || '');
-    setSpecification(item.specification || '');
+    setPartNumber(item.partNumber || (item as any).part_number || '');
+    setDescription(item.description || item.itemName || (item as any).material || '');
+    setPCode(item.pCode || (item.procurement === 'PURCHASE' ? 'P' : 'C'));
+    setThk(item.thk || item.thickness || '');
+    setSize(item.size || item.specification || '');
+    setMat(item.mat || item.materialGrade || item.material || 'SS 316');
     setQuantity(Number(item.quantity ?? (item as any).qty ?? 1));
-    setUnit(item.unit || 'PCS');
-    setMakeBrand(item.makeBrand || '');
-    setProcurementType(
-      item.procurementType || (item.procurement === 'FABRICATE' ? 'In-House' : 'Purchase')
-    );
-    setEstimatedRate(Number(item.estimatedRate ?? (item as any).rate ?? 0));
+    setRemarks(item.remarks || '');
     setIsAddItemModalOpen(true);
   };
 
@@ -510,7 +571,6 @@ export default function MasterBOMPage() {
     e.preventDefault();
     if (!activeBOM) return;
 
-    const rate = Number(estimatedRate) || 0;
     const qty = Number(quantity) || 1;
 
     if (editingItemId) {
@@ -519,92 +579,68 @@ export default function MasterBOMPage() {
           ? {
               ...i,
               partNumber,
-              itemName,
+              itemName: description,
               description,
-              itemType,
-              material,
-              specification,
+              pCode,
+              thk,
+              size,
+              mat,
+              material: mat,
+              specification: size,
               quantity: qty,
-              unit,
-              makeBrand,
-              procurementType,
-              procurement: (procurementType === 'In-House' ? 'FABRICATE' : 'PURCHASE') as any,
-              item_type: (itemType === 'Raw Material'
-                ? 'RAW_MATERIAL'
-                : itemType === 'Fabricated'
-                ? 'FABRICATED'
-                : itemType === 'Bought-Out'
-                ? 'BOUGHT_OUT'
-                : itemType === 'Consumable'
-                ? 'CONSUMABLE'
-                : 'HARDWARE') as any,
-              estimatedRate: rate,
-              totalEstimatedAmount: rate * qty,
+              remarks,
+              procurement: (pCode === 'P' ? 'PURCHASE' : 'FABRICATE') as any,
+              procurementType: (pCode === 'P' ? 'Purchase' : 'In-House') as any,
+              itemType: (pCode === 'P' ? 'Bought-Out' : 'Fabricated') as any,
             }
           : i
-      );
-
-      const newTotal = updatedItems.reduce(
-        (s, i) => s + (i.totalEstimatedAmount || (Number(i.quantity || 1) * Number(i.estimatedRate || 0))),
-        0
       );
 
       updateBOM(activeBOM.id, {
         items: updatedItems,
         totalItemsCount: updatedItems.length,
-        estimatedTotalCost: newTotal,
       });
 
       setIsAddItemModalOpen(false);
       setEditingItemId(null);
-      setSuccessToast(`Material item "${itemName}" updated successfully!`);
+      setSuccessToast(`BOM Component "${description || partNumber}" updated successfully!`);
       setTimeout(() => setSuccessToast(''), 4000);
       return;
     }
 
     // Add new line item
-    const newNo = activeBOM.items.length + 1;
+    const newNo = (activeBOM.items || []).length + 1;
     const newItem: BOMItem = {
       id: `bi-${Date.now()}`,
       itemNo: newNo,
-      partNumber: partNumber || `PRT-${newNo.toString().padStart(3, '0')}`,
-      itemName,
+      partNumber: partNumber || `UTF-${newNo.toString().padStart(2, '0')}`,
+      itemName: description || 'Component Item',
       description,
-      itemType,
-      material,
-      specification,
+      pCode,
+      thk,
+      size,
+      mat,
+      material: mat,
+      specification: size,
       quantity: qty,
-      unit,
-      makeBrand: makeBrand || 'Local / Standard',
-      procurementType,
-      procurement: procurementType === 'In-House' ? 'FABRICATE' : 'PURCHASE',
-      item_type: (itemType === 'Raw Material'
-        ? 'RAW_MATERIAL'
-        : itemType === 'Fabricated'
-        ? 'FABRICATED'
-        : itemType === 'Bought-Out'
-        ? 'BOUGHT_OUT'
-        : itemType === 'Consumable'
-        ? 'CONSUMABLE'
-        : 'HARDWARE') as any,
-      estimatedRate: rate,
-      totalEstimatedAmount: rate * qty,
+      unit: 'NOS',
+      remarks,
+      procurement: (pCode === 'P' ? 'PURCHASE' : 'FABRICATE') as any,
+      procurementType: (pCode === 'P' ? 'Purchase' : 'In-House') as any,
+      itemType: (pCode === 'P' ? 'Bought-Out' : 'Fabricated') as any,
+      estimatedRate: 0,
+      totalEstimatedAmount: 0,
     };
 
-    const updatedItems = [...activeBOM.items, newItem];
-    const newTotal = updatedItems.reduce(
-      (s, i) => s + (i.totalEstimatedAmount || (Number(i.quantity || 1) * Number(i.estimatedRate || 0))),
-      0
-    );
+    const updatedItems = [...(activeBOM.items || []), newItem];
 
     updateBOM(activeBOM.id, {
       items: updatedItems,
       totalItemsCount: updatedItems.length,
-      estimatedTotalCost: newTotal,
     });
 
     setIsAddItemModalOpen(false);
-    setSuccessToast(`Material item "${itemName}" added to BOM ${activeBOM.bomNumber}!`);
+    setSuccessToast(`Added Component "${description || partNumber}" to BOM ${activeBOM.bomNumber}!`);
     setTimeout(() => setSuccessToast(''), 4000);
   };
 
@@ -645,25 +681,24 @@ export default function MasterBOMPage() {
   const filteredBOMItems = useMemo(() => {
     if (!activeBOM) return [];
     return (activeBOM.items || []).filter((item) => {
-      const q = searchQuery?.toLowerCase() || '';
+      const q = searchQuery?.toLowerCase().trim() || '';
       const matchSearch =
         !q ||
-        item.partNumber?.toLowerCase().includes(q) ||
-        item.itemName?.toLowerCase().includes(q) ||
-        item.material?.toLowerCase().includes(q) ||
-        item.specification?.toLowerCase().includes(q) ||
-        (item.makeBrand && item.makeBrand?.toLowerCase().includes(q));
+        (item.partNumber && item.partNumber.toLowerCase().includes(q)) ||
+        (item.description && item.description.toLowerCase().includes(q)) ||
+        (item.itemName && item.itemName.toLowerCase().includes(q)) ||
+        (item.pCode && item.pCode.toLowerCase().includes(q)) ||
+        (item.thk && item.thk.toLowerCase().includes(q)) ||
+        (item.size && item.size.toLowerCase().includes(q)) ||
+        (item.mat && item.mat.toLowerCase().includes(q)) ||
+        (item.material && item.material.toLowerCase().includes(q)) ||
+        (item.remarks && item.remarks.toLowerCase().includes(q));
 
       if (!matchSearch) return false;
       if (itemTypeFilter === 'all') return true;
 
-      const filterNormalized = itemTypeFilter.toLowerCase().replace(/[-_\s]/g, '');
-      const itemTypeNormalized = String(item.itemType || (item as any).item_type || '')
-        .toLowerCase()
-        .replace(/[-_\s]/g, '');
-      return (
-        itemTypeNormalized.includes(filterNormalized) || filterNormalized.includes(itemTypeNormalized)
-      );
+      const pCode = (item.pCode || (item.procurement === 'PURCHASE' ? 'P' : 'C')).toUpperCase();
+      return pCode === itemTypeFilter.toUpperCase();
     });
   }, [activeBOM, searchQuery, itemTypeFilter]);
 
@@ -1169,20 +1204,19 @@ export default function MasterBOMPage() {
               />
             </div>
 
-            {/* Item Type Filter & Add Material Line Button */}
+            {/* Process (P.) Filter & Add Material Line Button */}
             <div className="flex items-center gap-2 shrink-0 w-full md:w-auto">
               <select
                 value={itemTypeFilter}
                 onChange={(e) => setItemTypeFilter(e.target.value)}
                 className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-semibold text-[#211B17] focus:outline-none"
               >
-                <option value="all">All Item Types</option>
-                <option value="RAW_MATERIAL">Raw Material</option>
-                <option value="FABRICATED">Fabricated</option>
-                <option value="BOUGHT_OUT">Bought-Out</option>
-                <option value="CONSUMABLE">Consumable</option>
-                <option value="HARDWARE">Hardware</option>
-                <option value="ELECTRICAL">Electrical</option>
+                <option value="all">All Processes (P.)</option>
+                <option value="C">C - Cutting Laser & Plasma</option>
+                <option value="B">B - Bending</option>
+                <option value="OC">OC - Other Cutting</option>
+                <option value="P">P - Purchase & Store</option>
+                <option value="M">M - Machining</option>
               </select>
 
               {!activeBOM.isLocked && (
@@ -1220,27 +1254,59 @@ export default function MasterBOMPage() {
             </div>
           </div>
 
-          {/* Material Items Table (with Edit, Download, Delete in Actions) */}
+          {/* UMA TECHNO FAB Production Job Card Header & Process Legend */}
+          <div className="bg-gradient-to-r from-amber-50 via-white to-amber-50 border border-amber-200 rounded-2xl p-3 px-4 mb-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="font-mono font-extrabold text-[10px] bg-amber-900 text-amber-50 px-2 py-0.5 rounded">
+                DOC NO: F-PRO 04
+              </span>
+              <span className="font-extrabold text-[#211B17] uppercase tracking-wide text-xs">
+                PRODUCTION REPORT (JOB CARD)
+              </span>
+            </div>
+            {/* Process Legend */}
+            <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-semibold">
+              <span className="text-[#70665F] font-bold uppercase mr-1">PROCESS LEGEND:</span>
+              <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-900 px-2 py-0.5 rounded border border-amber-300 font-mono">
+                <strong>C</strong>: Cutting Laser & Plasma
+              </span>
+              <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-900 px-2 py-0.5 rounded border border-blue-300 font-mono">
+                <strong>B</strong>: Bending
+              </span>
+              <span className="inline-flex items-center gap-1 bg-orange-100 text-orange-900 px-2 py-0.5 rounded border border-orange-300 font-mono">
+                <strong>OC</strong>: Other Cutting
+              </span>
+              <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded border border-emerald-300 font-mono">
+                <strong>P</strong>: Purchase & Store
+              </span>
+              <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-900 px-2 py-0.5 rounded border border-purple-300 font-mono">
+                <strong>M</strong>: Machining
+              </span>
+            </div>
+          </div>
+
+          {/* Material Items Table (Exact Job Card Columns) */}
           <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[10px] font-bold text-[#70665F] uppercase tracking-wider">
-                    <th className="p-3.5 text-center w-12">#</th>
-                    <th className="p-3.5">Material / Part Ref</th>
-                    <th className="p-3.5">Item Name & Spec</th>
-                    <th className="p-3.5 text-center">Item Type</th>
-                    <th className="p-3.5 text-center">Procurement</th>
-                    <th className="p-3.5 text-center">Qty / Unit</th>
-                    <th className="p-3.5 text-right">Est. Rate</th>
-                    <th className="p-3.5 text-right">Total Amount (₹)</th>
-                    <th className="p-3.5 text-center w-36">Actions</th>
+                    <th className="p-3 text-center w-12">SR. NO</th>
+                    <th className="p-3 w-28">BOM CODE</th>
+                    <th className="p-3">DISCRIPTION</th>
+                    <th className="p-3 text-center w-16">P.</th>
+                    <th className="p-3 text-center w-24">THK</th>
+                    <th className="p-3">SIZE</th>
+                    <th className="p-3 text-center w-24">MAT</th>
+                    <th className="p-3 text-center w-16">QTY</th>
+                    <th className="p-3">REMARK</th>
+                    <th className="p-3 text-center w-28">ACTIONS</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#EBE3DB]">
                   {filteredBOMItems.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="p-8 text-center text-[#70665F]">
+                      <td colSpan={10} className="p-8 text-center text-[#70665F]">
                         <p className="font-semibold text-sm">No BOM items found.</p>
                         {!activeBOM.isLocked && (
                           <button
@@ -1256,73 +1322,68 @@ export default function MasterBOMPage() {
                   ) : (
                     filteredBOMItems.map((item, idx) => {
                       const qty = Number(item.quantity ?? (item as any).qty ?? 1);
-                      const rate = Number(item.estimatedRate ?? (item as any).rate ?? 0);
-                      const totalAmt = Number(item.totalEstimatedAmount ?? qty * rate);
-                      const isFabricate =
-                        item.procurement === 'FABRICATE' ||
-                        item.procurementType === 'Fabricate' ||
-                        item.procurementType === 'In-House';
+                      const currentPCode = item.pCode || (item.procurement === 'PURCHASE' ? 'P' : 'C');
+                      const desc = item.description || item.itemName || item.material || (item as any).part_name || '-';
+                      const thk = item.thk || (item as any).thickness || '-';
+                      const size = item.size || item.specification || '-';
+                      const mat = item.mat || (item as any).material || 'SS 316';
+                      const remark = item.remarks || '-';
 
                       return (
                         <tr key={item.id || idx} className="hover:bg-[#FAF7F2]/80 transition">
-                          <td className="p-3.5 text-center font-mono text-[#70665F] font-bold">
+                          {/* SR. NO */}
+                          <td className="p-3 text-center font-mono text-[#70665F] font-bold">
                             {idx + 1}
                           </td>
 
-                          {/* Part Number / Ref */}
-                          <td className="p-3.5 font-mono font-bold text-amber-900">
+                          {/* BOM CODE */}
+                          <td className="p-3 font-mono font-bold text-amber-900">
                             {item.partNumber || `PRT-${idx + 1}`}
                           </td>
 
-                          {/* Item Name & Spec */}
-                          <td className="p-3.5">
+                          {/* DISCRIPTION */}
+                          <td className="p-3">
                             <span className="font-bold text-[#211B17] block">
-                              {item.itemName || item.partName || (item as any).part_name || item.material}
-                            </span>
-                            {(item.specification || item.description) && (
-                              <span className="text-[11px] text-[#70665F] block mt-0.5">
-                                {item.specification || item.description}
-                              </span>
-                            )}
-                          </td>
-
-                          {/* Item Type */}
-                          <td className="p-3.5 text-center">
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase bg-slate-100 text-slate-700 border border-slate-200">
-                              {item.item_type || item.itemType || 'RAW_MATERIAL'}
+                              {desc}
                             </span>
                           </td>
 
-                          {/* Procurement */}
-                          <td className="p-3.5 text-center">
-                            <span
-                              className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
-                                isFabricate
-                                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                                  : 'bg-sky-50 text-sky-800 border-sky-300'
-                              }`}
-                            >
-                              {item.procurement || (isFabricate ? 'FABRICATE' : 'PURCHASE')}
+                          {/* P. */}
+                          <td className="p-3 text-center">
+                            {renderPBadge(currentPCode)}
+                          </td>
+
+                          {/* THK */}
+                          <td className="p-3 text-center font-mono font-bold text-[#211B17]">
+                            <span className="px-2 py-0.5 rounded bg-amber-50/70 border border-amber-200 text-amber-900 text-[11px]">
+                              {thk}
                             </span>
                           </td>
 
-                          {/* Qty / Unit */}
-                          <td className="p-3.5 text-center font-mono font-bold text-[#211B17]">
-                            {qty} {item.unit || 'PCS'}
+                          {/* SIZE */}
+                          <td className="p-3 font-mono text-xs text-[#211B17]">
+                            {size}
                           </td>
 
-                          {/* Est. Rate */}
-                          <td className="p-3.5 text-right font-mono text-[#544B45]">
-                            ₹ {rate.toLocaleString('en-IN')}
+                          {/* MAT */}
+                          <td className="p-3 text-center">
+                            <span className="px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-slate-100 text-slate-800 border border-slate-200">
+                              {mat}
+                            </span>
                           </td>
 
-                          {/* Total Amount */}
-                          <td className="p-3.5 text-right font-mono font-bold text-emerald-700">
-                            ₹ {totalAmt.toLocaleString('en-IN')}
+                          {/* QTY */}
+                          <td className="p-3 text-center font-mono font-black text-xs text-[#211B17]">
+                            {qty}
+                          </td>
+
+                          {/* REMARK */}
+                          <td className="p-3 text-[#70665F] text-xs">
+                            {remark}
                           </td>
 
                           {/* Actions: Edit, Download (Excel), Delete */}
-                          <td className="p-3.5 text-center">
+                          <td className="p-3 text-center">
                             <div className="flex items-center justify-center gap-1">
                               {/* Edit Button */}
                               {!activeBOM.isLocked ? (
@@ -1336,11 +1397,11 @@ export default function MasterBOMPage() {
                                 </button>
                               ) : null}
 
-                              {/* Download / Export Excel Option (placed between Edit and Delete as requested) */}
+                              {/* Download / Export Excel Option */}
                               <button
                                 type="button"
                                 onClick={() => exportBOMToExcel(activeBOM, activeProject)}
-                                title="Download this BOM to Excel/CSV"
+                                title="Download this BOM to Excel/CSV (Job Card Format)"
                                 className="p-1.5 rounded-lg text-emerald-700 hover:text-emerald-900 hover:bg-emerald-100 transition cursor-pointer"
                               >
                                 <Download className="w-3.5 h-3.5" />
@@ -1545,121 +1606,131 @@ export default function MasterBOMPage() {
                   </button>
                 </div>
 
-                {/* Material Lines Form Table */}
-                <div className="border border-[#EBE3DB] rounded-xl overflow-hidden">
-                  <table className="w-full text-left text-xs">
+                {/* Material Lines Form Table (Job Card Columns) */}
+                <div className="border border-[#EBE3DB] rounded-xl overflow-x-auto">
+                  <table className="w-full text-left text-xs min-w-[760px]">
                     <thead className="bg-[#FAF7F2] text-[10px] font-bold text-[#70665F] uppercase border-b border-[#EBE3DB]">
                       <tr>
-                        <th className="p-2.5 w-10 text-center">#</th>
-                        <th className="p-2.5 w-24">Part Ref</th>
-                        <th className="p-2.5">Material & Spec</th>
-                        <th className="p-2.5 w-32">Item Type</th>
-                        <th className="p-2.5 w-28">Procurement</th>
-                        <th className="p-2.5 w-20 text-center">Qty</th>
-                        <th className="p-2.5 w-20 text-center">Unit</th>
-                        <th className="p-2.5 w-24 text-right">Est. Rate</th>
-                        <th className="p-2.5 w-10 text-center"></th>
+                        <th className="p-2 w-10 text-center">SR. NO</th>
+                        <th className="p-2 w-24">BOM CODE</th>
+                        <th className="p-2">DISCRIPTION</th>
+                        <th className="p-2 w-24 text-center">P.</th>
+                        <th className="p-2 w-24 text-center">THK</th>
+                        <th className="p-2 w-32">SIZE</th>
+                        <th className="p-2 w-24 text-center">MAT</th>
+                        <th className="p-2 w-16 text-center">QTY</th>
+                        <th className="p-2 w-28">REMARK</th>
+                        <th className="p-2 w-10 text-center"></th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#EBE3DB] bg-white">
                       {createMaterialLines.map((line, idx) => (
                         <tr key={line.id} className="hover:bg-[#FAF7F2]/50">
-                          <td className="p-2.5 text-center font-mono font-bold text-[#70665F]">
+                          {/* SR. NO */}
+                          <td className="p-2 text-center font-mono font-bold text-[#70665F]">
                             {idx + 1}
                           </td>
 
-                          {/* Part Ref */}
-                          <td className="p-2">
+                          {/* BOM CODE */}
+                          <td className="p-1.5">
                             <input
                               type="text"
                               value={line.partNumber}
                               onChange={(e) => handleUpdateCreateLine(line.id, 'partNumber', e.target.value)}
-                              placeholder={`20${idx + 1}`}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-mono font-bold text-amber-900 focus:outline-none"
+                              placeholder={`UTF-26-${(idx + 1).toString().padStart(2, '0')}`}
+                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-mono font-bold text-amber-900 focus:outline-none focus:border-amber-500"
                             />
                           </td>
 
-                          {/* Material Description */}
-                          <td className="p-2">
+                          {/* DISCRIPTION */}
+                          <td className="p-1.5">
                             <input
                               type="text"
-                              value={line.material}
-                              onChange={(e) => handleUpdateCreateLine(line.id, 'material', e.target.value)}
-                              placeholder="e.g. SS 316L Plates 8mm thk (SA 240)"
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs text-[#211B17] font-semibold focus:outline-none"
+                              value={line.description || line.material}
+                              onChange={(e) => {
+                                handleUpdateCreateLine(line.id, 'description', e.target.value);
+                                handleUpdateCreateLine(line.id, 'material', e.target.value);
+                              }}
+                              placeholder="e.g. TANK SHELL, TOP CONE..."
+                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs text-[#211B17] font-semibold focus:outline-none focus:border-amber-500"
                               required
                             />
                           </td>
 
-                          {/* Item Type */}
-                          <td className="p-2">
+                          {/* P. (Process Code) */}
+                          <td className="p-1.5">
                             <select
-                              value={line.item_type}
-                              onChange={(e: any) => handleUpdateCreateLine(line.id, 'item_type', e.target.value)}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-[11px] font-semibold text-[#211B17] focus:outline-none"
+                              value={line.pCode || 'C'}
+                              onChange={(e: any) => handleUpdateCreateLine(line.id, 'pCode', e.target.value)}
+                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-1.5 py-1 text-[11px] font-mono font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
                             >
-                              <option value="RAW_MATERIAL">Raw Material</option>
-                              <option value="FABRICATED">Fabricated</option>
-                              <option value="BOUGHT_OUT">Bought-Out</option>
-                              <option value="CONSUMABLE">Consumable</option>
-                              <option value="HARDWARE">Hardware</option>
-                              <option value="ELECTRICAL">Electrical</option>
+                              <option value="C">C (Cutting)</option>
+                              <option value="B">B (Bending)</option>
+                              <option value="OC">OC (Other Cutting)</option>
+                              <option value="P">P (Purchase)</option>
+                              <option value="M">M (Machining)</option>
                             </select>
                           </td>
 
-                          {/* Procurement */}
-                          <td className="p-2">
-                            <select
-                              value={line.procurement}
-                              onChange={(e: any) => handleUpdateCreateLine(line.id, 'procurement', e.target.value)}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-[11px] font-bold text-sky-800 focus:outline-none"
-                            >
-                              <option value="PURCHASE">PURCHASE</option>
-                              <option value="FABRICATE">FABRICATE</option>
-                            </select>
+                          {/* THK */}
+                          <td className="p-1.5">
+                            <input
+                              type="text"
+                              value={line.thk}
+                              onChange={(e) => handleUpdateCreateLine(line.id, 'thk', e.target.value)}
+                              placeholder="5, 4 THK, 8"
+                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-mono text-center text-[#211B17] focus:outline-none focus:border-amber-500"
+                            />
                           </td>
 
-                          {/* Qty */}
-                          <td className="p-2">
+                          {/* SIZE */}
+                          <td className="p-1.5">
+                            <input
+                              type="text"
+                              value={line.size}
+                              onChange={(e) => handleUpdateCreateLine(line.id, 'size', e.target.value)}
+                              placeholder="7868 X 5500 LG"
+                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-mono text-[#211B17] focus:outline-none focus:border-amber-500"
+                            />
+                          </td>
+
+                          {/* MAT */}
+                          <td className="p-1.5">
+                            <input
+                              type="text"
+                              value={line.mat}
+                              onChange={(e) => handleUpdateCreateLine(line.id, 'mat', e.target.value)}
+                              placeholder="SS 316, M.S"
+                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-mono font-bold text-center text-slate-800 focus:outline-none focus:border-amber-500"
+                            />
+                          </td>
+
+                          {/* QTY */}
+                          <td className="p-1.5">
                             <input
                               type="number"
-                              min="0.1"
-                              step="any"
+                              min="1"
+                              step="1"
                               value={line.quantity}
                               onChange={(e) => handleUpdateCreateLine(line.id, 'quantity', Number(e.target.value))}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-mono font-bold text-center text-[#211B17] focus:outline-none"
+                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-1.5 py-1 text-xs font-mono font-bold text-center text-[#211B17] focus:outline-none focus:border-amber-500"
                               required
                             />
                           </td>
 
-                          {/* Unit */}
-                          <td className="p-2">
-                            <select
-                              value={line.unit}
-                              onChange={(e) => handleUpdateCreateLine(line.id, 'unit', e.target.value)}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-1.5 py-1 text-[11px] font-mono font-bold text-center text-[#211B17] focus:outline-none"
-                            >
-                              <option value="KG">KG</option>
-                              <option value="PCS">PCS</option>
-                              <option value="MTR">MTR</option>
-                              <option value="SET">SET</option>
-                              <option value="NOS">NOS</option>
-                            </select>
-                          </td>
-
-                          {/* Est. Rate */}
-                          <td className="p-2">
+                          {/* REMARK */}
+                          <td className="p-1.5">
                             <input
-                              type="number"
-                              min="0"
-                              value={line.estimatedRate}
-                              onChange={(e) => handleUpdateCreateLine(line.id, 'estimatedRate', Number(e.target.value))}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-mono text-right text-[#211B17] focus:outline-none"
+                              type="text"
+                              value={line.remarks}
+                              onChange={(e) => handleUpdateCreateLine(line.id, 'remarks', e.target.value)}
+                              placeholder="Optional remark"
+                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs text-[#211B17] focus:outline-none focus:border-amber-500"
                             />
                           </td>
 
                           {/* Remove Line */}
-                          <td className="p-2 text-center">
+                          <td className="p-1.5 text-center">
                             <button
                               type="button"
                               onClick={() => handleRemoveCreateMaterialLine(line.id)}
@@ -1685,12 +1756,9 @@ export default function MasterBOMPage() {
                   </button>
 
                   <div className="text-right">
-                    <span className="text-[10px] text-amber-800 font-bold uppercase block">Total Estimated Materials Cost:</span>
-                    <span className="font-mono text-base font-black text-emerald-800">
-                      ₹{' '}
-                      {createMaterialLines
-                        .reduce((acc, l) => acc + (Number(l.quantity || 1) * Number(l.estimatedRate || 0)), 0)
-                        .toLocaleString('en-IN')}
+                    <span className="text-[10px] text-amber-800 font-bold uppercase block">Total Job Card Items:</span>
+                    <span className="font-mono text-base font-black text-amber-950">
+                      {createMaterialLines.length} Components
                     </span>
                   </div>
                 </div>
@@ -1745,133 +1813,131 @@ export default function MasterBOMPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSaveItemModal} className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">Part Number / Ref:</label>
+            <form onSubmit={handleSaveItemModal} className="space-y-3.5">
+              {/* Row 1: BOM Code & Process (P.) */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                    BOM CODE / NUMBER (નંબર / પાર્ટ કોડ):
+                  </label>
                   <input
                     type="text"
                     value={partNumber}
                     onChange={(e) => setPartNumber(e.target.value)}
-                    placeholder="e.g. 201 or RM-SS-01"
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[#211B17] focus:outline-none"
+                    placeholder="e.g. UTF-26-01 or PRT-01"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-bold text-amber-900 focus:outline-none focus:border-amber-500"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">Item Type:</label>
+                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                    P. (PROCESS CODE):
+                  </label>
                   <select
-                    value={itemType}
-                    onChange={(e: any) => setItemType(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-bold text-[#211B17] focus:outline-none"
+                    value={pCode}
+                    onChange={(e: any) => setPCode(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-2.5 py-2 text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
                   >
-                    <option value="Raw Material">Raw Material</option>
-                    <option value="Fabricated">Fabricated</option>
-                    <option value="Bought-Out">Bought-Out</option>
-                    <option value="Consumable">Consumable</option>
-                    <option value="Hardware">Hardware</option>
-                    <option value="Electrical">Electrical</option>
+                    <option value="C">C - Cutting Laser & Plasma</option>
+                    <option value="B">B - Bending</option>
+                    <option value="OC">OC - Other Cutting</option>
+                    <option value="P">P - Purchase & Store</option>
+                    <option value="M">M - Machining</option>
                   </select>
                 </div>
               </div>
 
+              {/* Row 2: DISCRIPTION */}
               <div>
                 <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                  Item Name & Description:
+                  DISCRIPTION (ડિસ્ક્રિપ્શન / પાર્ટ નામ):
                 </label>
                 <input
                   type="text"
-                  value={itemName}
-                  onChange={(e) => setItemName(e.target.value)}
-                  placeholder="e.g. Mild Steel Plate 5mm (IS 2062)"
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-bold text-[#211B17] focus:outline-none"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="e.g. TANK SHELL, TOP CONE, BASE PLATE, FLANGE, PIPE..."
+                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
                   required
                 />
               </div>
 
-              <div>
-                <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                  Technical Specification:
-                </label>
-                <input
-                  type="text"
-                  value={specification}
-                  onChange={(e) => setSpecification(e.target.value)}
-                  placeholder="e.g. SA 240 Gr 316L, 1500 x 6000 mm"
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] focus:outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
+              {/* Row 3: THK, SIZE, MAT */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">Procurement:</label>
-                  <select
-                    value={procurementType}
-                    onChange={(e: any) => setProcurementType(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-bold text-sky-800 focus:outline-none"
-                  >
-                    <option value="Purchase">Purchase</option>
-                    <option value="In-House">Fabricate (In-House)</option>
-                    <option value="Stock">From Stock</option>
-                    <option value="Outsourced">Outsourced</option>
-                  </select>
+                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                    THK (જાડાઈ / જાડાઈ શિડ્યુલ):
+                  </label>
+                  <input
+                    type="text"
+                    value={thk}
+                    onChange={(e) => setThk(e.target.value)}
+                    placeholder="e.g. 5, 4 THK, 8, 14, SCH 10, STD"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
+                  />
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">Quantity:</label>
+                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                    SIZE (સાઈઝ / ડાયમેન્શન):
+                  </label>
+                  <input
+                    type="text"
+                    value={size}
+                    onChange={(e) => setSize(e.target.value)}
+                    placeholder="e.g. 7868 X 5500 LG, 600 DIA, OD 2540 MM"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono text-[#211B17] focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                    MAT (મટીરીયલ ગ્રેડ):
+                  </label>
+                  <input
+                    type="text"
+                    value={mat}
+                    onChange={(e) => setMat(e.target.value)}
+                    placeholder="e.g. SS 316, SS CLD, M.S, SS 304"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              {/* Row 4: QTY & REMARK */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                    QTY (જથ્થો):
+                  </label>
                   <input
                     type="number"
-                    min="0.1"
-                    step="any"
+                    min="1"
+                    step="1"
                     value={quantity}
                     onChange={(e) => setQuantity(Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[#211B17] focus:outline-none"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-black text-[#211B17] focus:outline-none focus:border-amber-500"
                     required
                   />
                 </div>
 
-                <div>
-                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">Unit:</label>
-                  <select
-                    value={unit}
-                    onChange={(e) => setUnit(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[#211B17] focus:outline-none"
-                  >
-                    <option value="Kg">Kg</option>
-                    <option value="Nos">Nos</option>
-                    <option value="Pcs">Pcs</option>
-                    <option value="Meter">Meter</option>
-                    <option value="Set">Set</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">Estimated Unit Rate (₹):</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={estimatedRate}
-                    onChange={(e) => setEstimatedRate(Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono text-[#211B17] focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">Make / Brand / Origin:</label>
+                <div className="sm:col-span-2">
+                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                    REMARK (રિમાર્ક / વધારાની નોંધ):
+                  </label>
                   <input
                     type="text"
-                    value={makeBrand}
-                    onChange={(e) => setMakeBrand(e.target.value)}
-                    placeholder="e.g. Jindal / Tata / Local"
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] focus:outline-none"
+                    value={remarks}
+                    onChange={(e) => setRemarks(e.target.value)}
+                    placeholder="Optional remark or notes"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] focus:outline-none focus:border-amber-500"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-between border-t border-[#EBE3DB] pt-3">
+              {/* Modal Footer */}
+              <div className="flex items-center justify-between border-t border-[#EBE3DB] pt-3 mt-2">
                 <button
                   type="button"
                   onClick={() => setIsAddItemModalOpen(false)}
@@ -1881,7 +1947,7 @@ export default function MasterBOMPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold text-xs"
+                  className="px-5 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold text-xs shadow-xs"
                 >
                   {editingItemId ? 'Update Component' : 'Add Component Line'}
                 </button>
