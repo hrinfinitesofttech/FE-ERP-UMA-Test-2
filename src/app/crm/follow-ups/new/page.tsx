@@ -8,20 +8,20 @@ import { FollowUp } from '../../../../types/crm';
 import {
   Calendar,
   Clock,
-  User,
-  Phone,
   PhoneCall,
-  MessageSquare,
   Building2,
   FileText,
   Layers,
   ArrowLeft,
+  ArrowRight,
   Save,
   CheckCircle2,
   AlertCircle,
   Plus,
   X,
+  MapPin,
   CalendarPlus,
+  Compass,
 } from 'lucide-react';
 
 function FollowUpFormContent() {
@@ -34,6 +34,7 @@ function FollowUpFormContent() {
   const {
     followUps,
     addFollowUp,
+    addSiteVisit,
     updateLead,
     leads,
     customers,
@@ -51,7 +52,10 @@ function FollowUpFormContent() {
 
   const todayStr = new Date().toISOString().split('T')[0];
 
-  // Selected Record State (unified without Target Entity Type dropdown)
+  // Current Slide / Step (1 or 2)
+  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
+
+  // --- Step 1: Schedule & Record Selection ---
   const [selectedRecordKey, setSelectedRecordKey] = useState<string>('');
   const [selectedEntityInfo, setSelectedEntityInfo] = useState<{
     type: 'lead' | 'enquiry' | 'customer';
@@ -59,33 +63,43 @@ function FollowUpFormContent() {
     name: string;
     contactPerson: string;
     mobile: string;
+    address?: string;
     product?: string;
   } | null>(null);
 
-  // Main follow-up schedule fields
   const [followUpType, setFollowUpType] = useState<'call' | 'whatsapp' | 'email' | 'meeting' | 'visit'>('call');
   const [scheduledDate, setScheduledDate] = useState(todayStr);
   const [scheduledTime, setScheduledTime] = useState('11:00');
   const [productItem, setProductItem] = useState('');
+
+  // --- Step 2: Discussion, Outcome, Next Follow-up & Site Visit ---
   const [purpose, setPurpose] = useState('');
   const [interestStatus, setInterestStatus] = useState<'interested' | 'not_interested' | 'in_discussion'>('interested');
   const [notes, setNotes] = useState('');
 
-  // Next Follow-up (by default clear and hidden)
+  // Next Follow-up toggle and fields (default clear)
   const [hasScheduleNext, setHasScheduleNext] = useState(false);
   const [nextFollowUpDate, setNextFollowUpDate] = useState('');
   const [nextFollowUpTime, setNextFollowUpTime] = useState('');
 
+  // Site Visit toggle and fields (default clear)
+  const [hasScheduleVisit, setHasScheduleVisit] = useState(false);
+  const [visitDate, setVisitDate] = useState('');
+  const [visitTime, setVisitTime] = useState('14:00');
+  const [visitLocation, setVisitLocation] = useState('');
+  const [visitPurpose, setVisitPurpose] = useState('');
+
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Handle record selection (lead, enquiry, or customer)
+  // Handle record selection
   const handleRecordSelect = (val: string) => {
     setSelectedRecordKey(val);
     if (!val) {
       setSelectedEntityInfo(null);
       setProductItem('');
       setPurpose('');
+      setVisitLocation('');
       return;
     }
 
@@ -116,10 +130,14 @@ function FollowUpFormContent() {
           name: lead.companyName,
           contactPerson: lead.contactPerson || '',
           mobile: lead.mobile || '',
+          address: lead.address || lead.city || '',
           product: prod,
         });
         setProductItem(prod);
         setPurpose(prod ? `Follow-up regarding ${prod}` : `Follow-up with ${lead.contactPerson || lead.companyName}`);
+        if (lead.address || lead.city) {
+          setVisitLocation(lead.address ? `${lead.address}, ${lead.city || ''}` : lead.city || '');
+        }
       }
     } else if (type === 'customer') {
       const cust = customers.find((c) => c.id === id || c.customerCode === id);
@@ -130,13 +148,17 @@ function FollowUpFormContent() {
           name: cust.companyName,
           contactPerson: cust.contactPerson || '',
           mobile: cust.mobile || '',
+          address: cust.billingAddress || cust.city || '',
         });
         setPurpose(`Account relationship follow-up with ${cust.companyName}`);
+        if (cust.billingAddress || cust.city) {
+          setVisitLocation(cust.billingAddress ? `${cust.billingAddress}, ${cust.city || ''}` : cust.city || '');
+        }
       }
     }
   };
 
-  // Pre-fill from URL parameters (e.g. from Enquiries page or Leads page)
+  // Pre-fill from URL params
   useEffect(() => {
     if (paramEnquiryId) {
       const enq = enquiries.find((e) => e.id === paramEnquiryId || e.enquiryNo === paramEnquiryId);
@@ -159,49 +181,64 @@ function FollowUpFormContent() {
         return;
       }
     }
-    // Default to first lead if available
     if (!selectedRecordKey && leads.length > 0) {
       handleRecordSelect(`lead:${leads[0].id}`);
     }
   }, [paramEnquiryId, paramLeadId, paramCustomerId, enquiries, leads]);
+
+  // Validation before going to Step 2
+  const handleProceedToStep2 = () => {
+    setFormError('');
+    if (!selectedRecordKey || !selectedEntityInfo) {
+      setFormError('કૃપા કરીને કસ્ટમર અથવા લીડ પસંદ કરો.');
+      return;
+    }
+    if (!scheduledDate) {
+      setFormError('કૃપા કરીને ફોલોઅપ તારીખ પસંદ કરો.');
+      return;
+    }
+    if (!scheduledTime) {
+      setFormError('કૃપા કરીને ફોલોઅપ સમય પસંદ કરો.');
+      return;
+    }
+    setCurrentStep(2);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
 
     if (!selectedRecordKey || !selectedEntityInfo) {
-      setFormError('Please select a Customer or Lead.');
+      setFormError('કૃપા કરીને કસ્ટમર અથવા લીડ પસંદ કરો.');
+      setCurrentStep(1);
       return;
     }
 
     if (!purpose.trim()) {
-      setFormError('Discussion purpose is required.');
+      setFormError('Discussion purpose (વાતચીતનો હેતુ) લખવો જરૂરી છે.');
       return;
     }
 
-    if (!scheduledDate) {
-      setFormError('Follow-up date is required.');
+    if (hasScheduleNext && !nextFollowUpDate) {
+      setFormError('કૃપા કરીને નેક્સ્ટ ફોલોઅપની તારીખ પસંદ કરો અથવા કેન્સલ કરો.');
       return;
     }
 
-    if (hasScheduleNext) {
-      if (!nextFollowUpDate) {
-        setFormError('Please select the Next Follow-up Date or remove the next follow-up section.');
-        return;
-      }
+    if (hasScheduleVisit && !visitDate) {
+      setFormError('કૃપા કરીને સાઇટ વિઝિટની તારીખ પસંદ કરો અથવા કેન્સલ કરો.');
+      return;
     }
 
     setIsSubmitting(true);
 
     try {
-      // Default sales engineer automatically in background without showing the field
       const assignedToId = allStaff[0]?.id || 'EMP-001';
       const assignedStaff = allStaff.find((s) => s.id === assignedToId);
       const assignedName = assignedStaff
         ? assignedStaff.name || `${assignedStaff.firstName || ''} ${assignedStaff.lastName || ''}`.trim()
         : 'Sales Team';
 
-      // Format time with AM/PM
+      // Format current follow-up time
       let timeDisplay = scheduledTime || '11:00 AM';
       if (scheduledTime && scheduledTime.includes(':')) {
         const [h, m] = scheduledTime.split(':');
@@ -225,7 +262,7 @@ function FollowUpFormContent() {
       const targetName = `${selectedEntityInfo.name}${selectedEntityInfo.contactPerson ? ` (${selectedEntityInfo.contactPerson})` : ''}`;
       const enquiryId = entityType === 'enquiry' ? selectedEntityInfo.id : undefined;
 
-      // 1. Create main follow-up record
+      // 1. Create main Follow-up Record
       const newFollowUpItem: FollowUp = {
         id: `FU-${Date.now()}`,
         followUpNo: `FLW-2026-${Math.floor(100 + Math.random() * 900)}`,
@@ -250,9 +287,8 @@ function FollowUpFormContent() {
 
       addFollowUp(newFollowUpItem);
 
-      // 2. If Next Follow-up was added, update lead and schedule the upcoming follow-up
+      // 2. If Next Follow-up enabled, update lead and create upcoming follow-up entry
       if (hasScheduleNext && nextFollowUpDate) {
-        // Update linked lead if applicable
         if (entityType === 'lead') {
           try {
             updateLead(selectedEntityInfo.id, { nextFollowUpDate });
@@ -266,7 +302,6 @@ function FollowUpFormContent() {
           }
         }
 
-        // Also schedule the upcoming follow-up entry
         addFollowUp({
           leadOrCustomerId: selectedEntityInfo.id,
           leadOrCustomerName: targetName,
@@ -286,6 +321,36 @@ function FollowUpFormContent() {
         });
       }
 
+      // 3. If Site Visit enabled from Follow-up ("ચેક કરવા આવો")
+      if (hasScheduleVisit && visitDate) {
+        let visitTimeDisplay = visitTime || '14:00';
+        if (visitTime && visitTime.includes(':')) {
+          const [vh, vm] = visitTime.split(':');
+          const vhour = parseInt(vh, 10);
+          const vampm = vhour >= 12 ? 'PM' : 'AM';
+          const vhour12 = vhour % 12 || 12;
+          visitTimeDisplay = `${vhour12}:${vm} ${vampm}`;
+        }
+
+        addSiteVisit({
+          customerId: selectedEntityInfo.id,
+          customerName: selectedEntityInfo.name,
+          leadId: entityType === 'lead' ? selectedEntityInfo.id : undefined,
+          enquiryId,
+          contactPerson: selectedEntityInfo.contactPerson,
+          contactMobile: selectedEntityInfo.mobile,
+          visitDate,
+          location: visitLocation.trim() || selectedEntityInfo.address || 'Client Site',
+          employeeId: assignedToId,
+          employeeName: assignedName,
+          purpose: visitPurpose.trim() || `Site Inspection for ${productItem || selectedEntityInfo.name}`,
+          discussionNotes: `Scheduled from follow-up: ${purpose.trim()} (${visitTimeDisplay})`,
+          requirementDetails: productItem ? `Equipment: ${productItem}` : '',
+          outcome: 'positive',
+          nextAction: 'Site survey and measurements',
+        });
+      }
+
       router.push('/crm/follow-ups');
     } catch (err: any) {
       setFormError(err.message || 'Failed to schedule follow-up.');
@@ -294,7 +359,7 @@ function FollowUpFormContent() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-12 animate-in fade-in">
+    <div className="max-w-4xl mx-auto space-y-6 pb-12 animate-in fade-in">
       {/* Back Link */}
       <div>
         <Link
@@ -306,20 +371,57 @@ function FollowUpFormContent() {
         </Link>
       </div>
 
-      {/* Main Form Container */}
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl p-6 sm:p-8 shadow-xs space-y-8">
-        {/* Header */}
-        <div className="flex items-start gap-3 border-b border-[#EBE3DB] pb-6">
-          <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-700 shrink-0 mt-0.5">
-            <PhoneCall className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-[#211B17] tracking-tight">
-              Schedule Client Follow-up
-            </h1>
-            <p className="text-xs text-[#70665F] mt-1 leading-relaxed">
-              Plan and log upcoming customer calls, technical discussions, and commercial negotiations.
-            </p>
+      {/* Main Container */}
+      <div className="bg-white border border-[#EBE3DB] rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+        {/* Header with Title and 2-Step Stepper */}
+        <div className="border-b border-[#EBE3DB] pb-6 space-y-4">
+          <div className="flex items-start justify-between flex-wrap gap-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-700 shrink-0 mt-0.5">
+                <PhoneCall className="w-5 h-5" />
+              </div>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-extrabold text-[#211B17] tracking-tight">
+                  Schedule Client Follow-up
+                </h1>
+                <p className="text-xs text-[#70665F] mt-1 leading-relaxed">
+                  2-સ્લાઇડ ફોર્મ: સ્લાઇડ ૧ માં શેડ્યુલ & કસ્ટમર, સ્લાઇડ ૨ માં વાતચીત, પરિણામ અને સાઇટ વિઝિટ.
+                </p>
+              </div>
+            </div>
+
+            {/* Stepper Pill Indicators */}
+            <div className="flex items-center gap-2 bg-[#FAF7F2] p-1.5 rounded-xl border border-[#EBE3DB]">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(1)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                  currentStep === 1
+                    ? 'bg-purple-700 text-white shadow-2xs'
+                    : 'text-[#70665F] hover:text-[#211B17]'
+                }`}
+              >
+                <span className="w-4 h-4 rounded-full bg-white/20 text-center text-[10px] flex items-center justify-center">
+                  1
+                </span>
+                <span>સ્લાઇડ ૧: શેડ્યુલ & કસ્ટમર</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleProceedToStep2}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+                  currentStep === 2
+                    ? 'bg-purple-700 text-white shadow-2xs'
+                    : 'text-[#70665F] hover:text-[#211B17]'
+                }`}
+              >
+                <span className="w-4 h-4 rounded-full bg-white/20 text-center text-[10px] flex items-center justify-center">
+                  2
+                </span>
+                <span>સ્લાઇડ ૨: વાતચીત & વિઝિટ</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -331,384 +433,542 @@ function FollowUpFormContent() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Section 1: Customer / Lead Selection (No Target Entity Type dropdown) */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
-                1
-              </span>
-              <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
-                Select Customer / Lead (કસ્ટમર / લીડ પસંદ કરો)
-              </h2>
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* ========================================================
+              SLIDE 1: SCHEDULE & CUSTOMER SELECTION
+             ======================================================== */}
+          {currentStep === 1 && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              {/* Customer / Enquiry Selection */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
+                    1
+                  </span>
+                  <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
+                    Select Customer / Lead / Technical Enquiry
+                  </h2>
+                </div>
 
-            <div>
-              <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5 text-purple-700" />
-                <span>Select Customer / Lead <span className="text-rose-500">*</span></span>
-              </label>
-              <select
-                required
-                value={selectedRecordKey}
-                onChange={(e) => handleRecordSelect(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-purple-600 transition"
-              >
-                <option value="">-- Select Customer / Lead / Inquiry --</option>
-                {leads.length > 0 && (
-                  <optgroup label="Prospective Leads (લીડ્સ)">
-                    {leads.map((l) => (
-                      <option key={`lead-${l.id}`} value={`lead:${l.id}`}>
-                        {l.leadNo ? `${l.leadNo} - ` : ''}{l.companyName} ({l.contactPerson || 'Lead'})
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-                {enquiries.length > 0 && (
-                  <optgroup label="Technical Inquiries (ઇન્કવાયરી RFQ)">
-                    {enquiries.map((en) => (
-                      <option key={`enq-${en.id}`} value={`enquiry:${en.id}`}>
-                        {en.enquiryNo || en.id} - {en.customerName} ({en.machineProduct})
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-                {customers.length > 0 && (
-                  <optgroup label="Registered Customers (ગ્રાહકો)">
-                    {customers.map((c) => (
-                      <option key={`cust-${c.id}`} value={`customer:${c.id}`}>
-                        {c.companyName} ({c.customerCode || 'CUST'}) - {c.contactPerson || 'Customer'}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-              </select>
+                <div>
+                  <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-purple-700" />
+                    <span>Select Customer / Lead (કસ્ટમર / લીડ પસંદ કરો) <span className="text-rose-500">*</span></span>
+                  </label>
+                  <select
+                    required
+                    value={selectedRecordKey}
+                    onChange={(e) => handleRecordSelect(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-purple-600 transition"
+                  >
+                    <option value="">-- Select Customer / Lead / Inquiry --</option>
+                    {leads.length > 0 && (
+                      <optgroup label="Prospective Leads (લીડ્સ)">
+                        {leads.map((l) => (
+                          <option key={`lead-${l.id}`} value={`lead:${l.id}`}>
+                            {l.leadNo ? `${l.leadNo} - ` : ''}{l.companyName} ({l.contactPerson || 'Lead'})
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {enquiries.length > 0 && (
+                      <optgroup label="Technical Inquiries (ઇન્કવાયરી RFQ)">
+                        {enquiries.map((en) => (
+                          <option key={`enq-${en.id}`} value={`enquiry:${en.id}`}>
+                            {en.enquiryNo || en.id} - {en.customerName} ({en.machineProduct})
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {customers.length > 0 && (
+                      <optgroup label="Registered Customers (ગ્રાહકો)">
+                        {customers.map((c) => (
+                          <option key={`cust-${c.id}`} value={`customer:${c.id}`}>
+                            {c.companyName} ({c.customerCode || 'CUST'}) - {c.contactPerson || 'Customer'}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </select>
 
-              {/* Selection Summary Pill */}
-              {selectedEntityInfo && (
-                <div className="mt-2.5 p-3 bg-purple-50/60 border border-purple-200/80 rounded-xl flex items-center justify-between flex-wrap gap-2 text-xs">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-purple-700 shrink-0" />
-                    <div>
-                      <strong className="text-purple-950 font-bold">{selectedEntityInfo.name}</strong>
-                      {selectedEntityInfo.contactPerson && (
-                        <span className="text-purple-700 ml-1.5 font-medium">
-                          • Contact: {selectedEntityInfo.contactPerson}
-                        </span>
-                      )}
-                      {selectedEntityInfo.mobile && (
-                        <span className="text-slate-600 ml-1.5 font-mono">
-                          ({selectedEntityInfo.mobile})
+                  {/* Summary Card for Selected Lead/Enquiry */}
+                  {selectedEntityInfo && (
+                    <div className="mt-3 p-3.5 bg-purple-50/70 border border-purple-200 rounded-xl flex items-center justify-between flex-wrap gap-2 text-xs">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-purple-700 shrink-0" />
+                        <div>
+                          <strong className="text-purple-950 font-bold">{selectedEntityInfo.name}</strong>
+                          {selectedEntityInfo.contactPerson && (
+                            <span className="text-purple-800 ml-1.5 font-medium">
+                              • Contact: {selectedEntityInfo.contactPerson}
+                            </span>
+                          )}
+                          {selectedEntityInfo.mobile && (
+                            <span className="text-slate-600 ml-1.5 font-mono">
+                              ({selectedEntityInfo.mobile})
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {selectedEntityInfo.product && (
+                        <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white text-purple-900 border border-purple-200 shadow-2xs">
+                          આઇટમ: {selectedEntityInfo.product}
                         </span>
                       )}
                     </div>
-                  </div>
-                  {selectedEntityInfo.product && (
-                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white text-purple-800 border border-purple-200 shadow-2xs">
-                      {selectedEntityInfo.product}
-                    </span>
                   )}
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Section 2: Channel, Schedule Date & Time */}
-          <div className="space-y-4 pt-4 border-t border-[#EBE3DB]">
-            <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
-                2
-              </span>
-              <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
-                Channel, Schedule Date & Time
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                  Channel
-                </label>
-                <select
-                  value={followUpType}
-                  onChange={(e) => setFollowUpType(e.target.value as any)}
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-purple-600 transition"
-                >
-                  <option value="call">Phone Call (ટેલિફોનિક વાતચીત)</option>
-                  <option value="whatsapp">WhatsApp Message</option>
-                  <option value="meeting">In-Person Meeting</option>
-                  <option value="visit">Client Site Visit</option>
-                  <option value="email">Official Email</option>
-                </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-purple-700" />
-                  <span>Scheduled Date <span className="text-rose-500">*</span></span>
-                </label>
-                <input
-                  type="date"
-                  required
-                  min={todayStr}
-                  value={scheduledDate}
-                  onChange={(e) => setScheduledDate(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-mono text-[#211B17] focus:outline-none focus:border-purple-600"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-purple-700" />
-                  <span>Time (Clock) <span className="text-rose-500">*</span></span>
-                </label>
-                <input
-                  type="time"
-                  required
-                  value={scheduledTime}
-                  onChange={(e) => setScheduledTime(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-mono text-[#211B17] focus:outline-none focus:border-purple-600 cursor-pointer"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Section 3: Product / Item & Discussion Purpose */}
-          <div className="space-y-4 pt-4 border-t border-[#EBE3DB]">
-            <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
-                3
-              </span>
-              <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
-                Product / Item & Discussion Purpose
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
-                  <Layers className="w-3.5 h-3.5 text-purple-700" />
-                  <span>Product / Equipment Item (ઓટોમેટીક ઇન્કવાયરી માંથી)</span>
-                </label>
-                <input
-                  type="text"
-                  value={productItem}
-                  onChange={(e) => setProductItem(e.target.value)}
-                  placeholder="e.g. Stainless Steel SS316 Reaction Vessel"
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:border-purple-600"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                  Discussion Purpose <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={purpose}
-                  onChange={(e) => setPurpose(e.target.value)}
-                  placeholder="e.g. Commercial negotiation and technical query resolution"
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-purple-600"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Section 4: Client Interest Status & Notes (NO Assigned Sales Engineer) */}
-          <div className="space-y-4 pt-4 border-t border-[#EBE3DB]">
-            <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
-                4
-              </span>
-              <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
-                Client Interest Status & Discussion Notes
-              </h2>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                  Client Status (ઇન્ટરેસ્ટેડ / નોટ ઇન્ટરેસ્ટેડ) <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={interestStatus}
-                  onChange={(e) => setInterestStatus(e.target.value as any)}
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-purple-600"
-                >
-                  <option value="interested">Interested (ઇન્ટરેસ્ટેડ)</option>
-                  <option value="in_discussion">In Discussion / Follow-up Needed (ચર્ચા ચાલુ છે)</option>
-                  <option value="not_interested">Not Interested (નોટ ઇન્ટરેસ્ટેડ)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                  Notes / Instructions
-                </label>
-                <textarea
-                  rows={3}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Additional context, customer feedback, points to cover..."
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-purple-600 leading-relaxed"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Section 5: Next Follow-up (By default CLEAR with explicit Add button) */}
-          <div className="space-y-4 pt-4 border-t border-[#EBE3DB]">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
-                  5
-                </span>
-                <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
-                  Next Follow-up (નેક્સ્ટ ફોલોઅપ)
-                </h2>
-              </div>
-
-              {!hasScheduleNext && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setHasScheduleNext(true);
-                    setNextFollowUpDate('');
-                    setNextFollowUpTime('');
-                  }}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>+ Add Next Follow-up (નેક્સ્ટ ફોલોઅપ એડ કરો)</span>
-                </button>
-              )}
-            </div>
-
-            {/* If not enabled: Show clear default message */}
-            {!hasScheduleNext ? (
-              <div className="p-4 bg-[#FAF7F2] border border-dashed border-[#EBE3DB] rounded-xl flex items-center justify-between text-xs text-[#70665F]">
+              {/* Product / Equipment Item */}
+              <div className="space-y-3 pt-3 border-t border-[#EBE3DB]">
                 <div className="flex items-center gap-2">
-                  <CalendarPlus className="w-4 h-4 text-purple-600 shrink-0" />
-                  <span>બાય ડિફોલ્ટ નેક્સ્ટ ફોલોઅપ ક્લિયર છે. જો બીજી તારીખ/સમય સેટ કરવો હોય તો ઉપર આપેલા બટન પર ક્લિક કરો.</span>
-                </div>
-              </div>
-            ) : (
-              /* If enabled: Show Date AND Time fields (initially clear/blank) with option to remove */
-              <div className="p-4 bg-purple-50/50 rounded-2xl border border-purple-200 space-y-4 animate-in fade-in">
-                <div className="flex items-center justify-between border-b border-purple-100 pb-2.5">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-purple-700" />
-                    <span className="text-xs font-bold text-purple-950">
-                      Schedule Next Follow-up (તારીખ અને સમય સેટ કરો)
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setHasScheduleNext(false);
-                      setNextFollowUpDate('');
-                      setNextFollowUpTime('');
-                    }}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-600 hover:text-rose-800 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200 transition cursor-pointer"
-                  >
-                    <X className="w-3 h-3" />
-                    <span>Cancel / Clear (રીમુવ કરો)</span>
-                  </button>
+                  <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
+                    2
+                  </span>
+                  <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
+                    Product / Equipment Item (પ્રોડક્ટ વિગત)
+                  </h2>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Next Date */}
+                <div>
+                  <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-purple-700" />
+                    <span>Product / Equipment Name (ઇન્કવાયરી માંથી ઓટોમેટિક આવશે)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={productItem}
+                    onChange={(e) => setProductItem(e.target.value)}
+                    placeholder="e.g. Stainless Steel SS316 Reaction Vessel"
+                    className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:border-purple-600"
+                  />
+                </div>
+              </div>
+
+              {/* Channel, Date & Time (Clock) */}
+              <div className="space-y-3 pt-3 border-t border-[#EBE3DB]">
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
+                    3
+                  </span>
+                  <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
+                    Channel, Date & Time (તારીખ અને સમય)
+                  </h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-xs font-bold text-[#4A3B32] flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5 text-purple-700" />
-                        <span>Next Follow-up Date <span className="text-rose-500">*</span></span>
-                      </label>
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const d = new Date();
-                            d.setDate(d.getDate() + 2);
-                            setNextFollowUpDate(d.toISOString().split('T')[0]);
-                          }}
-                          className="px-2 py-0.5 text-[10px] font-bold bg-white text-purple-700 border border-purple-200 rounded hover:bg-purple-100 transition shadow-2xs cursor-pointer"
-                        >
-                          +2D
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const d = new Date();
-                            d.setDate(d.getDate() + 7);
-                            setNextFollowUpDate(d.toISOString().split('T')[0]);
-                          }}
-                          className="px-2 py-0.5 text-[10px] font-bold bg-white text-purple-700 border border-purple-200 rounded hover:bg-purple-100 transition shadow-2xs cursor-pointer"
-                        >
-                          +7D
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const d = new Date();
-                            d.setDate(d.getDate() + 15);
-                            setNextFollowUpDate(d.toISOString().split('T')[0]);
-                          }}
-                          className="px-2 py-0.5 text-[10px] font-bold bg-white text-purple-700 border border-purple-200 rounded hover:bg-purple-100 transition shadow-2xs cursor-pointer"
-                        >
-                          +15D
-                        </button>
-                      </div>
-                    </div>
+                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+                      Channel
+                    </label>
+                    <select
+                      value={followUpType}
+                      onChange={(e) => setFollowUpType(e.target.value as any)}
+                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-purple-600 transition"
+                    >
+                      <option value="call">Phone Call (ટેલિફોનિક વાતચીત)</option>
+                      <option value="whatsapp">WhatsApp Message</option>
+                      <option value="meeting">In-Person Meeting</option>
+                      <option value="visit">Client Site Visit</option>
+                      <option value="email">Official Email</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5 text-purple-700" />
+                      <span>Scheduled Date <span className="text-rose-500">*</span></span>
+                    </label>
                     <input
                       type="date"
-                      required={hasScheduleNext}
-                      value={nextFollowUpDate}
-                      onChange={(e) => setNextFollowUpDate(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-white border border-purple-200 rounded-xl text-xs font-mono text-[#211B17] focus:outline-none focus:border-purple-600"
+                      required
+                      min={todayStr}
+                      value={scheduledDate}
+                      onChange={(e) => setScheduledDate(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-mono text-[#211B17] focus:outline-none focus:border-purple-600"
                     />
                   </div>
 
-                  {/* Next Time */}
                   <div>
                     <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5 text-purple-700" />
-                      <span>Next Follow-up Time (Clock)</span>
+                      <span>Time (Clock) <span className="text-rose-500">*</span></span>
                     </label>
                     <input
                       type="time"
-                      value={nextFollowUpTime}
-                      onChange={(e) => setNextFollowUpTime(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-white border border-purple-200 rounded-xl text-xs font-mono text-[#211B17] focus:outline-none focus:border-purple-600 cursor-pointer"
+                      required
+                      value={scheduledTime}
+                      onChange={(e) => setScheduledTime(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-mono text-[#211B17] focus:outline-none focus:border-purple-600 cursor-pointer"
                     />
                   </div>
                 </div>
-
-                <p className="text-[11px] text-purple-900 font-medium">
-                  • આ નેક્સ્ટ ફોલોઅપ સેવ થવાથી આપોઆપ લીડમાં નેક્સ્ટ ડેટ અપડેટ થશે અને અપકમિંગ લિસ્ટમાં પણ જોવા મળશે.
-                </p>
               </div>
-            )}
-          </div>
 
-          {/* Form Actions */}
-          <div className="flex items-center justify-end gap-3 pt-6 border-t border-[#EBE3DB]">
-            <Link
-              href="/crm/follow-ups"
-              className="px-5 py-2.5 border border-[#EBE3DB] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs"
-            >
-              Cancel
-            </Link>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-6 py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl font-bold transition text-xs shadow-xs active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-50"
-            >
-              <PhoneCall className="w-4 h-4" />
-              <span>{isSubmitting ? 'Scheduling...' : 'Schedule Follow-up'}</span>
-            </button>
-          </div>
+              {/* Step 1 Actions */}
+              <div className="flex items-center justify-between pt-6 border-t border-[#EBE3DB]">
+                <Link
+                  href="/crm/follow-ups"
+                  className="px-5 py-2.5 border border-[#EBE3DB] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs"
+                >
+                  Cancel
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleProceedToStep2}
+                  className="px-6 py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl font-bold transition text-xs shadow-xs active:scale-95 flex items-center gap-2 cursor-pointer"
+                >
+                  <span>સ્લાઇડ ૨: વાતચીત, પરિણામ & વિઝિટ</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================
+              SLIDE 2: DISCUSSION, OUTCOME, NEXT FOLLOW-UP & SITE VISIT
+             ======================================================== */}
+          {currentStep === 2 && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              {/* Quick Summary Banner of Step 1 */}
+              <div className="p-3 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl flex items-center justify-between flex-wrap gap-2 text-xs">
+                <div>
+                  <span className="text-[#70665F]">કસ્ટમર / પ્રોડક્ટ: </span>
+                  <strong className="text-[#211B17]">{selectedEntityInfo?.name}</strong>
+                  {productItem && <span className="text-purple-700 ml-1.5 font-bold">({productItem})</span>}
+                </div>
+                <div className="flex items-center gap-2 font-mono text-xs">
+                  <span className="text-slate-600 font-bold">{scheduledDate}</span>
+                  <span className="text-purple-700 font-bold">{scheduledTime}</span>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(1)}
+                    className="text-[11px] text-purple-700 underline font-sans ml-1"
+                  >
+                    Edit
+                  </button>
+                </div>
+              </div>
+
+              {/* Discussion Purpose & Status */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
+                    4
+                  </span>
+                  <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
+                    Discussion Details & Client Status (વાતચીત અને પરિણામ)
+                  </h2>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+                      Discussion Purpose (ચર્ચાનો હેતુ / શું વાતચીત થઈ) <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={purpose}
+                      onChange={(e) => setPurpose(e.target.value)}
+                      placeholder="e.g. Price negotiation, technical parameters approval, delivery timeline"
+                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-purple-600"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+                      Client Status (ઇન્ટરેસ્ટેડ / નોટ ઇન્ટરેસ્ટેડ) <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={interestStatus}
+                      onChange={(e) => setInterestStatus(e.target.value as any)}
+                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-purple-600"
+                    >
+                      <option value="interested">Interested (ઇન્ટરેસ્ટેડ)</option>
+                      <option value="in_discussion">In Discussion / Follow-up Needed (ચર્ચા ચાલુ છે)</option>
+                      <option value="not_interested">Not Interested (નોટ ઇન્ટરેસ્ટેડ)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+                      Notes / Instructions (વિગતવાર વાતચીતની નોંધ)
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Customer requirements, special conditions, discussion summary..."
+                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-purple-600 leading-relaxed"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Next Follow-up Section (With explicit Add button, Clear default) */}
+              <div className="space-y-3 pt-3 border-t border-[#EBE3DB]">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
+                      5
+                    </span>
+                    <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
+                      Next Follow-up (નેક્સ્ટ ફોલોઅપ)
+                    </h2>
+                  </div>
+
+                  {!hasScheduleNext && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHasScheduleNext(true);
+                        setNextFollowUpDate('');
+                        setNextFollowUpTime('');
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>+ Add Next Follow-up (નેક્સ્ટ ફોલોઅપ એડ કરો)</span>
+                    </button>
+                  )}
+                </div>
+
+                {!hasScheduleNext ? (
+                  <div className="p-3 bg-[#FAF7F2] border border-dashed border-[#EBE3DB] rounded-xl text-xs text-[#70665F] flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <CalendarPlus className="w-4 h-4 text-purple-600 shrink-0" />
+                      <span>નેક્સ્ટ ફોલોઅપ ક્લિયર છે. જો ફરી વાત કરવાની હોય તો ઉપરના બટનથી એડ કરો.</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 bg-purple-50/50 rounded-2xl border border-purple-200 space-y-3 animate-in fade-in">
+                    <div className="flex items-center justify-between border-b border-purple-100 pb-2">
+                      <span className="text-xs font-bold text-purple-950 flex items-center gap-1.5">
+                        <Calendar className="w-4 h-4 text-purple-700" />
+                        Next Follow-up Due Date & Time
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setHasScheduleNext(false);
+                          setNextFollowUpDate('');
+                          setNextFollowUpTime('');
+                        }}
+                        className="text-[11px] font-bold text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-0.5 rounded border border-rose-200"
+                      >
+                        ✕ Cancel
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-xs font-bold text-[#4A3B32]">
+                            Next Date <span className="text-rose-500">*</span>
+                          </label>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const d = new Date();
+                                d.setDate(d.getDate() + 2);
+                                setNextFollowUpDate(d.toISOString().split('T')[0]);
+                              }}
+                              className="px-2 py-0.5 text-[10px] font-bold bg-white text-purple-700 border border-purple-200 rounded"
+                            >
+                              +2D
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const d = new Date();
+                                d.setDate(d.getDate() + 7);
+                                setNextFollowUpDate(d.toISOString().split('T')[0]);
+                              }}
+                              className="px-2 py-0.5 text-[10px] font-bold bg-white text-purple-700 border border-purple-200 rounded"
+                            >
+                              +7D
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const d = new Date();
+                                d.setDate(d.getDate() + 15);
+                                setNextFollowUpDate(d.toISOString().split('T')[0]);
+                              }}
+                              className="px-2 py-0.5 text-[10px] font-bold bg-white text-purple-700 border border-purple-200 rounded"
+                            >
+                              +15D
+                            </button>
+                          </div>
+                        </div>
+                        <input
+                          type="date"
+                          required={hasScheduleNext}
+                          value={nextFollowUpDate}
+                          onChange={(e) => setNextFollowUpDate(e.target.value)}
+                          className="w-full px-3 py-2 bg-white border border-purple-200 rounded-xl text-xs font-mono text-[#211B17]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-[#4A3B32] mb-1">
+                          Next Time (Clock)
+                        </label>
+                        <input
+                          type="time"
+                          value={nextFollowUpTime}
+                          onChange={(e) => setNextFollowUpTime(e.target.value)}
+                          className="w-full px-3 py-2 bg-white border border-purple-200 rounded-xl text-xs font-mono text-[#211B17] cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Site Visit Section ("તમે ચેક કરવા આવો") */}
+              <div className="space-y-3 pt-3 border-t border-[#EBE3DB]">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px] flex items-center justify-center">
+                      6
+                    </span>
+                    <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
+                      Site Visit Required? (સાઇટ વિઝિટ શિડ્યુલ કરો)
+                    </h2>
+                  </div>
+
+                  {!hasScheduleVisit && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHasScheduleVisit(true);
+                        setVisitDate(todayStr);
+                        if (!visitLocation && selectedEntityInfo?.address) {
+                          setVisitLocation(selectedEntityInfo.address);
+                        }
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
+                    >
+                      <MapPin className="w-3.5 h-3.5 text-emerald-700" />
+                      <span>+ Schedule Site Visit (સાઇટ વિઝિટ એડ કરો)</span>
+                    </button>
+                  )}
+                </div>
+
+                {!hasScheduleVisit ? (
+                  <div className="p-3 bg-[#FAF7F2] border border-dashed border-[#EBE3DB] rounded-xl text-xs text-[#70665F] flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Compass className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>જો ક્લાયન્ટે કહ્યું હોય કે &quot;તમે ચેક કરવા આવો&quot;, તો અહીંથી સાઇટ વિઝિટ એડ કરી શકો છો.</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 bg-emerald-50/60 rounded-2xl border border-emerald-200 space-y-3 animate-in fade-in">
+                    <div className="flex items-center justify-between border-b border-emerald-200 pb-2">
+                      <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                        <MapPin className="w-4 h-4 text-emerald-700" />
+                        Planned Site Visit Details (સાઇટ મુલાકાત)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setHasScheduleVisit(false)}
+                        className="text-[11px] font-bold text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-0.5 rounded border border-rose-200"
+                      >
+                        ✕ Cancel
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-bold text-[#4A3B32] mb-1">
+                          Planned Visit Date <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="date"
+                          required={hasScheduleVisit}
+                          min={todayStr}
+                          value={visitDate}
+                          onChange={(e) => setVisitDate(e.target.value)}
+                          className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs font-mono text-[#211B17]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-[#4A3B32] mb-1">
+                          Visit Time (Clock)
+                        </label>
+                        <input
+                          type="time"
+                          value={visitTime}
+                          onChange={(e) => setVisitTime(e.target.value)}
+                          className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs font-mono text-[#211B17] cursor-pointer"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-xs font-bold text-[#4A3B32] mb-1">
+                          Site / Factory Location & Address
+                        </label>
+                        <input
+                          type="text"
+                          value={visitLocation}
+                          onChange={(e) => setVisitLocation(e.target.value)}
+                          placeholder="e.g. Plot 42, GIDC Phase 2, Vatva, Ahmedabad"
+                          className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs text-[#211B17]"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-xs font-bold text-[#4A3B32] mb-1">
+                          Site Inspection Purpose
+                        </label>
+                        <input
+                          type="text"
+                          value={visitPurpose}
+                          onChange={(e) => setVisitPurpose(e.target.value)}
+                          placeholder="e.g. Reactor layout verification and nozzle orientation measurements"
+                          className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs text-[#211B17]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Form Navigation Actions */}
+              <div className="flex items-center justify-between pt-6 border-t border-[#EBE3DB]">
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(1)}
+                  className="px-5 py-2.5 border border-[#EBE3DB] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs flex items-center gap-1.5"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>← સ્લાઇડ ૧ પર પાછા જાઓ</span>
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <Link
+                    href="/crm/follow-ups"
+                    className="px-4 py-2.5 border border-[#EBE3DB] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs"
+                  >
+                    Cancel
+                  </Link>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-6 py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl font-bold transition text-xs shadow-xs active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>{isSubmitting ? 'Saving...' : 'Save & Schedule Follow-up'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </form>
       </div>
     </div>
