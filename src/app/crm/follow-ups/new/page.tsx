@@ -183,9 +183,6 @@ function FollowUpFormContent() {
         return;
       }
     }
-    if (!selectedRecordKey && leads.length > 0) {
-      handleRecordSelect(`lead:${leads[0].id}`);
-    }
   }, [paramEnquiryId, paramLeadId, paramCustomerId, enquiries, leads]);
 
   // Validation before going to Step 2

@@ -170,9 +170,6 @@ function VisitFormContent() {
         return;
       }
     }
-    if (!selectedRecordKey && leads.length > 0) {
-      handleRecordSelect(`lead:${leads[0].id}`);
-    }
   }, [paramEnquiryId, paramLeadId, paramCustomerId, enquiries, leads]);
 
   // Validation before proceeding to Step 2
