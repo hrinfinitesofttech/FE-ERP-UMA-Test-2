@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
 import {
@@ -14,6 +15,7 @@ import { formatDate } from '../../../lib/utils';
 import { MapPin, X, Save, Eye, CheckCircle2 } from 'lucide-react';
 
 export default function VisitsPage() {
+  const router = useRouter();
   const { siteVisits, addSiteVisit, updateSiteVisit, deleteSiteVisit, leads, employees, isInitialLoading } = useERP();
 
   const [showModal, setShowModal] = useState(false);
@@ -184,7 +186,7 @@ export default function VisitsPage() {
         data={siteVisits}
         columns={columns}
         searchPlaceholder="Search visits by customer, location, engineer or notes..."
-        onAddNew={() => setShowModal(true)}
+        onAddNew={() => router.push('/crm/visits/new')}
         addNewLabel="Log Site Visit"
         onView={(v) => setViewingVisit(v)}
         onEdit={(v) => setEditingVisit(v)}
@@ -198,118 +200,6 @@ export default function VisitsPage() {
         pageSizeOptions={[10, 25, 50, 100]}
         getRowKey={(v, i) => v.id || v.visitNo || i}
       />
-
-      {/* CREATE MODAL - Styled with ERP Form Design System */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white border border-[#E2E8F0] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto p-6 space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-[#F1F5F9]">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-[#7C3AED]" />
-                <h3 className="text-sm font-bold text-[#1E293B] uppercase tracking-wide">
-                  Log Site Visit Report
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                className="text-[#94A3B8] hover:text-[#1E293B] p-1"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreate} className="space-y-4">
-              <ERPFormSection number="1." title="Visit Details" defaultExpanded={true}>
-                <div className="space-y-3">
-                  <ERPSelect
-                    label="Select Lead / Customer"
-                    required
-                    value={leadId}
-                    onChange={(e) => setLeadId(e.target.value)}
-                    options={[
-                      { label: '-- Select Lead --', value: '' },
-                      ...leads.map((l) => ({
-                        label: `${l.companyName} (${l.contactPerson || 'N/A'}) - ${l.leadNo}`,
-                        value: l.id,
-                      })),
-                    ]}
-                  />
-
-                  <ERPInput
-                    label="Visit Purpose"
-                    required
-                    value={purpose}
-                    onChange={(e) => setPurpose(e.target.value)}
-                    placeholder="e.g. Technical site inspection & layout survey"
-                  />
-
-                  <ERPSelect
-                    label="Business Outcome"
-                    required
-                    value={outcome}
-                    onChange={(e) => setOutcome(e.target.value as SiteVisit['outcome'])}
-                    options={[
-                      { label: 'Positive Progress', value: 'positive' },
-                      { label: 'Order Expected', value: 'order_expected' },
-                      { label: 'Quotation Required', value: 'quotation_required' },
-                      { label: 'Follow-up Required', value: 'follow_up_required' },
-                      { label: 'Not Interested', value: 'not_interested' },
-                    ]}
-                  />
-                </div>
-              </ERPFormSection>
-
-              <ERPFormSection number="2." title="Technical & Discussion Notes" defaultExpanded={true}>
-                <div className="space-y-3">
-                  <div className="flex flex-col space-y-1">
-                    <label className="text-[11.5px] font-semibold text-[#475569]">
-                      Discussion Minutes
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={discussionNotes}
-                      onChange={(e) => setDiscussionNotes(e.target.value)}
-                      placeholder="Enter discussion details, minutes of meeting, observations..."
-                      className="w-full py-2 px-3 text-xs bg-white border border-[#CBD5E1] rounded-lg text-[#1E293B] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED]"
-                    />
-                  </div>
-
-                  <div className="flex flex-col space-y-1">
-                    <label className="text-[11.5px] font-semibold text-[#475569]">
-                      Technical Specifications & Requirement
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={requirementDetails}
-                      onChange={(e) => setRequirementDetails(e.target.value)}
-                      placeholder="Enter machinery requirements, plant parameters, layout dimensions..."
-                      className="w-full py-2 px-3 text-xs bg-white border border-[#CBD5E1] rounded-lg text-[#1E293B] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED]"
-                    />
-                  </div>
-                </div>
-              </ERPFormSection>
-
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#F1F5F9]">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-[#64748B] hover:bg-[#F1F5F9] rounded-lg transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex items-center gap-1.5 px-5 py-2 text-xs font-bold bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-lg transition shadow-xs cursor-pointer"
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  <span>Save Visit Record</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* VIEW DETAILS MODAL */}
       {viewingVisit && (

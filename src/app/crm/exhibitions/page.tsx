@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
 import { Exhibition } from '../../../types/crm';
@@ -27,6 +28,7 @@ import {
 } from 'lucide-react';
 
 export default function ExhibitionsPage() {
+  const router = useRouter();
   const { exhibitions, addExhibition, updateExhibition, deleteExhibition, employees, leads } = useERP();
   
   // Modals
@@ -319,10 +321,7 @@ export default function ExhibitionsPage() {
         columns={columns}
         data={exhibitions}
         addNewLabel="+ Register New Expo"
-        onAddNew={() => {
-          resetCreateForm();
-          setShowModal(true);
-        }}
+        onAddNew={() => router.push('/crm/exhibitions/new')}
         onExport={() => {
           const csv = [
             ['Exhibition Name', 'Organizer', 'Location', 'Start Date', 'End Date', 'Stall No', 'Budget', 'Leads Captured', 'Qualified', 'Orders Won'].join(','),
@@ -348,127 +347,6 @@ export default function ExhibitionsPage() {
         }}
         searchPlaceholder="Search exhibitions, location, organizer, stall..."
       />
-
-      {/* Create Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="bg-white border rounded-2xl shadow-2xl w-full max-w-xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-[#5C3A21]" />
-                Register New Industrial Expo / Exhibition
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-lg leading-none"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">Exhibition / Event Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={expoName}
-                  onChange={(e) => setExpoName(e.target.value)}
-                  placeholder="e.g. ENGIMACH 2026 / PLASTINDIA / CHEMTECH Expo"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-medium focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#5C3A21]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">Exhibition Venue & City *</label>
-                <input
-                  type="text"
-                  required
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="e.g. Helipad Exhibition Centre, Gandhinagar"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#5C3A21]"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Stall / Booth Number</label>
-                  <input
-                    type="text"
-                    value={stallNumber}
-                    onChange={(e) => setStallNumber(e.target.value)}
-                    placeholder="e.g. Hall 8 / D-24"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#5C3A21]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Allocated Budget (₹) *</label>
-                  <input
-                    type="number"
-                    required
-                    min={0}
-                    value={budget}
-                    onChange={(e) => setBudget(Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono font-bold text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#5C3A21]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">Start Date *</label>
-                  <input
-                    type="date"
-                    required
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#5C3A21]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1">End Date *</label>
-                  <input
-                    type="date"
-                    required
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#5C3A21]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">Products / Equipment Displayed</label>
-                <input
-                  type="text"
-                  value={productsDisplayed}
-                  onChange={(e) => setProductsDisplayed(e.target.value)}
-                  placeholder="e.g. Chemical Reactors, Pressure Vessels, Shell & Tube Exchangers"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#5C3A21]"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-slate-200 rounded-lg font-semibold text-slate-600 hover:bg-slate-50 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-[#3E2723] hover:bg-[#2C1810] text-white rounded-lg font-bold transition shadow-xs"
-                >
-                  Save Exhibition
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Edit / ROI Update Modal */}
       {showEditModal && selectedExpo && (
