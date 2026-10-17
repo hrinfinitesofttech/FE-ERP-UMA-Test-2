@@ -282,30 +282,6 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
       cell: (lead) => <StatusBadge status={lead.status as any} />,
     },
     {
-      header: 'Sales Engineer',
-      accessorKey: 'assignedSalesPersonName',
-      className: 'w-[135px] whitespace-nowrap align-top',
-      cell: (lead) => {
-        const name = lead.assignedSalesPersonName || 'Sales Team';
-        const initials = name
-          .split(' ')
-          .map((n) => n[0])
-          .slice(0, 2)
-          .join('')
-          .toUpperCase() || 'SE';
-        return (
-          <div className="flex items-center gap-1.5">
-            <div className="w-5 h-5 rounded-full bg-[#FAF3EA] border border-[#E7DED5] text-[#8C5229] font-bold text-[9px] flex items-center justify-center shrink-0">
-              {initials}
-            </div>
-            <span className="text-xs text-[#211B17] font-medium truncate max-w-[100px]" title={name}>
-              {name}
-            </span>
-          </div>
-        );
-      },
-    },
-    {
       header: 'Actions',
       className: 'min-w-[170px] whitespace-nowrap text-right align-top',
       cell: (lead) => {
