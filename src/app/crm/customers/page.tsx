@@ -1,14 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
 import { Customer } from '../../../types/crm';
 import { formatCurrency } from '../../../lib/utils';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Building2 } from 'lucide-react';
 
-export default function CustomerMasterListPage() {
+function CustomerMasterListContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { customers, deleteCustomer, isInitialLoading } = useERP();
@@ -40,7 +40,7 @@ export default function CustomerMasterListPage() {
       cell: (c) => (
         <button
           onClick={() => handleEdit(c)}
-          className="text-[#2563EB] hover:text-[#1D4ED8] underline font-bold font-mono text-xs cursor-pointer text-left"
+          className="text-[#75401F] hover:text-[#5C3218] hover:underline font-bold font-mono text-xs cursor-pointer text-left"
         >
           {c.customerCode || c.id}
         </button>
@@ -51,8 +51,8 @@ export default function CustomerMasterListPage() {
       header: 'COMPANY / CLIENT NAME',
       cell: (c) => (
         <div>
-          <span className="font-semibold text-[#1E293B] block">{c.companyName}</span>
-          <span className="text-[11px] text-[#64748B]">{c.industry || 'Manufacturing'}</span>
+          <span className="font-bold text-[#1E293B] block">{c.companyName}</span>
+          <span className="text-[11px] text-[#64748B]">{c.industry || 'Heavy Engineering'}</span>
         </div>
       ),
     },
@@ -61,7 +61,7 @@ export default function CustomerMasterListPage() {
       header: 'CONTACT PERSON',
       cell: (c) => (
         <div>
-          <span className="text-[#334155] font-medium block">{c.contactPerson}</span>
+          <span className="text-[#334155] font-semibold block">{c.contactPerson}</span>
           <span className="text-[11px] text-[#64748B]">
             {c.mobile ? c.mobile : ''} {c.email ? `• ${c.email}` : ''}
           </span>
@@ -72,18 +72,25 @@ export default function CustomerMasterListPage() {
       key: 'city',
       header: 'CITY & STATE',
       cell: (c) => (
-        <span className="text-[#334155]">
-          {c.city || 'Vadodara'}, {c.state || 'Gujarat'}
+        <span className="text-[#334155] text-xs">
+          {c.city || 'Vadodara'}{c.state ? `, ${c.state}` : ''}
         </span>
       ),
     },
     {
       key: 'gstin',
-      header: 'GSTIN',
+      header: 'GSTIN / PAN',
       cell: (c) => (
-        <span className="font-mono text-[#475569] text-[11px]">
-          {c.gstin || '-'}
-        </span>
+        <div className="space-y-0.5">
+          <span className="font-mono text-[#334155] font-semibold text-xs block">
+            {c.gstin || '-'}
+          </span>
+          {c.pan && (
+            <span className="font-mono text-[#64748B] text-[10px] block">
+              PAN: {c.pan}
+            </span>
+          )}
+        </div>
       ),
     },
     {
@@ -110,11 +117,16 @@ export default function CustomerMasterListPage() {
     },
     {
       key: 'creditLimit',
-      header: 'CREDIT LIMIT',
+      header: 'CREDIT TERMS',
       cell: (c) => (
-        <span className="font-mono font-semibold text-[#1E293B]">
-          {formatCurrency(c.creditLimit || 0)}
-        </span>
+        <div className="space-y-0.5 text-xs">
+          <span className="font-mono font-semibold text-[#1E293B] block">
+            {formatCurrency(c.creditLimit || 0)}
+          </span>
+          <span className="text-[10px] text-[#64748B] block">
+            {c.paymentTerms || '30 Days Credit'}
+          </span>
+        </div>
       ),
     },
     {
@@ -159,5 +171,13 @@ export default function CustomerMasterListPage() {
         getRowKey={(c, i) => c.id || c.customerCode || i}
       />
     </div>
+  );
+}
+
+export default function CustomerMasterListPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-xs text-[#70665F]">Loading Customer Master...</div>}>
+      <CustomerMasterListContent />
+    </Suspense>
   );
 }

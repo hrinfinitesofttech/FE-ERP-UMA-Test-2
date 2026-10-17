@@ -44,6 +44,9 @@ import {
   Activity,
   QuotationRevision,
   ProjectTask,
+  MasterTask,
+  PlannedTaskItem,
+  ProjectPlanningRecord,
   ProjectPlanningStage,
   DepartmentAssignment,
   ProjectMilestone,
@@ -541,6 +544,7 @@ interface ERPContextType {
   refreshSalesOrders: () => Promise<void>;
   createProjectFromSalesOrder: (salesOrderId: string) => ProjectJobMaster;
   createProjectFromSalesOrderAsync: (salesOrderId: string) => Promise<ProjectJobMaster>;
+  createProjectFromCustomerPO: (customerPoId: string, projectManager?: string) => ProjectJobMaster;
 
   projectJobs: ProjectJobMaster[];
   isProjectsLoading: boolean;
@@ -552,6 +556,17 @@ interface ERPContextType {
   addProjectTask: (task: Omit<ProjectTask, 'id' | 'taskNumber'>) => ProjectTask;
   updateProjectTask: (id: string, task: Partial<ProjectTask>) => void;
   deleteProjectTask: (id: string) => void;
+
+  // Task Master (Company Master Tasks)
+  masterTasks: MasterTask[];
+  addMasterTask: (task: Omit<MasterTask, 'id' | 'createdAt' | 'updatedAt'>) => MasterTask;
+  updateMasterTask: (id: string, updates: Partial<MasterTask>) => void;
+  deleteMasterTask: (id: string) => void;
+
+  // Project Planning Records (Restructured Project Planning)
+  projectPlanningRecords: ProjectPlanningRecord[];
+  saveProjectPlanningRecord: (record: Omit<ProjectPlanningRecord, 'id' | 'planningNumber' | 'createdAt' | 'updatedAt'> & { id?: string; planningNumber?: string }) => ProjectPlanningRecord;
+  deleteProjectPlanningRecord: (id: string) => void;
 
   projectPlanningStages: ProjectPlanningStage[];
   updatePlanningStage: (id: string, stage: Partial<ProjectPlanningStage>) => void;
@@ -601,6 +616,7 @@ interface ERPContextType {
   designJobs: DesignJob[];
   addDesignJob: (job: Omit<DesignJob, 'id' | 'createdDate'>) => void;
   updateDesignJob: (id: string, updates: Partial<DesignJob>) => void;
+  completeDesignJob: (id: string, completedBy?: string, completionNotes?: string) => void;
   customerRequirements: CustomerRequirement[];
   addCustomerRequirement: (req: Omit<CustomerRequirement, 'id'>) => void;
   approveCustomerRequirement: (id: string, approvedBy: string) => void;
@@ -2110,6 +2126,51 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
     return true;
   });
+  const DEFAULT_MASTER_TASKS: MasterTask[] = [
+    { id: 'MT-001', taskCode: 'DSGN-01', taskName: 'Engineering & 3D CAD Modeling', department: 'Design', estimatedDays: 5, status: 'active' },
+    { id: 'MT-002', taskCode: 'DSGN-02', taskName: 'BOM Finalization & Component Selection', department: 'Design', estimatedDays: 3, status: 'active' },
+    { id: 'MT-003', taskCode: 'PUR-01', taskName: 'Raw Material Procurement & Inward Inspection', department: 'Purchase', estimatedDays: 7, status: 'active' },
+    { id: 'MT-004', taskCode: 'FAB-01', taskName: 'Laser Cutting & CNC Profiling', department: 'Fabrication', estimatedDays: 4, status: 'active' },
+    { id: 'MT-005', taskCode: 'FAB-02', taskName: 'CNC Bending & Sheet Metal Forming', department: 'Fabrication', estimatedDays: 3, status: 'active' },
+    { id: 'MT-006', taskCode: 'FAB-03', taskName: 'Structural Fabrication & MIG/TIG Welding', department: 'Fabrication', estimatedDays: 6, status: 'active' },
+    { id: 'MT-007', taskCode: 'MACH-01', taskName: 'Precision Machining, Turning & Milling', department: 'Machining', estimatedDays: 5, status: 'active' },
+    { id: 'MT-008', taskCode: 'SURF-01', taskName: 'Surface Pre-treatment & Shot Blasting', department: 'Finishing', estimatedDays: 2, status: 'active' },
+    { id: 'MT-009', taskCode: 'SURF-02', taskName: 'Powder Coating & Industrial Painting', department: 'Finishing', estimatedDays: 3, status: 'active' },
+    { id: 'MT-010', taskCode: 'ASSY-01', taskName: 'Mechanical Sub-assembly & Pneumatics', department: 'Assembly', estimatedDays: 5, status: 'active' },
+    { id: 'MT-011', taskCode: 'ELEC-01', taskName: 'Electrical Control Panel Wiring & Sensors', department: 'Electrical', estimatedDays: 4, status: 'active' },
+    { id: 'MT-012', taskCode: 'AUTO-01', taskName: 'PLC Programming & Automation Integration', department: 'Electrical', estimatedDays: 3, status: 'active' },
+    { id: 'MT-013', taskCode: 'ASSY-02', taskName: 'Final Machine Assembly & Integration', department: 'Assembly', estimatedDays: 5, status: 'active' },
+    { id: 'MT-014', taskCode: 'QC-01', taskName: 'Internal Quality Inspection (PDI / Dry Run)', department: 'Quality', estimatedDays: 2, status: 'active' },
+    { id: 'MT-015', taskCode: 'QC-02', taskName: 'Factory Acceptance Test (FAT) with Client', department: 'Quality', estimatedDays: 2, status: 'active' },
+    { id: 'MT-016', taskCode: 'DISP-01', taskName: 'Wooden Crating, Packing & Dispatch', department: 'Dispatch', estimatedDays: 2, status: 'active' },
+  ];
+
+  const [masterTasks, setMasterTasks] = useState<MasterTask[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_masterTasks');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return DEFAULT_MASTER_TASKS;
+  });
+
+  const [projectPlanningRecords, setProjectPlanningRecords] = useState<ProjectPlanningRecord[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_projectPlanningRecords');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch (_) {}
+    }
+    return [];
+  });
+
   const [projectTasks, setProjectTasks] = useState<ProjectTask[]>([]);
   const [projectPlanningStages, setProjectPlanningStages] = useState<ProjectPlanningStage[]>(() => {
     if (typeof window !== 'undefined') {
@@ -7200,6 +7261,143 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     return prj;
   };
 
+  const createProjectFromCustomerPO = (customerPoId: string, projectManager?: string): ProjectJobMaster => {
+    const po = customerPOs.find((p) => p.id === customerPoId || p.poNumber === customerPoId);
+    if (!po) throw new Error('Customer PO not found');
+
+    const prjNo = getNextDocNumber('project');
+    const jobNo = getNextDocNumber('job');
+
+    const qtn = quotations.find((q) =>
+      (po.quotationId && (q.id === po.quotationId || q.quotationNumber === po.quotationId)) ||
+      (po.quotationNumber && (q.quotationNumber === po.quotationNumber || q.id === po.quotationNumber))
+    );
+    const lastRev = qtn?.revisions?.[qtn.revisions.length - 1];
+    const cust = customers.find((c) =>
+      c.id === po.customerId ||
+      c.companyName.toLowerCase() === po.customerName.toLowerCase()
+    );
+
+    const contactPerson = (po as any).contactPerson || cust?.contactPerson || qtn?.contactPerson || '';
+    const contactEmail = (po as any).contactEmail || cust?.email || qtn?.contactEmail || '';
+    const contactMobile = (po as any).contactMobile || cust?.mobile || qtn?.contactMobile || '';
+
+    const poCustName = po.customerName || cust?.companyName || 'Valued Customer';
+    const poProdName =
+      lastRev?.items?.[0]?.productName ||
+      qtn?.latestSummary?.machineProduct ||
+      (po as any).scopeOfWork ||
+      'Industrial Process Equipment';
+    const poSpec =
+      lastRev?.technicalSpecs ||
+      lastRev?.items?.[0]?.description ||
+      (po as any).remarks ||
+      'As per Customer Purchase Order specifications';
+    const poDelivDate = po.deliveryDate || lastRev?.deliveryTime || '';
+    const poOrderVal = Number(po.poAmount || (po as any).po_value || (po as any).poValue || lastRev?.grandTotal || 0);
+
+    const newProject: ProjectJobMaster = {
+      id: prjNo,
+      projectNumber: prjNo,
+      jobNumber: jobNo,
+      createdAt: new Date().toISOString(),
+      salesOrderId: (po as any).salesOrderId || '',
+      salesOrderNumber: (po as any).salesOrderId || '',
+      customerPoNumber: po.poNumber,
+      quotationNumber: po.quotationNumber || qtn?.quotationNumber || '',
+      customerId: po.customerId || cust?.id || '',
+      customerName: poCustName,
+      customerContact: contactPerson,
+      contactEmail: contactEmail,
+      contactMobile: contactMobile,
+      productName: poProdName,
+      specification: poSpec,
+      quantity: Number(lastRev?.items?.[0]?.quantity) || 1,
+      unit: lastRev?.items?.[0]?.unit || 'Set',
+      orderValue: poOrderVal,
+      priority: 'high',
+      startDate: new Date().toISOString().split('T')[0],
+      deliveryDate: poDelivDate,
+      projectManager: projectManager || currentUser?.name || 'Project Head',
+      status: 'planning',
+      progressPercent: 0,
+      isPlanningSaved: false,
+    };
+
+    // Auto-generate 16 planning stages, milestones and department assignments for MTO execution
+    const newStages = create16PlanningStagesForProject(newProject);
+    const newMilestones = createDefaultMilestonesForProject(newProject);
+    const newDeptAssignments = createDefaultDepartmentAssignments(newProject);
+    const newTasks = convertPlanningStagesToTasks(newStages, newProject);
+
+    setProjectPlanningStages((prev) => {
+      const updated = [...prev, ...newStages];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_projectPlanningStages', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
+    setProjectTasks((prev) => {
+      const updated = [...newTasks, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_projectTasks', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
+    setProjectMilestones((prev) => [...prev, ...newMilestones]);
+    setDepartmentAssignments((prev) => [...prev, ...newDeptAssignments]);
+
+    setProjectJobs((prev) => {
+      const updated = deduplicateProjects([newProject, ...prev]);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_projectJobs', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
+    // Mark Customer PO as project_created so it will not appear again in create project dropdown
+    setCustomerPOs((prev) => {
+      const updated = prev.map((p) =>
+        p.id === po.id || p.poNumber === po.poNumber
+          ? { ...p, status: 'project_created' as const, projectId: prjNo, jobNumber: jobNo }
+          : p
+      );
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_customerPOs', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
+    api.crm.customerPos.update(po.id, {
+      status: 'project_created',
+      projectId: prjNo,
+      jobNumber: jobNo,
+    }).catch(() => {});
+
+    api.projects.create(newProject).catch(() => {});
+
+    logAction(
+      'CREATE',
+      'Customer PO → Project Integration',
+      'Create Project',
+      prjNo,
+      `Generated Project ${prjNo} (${jobNo}) directly from Customer PO ${po.poNumber}`
+    );
+
+    sendNotification({
+      title: 'New Project Created from Customer PO',
+      message: `Project ${prjNo} (${jobNo}) for ${poCustName} created from PO ${po.poNumber}. Ready for Project Planning.`,
+      type: 'success',
+      department: 'project',
+      linkUrl: '/projects',
+      priority: 'high',
+    });
+
+    return newProject;
+  };
+
   // PROJECT MODULE MANAGEMENT FUNCTIONS
   const updateProject = (id: string, prj: Partial<ProjectJobMaster>) => {
     setProjectJobs((prev) => {
@@ -7257,7 +7455,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       message: `Task ${newTask.taskName} (${tskNo}) assigned for ${newTask.jobNumber}`,
       type: 'info',
       department: 'project',
-      linkUrl: '/projects/tasks',
+      linkUrl: '/projects/planning',
       priority: newTask.priority === 'urgent' ? 'high' : 'normal',
     });
     // Sync to PythonAnywhere backend
@@ -7599,6 +7797,249 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       api.projects.deleteTask(`TSK-${id.toLowerCase()}`).catch(() => {});
       api.projects.deleteTask(`TSK-${id.toUpperCase()}`).catch(() => {});
     }
+  };
+
+  const addMasterTask = (taskData: Omit<MasterTask, 'id' | 'createdAt' | 'updatedAt'>): MasterTask => {
+    const nextNum = masterTasks.length + 1;
+    const newTask: MasterTask = {
+      ...taskData,
+      id: `MT-${String(nextNum).padStart(3, '0')}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setMasterTasks((prev) => {
+      const updated = [...prev, newTask];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_masterTasks', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    return newTask;
+  };
+
+  const updateMasterTask = (id: string, updates: Partial<MasterTask>) => {
+    setMasterTasks((prev) => {
+      const updated = prev.map((t) => (t.id === id ? { ...t, ...updates, updatedAt: new Date().toISOString() } : t));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_masterTasks', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+  };
+
+  const deleteMasterTask = (id: string) => {
+    setMasterTasks((prev) => {
+      const updated = prev.filter((t) => t.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_masterTasks', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+  };
+
+  const saveProjectPlanningRecord = (
+    recordData: Omit<ProjectPlanningRecord, 'id' | 'planningNumber' | 'createdAt' | 'updatedAt'> & { id?: string; planningNumber?: string }
+  ): ProjectPlanningRecord => {
+    const totalTasks = recordData.tasks?.length || 0;
+    const completedTasks = recordData.tasks?.filter((t) => t.status === 'completed' || t.progressPercent === 100).length || 0;
+    const overallProgress = totalTasks > 0
+      ? Math.round(recordData.tasks.reduce((sum, t) => sum + (t.progressPercent || 0), 0) / totalTasks)
+      : 0;
+    const status: ProjectPlanningRecord['status'] =
+      overallProgress >= 100 ? 'completed' : overallProgress > 0 ? 'in_progress' : 'planned';
+
+    const now = new Date().toISOString();
+    let savedRecord: ProjectPlanningRecord;
+
+    if (recordData.id) {
+      savedRecord = {
+        ...recordData,
+        id: recordData.id,
+        planningNumber: recordData.planningNumber || recordData.id,
+        totalTasks,
+        completedTasks,
+        overallProgress,
+        status,
+        createdAt: (recordData as any).createdAt || now,
+        updatedAt: now,
+      };
+      setProjectPlanningRecords((prev) => {
+        const updated = prev.map((r) => (r.id === recordData.id ? savedRecord : r));
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_projectPlanningRecords', JSON.stringify(updated)); } catch (_) {}
+        }
+        return updated;
+      });
+    } else {
+      const pNum = `PLN-2026-${String(projectPlanningRecords.length + 1).padStart(4, '0')}`;
+      savedRecord = {
+        ...recordData,
+        id: pNum,
+        planningNumber: pNum,
+        totalTasks,
+        completedTasks,
+        overallProgress,
+        status,
+        createdAt: now,
+        updatedAt: now,
+      };
+      setProjectPlanningRecords((prev) => {
+        const updated = [savedRecord, ...prev];
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_projectPlanningRecords', JSON.stringify(updated)); } catch (_) {}
+        }
+        return updated;
+      });
+    }
+
+    // Also sync tasks into projectPlanningStages and projectTasks for system compatibility
+    if (recordData.tasks && recordData.tasks.length > 0) {
+      const generatedStages: ProjectPlanningStage[] = recordData.tasks.map((task, idx) => ({
+        id: task.id || `STG-${recordData.projectId}-${idx + 1}`,
+        stageNumber: idx + 1,
+        stageName: task.taskName,
+        projectId: recordData.projectId,
+        jobNumber: (recordData as any).jobNumber || '',
+        plannedStart: task.startDate,
+        plannedEnd: task.endDate,
+        responsibleDepartment: 'Production',
+        responsibleEmployee: task.assignedPersons && task.assignedPersons.length > 0 ? task.assignedPersons.join(', ') : 'Assigned Team',
+        status: task.status === 'completed' ? 'completed' : task.status === 'in_progress' ? 'in_progress' : 'pending',
+        progressPercent: task.progressPercent || 0,
+        remarks: task.remarks || '',
+      }));
+
+      setProjectPlanningStages((prev) => {
+        const filtered = prev.filter((s) => s.projectId !== recordData.projectId);
+        const updated = [...filtered, ...generatedStages];
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_projectPlanningStages', JSON.stringify(updated)); } catch (_) {}
+        }
+        return updated;
+      });
+
+      // Update project status & progress percent in projectJobs
+      setProjectJobs((prev) =>
+        prev.map((p) =>
+          p.id === recordData.projectId || p.projectNumber === recordData.projectNumber
+            ? {
+                ...p,
+                progressPercent: overallProgress,
+                status: overallProgress >= 100 ? 'completed' : overallProgress > 0 ? 'production' : 'planning',
+                currentStage: recordData.tasks.find((t) => t.status === 'in_progress')?.taskName || recordData.tasks[0]?.taskName || 'Planning',
+              }
+            : p
+        )
+      );
+
+      // Auto-sync design tasks into Engineering & Design module (designJobs)
+      const isDesignRelated = (taskName: string, persons: string[] = []) => {
+        const t = (taskName || '').toLowerCase();
+        const p = persons.join(' ').toLowerCase();
+        return (
+          t.includes('design') ||
+          t.includes('drawing') ||
+          t.includes('draft') ||
+          t.includes('cad') ||
+          t.includes('model') ||
+          t.includes('ga') ||
+          t.includes('p&id') ||
+          t.includes('bom') ||
+          t.includes('layout') ||
+          t.includes('schematic') ||
+          p.includes('design')
+        );
+      };
+
+      const matchedDesignTasks = recordData.tasks.filter((t) => isDesignRelated(t.taskName, t.assignedPersons));
+      const tasksToSync = matchedDesignTasks.length > 0 ? matchedDesignTasks : [];
+
+      if (tasksToSync.length > 0) {
+        setDesignJobs((prev) => {
+          let updated = [...prev];
+          tasksToSync.forEach((task, idx) => {
+            const existingIdx = updated.findIndex(
+              (j) =>
+                (j.planningTaskId && j.planningTaskId === task.id) ||
+                (j.projectId === recordData.projectId && (j.drawingTitle || '').toLowerCase() === (task.taskName || '').toLowerCase())
+            );
+
+            if (existingIdx >= 0) {
+              const existing = updated[existingIdx];
+              updated[existingIdx] = {
+                ...existing,
+                productName: recordData.productName || existing.productName,
+                customerName: recordData.customerName || existing.customerName,
+                customerPoNumber: recordData.customerPoNumber || existing.customerPoNumber,
+                assignedDesigner: task.assignedPersons && task.assignedPersons.length > 0 ? task.assignedPersons.join(', ') : existing.assignedDesigner,
+                startDate: task.startDate || existing.startDate,
+                requiredDate: task.endDate || existing.requiredDate,
+                targetCompletionDate: task.endDate || existing.targetCompletionDate,
+                durationDays: task.durationDays || existing.durationDays,
+                status: task.status === 'completed' ? 'approved' : existing.status,
+                drawingTitle: task.taskName,
+                planningTaskId: task.id,
+                planningId: savedRecord.id,
+              };
+            } else {
+              let maxNum = 0;
+              updated.forEach((j) => {
+                const match = (j.id || '').match(/(\d+)$/) || (j.designJobNumber || '').match(/(\d+)$/);
+                if (match) maxNum = Math.max(maxNum, parseInt(match[1], 10));
+              });
+              const desNum = `DES-${new Date().getFullYear()}-${String(maxNum + 1 + idx).padStart(4, '0')}`;
+              const newDesJob: DesignJob = {
+                id: desNum,
+                designJobNumber: desNum,
+                projectId: recordData.projectId,
+                projectNumber: recordData.projectNumber,
+                jobNumber: (recordData as any).jobNumber || recordData.projectNumber,
+                customerId: (recordData as any).customerId || '',
+                customerName: recordData.customerName || 'Customer',
+                customerPoNumber: recordData.customerPoNumber || '',
+                salesOrderNumber: '',
+                productName: recordData.productName || 'Process Equipment',
+                quantity: 1,
+                deliveryDate: recordData.deliveryDate || task.endDate || '',
+                designManager: task.assignedPersons?.[0] || 'Design Dept',
+                assignedDesigner: task.assignedPersons && task.assignedPersons.length > 0 ? task.assignedPersons.join(', ') : 'Design Team',
+                priority: 'high',
+                requiredDate: task.endDate || recordData.deliveryDate || '',
+                startDate: task.startDate || '',
+                targetCompletionDate: task.endDate || '',
+                durationDays: task.durationDays || 0,
+                status: task.status === 'completed' ? 'approved' : 'assigned',
+                remarks: task.remarks || `Auto-created from Project Planning (${recordData.projectNumber})`,
+                activeRevision: 'REV-00',
+                drawingTitle: task.taskName,
+                createdDate: now.split('T')[0],
+                planningTaskId: task.id,
+                planningId: savedRecord.id,
+              };
+              updated = [newDesJob, ...updated];
+            }
+          });
+
+          const deduped = deduplicateDesignJobs(updated);
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_designJobs', JSON.stringify(deduped)); } catch (_) {}
+          }
+          return deduped;
+        });
+      }
+    }
+
+    return savedRecord;
+  };
+
+  const deleteProjectPlanningRecord = (id: string) => {
+    setProjectPlanningRecords((prev) => {
+      const updated = prev.filter((r) => r.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_projectPlanningRecords', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
   };
 
   const reorderPlanningStages = (projectId: string, newOrderedStages: ProjectPlanningStage[]) => {
@@ -8263,6 +8704,105 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     });
     logAction('UPDATE', 'Designer', 'Design Jobs', id, `Updated design job ${id}`);
     api.designer.jobs.update(id, updates).catch((err) => console.warn('Failed to update design job on backend:', err));
+  };
+
+  const completeDesignJob = (id: string, completedBy?: string, completionNotes?: string) => {
+    const today = new Date().toISOString().split('T')[0];
+    let matchedJob: DesignJob | undefined;
+
+    setDesignJobs((prev) => {
+      const updated = prev.map((j) => {
+        if (j.id === id || j.designJobNumber === id) {
+          matchedJob = {
+            ...j,
+            status: 'approved' as const,
+            completedDate: today,
+            completedBy: completedBy || j.assignedDesigner || 'Designer',
+            remarks: completionNotes ? `${j.remarks ? j.remarks + ' | ' : ''}${completionNotes}` : j.remarks,
+          };
+          return matchedJob;
+        }
+        return j;
+      });
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_designJobs', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
+    if (matchedJob) {
+      const job: DesignJob = matchedJob;
+      // Sync back to projectPlanningRecords
+      setProjectPlanningRecords((prev) => {
+        const updated = prev.map((plan) => {
+          if (
+            (job.planningId && plan.id === job.planningId) ||
+            plan.projectId === job.projectId ||
+            plan.projectNumber === job.projectNumber
+          ) {
+            const updatedTasks = plan.tasks.map((t) => {
+              if (
+                (job.planningTaskId && t.id === job.planningTaskId) ||
+                t.taskName.toLowerCase() === (job.drawingTitle || '').toLowerCase() ||
+                (t.taskName.toLowerCase().includes('design') && plan.tasks.filter((x) => x.taskName.toLowerCase().includes('design')).length === 1)
+              ) {
+                return {
+                  ...t,
+                  status: 'completed' as const,
+                  progressPercent: 100,
+                  remarks: completionNotes || 'Design completed by engineering team',
+                };
+              }
+              return t;
+            });
+            const totalTasks = updatedTasks.length;
+            const completedTasks = updatedTasks.filter((t) => t.status === 'completed' || t.progressPercent === 100).length;
+            const overallProgress = totalTasks > 0
+              ? Math.round(updatedTasks.reduce((sum, t) => sum + (t.progressPercent || 0), 0) / totalTasks)
+              : 0;
+            return {
+              ...plan,
+              tasks: updatedTasks,
+              completedTasks,
+              overallProgress,
+              status: overallProgress >= 100 ? 'completed' : overallProgress > 0 ? 'in_progress' : plan.status,
+              updatedAt: new Date().toISOString(),
+            };
+          }
+          return plan;
+        });
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_projectPlanningRecords', JSON.stringify(updated)); } catch (_) {}
+        }
+        return updated;
+      });
+
+      // Update projectPlanningStages
+      setProjectPlanningStages((prev) => {
+        const updated = prev.map((stg) => {
+          if (
+            stg.projectId === job.projectId &&
+            (stg.stageName.toLowerCase() === (job.drawingTitle || '').toLowerCase() ||
+              stg.stageName.toLowerCase().includes('design'))
+          ) {
+            return {
+              ...stg,
+              status: 'completed' as const,
+              progressPercent: 100,
+              responsibleEmployee: completedBy || stg.responsibleEmployee,
+            };
+          }
+          return stg;
+        });
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_projectPlanningStages', JSON.stringify(updated)); } catch (_) {}
+        }
+        return updated;
+      });
+
+      logAction('UPDATE', 'Designer', 'Design Jobs', id, `Marked design job ${job.designJobNumber} as completed`);
+      api.designer.jobs.update(id, { status: 'approved', completedDate: today, completedBy }).catch(() => {});
+    }
   };
 
   const addCustomerRequirement = (data: Omit<CustomerRequirement, 'id'>) => {
@@ -13159,6 +13699,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         refreshSalesOrders,
         createProjectFromSalesOrder,
         createProjectFromSalesOrderAsync,
+        createProjectFromCustomerPO,
         projectJobs: deduplicateProjects(projectJobs),
         isProjectsLoading,
         updateProject,
@@ -13167,6 +13708,13 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         addProjectTask,
         updateProjectTask,
         deleteProjectTask,
+        masterTasks,
+        addMasterTask,
+        updateMasterTask,
+        deleteMasterTask,
+        projectPlanningRecords,
+        saveProjectPlanningRecord,
+        deleteProjectPlanningRecord,
         projectPlanningStages: deduplicatePlanningStages(projectPlanningStages),
         updatePlanningStage,
         generateDefaultPlanningStages,
@@ -13203,6 +13751,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         designJobs: deduplicateDesignJobs(designJobs),
         addDesignJob,
         updateDesignJob,
+        completeDesignJob,
         customerRequirements: sortByLatestDesc(customerRequirements),
         addCustomerRequirement,
         approveCustomerRequirement,

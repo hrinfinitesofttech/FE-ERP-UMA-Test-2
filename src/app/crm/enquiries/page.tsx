@@ -21,6 +21,7 @@ import {
   Calendar,
   CheckCircle2,
   FileText,
+  FileCheck2,
   Pencil,
   Trash2,
   X,
@@ -444,11 +445,18 @@ export default function EnquiriesRegisterPage() {
         <div className="flex items-center gap-1.5 whitespace-nowrap" onClick={(ev) => ev.stopPropagation()}>
           <button
             onClick={() => router.push(`/crm/follow-ups/new?enquiryId=${encodeURIComponent(e.id || e.enquiryNo)}`)}
-            className="px-2.5 py-1 bg-purple-700 hover:bg-purple-800 text-white rounded text-xs font-bold inline-flex items-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
+            className="px-2 py-1 bg-purple-700 hover:bg-purple-800 text-white rounded text-xs font-bold inline-flex items-center gap-1 transition shadow-xs cursor-pointer active:scale-95"
             title="Schedule Follow-up for this Enquiry"
           >
             <PhoneCall className="w-3.5 h-3.5" />
             <span>Follow-up</span>
+          </button>
+          <button
+            onClick={() => router.push(`/crm/quotations/new?enquiryId=${encodeURIComponent(e.id || e.enquiryNo)}`)}
+            className="p-1.5 bg-[#3E2723] hover:bg-[#2A1810] text-white rounded text-xs font-bold inline-flex items-center justify-center transition shadow-xs cursor-pointer active:scale-95"
+            title="Create Quotation for this Enquiry"
+          >
+            <FileCheck2 className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => router.push(`/crm/enquiries/new?id=${encodeURIComponent(e.id || e.enquiryNo)}`)}

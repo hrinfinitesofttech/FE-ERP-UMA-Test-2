@@ -19,11 +19,10 @@ function isRouteAllowed(pathname: string, currentUser: any): boolean {
     return true;
   }
 
-  // Universal employee self-service (Punches, Leaves, Assigned Tasks)
+  // Universal employee self-service (Punches, Leaves)
   if (
     pathname === '/hr/attendance' ||
-    pathname === '/hr/leaves' ||
-    pathname === '/projects/tasks'
+    pathname === '/hr/leaves'
   ) {
     return true;
   }

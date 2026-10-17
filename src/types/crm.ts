@@ -335,6 +335,9 @@ export interface Customer {
   industry: string;
   gstin: string;
   pan: string;
+  tan?: string;
+  msmeNumber?: string;
+  taxCategory?: 'regular' | 'sez_with_duty' | 'sez_without_duty' | 'export' | 'composite';
   website?: string;
   contactPerson: string;
   designation: string;
@@ -348,10 +351,22 @@ export interface Customer {
   country: string;
   pincode: string;
   paymentTerms: string;
+  creditPeriodDays?: number;
   creditLimit: number;
   currency: string;
   category: 'platinum' | 'gold' | 'silver' | 'standard';
   assignedSalesPerson: string;
+  // Banking details
+  bankName?: string;
+  bankAccountNo?: string;
+  bankAccountName?: string;
+  bankIfsc?: string;
+  bankBranch?: string;
+  // Project / Dispatch reference
+  linkedLeadId?: string;
+  nearestPortRailway?: string;
+  inspectionRequirements?: string;
+  specialInstructions?: string;
   createdDate: string;
   createdAt?: string;
   created_at?: string;
@@ -547,6 +562,49 @@ export interface PlanningStageAssignee {
   name: string;
   role?: string;
   department?: string;
+}
+
+export interface MasterTask {
+  id: string;
+  taskCode?: string;
+  taskName: string;
+  department: string;
+  description?: string;
+  estimatedDays?: number;
+  status: 'active' | 'inactive';
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface PlannedTaskItem {
+  id: string;
+  masterTaskId?: string;
+  taskName: string;
+  assignedPersons: string[];
+  startDate: string;
+  endDate: string;
+  durationDays?: number;
+  status: 'pending' | 'in_progress' | 'completed' | 'on_hold';
+  progressPercent: number;
+  remarks?: string;
+}
+
+export interface ProjectPlanningRecord {
+  id: string;
+  planningNumber: string;
+  projectId: string;
+  projectNumber: string;
+  customerName: string;
+  productName: string;
+  customerPoNumber?: string;
+  deliveryDate?: string;
+  tasks: PlannedTaskItem[];
+  totalTasks: number;
+  completedTasks: number;
+  overallProgress: number;
+  status: 'draft' | 'planned' | 'in_progress' | 'completed';
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ProjectPlanningStage {
@@ -773,9 +831,9 @@ export interface ProjectJobMaster {
   projectName?: string;
   jobId?: string;
   jobCode?: string;
-  jobNumber: string; // e.g. JOB-2026-001
-  salesOrderId: string;
-  salesOrderNumber: string;
+  jobNumber: string;
+  salesOrderId?: string;
+  salesOrderNumber?: string;
   customerPoNumber: string;
   quotationNumber: string;
   customerId: string;

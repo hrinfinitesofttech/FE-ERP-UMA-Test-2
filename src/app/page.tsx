@@ -630,10 +630,10 @@ export default function DashboardPage() {
                 </p>
               </div>
               <Link
-                href="/projects/tasks"
+                href="/projects/planning"
                 className="text-xs font-bold text-crm-brand-700 hover:underline flex items-center gap-1"
               >
-                All Project Tasks ({dashboardData?.tasksSummary?.totalAssigned || projectTasks.length}) <ChevronRight className="w-3.5 h-3.5" />
+                Project Planning <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
@@ -730,7 +730,7 @@ export default function DashboardPage() {
                 ? dashboardData.moduleShortcuts
                 : [
                     { module: 'production', label: 'Work Orders', href: '/production/work-orders', icon: 'Play' },
-                    { module: 'projects', label: 'Projects & Tasks', href: '/projects/tasks', icon: 'Factory' },
+                    { module: 'projects', label: 'Project Planning', href: '/projects/planning', icon: 'Factory' },
                     { module: 'store', label: 'Stock Matrix', href: '/store/stock', icon: 'Box' },
                     { module: 'designer', label: 'Designer BOM', href: '/designer/bom', icon: 'Palette' },
                     { module: 'purchase', label: 'Indent / PR', href: '/purchase/requisition', icon: 'ShoppingCart' },

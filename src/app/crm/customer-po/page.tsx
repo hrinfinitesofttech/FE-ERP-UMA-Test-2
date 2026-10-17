@@ -120,19 +120,24 @@ export default function CustomerPOPage() {
         const isConverted = po.status === 'sales_order_created' || po.status === 'converted_to_so';
         const soNumber = po.salesOrderId || (po as any).convertedSoId || (po as any).converted_so_id;
         return (
-          <div className="whitespace-nowrap">
+          <div className="whitespace-nowrap flex items-center gap-1.5">
             {isConverted ? (
               <span className="font-mono font-bold text-purple-700 text-xs inline-flex items-center gap-1 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
                 <span>SO: {soNumber || 'Generated'}</span>
               </span>
             ) : (
-              <button
-                onClick={() => handleCreateSalesOrder(po.id)}
-                className="px-2.5 py-1 bg-purple-700 hover:bg-purple-800 text-white rounded text-xs font-bold flex items-center gap-1 shadow-xs transition cursor-pointer"
+              <span className="text-[11px] font-mono text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+                Received (Pending SO)
+              </span>
+            )}
+            {po.quotationId && (
+              <Link
+                href={`/crm/quotations/${po.quotationId}`}
+                className="p-1 text-slate-500 hover:text-purple-700 hover:bg-purple-50 rounded transition"
+                title="View Linked Quotation"
               >
-                <Layers className="w-3.5 h-3.5" />
-                <span>Create Sales Order</span>
-              </button>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </Link>
             )}
           </div>
         );
@@ -155,6 +160,8 @@ export default function CustomerPOPage() {
         columns={columns}
         data={customerPOs}
         searchPlaceholder="Search customer PO #, customer, or quotation ref..."
+        addNewHref="/crm/customer-po/new"
+        addNewLabel="Register Customer PO"
         onExport={handleExportCSV}
       />
     </div>

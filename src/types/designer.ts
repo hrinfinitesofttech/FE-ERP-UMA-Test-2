@@ -99,6 +99,13 @@ export interface DesignJob {
     url?: string;
     uploadedAt?: string;
   }[];
+  startDate?: string;
+  targetCompletionDate?: string;
+  durationDays?: number;
+  planningTaskId?: string;
+  planningId?: string;
+  completedDate?: string;
+  completedBy?: string;
 }
 
 export interface CustomerRequirement {

@@ -230,16 +230,6 @@ export const ERP_PAGES_MASTER: PageItem[] = [
     keywords: ['planning', 'wbs', 'project plan', 'milestones', 'stages'],
   },
 
-  {
-    id: 'page-projects-tasks',
-    title: 'Project Tasks & Action Items',
-    category: 'Projects',
-    path: '/projects/tasks',
-    icon: CheckSquare,
-    description: 'Engineer task assignments, completion status, and priority Kanban board.',
-    keywords: ['tasks', 'action items', 'todo', 'kanban', 'assignments'],
-  },
-
 
 
   // 3. Designer & Engineering

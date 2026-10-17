@@ -219,7 +219,7 @@ function FollowUpFormContent() {
         }
         if (flw.productItem) setProductItem(flw.productItem);
         if (flw.purpose) setPurpose(flw.purpose);
-        if (flw.interestStatus) setInterestStatus(flw.interestStatus);
+        if (flw.interestStatus) setInterestStatus(flw.interestStatus as any);
         if (flw.notes) setNotes(flw.notes);
         if (flw.nextFollowUpDate) {
           setHasScheduleNext(true);

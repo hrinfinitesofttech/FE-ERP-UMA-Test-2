@@ -8,7 +8,7 @@ import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPage
 import { StatusBadge } from '../../../components/workflow/StatusBadge';
 import { Quotation } from '../../../types/crm';
 import { formatCurrency, formatDate } from '../../../lib/utils';
-import { FileCheck2, ArrowUpRight, Filter } from 'lucide-react';
+import { FileCheck2, ArrowUpRight, Filter, Briefcase } from 'lucide-react';
 
 export default function QuotationsListPage() {
   const router = useRouter();
@@ -134,13 +134,22 @@ export default function QuotationsListPage() {
       key: 'actions',
       header: 'ACTIONS',
       cell: (q) => (
-        <Link
-          href={`/crm/quotations/${q.id}`}
-          className="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg font-bold text-[11px] inline-flex items-center gap-1 transition shadow-2xs whitespace-nowrap cursor-pointer"
-        >
-          <span>View / Revs</span>
-          <ArrowUpRight className="w-3.5 h-3.5" />
-        </Link>
+        <div className="flex items-center gap-1.5 whitespace-nowrap" onClick={(ev) => ev.stopPropagation()}>
+          <Link
+            href={`/crm/quotations/${q.id}`}
+            className="px-2 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded text-xs font-bold inline-flex items-center gap-1 transition shadow-2xs whitespace-nowrap cursor-pointer"
+          >
+            <span>View / Revs</span>
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </Link>
+          <button
+            onClick={() => router.push(`/crm/customer-po/new?quotationId=${encodeURIComponent(q.id)}`)}
+            className="p-1.5 bg-[#3E2723] hover:bg-[#2A1810] text-white rounded text-xs font-bold inline-flex items-center justify-center transition shadow-xs cursor-pointer active:scale-95"
+            title="Register Customer PO for this Quotation"
+          >
+            <Briefcase className="w-3.5 h-3.5" />
+          </button>
+        </div>
       ),
     },
   ];

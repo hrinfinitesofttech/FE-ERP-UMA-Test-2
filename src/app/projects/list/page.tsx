@@ -16,7 +16,6 @@ import {
   Eye,
   Edit3,
   Trash2,
-  Cpu,
   CheckSquare,
   Users,
   Clock,
@@ -40,38 +39,33 @@ export default function ProjectListPage() {
     projectJobs,
     isProjectsLoading,
     syncProjects,
-    salesOrders,
-    createProjectFromSalesOrder,
+    customerPOs,
+    quotations,
+    createProjectFromCustomerPO,
     updateProject,
     deleteProject,
-    openJobModal,
-    projectPlanningStages,
-    availableEmployees,
-    employees,
+    projectPlanningRecords,
     can,
-    currentUser,
   } = useERP();
 
-  // Unified Employees List for Project Manager selection
-  const employeeList = useMemo(() => {
-    const list =
-      availableEmployees && availableEmployees.length > 0
-        ? availableEmployees
-        : employees && employees.length > 0
-        ? employees
-        : [];
-    return list;
-  }, [availableEmployees, employees]);
+  // Customer POs that do not yet have a project created
+  const availableCustomerPOs = useMemo(() => {
+    return customerPOs.filter((po) => {
+      const alreadyHasProject = projectJobs.some((prj) =>
+        (prj.customerPoNumber && prj.customerPoNumber.trim().toLowerCase() === po.poNumber.trim().toLowerCase()) ||
+        ((prj as any).customerPoId && (prj as any).customerPoId === po.id)
+      ) || po.status === 'project_created';
+      return !alreadyHasProject;
+    });
+  }, [customerPOs, projectJobs]);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [priorityFilter, setPriorityFilter] = useState('all');
-  const [managerFilter, setManagerFilter] = useState('all');
 
-  // Modal State for Create Project from Sales Order
+  // Modal State for Create Project from Customer PO
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedSOId, setSelectedSOId] = useState('');
+  const [selectedPOId, setSelectedPOId] = useState('');
   const [creating, setCreating] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -104,38 +98,26 @@ export default function ProjectListPage() {
     }
   };
 
-  // Confirmed Sales Orders available for Project creation
-  const confirmedSalesOrders = salesOrders.filter((s) => s.status === 'confirmed');
-
   // Filtered list
   const filteredProjects = useMemo(() => {
     return projectJobs.filter((p) => {
       if (statusFilter !== 'all' && (p.status || 'planning') !== statusFilter) return false;
-      if (priorityFilter !== 'all' && (p.priority || 'medium') !== priorityFilter) return false;
-      if (managerFilter !== 'all' && p.projectManager !== managerFilter) return false;
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
-        const linkedSo = salesOrders.find(
-          (s) =>
-            (p.salesOrderNumber && (s.salesOrderNumber === p.salesOrderNumber || s.id === p.salesOrderNumber)) ||
-            (p.salesOrderId && (s.id === p.salesOrderId || s.salesOrderNumber === p.salesOrderId)) ||
-            (p.customerPoNumber && s.customerPoNumber === p.customerPoNumber)
-        );
-        const custName = (p.customerName && p.customerName !== 'Customer') ? p.customerName : (linkedSo?.customerName || p.customerName || '');
-        const prodName = (p.productName && p.productName !== 'Project Work' && p.productName !== 'Process Equipment') ? p.productName : (linkedSo?.items?.[0]?.productName || p.productName || '');
+        const custName = p.customerName || '';
+        const prodName = p.productName || '';
+        const poNumber = p.customerPoNumber || '';
         return (
           p.projectNumber?.toLowerCase().includes(q) ||
-          p.jobNumber?.toLowerCase().includes(q) ||
           custName.toLowerCase().includes(q) ||
           prodName.toLowerCase().includes(q) ||
-          p.salesOrderNumber?.toLowerCase().includes(q) ||
-          p.specification?.toLowerCase().includes(q) ||
-          p.projectManager?.toLowerCase().includes(q)
+          poNumber.toLowerCase().includes(q) ||
+          p.specification?.toLowerCase().includes(q)
         );
       }
       return true;
     });
-  }, [projectJobs, salesOrders, statusFilter, priorityFilter, managerFilter, searchQuery]);
+  }, [projectJobs, statusFilter, searchQuery]);
 
   // Statistics
   const totalCount = projectJobs.length;
@@ -145,20 +127,20 @@ export default function ProjectListPage() {
   const completedCount = projectJobs.filter((p) => p.status === 'completed').length;
   const planningCount = projectJobs.filter((p) => !p.status || p.status === 'planning').length;
 
-  // Handle Create Project
+  // Handle Create Project from Customer PO
   const handleCreateProject = () => {
-    if (!selectedSOId) {
-      setErrorMsg('Please select a confirmed Sales Order.');
+    if (!selectedPOId) {
+      setErrorMsg('Please select an unassigned Customer Purchase Order (Customer PO).');
       return;
     }
     try {
       setCreating(true);
       setErrorMsg('');
-      const newPrj = createProjectFromSalesOrder(selectedSOId);
+      const newPrj = createProjectFromCustomerPO(selectedPOId);
       setIsCreateModalOpen(false);
-      setSelectedSOId('');
-      showToast(`Project ${newPrj.projectNumber} created successfully!`);
-      router.push(`/projects/${newPrj.id}`);
+      setSelectedPOId('');
+      showToast(`Project ${newPrj.projectNumber} created successfully from Customer PO! Ready for planning.`);
+      router.push(`/projects/planning?projectId=${newPrj.id}&projectNumber=${newPrj.projectNumber}&mode=create`);
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to create project');
     } finally {
@@ -173,8 +155,6 @@ export default function ProjectListPage() {
     setEditFormData({
       productName: prj.productName,
       specification: prj.specification,
-      projectManager: prj.projectManager || '',
-      priority: prj.priority || 'high',
       status: prj.status || 'planning',
       progressPercent: prj.progressPercent || 0,
       deliveryDate: prj.deliveryDate,
@@ -192,9 +172,6 @@ export default function ProjectListPage() {
     const errors: Record<string, string> = {};
     if (!editFormData.productName || editFormData.productName.trim() === '') {
       errors.productName = 'Product name is required.';
-    }
-    if (!editFormData.projectManager || editFormData.projectManager.trim() === '') {
-      errors.projectManager = 'Project manager is required.';
     }
     if (Object.keys(errors).length > 0) {
       setEditErrors(errors);
@@ -222,19 +199,14 @@ export default function ProjectListPage() {
   const columns: ERPColumn<ProjectJobMaster>[] = [
     {
       key: 'projectNumber',
-      header: 'Project & Job No',
+      header: 'Project No',
       isCodeLink: true,
       onCodeClick: (p) => router.push(`/projects/${p.id}`),
       cell: (p) => (
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="font-mono font-bold text-[#7C3AED] hover:underline cursor-pointer">
-              {p.projectNumber}
-            </span>
-            <span className="font-mono font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 text-[10px]">
-              {p.jobNumber}
-            </span>
-          </div>
+          <span className="font-mono font-bold text-[#7C3AED] hover:underline cursor-pointer">
+            {p.projectNumber}
+          </span>
           <span className="text-[10px] text-slate-500 block">Start: {formatDate(p.startDate)}</span>
         </div>
       ),
@@ -242,77 +214,30 @@ export default function ProjectListPage() {
     {
       key: 'customerName',
       header: 'Customer & References',
-      cell: (p) => {
-        const linkedSo = salesOrders.find(
-          (s) =>
-            (p.salesOrderNumber && (s.salesOrderNumber === p.salesOrderNumber || s.id === p.salesOrderNumber)) ||
-            (p.salesOrderId && (s.id === p.salesOrderId || s.salesOrderNumber === p.salesOrderId)) ||
-            (p.customerPoNumber && s.customerPoNumber && s.customerPoNumber === p.customerPoNumber)
-        );
-        const displayName = (p.customerName && p.customerName !== 'Customer')
-          ? p.customerName
-          : (linkedSo?.customerName || (linkedSo as any)?.customer_name || p.customerName || 'Customer');
-
-        return (
-          <div className="space-y-0.5">
-            <span className="font-bold text-slate-900 block truncate max-w-[200px]">{displayName}</span>
-            <div className="text-[10px] text-slate-500 font-mono flex items-center gap-1.5">
-              <span>SO: <strong>{p.salesOrderNumber || linkedSo?.salesOrderNumber || 'N/A'}</strong></span>
-              <span>•</span>
-              <span>PO: <strong>{p.customerPoNumber || linkedSo?.customerPoNumber || 'N/A'}</strong></span>
-            </div>
+      cell: (p) => (
+        <div className="space-y-0.5">
+          <span className="font-bold text-slate-900 block truncate max-w-[200px]">{p.customerName || 'Customer'}</span>
+          <div className="text-[10px] text-slate-500 font-mono">
+            <span>Customer PO: <strong>{p.customerPoNumber || 'N/A'}</strong></span>
           </div>
-        );
-      },
+        </div>
+      ),
     },
     {
       key: 'productName',
       header: 'Machine / Equipment Scope',
-      cell: (p) => {
-        const linkedSo = salesOrders.find(
-          (s) =>
-            (p.salesOrderNumber && (s.salesOrderNumber === p.salesOrderNumber || s.id === p.salesOrderNumber)) ||
-            (p.salesOrderId && (s.id === p.salesOrderId || s.salesOrderNumber === p.salesOrderId)) ||
-            (p.customerPoNumber && s.customerPoNumber && s.customerPoNumber === p.customerPoNumber)
-        );
-        const displayProduct = (p.productName && p.productName !== 'Project Work' && p.productName !== 'Process Equipment')
-          ? p.productName
-          : (linkedSo?.items?.[0]?.productName || (linkedSo as any)?.machineProduct || (linkedSo as any)?.machine_product || p.productName || 'Process Equipment');
-
-        const displaySpec = (p.specification && p.specification !== 'As per Sales Order' && p.specification !== 'Standard Specification')
-          ? p.specification
-          : (linkedSo?.items?.[0]?.specification || (linkedSo as any)?.specification || p.specification || 'As per approved Quotation & Customer PO specs');
-
-        return (
-          <div className="max-w-[220px]">
-            <span className="font-semibold text-slate-900 block truncate">{displayProduct}</span>
-            <span className="text-[11px] text-slate-500 block truncate">{displaySpec}</span>
-          </div>
-        );
-      },
-    },
-    {
-      key: 'projectManager',
-      header: 'Project Manager',
       cell: (p) => (
-        <span className="font-semibold text-slate-700 text-xs">
-          {p.projectManager || 'Unassigned'}
-        </span>
+        <div className="max-w-[220px]">
+          <span className="font-semibold text-slate-900 block truncate">{p.productName || 'Process Equipment'}</span>
+          <span className="text-[11px] text-slate-500 block truncate">{p.specification || 'As per approved Quotation & Customer PO specs'}</span>
+        </div>
       ),
     },
     {
       key: 'deliveryDate',
       header: 'Delivery Target',
       cell: (p) => {
-        const linkedSo = salesOrders.find(
-          (s) =>
-            (p.salesOrderNumber && (s.salesOrderNumber === p.salesOrderNumber || s.id === p.salesOrderNumber)) ||
-            (p.salesOrderId && (s.id === p.salesOrderId || s.salesOrderNumber === p.salesOrderId))
-        );
-        const targetDate = p.deliveryDate && p.deliveryDate !== p.startDate
-          ? p.deliveryDate
-          : (linkedSo?.deliveryDate || (linkedSo as any)?.target_delivery_date || p.deliveryDate);
-
+        const targetDate = p.deliveryDate || p.startDate;
         return (
           <div className="space-y-0.5">
             <span className="text-slate-900 font-mono text-[11px] font-semibold block">
@@ -357,28 +282,6 @@ export default function ProjectListPage() {
       },
     },
     {
-      key: 'priority',
-      header: 'Priority',
-      cell: (p) => {
-        const priority = p.priority || 'medium';
-        const colors: Record<string, string> = {
-          urgent: 'bg-rose-50 text-rose-700 border-rose-200',
-          high: 'bg-amber-50 text-amber-700 border-amber-200',
-          medium: 'bg-blue-50 text-blue-700 border-blue-200',
-          low: 'bg-slate-50 text-slate-700 border-slate-200',
-        };
-        return (
-          <span
-            className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border ${
-              colors[priority] || colors.medium
-            }`}
-          >
-            {priority}
-          </span>
-        );
-      },
-    },
-    {
       key: 'status',
       header: 'Status',
       cell: (p) => <StatusBadge status={(p.status || 'planning') as any} />,
@@ -387,31 +290,21 @@ export default function ProjectListPage() {
       key: 'actions',
       header: 'Actions',
       cell: (p) => {
-        const isPlanningSaved = Boolean(
-          (p as any).isPlanningSaved ||
-          (p as any).is_planning_saved ||
-          (typeof window !== 'undefined' && (
-            localStorage.getItem(`UMA_ERP_planning_saved_${p.id}`) === 'true' ||
-            localStorage.getItem(`UMA_ERP_planning_saved_${p.projectNumber}`) === 'true' ||
-            localStorage.getItem(`UMA_ERP_planning_saved_${p.jobNumber}`) === 'true'
-          )) ||
-          projectPlanningStages?.some(
-            (s) =>
-              (s.projectId === p.id || s.projectId === p.projectNumber || s.jobNumber === p.jobNumber) &&
-              (s.status === 'completed' || s.status === 'in_progress' || (s.progressPercent && s.progressPercent > 0))
-          )
+        const planRecord = projectPlanningRecords.find(
+          (r) => r.projectId === p.id || r.projectNumber === p.projectNumber
         );
+        const isPlanningSaved = Boolean(planRecord);
 
         return (
           <div
-            className="flex items-center gap-1.5 whitespace-nowrap min-w-[280px]"
+            className="flex items-center gap-1.5 whitespace-nowrap min-w-[200px]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Edit Project Button */}
             <button
               onClick={(e) => handleOpenEditModal(e, p)}
               title="Edit Project Details"
-              className="p-1.5 text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition"
+              className="p-1.5 text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition cursor-pointer"
             >
               <Edit3 className="w-3.5 h-3.5" />
             </button>
@@ -419,58 +312,39 @@ export default function ProjectListPage() {
             {/* View 360 Detail */}
             <Link
               href={`/projects/${p.id}`}
-              title="View Project 360° Detail"
+              title="View Project Detail"
               className="p-1.5 text-crm-brand-700 hover:text-crm-brand-900 bg-crm-brand-50 hover:bg-crm-brand-100 border border-crm-brand-200 rounded-lg transition"
             >
               <Eye className="w-3.5 h-3.5" />
             </Link>
 
-            {/* 360 Traceability Modal */}
-            <button
-              onClick={() => openJobModal(p.jobNumber)}
-              title="Launch 360° Traceability Modal"
-              className="p-1.5 text-amber-700 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition"
-            >
-              <Cpu className="w-3.5 h-3.5" />
-            </button>
-
-            {/* Manage Tasks */}
-            <Link
-              href={`/projects/tasks?projectId=${p.id}`}
-              title="Manage Tasks"
-              className="p-1.5 text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition"
-            >
-              <CheckSquare className="w-3.5 h-3.5" />
-            </Link>
-
-
             {/* Delete Button */}
             <button
               onClick={() => setDeletingProject(p)}
               title="Delete Project"
-              className="p-1.5 text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition"
+              className="p-1.5 text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
 
-            {/* Project Planning Button: Create Planning vs View Planning */}
+            {/* Project Planning Button */}
             {isPlanningSaved ? (
               <Link
-                href={`/projects/planning?projectId=${p.id}&projectNumber=${p.projectNumber}&mode=view`}
-                title="View Project Planning"
-                className="px-2.5 py-1 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg inline-flex items-center gap-1.5 transition shadow-xs"
+                href={`/projects/planning?id=${planRecord?.id}&mode=edit`}
+                title="Edit Project Plan"
+                className="px-2 py-1 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg inline-flex items-center gap-1 transition shadow-xs"
               >
-                <Calendar className="w-3.5 h-3.5 text-emerald-600" />
-                <span>View Planning</span>
+                <Calendar className="w-3 h-3 text-emerald-600" />
+                <span>Plan: {planRecord?.totalTasks} Tasks</span>
               </Link>
             ) : (
               <Link
                 href={`/projects/planning?projectId=${p.id}&projectNumber=${p.projectNumber}&mode=create`}
                 title="Create Project Planning"
-                className="px-2.5 py-1 text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg inline-flex items-center gap-1.5 transition shadow-xs"
+                className="px-2 py-1 text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg inline-flex items-center gap-1 transition shadow-xs"
               >
-                <Plus className="w-3.5 h-3.5 text-amber-600" />
-                <span>Create Planning</span>
+                <Plus className="w-3 h-3 text-amber-600" />
+                <span>Plan Project</span>
               </Link>
             )}
           </div>
@@ -561,18 +435,6 @@ export default function ProjectListPage() {
             <option value="qc">QC Inspection</option>
             <option value="completed">Completed</option>
           </select>
-
-          <select
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-            className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none"
-          >
-            <option value="all">All Priorities</option>
-            <option value="urgent">Urgent</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
         </div>
 
         <button
@@ -592,20 +454,17 @@ export default function ProjectListPage() {
         breadcrumbs={['DASHBOARD', 'PROJECTS', 'PROJECT DIRECTORY']}
         columns={columns}
         data={filteredProjects}
-        addNewLabel={can('project', 'projects', 'create') ? "+ Create Project (From SO)" : undefined}
+        addNewLabel={can('project', 'projects', 'create') ? "+ Create Project" : undefined}
         onAddNew={can('project', 'projects', 'create') ? () => setIsCreateModalOpen(true) : undefined}
         onExport={() => {
           const csv = [
-            ['Project Number', 'Job Number', 'Customer', 'Product', 'Project Manager', 'Target Delivery', 'Progress %', 'Priority', 'Status'].join(','),
+            ['Project Number', 'Customer', 'Product', 'Target Delivery', 'Progress %', 'Status'].join(','),
             ...filteredProjects.map(p => [
               `"${p.projectNumber}"`,
-              `"${p.jobNumber}"`,
               `"${(p.customerName || '').replace(/"/g, '""')}"`,
               `"${(p.productName || '').replace(/"/g, '""')}"`,
-              `"${(p.projectManager || '').replace(/"/g, '""')}"`,
               p.deliveryDate || '',
               p.progressPercent || 0,
-              p.priority || '',
               p.status || ''
             ].join(','))
           ].join('\n');
@@ -616,7 +475,7 @@ export default function ProjectListPage() {
           a.download = `projects_directory_${new Date().toISOString().slice(0, 10)}.csv`;
           a.click();
         }}
-        searchPlaceholder="Search by Project #, Job #, Customer, Machine, Manager..."
+        searchPlaceholder="Search by Project #, Customer, Machine..."
       />
 
       {/* MODAL: EDIT PROJECT */}
@@ -646,16 +505,8 @@ export default function ProjectListPage() {
                   <span className="font-bold text-[#211B17]">{editingProject.customerName}</span>
                 </div>
                 <div>
-                  <span className="text-[#70665F] block">Job Number:</span>
-                  <span className="font-mono font-bold text-amber-700">{editingProject.jobNumber}</span>
-                </div>
-                <div>
-                  <span className="text-[#70665F] block">Sales Order:</span>
-                  <span className="font-mono text-crm-brand-700">{editingProject.salesOrderNumber || 'N/A'}</span>
-                </div>
-                <div>
                   <span className="text-[#70665F] block">Customer PO:</span>
-                  <span className="font-mono text-[#544B45]">{editingProject.customerPoNumber || 'N/A'}</span>
+                  <span className="font-mono text-[#544B45] font-semibold">{editingProject.customerPoNumber || 'N/A'}</span>
                 </div>
               </div>
 
@@ -683,48 +534,6 @@ export default function ProjectListPage() {
                   onChange={(e) => setEditFormData({ ...editFormData, specification: e.target.value })}
                   className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
                 />
-              </div>
-
-              {/* Project Manager & Priority */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">
-                    Project Manager <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={editFormData.projectManager || ''}
-                    onChange={(e) => setEditFormData({ ...editFormData, projectManager: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17] font-medium"
-                  >
-                    <option value="">-- Select Manager --</option>
-                    {employeeList.map((emp) => {
-                      const name =
-                        emp.name || (emp as any).employeeName || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || emp.id;
-                      return (
-                        <option key={emp.id} value={name}>
-                          {name} ({emp.department || 'Management'})
-                        </option>
-                      );
-                    })}
-                  </select>
-                  {editErrors.projectManager && (
-                    <p className="text-rose-500 text-[11px] mt-1">{editErrors.projectManager}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Priority</label>
-                  <select
-                    value={editFormData.priority || 'medium'}
-                    onChange={(e) => setEditFormData({ ...editFormData, priority: e.target.value as any })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17] font-medium"
-                  >
-                    <option value="urgent">Urgent</option>
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
-                  </select>
-                </div>
               </div>
 
               {/* Status & Progress % */}
@@ -836,26 +645,30 @@ export default function ProjectListPage() {
         </div>
       )}
 
-      {/* CREATE PROJECT FROM SALES ORDER MODAL */}
+      {/* CREATE PROJECT FROM CUSTOMER PO MODAL */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white border border-[#EBE3DB] rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
             <div className="p-4 border-b border-[#EBE3DB] bg-[#FAF7F2] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Briefcase className="w-5 h-5 text-crm-brand-700" />
-                <h3 className="font-bold text-[#211B17] text-sm">Create New Project & Job</h3>
+                <h3 className="font-bold text-[#211B17] text-sm">Create New Project (From Customer PO)</h3>
               </div>
               <button
-                onClick={() => setIsCreateModalOpen(false)}
-                className="p-1 rounded-lg text-[#70665F] hover:bg-white"
+                onClick={() => {
+                  setIsCreateModalOpen(false);
+                  setSelectedPOId('');
+                  setErrorMsg('');
+                }}
+                className="p-1 rounded-lg text-[#70665F] hover:bg-white transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="p-5 space-y-4 text-xs">
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900">
-                A Project can only be created from a <strong>Confirmed Sales Order</strong>. All customer, PO, equipment specs, and delivery dates will be automatically fetched.
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900 leading-relaxed">
+                Select an inward <strong>Customer Purchase Order (Customer PO)</strong> that has not yet been assigned to a project. All customer details, quotation scope, and target delivery dates will be automatically populated into the new Project.
               </div>
 
               {errorMsg && (
@@ -866,59 +679,80 @@ export default function ProjectListPage() {
               )}
 
               <div>
-                <label className="block text-xs font-bold text-[#544B45] mb-1.5">
-                  Select Confirmed Sales Order *
+                <label className="block text-xs font-bold text-[#544B45] mb-1.5 flex items-center justify-between">
+                  <span>Select Customer Purchase Order (Customer PO) *</span>
+                  <span className="text-[11px] font-mono text-[#7C3AED]">
+                    {availableCustomerPOs.length} Unassigned POs Available
+                  </span>
                 </label>
-                {confirmedSalesOrders.length === 0 ? (
+                {availableCustomerPOs.length === 0 ? (
                   <div className="p-4 border border-dashed border-amber-300 rounded-xl bg-amber-50 text-amber-800 text-xs">
-                    No pending confirmed Sales Orders available. Please confirm a Sales Order in CRM first.
+                    All received Customer POs already have active projects created. Please register a new Customer PO first in CRM.
                   </div>
                 ) : (
                   <select
-                    value={selectedSOId}
-                    onChange={(e) => setSelectedSOId(e.target.value)}
+                    value={selectedPOId}
+                    onChange={(e) => {
+                      setSelectedPOId(e.target.value);
+                      setErrorMsg('');
+                    }}
                     className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-crm-brand-700 text-[#211B17]"
                   >
-                    <option value="">-- Choose Sales Order --</option>
-                    {confirmedSalesOrders.map((so) => (
-                      <option key={so.id} value={so.id}>
-                        {so.salesOrderNumber} • {so.customerName} • {so.items[0]?.productName || 'Equipment'} ({formatCurrency(so.orderValue)})
+                    <option value="">-- Choose Customer PO to Create Project --</option>
+                    {availableCustomerPOs.map((po) => (
+                      <option key={po.id} value={po.id}>
+                        {po.poNumber} • {po.customerName} • {formatCurrency(po.poAmount)} (PO Date: {formatDate(po.poDate)})
                       </option>
                     ))}
                   </select>
                 )}
               </div>
 
-              {selectedSOId && (
-                <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] space-y-2 text-xs">
+              {selectedPOId && (
+                <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] space-y-3 text-xs">
                   {(() => {
-                    const so = salesOrders.find((s) => s.id === selectedSOId);
-                    if (!so) return null;
+                    const po = customerPOs.find((p) => p.id === selectedPOId || p.poNumber === selectedPOId);
+                    if (!po) return null;
+                    const qtn = quotations.find((q) =>
+                      (po.quotationId && (q.id === po.quotationId || q.quotationNumber === po.quotationId)) ||
+                      (po.quotationNumber && (q.quotationNumber === po.quotationNumber || q.id === po.quotationNumber))
+                    );
+                    const lastRev = qtn?.revisions?.[qtn.revisions.length - 1];
+                    const machineName =
+                      lastRev?.items?.[0]?.productName ||
+                      qtn?.latestSummary?.machineProduct ||
+                      (po as any).scopeOfWork ||
+                      'Industrial Process Equipment';
+
                     return (
                       <>
                         <div className="flex justify-between font-semibold">
-                          <span className="text-[#70665F]">Customer:</span>
-                          <span className="text-[#211B17] font-bold">{so.customerName}</span>
+                          <span className="text-[#70665F]">Customer / Client:</span>
+                          <span className="text-[#211B17] font-bold">{po.customerName}</span>
                         </div>
                         <div className="flex justify-between font-semibold">
-                          <span className="text-[#70665F]">Customer PO:</span>
-                          <span className="font-mono text-crm-brand-700">{so.customerPoNumber}</span>
+                          <span className="text-[#70665F]">Customer PO Number:</span>
+                          <span className="font-mono text-crm-brand-700 font-bold">{po.poNumber}</span>
                         </div>
                         <div className="flex justify-between font-semibold">
-                          <span className="text-[#70665F]">Equipment Scope:</span>
-                          <span className="text-[#211B17] font-bold truncate max-w-xs">{so.items[0]?.productName}</span>
+                          <span className="text-[#70665F]">Linked Quotation:</span>
+                          <span className="font-mono text-purple-700 font-bold">{po.quotationNumber || qtn?.quotationNumber || 'Direct PO'}</span>
                         </div>
                         <div className="flex justify-between font-semibold">
-                          <span className="text-[#70665F]">Order Value:</span>
-                          <span className="font-mono text-emerald-700 font-bold">{formatCurrency(so.orderValue)}</span>
+                          <span className="text-[#70665F]">Equipment / Machine:</span>
+                          <span className="text-[#211B17] font-bold truncate max-w-xs">{machineName}</span>
                         </div>
                         <div className="flex justify-between font-semibold">
-                          <span className="text-[#70665F]">Delivery Date:</span>
-                          <span className="font-mono text-[#544B45]">{formatDate(so.deliveryDate)}</span>
+                          <span className="text-[#70665F]">Confirmed Order Value:</span>
+                          <span className="font-mono text-emerald-700 font-bold">{formatCurrency(po.poAmount)}</span>
                         </div>
-                        <div className="pt-2 border-t border-[#EBE3DB] flex justify-between text-[11px] font-mono font-bold text-amber-700">
-                          <span>Auto Project Number: PRJ-2026-xxx</span>
-                          <span>Auto Job Number: JOB-2026-xxx</span>
+                        <div className="flex justify-between font-semibold">
+                          <span className="text-[#70665F]">Committed Delivery Date:</span>
+                          <span className="font-mono text-[#544B45] font-bold">{formatDate(po.deliveryDate)}</span>
+                        </div>
+
+                        <div className="pt-2 border-t border-[#EBE3DB] flex justify-between text-[11px] font-mono font-bold text-crm-brand-700">
+                          <span>Auto Project ID: PRJ-2026-xxx</span>
                         </div>
                       </>
                     );
@@ -929,17 +763,21 @@ export default function ProjectListPage() {
 
             <div className="p-4 border-t border-[#EBE3DB] bg-[#FAF7F2] flex justify-end gap-2">
               <button
-                onClick={() => setIsCreateModalOpen(false)}
-                className="px-4 py-2 bg-white border border-[#EBE3DB] hover:bg-slate-50 text-[#544B45] font-bold rounded-xl transition"
+                onClick={() => {
+                  setIsCreateModalOpen(false);
+                  setSelectedPOId('');
+                  setErrorMsg('');
+                }}
+                className="px-4 py-2 bg-white border border-[#EBE3DB] hover:bg-slate-50 text-[#544B45] font-bold rounded-xl transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreateProject}
-                disabled={!selectedSOId || creating}
-                className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 disabled:opacity-50 text-white font-bold rounded-xl transition flex items-center gap-2 shadow-md"
+                disabled={!selectedPOId || creating}
+                className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 disabled:opacity-50 text-white font-bold rounded-xl transition flex items-center gap-2 shadow-md cursor-pointer active:scale-95"
               >
-                {creating ? 'Generating Project...' : 'Initialize Project & Job'}
+                {creating ? 'Generating Project...' : 'Initialize Project'}
               </button>
             </div>
           </div>

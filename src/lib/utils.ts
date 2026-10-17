@@ -17,7 +17,7 @@ export function formatCurrency(amount: any): string {
 
 const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-export function formatDate(dateString: string): string {
+export function formatDate(dateString?: string | null): string {
   if (!dateString) return '';
   try {
     const trimmed = String(dateString).trim();

@@ -450,10 +450,20 @@ export default function QuotationDetailPage() {
             </div>
             <div className="p-3 bg-slate-50 dark:bg-[#FAF7F2]/40 rounded-xl border">
               <strong className="block mb-1 text-slate-800 dark:text-[#544B45]">Payment Terms:</strong>
-              <p className="text-slate-600 dark:text-[#70665F]">{currentRev.paymentTerms}</p>
+              <p className="text-slate-600 dark:text-[#70665F]">{currentRev.paymentTerms || 'As per agreed terms'}</p>
               <strong className="block mt-2 mb-1 text-slate-800 dark:text-[#544B45]">Delivery & Warranty:</strong>
-              <p className="text-slate-600 dark:text-[#70665F]">Delivery: {currentRev.deliveryTime} • Warranty: {currentRev.warranty}</p>
+              <p className="text-slate-600 dark:text-[#70665F]">Delivery: {currentRev.deliveryTime || 'Standard'} • Warranty: {currentRev.warranty || '12 Months'}</p>
             </div>
+            {currentRev.termsAndConditions && (
+              <div className="p-3 bg-slate-50 dark:bg-[#FAF7F2]/40 rounded-xl border sm:col-span-2">
+                <strong className="block mb-1 text-slate-800 dark:text-[#544B45]">Terms & Conditions:</strong>
+                <ol className="list-decimal list-inside space-y-1 text-slate-600 dark:text-[#70665F]">
+                  {currentRev.termsAndConditions.split('\n').filter(Boolean).map((t, idx) => (
+                    <li key={idx} className="leading-relaxed">{t}</li>
+                  ))}
+                </ol>
+              </div>
+            )}
           </div>
         </div>
       </div>
