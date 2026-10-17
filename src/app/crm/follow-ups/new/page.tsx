@@ -124,13 +124,14 @@ function FollowUpFormContent() {
       if (lead) {
         const enq = enquiries.find((e) => e.leadId === id || e.customerName === lead.companyName);
         const prod = enq?.machineProduct || lead.productName || lead.machineType || '';
+        const addr = lead.address ? `${lead.address}, ${lead.city || ''}` : lead.city || '';
         setSelectedEntityInfo({
           type: 'lead',
           id: lead.id,
           name: lead.companyName,
           contactPerson: lead.contactPerson || '',
           mobile: lead.mobile || '',
-          address: lead.address || lead.city || '',
+          address: addr,
           product: prod,
         });
         setProductItem(prod);
@@ -142,13 +143,14 @@ function FollowUpFormContent() {
     } else if (type === 'customer') {
       const cust = customers.find((c) => c.id === id || c.customerCode === id);
       if (cust) {
+        const addr = cust.billingAddress ? `${cust.billingAddress}, ${cust.city || ''}` : cust.city || '';
         setSelectedEntityInfo({
           type: 'customer',
           id: cust.id,
           name: cust.companyName,
           contactPerson: cust.contactPerson || '',
           mobile: cust.mobile || '',
-          address: cust.billingAddress || cust.city || '',
+          address: addr,
         });
         setPurpose(`Account relationship follow-up with ${cust.companyName}`);
         if (cust.billingAddress || cust.city) {
@@ -190,15 +192,15 @@ function FollowUpFormContent() {
   const handleProceedToStep2 = () => {
     setFormError('');
     if (!selectedRecordKey || !selectedEntityInfo) {
-      setFormError('કૃપા કરીને કસ્ટમર અથવા લીડ પસંદ કરો.');
+      setFormError('Please select a Customer or Lead.');
       return;
     }
     if (!scheduledDate) {
-      setFormError('કૃપા કરીને ફોલોઅપ તારીખ પસંદ કરો.');
+      setFormError('Please select a follow-up date.');
       return;
     }
     if (!scheduledTime) {
-      setFormError('કૃપા કરીને ફોલોઅપ સમય પસંદ કરો.');
+      setFormError('Please select a follow-up time.');
       return;
     }
     setCurrentStep(2);
@@ -209,23 +211,23 @@ function FollowUpFormContent() {
     setFormError('');
 
     if (!selectedRecordKey || !selectedEntityInfo) {
-      setFormError('કૃપા કરીને કસ્ટમર અથવા લીડ પસંદ કરો.');
+      setFormError('Please select a Customer or Lead.');
       setCurrentStep(1);
       return;
     }
 
     if (!purpose.trim()) {
-      setFormError('Discussion purpose (વાતચીતનો હેતુ) લખવો જરૂરી છે.');
+      setFormError('Discussion purpose is required.');
       return;
     }
 
     if (hasScheduleNext && !nextFollowUpDate) {
-      setFormError('કૃપા કરીને નેક્સ્ટ ફોલોઅપની તારીખ પસંદ કરો અથવા કેન્સલ કરો.');
+      setFormError('Please select the Next Follow-up date or cancel.');
       return;
     }
 
     if (hasScheduleVisit && !visitDate) {
-      setFormError('કૃપા કરીને સાઇટ વિઝિટની તારીખ પસંદ કરો અથવા કેન્સલ કરો.');
+      setFormError('Please select the Site Visit date or cancel.');
       return;
     }
 
@@ -321,7 +323,7 @@ function FollowUpFormContent() {
         });
       }
 
-      // 3. If Site Visit enabled from Follow-up ("ચેક કરવા આવો")
+      // 3. If Site Visit enabled from Follow-up
       if (hasScheduleVisit && visitDate) {
         let visitTimeDisplay = visitTime || '14:00';
         if (visitTime && visitTime.includes(':')) {
@@ -385,7 +387,7 @@ function FollowUpFormContent() {
                   Schedule Client Follow-up
                 </h1>
                 <p className="text-xs text-[#70665F] mt-1 leading-relaxed">
-                  2-સ્લાઇડ ફોર્મ: સ્લાઇડ ૧ માં શેડ્યુલ & કસ્ટમર, સ્લાઇડ ૨ માં વાતચીત, પરિણામ અને સાઇટ વિઝિટ.
+                  2-Slide Form: Slide 1 for Schedule & Customer, Slide 2 for Discussion, Outcome & Actions.
                 </p>
               </div>
             </div>
@@ -404,7 +406,7 @@ function FollowUpFormContent() {
                 <span className="w-4 h-4 rounded-full bg-white/20 text-center text-[10px] flex items-center justify-center">
                   1
                 </span>
-                <span>સ્લાઇડ ૧: શેડ્યુલ & કસ્ટમર</span>
+                <span>Slide 1: Schedule & Customer</span>
               </button>
 
               <button
@@ -419,7 +421,7 @@ function FollowUpFormContent() {
                 <span className="w-4 h-4 rounded-full bg-white/20 text-center text-[10px] flex items-center justify-center">
                   2
                 </span>
-                <span>સ્લાઇડ ૨: વાતચીત & વિઝિટ</span>
+                <span>Slide 2: Discussion & Actions</span>
               </button>
             </div>
           </div>
@@ -453,7 +455,7 @@ function FollowUpFormContent() {
                 <div>
                   <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1.5">
                     <Building2 className="w-3.5 h-3.5 text-purple-700" />
-                    <span>Select Customer / Lead (કસ્ટમર / લીડ પસંદ કરો) <span className="text-rose-500">*</span></span>
+                    <span>Select Customer / Lead <span className="text-rose-500">*</span></span>
                   </label>
                   <select
                     required
@@ -463,7 +465,7 @@ function FollowUpFormContent() {
                   >
                     <option value="">-- Select Customer / Lead / Inquiry --</option>
                     {leads.length > 0 && (
-                      <optgroup label="Prospective Leads (લીડ્સ)">
+                      <optgroup label="Prospective Leads">
                         {leads.map((l) => (
                           <option key={`lead-${l.id}`} value={`lead:${l.id}`}>
                             {l.leadNo ? `${l.leadNo} - ` : ''}{l.companyName} ({l.contactPerson || 'Lead'})
@@ -472,7 +474,7 @@ function FollowUpFormContent() {
                       </optgroup>
                     )}
                     {enquiries.length > 0 && (
-                      <optgroup label="Technical Inquiries (ઇન્કવાયરી RFQ)">
+                      <optgroup label="Technical Inquiries (RFQ)">
                         {enquiries.map((en) => (
                           <option key={`enq-${en.id}`} value={`enquiry:${en.id}`}>
                             {en.enquiryNo || en.id} - {en.customerName} ({en.machineProduct})
@@ -481,7 +483,7 @@ function FollowUpFormContent() {
                       </optgroup>
                     )}
                     {customers.length > 0 && (
-                      <optgroup label="Registered Customers (ગ્રાહકો)">
+                      <optgroup label="Registered Customers">
                         {customers.map((c) => (
                           <option key={`cust-${c.id}`} value={`customer:${c.id}`}>
                             {c.companyName} ({c.customerCode || 'CUST'}) - {c.contactPerson || 'Customer'}
@@ -512,7 +514,7 @@ function FollowUpFormContent() {
                       </div>
                       {selectedEntityInfo.product && (
                         <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white text-purple-900 border border-purple-200 shadow-2xs">
-                          આઇટમ: {selectedEntityInfo.product}
+                          Item: {selectedEntityInfo.product}
                         </span>
                       )}
                     </div>
@@ -527,14 +529,14 @@ function FollowUpFormContent() {
                     2
                   </span>
                   <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
-                    Product / Equipment Item (પ્રોડક્ટ વિગત)
+                    Product / Equipment Item
                   </h2>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1.5">
                     <Layers className="w-3.5 h-3.5 text-purple-700" />
-                    <span>Product / Equipment Name (ઇન્કવાયરી માંથી ઓટોમેટિક આવશે)</span>
+                    <span>Product / Equipment Name (Auto-filled from Inquiry)</span>
                   </label>
                   <input
                     type="text"
@@ -553,7 +555,7 @@ function FollowUpFormContent() {
                     3
                   </span>
                   <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
-                    Channel, Date & Time (તારીખ અને સમય)
+                    Channel, Date & Time
                   </h2>
                 </div>
 
@@ -567,7 +569,7 @@ function FollowUpFormContent() {
                       onChange={(e) => setFollowUpType(e.target.value as any)}
                       className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-purple-600 transition"
                     >
-                      <option value="call">Phone Call (ટેલિફોનિક વાતચીત)</option>
+                      <option value="call">Phone Call</option>
                       <option value="whatsapp">WhatsApp Message</option>
                       <option value="meeting">In-Person Meeting</option>
                       <option value="visit">Client Site Visit</option>
@@ -619,7 +621,7 @@ function FollowUpFormContent() {
                   onClick={handleProceedToStep2}
                   className="px-6 py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl font-bold transition text-xs shadow-xs active:scale-95 flex items-center gap-2 cursor-pointer"
                 >
-                  <span>સ્લાઇડ ૨: વાતચીત, પરિણામ & વિઝિટ</span>
+                  <span>Slide 2: Discussion, Outcome & Actions</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -634,7 +636,7 @@ function FollowUpFormContent() {
               {/* Quick Summary Banner of Step 1 */}
               <div className="p-3 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl flex items-center justify-between flex-wrap gap-2 text-xs">
                 <div>
-                  <span className="text-[#70665F]">કસ્ટમર / પ્રોડક્ટ: </span>
+                  <span className="text-[#70665F]">Customer / Item: </span>
                   <strong className="text-[#211B17]">{selectedEntityInfo?.name}</strong>
                   {productItem && <span className="text-purple-700 ml-1.5 font-bold">({productItem})</span>}
                 </div>
@@ -658,14 +660,14 @@ function FollowUpFormContent() {
                     4
                   </span>
                   <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
-                    Discussion Details & Client Status (વાતચીત અને પરિણામ)
+                    Discussion Details & Client Status
                   </h2>
                 </div>
 
                 <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                      Discussion Purpose (ચર્ચાનો હેતુ / શું વાતચીત થઈ) <span className="text-rose-500">*</span>
+                      Discussion Purpose <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -679,22 +681,22 @@ function FollowUpFormContent() {
 
                   <div>
                     <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                      Client Status (ઇન્ટરેસ્ટેડ / નોટ ઇન્ટરેસ્ટેડ) <span className="text-rose-500">*</span>
+                      Client Status <span className="text-rose-500">*</span>
                     </label>
                     <select
                       value={interestStatus}
                       onChange={(e) => setInterestStatus(e.target.value as any)}
                       className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-purple-600"
                     >
-                      <option value="interested">Interested (ઇન્ટરેસ્ટેડ)</option>
-                      <option value="in_discussion">In Discussion / Follow-up Needed (ચર્ચા ચાલુ છે)</option>
-                      <option value="not_interested">Not Interested (નોટ ઇન્ટરેસ્ટેડ)</option>
+                      <option value="interested">Interested</option>
+                      <option value="in_discussion">In Discussion / Follow-up Needed</option>
+                      <option value="not_interested">Not Interested</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                      Notes / Instructions (વિગતવાર વાતચીતની નોંધ)
+                      Notes / Instructions
                     </label>
                     <textarea
                       rows={3}
@@ -715,7 +717,7 @@ function FollowUpFormContent() {
                       5
                     </span>
                     <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
-                      Next Follow-up (નેક્સ્ટ ફોલોઅપ)
+                      Next Follow-up
                     </h2>
                   </div>
 
@@ -730,7 +732,7 @@ function FollowUpFormContent() {
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      <span>+ Add Next Follow-up (નેક્સ્ટ ફોલોઅપ એડ કરો)</span>
+                      <span>+ Add Next Follow-up</span>
                     </button>
                   )}
                 </div>
@@ -739,7 +741,7 @@ function FollowUpFormContent() {
                   <div className="p-3 bg-[#FAF7F2] border border-dashed border-[#EBE3DB] rounded-xl text-xs text-[#70665F] flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <CalendarPlus className="w-4 h-4 text-purple-600 shrink-0" />
-                      <span>નેક્સ્ટ ફોલોઅપ ક્લિયર છે. જો ફરી વાત કરવાની હોય તો ઉપરના બટનથી એડ કરો.</span>
+                      <span>Next follow-up is not scheduled. Click above if you want to set an upcoming date & time.</span>
                     </div>
                   </div>
                 ) : (
@@ -756,7 +758,7 @@ function FollowUpFormContent() {
                           setNextFollowUpDate('');
                           setNextFollowUpTime('');
                         }}
-                        className="text-[11px] font-bold text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-0.5 rounded border border-rose-200"
+                        className="text-[11px] font-bold text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 cursor-pointer"
                       >
                         ✕ Cancel
                       </button>
@@ -776,7 +778,7 @@ function FollowUpFormContent() {
                                 d.setDate(d.getDate() + 2);
                                 setNextFollowUpDate(d.toISOString().split('T')[0]);
                               }}
-                              className="px-2 py-0.5 text-[10px] font-bold bg-white text-purple-700 border border-purple-200 rounded"
+                              className="px-2 py-0.5 text-[10px] font-bold bg-white text-purple-700 border border-purple-200 rounded cursor-pointer"
                             >
                               +2D
                             </button>
@@ -787,7 +789,7 @@ function FollowUpFormContent() {
                                 d.setDate(d.getDate() + 7);
                                 setNextFollowUpDate(d.toISOString().split('T')[0]);
                               }}
-                              className="px-2 py-0.5 text-[10px] font-bold bg-white text-purple-700 border border-purple-200 rounded"
+                              className="px-2 py-0.5 text-[10px] font-bold bg-white text-purple-700 border border-purple-200 rounded cursor-pointer"
                             >
                               +7D
                             </button>
@@ -798,7 +800,7 @@ function FollowUpFormContent() {
                                 d.setDate(d.getDate() + 15);
                                 setNextFollowUpDate(d.toISOString().split('T')[0]);
                               }}
-                              className="px-2 py-0.5 text-[10px] font-bold bg-white text-purple-700 border border-purple-200 rounded"
+                              className="px-2 py-0.5 text-[10px] font-bold bg-white text-purple-700 border border-purple-200 rounded cursor-pointer"
                             >
                               +15D
                             </button>
@@ -829,7 +831,7 @@ function FollowUpFormContent() {
                 )}
               </div>
 
-              {/* Site Visit Section ("તમે ચેક કરવા આવો") */}
+              {/* Site Visit Section */}
               <div className="space-y-3 pt-3 border-t border-[#EBE3DB]">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-2">
@@ -837,7 +839,7 @@ function FollowUpFormContent() {
                       6
                     </span>
                     <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
-                      Site Visit Required? (સાઇટ વિઝિટ શિડ્યુલ કરો)
+                      Site Visit Required?
                     </h2>
                   </div>
 
@@ -854,7 +856,7 @@ function FollowUpFormContent() {
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
                     >
                       <MapPin className="w-3.5 h-3.5 text-emerald-700" />
-                      <span>+ Schedule Site Visit (સાઇટ વિઝિટ એડ કરો)</span>
+                      <span>+ Schedule Site Visit</span>
                     </button>
                   )}
                 </div>
@@ -863,7 +865,7 @@ function FollowUpFormContent() {
                   <div className="p-3 bg-[#FAF7F2] border border-dashed border-[#EBE3DB] rounded-xl text-xs text-[#70665F] flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Compass className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>જો ક્લાયન્ટે કહ્યું હોય કે &quot;તમે ચેક કરવા આવો&quot;, તો અહીંથી સાઇટ વિઝિટ એડ કરી શકો છો.</span>
+                      <span>If the customer requested an in-person site inspection, you can schedule it here.</span>
                     </div>
                   </div>
                 ) : (
@@ -871,12 +873,12 @@ function FollowUpFormContent() {
                     <div className="flex items-center justify-between border-b border-emerald-200 pb-2">
                       <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
                         <MapPin className="w-4 h-4 text-emerald-700" />
-                        Planned Site Visit Details (સાઇટ મુલાકાત)
+                        Planned Site Visit Details
                       </span>
                       <button
                         type="button"
                         onClick={() => setHasScheduleVisit(false)}
-                        className="text-[11px] font-bold text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-0.5 rounded border border-rose-200"
+                        className="text-[11px] font-bold text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 cursor-pointer"
                       >
                         ✕ Cancel
                       </button>
@@ -944,10 +946,10 @@ function FollowUpFormContent() {
                 <button
                   type="button"
                   onClick={() => setCurrentStep(1)}
-                  className="px-5 py-2.5 border border-[#EBE3DB] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs flex items-center gap-1.5"
+                  className="px-5 py-2.5 border border-[#EBE3DB] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs flex items-center gap-1.5 cursor-pointer"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>← સ્લાઇડ ૧ પર પાછા જાઓ</span>
+                  <span>← Back to Slide 1</span>
                 </button>
 
                 <div className="flex items-center gap-2">

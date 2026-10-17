@@ -206,10 +206,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <ShieldAlert className="w-8 h-8" />
                 </div>
                 <h2 className="text-xl font-extrabold text-[#211B17] mb-2">
-                  Access Restricted / અધિકાર મર્યાદિત છે
+                  Access Restricted
                 </h2>
                 <p className="text-sm text-[#70665F] max-w-md mb-6 leading-relaxed">
-                  તમારા એકાઉન્ટને આ પેજ (<code className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-mono text-xs">{pathname}</code>) ઍક્સેસ કરવાની મંજૂરી નથી. તમને ફક્ત સોંપાયેલા મોડ્યુલ્સ જ જોવા મળશે.
+                  Your account does not have permission to access this page (<code className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-mono text-xs">{pathname}</code>). You can only access modules assigned to your role.
                 </p>
                 <div className="flex items-center gap-3">
                   <button
@@ -217,14 +217,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#D5CAC0] bg-white text-xs font-bold text-[#4A3B32] hover:bg-[#FAF7F2] transition shadow-xs cursor-pointer"
                   >
                     <ArrowLeft className="w-4 h-4" />
-                    <span>પાછળ જાઓ (Go Back)</span>
+                    <span>Go Back</span>
                   </button>
                   <button
                     onClick={() => router.push(primaryHref)}
                     className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-600 text-white text-xs font-bold transition shadow-xs cursor-pointer"
                   >
                     <Home className="w-4 h-4" />
-                    <span>મારા પેજ પર જાઓ</span>
+                    <span>Go to My Dashboard</span>
                   </button>
                 </div>
               </div>

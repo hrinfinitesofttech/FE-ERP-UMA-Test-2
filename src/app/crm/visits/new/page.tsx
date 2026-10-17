@@ -17,7 +17,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Plus,
-  Compass,
   CalendarPlus,
   Briefcase,
   Layers,
@@ -180,15 +179,15 @@ function VisitFormContent() {
   const handleProceedToStep2 = () => {
     setFormError('');
     if (!selectedRecordKey || !selectedEntityInfo) {
-      setFormError('કૃપા કરીને કસ્ટમર અથવા લીડ પસંદ કરો.');
+      setFormError('Please select a Customer or Lead.');
       return;
     }
     if (!visitDate) {
-      setFormError('કૃપા કરીને સાઇટ વિઝિટ તારીખ પસંદ કરો.');
+      setFormError('Please select the site visit date.');
       return;
     }
     if (!location.trim()) {
-      setFormError('કૃપા કરીને સાઇટનું સરનામું / લોકેશન લખો.');
+      setFormError('Please enter the site location / address.');
       return;
     }
     setCurrentStep(2);
@@ -199,18 +198,18 @@ function VisitFormContent() {
     setFormError('');
 
     if (!selectedRecordKey || !selectedEntityInfo) {
-      setFormError('કૃપા કરીને કસ્ટમર અથવા લીડ પસંદ કરો.');
+      setFormError('Please select a Customer or Lead.');
       setCurrentStep(1);
       return;
     }
 
     if (!purpose.trim()) {
-      setFormError('Visit purpose (વિઝિટનો હેતુ) લખવો જરૂરી છે.');
+      setFormError('Visit purpose is required.');
       return;
     }
 
     if (hasScheduleNext && !nextFollowUpDate) {
-      setFormError('કૃપા કરીને નેક્સ્ટ ફોલોઅપ તારીખ પસંદ કરો અથવા કેન્સલ કરો.');
+      setFormError('Please select the next follow-up date or cancel.');
       return;
     }
 
@@ -244,7 +243,7 @@ function VisitFormContent() {
         nextFollowUpDate: hasScheduleNext && nextFollowUpDate ? nextFollowUpDate : undefined,
       });
 
-      // 2. If Next Follow-up is scheduled from site visit, automatically create follow-up entry!
+      // 2. If Next Follow-up is scheduled from site visit, automatically create follow-up entry
       if (hasScheduleNext && nextFollowUpDate) {
         let nextTimeDisplay = '11:00 AM';
         if (nextFollowUpTime && nextFollowUpTime.includes(':')) {
@@ -316,7 +315,7 @@ function VisitFormContent() {
                   Log Site Visit Report
                 </h1>
                 <p className="text-xs text-[#70665F] mt-1 leading-relaxed">
-                  2-સ્લાઇડ ફોર્મ: સ્લાઇડ ૧ માં વિઝિટ શેડ્યુલ & સાઇટ વિગતો, સ્લાઇડ ૨ માં મુલાકાત રિપોર્ટ, રિક્વાયરમેન્ટ અને નેક્સ્ટ ફોલોઅપ.
+                  2-Slide Form: Slide 1 for Visit Schedule & Site Details, Slide 2 for Visit Report & Next Follow-up.
                 </p>
               </div>
             </div>
@@ -335,7 +334,7 @@ function VisitFormContent() {
                 <span className="w-4 h-4 rounded-full bg-white/20 text-center text-[10px] flex items-center justify-center">
                   1
                 </span>
-                <span>સ્લાઇડ ૧: શેડ્યુલ & સાઇટ</span>
+                <span>Slide 1: Schedule & Site</span>
               </button>
 
               <button
@@ -350,7 +349,7 @@ function VisitFormContent() {
                 <span className="w-4 h-4 rounded-full bg-white/20 text-center text-[10px] flex items-center justify-center">
                   2
                 </span>
-                <span>સ્લાઇડ ૨: વિઝિટ રિપોર્ટ & નેક્સ્ટ</span>
+                <span>Slide 2: Visit Report & Follow-up</span>
               </button>
             </div>
           </div>
@@ -384,7 +383,7 @@ function VisitFormContent() {
                 <div>
                   <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1.5">
                     <Building2 className="w-3.5 h-3.5 text-emerald-700" />
-                    <span>Select Customer / Lead (કસ્ટમર / લીડ પસંદ કરો) <span className="text-rose-500">*</span></span>
+                    <span>Select Customer / Lead <span className="text-rose-500">*</span></span>
                   </label>
                   <select
                     required
@@ -394,7 +393,7 @@ function VisitFormContent() {
                   >
                     <option value="">-- Select Customer / Lead / Plant Site --</option>
                     {leads.length > 0 && (
-                      <optgroup label="Prospective Leads (લીડ્સ)">
+                      <optgroup label="Prospective Leads">
                         {leads.map((l) => (
                           <option key={`lead-${l.id}`} value={`lead:${l.id}`}>
                             {l.leadNo ? `${l.leadNo} - ` : ''}{l.companyName} ({l.contactPerson || 'Lead'})
@@ -403,7 +402,7 @@ function VisitFormContent() {
                       </optgroup>
                     )}
                     {enquiries.length > 0 && (
-                      <optgroup label="Technical Inquiries (ઇન્કવાયરી RFQ)">
+                      <optgroup label="Technical Inquiries (RFQ)">
                         {enquiries.map((en) => (
                           <option key={`enq-${en.id}`} value={`enquiry:${en.id}`}>
                             {en.enquiryNo || en.id} - {en.customerName} ({en.machineProduct})
@@ -412,7 +411,7 @@ function VisitFormContent() {
                       </optgroup>
                     )}
                     {customers.length > 0 && (
-                      <optgroup label="Registered Customers (ગ્રાહકો)">
+                      <optgroup label="Registered Customers">
                         {customers.map((c) => (
                           <option key={`cust-${c.id}`} value={`customer:${c.id}`}>
                             {c.companyName} ({c.customerCode || 'CUST'}) - {c.contactPerson || 'Customer'}
@@ -443,7 +442,7 @@ function VisitFormContent() {
                       </div>
                       {selectedEntityInfo.product && (
                         <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white text-emerald-900 border border-emerald-200 shadow-2xs">
-                          આઇટમ: {selectedEntityInfo.product}
+                          Item: {selectedEntityInfo.product}
                         </span>
                       )}
                     </div>
@@ -466,7 +465,7 @@ function VisitFormContent() {
                   <div>
                     <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5 text-emerald-700" />
-                      <span>Planned Visit Date (કઈ તારીખે જવાનું છે) <span className="text-rose-500">*</span></span>
+                      <span>Planned Visit Date <span className="text-rose-500">*</span></span>
                     </label>
                     <input
                       type="date"
@@ -480,7 +479,7 @@ function VisitFormContent() {
                   <div>
                     <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5 text-emerald-700" />
-                      <span>Visit Time (Clock - કયા સમયે જવાનું છે)</span>
+                      <span>Visit Time (Clock)</span>
                     </label>
                     <input
                       type="time"
@@ -538,7 +537,7 @@ function VisitFormContent() {
                   onClick={handleProceedToStep2}
                   className="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold transition text-xs shadow-xs active:scale-95 flex items-center gap-2 cursor-pointer"
                 >
-                  <span>સ્લાઇડ ૨: વિઝિટ રિપોર્ટ & નેક્સ્ટ ફોલોઅપ</span>
+                  <span>Slide 2: Visit Report & Follow-up</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -553,7 +552,7 @@ function VisitFormContent() {
               {/* Step 1 Summary Banner */}
               <div className="p-3 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl flex items-center justify-between flex-wrap gap-2 text-xs">
                 <div>
-                  <span className="text-[#70665F]">સાઇટ / કસ્ટમર: </span>
+                  <span className="text-[#70665F]">Site / Customer: </span>
                   <strong className="text-[#211B17]">{selectedEntityInfo?.name}</strong>
                   <span className="text-emerald-700 ml-1.5 font-bold">• {location}</span>
                 </div>
@@ -577,14 +576,14 @@ function VisitFormContent() {
                     3
                   </span>
                   <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
-                    Visit Purpose & Site Technical Observations (વિઝિટ રિપોર્ટ)
+                    Visit Purpose & Technical Observations
                   </h2>
                 </div>
 
                 <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                      Visit Purpose (મુલાકાતનો હેતુ) <span className="text-rose-500">*</span>
+                      Visit Purpose <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -598,13 +597,13 @@ function VisitFormContent() {
 
                   <div>
                     <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                      Discussion Summary & Field Observations (ત્યાં જઈને શું વાતચીત થઈ અને શું જોયું)
+                      Discussion Summary & Field Observations
                     </label>
                     <textarea
                       rows={3}
                       value={discussionNotes}
                       onChange={(e) => setDiscussionNotes(e.target.value)}
-                      placeholder="Discussed with plant head Mr. Sharma. Space available for 5000L Reactor. Utility lines (steam, chilled water) verified..."
+                      placeholder="Discussed with plant head. Space available for equipment. Utility lines verified..."
                       className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-emerald-600 leading-relaxed"
                     />
                   </div>
@@ -612,7 +611,7 @@ function VisitFormContent() {
                   <div>
                     <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1.5">
                       <Layers className="w-3.5 h-3.5 text-emerald-700" />
-                      <span>Site Technical Requirements (સાઇટ પર શું જરૂરિયાત / સ્પેસિફિકેશન જાણી)</span>
+                      <span>Site Technical Requirements</span>
                     </label>
                     <textarea
                       rows={2}
@@ -625,18 +624,18 @@ function VisitFormContent() {
 
                   <div>
                     <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                      Business Outcome / Status (વિઝિટ સ્ટેટસ) <span className="text-rose-500">*</span>
+                      Business Outcome / Status <span className="text-rose-500">*</span>
                     </label>
                     <select
                       value={outcome}
                       onChange={(e) => setOutcome(e.target.value as SiteVisit['outcome'])}
                       className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-emerald-600"
                     >
-                      <option value="positive">Positive Progress (સારી પ્રગતિ / રસપ્રદ)</option>
-                      <option value="order_expected">Order Expected (ઓર્ડર મળવાની સંપૂર્ણ શક્યતા)</option>
-                      <option value="quotation_required">Quotation Required (કોટેશન મોકલવાની જરૂર છે)</option>
-                      <option value="follow_up_required">Follow-up Required (વધુ ફોલોઅપ જરૂરી છે)</option>
-                      <option value="not_interested">Not Interested (નોટ ઇન્ટરેસ્ટેડ)</option>
+                      <option value="positive">Positive Progress</option>
+                      <option value="order_expected">Order Expected</option>
+                      <option value="quotation_required">Quotation Required</option>
+                      <option value="follow_up_required">Follow-up Required</option>
+                      <option value="not_interested">Not Interested</option>
                     </select>
                   </div>
                 </div>
@@ -650,7 +649,7 @@ function VisitFormContent() {
                       4
                     </span>
                     <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
-                      Next Follow-up Due Date & Time (નેક્સ્ટ ફોલોઅપ)
+                      Next Follow-up Due Date & Time
                     </h2>
                   </div>
 
@@ -665,7 +664,7 @@ function VisitFormContent() {
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      <span>+ Add Next Follow-up (નેક્સ્ટ ફોલોઅપ એડ કરો)</span>
+                      <span>+ Add Next Follow-up</span>
                     </button>
                   )}
                 </div>
@@ -674,7 +673,7 @@ function VisitFormContent() {
                   <div className="p-3 bg-[#FAF7F2] border border-dashed border-[#EBE3DB] rounded-xl text-xs text-[#70665F] flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <CalendarPlus className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>નેક્સ્ટ ફોલોઅપ ક્લિયર છે. વિઝિટ પછી ફરી વાતચીત માટે તારીખ/સમય સેટ કરવો હોય તો ઉપર ક્લિક કરો.</span>
+                      <span>Next follow-up is not scheduled. Click above to schedule an upcoming discussion date & time.</span>
                     </div>
                   </div>
                 ) : (
@@ -682,7 +681,7 @@ function VisitFormContent() {
                     <div className="flex items-center justify-between border-b border-emerald-200 pb-2">
                       <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
                         <Calendar className="w-4 h-4 text-emerald-700" />
-                        Next Follow-up Schedule (આ વિઝિટ પછીનું નેક્સ્ટ ફોલોઅપ)
+                        Next Follow-up Schedule
                       </span>
                       <button
                         type="button"
@@ -691,7 +690,7 @@ function VisitFormContent() {
                           setNextFollowUpDate('');
                           setNextFollowUpTime('');
                         }}
-                        className="text-[11px] font-bold text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-0.5 rounded border border-rose-200"
+                        className="text-[11px] font-bold text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 cursor-pointer"
                       >
                         ✕ Cancel
                       </button>
@@ -711,7 +710,7 @@ function VisitFormContent() {
                                 d.setDate(d.getDate() + 2);
                                 setNextFollowUpDate(d.toISOString().split('T')[0]);
                               }}
-                              className="px-2 py-0.5 text-[10px] font-bold bg-white text-emerald-800 border border-emerald-300 rounded"
+                              className="px-2 py-0.5 text-[10px] font-bold bg-white text-emerald-800 border border-emerald-300 rounded cursor-pointer"
                             >
                               +2D
                             </button>
@@ -722,7 +721,7 @@ function VisitFormContent() {
                                 d.setDate(d.getDate() + 7);
                                 setNextFollowUpDate(d.toISOString().split('T')[0]);
                               }}
-                              className="px-2 py-0.5 text-[10px] font-bold bg-white text-emerald-800 border border-emerald-300 rounded"
+                              className="px-2 py-0.5 text-[10px] font-bold bg-white text-emerald-800 border border-emerald-300 rounded cursor-pointer"
                             >
                               +7D
                             </button>
@@ -733,7 +732,7 @@ function VisitFormContent() {
                                 d.setDate(d.getDate() + 15);
                                 setNextFollowUpDate(d.toISOString().split('T')[0]);
                               }}
-                              className="px-2 py-0.5 text-[10px] font-bold bg-white text-emerald-800 border border-emerald-300 rounded"
+                              className="px-2 py-0.5 text-[10px] font-bold bg-white text-emerald-800 border border-emerald-300 rounded cursor-pointer"
                             >
                               +15D
                             </button>
@@ -762,7 +761,7 @@ function VisitFormContent() {
                     </div>
 
                     <p className="text-[11px] text-emerald-900 font-medium">
-                      • આ નેક્સ્ટ ફોલોઅપ સેવ થવાથી આપોઆપ <strong className="font-bold">Follow-ups રજીસ્ટરમાં એન્ટ્રી પડી જશે</strong> અને લીડ રેકોર્ડ પણ અપડેટ થશે.
+                      • Scheduling next follow-up automatically creates an entry in the Follow-ups Register and updates the lead.
                     </p>
                   </div>
                 )}
@@ -773,10 +772,10 @@ function VisitFormContent() {
                 <button
                   type="button"
                   onClick={() => setCurrentStep(1)}
-                  className="px-5 py-2.5 border border-[#EBE3DB] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs flex items-center gap-1.5"
+                  className="px-5 py-2.5 border border-[#EBE3DB] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs flex items-center gap-1.5 cursor-pointer"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>← સ્લાઇડ ૧ પર પાછા જાઓ</span>
+                  <span>← Back to Slide 1</span>
                 </button>
 
                 <div className="flex items-center gap-2">
