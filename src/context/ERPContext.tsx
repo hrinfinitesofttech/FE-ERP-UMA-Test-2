@@ -1260,6 +1260,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       const key = cleanId || cleanLeadNo;
       if (!key) continue;
 
+      const rawContact = String(item.contactPerson || item.contact_person || '').trim();
+      const cleanContact = (rawContact === 'Contact Person' || rawContact === 'Contact') ? '' : rawContact;
+      const rawMobile = String(item.mobile || item.phone || '').trim();
+      const cleanMobile = rawMobile === '9999999999' ? '' : rawMobile;
+
       const normalized: Lead = {
         ...item,
         id: cleanId,
@@ -1273,9 +1278,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         state: item.state || '',
         country: item.country || 'India',
         pincode: item.pincode || '',
-        contactPerson: item.contactPerson || item.contact_person || '',
+        contactPerson: cleanContact,
         designation: item.designation || '',
-        mobile: item.mobile || '',
+        mobile: cleanMobile,
         altMobile: item.altMobile || item.alt_mobile || '',
         email: item.email || '',
         whatsapp: item.whatsapp || '',
@@ -5692,7 +5697,16 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       if (res && (res.id || (res as any).lead_no || (res as any).leadNo)) {
         const finalId = res.id || newLead.id;
         const finalNo = (res as any).lead_no || (res as any).leadNo || finalId;
-        newLead = { ...newLead, ...res, id: finalId, leadNo: finalNo };
+        newLead = {
+          ...newLead,
+          ...res,
+          contactPerson: newLead.contactPerson || (res.contactPerson !== 'Contact Person' && res.contactPerson !== 'Contact' ? res.contactPerson : '') || '',
+          mobile: newLead.mobile || (res.mobile !== '9999999999' ? res.mobile : '') || '',
+          email: newLead.email || res.email || '',
+          companyName: newLead.companyName || res.companyName || res.company_name || '',
+          id: finalId,
+          leadNo: finalNo,
+        };
       }
       invalidateApiCache('leads');
     } catch (err: any) {
@@ -5972,6 +5986,16 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
     logAction('CREATE', 'CRM', 'Enquiries', enqNo, `Created Enquiry ${enqNo}`);
+    if (newEnq.leadId) {
+      updateLead(newEnq.leadId, {
+        contactPerson: newEnq.contactPerson || undefined,
+        mobile: newEnq.contactMobile || undefined,
+        email: newEnq.customerEmail || undefined,
+        companyName: newEnq.customerName || undefined,
+        convertedEnquiryId: enqNo,
+        status: 'requirement_received',
+      }).catch((err) => console.warn('Failed to sync lead from enquiry:', err));
+    }
     api.crm.enquiries.create(newEnq).then((res) => {
       if (res && res.id) {
         setEnquiries((prev) => {
@@ -5995,6 +6019,15 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
     logAction('UPDATE', 'CRM', 'Enquiries', id, `Updated Enquiry ${id}`);
+    const targetLeadId = enqData.leadId || enquiries.find((e) => e.id === id || e.enquiryNo === id)?.leadId;
+    if (targetLeadId) {
+      updateLead(targetLeadId, {
+        contactPerson: enqData.contactPerson || undefined,
+        mobile: enqData.contactMobile || undefined,
+        email: enqData.customerEmail || undefined,
+        companyName: enqData.customerName || undefined,
+      }).catch((err) => console.warn('Failed to sync lead from enquiry update:', err));
+    }
     api.crm.enquiries.update(id, enqData).catch((err) => console.warn('Failed to update enquiry on backend:', err));
   };
 

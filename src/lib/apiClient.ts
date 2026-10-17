@@ -125,13 +125,13 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
     } else {
       d.lead_no = d.lead_no || d.leadNo || d.id;
       d.leadNo = d.lead_no;
-      d.company_name = d.company_name || d.companyName || 'Prospect Co';
+      d.company_name = d.company_name || d.companyName || '';
       d.companyName = d.company_name;
-      d.contact_person = d.contact_person || d.contactPerson || 'Contact';
+      d.contact_person = d.contact_person || d.contactPerson || '';
       d.contactPerson = d.contact_person;
-      d.product_name = d.product_name || d.productName || d.requirementDescription || 'Equipment';
+      d.product_name = d.product_name || d.productName || d.requirementDescription || '';
       d.productName = d.product_name;
-      d.mobile = d.mobile || d.phone || '9999999999';
+      d.mobile = d.mobile || d.phone || '';
       d.alt_mobile = d.alt_mobile || d.altMobile || '';
       d.country = d.country || 'India';
       d.machine_type = d.machine_type || d.machineType || '';
@@ -151,6 +151,14 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
   } else if (ep.includes('/enquiries')) {
     d.customerId = d.customerId || d.customer_id || '';
     d.customerName = d.customerName || d.customer_name || '';
+    d.contactPerson = d.contactPerson || d.contact_person || '';
+    d.contact_person = d.contactPerson;
+    d.contactMobile = d.contactMobile || d.contact_mobile || d.mobile || d.phone || '';
+    d.contact_mobile = d.contactMobile;
+    d.customerEmail = d.customerEmail || d.customer_email || d.email || '';
+    d.customer_email = d.customerEmail;
+    d.leadId = d.leadId || d.lead_id || '';
+    d.lead_id = d.leadId;
     d.requirement = d.requirement || d.title || d.specification || '';
     d.machineProduct = d.machineProduct || d.productName || '';
     d.date = d.date || d.enquiryDate || nowStr;
@@ -254,8 +262,8 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
   // Purchase
   else if (ep.includes('/suppliers')) {
     d.vendorCode = d.vendorCode || d.supplierCode || d.code || d.id || '';
-    d.contactPerson = d.contactPerson || d.contact_person || d.name || 'Vendor Rep';
-    d.mobile = d.mobile || d.phone || '9999999999';
+    d.contactPerson = d.contactPerson || d.contact_person || d.name || '';
+    d.mobile = d.mobile || d.phone || '';
   } else if (ep.includes('/rfqs')) {
     const due = new Date();
     due.setDate(due.getDate() + 7);

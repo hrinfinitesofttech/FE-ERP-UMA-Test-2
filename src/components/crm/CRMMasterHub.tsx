@@ -237,10 +237,19 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
           </Link>
 
           <div className="flex items-center gap-1.5 text-[11px] text-[#544B45]">
-            <span className="font-medium truncate" title={lead.contactPerson}>
-              {lead.contactPerson || 'Contact'}
+            <span
+              className={`font-medium truncate ${
+                lead.contactPerson && lead.contactPerson !== 'Contact Person' && lead.contactPerson !== 'Contact'
+                  ? 'text-[#211B17]'
+                  : 'text-[#A89F91] italic'
+              }`}
+              title={lead.contactPerson}
+            >
+              {lead.contactPerson && lead.contactPerson !== 'Contact Person' && lead.contactPerson !== 'Contact'
+                ? lead.contactPerson
+                : 'Not specified'}
             </span>
-            {lead.mobile && (
+            {lead.mobile && lead.mobile !== '9999999999' ? (
               <a
                 href={`tel:${lead.mobile}`}
                 onClick={(e) => e.stopPropagation()}
@@ -249,7 +258,7 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
               >
                 <Phone className="w-2.5 h-2.5 text-[#8C5229]" /> {lead.mobile}
               </a>
-            )}
+            ) : null}
           </div>
 
           {lead.address ? (

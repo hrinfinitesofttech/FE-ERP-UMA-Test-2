@@ -105,8 +105,12 @@ function EnquiryFormContent() {
       if (lead) {
         setCustomerName(lead.companyName || '');
         setCustomerEmail(lead.email || '');
-        setContactPerson(lead.contactPerson || '');
-        setContactMobile(lead.mobile || '');
+        setContactPerson(
+          lead.contactPerson && lead.contactPerson !== 'Contact Person' && lead.contactPerson !== 'Contact'
+            ? lead.contactPerson
+            : ''
+        );
+        setContactMobile(lead.mobile && lead.mobile !== '9999999999' ? lead.mobile : '');
         if (lead.productName && !machineProduct) {
           setMachineProduct(lead.productName);
         }
@@ -118,8 +122,12 @@ function EnquiryFormContent() {
       if (cust) {
         setCustomerName(cust.companyName || '');
         setCustomerEmail(cust.email || '');
-        setContactPerson(cust.contactPerson || '');
-        setContactMobile(cust.mobile || '');
+        setContactPerson(
+          cust.contactPerson && cust.contactPerson !== 'Contact Person' && cust.contactPerson !== 'Contact'
+            ? cust.contactPerson
+            : ''
+        );
+        setContactMobile(cust.mobile && cust.mobile !== '9999999999' ? cust.mobile : '');
       }
     }
   };
