@@ -8,11 +8,11 @@ import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPage
 import { StatusBadge } from '../../../components/workflow/StatusBadge';
 import { Quotation } from '../../../types/crm';
 import { formatCurrency, formatDate } from '../../../lib/utils';
-import { FileCheck2, ArrowUpRight, Filter, Briefcase } from 'lucide-react';
+import { FileCheck2, ArrowUpRight, Filter, Briefcase, Eye } from 'lucide-react';
 
 export default function QuotationsListPage() {
   const router = useRouter();
-  const { quotations } = useERP();
+  const { quotations, customerPOs } = useERP();
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const getSummary = (q: Quotation) => {
@@ -133,24 +133,44 @@ export default function QuotationsListPage() {
     {
       key: 'actions',
       header: 'ACTIONS',
-      cell: (q) => (
-        <div className="flex items-center gap-1.5 whitespace-nowrap" onClick={(ev) => ev.stopPropagation()}>
-          <Link
-            href={`/crm/quotations/${q.id}`}
-            className="px-2 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded text-xs font-bold inline-flex items-center gap-1 transition shadow-2xs whitespace-nowrap cursor-pointer"
-          >
-            <span>View / Revs</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
-          </Link>
-          <button
-            onClick={() => router.push(`/crm/customer-po/new?quotationId=${encodeURIComponent(q.id)}`)}
-            className="p-1.5 bg-[#3E2723] hover:bg-[#2A1810] text-white rounded text-xs font-bold inline-flex items-center justify-center transition shadow-xs cursor-pointer active:scale-95"
-            title="Register Customer PO for this Quotation"
-          >
-            <Briefcase className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      ),
+      cell: (q) => {
+        const existingPO = (customerPOs || []).find(
+          (po) =>
+            (po.quotationId && (po.quotationId === q.id || po.quotationId === q.quotationNumber)) ||
+            (po.quotationNumber && (po.quotationNumber === q.quotationNumber || po.quotationNumber === q.id))
+        );
+
+        return (
+          <div className="flex items-center gap-1.5 whitespace-nowrap" onClick={(ev) => ev.stopPropagation()}>
+            <Link
+              href={`/crm/quotations/${q.id}`}
+              className="px-2 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded text-xs font-bold inline-flex items-center gap-1 transition shadow-2xs whitespace-nowrap cursor-pointer"
+            >
+              <span>View / Revs</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+
+            {existingPO ? (
+              <button
+                onClick={() => router.push(`/crm/customer-po?search=${encodeURIComponent(existingPO.poNumber || q.quotationNumber)}`)}
+                className="px-2 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded text-xs font-bold inline-flex items-center gap-1 transition shadow-xs cursor-pointer active:scale-95"
+                title={`View Customer PO (${existingPO.poNumber})`}
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>View PO</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => router.push(`/crm/customer-po/new?quotationId=${encodeURIComponent(q.id)}`)}
+                className="p-1.5 bg-[#3E2723] hover:bg-[#2A1810] text-white rounded text-xs font-bold inline-flex items-center justify-center transition shadow-xs cursor-pointer active:scale-95"
+                title="Register Customer PO for this Quotation"
+              >
+                <Briefcase className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        );
+      },
     },
   ];
 
@@ -210,7 +230,7 @@ export default function QuotationsListPage() {
         columns={columns}
         data={filteredQuotations}
         searchPlaceholder="Search quotation number, customer name, or equipment..."
-        addNewLabel="New Quotation"
+        addNewLabel="Create New Quotation"
         addNewHref="/crm/quotations/new"
         onExport={handleExportCSV}
       />

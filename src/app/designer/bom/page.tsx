@@ -295,38 +295,16 @@ export default function MasterBOMPage() {
   const [createVersion, setCreateVersion] = useState<string>('V1');
   const [createProductQuantity, setCreateProductQuantity] = useState<number>(1);
 
-  // Dynamic material lines inside Create BOM Modal (starts with standard job card lines)
+  // Dynamic material lines inside Create BOM Modal (starts with a clean blank line)
   const [createMaterialLines, setCreateMaterialLines] = useState<NewBOMFormItem[]>([
     {
       id: 'init-1',
-      partNumber: 'UTF-26-01',
-      description: 'TANK SHELL',
+      partNumber: '',
+      description: '',
       pCode: 'C',
-      thk: '5',
-      size: '7868 X 5500 LG',
-      mat: 'SS 316',
-      quantity: 1,
-      remarks: '',
-    },
-    {
-      id: 'init-2',
-      partNumber: 'UTF-26-02',
-      description: 'TOP CONE',
-      pCode: 'C',
-      thk: '4 THK',
-      size: '2518 X 2518',
-      mat: 'SS 316',
-      quantity: 1,
-      remarks: '',
-    },
-    {
-      id: 'init-3',
-      partNumber: 'UTF-26-03',
-      description: 'BASE PLATE',
-      pCode: 'C',
-      thk: '8',
-      size: 'OD 2540 MM',
-      mat: 'SS 316',
+      thk: '',
+      size: '',
+      mat: '',
       quantity: 1,
       remarks: '',
     },
@@ -359,34 +337,12 @@ export default function MasterBOMPage() {
     setCreateMaterialLines([
       {
         id: `line-${Date.now()}-1`,
-        partNumber: 'UTF-26-01',
-        description: 'TANK SHELL',
+        partNumber: '',
+        description: '',
         pCode: 'C',
-        thk: '5',
-        size: '7868 X 5500 LG',
-        mat: 'SS 316',
-        quantity: 1,
-        remarks: '',
-      },
-      {
-        id: `line-${Date.now()}-2`,
-        partNumber: 'UTF-26-02',
-        description: 'TOP CONE',
-        pCode: 'C',
-        thk: '4 THK',
-        size: '2518 X 2518',
-        mat: 'SS 316',
-        quantity: 1,
-        remarks: '',
-      },
-      {
-        id: `line-${Date.now()}-3`,
-        partNumber: 'UTF-26-03',
-        description: 'BASE PLATE',
-        pCode: 'C',
-        thk: '8',
-        size: 'OD 2540 MM',
-        mat: 'SS 316',
+        thk: '',
+        size: '',
+        mat: '',
         quantity: 1,
         remarks: '',
       },
@@ -422,12 +378,12 @@ export default function MasterBOMPage() {
     const nextNum = createMaterialLines.length + 1;
     const newLine: NewBOMFormItem = {
       id: `line-${Date.now()}-${nextNum}`,
-      partNumber: `UTF-26-${nextNum.toString().padStart(2, '0')}`,
+      partNumber: '',
       description: '',
       pCode: 'C',
       thk: '',
       size: '',
-      mat: 'SS 316',
+      mat: '',
       quantity: 1,
       remarks: '',
     };
@@ -437,7 +393,19 @@ export default function MasterBOMPage() {
   // Remove line inside Create Modal
   const handleRemoveCreateMaterialLine = (lineId: string) => {
     if (createMaterialLines.length <= 1) {
-      alert('At least one material item is required in the BOM.');
+      setCreateMaterialLines([
+        {
+          id: `line-${Date.now()}-1`,
+          partNumber: '',
+          description: '',
+          pCode: 'C',
+          thk: '',
+          size: '',
+          mat: '',
+          quantity: 1,
+          remarks: '',
+        },
+      ]);
       return;
     }
     setCreateMaterialLines(createMaterialLines.filter((l) => l.id !== lineId));
@@ -457,8 +425,8 @@ export default function MasterBOMPage() {
   const handleSubmitNewBOM = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!createProjectName.trim()) {
-      alert('Please specify a Project / Equipment name.');
+    if (!createSelectedProjectId && !createProjectName.trim()) {
+      alert('Please select a Target Project.');
       return;
     }
 
@@ -1475,112 +1443,39 @@ export default function MasterBOMPage() {
                   <span className="text-[10px] text-amber-800 font-semibold font-mono">Required</span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                      Choose From Registered ERP Projects:
-                    </label>
-                    <select
-                      value={createSelectedProjectId}
-                      onChange={(e) => handleSelectCreateProject(e.target.value)}
-                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
-                    >
-                      <option value="">-- Select Project / Equipment --</option>
-                      {(projectJobs || []).map((pj) => (
-                        <option key={pj.id} value={pj.id}>
-                          {pj.projectNumber} — {pj.customerName} [{pj.jobNumber}] {pj.productName}
-                        </option>
-                      ))}
-                      {(designJobs || []).map((dj) => (
-                        <option key={dj.id} value={dj.id}>
-                          {dj.projectNumber} — {dj.customerName} [{dj.jobNumber}] {dj.productName}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                      Equipment / Product Name:
-                    </label>
-                    <input
-                      type="text"
-                      value={createProjectName}
-                      onChange={(e) => setCreateProjectName(e.target.value)}
-                      placeholder="e.g. Heavy SS 316L Chemical Reactor Vessel (10 KL)"
-                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                      Customer Name:
-                    </label>
-                    <input
-                      type="text"
-                      value={createCustomerName}
-                      onChange={(e) => setCreateCustomerName(e.target.value)}
-                      placeholder="e.g. Gujarat Alkalies & Chemicals Ltd."
-                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                      Associated Job Number:
-                    </label>
-                    <input
-                      type="text"
-                      value={createJobNumber}
-                      onChange={(e) => setCreateJobNumber(e.target.value)}
-                      placeholder="e.g. JOB-2026-0042"
-                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Step 2: BOM Metadata */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-4 rounded-xl bg-white border border-[#EBE3DB]">
                 <div>
                   <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                    Master BOM Name:
+                    Choose From Registered ERP Projects:
                   </label>
-                  <input
-                    type="text"
-                    value={createBomName}
-                    onChange={(e) => setCreateBomName(e.target.value)}
-                    placeholder="e.g. Master BOM - Reactor Vessel"
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
-                  />
+                  <select
+                    value={createSelectedProjectId}
+                    onChange={(e) => handleSelectCreateProject(e.target.value)}
+                    className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
+                    required
+                  >
+                    <option value="">-- Select Project / Equipment --</option>
+                    {(projectJobs || []).map((pj) => (
+                      <option key={pj.id} value={pj.id}>
+                        {pj.projectNumber} — {pj.customerName} [{pj.jobNumber}] {pj.productName}
+                      </option>
+                    ))}
+                    {(designJobs || []).map((dj) => (
+                      <option key={dj.id} value={dj.id}>
+                        {dj.projectNumber} — {dj.customerName} [{dj.jobNumber}] {dj.productName}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                <div>
-                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                    BOM Version / Revision:
-                  </label>
-                  <input
-                    type="text"
-                    value={createVersion}
-                    onChange={(e) => setCreateVersion(e.target.value)}
-                    placeholder="e.g. V1 or Rev-00"
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                    Output Equipment Quantity:
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={createProductQuantity}
-                    onChange={(e) => setCreateProductQuantity(Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
-                  />
-                </div>
+                {createProjectName && (
+                  <div className="p-3 bg-white border border-[#EBE3DB] rounded-xl text-xs flex items-center justify-between flex-wrap gap-2 text-[#70665F]">
+                    <div>
+                      <span className="font-bold text-[#211B17] text-sm block">{createProjectName}</span>
+                      <span>Customer: <strong>{createCustomerName || 'N/A'}</strong></span>
+                      {createJobNumber && <span className="ml-3 font-mono">Job: <strong>{createJobNumber}</strong></span>}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Step 3: Material Component Lines */}
@@ -1602,17 +1497,16 @@ export default function MasterBOMPage() {
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs transition cursor-pointer shadow-2xs"
                   >
                     <Plus className="w-3.5 h-3.5 text-amber-700" />
-                    <span>+ Add Material Line</span>
+                    <span>Add Material Line</span>
                   </button>
                 </div>
 
                 {/* Material Lines Form Table (Job Card Columns) */}
                 <div className="border border-[#EBE3DB] rounded-xl overflow-x-auto">
-                  <table className="w-full text-left text-xs min-w-[760px]">
+                  <table className="w-full text-left text-xs min-w-[700px]">
                     <thead className="bg-[#FAF7F2] text-[10px] font-bold text-[#70665F] uppercase border-b border-[#EBE3DB]">
                       <tr>
                         <th className="p-2 w-10 text-center">SR. NO</th>
-                        <th className="p-2 w-24">BOM CODE</th>
                         <th className="p-2">DISCRIPTION</th>
                         <th className="p-2 w-24 text-center">P.</th>
                         <th className="p-2 w-24 text-center">THK</th>
@@ -1629,17 +1523,6 @@ export default function MasterBOMPage() {
                           {/* SR. NO */}
                           <td className="p-2 text-center font-mono font-bold text-[#70665F]">
                             {idx + 1}
-                          </td>
-
-                          {/* BOM CODE */}
-                          <td className="p-1.5">
-                            <input
-                              type="text"
-                              value={line.partNumber}
-                              onChange={(e) => handleUpdateCreateLine(line.id, 'partNumber', e.target.value)}
-                              placeholder={`UTF-26-${(idx + 1).toString().padStart(2, '0')}`}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-mono font-bold text-amber-900 focus:outline-none focus:border-amber-500"
-                            />
                           </td>
 
                           {/* DISCRIPTION */}
@@ -1752,7 +1635,7 @@ export default function MasterBOMPage() {
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-amber-300 text-amber-900 font-bold text-xs hover:bg-amber-100 transition cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5 text-amber-700" />
-                    <span>+ Add Another Line</span>
+                    <span>Add Material Line</span>
                   </button>
 
                   <div className="text-right">

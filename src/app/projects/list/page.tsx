@@ -148,13 +148,19 @@ export default function ProjectListPage() {
     }
   };
 
+  // Clean up any Detailed Specifications prefix
+  const cleanSpecification = (spec?: string) => {
+    if (!spec) return '';
+    return spec.replace(/^Detailed Specifications:\s*/i, '').trim();
+  };
+
   // Open Edit Modal
   const handleOpenEditModal = (e: React.MouseEvent, prj: ProjectJobMaster) => {
     e.stopPropagation();
     setEditingProject(prj);
     setEditFormData({
       productName: prj.productName,
-      specification: prj.specification,
+      specification: cleanSpecification(prj.specification),
       status: prj.status || 'planning',
       progressPercent: prj.progressPercent || 0,
       deliveryDate: prj.deliveryDate,
@@ -229,7 +235,7 @@ export default function ProjectListPage() {
       cell: (p) => (
         <div className="max-w-[220px]">
           <span className="font-semibold text-slate-900 block truncate">{p.productName || 'Process Equipment'}</span>
-          <span className="text-[11px] text-slate-500 block truncate">{p.specification || 'As per approved Quotation & Customer PO specs'}</span>
+          <span className="text-[11px] text-slate-500 block truncate">{cleanSpecification(p.specification) || 'As per approved Quotation & Customer PO specs'}</span>
         </div>
       ),
     },
@@ -571,30 +577,15 @@ export default function ProjectListPage() {
                 </div>
               </div>
 
-              {/* Delivery Dates */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Committed Delivery Target</label>
-                  <input
-                    type="date"
-                    value={editFormData.deliveryDate ? editFormData.deliveryDate.split('T')[0] : ''}
-                    onChange={(e) => setEditFormData({ ...editFormData, deliveryDate: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Revised Estimated Delivery</label>
-                  <input
-                    type="date"
-                    value={
-                      editFormData.expectedDeliveryDate
-                        ? editFormData.expectedDeliveryDate.split('T')[0]
-                        : ''
-                    }
-                    onChange={(e) => setEditFormData({ ...editFormData, expectedDeliveryDate: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
-                  />
-                </div>
+              {/* Delivery Date */}
+              <div>
+                <label className="block font-semibold text-[#544B45] mb-1">Committed Delivery Target</label>
+                <input
+                  type="date"
+                  value={editFormData.deliveryDate ? editFormData.deliveryDate.split('T')[0] : ''}
+                  onChange={(e) => setEditFormData({ ...editFormData, deliveryDate: e.target.value })}
+                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
+                />
               </div>
 
               <div className="p-4 border-t border-[#EBE3DB] bg-[#FAF7F2] -mx-5 -mb-5 rounded-b-2xl flex justify-end gap-3">

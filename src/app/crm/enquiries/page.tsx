@@ -33,6 +33,7 @@ import {
   Send,
   PhoneCall,
   AlertCircle,
+  Eye,
 } from 'lucide-react';
 
 export default function EnquiriesRegisterPage() {
@@ -43,6 +44,8 @@ export default function EnquiriesRegisterPage() {
     updateEnquiry,
     deleteEnquiry,
     addFollowUp,
+    followUps,
+    quotations,
     leads,
     customers,
     currentUser,
@@ -441,39 +444,81 @@ export default function EnquiriesRegisterPage() {
     {
       key: 'actions',
       header: 'ACTIONS',
-      cell: (e) => (
-        <div className="flex items-center gap-1.5 whitespace-nowrap" onClick={(ev) => ev.stopPropagation()}>
-          <button
-            onClick={() => router.push(`/crm/follow-ups/new?enquiryId=${encodeURIComponent(e.id || e.enquiryNo)}`)}
-            className="px-2 py-1 bg-purple-700 hover:bg-purple-800 text-white rounded text-xs font-bold inline-flex items-center gap-1 transition shadow-xs cursor-pointer active:scale-95"
-            title="Schedule Follow-up for this Enquiry"
-          >
-            <PhoneCall className="w-3.5 h-3.5" />
-            <span>Follow-up</span>
-          </button>
-          <button
-            onClick={() => router.push(`/crm/quotations/new?enquiryId=${encodeURIComponent(e.id || e.enquiryNo)}`)}
-            className="p-1.5 bg-[#3E2723] hover:bg-[#2A1810] text-white rounded text-xs font-bold inline-flex items-center justify-center transition shadow-xs cursor-pointer active:scale-95"
-            title="Create Quotation for this Enquiry"
-          >
-            <FileCheck2 className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={() => router.push(`/crm/enquiries/new?id=${encodeURIComponent(e.id || e.enquiryNo)}`)}
-            title="Edit Enquiry"
-            className="p-1 text-slate-500 hover:text-purple-700 hover:bg-purple-50 rounded transition cursor-pointer"
-          >
-            <Pencil className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={() => setDeletingEnletingEnquiry(e)}
-            title="Delete Enquiry"
-            className="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded transition cursor-pointer"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      ),
+      cell: (e) => {
+        const existingFollowUp = (followUps || []).find(
+          (f) =>
+            (f.enquiryId && (f.enquiryId === e.id || f.enquiryId === e.enquiryNo)) ||
+            (f.leadOrCustomerId && (f.leadOrCustomerId === e.id || f.leadOrCustomerId === e.leadId))
+        );
+        const existingQtn = (quotations || []).find(
+          (q) =>
+            (q.enquiryId && (q.enquiryId === e.id || q.enquiryId === e.enquiryNo)) ||
+            ((q as any).enquiryNumber && (q as any).enquiryNumber === e.enquiryNo)
+        );
+
+        return (
+          <div className="flex items-center gap-1.5 whitespace-nowrap" onClick={(ev) => ev.stopPropagation()}>
+            {/* Follow-up Action: View if existing, else Create */}
+            {existingFollowUp ? (
+              <button
+                onClick={() => router.push(`/crm/follow-ups?search=${encodeURIComponent(e.enquiryNo || e.customerName)}`)}
+                className="px-2 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded text-xs font-bold inline-flex items-center gap-1 transition shadow-xs cursor-pointer active:scale-95"
+                title={`View Follow-up (${existingFollowUp.followUpNo || existingFollowUp.id})`}
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>View Follow-up</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => router.push(`/crm/follow-ups/new?enquiryId=${encodeURIComponent(e.id || e.enquiryNo)}`)}
+                className="px-2 py-1 bg-purple-700 hover:bg-purple-800 text-white rounded text-xs font-bold inline-flex items-center gap-1 transition shadow-xs cursor-pointer active:scale-95"
+                title="Schedule Follow-up for this Enquiry"
+              >
+                <PhoneCall className="w-3.5 h-3.5" />
+                <span>Follow-up</span>
+              </button>
+            )}
+
+            {/* Quotation Action: View if existing, else Create */}
+            {existingQtn ? (
+              <button
+                onClick={() => router.push(`/crm/quotations/${encodeURIComponent(existingQtn.id)}`)}
+                className="px-2 py-1 bg-blue-700 hover:bg-blue-800 text-white rounded text-xs font-bold inline-flex items-center gap-1 transition shadow-xs cursor-pointer active:scale-95"
+                title={`View Quotation (${existingQtn.quotationNumber || existingQtn.id})`}
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>View Quotation</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => router.push(`/crm/quotations/new?enquiryId=${encodeURIComponent(e.id || e.enquiryNo)}`)}
+                className="p-1.5 bg-[#3E2723] hover:bg-[#2A1810] text-white rounded text-xs font-bold inline-flex items-center justify-center transition shadow-xs cursor-pointer active:scale-95"
+                title="Create Quotation for this Enquiry"
+              >
+                <FileCheck2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+
+            {/* Edit Enquiry */}
+            <button
+              onClick={() => router.push(`/crm/enquiries/new?id=${encodeURIComponent(e.id || e.enquiryNo)}`)}
+              title="Edit Enquiry"
+              className="p-1 text-slate-500 hover:text-purple-700 hover:bg-purple-50 rounded transition cursor-pointer"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+
+            {/* Delete Enquiry */}
+            <button
+              onClick={() => setDeletingEnletingEnquiry(e)}
+              title="Delete Enquiry"
+              className="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded transition cursor-pointer"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        );
+      },
     },
   ];
 

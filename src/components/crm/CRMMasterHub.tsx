@@ -31,6 +31,7 @@ import {
   Loader2,
   Send,
   UserCheck,
+  Eye,
 } from 'lucide-react';
 
 interface CRMMasterHubProps {
@@ -46,6 +47,7 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
     updateLead,
     deleteLead,
     convertLeadToCustomer,
+    enquiries,
     quotations,
     employees,
     availableEmployees,
@@ -285,20 +287,40 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
       header: 'Actions',
       className: 'min-w-[170px] whitespace-nowrap text-right align-top',
       cell: (lead) => {
+        const existingEnquiry = (enquiries || []).find(
+          (enq) =>
+            (enq.leadId && (enq.leadId === lead.id || enq.leadId === lead.leadNo)) ||
+            (lead.convertedEnquiryId && (enq.id === lead.convertedEnquiryId || enq.enquiryNo === lead.convertedEnquiryId))
+        );
+
         return (
           <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
-            {/* Inquiries Action Button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                router.push(`/crm/enquiries/new?leadId=${encodeURIComponent(lead.id || lead.leadNo)}`);
-              }}
-              className="px-2.5 py-1 bg-[#75401F] hover:bg-[#5C3218] text-white rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
-              title="Create Enquiry for this Lead"
-            >
-              <FileText className="w-3.5 h-3.5" />
-              <span>Inquiries</span>
-            </button>
+            {/* Conditional Inquiry Action Button: View if already created, else Create */}
+            {existingEnquiry ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/crm/enquiries/new?id=${encodeURIComponent(existingEnquiry.id || existingEnquiry.enquiryNo)}`);
+                }}
+                className="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
+                title={`View Technical Enquiry (${existingEnquiry.enquiryNo || existingEnquiry.id})`}
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>View Inquiry</span>
+              </button>
+            ) : (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/crm/enquiries/new?leadId=${encodeURIComponent(lead.id || lead.leadNo)}`);
+                }}
+                className="px-2.5 py-1 bg-[#75401F] hover:bg-[#5C3218] text-white rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
+                title="Create Technical Enquiry for this Lead"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Inquiries</span>
+              </button>
+            )}
 
             {/* Quick Edit Button */}
             <button

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useERP } from '../../../../context/ERPContext';
@@ -53,7 +53,7 @@ function EnquiryFormContent() {
   const [contactPerson, setContactPerson] = useState('');
   const [contactMobile, setContactMobile] = useState('');
   const [machineProduct, setMachineProduct] = useState('');
-  const [quantity, setQuantity] = useState<number | ''>(1);
+  const [quantity, setQuantity] = useState<number | ''>('');
   const [requirement, setRequirement] = useState('');
   const [expectedDelivery, setExpectedDelivery] = useState('');
   const [assignedPersonId, setAssignedPersonId] = useState(allStaff[0]?.id || 'EMP-001');
@@ -87,6 +87,32 @@ function EnquiryFormContent() {
     }
   }, [editId, enquiries]);
 
+  // Filter leads: ONLY show leads whose Enquiry has NOT been created yet (or is currently being edited)
+  const availableLeads = useMemo(() => {
+    const leadsWithEnquiry = new Set<string>();
+    (enquiries || []).forEach((e) => {
+      if (e.leadId) {
+        // If editing this existing enquiry, keep its linked lead available
+        if (existingEnquiry && (e.id === existingEnquiry.id || e.enquiryNo === existingEnquiry.enquiryNo)) {
+          return;
+        }
+        leadsWithEnquiry.add(String(e.leadId).trim());
+      }
+    });
+
+    return (leads || []).filter((l) => {
+      const id = String(l.id || '').trim();
+      const no = String(l.leadNo || '').trim();
+      const hasEnquiry = (id && leadsWithEnquiry.has(id)) || (no && leadsWithEnquiry.has(no)) || Boolean(l.convertedEnquiryId);
+
+      // Keep currently selected lead visible in dropdown
+      if (selectedLeadId && (id === selectedLeadId || no === selectedLeadId)) {
+        return true;
+      }
+      return !hasEnquiry;
+    });
+  }, [leads, enquiries, existingEnquiry, selectedLeadId]);
+
   // Pre-select lead if passed in URL query param
   useEffect(() => {
     if (!editId && leadIdParam && leads.length > 0) {
@@ -103,6 +129,10 @@ function EnquiryFormContent() {
       setCustomerEmail('');
       setContactPerson('');
       setContactMobile('');
+      if (!existingEnquiry) {
+        setMachineProduct('');
+        setQuantity('');
+      }
       return;
     }
 
@@ -120,11 +150,26 @@ function EnquiryFormContent() {
             : ''
         );
         setContactMobile(lead.mobile && lead.mobile !== '9999999999' ? lead.mobile : '');
-        if ((lead.productName || lead.machineType) && !machineProduct) {
-          setMachineProduct(lead.productName || lead.machineType || '');
+
+        // Only pre-fill product if user genuinely entered a real custom product
+        const rawProd = (lead.productName || lead.machineType || '').trim();
+        const isDummy =
+          !rawProd ||
+          rawProd === 'Industrial Process Equipment' ||
+          rawProd === 'Equipment' ||
+          rawProd === 'Process Equipment';
+
+        if (!isDummy) {
+          setMachineProduct(rawProd);
+        } else if (!existingEnquiry) {
+          setMachineProduct('');
         }
-        if (lead.quantity) {
-          setQuantity(lead.quantity);
+
+        // Only pre-fill quantity if specified (> 0)
+        if (lead.quantity && Number(lead.quantity) > 0) {
+          setQuantity(Number(lead.quantity));
+        } else if (!existingEnquiry) {
+          setQuantity('');
         }
       } else {
         setSelectedLeadId(id);
@@ -251,216 +296,127 @@ function EnquiryFormContent() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Section 1: Customer & Contact Selection */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-[#FAF3EA] border border-[#E7DED5] text-[#8C5229] font-bold text-[11px] flex items-center justify-center">
-                1
-              </span>
-              <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
-                Customer & Contact Information
-              </h2>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* 1. Lead / Customer Selection Dropdown */}
+          <div>
+            <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
+              <Building2 className="w-3.5 h-3.5 text-[#8C5229]" />
+              <span>Select Customer Account or Sales Lead <span className="text-rose-500">*</span></span>
+            </label>
+            <select
+              required
+              value={selectedEntityVal}
+              onChange={(e) => handleEntitySelect(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-[#75401F] focus:ring-2 focus:ring-[#75401F]/15 transition"
+            >
+              <option value="">-- Choose from Leads or Registered Customers --</option>
+              <optgroup label="📋 Active Sales Leads (Pending Technical Enquiry)">
+                {availableLeads.length === 0 ? (
+                  <option disabled value="">(No pending leads - all leads have enquiries)</option>
+                ) : (
+                  availableLeads.map((l) => (
+                    <option key={`lead:${l.id}`} value={`lead:${l.id}`}>
+                      [Lead] {l.leadNo ? `${l.leadNo} - ` : ''}{l.companyName} ({l.contactPerson || 'Contact'})
+                    </option>
+                  ))
+                )}
+              </optgroup>
+              <optgroup label="🏢 Existing Customers">
+                {customers.map((c) => (
+                  <option key={`cust:${c.id}`} value={`cust:${c.id}`}>
+                    [Customer] {c.customerCode ? `${c.customerCode} - ` : ''}{c.companyName} ({c.contactPerson || 'Account'})
+                  </option>
+                ))}
+              </optgroup>
+            </select>
+
+            {/* Selected Lead / Customer Summary Chip */}
+            {customerName && (
+              <div className="mt-2 p-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-[#211B17]">{customerName}</span>
+                  {contactPerson && (
+                    <span className="text-[11px] text-[#70665F]">({contactPerson})</span>
+                  )}
+                </div>
+                {contactMobile && (
+                  <span className="text-[11px] font-mono text-[#8C5229] font-semibold">{contactMobile}</span>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* 2. Equipment / Product Name & Quantity */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-2">
+              <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
+                <Layers className="w-3.5 h-3.5 text-[#8C5229]" />
+                <span>Equipment / Product Name <span className="text-rose-500">*</span></span>
+              </label>
+              <input
+                type="text"
+                required
+                value={machineProduct}
+                onChange={(e) => setMachineProduct(e.target.value)}
+                placeholder="e.g. Stainless Steel SS316 Reaction Vessel"
+                className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-[#75401F]"
+              />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
-                  <Building2 className="w-3.5 h-3.5 text-[#8C5229]" />
-                  <span>Select Customer Account or Sales Lead <span className="text-rose-500">*</span></span>
-                </label>
-                <select
-                  required
-                  value={selectedEntityVal}
-                  onChange={(e) => handleEntitySelect(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-[#75401F] focus:ring-2 focus:ring-[#75401F]/15 transition"
-                >
-                  <option value="">-- Choose from Leads or Registered Customers --</option>
-                  <optgroup label="📋 Active Sales Leads">
-                    {leads.map((l) => (
-                      <option key={`lead:${l.id}`} value={`lead:${l.id}`}>
-                        [Lead] {l.leadNo ? `${l.leadNo} - ` : ''}{l.companyName} ({l.contactPerson || 'Contact'})
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="🏢 Existing Customers">
-                    {customers.map((c) => (
-                      <option key={`cust:${c.id}`} value={`cust:${c.id}`}>
-                        [Customer] {c.customerCode ? `${c.customerCode} - ` : ''}{c.companyName} ({c.contactPerson || 'Account'})
-                      </option>
-                    ))}
-                  </optgroup>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                  Customer / Company Name <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="e.g. Reliance Industries Ltd."
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:border-[#75401F]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                  Contact Person Name
-                </label>
-                <input
-                  type="text"
-                  value={contactPerson}
-                  onChange={(e) => setContactPerson(e.target.value)}
-                  placeholder="e.g. Rajesh Sharma"
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:border-[#75401F]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                  Contact Mobile Number
-                </label>
-                <input
-                  type="text"
-                  value={contactMobile}
-                  onChange={(e) => setContactMobile(e.target.value)}
-                  placeholder="e.g. 9825012345"
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-mono text-[#211B17] focus:outline-none focus:border-[#75401F]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                  Contact Email Address
-                </label>
-                <input
-                  type="email"
-                  value={customerEmail}
-                  onChange={(e) => setCustomerEmail(e.target.value)}
-                  placeholder="e.g. procurement@reliance.com"
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:border-[#75401F]"
-                />
-              </div>
+            <div>
+              <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+                Quantity <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="number"
+                min={1}
+                required
+                value={quantity}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '') setQuantity('');
+                  else {
+                    const n = parseInt(val, 10);
+                    setQuantity(isNaN(n) ? '' : n);
+                  }
+                }}
+                placeholder="Enter quantity"
+                className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-[#75401F]"
+              />
             </div>
           </div>
 
-          {/* Section 2: Product & Technical Requirements */}
-          <div className="space-y-4 pt-4 border-t border-[#EBE3DB]">
-            <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-[#FAF3EA] border border-[#E7DED5] text-[#8C5229] font-bold text-[11px] flex items-center justify-center">
-                2
-              </span>
-              <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
-                Product & Technical Requirements
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
-                  <Layers className="w-3.5 h-3.5 text-[#8C5229]" />
-                  <span>Equipment / Product Name <span className="text-rose-500">*</span></span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={machineProduct}
-                  onChange={(e) => setMachineProduct(e.target.value)}
-                  placeholder="e.g. Stainless Steel SS316 Reaction Vessel"
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-[#75401F]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                  Quantity <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  required
-                  value={quantity}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val === '') setQuantity('');
-                    else {
-                      const n = parseInt(val, 10);
-                      setQuantity(isNaN(n) ? '' : n);
-                    }
-                  }}
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-[#75401F]"
-                />
-              </div>
-
-              <div className="md:col-span-3">
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                  Technical Specifications & Scope Description <span className="text-rose-500">*</span>
-                </label>
-                <textarea
-                  rows={4}
-                  required
-                  value={requirement}
-                  onChange={(e) => setRequirement(e.target.value)}
-                  placeholder="Enter detailed technical specs: capacity, pressure rating, material grade, design standards, test requirements..."
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-[#75401F] leading-relaxed"
-                />
-              </div>
-            </div>
+          {/* 3. Technical Specifications & Scope Description */}
+          <div>
+            <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+              Technical Specifications & Scope Description <span className="text-rose-500">*</span>
+            </label>
+            <textarea
+              rows={4}
+              required
+              value={requirement}
+              onChange={(e) => setRequirement(e.target.value)}
+              placeholder="Enter detailed technical specs: capacity, pressure rating, material grade, design standards, test requirements..."
+              className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-[#75401F] leading-relaxed"
+            />
           </div>
 
-          {/* Section 3: Timeline & Status */}
-          <div className="space-y-4 pt-4 border-t border-[#EBE3DB]">
-            <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-[#FAF3EA] border border-[#E7DED5] text-[#8C5229] font-bold text-[11px] flex items-center justify-center">
-                3
-              </span>
-              <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
-                Target Date & Status
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-[#8C5229]" />
-                  <span>Target Delivery Date</span>
-                </label>
-                <input
-                  type="date"
-                  value={expectedDelivery}
-                  onChange={(e) => setExpectedDelivery(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-mono text-[#211B17] focus:outline-none focus:border-[#75401F]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                  Enquiry Status
-                </label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as any)}
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-[#75401F]"
-                >
-                  <option value="new">New / Fresh Enquiry</option>
-                  <option value="under_review">Under Review</option>
-                  <option value="requirement_pending">Requirement Clarification Pending</option>
-                  <option value="technical_review">Technical Evaluation</option>
-                  <option value="quotation_ready">Quotation Ready</option>
-                  <option value="quotation_sent">Quotation Dispatched</option>
-                  <option value="converted">Converted to Sales Order</option>
-                  <option value="closed">Closed / Dropped</option>
-                </select>
-              </div>
-            </div>
+          {/* 4. Target Delivery Date */}
+          <div>
+            <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5 text-[#8C5229]" />
+              <span>Target Delivery Date</span>
+            </label>
+            <input
+              type="date"
+              value={expectedDelivery}
+              onChange={(e) => setExpectedDelivery(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-mono text-[#211B17] focus:outline-none focus:border-[#75401F]"
+            />
           </div>
 
           {/* Form Actions */}
-          <div className="flex items-center justify-end gap-3 pt-6 border-t border-[#EBE3DB]">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#EBE3DB]">
             <Link
               href="/crm/enquiries"
               className="px-5 py-2.5 border border-[#EBE3DB] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs"

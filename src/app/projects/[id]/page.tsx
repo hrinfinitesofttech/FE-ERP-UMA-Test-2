@@ -309,7 +309,7 @@ export default function ProjectDetailPage() {
                 </h3>
                 <div className="space-y-1.5 text-slate-700 dark:text-[#544B45]">
                   <div><span className="text-[#70665F]">Equipment:</span> <strong className="text-slate-900 dark:text-[#211B17]">{project.productName}</strong></div>
-                  <div><span className="text-[#70665F]">Specification:</span> {project.specification}</div>
+                  <div><span className="text-[#70665F]">Specification:</span> {project.specification ? project.specification.replace(/^Detailed Specifications:\s*/i, '').trim() : ''}</div>
                   <div><span className="text-[#70665F]">Quantity:</span> {project.quantity} {project.unit}</div>
                   <div><span className="text-[#70665F]">Capacity / Scope:</span> {project.capacity || '10,000 L / 8 Bar Pressure'}</div>
                 </div>

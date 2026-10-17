@@ -11,7 +11,6 @@ import {
   PhoneCall,
   Building2,
   FileText,
-  Layers,
   ArrowLeft,
   ArrowRight,
   Save,
@@ -600,37 +599,11 @@ function FollowUpFormContent() {
                 </div>
               </div>
 
-              {/* Product / Equipment Item */}
-              <div className="space-y-3 pt-3 border-t border-[#EBE3DB]">
-                <div className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
-                    2
-                  </span>
-                  <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
-                    Product / Equipment Item
-                  </h2>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1.5">
-                    <Layers className="w-3.5 h-3.5 text-purple-700" />
-                    <span>Product / Equipment Name (Auto-filled from Inquiry)</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={productItem}
-                    onChange={(e) => setProductItem(e.target.value)}
-                    placeholder="e.g. Stainless Steel SS316 Reaction Vessel"
-                    className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:border-purple-600"
-                  />
-                </div>
-              </div>
-
               {/* Channel, Date & Time (Clock) */}
               <div className="space-y-3 pt-3 border-t border-[#EBE3DB]">
                 <div className="flex items-center gap-2">
                   <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
-                    3
+                    2
                   </span>
                   <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
                     Channel, Date & Time
@@ -750,7 +723,7 @@ function FollowUpFormContent() {
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
-                    4
+                    3
                   </span>
                   <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
                     Client Status & Discussion Notes
@@ -793,7 +766,7 @@ function FollowUpFormContent() {
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-2">
                     <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
-                      5
+                      4
                     </span>
                     <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
                       Next Follow-up
@@ -915,7 +888,7 @@ function FollowUpFormContent() {
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-2">
                     <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px] flex items-center justify-center">
-                      6
+                      5
                     </span>
                     <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
                       Site Visit Required?
