@@ -24,7 +24,17 @@ import {
   Sparkles,
   Info,
   ShieldAlert,
+  Volume2,
+  VolumeX,
+  Volume1,
 } from 'lucide-react';
+import {
+  isSoundEnabled,
+  setSoundEnabled,
+  isVoiceEnabled,
+  setVoiceEnabled,
+  testNotificationSound,
+} from '../../lib/notificationAudio';
 
 const MONTH_NAMES = [
   { value: 'ALL', label: 'All Months' },
@@ -59,6 +69,27 @@ export default function NotificationsPage() {
   const [selectedStatus, setSelectedStatus] = useState<'ALL' | 'UNREAD' | 'READ' | 'HIGH_PRIORITY'>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeViewTab, setActiveViewTab] = useState<'timeline' | 'monthly_archive'>('timeline');
+
+  // Audio & Voice Preferences
+  const [soundOn, setSoundOn] = useState<boolean>(true);
+  const [voiceOn, setVoiceOn] = useState<boolean>(true);
+
+  React.useEffect(() => {
+    setSoundOn(isSoundEnabled());
+    setVoiceOn(isVoiceEnabled());
+  }, []);
+
+  const toggleSound = () => {
+    const next = !soundOn;
+    setSoundOn(next);
+    setSoundEnabled(next);
+  };
+
+  const toggleVoice = () => {
+    const next = !voiceOn;
+    setVoiceOn(next);
+    setVoiceEnabled(next);
+  };
 
   // New Notification / Broadcast Modal State
   const [showAddModal, setShowAddModal] = useState(false);
@@ -218,6 +249,46 @@ export default function NotificationsPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* Sound Chime Toggle */}
+          <button
+            type="button"
+            onClick={toggleSound}
+            className={`px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition border ${
+              soundOn
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
+            }`}
+            title="Toggle Sound Alert Chime"
+          >
+            {soundOn ? <Volume2 className="w-3.5 h-3.5 text-emerald-700" /> : <VolumeX className="w-3.5 h-3.5 text-slate-500" />}
+            <span>{soundOn ? 'Chime ON' : 'Chime OFF'}</span>
+          </button>
+
+          {/* Voice Speech Toggle */}
+          <button
+            type="button"
+            onClick={toggleVoice}
+            className={`px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition border ${
+              voiceOn
+                ? 'bg-purple-50 text-purple-800 border-purple-300 hover:bg-purple-100'
+                : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
+            }`}
+            title="Toggle Voice Speech Announcement"
+          >
+            <Volume1 className="w-3.5 h-3.5 text-purple-700" />
+            <span>{voiceOn ? 'Voice ON' : 'Voice OFF'}</span>
+          </button>
+
+          {/* Test Audio Button */}
+          <button
+            type="button"
+            onClick={testNotificationSound}
+            className="px-3 py-2 rounded-xl bg-white border border-[#D5C7B8] hover:bg-[#FAF7F2] text-slate-800 font-bold text-xs flex items-center gap-1.5 transition shadow-2xs"
+            title="Test Chime and Voice Speech"
+          >
+            <span>🔊 Test Audio</span>
+          </button>
+
           <button
             onClick={() => setShowAddModal(true)}
             className="px-3.5 py-2 rounded-xl bg-[#9B4A1B] text-white hover:bg-[#803C15] font-bold text-xs flex items-center gap-1.5 shadow-sm transition"

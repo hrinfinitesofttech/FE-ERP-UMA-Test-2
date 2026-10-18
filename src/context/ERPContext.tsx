@@ -413,6 +413,7 @@ import {
   deduplicatePlanningStages,
 } from '../lib/projectPlanningHelper';
 import { sortByLatestDesc } from '../lib/sortHelper';
+import { triggerNotificationAlert } from '../lib/notificationAudio';
 
 interface ERPContextType {
   // Auth & Session
@@ -2782,6 +2783,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const [selectedJobForModal, setSelectedJobForModal] = useState<JobTraceabilityRecord | null>(null);
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const knownNotificationIdsRef = useRef<Set<string>>(new Set());
+  const initialNotifLoadedRef = useRef<boolean>(false);
 
   // Keyboard shortcut for Global Search (Ctrl+K or Cmd+K)
   useEffect(() => {
@@ -3132,6 +3135,10 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         const rawNotifs: any = await api.get('/notifications/');
         if (Array.isArray(rawNotifs)) {
           setNotifications(rawNotifs);
+          rawNotifs.forEach((n: any) => {
+            if (n && n.id) knownNotificationIdsRef.current.add(String(n.id));
+          });
+          initialNotifLoadedRef.current = true;
           if (typeof window !== 'undefined') {
             try { localStorage.setItem('UMA_ERP_notifications', JSON.stringify(rawNotifs)); } catch (_) {}
           }
@@ -4809,6 +4816,37 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     syncBootstrap().catch(() => {});
   }, [syncBootstrap]);
 
+  // Live Notifications Background Polling (Every 20s)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const interval = setInterval(async () => {
+      try {
+        const liveNotifs: any = await api.get('/notifications/');
+        if (Array.isArray(liveNotifs) && liveNotifs.length > 0) {
+          const newlyArrived = liveNotifs.filter(
+            (n: any) => n && n.id && !knownNotificationIdsRef.current.has(String(n.id))
+          );
+
+          if (newlyArrived.length > 0) {
+            newlyArrived.forEach((n: any) => knownNotificationIdsRef.current.add(String(n.id)));
+            setNotifications(liveNotifs);
+            try {
+              localStorage.setItem('UMA_ERP_notifications', JSON.stringify(liveNotifs));
+            } catch (_) {}
+
+            const unreadNew = newlyArrived.find((n: any) => !n.isRead && !n.is_read);
+            if (initialNotifLoadedRef.current && unreadNew) {
+              triggerNotificationAlert(unreadNew.title, unreadNew.message);
+            }
+          }
+        }
+      } catch (_) {}
+    }, 20000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Route-Aware On-Demand Module Fetching (Triggered ONLY when user visits a module's routes)
   useEffect(() => {
     if (!pathname) return;
@@ -5110,6 +5148,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       timestamp: new Date().toISOString(),
       isRead: false,
     };
+    knownNotificationIdsRef.current.add(newNotif.id);
     setNotifications((prev) => {
       const updated = [newNotif, ...prev];
       if (typeof window !== 'undefined') {
@@ -5117,6 +5156,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
       return updated;
     });
+
+    // Play chime sound and voice alert
+    try {
+      triggerNotificationAlert(newNotif.title, newNotif.message);
+    } catch (_) {}
+
     api.post('/notifications/', {
       id: newNotif.id,
       title: newNotif.title,
@@ -8361,6 +8406,23 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem('UMA_ERP_projectPlanningRecords', JSON.stringify(updated));
         } catch (_) {}
       }
+
+      if (newStatus === 'completed') {
+        const targetRecord = prev.find(
+          (r) => r.id === planningRecordId || r.projectId === planningRecordId || r.projectNumber === planningRecordId
+        );
+        const completedTask = (targetRecord?.tasks || []).find((t) => t.id === taskId);
+        const tName = completedTask?.taskName || 'Operation';
+        sendNotification({
+          title: `✓ Operation Completed: ${tName}`,
+          message: `Operation for ${targetRecord?.projectNumber || targetRecord?.customerName || 'Project'} finished 100%.`,
+          type: 'success',
+          department: 'production',
+          priority: 'normal',
+          linkUrl: '/production/planning',
+        });
+      }
+
       return updated;
     });
   };
@@ -9692,6 +9754,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
     logAction('CREATE', 'Purchase', 'Purchase Requisition', newPr.id, `Created PR ${newPr.prNumber} for job ${data.jobNumber || (data as any).jobId}`);
+    sendNotification({
+      title: `📝 PR Created: ${newPr.prNumber}`,
+      message: `Purchase Requisition created for ${data.jobNumber || (data as any).jobId || 'Production'}. Priority: ${newPr.priority || 'High'}`,
+      type: 'info',
+      department: 'purchase',
+      priority: (newPr.priority?.toLowerCase() === 'high' ? 'high' : 'normal') as any,
+      linkUrl: '/purchase/requisition',
+    });
     const prPayload = {
       id: newPr.id,
       prNumber: newPr.prNumber,
@@ -10059,6 +10129,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     });
 
     logAction('CREATE', 'Purchase', 'Purchase Orders', newPo.id, `Created PO ${newPo.poNumber} for supplier ${newPo.supplierName}`);
+    sendNotification({
+      title: `📋 PO Created: ${newPo.poNumber}`,
+      message: `Purchase Order issued to ${newPo.supplierName} for ₹${Number(newPo.grandTotal || 0).toLocaleString('en-IN')}`,
+      type: 'info',
+      department: 'purchase',
+      priority: 'normal',
+      linkUrl: '/purchase/po',
+    });
 
     const poPayload = {
       ...newPo,
@@ -11320,6 +11398,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       updateJobStatus(newWo.jobNumber, 'step-7', 'in_progress');
     }
     logAction('CREATE', 'Production', 'Work Orders', newWo.id, `Generated Work Order ${newWo.workOrderNumber} for ${newWo.jobNumber}`);
+    sendNotification({
+      title: `⚙️ Work Order Generated: ${newWo.workOrderNumber}`,
+      message: `Work Order created for Job ${newWo.jobNumber || 'Shop Floor'}.`,
+      type: 'info',
+      department: 'production',
+      priority: 'normal',
+      linkUrl: '/production/work-orders',
+    });
     api.production.workOrders.create(newWo).then((res) => {
       if (res && res.id) {
         setWorkOrders((prev) => prev.map((w) => (w.id === workOrderNumber ? { ...w, ...res } : w)));
@@ -11331,6 +11417,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const target = workOrders.find((w) => w.id === id || w.workOrderNumber === id);
     setWorkOrders((prev) => prev.map((w) => (w.id === id || w.workOrderNumber === id ? { ...w, status: 'Released' } : w)));
     logAction('UPDATE', 'Production', 'Work Orders', id, `Released Work Order ${id} to shop floor`);
+    sendNotification({
+      title: `🚀 Work Order Released: ${id}`,
+      message: `Work Order ${id} has been released to the shop floor for active execution.`,
+      type: 'info',
+      department: 'production',
+      priority: 'high',
+      linkUrl: '/production/work-orders',
+    });
 
     const payload = target ? { ...target, status: 'Released' } : { id, workOrderNumber: id, status: 'Released' };
     api.production.workOrders.release(id, payload).then((res: any) => {
@@ -11544,6 +11638,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newRework: ReworkOrder = { ...data, id: reworkNumber, reworkNumber };
     setReworkOrders((prev) => [newRework, ...prev]);
     logAction('CREATE', 'Production', 'Rework Orders', newRework.id, `Created Rework Order ${newRework.reworkNumber} for ${newRework.workOrderNumber}`);
+    sendNotification({
+      title: `⚠️ Rework Order Raised: ${newRework.reworkNumber}`,
+      message: `Rework needed for ${newRework.workOrderNumber}. Reason: ${(newRework as any).reason || (newRework as any).issueDescription || 'Defect reported'}`,
+      type: 'warning',
+      department: 'production',
+      priority: 'high',
+      linkUrl: '/production/rework',
+    });
     api.production.reworkOrders.create(newRework).catch((err) => console.warn('Failed to add rework order:', err));
   };
 
@@ -11552,6 +11654,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newScrap: ProductionScrap = { ...data, id: scrapNumber, scrapNumber };
     setProductionScraps((prev) => [newScrap, ...prev]);
     logAction('CREATE', 'Production', 'Production Scrap', newScrap.id, `Logged production scrap ${newScrap.scrapNumber} for ${newScrap.materialName}`);
+    sendNotification({
+      title: `♻️ Production Scrap Logged: ${newScrap.scrapNumber}`,
+      message: `Scrap logged: ${newScrap.materialName} (${newScrap.quantity} ${newScrap.uom || 'Kg'}). Reason: ${newScrap.reason}`,
+      type: 'warning',
+      department: 'production',
+      priority: 'normal',
+      linkUrl: '/store/scrap',
+    });
     api.production.scraps.create(newScrap).catch((err) => console.warn('Failed to add production scrap:', err));
   };
 
@@ -11564,6 +11674,15 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         try { localStorage.setItem('UMA_ERP_productionCompletions', JSON.stringify(updated)); } catch (_) {}
       }
       return updated;
+    });
+
+    sendNotification({
+      title: `✅ Work Order Completed: ${newComp.workOrderNumber}`,
+      message: `Manufacturing finished for ${newComp.workOrderNumber}. Total completed: ${newComp.completedQuantity}`,
+      type: 'success',
+      department: 'production',
+      priority: 'high',
+      linkUrl: '/production/work-orders',
     });
 
     // 1. Update Work Order status to Completed
@@ -11848,6 +11967,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     setSalesInvoices((prev) => [newInv, ...prev]);
     logAction('CREATE', 'Accounting', 'Sales Invoices', newInv.id, `Generated Sales Invoice ${newInv.invoiceNumber} for ₹${newInv.grandTotal?.toLocaleString()}`);
+    sendNotification({
+      title: `📄 Sales Invoice Generated: ${newInv.invoiceNumber}`,
+      message: `Tax invoice generated for ₹${Number(newInv.grandTotal || 0).toLocaleString('en-IN')}`,
+      type: 'info',
+      department: 'accounting',
+      priority: 'normal',
+      linkUrl: '/accounting/sales-invoices',
+    });
     api.accounting.salesInvoices.create(newInv).catch((err) => console.warn('Failed to add sales invoice:', err));
   };
 
@@ -12071,6 +12198,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
 
     logAction('CREATE', 'Accounting', 'Customer Receipts', newRec.id, `Recorded Receipt ${newRec.receiptNumber} from ${newRec.customerName} (₹${(newRec.amountPaid ?? 0)?.toLocaleString()})`);
+    sendNotification({
+      title: `💰 Payment Received: ${newRec.receiptNumber}`,
+      message: `Received ₹${Number(newRec.amountPaid ?? newRec.amount ?? 0).toLocaleString('en-IN')} from ${newRec.customerName} via ${newRec.paymentMode}.`,
+      type: 'success',
+      department: 'accounting',
+      priority: 'high',
+      linkUrl: '/accounting/receipts',
+    });
     api.post('/customer-receipts/', newRec).catch((err) => console.warn('Failed to add customer receipt:', err));
   };
 

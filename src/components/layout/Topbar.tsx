@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useERP } from '../../context/ERPContext';
 import {
   Search,
@@ -21,10 +22,23 @@ import {
   Compass,
   Cpu,
   Layers,
+  Volume2,
+  VolumeX,
+  Volume1,
+  ExternalLink,
+  Check,
 } from 'lucide-react';
 import { formatDateTime } from '../../lib/utils';
+import {
+  isSoundEnabled,
+  setSoundEnabled,
+  isVoiceEnabled,
+  setVoiceEnabled,
+  testNotificationSound,
+} from '../../lib/notificationAudio';
 
 export function Topbar() {
+  const router = useRouter();
   const {
     currentUser,
     setCurrentUser,
@@ -43,8 +57,35 @@ export function Topbar() {
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showNotificationMenu, setShowNotificationMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [soundActive, setSoundActive] = useState(true);
+  const [voiceActive, setVoiceActive] = useState(true);
+
+  useEffect(() => {
+    setSoundActive(isSoundEnabled());
+    setVoiceActive(isVoiceEnabled());
+  }, []);
+
+  const toggleSound = () => {
+    const next = !soundActive;
+    setSoundActive(next);
+    setSoundEnabled(next);
+  };
+
+  const toggleVoice = () => {
+    const next = !voiceActive;
+    setVoiceActive(next);
+    setVoiceEnabled(next);
+  };
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  const handleNotifClick = (notif: any) => {
+    markNotificationRead(notif.id);
+    setShowNotificationMenu(false);
+    if (notif.linkUrl) {
+      router.push(notif.linkUrl);
+    }
+  };
 
   return (
     <header className="h-16 bg-[#FCFAF7] border-b border-[#EDE5DC] px-4 sm:px-6 flex items-center justify-between gap-4 z-20 sticky top-0 flex-shrink-0 transition-all">
@@ -90,24 +131,31 @@ export function Topbar() {
               setShowUserMenu(false);
             }}
             className="p-2 rounded-xl text-[#6E5D53] hover:bg-[#F3EDE4] relative border border-[#E5DDD0] transition cursor-pointer"
+            title="System Notifications"
           >
             <Bell className="w-4 h-4 text-[#6E5D53]" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#D9383A] text-white font-black rounded-full text-[9px] flex items-center justify-center shadow-xs">
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#D9383A] text-white font-black rounded-full text-[9px] flex items-center justify-center shadow-xs animate-bounce">
                 {unreadCount}
               </span>
             )}
           </button>
 
           {showNotificationMenu && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-bg-surface rounded-2xl shadow-xl border border-border overflow-hidden z-50 text-xs animate-in fade-in duration-150">
-              <div className="p-3.5 bg-bg-app border-b border-border flex items-center justify-between">
-                <span className="font-bold text-text-primary">System Notifications {unreadCount > 0 ? `(${unreadCount} new)` : `(${notifications.length})`}</span>
+            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-[#EDE5DC] overflow-hidden z-50 text-xs animate-in fade-in duration-150">
+              {/* Header */}
+              <div className="p-3.5 bg-[#FAF7F2] border-b border-[#EDE5DC] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-crm-brand-700" />
+                  <span className="font-bold text-[#211B17]">
+                    Notifications {unreadCount > 0 ? `(${unreadCount} new)` : `(${notifications.length})`}
+                  </span>
+                </div>
                 <div className="flex items-center gap-2">
                   {unreadCount > 0 && (
                     <button
                       onClick={markAllNotificationsRead}
-                      className="text-[11px] text-primary hover:underline font-bold cursor-pointer"
+                      className="text-[11px] text-crm-brand-700 hover:underline font-bold cursor-pointer"
                     >
                       Mark all read
                     </button>
@@ -115,31 +163,103 @@ export function Topbar() {
                 </div>
               </div>
 
-              <div className="max-h-80 overflow-y-auto divide-y divide-border">
-                {notifications.slice(0, 5).map((notif) => (
-                  <div
-                    key={notif.id}
-                    onClick={() => markNotificationRead(notif.id)}
-                    className={`p-3.5 hover:bg-primary-light/50 cursor-pointer transition flex items-start gap-3 ${
-                      !notif.isRead ? 'bg-primary-light/30' : ''
+              {/* Sound & Voice Settings Bar */}
+              <div className="px-3.5 py-2 bg-[#F6F1EA] border-b border-[#EDE5DC] flex items-center justify-between gap-2 text-[11px]">
+                <div className="flex items-center gap-3">
+                  {/* Sound Toggle */}
+                  <button
+                    type="button"
+                    onClick={toggleSound}
+                    className={`flex items-center gap-1 font-bold px-2 py-0.5 rounded-lg transition cursor-pointer ${
+                      soundActive ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-slate-200 text-slate-500'
                     }`}
+                    title={soundActive ? 'Sound Chime is ON' : 'Sound Chime is OFF'}
                   >
-                    <div className="mt-0.5">
-                      {notif.type === 'alert' || notif.type === 'warning' ? (
-                        <AlertTriangle className="w-4 h-4 text-accent flex-shrink-0" />
-                      ) : notif.type === 'success' ? (
-                        <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
-                      ) : (
-                        <Bell className="w-4 h-4 text-info flex-shrink-0" />
-                      )}
-                    </div>
-                    <div className="space-y-0.5 flex-1">
-                      <div className="font-bold text-text-primary">{notif.title}</div>
-                      <div className="text-text-secondary text-[11px] leading-relaxed">{notif.message}</div>
-                      <div className="text-[10px] text-text-muted font-mono pt-0.5">{formatDateTime(notif.timestamp)}</div>
-                    </div>
+                    {soundActive ? <Volume2 className="w-3 h-3 text-emerald-700" /> : <VolumeX className="w-3 h-3 text-slate-500" />}
+                    <span>{soundActive ? 'Chime ON' : 'Chime OFF'}</span>
+                  </button>
+
+                  {/* Voice Toggle */}
+                  <button
+                    type="button"
+                    onClick={toggleVoice}
+                    className={`flex items-center gap-1 font-bold px-2 py-0.5 rounded-lg transition cursor-pointer ${
+                      voiceActive ? 'bg-purple-100 text-purple-800 border border-purple-300' : 'bg-slate-200 text-slate-500'
+                    }`}
+                    title={voiceActive ? 'Voice Alert is ON' : 'Voice Alert is OFF'}
+                  >
+                    <Volume1 className="w-3 h-3 text-purple-700" />
+                    <span>{voiceActive ? 'Voice ON' : 'Voice OFF'}</span>
+                  </button>
+                </div>
+
+                {/* Test Sound Button */}
+                <button
+                  type="button"
+                  onClick={testNotificationSound}
+                  className="px-2 py-0.5 bg-white border border-[#D5C7B8] hover:bg-[#FAF7F2] text-slate-700 font-bold rounded-lg text-[10px] transition cursor-pointer flex items-center gap-1 shadow-2xs"
+                  title="Test Sound & Voice"
+                >
+                  <span>🔊 Test</span>
+                </button>
+              </div>
+
+              {/* Notification List */}
+              <div className="max-h-80 overflow-y-auto divide-y divide-[#EDE5DC]">
+                {notifications.length === 0 ? (
+                  <div className="p-8 text-center text-slate-400">
+                    <Bell className="w-6 h-6 mx-auto mb-2 text-slate-300" />
+                    <p className="font-semibold text-xs">No notifications yet</p>
                   </div>
-                ))}
+                ) : (
+                  notifications.slice(0, 6).map((notif) => (
+                    <div
+                      key={notif.id}
+                      onClick={() => handleNotifClick(notif)}
+                      className={`p-3.5 hover:bg-[#FAF7F2] cursor-pointer transition flex items-start gap-3 ${
+                        !notif.isRead ? 'bg-[#FCF5ED]' : 'bg-white'
+                      }`}
+                    >
+                      <div className="mt-0.5">
+                        {notif.type === 'alert' || notif.type === 'warning' ? (
+                          <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                        ) : notif.type === 'success' ? (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                        ) : (
+                          <Bell className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                        )}
+                      </div>
+                      <div className="space-y-0.5 flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={`font-bold truncate ${!notif.isRead ? 'text-[#211B17]' : 'text-slate-700'}`}>
+                            {notif.title}
+                          </span>
+                          {!notif.isRead && (
+                            <span className="w-2 h-2 rounded-full bg-crm-brand-700 flex-shrink-0" />
+                          )}
+                        </div>
+                        <div className="text-slate-600 text-[11px] leading-relaxed line-clamp-2">
+                          {notif.message}
+                        </div>
+                        <div className="text-[10px] text-slate-400 font-mono pt-0.5">
+                          {formatDateTime(notif.timestamp)}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Footer: View All Link */}
+              <div className="p-2.5 bg-[#FAF7F2] border-t border-[#EDE5DC] text-center">
+                <Link
+                  href="/notifications"
+                  onClick={() => setShowNotificationMenu(false)}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-crm-brand-700 hover:text-crm-brand-800 transition"
+                >
+                  <span>View All Notifications ({notifications.length})</span>
+                  <ExternalLink className="w-3 h-3" />
+                </Link>
               </div>
             </div>
           )}
