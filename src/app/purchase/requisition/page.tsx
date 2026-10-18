@@ -471,7 +471,7 @@ export default function PurchaseRequisitionPage() {
             }`}
           >
             <Package className="w-3.5 h-3.5" />
-            <span>Requisition Items (આઈટમ વાઈઝ)</span>
+            <span>Requisition Items (Item-Wise)</span>
             <span
               className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
                 viewMode === 'items' ? 'bg-white/20 text-white' : 'bg-[#E5DCD3] text-[#211B17]'
@@ -491,7 +491,7 @@ export default function PurchaseRequisitionPage() {
             }`}
           >
             <FileText className="w-3.5 h-3.5" />
-            <span>Requisition Dossiers (PR વાઈઝ)</span>
+            <span>Requisition Dossiers (PR-Wise)</span>
             <span
               className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
                 viewMode === 'dossiers' ? 'bg-white/20 text-white' : 'bg-[#E5DCD3] text-[#211B17]'

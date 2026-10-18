@@ -401,7 +401,7 @@ export default function TaskManagementPage() {
             <div className="flex items-center gap-2 text-xs text-[#70665F] mb-1 font-medium">
               <Link href="/projects/dashboard" className="hover:text-crm-brand-700">Project Management</Link>
               <span>/</span>
-              <span className="text-[#211B17] font-semibold">Task Management (ડિપાર્ટમેન્ટ વાઇસ)</span>
+              <span className="text-[#211B17] font-semibold">Task Management</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-[#211B17] tracking-tight flex items-center gap-2.5">
               <CheckSquare className="w-6 h-6 text-crm-brand-700" />

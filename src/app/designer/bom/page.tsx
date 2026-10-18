@@ -36,8 +36,8 @@ import {
 
 interface NewBOMFormItem {
   id: string;
-  partNumber: string; // BOM Code (બી એમ નો કોડ નંબર)
-  description: string; // DISCRIPTION
+  partNumber: string; // BOM Code
+  description: string; // DESCRIPTION
   pCode: string; // P. (C, B, OC, P, M)
   thk: string; // THK
   size: string; // SIZE
@@ -1709,7 +1709,7 @@ export default function MasterBOMPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="sm:col-span-2">
                   <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                    BOM CODE / NUMBER (નંબર / પાર્ટ કોડ):
+                    BOM CODE / PART NUMBER:
                   </label>
                   <input
                     type="text"
@@ -1742,7 +1742,7 @@ export default function MasterBOMPage() {
               {/* Row 2: DISCRIPTION */}
               <div>
                 <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                  DISCRIPTION (ડિસ્ક્રિપ્શન / પાર્ટ નામ):
+                  DESCRIPTION / PART NAME:
                 </label>
                 <input
                   type="text"
@@ -1758,7 +1758,7 @@ export default function MasterBOMPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                    THK (જાડાઈ / જાડાઈ શિડ્યુલ):
+                    THK (THICKNESS):
                   </label>
                   <input
                     type="text"
@@ -1771,7 +1771,7 @@ export default function MasterBOMPage() {
 
                 <div>
                   <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                    SIZE (સાઈઝ / ડાયમેન્શન):
+                    SIZE / DIMENSIONS:
                   </label>
                   <input
                     type="text"
@@ -1784,7 +1784,7 @@ export default function MasterBOMPage() {
 
                 <div>
                   <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                    MAT (મટીરીયલ ગ્રેડ):
+                    MAT (MATERIAL GRADE):
                   </label>
                   <input
                     type="text"
@@ -1800,7 +1800,7 @@ export default function MasterBOMPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                    QTY (જથ્થો):
+                    QTY (QUANTITY):
                   </label>
                   <input
                     type="number"
@@ -1815,7 +1815,7 @@ export default function MasterBOMPage() {
 
                 <div className="sm:col-span-2">
                   <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                    REMARK (રિમાર્ક / વધારાની નોંધ):
+                    REMARK / NOTES:
                   </label>
                   <input
                     type="text"

@@ -1147,10 +1147,10 @@ export default function ItemMasterListPage() {
         <Info className="w-4 h-4 text-crm-brand-700 flex-shrink-0 mt-0.5" />
         <div className="space-y-0.5">
           <p className="font-bold text-amber-950">
-            Store Inward Register & Material Traceability (આવક રજીસ્ટર & ચલણ વિગત):
+            Store Inward Register & Material Traceability:
           </p>
           <p className="text-amber-800 text-[11.5px] leading-relaxed">
-            ટેબલમાં કેટેગરી પછી <strong>DESCRIPTION</strong> અને <strong>QUANTITY</strong> ઉમેરી દીધા છે. દરેક આઈટમની બાજુમાં <strong>&quot;View Inward Details&quot;</strong> બટન આપેલું છે, જેના પર ક્લિક કરતાં મટીરીયલ ક્યાંથી આવ્યું (સપ્લાયર), ઇન્વોઇસ/ચલણ નંબર, તારીખ, વ્હીકલ નંબર અને પ્રોજેક્ટ/જોબ નંબર સંપૂર્ણપણે શો થશે.
+            Category, Description, and Quantity are tracked for every item. Click <strong>&quot;View Inward Details&quot;</strong> on any item to view complete traceability including Supplier, Invoice/Challan No, Date, Vehicle No, and Project Reference.
           </p>
         </div>
       </div>
@@ -1201,7 +1201,7 @@ export default function ItemMasterListPage() {
                   </h2>
                 </div>
                 <p className="text-xs text-[#70665F] mt-0.5">
-                  મટીરીયલ સપ્લાયર, ઇન્વોઇસ, ચલણ, તારીખ, વ્હીકલ & જોબ નંબર વિગત (Inward Register)
+                  Supplier, Invoice, Challan, Date, Vehicle & Job Reference (Inward Register)
                 </p>
               </div>
               <button
@@ -1254,7 +1254,7 @@ export default function ItemMasterListPage() {
                   <div className="px-4 py-2.5 bg-[#FAF8F5] border-b border-[#EBE3DB] flex items-center justify-between">
                     <span className="text-xs font-bold text-[#211B17] uppercase tracking-wider flex items-center gap-1.5">
                       <FileText className="w-3.5 h-3.5 text-crm-brand-700" />
-                      <span>Physical Register Inward Data (આવક પત્રક)</span>
+                      <span>Physical Register Inward Data</span>
                     </span>
                     <button
                       type="button"
@@ -1271,7 +1271,7 @@ export default function ItemMasterListPage() {
                     <div className="space-y-1">
                       <span className="text-[11px] text-[#70665F] font-semibold flex items-center gap-1">
                         <Building2 className="w-3.5 h-3.5 text-crm-brand-700" />
-                        <span>સપ્લાયર નામ (Supplier / From Where Material Came):</span>
+                        <span>Supplier / From Where Material Came:</span>
                       </span>
                       <div className="font-bold text-[#211B17] text-sm bg-[#FAF8F5] p-2 rounded-lg border border-[#EBE3DB]">
                         {inwardForm.supplierName || 'UMA FABRICATION & ENG'}
@@ -1282,7 +1282,7 @@ export default function ItemMasterListPage() {
                     <div className="space-y-1">
                       <span className="text-[11px] text-[#70665F] font-semibold flex items-center gap-1">
                         <FileText className="w-3.5 h-3.5 text-blue-600" />
-                        <span>ઇન્વોઇસ / ચલણ નંબર (Invoice & Challan No):</span>
+                        <span>Invoice & Challan No:</span>
                       </span>
                       <div className="font-mono font-bold text-[#211B17] text-sm bg-[#FAF8F5] p-2 rounded-lg border border-[#EBE3DB] flex items-center justify-between">
                         <span>Inv: {inwardForm.invoiceNumber || '-'}</span>
@@ -1294,7 +1294,7 @@ export default function ItemMasterListPage() {
                     <div className="space-y-1">
                       <span className="text-[11px] text-[#70665F] font-semibold flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>ચલણ / ઇન્વોઇસ તારીખ (Challan / Inward Date):</span>
+                        <span>Challan / Inward Date:</span>
                       </span>
                       <div className="font-bold text-[#211B17] text-xs bg-[#FAF8F5] p-2 rounded-lg border border-[#EBE3DB]">
                         {inwardForm.invoiceDate || '01/08/2026'}
@@ -1305,7 +1305,7 @@ export default function ItemMasterListPage() {
                     <div className="space-y-1">
                       <span className="text-[11px] text-[#70665F] font-semibold flex items-center gap-1">
                         <Truck className="w-3.5 h-3.5 text-amber-600" />
-                        <span>વ્હીકલ નંબર (Vehicle No. / Transporter):</span>
+                        <span>Vehicle No. / Transporter:</span>
                       </span>
                       <div className="font-mono font-bold text-[#211B17] text-xs bg-[#FAF8F5] p-2 rounded-lg border border-[#EBE3DB]">
                         {inwardForm.vehicleNumber || 'GJ-02-AT-3826'}
@@ -1316,7 +1316,7 @@ export default function ItemMasterListPage() {
                     <div className="space-y-1">
                       <span className="text-[11px] text-[#70665F] font-semibold flex items-center gap-1">
                         <FolderKanban className="w-3.5 h-3.5 text-purple-600" />
-                        <span>પ્રોજેક્ટ નંબર (Project Reference):</span>
+                        <span>Project Reference:</span>
                       </span>
                       <div className="font-mono font-bold text-crm-brand-700 text-xs bg-[#FAF8F5] p-2 rounded-lg border border-[#EBE3DB]">
                         {inwardForm.projectNumber || inwardForm.jobNumber || 'PRJ-2026-001'}
@@ -1327,7 +1327,7 @@ export default function ItemMasterListPage() {
                     <div className="space-y-1">
                       <span className="text-[11px] text-[#70665F] font-semibold flex items-center gap-1">
                         <Scale className="w-3.5 h-3.5 text-rose-600" />
-                        <span>વજન (Weight):</span>
+                        <span>Weight:</span>
                       </span>
                       <div className="font-mono font-bold text-[#211B17] text-xs bg-[#FAF8F5] p-2 rounded-lg border border-[#EBE3DB]">
                         {inwardForm.weight || '14.750 KG'}
@@ -1338,7 +1338,7 @@ export default function ItemMasterListPage() {
                     <div className="space-y-1 sm:col-span-2">
                       <span className="text-[11px] text-[#70665F] font-semibold flex items-center gap-1">
                         <User className="w-3.5 h-3.5 text-stone-600" />
-                        <span>કોણે સ્વીકાર્યું (Received By / Handover Staff):</span>
+                        <span>Received By / Handover Staff:</span>
                       </span>
                       <div className="font-medium text-[#211B17] text-xs bg-[#FAF8F5] p-2 rounded-lg border border-[#EBE3DB]">
                         {inwardForm.receivedBy || 'Store Inward Team / Harsh'}

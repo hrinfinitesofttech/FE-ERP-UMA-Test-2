@@ -227,14 +227,14 @@ export default function EditItemMasterPage() {
           />
 
           <ERPInput
-            label="Description (પરિમાણ / સાઇઝ / સ્પેસિફિકેશન)"
+            label="Description (Dimensions / Size / Specification)"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             placeholder="e.g. OD-145/ID-50/32MM THK or 500 X 500 X 20 MM"
           />
 
           <ERPInput
-            label="Stock Quantity (કોન્ટીટી)"
+            label="Stock Quantity"
             type="number"
             value={formData.currentStock}
             onChange={(e) => setFormData({ ...formData, currentStock: Number(e.target.value) })}

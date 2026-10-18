@@ -2181,7 +2181,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         {
           id: 'TSK-PRJ1-01',
           masterTaskId: 'MT-004',
-          taskName: 'CNC High-Definition Laser & Plasma Plate Cutting (કટીંગ)',
+          taskName: 'CNC High-Definition Laser & Plasma Plate Cutting',
           assignedPersons: ['Vikram Rathore', 'Shop Bay 1 Team'],
           startDate: '2026-10-02',
           endDate: '2026-10-05',
@@ -2193,7 +2193,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         {
           id: 'TSK-PRJ1-02',
           masterTaskId: 'MT-005',
-          taskName: 'Hydraulic 4-Roll Plate Bending & Dish End Rolling (બેન્ડીંગ અને રોલિંગ)',
+          taskName: 'Hydraulic 4-Roll Plate Bending & Dish End Rolling',
           assignedPersons: ['Vikram Rathore', 'Manoj Sharma'],
           startDate: '2026-10-06',
           endDate: '2026-10-10',
@@ -2205,7 +2205,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         {
           id: 'TSK-PRJ1-03',
           masterTaskId: 'MT-006',
-          taskName: 'Shell, Dish End & Limpet Coil Fit-Up Assembly (ફિટ-અપ)',
+          taskName: 'Shell, Dish End & Limpet Coil Fit-Up Assembly',
           assignedPersons: ['Kailash Mistri', 'Suresh Parmar'],
           startDate: '2026-10-11',
           endDate: '2026-10-15',
@@ -2217,7 +2217,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         {
           id: 'TSK-PRJ1-04',
           masterTaskId: 'MT-007',
-          taskName: 'Longitudinal Seam, Circ Seam & Nozzle TIG/SAW Welding (વેલ્ડીંગ)',
+          taskName: 'Longitudinal Seam, Circ Seam & Nozzle TIG/SAW Welding',
           assignedPersons: ['Ramesh Solanki', 'Certified Welder Team'],
           startDate: '2026-10-16',
           endDate: '2026-10-23',
@@ -2229,7 +2229,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         {
           id: 'TSK-PRJ1-05',
           masterTaskId: 'MT-014',
-          taskName: 'Hydrostatic Pressure Testing (45 Bar) & Quality Inspection (હાઈડ્રો ટેસ્ટિંગ)',
+          taskName: 'Hydrostatic Pressure Testing (45 Bar) & Quality Inspection',
           assignedPersons: ['Quality Inspection Team', 'TPI Third Party'],
           startDate: '2026-10-24',
           endDate: '2026-10-28',
@@ -2241,7 +2241,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         {
           id: 'TSK-PRJ1-06',
           masterTaskId: 'MT-008',
-          taskName: 'Surface Preparation, Sand Blasting & Polyurethane Enamel Topcoat (કલર / પેઇન્ટિંગ)',
+          taskName: 'Surface Preparation, Sand Blasting & Polyurethane Enamel Topcoat',
           assignedPersons: ['Finishing & Painting Crew'],
           startDate: '2026-10-29',
           endDate: '2026-11-04',

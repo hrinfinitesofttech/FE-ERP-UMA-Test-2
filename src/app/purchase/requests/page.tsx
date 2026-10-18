@@ -788,7 +788,7 @@ export default function PurchaseRequestsPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-[#70665F] block mb-1">DATE (કરંટ ડેટ):</label>
+                    <label className="text-[10px] font-bold text-[#70665F] block mb-1">DATE:</label>
                     <input
                       type="text"
                       value={formData.rfqDate}
@@ -820,7 +820,7 @@ export default function PurchaseRequestsPage() {
               {/* Row 2: Subject */}
               <div>
                 <label className="text-[10px] font-bold text-[#70665F] block mb-1 uppercase tracking-wider">
-                  Subject Line (વિષય) *:
+                  Subject Line *:
                 </label>
                 <input
                   type="text"
@@ -937,7 +937,7 @@ export default function PurchaseRequestsPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#EBE3DB]">
                 <div>
                   <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                    Special Note / Instruction (પત્ર નીચે લખાતી નોંધ):
+                    Special Note / Instruction:
                   </label>
                   <textarea
                     rows={3}
@@ -965,7 +965,7 @@ export default function PurchaseRequestsPage() {
                   <div>
                     <h4 className="font-bold text-[#211B17] text-xs flex items-center gap-1.5">
                       <FileText className="w-3.5 h-3.5 text-amber-700" />
-                      <span>Terms & Conditions (નિયમો અને શરતો - હેડ લાઇન સાથે)</span>
+                      <span>Terms & Conditions</span>
                     </h4>
                     <p className="text-[11px] text-[#70665F]">
                       Official terms printed at the bottom of the purchase inquiry letter
