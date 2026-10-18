@@ -35,6 +35,8 @@ import {
   Send,
   Check,
   Sparkles,
+  MessageSquare,
+  Mail,
 } from 'lucide-react';
 import { PurchaseOrder, POItem, PORevision, PurchaseFollowUp } from '../../../types/purchase';
 import { formatCurrency } from '../../../lib/utils';
@@ -77,6 +79,12 @@ function PurchaseOrdersHubContent() {
       setActiveTab('approvals');
     } else if (searchParams.get('tab') === 'followup') {
       setActiveTab('followup');
+    }
+    const qId = searchParams.get('quoteId');
+    if (qId) {
+      setCreateMode('from_quotation');
+      setSelectedQuoteId(qId);
+      setShowCreateModal(true);
     }
   }, [searchParams]);
 
@@ -1140,75 +1148,339 @@ function PurchaseOrdersHubContent() {
       )}
 
       {/* ========================================================= */}
-      {/* MODAL: VIEW PURCHASE ORDER DETAILS                        */}
+      {/* MODAL: VIEW PURCHASE ORDER OFFICIAL LETTERHEAD            */}
       {/* ========================================================= */}
       {viewPO && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <div>
-                <span className="text-[10px] text-[#8D7B70] font-mono">OFFICIAL PURCHASE ORDER</span>
-                <h3 className="text-base font-black text-[#211B17]">{viewPO.poNumber}</h3>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-4xl w-full max-h-[96vh] overflow-hidden shadow-2xl flex flex-col">
+            {/* Top Toolbar */}
+            <div className="flex items-center justify-between px-6 py-3 border-b border-[#EBE3DB] bg-[#FAF7F2] print:hidden">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-black text-[#211B17] font-mono tracking-wider">
+                  OFFICIAL PURCHASE ORDER: {viewPO.poNumber}
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  {viewPO.status}
+                </span>
               </div>
-              <button
-                onClick={() => setViewPO(null)}
-                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Print button */}
+                <button
+                  onClick={() => window.print()}
+                  className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#EFE8DF] text-[#211B17] font-bold text-xs rounded-xl border border-[#EBE3DB] flex items-center gap-1.5 transition"
+                  title="Print to PDF / Paper"
+                >
+                  <Printer className="w-3.5 h-3.5 text-crm-brand-700" />
+                  <span>Print / PDF</span>
+                </button>
+
+                {/* WhatsApp Share */}
+                {(() => {
+                  const supp = suppliers.find(
+                    (s) =>
+                      s.id === viewPO.supplierId ||
+                      s.name?.toLowerCase() === viewPO.supplierName?.toLowerCase()
+                  );
+                  const phone = supp?.mobile || supp?.phone || '';
+                  const cleanPhone = phone.replace(/[^0-9]/g, '');
+                  const waText = encodeURIComponent(
+                    `*UMA TECHNOFAB - PURCHASE ORDER*\n\nDear ${viewPO.supplierName},\n\nPlease find Purchase Order Ref: *${viewPO.poNumber}* dated ${viewPO.poDate} for Job *${viewPO.jobNumber || viewPO.jobId}*.\nTotal Order Value: ₹${(viewPO.grandTotal || 0).toLocaleString('en-IN')}.\n\nPlease acknowledge receipt and confirm delivery schedule.\n\nThank you,\nUMA TECHNOFAB\nMo: 9925011676`
+                  );
+                  return (
+                    <a
+                      href={
+                        cleanPhone
+                          ? `https://wa.me/${cleanPhone}?text=${waText}`
+                          : `https://wa.me/?text=${waText}`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-xs transition"
+                      title="Share directly to Vendor WhatsApp"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      <span>WhatsApp PO</span>
+                    </a>
+                  );
+                })()}
+
+                {/* Email Share */}
+                {(() => {
+                  const supp = suppliers.find(
+                    (s) =>
+                      s.id === viewPO.supplierId ||
+                      s.name?.toLowerCase() === viewPO.supplierName?.toLowerCase()
+                  );
+                  const email = supp?.email || '';
+                  const subject = encodeURIComponent(
+                    `Purchase Order ${viewPO.poNumber} - Uma Technofab`
+                  );
+                  const body = encodeURIComponent(
+                    `Dear ${viewPO.supplierName},\n\nPlease find our official Purchase Order details below:\n\nPO Number: ${viewPO.poNumber}\nPO Date: ${viewPO.poDate}\nDelivery Terms: ${viewPO.deliveryTerms || 'FOR Rajpur'}\nPayment Terms: ${viewPO.paymentTerms || '30 Days'}\nGrand Total: INR ${(viewPO.grandTotal || 0).toLocaleString('en-IN')}\n\nKindly send acknowledgement and material test certificates (TC).\n\nBest Regards,\nUMA TECHNOFAB\nRajpur, Mehsana Highway, Ta. Kadi, Dist: Mehsana\nPh: 9925011676`
+                  );
+                  return (
+                    <a
+                      href={`mailto:${email}?subject=${subject}&body=${body}`}
+                      className="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-xs transition"
+                      title="Send via Email"
+                    >
+                      <Mail className="w-3.5 h-3.5" />
+                      <span>Email PO</span>
+                    </a>
+                  );
+                })()}
+
+                <button
+                  onClick={() => setViewPO(null)}
+                  className="p-1.5 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#EFE8DF] transition"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="p-2.5 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
-                <div className="text-[#8D7B70]">Vendor:</div>
-                <div className="font-bold text-[#211B17]">{viewPO.supplierName}</div>
-              </div>
-              <div className="p-2.5 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
-                <div className="text-[#8D7B70]">PO Date:</div>
-                <div className="font-bold text-[#211B17]">{viewPO.poDate}</div>
-              </div>
-              <div className="p-2.5 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
-                <div className="text-[#8D7B70]">Job Code:</div>
-                <div className="font-bold text-[#211B17]">{viewPO.jobNumber || viewPO.jobId}</div>
-              </div>
-              <div className="p-2.5 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
-                <div className="text-[#8D7B70]">Grand Total:</div>
-                <div className="font-bold text-emerald-700 text-sm font-mono">
-                  {formatCurrency(viewPO.grandTotal)}
+            {/* Letterhead Document Body */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-[#F4EFEA] print:p-0 print:bg-white">
+              <div className="bg-white border-2 border-black max-w-3xl mx-auto p-6 sm:p-8 shadow-md text-black font-sans leading-tight">
+                {/* 1. COMPANY HEADER */}
+                <div className="border-b-2 border-black pb-3 text-center">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-gray-700 mb-1">
+                    <span>Mobile : 9925011676</span>
+                    <span>Phone : 02764 233976</span>
+                  </div>
+                  <h1 className="text-2xl sm:text-3xl font-black tracking-wide text-black uppercase font-serif">
+                    Uma Technofab
+                  </h1>
+                  <p className="text-xs sm:text-[13px] font-semibold text-gray-800 mt-1">
+                    Survey No. 1040/3, Village Rajpur, Mehsana Highway, Nr. Sandvik Tube,
+                  </p>
+                  <p className="text-xs sm:text-[13px] font-semibold text-gray-800">
+                    Ta. Kadi, Dist: Mehsana.
+                  </p>
+                  <p className="text-[11px] font-bold text-gray-700 mt-0.5">
+                    Email : umatechnofab@gmail.com
+                  </p>
+                </div>
+
+                {/* 2. DOCUMENT TITLE */}
+                <div className="py-2 text-center border-b-2 border-black">
+                  <span className="text-lg font-black tracking-widest uppercase underline">
+                    PURCHASE ORDER
+                  </span>
+                </div>
+
+                {/* 3. TWO-COLUMN BOX (VENDOR & PO DETAILS) */}
+                {(() => {
+                  const supp = suppliers.find(
+                    (s) =>
+                      s.id === viewPO.supplierId ||
+                      s.name?.toLowerCase() === viewPO.supplierName?.toLowerCase()
+                  );
+                  return (
+                    <div className="grid grid-cols-2 border-b-2 border-black text-xs font-semibold">
+                      {/* Left Box: Vendor Information */}
+                      <div className="p-3 border-r-2 border-black space-y-1">
+                        <div className="font-bold text-gray-600">TO,</div>
+                        <div className="font-extrabold text-sm uppercase text-black">
+                          {viewPO.supplierName}
+                        </div>
+                        <div className="text-gray-800 text-[11.5px] leading-snug">
+                          {supp?.address || 'AHMEDABAD / GUJARAT'}
+                        </div>
+                        <div className="font-bold text-black pt-1">
+                          MOB:- {supp?.mobile || supp?.phone || '-'}
+                        </div>
+                        {supp?.gstin && (
+                          <div className="font-bold text-gray-800 text-[11px]">
+                            GSTIN: {supp.gstin}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Right Box: PO Reference Grid */}
+                      <div className="p-2.5 divide-y divide-black/40 text-[11px]">
+                        <div className="flex justify-between py-0.5">
+                          <span className="font-bold">DATE:</span>
+                          <span className="font-extrabold">{viewPO.poDate}</span>
+                        </div>
+                        <div className="flex justify-between py-0.5">
+                          <span className="font-bold">P.O. NO:</span>
+                          <span className="font-black text-xs font-mono">{viewPO.poNumber}</span>
+                        </div>
+                        <div className="flex justify-between py-0.5">
+                          <span className="font-bold">JOB / PROJECT:</span>
+                          <span className="font-bold">{viewPO.jobNumber || viewPO.jobId || 'GENERAL'}</span>
+                        </div>
+                        <div className="flex justify-between py-0.5">
+                          <span className="font-bold">BUYER:</span>
+                          <span className="font-bold">Uma Technofab.</span>
+                        </div>
+                        <div className="flex justify-between py-0.5">
+                          <span className="font-bold">SURCHARGES:</span>
+                          <span className="font-bold">NIL</span>
+                        </div>
+                        <div className="flex justify-between py-0.5">
+                          <span className="font-bold">TAXES:</span>
+                          <span className="font-bold">18% GST (AS APPLICABLE)</span>
+                        </div>
+                        <div className="flex justify-between py-0.5">
+                          <span className="font-bold">PAYMENT:</span>
+                          <span className="font-bold">{viewPO.paymentTerms || '30 Days Credit'}</span>
+                        </div>
+                        <div className="flex justify-between py-0.5">
+                          <span className="font-bold">DELIVERY:</span>
+                          <span className="font-bold">{viewPO.deliveryTerms || 'RAJPUR WORKS'}</span>
+                        </div>
+                        <div className="flex justify-between py-0.5">
+                          <span className="font-bold">G.S.T.NO:</span>
+                          <span className="font-extrabold font-mono">24AAEFU9027H1Z3</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* 4. SUBJECT LINE */}
+                <div className="px-3 py-2 border-b-2 border-black text-xs font-black uppercase tracking-wide">
+                  Sub:- PURCHASE ORDER FOR {viewPO.items?.[0]?.itemName || 'FABRICATION MATERIALS'} (JOB: {viewPO.jobNumber || viewPO.jobId || 'WORKS'})
+                </div>
+
+                {/* 5. ITEM TABLE */}
+                <div className="border-b-2 border-black">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b-2 border-black text-center font-black uppercase text-[11px] bg-gray-50">
+                        <th className="border-r-2 border-black py-2 px-1.5 w-12">Sr. No.</th>
+                        <th className="border-r-2 border-black py-2 px-3 text-left">
+                          Description of item(s)
+                        </th>
+                        <th className="border-r-2 border-black py-2 px-2 w-20">QTY.</th>
+                        <th className="border-r-2 border-black py-2 px-2 w-28 text-right">
+                          Rate .Per /Kg (₹)
+                        </th>
+                        <th className="py-2 px-3 w-28 text-right">Amount (₹)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {/* Optional Group Title */}
+                      <tr className="border-b border-black/40 bg-gray-100 font-black">
+                        <td className="border-r-2 border-black py-1 px-1.5 text-center">❖</td>
+                        <td colSpan={4} className="py-1 px-3 uppercase tracking-wider text-[11px]">
+                          FABRICATION MATERIALS & COMPONENTS
+                        </td>
+                      </tr>
+
+                      {/* Items */}
+                      {(viewPO.items || []).map((it, idx) => (
+                        <tr key={idx} className="border-b border-black/40">
+                          <td className="border-r-2 border-black py-2 px-1.5 text-center font-bold">
+                            {idx + 1}
+                          </td>
+                          <td className="border-r-2 border-black py-2 px-3 font-semibold">
+                            <div className="font-bold text-black">{it.itemName}</div>
+                            {it.specification && (
+                              <div className="text-[11px] text-gray-700 mt-0.5">
+                                {it.specification}
+                              </div>
+                            )}
+                          </td>
+                          <td className="border-r-2 border-black py-2 px-2 text-center font-mono font-bold">
+                            {it.orderedQuantity || it.quantity || 1} {it.unit || 'KG'}
+                          </td>
+                          <td className="border-r-2 border-black py-2 px-2 text-right font-mono font-semibold">
+                            {formatCurrency(it.unitPrice)}
+                          </td>
+                          <td className="py-2 px-3 text-right font-mono font-bold">
+                            {formatCurrency(it.totalPrice || it.netPrice || 0)}
+                          </td>
+                        </tr>
+                      ))}
+
+                      {/* Special Note Box inside table */}
+                      <tr className="border-b-2 border-black bg-amber-50">
+                        <td className="border-r-2 border-black"></td>
+                        <td colSpan={4} className="py-2 px-3 font-black text-xs text-red-700 tracking-wider">
+                          MANDATORY: REQUIRE TC (TEST CERTIFICATE) & INVOICE COPY WITH MATERIAL SUPPLY.
+                        </td>
+                      </tr>
+
+                      {/* Calculations / Summary */}
+                      <tr className="border-b border-black/30 font-bold">
+                        <td colSpan={3} className="border-r-2 border-black py-1.5 px-3 text-right">
+                          SUBTOTAL:
+                        </td>
+                        <td colSpan={2} className="py-1.5 px-3 text-right font-mono font-bold">
+                          {formatCurrency(viewPO.subTotal || viewPO.subtotal || 0)}
+                        </td>
+                      </tr>
+                      {viewPO.taxTotal && viewPO.taxTotal > 0 && (
+                        <tr className="border-b border-black/30 font-bold">
+                          <td colSpan={3} className="border-r-2 border-black py-1.5 px-3 text-right">
+                            GST (18%):
+                          </td>
+                          <td colSpan={2} className="py-1.5 px-3 text-right font-mono font-bold">
+                            {formatCurrency(viewPO.taxTotal)}
+                          </td>
+                        </tr>
+                      )}
+                      {viewPO.freightCharges && viewPO.freightCharges > 0 && (
+                        <tr className="border-b border-black/30 font-bold">
+                          <td colSpan={3} className="border-r-2 border-black py-1.5 px-3 text-right">
+                            FREIGHT:
+                          </td>
+                          <td colSpan={2} className="py-1.5 px-3 text-right font-mono font-bold">
+                            {formatCurrency(viewPO.freightCharges)}
+                          </td>
+                        </tr>
+                      )}
+                      <tr className="font-black bg-gray-50 text-sm">
+                        <td colSpan={3} className="border-r-2 border-black py-2 px-3 text-right uppercase">
+                          GRAND TOTAL (₹):
+                        </td>
+                        <td colSpan={2} className="py-2 px-3 text-right font-mono font-black text-base">
+                          {formatCurrency(viewPO.grandTotal)}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* 6. TERMS & CONDITIONS */}
+                <div className="py-3 border-b-2 border-black text-[11px] font-medium leading-relaxed space-y-1">
+                  <div className="font-black underline uppercase text-xs mb-1">
+                    TERMS & CONDITIONS:
+                  </div>
+                  <div>1. <strong>Test Certificate:</strong> Material Test Certificate (TC) must accompany every dispatch without fail.</div>
+                  <div>2. <strong>Delivery:</strong> Material must be delivered at our Rajpur works within committed lead time.</div>
+                  <div>3. <strong>Payment Terms:</strong> {viewPO.paymentTerms || '30 Days Credit against approved GRN & TC verification.'}</div>
+                  <div>4. <strong>Inspection & Rejection:</strong> Material subject to factory inspection. Any defective or off-spec material will be returned at supplier cost.</div>
+                  <div>5. <strong>Jurisdiction:</strong> All disputes subject to Kadi / Mehsana jurisdiction only.</div>
+                </div>
+
+                {/* 7. SIGNATURE BLOCK */}
+                <div className="pt-6 flex justify-between items-end text-xs font-bold">
+                  <div>
+                    <div className="border-t border-black/60 pt-1 text-center w-36">
+                      Prepared By
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-right mb-10 font-black">
+                      For, UMA TECHNOFAB
+                    </div>
+                    <div className="border-t border-black/60 pt-1 text-center w-48">
+                      Authorized Signatory
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Line items table */}
-            <div className="border border-[#EBE3DB] rounded-xl overflow-hidden text-xs">
-              <table className="w-full text-left">
-                <thead className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[#544B45] font-bold">
-                  <tr>
-                    <th className="py-2 px-3">Item Name</th>
-                    <th className="py-2 px-3 text-center">Qty</th>
-                    <th className="py-2 px-3 text-right">Unit Rate</th>
-                    <th className="py-2 px-3 text-right">Total</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#EBE3DB]">
-                  {(viewPO.items || []).map((it, idx) => (
-                    <tr key={idx}>
-                      <td className="py-2 px-3 font-semibold text-[#211B17]">{it.itemName}</td>
-                      <td className="py-2 px-3 text-center font-mono">{it.orderedQuantity || it.quantity || 1}</td>
-                      <td className="py-2 px-3 text-right font-mono">{formatCurrency(it.unitPrice)}</td>
-                      <td className="py-2 px-3 text-right font-mono font-bold text-[#211B17]">
-                        {formatCurrency(it.totalPrice || it.netPrice || 0)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#EBE3DB]">
+            {/* Modal Bottom Close */}
+            <div className="flex items-center justify-end px-6 py-3 border-t border-[#EBE3DB] bg-[#FAF7F2] print:hidden">
               <button
                 onClick={() => setViewPO(null)}
-                className="px-4 py-2 bg-white border border-[#EBE3DB] text-[#211B17] font-bold text-xs rounded-xl hover:bg-[#FAF7F2]"
+                className="px-4 py-2 bg-white border border-[#EBE3DB] text-[#211B17] font-bold text-xs rounded-xl hover:bg-[#FAF7F2] transition"
               >
                 Close
               </button>

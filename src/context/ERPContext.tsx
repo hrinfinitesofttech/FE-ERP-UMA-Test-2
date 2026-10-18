@@ -663,6 +663,8 @@ interface ERPContextType {
   updatePurchaseRequisitionStatus: (id: string, status: PurchaseRequisition['status'], remarks?: string, approvedBy?: string) => void;
   rfqs: RequestForQuotation[];
   addRFQ: (rfq: Omit<RequestForQuotation, 'id' | 'rfqDate'>) => void;
+  updateRFQ: (id: string, data: Partial<RequestForQuotation>) => void;
+  deleteRFQ: (id: string) => void;
   supplierQuotations: SupplierQuotation[];
   addSupplierQuotation: (sq: Omit<SupplierQuotation, 'id'>) => void;
   updateSupplierQuotation: (id: string, data: Partial<SupplierQuotation>) => void;
@@ -9517,6 +9519,28 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }).catch((err) => console.warn('Failed to add RFQ to backend:', err));
   };
 
+  const updateRFQ = (id: string, data: Partial<RequestForQuotation>) => {
+    setRfqs((prev) => {
+      const updated = prev.map((r) => (r.id === id || r.rfqNumber === id ? { ...r, ...data } : r));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_rfqs', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    api.purchase.rfqs.update(id, data).catch((err: any) => console.warn('Failed to update RFQ on backend:', err));
+  };
+
+  const deleteRFQ = (id: string) => {
+    setRfqs((prev) => {
+      const updated = prev.filter((r) => r.id !== id && r.rfqNumber !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_rfqs', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    api.purchase.rfqs.delete(id).catch((err: any) => console.warn('Failed to delete RFQ on backend:', err));
+  };
+
   const addSupplierQuotation = (data: Omit<SupplierQuotation, 'id'>) => {
     const id = (data as any).id || `SQ-${Date.now().toString().slice(-5)}`;
     const newSq: SupplierQuotation = { ...data, id };
@@ -13796,6 +13820,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         updatePurchaseRequisitionStatus,
         rfqs: sortByLatestDesc(rfqs),
         addRFQ,
+        updateRFQ,
+        deleteRFQ,
         supplierQuotations: sortByLatestDesc(supplierQuotations),
         addSupplierQuotation,
         updateSupplierQuotation,

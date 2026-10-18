@@ -188,13 +188,6 @@ export default function PurchaseDashboardPage() {
           </div>
 
           <Link
-            href="/purchase/mrp"
-            className="flex items-center gap-2 px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-amber-600/20 transition"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Run MRP Calculation
-          </Link>
-          <Link
             href="/purchase/requisition"
             className="flex items-center gap-2 px-3.5 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-crm-brand-700/20 transition"
           >
@@ -424,9 +417,6 @@ export default function PurchaseDashboardPage() {
               </h3>
               <p className="text-xs text-[#70665F]">Primary Identifier: Project ID + Job Number</p>
             </div>
-            <Link href="/purchase/mrp" className="text-xs text-amber-400 hover:underline">
-              View MRP →
-            </Link>
           </div>
           <div className="h-60 w-full">
             <ResponsiveContainer width="100%" height="100%">

@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
 import { ItemMaster } from '../../../types/store';
-import { formatCurrency } from '../../../lib/utils';
 import { CheckCircle2 } from 'lucide-react';
 
 export default function ItemMasterListPage() {
@@ -68,15 +67,6 @@ export default function ItemMasterListPage() {
       ),
     },
     {
-      key: 'itemType',
-      header: 'ITEM TYPE',
-      cell: (item) => (
-        <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-[#EDE9FE] text-[#6D28D9] border border-[#DDD6FE]">
-          {item.itemType || 'Raw Material'}
-        </span>
-      ),
-    },
-    {
       key: 'uom',
       header: 'UOM',
       cell: (item) => (
@@ -91,33 +81,6 @@ export default function ItemMasterListPage() {
       cell: (item) => (
         <span className="font-mono text-[#64748B] text-[11px]">
           {item.hsnSac || '72193200'}
-        </span>
-      ),
-    },
-    {
-      key: 'reorderLevel',
-      header: 'REORDER LEVEL',
-      cell: (item) => (
-        <span className="font-mono font-semibold text-[#D97706]">
-          {Number(item.reorderLevel || 0).toLocaleString()} {item.uom}
-        </span>
-      ),
-    },
-    {
-      key: 'standardCost',
-      header: 'STANDARD COST',
-      cell: (item) => (
-        <span className="font-mono font-semibold text-[#1E293B]">
-          {formatCurrency(item.standardCost || item.defaultPurchaseRate || 0)}
-        </span>
-      ),
-    },
-    {
-      key: 'status',
-      header: 'STATUS',
-      cell: (item) => (
-        <span className="text-[11px] font-semibold text-[#16A34A] bg-[#DCFCE7] px-2.5 py-0.5 rounded-full border border-[#BBF7D0]">
-          {item.status || 'Active'}
         </span>
       ),
     },

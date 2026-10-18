@@ -266,42 +266,66 @@ export interface PurchaseRequisition {
 export interface RFQItem {
   id: string;
   rfqId?: string;
-  itemCode: string;
+  itemCode?: string;
   itemName?: string;
   materialName?: string;
-  specification: string;
+  groupTitle?: string;
+  description?: string;
+  specification?: string;
+  thk?: string;
+  size?: string;
+  dimensions?: string;
   category?: string;
   quantity?: number;
   requiredQuantity?: number;
   unitOfMeasure?: string;
   unit?: string;
   targetPrice?: number;
+  rate?: number;
+  amount?: number;
   drawingNumber?: string;
+  remarks?: string;
 }
 
 export interface RequestForQuotation {
   id: string;
   rfqNumber: string;
   rfqDate: string;
-  dueDate: string;
+  dueDate?: string;
   requiredDeliveryDate?: string;
   prId?: string;
-  prNumber: string;
-  projectId: string;
-  jobId: string;
+  prNumber?: string;
+  projectId?: string;
+  jobId?: string;
   jobNumber?: string;
   bomRevision?: string;
   buyer?: string;
   issuedBy?: string;
+  supplierId?: string;
+  supplierName?: string;
+  supplierAddress?: string;
+  supplierMobile?: string;
+  supplierEmail?: string;
+  supplierGstin?: string;
+  surcharges?: string;
+  taxes?: string;
+  shipTo?: string;
+  deliveryLocation?: string;
+  pageNo?: string;
+  subject?: string;
+  specialNote?: string;
+  terms?: string[];
+  termsAndConditions?: string;
+  signatory?: string;
   supplierIds?: string[];
   supplierNames?: string[];
-  invitedSuppliers: {
+  invitedSuppliers?: {
     supplierId: string;
     supplierName: string;
     email?: string;
+    mobile?: string;
     quotationReceived?: boolean;
   }[];
-  termsAndConditions?: string;
   status: RFQStatus;
   sentDate?: string;
   followUpDate?: string;

@@ -73,6 +73,7 @@ import {
   Bug,
   ShieldAlert,
   BookOpen,
+  Send,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -92,6 +93,8 @@ export function Sidebar() {
     designJobs,
     purchaseOrders,
     purchaseRequisitions,
+    rfqs,
+    supplierQuotations,
     itemMasters,
     goodsReceipts,
     workOrders,
@@ -501,15 +504,11 @@ export function Sidebar() {
                 <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Purchase Dashboard</span>}
               </Link>
-              <Link href="/purchase/mrp" className={subNavItemClass('/purchase/mrp')}>
-                <Cpu className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Material Requirement / MRP</span>}
-              </Link>
               <Link href="/purchase/requisition" className={subNavItemClass('/purchase/requisition')}>
                 <FileText className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
-                    <span>Purchase Requisition</span>
+                    <span>Material Requisition</span>
                     {purchaseRequisitions.length > 0 && (
                     <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
                       {purchaseRequisitions.length}
@@ -518,9 +517,31 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/purchase/suppliers" className={subNavItemClass('/purchase/suppliers')}>
-                <Building className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Supplier Master</span>}
+              <Link href="/purchase/requests" className={subNavItemClass('/purchase/requests')}>
+                <Send className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                {!sidebarCollapsed && (
+                  <div className="flex items-center justify-between w-full">
+                    <span>Purchase Requests (REQUIRE)</span>
+                    {rfqs && rfqs.length > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                      {rfqs.length}
+                    </span>
+                  )}
+                  </div>
+                )}
+              </Link>
+              <Link href="/purchase/quotations" className={subNavItemClass('/purchase/quotations')}>
+                <FileCheck2 className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                {!sidebarCollapsed && (
+                  <div className="flex items-center justify-between w-full">
+                    <span>Supplier Quotations</span>
+                    {supplierQuotations && supplierQuotations.length > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                      {supplierQuotations.length}
+                    </span>
+                  )}
+                  </div>
+                )}
               </Link>
               <Link href="/purchase/po" className={subNavItemClass('/purchase/po')}>
                 <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
@@ -534,6 +555,10 @@ export function Sidebar() {
                   )}
                   </div>
                 )}
+              </Link>
+              <Link href="/purchase/suppliers" className={subNavItemClass('/purchase/suppliers')}>
+                <Building className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                {!sidebarCollapsed && <span>Supplier Master</span>}
               </Link>
               <Link href="/purchase/returns" className={subNavItemClass('/purchase/returns')}>
                 <CornerUpLeft className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />

@@ -174,22 +174,6 @@ export default function EditItemMasterPage() {
       <ERPFormSection number="1." title="Item Details" defaultExpanded={true}>
         <ERPFormGrid>
           <ERPSelect
-            label="Item Type"
-            required
-            value={formData.itemType}
-            onChange={(e) => setFormData({ ...formData, itemType: e.target.value })}
-            options={[
-              { label: 'Plate / Sheet', value: 'Plate' },
-              { label: 'Pipe / Tube', value: 'Pipe' },
-              { label: 'Forging / Flange', value: 'Forging' },
-              { label: 'Bought-out Component', value: 'Bought-out' },
-              { label: 'Standard Hardware', value: 'Hardware' },
-              { label: 'Consumable & Gas', value: 'Consumable' },
-              { label: 'Raw Material General', value: 'Raw Material' },
-            ]}
-          />
-
-          <ERPSelect
             label="Category"
             required
             value={formData.category}
@@ -218,18 +202,6 @@ export default function EditItemMasterPage() {
               { label: 'Kg - Kilogram', value: 'Kg' },
               { label: 'Nos - Numbers', value: 'Nos' },
               { label: 'Mtr - Meter', value: 'Mtr' },
-            ]}
-          />
-
-          <ERPSelect
-            label="Item Status"
-            required
-            value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-            options={[
-              { label: 'Active', value: 'Active' },
-              { label: 'Inactive / On Hold', value: 'Inactive' },
-              { label: 'Discontinued', value: 'Discontinued' },
             ]}
           />
 
@@ -285,13 +257,6 @@ export default function EditItemMasterPage() {
           />
 
           <ERPInput
-            label="Standard Cost (₹)"
-            type="number"
-            value={formData.standardCost}
-            onChange={(e) => setFormData({ ...formData, standardCost: Number(e.target.value) })}
-          />
-
-          <ERPInput
             label="Default Purchase Rate (₹)"
             type="number"
             value={formData.defaultPurchaseRate}
@@ -319,13 +284,6 @@ export default function EditItemMasterPage() {
             type="number"
             value={formData.maximumStock}
             onChange={(e) => setFormData({ ...formData, maximumStock: Number(e.target.value) })}
-          />
-
-          <ERPInput
-            label="Reorder Level (ROP)"
-            type="number"
-            value={formData.reorderLevel}
-            onChange={(e) => setFormData({ ...formData, reorderLevel: Number(e.target.value) })}
           />
 
           <ERPInput
