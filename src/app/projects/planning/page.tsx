@@ -77,7 +77,7 @@ export default function ProjectPlanningPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  // Check URL query parameters for mode=create or mode=edit
+  // Check URL query parameters for mode=create or mode=edit (on mount only)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -98,7 +98,8 @@ export default function ProjectPlanningPage() {
         }
       }
     }
-  }, [projectPlanningRecords]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Projects that have NOT been planned yet (for the Create Planning dropdown)
   const availableProjectsForPlanning = useMemo(() => {
@@ -312,6 +313,18 @@ export default function ProjectPlanningPage() {
     showToast(`Project Planning for ${saved.projectNumber} saved successfully!`);
     setMode('list');
     setEditingRecordId(null);
+    setSelectedProjectId('');
+    setFormErrors({});
+    router.replace('/projects/planning');
+  };
+
+  // Cancel or Back to List
+  const handleCancelOrBackToList = () => {
+    setMode('list');
+    setEditingRecordId(null);
+    setSelectedProjectId('');
+    setFormErrors({});
+    router.replace('/projects/planning');
   };
 
   // Delete Record
@@ -590,7 +603,7 @@ export default function ProjectPlanningPage() {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => setMode('list')}
+                onClick={handleCancelOrBackToList}
                 className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
                 title="Back to Planning List"
               >
@@ -610,7 +623,7 @@ export default function ProjectPlanningPage() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setMode('list')}
+                onClick={handleCancelOrBackToList}
                 className="px-4 py-2 bg-white border border-[#EBE3DB] hover:bg-slate-50 text-[#544B45] font-bold rounded-xl text-xs transition cursor-pointer"
               >
                 Cancel
@@ -944,7 +957,7 @@ export default function ProjectPlanningPage() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setMode('list')}
+                  onClick={handleCancelOrBackToList}
                   className="px-4 py-2 bg-white border border-[#EBE3DB] hover:bg-slate-50 text-[#544B45] font-bold rounded-xl text-xs transition cursor-pointer"
                 >
                   Cancel
