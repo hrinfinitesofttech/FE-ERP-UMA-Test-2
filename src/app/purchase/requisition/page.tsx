@@ -65,8 +65,24 @@ export default function PurchaseRequisitionPage() {
   const [viewMode, setViewMode] = useState<'items' | 'dossiers'>('items');
 
   const [viewPR, setViewPR] = useState<PurchaseRequisition | null>(null);
+  const [selectedLineItem, setSelectedLineItem] = useState<RequisitionLineItemRow | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [approvedPrModal, setApprovedPrModal] = useState<PurchaseRequisition | null>(null);
+
+  const handleViewItem = (row: RequisitionLineItemRow) => {
+    setViewPR(row.parentPR);
+    setSelectedLineItem(row);
+  };
+
+  const handleViewPR = (pr: PurchaseRequisition) => {
+    setViewPR(pr);
+    setSelectedLineItem(null);
+  };
+
+  const handleCloseModal = () => {
+    setViewPR(null);
+    setSelectedLineItem(null);
+  };
 
   // Form State for Create PR Modal
   const [newProjectId, setNewProjectId] = useState(
@@ -119,6 +135,35 @@ export default function PurchaseRequisitionPage() {
     });
     return list;
   }, [purchaseRequisitions]);
+
+  // Determine items to show in the modal (only selected line item if opened from item view)
+  const displayedModalItems = useMemo(() => {
+    if (!viewPR) return [];
+    if (selectedLineItem) {
+      const filtered = (viewPR.items || []).filter(
+        (item, idx) =>
+          (item.id && item.id === selectedLineItem.id) ||
+          (item.itemCode && item.itemCode === selectedLineItem.itemCode) ||
+          `${viewPR.id}-item-${idx}` === selectedLineItem.id ||
+          (item.itemName === selectedLineItem.itemName && item.specification === selectedLineItem.specification)
+      );
+      if (filtered.length > 0) return filtered;
+      return [
+        {
+          id: selectedLineItem.id,
+          itemCode: selectedLineItem.itemCode,
+          itemName: selectedLineItem.itemName,
+          specification: selectedLineItem.specification,
+          category: selectedLineItem.category,
+          unitOfMeasure: selectedLineItem.unitOfMeasure,
+          requiredQuantity: selectedLineItem.requiredQuantity,
+          estimatedUnitPrice: 0,
+          estimatedTotalPrice: 0,
+        },
+      ];
+    }
+    return viewPR.items || [];
+  }, [viewPR, selectedLineItem]);
 
   const handleAddItemRow = () => {
     setItemsList((prev) => [
@@ -264,11 +309,11 @@ export default function PurchaseRequisitionPage() {
       key: 'prNumber',
       header: 'PR NUMBER',
       isCodeLink: true,
-      onCodeClick: (row) => setViewPR(row.parentPR),
+      onCodeClick: (row) => handleViewItem(row),
       cell: (row) => (
         <button
           type="button"
-          onClick={() => setViewPR(row.parentPR)}
+          onClick={() => handleViewItem(row)}
           className="text-[#2563EB] hover:text-[#1D4ED8] underline font-bold font-mono text-xs cursor-pointer text-left"
         >
           {row.prNumber}
@@ -341,11 +386,11 @@ export default function PurchaseRequisitionPage() {
       cell: (row) => (
         <button
           type="button"
-          onClick={() => setViewPR(row.parentPR)}
+          onClick={() => handleViewItem(row)}
           className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-[#E2E8F0] text-[#1E293B] hover:bg-[#F8FAFC] transition shadow-2xs cursor-pointer"
         >
           <Eye className="w-3.5 h-3.5 text-purple-600" />
-          <span>View Dossier</span>
+          <span>View Details</span>
         </button>
       ),
     },
@@ -357,11 +402,11 @@ export default function PurchaseRequisitionPage() {
       key: 'prNumber',
       header: 'PR NUMBER',
       isCodeLink: true,
-      onCodeClick: (pr) => setViewPR(pr),
+      onCodeClick: (pr) => handleViewPR(pr),
       cell: (pr) => (
         <button
           type="button"
-          onClick={() => setViewPR(pr)}
+          onClick={() => handleViewPR(pr)}
           className="text-[#2563EB] hover:text-[#1D4ED8] underline font-bold font-mono text-xs cursor-pointer text-left"
         >
           {pr.prNumber}
@@ -521,7 +566,7 @@ export default function PurchaseRequisitionPage() {
           searchPlaceholder="Search Item Name, Code, Project Reference or PR #..."
           onAddNew={() => setShowCreateModal(true)}
           addNewLabel="Create Purchase Requisition"
-          onView={(row) => setViewPR(row.parentPR)}
+          onView={(row) => handleViewItem(row)}
           isLoading={isInitialLoading}
           defaultPageSize={50}
           pageSizeOptions={[10, 25, 50, 100]}
@@ -535,7 +580,7 @@ export default function PurchaseRequisitionPage() {
           searchPlaceholder="Search PR #, project reference or requester..."
           onAddNew={() => setShowCreateModal(true)}
           addNewLabel="Create Purchase Requisition"
-          onView={(pr) => setViewPR(pr)}
+          onView={(pr) => handleViewPR(pr)}
           isLoading={isInitialLoading}
           defaultPageSize={50}
           pageSizeOptions={[10, 25, 50, 100]}
@@ -549,12 +594,16 @@ export default function PurchaseRequisitionPage() {
           <div className="bg-white border border-[#E2E8F0] rounded-2xl shadow-2xl max-w-3xl w-full p-6 space-y-5 animate-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-[#F1F5F9] pb-3">
               <div>
-                <span className="text-[10px] font-bold text-[#7C3AED] uppercase">Requisition Dossier</span>
-                <h3 className="text-base font-bold text-[#1E293B]">{viewPR.prNumber}</h3>
+                <span className="text-[10px] font-bold text-[#7C3AED] uppercase">
+                  {selectedLineItem ? 'Item Requisition Details' : 'Requisition Dossier'}
+                </span>
+                <h3 className="text-base font-bold text-[#1E293B]">
+                  {viewPR.prNumber} {selectedLineItem ? `• ${selectedLineItem.itemName}` : ''}
+                </h3>
               </div>
               <button
                 type="button"
-                onClick={() => setViewPR(null)}
+                onClick={handleCloseModal}
                 className="text-[#94A3B8] hover:text-[#1E293B]"
               >
                 <X className="w-5 h-5" />
@@ -581,7 +630,20 @@ export default function PurchaseRequisitionPage() {
             </div>
 
             <div>
-              <h4 className="text-xs font-bold text-[#1E293B] uppercase mb-2">Requisitioned Line Items</h4>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-xs font-bold text-[#1E293B] uppercase">
+                  {selectedLineItem ? 'Selected Requisition Item' : 'Requisitioned Line Items'}
+                </h4>
+                {selectedLineItem && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedLineItem(null)}
+                    className="text-[11px] font-semibold text-[#7C3AED] hover:underline cursor-pointer"
+                  >
+                    View All PR Items ({viewPR.items?.length || 0})
+                  </button>
+                )}
+              </div>
               <div className="border border-[#E2E8F0] rounded-xl overflow-hidden">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-[#F8FAFC] text-[#64748B] uppercase text-[10px] font-bold">
@@ -592,7 +654,7 @@ export default function PurchaseRequisitionPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#F1F5F9]">
-                    {viewPR.items.map((item) => (
+                    {displayedModalItems.map((item) => (
                       <tr key={item.id} className="hover:bg-[#F8FAFC]">
                         <td className="py-2.5 px-3 font-mono font-bold text-[#7C3AED]">{item.itemCode}</td>
                         <td className="py-2.5 px-3">
@@ -630,7 +692,7 @@ export default function PurchaseRequisitionPage() {
 
               <button
                 type="button"
-                onClick={() => setViewPR(null)}
+                onClick={handleCloseModal}
                 className="px-4 py-2 text-xs font-semibold bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#334155] rounded-lg transition"
               >
                 Close
