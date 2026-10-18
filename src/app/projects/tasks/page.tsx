@@ -24,7 +24,6 @@ import {
   FolderKanban,
   Check,
   ChevronDown,
-  Info,
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 
@@ -330,7 +329,7 @@ export default function TaskManagementPage() {
       }
 
       return true;
-    });
+    }).sort((a, b) => (a.taskCode || '').localeCompare(b.taskCode || '', undefined, { numeric: true }));
   }, [masterTasks, selectedDeptFilter, statusFilter, searchTerm]);
 
   // Department Stats
@@ -432,19 +431,6 @@ export default function TaskManagementPage() {
               <Plus className="w-4 h-4" />
               <span>+ Add Department Tasks (Multi-Line)</span>
             </button>
-          </div>
-        </div>
-
-        {/* Info Alert Box */}
-        <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3.5 flex items-start gap-3 text-xs text-amber-900 shadow-xs">
-          <Info className="w-4 h-4 text-crm-brand-700 flex-shrink-0 mt-0.5" />
-          <div className="space-y-0.5">
-            <p className="font-semibold text-amber-950">
-              ડિપાર્ટમેન્ટ વાઇસ ટાસ્ક મેનેજમેન્ટ & પ્રોજેક્ટ પ્લાનિંગ ઇન્ટિગ્રેશન:
-            </p>
-            <p className="text-amber-800/90 leading-relaxed text-[11.5px]">
-              અહીં તમે તમારા દરેક ડિપાર્ટમેન્ટ (જેવા કે <strong>Production</strong> માં Cutting, Bending, Welding, Grinding, <strong>Design</strong>, <strong>Store</strong>, <strong>Purchase</strong>, <strong>Quality</strong>, <strong>Accounts</strong>) વાઇસ ટાસ્ક એડ કરી શકો છો. જ્યારે તમે <strong>+ Add Department Tasks</strong> ક્લિક કરશો ત્યારે <strong>Foundation & Admin</strong> ના ડિપાર્ટમેન્ટ્સ આવશે અને તમે <strong>+ Add Line</strong> કરી એક સાથે મલ્ટીપલ ટાસ્ક ડેટાબેઝમાં સેવ કરી શકશો, જે સીધા <strong>Project Planning</strong> ના ડ્રોપડાઉનમાં આવી જશે.
-            </p>
           </div>
         </div>
 

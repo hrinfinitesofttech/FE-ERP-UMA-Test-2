@@ -775,8 +775,8 @@ function MaterialIssueContent() {
                 </div>
               </div>
 
-              {/* BOM & Stage */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {/* BOM Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label className="block text-[#70665F] font-semibold">BOM Number *</label>
@@ -815,22 +815,6 @@ function MaterialIssueContent() {
                     onChange={(e) => setBomRev(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-mono"
                   />
-                </div>
-
-                <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Production Stage</label>
-                  <select
-                    value={stage}
-                    onChange={(e) => setStage(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500"
-                  >
-                    <option value="Shell & Dish End Cutting / Rolling">Shell & Dish End Cutting / Rolling</option>
-                    <option value="Nozzle & Flange Fitting">Nozzle & Flange Fitting</option>
-                    <option value="Long Seam & Circ Seam Welding">Long Seam & Circ Seam Welding</option>
-                    <option value="Internal Structure & Baffle Assembly">Internal Structure & Baffle Assembly</option>
-                    <option value="Surface Preparation & Sand Blasting">Surface Preparation & Sand Blasting</option>
-                    <option value="Final Hydro Test & Painting">Final Hydro Test & Painting</option>
-                  </select>
                 </div>
               </div>
 
@@ -878,18 +862,15 @@ function MaterialIssueContent() {
                     <thead className="bg-[#F6F1EC] text-[#70665F] font-mono text-[10px] uppercase border-b border-[#EBE3DB]">
                       <tr>
                         <th className="p-2.5 pl-3">Item to Issue *</th>
-                        <th className="p-2.5 text-center w-28">Store Stock</th>
-                        <th className="p-2.5 text-center w-32">Issue Qty *</th>
-                        <th className="p-2.5 w-36">Heat / Batch Lot</th>
-                        <th className="p-2.5 text-right w-24">Est. Value (₹)</th>
-                        <th className="p-2.5 pr-3 text-center w-12">Action</th>
+                        <th className="p-2.5 text-center w-36">Store Stock</th>
+                        <th className="p-2.5 text-center w-40">Issue Qty *</th>
+                        <th className="p-2.5 pr-3 text-center w-14">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#EBE3DB]">
                       {issueLines.map((line) => {
                         const stockQty = getItemUsableStock(line.itemCode || line.itemId);
                         const isStockLow = stockQty < Number(line.issueQty);
-                        const lineVal = (Number(line.issueQty) || 0) * (line.unitPrice || 150);
 
                         return (
                           <tr key={line.lineId} className="hover:bg-[#FAF7F2]/50 transition">
@@ -940,33 +921,17 @@ function MaterialIssueContent() {
 
                             {/* Issue Qty */}
                             <td className="p-2">
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-1 justify-center">
                                 <input
                                   type="number"
                                   min="0.01"
                                   step="any"
                                   value={line.issueQty}
                                   onChange={(e) => handleLineQtyChange(line.lineId, Number(e.target.value))}
-                                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-emerald-700 font-bold font-mono text-right focus:outline-none focus:border-emerald-500 text-xs"
+                                  className="w-28 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-emerald-700 font-bold font-mono text-right focus:outline-none focus:border-emerald-500 text-xs"
                                 />
                                 <span className="text-[10px] text-[#70665F] font-mono shrink-0">{line.uom}</span>
                               </div>
-                            </td>
-
-                            {/* Heat / Batch Lot */}
-                            <td className="p-2">
-                              <input
-                                type="text"
-                                value={line.batchLot}
-                                onChange={(e) => handleLineLotChange(line.lineId, e.target.value)}
-                                placeholder="e.g. HEAT-98421"
-                                className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-[#211B17] font-mono focus:outline-none focus:border-emerald-500 text-xs"
-                              />
-                            </td>
-
-                            {/* Value */}
-                            <td className="p-2 text-right font-mono font-bold text-[#211B17]">
-                              ₹{lineVal.toLocaleString('en-IN')}
                             </td>
 
                             {/* Remove */}
@@ -988,7 +953,7 @@ function MaterialIssueContent() {
                   </table>
                 </div>
 
-                {/* Add Row Button & Grand Total summary */}
+                {/* Add Row Button & Total summary */}
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
                   <button
                     type="button"
@@ -1006,47 +971,7 @@ function MaterialIssueContent() {
                     <div>
                       Total Qty: <span className="font-bold text-emerald-700 font-mono">{totalIssueSlipQty.toLocaleString('en-IN')}</span>
                     </div>
-                    <div>
-                      Grand Total Value:{' '}
-                      <span className="font-bold text-emerald-700 font-mono text-sm">
-                        ₹{totalIssueSlipValue.toLocaleString('en-IN')}
-                      </span>
-                    </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Warehouse & Heat Lot */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Dispatch From Warehouse</label>
-                  <select
-                    value={warehouseId}
-                    onChange={(e) => setWarehouseId(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500"
-                  >
-                    {!warehouses.some((w) => w.id === warehouseId) && (
-                      <option value={warehouseId}>
-                        {selectedWh?.warehouseName || warehouseId}
-                      </option>
-                    )}
-                    {warehouses.map((w) => (
-                      <option key={`modal-wh-${w.id}`} value={w.id}>
-                        {w.warehouseName} ({w.warehouseCode})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Heat / Batch Lot Number</label>
-                  <input
-                    type="text"
-                    value={batchLot}
-                    onChange={(e) => setBatchLot(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-mono"
-                    placeholder="e.g. HEAT-98421"
-                  />
                 </div>
               </div>
 

@@ -568,6 +568,12 @@ interface ERPContextType {
   projectPlanningRecords: ProjectPlanningRecord[];
   saveProjectPlanningRecord: (record: Omit<ProjectPlanningRecord, 'id' | 'planningNumber' | 'createdAt' | 'updatedAt'> & { id?: string; planningNumber?: string }) => ProjectPlanningRecord;
   deleteProjectPlanningRecord: (id: string) => void;
+  updateProjectPlanningTaskStatus: (
+    planningRecordId: string,
+    taskId: string,
+    newStatus: 'pending' | 'in_progress' | 'completed',
+    progressPercent?: number
+  ) => void;
 
   projectPlanningStages: ProjectPlanningStage[];
   updatePlanningStage: (id: string, stage: Partial<ProjectPlanningStage>) => void;
@@ -2130,22 +2136,16 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     return true;
   });
   const DEFAULT_MASTER_TASKS: MasterTask[] = [
-    { id: 'MT-001', taskCode: 'DSGN-01', taskName: 'Engineering & 3D CAD Modeling', department: 'Design', estimatedDays: 5, status: 'active' },
-    { id: 'MT-002', taskCode: 'DSGN-02', taskName: 'BOM Finalization & Component Selection', department: 'Design', estimatedDays: 3, status: 'active' },
-    { id: 'MT-003', taskCode: 'PUR-01', taskName: 'Raw Material Procurement & Inward Inspection', department: 'Purchase', estimatedDays: 7, status: 'active' },
-    { id: 'MT-004', taskCode: 'FAB-01', taskName: 'Laser Cutting & CNC Profiling', department: 'Fabrication', estimatedDays: 4, status: 'active' },
-    { id: 'MT-005', taskCode: 'FAB-02', taskName: 'CNC Bending & Sheet Metal Forming', department: 'Fabrication', estimatedDays: 3, status: 'active' },
-    { id: 'MT-006', taskCode: 'FAB-03', taskName: 'Structural Fabrication & MIG/TIG Welding', department: 'Fabrication', estimatedDays: 6, status: 'active' },
-    { id: 'MT-007', taskCode: 'MACH-01', taskName: 'Precision Machining, Turning & Milling', department: 'Machining', estimatedDays: 5, status: 'active' },
-    { id: 'MT-008', taskCode: 'SURF-01', taskName: 'Surface Pre-treatment & Shot Blasting', department: 'Finishing', estimatedDays: 2, status: 'active' },
-    { id: 'MT-009', taskCode: 'SURF-02', taskName: 'Powder Coating & Industrial Painting', department: 'Finishing', estimatedDays: 3, status: 'active' },
-    { id: 'MT-010', taskCode: 'ASSY-01', taskName: 'Mechanical Sub-assembly & Pneumatics', department: 'Assembly', estimatedDays: 5, status: 'active' },
-    { id: 'MT-011', taskCode: 'ELEC-01', taskName: 'Electrical Control Panel Wiring & Sensors', department: 'Electrical', estimatedDays: 4, status: 'active' },
-    { id: 'MT-012', taskCode: 'AUTO-01', taskName: 'PLC Programming & Automation Integration', department: 'Electrical', estimatedDays: 3, status: 'active' },
-    { id: 'MT-013', taskCode: 'ASSY-02', taskName: 'Final Machine Assembly & Integration', department: 'Assembly', estimatedDays: 5, status: 'active' },
-    { id: 'MT-014', taskCode: 'QC-01', taskName: 'Internal Quality Inspection (PDI / Dry Run)', department: 'Quality', estimatedDays: 2, status: 'active' },
-    { id: 'MT-015', taskCode: 'QC-02', taskName: 'Factory Acceptance Test (FAT) with Client', department: 'Quality', estimatedDays: 2, status: 'active' },
-    { id: 'MT-016', taskCode: 'DISP-01', taskName: 'Wooden Crating, Packing & Dispatch', department: 'Dispatch', estimatedDays: 2, status: 'active' },
+    { id: 'Task-01', taskCode: 'Task-01', taskName: 'Design', department: 'Design & Engineering', description: '2D design', estimatedDays: 3, status: 'active' },
+    { id: 'Task-02', taskCode: 'Task-02', taskName: 'BOM', department: 'Design & Engineering', description: 'Material List', estimatedDays: 2, status: 'active' },
+    { id: 'Task-03', taskCode: 'Task-03', taskName: 'Cutting', department: 'Nesting Programming', description: 'Nesting programming', estimatedDays: 1, status: 'active' },
+    { id: 'Task-04', taskCode: 'Task-04', taskName: 'Bending', department: 'Production & Shop Floor', description: '', estimatedDays: 1, status: 'active' },
+    { id: 'Task-05', taskCode: 'Task-05', taskName: 'Teking', department: 'Production & Shop Floor', description: '', estimatedDays: 1, status: 'active' },
+    { id: 'Task-06', taskCode: 'Task-06', taskName: 'Welding', department: 'Production & Shop Floor', description: '', estimatedDays: 2, status: 'active' },
+    { id: 'Task-07', taskCode: 'Task-07', taskName: 'Grinding', department: 'Production & Shop Floor', description: '', estimatedDays: 2, status: 'active' },
+    { id: 'Task-08', taskCode: 'Task-08', taskName: 'Mach', department: 'Production & Shop Floor', description: '', estimatedDays: 2, status: 'active' },
+    { id: 'Task-09', taskCode: 'Task-09', taskName: 'Finishing', department: 'Production & Shop Floor', description: '', estimatedDays: 2, status: 'active' },
+    { id: 'Task-10', taskCode: 'Task-10', taskName: 'Final Inspection', department: 'Quality Control', description: '', estimatedDays: 1, status: 'active' },
   ];
 
   const [masterTasks, setMasterTasks] = useState<MasterTask[]>(() => {
@@ -2161,17 +2161,188 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     return DEFAULT_MASTER_TASKS;
   });
 
+  const DEFAULT_PROJECT_PLANNING_RECORDS: ProjectPlanningRecord[] = [
+    {
+      id: 'PLN-2026-0001',
+      planningNumber: 'PLN-2026-0001',
+      projectId: 'PRJ-2026-0001',
+      projectNumber: 'PRJ-2026-0001',
+      customerName: 'Infinite Engineering Solutions',
+      productName: 'Custom Chemical Reactor (3000L Limpet Coil Vessel)',
+      customerPoNumber: 'PO-INF-2026-981',
+      deliveryDate: '2026-11-20',
+      totalTasks: 6,
+      completedTasks: 1,
+      overallProgress: 17,
+      status: 'in_progress',
+      createdAt: '2026-10-01T08:00:00.000Z',
+      updatedAt: '2026-10-18T10:00:00.000Z',
+      tasks: [
+        {
+          id: 'TSK-PRJ1-01',
+          masterTaskId: 'MT-004',
+          taskName: 'CNC High-Definition Laser & Plasma Plate Cutting (કટીંગ)',
+          assignedPersons: ['Vikram Rathore', 'Shop Bay 1 Team'],
+          startDate: '2026-10-02',
+          endDate: '2026-10-05',
+          durationDays: 3,
+          status: 'completed',
+          progressPercent: 100,
+          remarks: 'Shell and dish profile cutting finished with precision.',
+        },
+        {
+          id: 'TSK-PRJ1-02',
+          masterTaskId: 'MT-005',
+          taskName: 'Hydraulic 4-Roll Plate Bending & Dish End Rolling (બેન્ડીંગ અને રોલિંગ)',
+          assignedPersons: ['Vikram Rathore', 'Manoj Sharma'],
+          startDate: '2026-10-06',
+          endDate: '2026-10-10',
+          durationDays: 4,
+          status: 'in_progress',
+          progressPercent: 50,
+          remarks: 'Shell rolling to 2200mm diameter in progress.',
+        },
+        {
+          id: 'TSK-PRJ1-03',
+          masterTaskId: 'MT-006',
+          taskName: 'Shell, Dish End & Limpet Coil Fit-Up Assembly (ફિટ-અપ)',
+          assignedPersons: ['Kailash Mistri', 'Suresh Parmar'],
+          startDate: '2026-10-11',
+          endDate: '2026-10-15',
+          durationDays: 4,
+          status: 'pending',
+          progressPercent: 0,
+          remarks: 'Tack welding and alignment of limpet coils.',
+        },
+        {
+          id: 'TSK-PRJ1-04',
+          masterTaskId: 'MT-007',
+          taskName: 'Longitudinal Seam, Circ Seam & Nozzle TIG/SAW Welding (વેલ્ડીંગ)',
+          assignedPersons: ['Ramesh Solanki', 'Certified Welder Team'],
+          startDate: '2026-10-16',
+          endDate: '2026-10-23',
+          durationDays: 7,
+          status: 'pending',
+          progressPercent: 0,
+          remarks: 'Full radiography standard ASME Sec IX welding.',
+        },
+        {
+          id: 'TSK-PRJ1-05',
+          masterTaskId: 'MT-014',
+          taskName: 'Hydrostatic Pressure Testing (45 Bar) & Quality Inspection (હાઈડ્રો ટેસ્ટિંગ)',
+          assignedPersons: ['Quality Inspection Team', 'TPI Third Party'],
+          startDate: '2026-10-24',
+          endDate: '2026-10-28',
+          durationDays: 4,
+          status: 'pending',
+          progressPercent: 0,
+          remarks: 'Holding for 2 hours with calibrated pressure gauge.',
+        },
+        {
+          id: 'TSK-PRJ1-06',
+          masterTaskId: 'MT-008',
+          taskName: 'Surface Preparation, Sand Blasting & Polyurethane Enamel Topcoat (કલર / પેઇન્ટિંગ)',
+          assignedPersons: ['Finishing & Painting Crew'],
+          startDate: '2026-10-29',
+          endDate: '2026-11-04',
+          durationDays: 6,
+          status: 'pending',
+          progressPercent: 0,
+          remarks: 'Application of Berger Luxol PU Enamel Topcoat (RAL 7035).',
+        },
+      ],
+    },
+    {
+      id: 'PLN-2026-0002',
+      planningNumber: 'PLN-2026-0002',
+      projectId: 'PRJ-2026-0002',
+      projectNumber: 'PRJ-2026-0002',
+      customerName: 'Reliance Life Sciences Ltd',
+      productName: 'Pharmaceutical Grade Storage Tank (1500L SS 316L)',
+      customerPoNumber: 'PO-RLS-4402',
+      deliveryDate: '2026-11-28',
+      totalTasks: 5,
+      completedTasks: 0,
+      overallProgress: 0,
+      status: 'planned',
+      createdAt: '2026-10-05T09:00:00.000Z',
+      updatedAt: '2026-10-18T10:00:00.000Z',
+      tasks: [
+        {
+          id: 'TSK-PRJ2-01',
+          masterTaskId: 'MT-004',
+          taskName: 'Laser CNC Cutting of SS 316L Mirror Finish Plates',
+          assignedPersons: ['Shop Bay 1 Team'],
+          startDate: '2026-10-10',
+          endDate: '2026-10-13',
+          durationDays: 3,
+          status: 'pending',
+          progressPercent: 0,
+          remarks: 'Protective film preserved on both faces.',
+        },
+        {
+          id: 'TSK-PRJ2-02',
+          masterTaskId: 'MT-005',
+          taskName: 'Torispherical Dish Forming & Flanging',
+          assignedPersons: ['Manoj Sharma'],
+          startDate: '2026-10-14',
+          endDate: '2026-10-18',
+          durationDays: 4,
+          status: 'pending',
+          progressPercent: 0,
+          remarks: 'Spinning machine forming.',
+        },
+        {
+          id: 'TSK-PRJ2-03',
+          masterTaskId: 'MT-007',
+          taskName: 'Sanitary Orbital Pipe & Shell TIG Welding',
+          assignedPersons: ['Ramesh Solanki'],
+          startDate: '2026-10-19',
+          endDate: '2026-10-25',
+          durationDays: 6,
+          status: 'pending',
+          progressPercent: 0,
+          remarks: 'Purge gas backup with argon.',
+        },
+        {
+          id: 'TSK-PRJ2-04',
+          masterTaskId: 'MT-014',
+          taskName: 'Internal Mirror Polishing (Ra < 0.4 µm) & Hydro Test',
+          assignedPersons: ['Quality Inspection Team'],
+          startDate: '2026-10-26',
+          endDate: '2026-11-02',
+          durationDays: 7,
+          status: 'pending',
+          progressPercent: 0,
+          remarks: 'Electro-polishing and surface roughness certification.',
+        },
+        {
+          id: 'TSK-PRJ2-05',
+          masterTaskId: 'MT-016',
+          taskName: 'Cleanroom Packaging, Nitrogen Purging & Sealing',
+          assignedPersons: ['Dispatch Team'],
+          startDate: '2026-11-03',
+          endDate: '2026-11-06',
+          durationDays: 3,
+          status: 'pending',
+          progressPercent: 0,
+          remarks: 'Double-wrapped with vapor barrier.',
+        },
+      ],
+    },
+  ];
+
   const [projectPlanningRecords, setProjectPlanningRecords] = useState<ProjectPlanningRecord[]>(() => {
     if (typeof window !== 'undefined') {
       try {
         const stored = localStorage.getItem('UMA_ERP_projectPlanningRecords');
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) return parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
         }
       } catch (_) {}
     }
-    return [];
+    return DEFAULT_PROJECT_PLANNING_RECORDS;
   });
 
   const [projectTasks, setProjectTasks] = useState<ProjectTask[]>([]);
@@ -8099,6 +8270,101 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const updateProjectPlanningTaskStatus = (
+    planningRecordId: string,
+    taskId: string,
+    newStatus: 'pending' | 'in_progress' | 'completed',
+    progressPercent?: number
+  ) => {
+    setProjectPlanningRecords((prev) => {
+      const updated = prev.map((record) => {
+        if (record.id !== planningRecordId && record.projectId !== planningRecordId && record.projectNumber !== planningRecordId) {
+          return record;
+        }
+
+        let updatedTasks = (record.tasks || []).map((task) => {
+          if (task.id === taskId) {
+            const pct = newStatus === 'completed' ? 100 : newStatus === 'in_progress' ? (progressPercent ?? 50) : 0;
+            return {
+              ...task,
+              status: newStatus,
+              progressPercent: pct,
+            };
+          }
+          return task;
+        });
+
+        // If a task is marked completed, automatically advance the next pending task to in_progress
+        if (newStatus === 'completed') {
+          const completedIndex = updatedTasks.findIndex((t) => t.id === taskId);
+          if (completedIndex !== -1 && completedIndex + 1 < updatedTasks.length) {
+            const nextTask = updatedTasks[completedIndex + 1];
+            if (nextTask.status === 'pending') {
+              updatedTasks = updatedTasks.map((t, idx) =>
+                idx === completedIndex + 1
+                  ? { ...t, status: 'in_progress', progressPercent: 25 }
+                  : t
+              );
+            }
+          }
+        }
+
+        const total = updatedTasks.length;
+        const completed = updatedTasks.filter((t) => t.status === 'completed' || t.progressPercent === 100).length;
+        const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+        const overallStatus: ProjectPlanningRecord['status'] = progress >= 100 ? 'completed' : progress > 0 ? 'in_progress' : 'planned';
+
+        const updatedRecord: ProjectPlanningRecord = {
+          ...record,
+          tasks: updatedTasks,
+          totalTasks: total,
+          completedTasks: completed,
+          overallProgress: progress,
+          status: overallStatus,
+          updatedAt: new Date().toISOString(),
+        };
+
+        // Also update matching ProjectJobMaster
+        setProjectJobs((prevJobs) =>
+          prevJobs.map((j) =>
+            j.id === record.projectId || j.projectNumber === record.projectNumber
+              ? {
+                  ...j,
+                  progressPercent: progress,
+                  status: progress >= 100 ? 'completed' : progress > 0 ? 'production' : j.status,
+                  currentStage: updatedTasks.find((t) => t.status === 'in_progress')?.taskName || (progress >= 100 ? 'Completed' : 'Production'),
+                }
+              : j
+          )
+        );
+
+        // Also update projectPlanningStages
+        setProjectPlanningStages((prevStages) =>
+          prevStages.map((s) => {
+            const matchedTask = updatedTasks.find((t) => t.id === s.id || t.taskName === s.stageName);
+            if (matchedTask && (s.projectId === record.projectId || s.jobNumber === record.projectNumber)) {
+              return {
+                ...s,
+                status: matchedTask.status as any,
+                progressPercent: matchedTask.progressPercent,
+              };
+            }
+            return s;
+          })
+        );
+
+        return updatedRecord;
+      });
+
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('UMA_ERP_projectPlanningRecords', JSON.stringify(updated));
+        } catch (_) {}
+      }
+      return updated;
+    });
+  };
+
   const reorderPlanningStages = (projectId: string, newOrderedStages: ProjectPlanningStage[]) => {
     setProjectPlanningStages((prev) => {
       const otherStages = prev.filter(
@@ -13819,6 +14085,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         projectPlanningRecords,
         saveProjectPlanningRecord,
         deleteProjectPlanningRecord,
+        updateProjectPlanningTaskStatus,
         projectPlanningStages: deduplicatePlanningStages(projectPlanningStages),
         updatePlanningStage,
         generateDefaultPlanningStages,

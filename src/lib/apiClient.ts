@@ -65,10 +65,21 @@ async function getOrRefreshToken(): Promise<string | null> {
 
 function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
   if (!body || typeof body !== 'object') return body;
+  if (Array.isArray(body)) return body;
   const d = { ...body };
   const ep = endpoint.toLowerCase();
   const nowStr = new Date().toISOString().split('T')[0];
   const isPatchOrPut = method === 'PATCH' || method === 'PUT';
+
+  // Master Tasks Normalization
+  if (ep.includes('/master-tasks')) {
+    if (d.taskCode && !d.task_code) d.task_code = d.taskCode;
+    if (d.taskName && !d.task_name) d.task_name = d.taskName;
+    if (d.departmentId && !d.department_id) d.department_id = d.departmentId;
+    if (d.estimatedDays !== undefined && d.estimated_days === undefined) d.estimated_days = Number(d.estimatedDays);
+    if (d.estimatedHours !== undefined && d.estimated_hours === undefined) d.estimated_hours = Number(d.estimatedHours);
+    return d;
+  }
 
   // Only assign fallback ID for POST (creation) requests, NEVER for PATCH/PUT updates!
   if (!isPatchOrPut) {
