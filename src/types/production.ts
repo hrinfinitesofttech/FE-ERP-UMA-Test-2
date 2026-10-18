@@ -467,6 +467,7 @@ export interface DispatchOrder {
   id: string;
   dispatchNumber: string;
   dispatchDate: string;
+  projectId?: string;
   jobId: string;
   jobNumber: string;
   workOrderNumber: string;

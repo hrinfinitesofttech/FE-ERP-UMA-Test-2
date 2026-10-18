@@ -351,7 +351,7 @@ export default function DispatchPage() {
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
             <input
               type="text"
-              placeholder="Search Challan #, Job #, Client, Vehicle, LR..."
+              placeholder="Search Challan #, Project #, Client, Vehicle, LR..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2 text-xs bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] placeholder-[#70665F] focus:outline-none focus:border-indigo-600"
@@ -848,8 +848,8 @@ export default function DispatchPage() {
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-[#EBE3DB] text-[11px] font-mono">
                 <div>
-                  <span className="text-[#70665F]">Job #:</span>{' '}
-                  <span className="font-bold text-[#211B17]">{viewChallan.jobNumber}</span>
+                  <span className="text-[#70665F]">Project #:</span>{' '}
+                  <span className="font-bold text-[#211B17]">{viewChallan.projectId || viewChallan.jobNumber}</span>
                 </div>
                 <div>
                   <span className="text-[#70665F]">WO #:</span>{' '}

@@ -861,7 +861,7 @@ export default function CADBlueprintViewerModal({
         <div className="bg-white border-t border-[#E7DED5] px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2">
             <span className="font-mono text-[#70665F]">
-              Job Reference: <strong className="text-[#211B17]">{jobRef}</strong>
+              Project Reference: <strong className="text-[#211B17]">{jobRef}</strong>
             </span>
             <span className="text-[#70665F]">•</span>
             <Link

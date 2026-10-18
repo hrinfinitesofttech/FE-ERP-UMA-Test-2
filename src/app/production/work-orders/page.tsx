@@ -95,11 +95,11 @@ export default function WorkOrdersPage() {
     },
     {
       key: 'jobNumber',
-      header: 'JOB # & CUSTOMER',
+      header: 'PROJECT # & CUSTOMER',
       cell: (wo) => (
         <div>
           <span className="px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200 font-mono text-[11px] font-bold">
-            {wo.jobNumber}
+            {wo.projectId || wo.jobNumber}
           </span>
           <div className="text-xs text-slate-600 mt-1 flex items-center gap-1">
             <Building className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -212,7 +212,7 @@ export default function WorkOrdersPage() {
         title="Work Orders Manager"
         columns={columns}
         data={filteredWorkOrders}
-        searchPlaceholder="Search by WO #, Job #, Customer or Product..."
+        searchPlaceholder="Search by WO #, Project #, Customer or Product..."
         addNewLabel="Generate New Work Order"
         onAddNew={() => setShowCreateModal(true)}
         onExport={() => {

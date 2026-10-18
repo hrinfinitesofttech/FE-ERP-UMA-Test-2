@@ -24,6 +24,7 @@ export interface ERPFormSectionProps {
   isCollapsible?: boolean;
   defaultExpanded?: boolean;
   rightAction?: React.ReactNode;
+  badge?: React.ReactNode;
   children: React.ReactNode;
 }
 
@@ -34,6 +35,7 @@ export function ERPFormSection({
   isCollapsible = false,
   defaultExpanded = true,
   rightAction,
+  badge,
   children,
 }: ERPFormSectionProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -55,7 +57,7 @@ export function ERPFormSection({
         </div>
 
         <div className="flex items-center gap-3">
-          {rightAction && <div onClick={(e) => e.stopPropagation()}>{rightAction}</div>}
+          {(badge || rightAction) && <div onClick={(e) => e.stopPropagation()}>{badge || rightAction}</div>}
           {isCollapsible && (
             <button
               type="button"

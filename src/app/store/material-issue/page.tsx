@@ -635,15 +635,15 @@ function MaterialIssueContent() {
             ),
           },
           {
-            key: 'job',
-            header: 'JOB NO & CUSTOMER',
+            key: 'project',
+            header: 'PROJECT & CUSTOMER',
             cell: (i) => {
-              const jobCode = i.jobId || i.job_number || i.jobNumber || '—';
-              const matchedJob = projectJobs.find((j) => j.jobNumber === jobCode || j.id === jobCode);
-              const custName = i.customerName || matchedJob?.customerName || '—';
+              const projCode = i.projectId || i.jobId || i.job_number || i.jobNumber || '—';
+              const matchedProj = (projectJobs || []).find((p) => p.projectNumber === projCode || p.id === projCode);
+              const custName = i.customerName || matchedProj?.customerName || '—';
               return (
                 <div>
-                  <span className="font-bold text-[#7C3AED] text-xs font-mono block">{jobCode}</span>
+                  <span className="font-bold text-[#7C3AED] text-xs font-mono block">{projCode}</span>
                   <span className="text-[11px] font-semibold text-[#1E293B]">{custName}</span>
                 </div>
               );
@@ -713,7 +713,7 @@ function MaterialIssueContent() {
             ),
           },
         ]}
-        searchPlaceholder="Search issue slip #, job #, customer..."
+        searchPlaceholder="Search issue slip #, project #, customer..."
         onAddNew={openNewModal}
         addNewLabel="Issue Material Slip"
         onView={(i) => setViewVoucher(i)}
@@ -732,7 +732,7 @@ function MaterialIssueContent() {
                   <Truck className="w-5 h-5 text-emerald-600" />
                   Issue Material Slip to Production
                 </h2>
-                <p className="text-[11px] text-[#70665F]">Deduct raw material from store stock and allocate directly to job work order.</p>
+                <p className="text-[11px] text-[#70665F]">Deduct raw material from store stock and allocate directly to project work order.</p>
               </div>
               <button
                 type="button"
@@ -744,10 +744,10 @@ function MaterialIssueContent() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-              {/* Job & Work Order */}
+              {/* Project & Work Order */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Target Job / Project *</label>
+                  <label className="block text-[#70665F] font-semibold mb-1">Target Project *</label>
                   <select
                     value={jobId}
                     onChange={(e) => handleJobChange(e.target.value)}
@@ -1156,8 +1156,8 @@ function MaterialIssueContent() {
             {/* Voucher Details Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB] text-xs">
               <div>
-                <div className="text-[10px] uppercase font-bold text-[#70665F]">Job Reference</div>
-                <div className="font-bold text-amber-700 font-mono mt-0.5">{viewVoucher.jobId || '—'}</div>
+                <div className="text-[10px] uppercase font-bold text-[#70665F]">Project Reference</div>
+                <div className="font-bold text-amber-700 font-mono mt-0.5">{viewVoucher.projectId || viewVoucher.jobId || '—'}</div>
               </div>
               <div>
                 <div className="text-[10px] uppercase font-bold text-[#70665F]">Work Order</div>

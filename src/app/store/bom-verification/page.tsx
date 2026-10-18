@@ -811,9 +811,8 @@ function BOMMaterialVerificationContent() {
                   Send Shortage Items to Purchase Requisition (PR) Register
                 </h3>
                 <p className="text-[#70665F] text-[11px] mt-0.5">
-                  Generate an official Purchase Requisition mapped to Job{' '}
-                  <strong className="text-[#211B17] font-mono">{currentBOM?.jobNumber}</strong> and Project{' '}
-                  <strong className="text-[#211B17] font-mono">{currentBOM?.projectId}</strong>.
+                  Generate an official Purchase Requisition mapped to Project{' '}
+                  <strong className="text-[#211B17] font-mono">{currentBOM?.projectId || currentBOM?.jobNumber}</strong>.
                 </p>
               </div>
               <button
@@ -829,9 +828,9 @@ function BOMMaterialVerificationContent() {
               {/* Target Project & Dates */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-[#FAF7F2] p-3 rounded-xl border border-[#EBE3DB]">
                 <div>
-                  <label className="text-[#70665F] font-bold text-[10px] block mb-0.5">JOB / PROJECT REF</label>
-                  <span className="font-mono font-bold text-xs text-[#211B17]">{currentBOM?.jobNumber}</span>
-                  <span className="text-[10px] text-[#70665F] block">({currentBOM?.projectId})</span>
+                  <label className="text-[#70665F] font-bold text-[10px] block mb-0.5">PROJECT REFERENCE</label>
+                  <span className="font-mono font-bold text-xs text-[#211B17]">{currentBOM?.projectId || currentBOM?.jobNumber}</span>
+                  <span className="text-[10px] text-[#70665F] block">({currentProject?.projectName || currentBOM?.machineName || 'Engineering Project'})</span>
                 </div>
                 <div>
                   <label className="text-[#70665F] font-bold text-[10px] block mb-0.5">BOM REFERENCE</label>
@@ -871,9 +870,6 @@ function BOMMaterialVerificationContent() {
                   <span className="font-bold text-[#211B17] text-xs">
                     Items to Requisition ({selectedItemsForPR.length}):
                   </span>
-                  <span className="font-mono font-bold text-xs text-rose-700">
-                    Est. Total: {formatCurrency(selectedItemsForPR.reduce((acc, i) => acc + i.shortageValue, 0))}
-                  </span>
                 </div>
 
                 <div className="border border-[#EBE3DB] rounded-xl overflow-hidden max-h-48 overflow-y-auto">
@@ -883,8 +879,6 @@ function BOMMaterialVerificationContent() {
                         <th className="p-2">Item Code</th>
                         <th className="p-2">Item Name</th>
                         <th className="p-2 text-right">Shortage Qty</th>
-                        <th className="p-2 text-right">Est Rate</th>
-                        <th className="p-2 text-right">Amount</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#EBE3DB]">
@@ -894,10 +888,6 @@ function BOMMaterialVerificationContent() {
                           <td className="p-2 font-medium text-[#211B17]">{it.itemName}</td>
                           <td className="p-2 text-right font-mono font-bold text-rose-700">
                             {it.shortageQty} {it.unit}
-                          </td>
-                          <td className="p-2 text-right font-mono text-[#544B45]">{formatCurrency(it.estimatedRate)}</td>
-                          <td className="p-2 text-right font-mono font-bold text-[#211B17]">
-                            {formatCurrency(it.shortageValue)}
                           </td>
                         </tr>
                       ))}

@@ -686,7 +686,7 @@ export default function SalesInvoicesPage() {
                   <span className="text-[10px] uppercase font-bold text-emerald-800 block mb-1">Dispatched From (Factory Site)</span>
                   <h4 className="font-bold text-[#211B17] text-sm">UMA Techno Fab Work Center 01</h4>
                   <div className="text-[#544B45] text-[11px] space-y-0.5 mt-1">
-                    <p>Job / Project Ref: <span className="font-mono font-semibold">{selectedInvoiceForPrint.jobNumber || 'PROJECT MTO'}</span></p>
+                    <p>Project Reference: <span className="font-mono font-semibold">{selectedInvoiceForPrint.projectId || selectedInvoiceForPrint.jobNumber || 'PROJECT MTO'}</span></p>
                     <p>Payment Terms: 30 Days Net from Delivery</p>
                     <p>Status: <span className="font-bold text-emerald-700">{selectedInvoiceForPrint.status}</span></p>
                   </div>

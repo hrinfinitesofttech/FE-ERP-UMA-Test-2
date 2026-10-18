@@ -122,10 +122,13 @@ export default function MasterBOMPage() {
   // Toast notification
   const [successToast, setSuccessToast] = useState('');
 
+  const initialUrlCheckedRef = React.useRef(false);
+
   useEffect(() => {
     setMounted(true);
-    // Check URL parameters for direct job or project navigation
-    if (typeof window !== 'undefined') {
+    // Check URL parameters for direct job or project navigation only on initial mount
+    if (typeof window !== 'undefined' && !initialUrlCheckedRef.current) {
+      initialUrlCheckedRef.current = true;
       const params = new URLSearchParams(window.location.search);
       const urlJob = params.get('job') || params.get('project');
       if (urlJob) {
@@ -486,12 +489,17 @@ export default function MasterBOMPage() {
 
     setIsCreateBOMModalOpen(false);
     setSelectedJobNumber(bomNo);
-    setViewMode('detail');
+    setViewMode('projects'); // Redirect to Master Bill of Materials (BOM) List
+
+    // Clean up URL query parameters so the view stays on the Projects Master BOM List
+    if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
 
     setSuccessToast(
-      `Master BOM for Project "${createProjectName}" successfully created with ${finalItems.length} components!`
+      `Master BOM "${bomNo}" for Project "${createProjectName}" successfully created with ${finalItems.length} components! Redirected to Master BOM List.`
     );
-    setTimeout(() => setSuccessToast(''), 4000);
+    setTimeout(() => setSuccessToast(''), 5000);
   };
 
   // ---------------------------------------------------------------------------

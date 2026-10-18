@@ -99,6 +99,7 @@ export function Sidebar() {
     goodsReceipts,
     workOrders,
     productionOrders,
+    masterTasks = [],
   } = useERP();
 
   const isSuperAdmin =
@@ -385,7 +386,7 @@ export function Sidebar() {
             >
               <div className="flex items-center gap-2.5">
                 <Briefcase className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
-                <span>Project & Job Management</span>
+                <span>Project Management</span>
               </div>
               <ChevronDown
                 className={cn(
@@ -416,6 +417,17 @@ export function Sidebar() {
               <Link href="/projects/planning" className={subNavItemClass('/projects/planning')}>
                 <Workflow className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Project Planning</span>}
+              </Link>
+              <Link href="/projects/tasks" className={subNavItemClass('/projects/tasks')}>
+                <CheckSquare className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                {!sidebarCollapsed && (
+                  <div className="flex items-center justify-between w-full">
+                    <span>Task Management</span>
+                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                      {masterTasks.length}
+                    </span>
+                  </div>
+                )}
               </Link>
             </div>
           )}

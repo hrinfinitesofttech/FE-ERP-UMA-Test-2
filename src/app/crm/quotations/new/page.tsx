@@ -124,12 +124,10 @@ function QuotationFormContent() {
   ].filter(Boolean);
 
   const initQty = Number(matchedEnquiry?.quantity || matchedLead?.quantity || 1);
-  const initRate = matchedEnquiry?.budget
-    ? Math.round(Number(matchedEnquiry.budget) / initQty)
-    : (matchedLead?.budget ? Math.round(Number(matchedLead.budget) / initQty) : 100000);
+  const initRate = 0;
   const initTax = 18;
-  const initBase = initQty * initRate;
-  const initAmount = Math.round(initBase * (1 + initTax / 100));
+  const initBase = 0;
+  const initAmount = 0;
 
   const [items, setItems] = useState<FormLineItem[]>([
     {
@@ -219,10 +217,10 @@ function QuotationFormContent() {
         }
 
         const q = Number(enq.quantity) || 1;
-        const r = enq.budget ? Math.round(Number(enq.budget) / q) : 100000;
+        const r = 0;
         const tax = 18;
-        const base = q * r;
-        const amt = Math.round(base * (1 + tax / 100));
+        const base = 0;
+        const amt = 0;
 
         setItems([
           {
@@ -339,7 +337,7 @@ function QuotationFormContent() {
   // Add new Machine / Line Item (Image 2)
   const addItem = (preset?: Partial<QuotationItem>) => {
     const qty = preset?.quantity ?? 1;
-    const rate = preset?.rate ?? 100000;
+    const rate = preset?.rate ?? 0;
     const disc = preset?.discountPercent ?? 0;
     const tax = preset?.taxPercent ?? 18;
     const base = qty * rate * (1 - disc / 100);

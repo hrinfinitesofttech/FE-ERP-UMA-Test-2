@@ -67,9 +67,29 @@ export default function SupplierQuotationsPage() {
   const [leadTimeDays, setLeadTimeDays] = useState(7);
   const [paymentTerms, setPaymentTerms] = useState('30 Days Credit');
   const [deliveryTerms, setDeliveryTerms] = useState('FOR Rajpur Works');
-  const [freightCharges, setFreightCharges] = useState(0);
-  const [packingCharges, setPackingCharges] = useState(0);
-  const [otherCharges, setOtherCharges] = useState(0);
+  
+  // Dynamic Additional Charges (e.g. Delivery Charges, Packaging Charges)
+  const [additionalCharges, setAdditionalCharges] = useState<
+    Array<{ id: string; name: string; amount: number }>
+  >([]);
+
+  const handleAddCharge = () => {
+    setAdditionalCharges((prev) => [
+      ...prev,
+      { id: `chg-${Date.now()}-${prev.length + 1}`, name: '', amount: 0 },
+    ]);
+  };
+
+  const handleRemoveCharge = (id: string) => {
+    setAdditionalCharges((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const handleChargeChange = (id: string, field: 'name' | 'amount', value: any) => {
+    setAdditionalCharges((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, [field]: value } : c))
+    );
+  };
+
   const [technicalStatus, setTechnicalStatus] = useState('Compliant');
   const [remarks, setRemarks] = useState('');
 
@@ -78,18 +98,18 @@ export default function SupplierQuotationsPage() {
     {
       id: `sqi-${Date.now()}-1`,
       itemCode: 'ITEM-01',
-      itemName: 'SS 316 L HR PLATE 12MM',
-      specification: '12MM THK X 1500 X 6000 MM - JINDAL MAKE',
+      itemName: '',
+      specification: '',
       unit: 'KG',
       unitOfMeasure: 'KG',
-      quotedQuantity: 1200,
-      unitPrice: 285,
-      totalPrice: 342000,
+      quotedQuantity: 1,
+      unitPrice: 0,
+      totalPrice: 0,
       taxPercent: 18,
       gstPercentage: 18,
-      netPrice: 403560,
+      netPrice: 0,
       leadTimeDays: 7,
-      brandMake: 'Jindal',
+      brandMake: '',
       technicalCompliant: true,
     },
   ]);
@@ -113,9 +133,9 @@ export default function SupplierQuotationsPage() {
       if (rfq.items && rfq.items.length > 0) {
         const mappedItems: SupplierQuotationItem[] = rfq.items.map((it, idx) => {
           const qty = it.quantity || it.requiredQuantity || 1;
-          const rate = it.rate || it.targetPrice || 0;
-          const total = qty * rate;
-          const net = total * 1.18;
+          const rate = 0; // Default to 0 so the user enters the quoted rate manually
+          const total = 0;
+          const net = 0;
           return {
             id: `sqi-${Date.now()}-${idx + 1}`,
             itemCode: it.itemCode || `ITEM-0${idx + 1}`,
@@ -130,7 +150,7 @@ export default function SupplierQuotationsPage() {
             gstPercentage: 18,
             netPrice: net,
             leadTimeDays: 7,
-            brandMake: 'Standard',
+            brandMake: '',
             technicalCompliant: true,
           };
         });
@@ -156,15 +176,13 @@ export default function SupplierQuotationsPage() {
     return subTotalCalculated * 0.18;
   }, [subTotalCalculated]);
 
+  const totalAdditionalCharges = useMemo(() => {
+    return additionalCharges.reduce((acc, it) => acc + (Number(it.amount) || 0), 0);
+  }, [additionalCharges]);
+
   const grandTotalCalculated = useMemo(() => {
-    return (
-      subTotalCalculated +
-      taxTotalCalculated +
-      Number(freightCharges || 0) +
-      Number(packingCharges || 0) +
-      Number(otherCharges || 0)
-    );
-  }, [subTotalCalculated, taxTotalCalculated, freightCharges, packingCharges, otherCharges]);
+    return subTotalCalculated + taxTotalCalculated + totalAdditionalCharges;
+  }, [subTotalCalculated, taxTotalCalculated, totalAdditionalCharges]);
 
   // Update item field
   const updateQuoteItem = (
@@ -240,15 +258,16 @@ export default function SupplierQuotationsPage() {
         rfqs.find((r) => r.id === selectedRfqId)?.rfqNumber || selectedRfqId || 'DIRECT',
       supplierId: selectedSupplierId || 'SUPP-DIRECT',
       supplierName: supplierName.trim(),
-      quotationDate,
-      validUntil,
-      validityDate: validUntil,
-      paymentTerms,
-      deliveryTerms,
+      quotationDate: quotationDate || new Date().toISOString().split('T')[0],
+      validUntil: validUntil || new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0],
+      validityDate: validUntil || new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0],
+      paymentTerms: paymentTerms || '30 Days Credit',
+      deliveryTerms: deliveryTerms || 'FOR Rajpur Works',
       leadTimeDays: Number(leadTimeDays) || 7,
-      freightCharges: Number(freightCharges) || 0,
-      packingCharges: Number(packingCharges) || 0,
-      otherCharges: Number(otherCharges) || 0,
+      freightCharges: 0,
+      packingCharges: 0,
+      otherCharges: totalAdditionalCharges,
+      additionalCharges: additionalCharges.filter((c) => c.name.trim() !== '' || c.amount > 0),
       gstTaxRate: 18,
       subTotal: subTotalCalculated,
       subtotal: subTotalCalculated,
@@ -269,6 +288,7 @@ export default function SupplierQuotationsPage() {
     setSelectedRfqId('');
     setSelectedSupplierId('');
     setSupplierName('');
+    setAdditionalCharges([]);
   };
 
   // Status badge styling
@@ -651,55 +671,7 @@ export default function SupplierQuotationsPage() {
                 </div>
               </div>
 
-              {/* Dates & Terms */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-[#544B45] mb-1">
-                    Quotation Date
-                  </label>
-                  <input
-                    type="date"
-                    value={quotationDate}
-                    onChange={(e) => setQuotationDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-[#544B45] mb-1">
-                    Validity Date
-                  </label>
-                  <input
-                    type="date"
-                    value={validUntil}
-                    onChange={(e) => setValidUntil(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-[#544B45] mb-1">
-                    Lead Time (Days)
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={leadTimeDays}
-                    onChange={(e) => setLeadTimeDays(Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-[#544B45] mb-1">
-                    Payment Terms
-                  </label>
-                  <input
-                    type="text"
-                    value={paymentTerms}
-                    onChange={(e) => setPaymentTerms(e.target.value)}
-                    placeholder="30 Days Credit"
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
-                  />
-                </div>
-              </div>
+
 
               {/* Line Items Table */}
               <div className="space-y-2">
@@ -775,8 +747,13 @@ export default function SupplierQuotationsPage() {
                               type="number"
                               min="0.1"
                               step="any"
-                              value={it.quotedQuantity}
-                              onChange={(e) => updateQuoteItem(idx, 'quotedQuantity', Number(e.target.value))}
+                              value={it.quotedQuantity === 0 ? '' : it.quotedQuantity}
+                              onChange={(e) => {
+                                const val =
+                                  e.target.value === '' ? 0 : parseFloat(e.target.value);
+                                updateQuoteItem(idx, 'quotedQuantity', isNaN(val) ? 0 : val);
+                              }}
+                              placeholder="0"
                               className="w-full p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-mono text-right focus:outline-none"
                             />
                           </td>
@@ -785,8 +762,13 @@ export default function SupplierQuotationsPage() {
                               type="number"
                               min="0"
                               step="any"
-                              value={it.unitPrice}
-                              onChange={(e) => updateQuoteItem(idx, 'unitPrice', Number(e.target.value))}
+                              value={it.unitPrice === 0 ? '' : it.unitPrice}
+                              onChange={(e) => {
+                                const val =
+                                  e.target.value === '' ? 0 : parseFloat(e.target.value);
+                                updateQuoteItem(idx, 'unitPrice', isNaN(val) ? 0 : val);
+                              }}
+                              placeholder="0"
                               className="w-full p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-mono text-right font-bold text-emerald-800 focus:outline-none"
                             />
                           </td>
@@ -814,31 +796,69 @@ export default function SupplierQuotationsPage() {
               {/* Other Charges & Summary */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB]">
                 <div className="space-y-3">
-                  <h5 className="text-xs font-extrabold text-[#211B17] uppercase">
-                    Additional Charges / Terms
-                  </h5>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>
-                      <label className="text-[#8D7B70] block mb-1">Freight (₹)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={freightCharges}
-                        onChange={(e) => setFreightCharges(Number(e.target.value))}
-                        className="w-full p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-mono text-right"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[#8D7B70] block mb-1">Packing / Fwd (₹)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={packingCharges}
-                        onChange={(e) => setPackingCharges(Number(e.target.value))}
-                        className="w-full p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-mono text-right"
-                      />
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <h5 className="text-xs font-extrabold text-[#211B17] uppercase tracking-wider">
+                      Additional Charges
+                    </h5>
+                    <button
+                      type="button"
+                      onClick={handleAddCharge}
+                      className="px-2.5 py-1 bg-white hover:bg-[#EFE8DF] text-crm-brand-700 text-xs font-bold rounded-lg border border-[#EBE3DB] flex items-center gap-1 transition shadow-2xs cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Add Additional Charge
+                    </button>
                   </div>
+
+                  {additionalCharges.length === 0 ? (
+                    <div className="py-3 px-3 bg-white/70 border border-dashed border-[#D5C7B8] rounded-xl text-center text-xs text-[#8D7B70]">
+                      No additional charges added. Click <span className="font-bold text-crm-brand-700">+ Add Additional Charge</span> to add Delivery, Packaging, etc.
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                      {additionalCharges.map((charge) => (
+                        <div
+                          key={charge.id}
+                          className="flex items-center gap-2 bg-white p-2 rounded-xl border border-[#EBE3DB]"
+                        >
+                          <div className="flex-1">
+                            <input
+                              type="text"
+                              value={charge.name}
+                              onChange={(e) =>
+                                handleChargeChange(charge.id, 'name', e.target.value)
+                              }
+                              placeholder="Charge Name (e.g. Delivery / Packaging)"
+                              className="w-full p-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                            />
+                          </div>
+                          <div className="w-28">
+                            <input
+                              type="number"
+                              min="0"
+                              step="any"
+                              value={charge.amount === 0 ? '' : charge.amount}
+                              onChange={(e) => {
+                                const val =
+                                  e.target.value === '' ? 0 : parseFloat(e.target.value);
+                                handleChargeChange(charge.id, 'amount', isNaN(val) ? 0 : val);
+                              }}
+                              placeholder="0"
+                              className="w-full p-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs font-mono font-bold text-right text-emerald-800 focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveCharge(charge.id)}
+                            className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition"
+                            title="Remove Charge"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   <div>
                     <label className="text-[#8D7B70] block mb-1">Delivery Terms</label>
                     <input
@@ -865,22 +885,18 @@ export default function SupplierQuotationsPage() {
                       {formatCurrency(taxTotalCalculated)}
                     </span>
                   </div>
-                  {freightCharges > 0 && (
-                    <div className="flex justify-between text-[#8D7B70]">
-                      <span>Freight Charges:</span>
-                      <span className="font-mono text-[#211B17]">
-                        {formatCurrency(freightCharges)}
-                      </span>
-                    </div>
-                  )}
-                  {packingCharges > 0 && (
-                    <div className="flex justify-between text-[#8D7B70]">
-                      <span>Packing Charges:</span>
-                      <span className="font-mono text-[#211B17]">
-                        {formatCurrency(packingCharges)}
-                      </span>
-                    </div>
-                  )}
+                  {additionalCharges.map((c) => {
+                    const amt = Number(c.amount) || 0;
+                    if (amt <= 0 && !c.name.trim()) return null;
+                    return (
+                      <div key={c.id} className="flex justify-between text-[#8D7B70]">
+                        <span className="truncate pr-2">{c.name || 'Additional Charge'}:</span>
+                        <span className="font-mono text-[#211B17]">
+                          {formatCurrency(amt)}
+                        </span>
+                      </div>
+                    );
+                  })}
                   <div className="pt-2 border-t border-[#EBE3DB] flex justify-between items-center">
                     <span className="font-black text-sm text-[#211B17]">Grand Total:</span>
                     <span className="font-black text-base text-emerald-800 font-mono">
@@ -998,6 +1014,23 @@ export default function SupplierQuotationsPage() {
                   <span className="text-[#8D7B70]">Delivery Terms:</span>
                   <span className="font-bold text-[#211B17]">{viewQuote.deliveryTerms || 'FOR Factory'}</span>
                 </div>
+                {viewQuote.additionalCharges && viewQuote.additionalCharges.length > 0 ? (
+                  viewQuote.additionalCharges.map((ac, idx) => (
+                    <div key={ac.id || idx} className="flex justify-between">
+                      <span className="text-[#8D7B70]">{ac.name || 'Additional Charge'}:</span>
+                      <span className="font-bold text-[#211B17] font-mono">{formatCurrency(ac.amount)}</span>
+                    </div>
+                  ))
+                ) : (
+                  <>
+                    {(viewQuote.otherCharges || 0) > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-[#8D7B70]">Other Charges:</span>
+                        <span className="font-bold text-[#211B17] font-mono">{formatCurrency(viewQuote.otherCharges || 0)}</span>
+                      </div>
+                    )}
+                  </>
+                )}
                 <div className="flex justify-between pt-1 border-t border-[#EBE3DB]">
                   <span className="text-sm font-black text-[#211B17]">Grand Total (incl. Taxes):</span>
                   <span className="text-sm font-black text-emerald-800 font-mono">

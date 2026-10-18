@@ -387,6 +387,7 @@ export interface SupplierQuotation {
   freightCharges?: number;
   packingCharges?: number;
   otherCharges?: number;
+  additionalCharges?: Array<{ id: string; name: string; amount: number }>;
   gstTaxRate?: number;
   subtotal?: number;
   subTotal: number;
@@ -506,6 +507,7 @@ export interface PurchaseOrder {
   freight?: number;
   packing?: number;
   otherCharges?: number;
+  additionalCharges?: Array<{ id: string; name: string; amount: number }>;
   gstAmount?: number;
   grandTotal: number;
   paymentTerms?: string;

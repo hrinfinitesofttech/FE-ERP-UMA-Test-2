@@ -1183,6 +1183,15 @@ export const api = {
       request<any>(`/change-requests/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
     deleteChangeRequest: (id: string) =>
       request<any>(`/change-requests/${id}/`, { method: 'DELETE' }),
+    masterTasks: {
+      list: (department?: string) =>
+        request<any[]>(department ? `/master-tasks/?department=${encodeURIComponent(department)}` : '/master-tasks/'),
+      get: (id: string) => request<any>(`/master-tasks/${id}/`),
+      create: (data: any) => request<any>('/master-tasks/', { method: 'POST', body: JSON.stringify(data) }),
+      batchCreate: (data: any[]) => request<any>('/master-tasks/batch/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/master-tasks/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/master-tasks/${id}/`, { method: 'DELETE' }),
+    },
   },
 
   // Design & Engineering

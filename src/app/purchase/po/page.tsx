@@ -58,6 +58,7 @@ function PurchaseOrdersHubContent() {
     supplierQuotations,
     suppliers,
     projectJobs,
+    rfqs,
     currentUser,
   } = useERP();
 
@@ -107,8 +108,10 @@ function PurchaseOrdersHubContent() {
   // From Quotation State
   const [selectedQuoteId, setSelectedQuoteId] = useState(supplierQuotations[0]?.id || '');
 
-  // Direct Entry State
+  // Direct Entry State (matching Vendor Quotation Entry fields)
+  const [selectedRfqId, setSelectedRfqId] = useState('');
   const [selectedSupplierId, setSelectedSupplierId] = useState('');
+  const [quotationRef, setQuotationRef] = useState('');
   const [directJobId, setDirectJobId] = useState('');
 
   // Common PO fields
@@ -116,50 +119,146 @@ function PurchaseOrdersHubContent() {
     new Date(Date.now() + 10 * 86400000).toISOString().split('T')[0]
   );
   const [newPaymentTerms, setNewPaymentTerms] = useState('30 Days Credit');
-  const [newDeliveryTerms, setNewDeliveryTerms] = useState('FOR Factory Gate');
+  const [newDeliveryTerms, setNewDeliveryTerms] = useState('FOR Rajpur Works');
   const [newDispatchMode, setNewDispatchMode] = useState('Road Transport');
   const [newSpecialInstructions, setNewSpecialInstructions] = useState('');
 
-  // Direct Items State
+  // Direct Items State (matching Vendor Quotation Entry line items)
   const [directItems, setDirectItems] = useState<
     Array<{
+      id: string;
       itemCode: string;
       itemName: string;
       specification: string;
-      category: string;
+      unit: string;
       unitOfMeasure: string;
       orderedQuantity: number;
       unitPrice: number;
+      totalPrice: number;
       gstPercentage: number;
     }>
   >([
     {
-      itemCode: 'MAT-SS316-PL',
-      itemName: 'SS 316L 12mm Shell Plate',
-      specification: 'ASTM A240 Grade 316L Mill Finish',
-      category: 'Raw Material',
+      id: `poi-${Date.now()}-1`,
+      itemCode: 'ITEM-01',
+      itemName: '',
+      specification: '',
+      unit: 'KG',
       unitOfMeasure: 'KG',
-      orderedQuantity: 1500,
-      unitPrice: 285,
+      orderedQuantity: 1,
+      unitPrice: 0,
+      totalPrice: 0,
       gstPercentage: 18,
     },
   ]);
+
+  const updateDirectItem = (index: number, field: string, val: any) => {
+    setDirectItems((prev) => {
+      const copy = [...prev];
+      const cur = { ...copy[index], [field]: val };
+      const qty = Number(cur.orderedQuantity) || 0;
+      const rate = Number(cur.unitPrice) || 0;
+      cur.totalPrice = qty * rate;
+      copy[index] = cur;
+      return copy;
+    });
+  };
 
   const handleAddDirectItem = () => {
     setDirectItems((prev) => [
       ...prev,
       {
-        itemCode: `ITEM-${prev.length + 1}`,
-        itemName: 'Fasteners / Raw Material',
-        specification: 'Standard Specification',
-        category: 'Raw Material',
-        unitOfMeasure: 'NOS',
-        orderedQuantity: 10,
-        unitPrice: 150,
+        id: `poi-${Date.now()}-${prev.length + 1}`,
+        itemCode: `ITEM-0${prev.length + 1}`,
+        itemName: '',
+        specification: '',
+        unit: 'KG',
+        unitOfMeasure: 'KG',
+        orderedQuantity: 1,
+        unitPrice: 0,
+        totalPrice: 0,
         gstPercentage: 18,
       },
     ]);
   };
+
+  const handleRemoveDirectItem = (index: number) => {
+    if (directItems.length <= 1) return;
+    setDirectItems((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  // Dynamic Additional Charges for Direct PO
+  const [directAdditionalCharges, setDirectAdditionalCharges] = useState<
+    Array<{ id: string; name: string; amount: number }>
+  >([]);
+
+  const handleAddDirectCharge = () => {
+    setDirectAdditionalCharges((prev) => [
+      ...prev,
+      { id: `po-chg-${Date.now()}-${prev.length + 1}`, name: '', amount: 0 },
+    ]);
+  };
+
+  const handleRemoveDirectCharge = (id: string) => {
+    setDirectAdditionalCharges((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const handleDirectChargeChange = (id: string, field: 'name' | 'amount', value: any) => {
+    setDirectAdditionalCharges((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, [field]: value } : c))
+    );
+  };
+
+  // Auto-populate when RFQ is selected in Direct Mode
+  const handleSelectRfqForDirect = (rfqId: string) => {
+    setSelectedRfqId(rfqId);
+    const rfq = rfqs?.find((r) => r.id === rfqId || r.rfqNumber === rfqId);
+    if (rfq) {
+      if (rfq.supplierId) {
+        setSelectedSupplierId(rfq.supplierId);
+      } else if (rfq.supplierName) {
+        const matched = suppliers.find(
+          (s) => (s.name || s.supplierName)?.toLowerCase() === rfq.supplierName?.toLowerCase()
+        );
+        if (matched) setSelectedSupplierId(matched.id);
+      }
+      if (rfq.projectId || rfq.jobNumber) {
+        setDirectJobId(rfq.projectId || rfq.jobNumber || '');
+      }
+      if (rfq.items && rfq.items.length > 0) {
+        const mapped = rfq.items.map((it, idx) => ({
+          id: `poi-${Date.now()}-${idx + 1}`,
+          itemCode: it.itemCode || `ITEM-0${idx + 1}`,
+          itemName: it.itemName || it.materialName || it.description || 'Material Item',
+          specification: it.specification || it.dimensions || `${it.thk ? it.thk + ' THK' : ''}`,
+          unit: it.unit || it.unitOfMeasure || 'KG',
+          unitOfMeasure: it.unitOfMeasure || it.unit || 'KG',
+          orderedQuantity: it.quantity || it.requiredQuantity || 1,
+          unitPrice: 0,
+          totalPrice: 0,
+          gstPercentage: 18,
+        }));
+        setDirectItems(mapped);
+      }
+    }
+  };
+
+  // Calculations for Direct PO
+  const directSubTotal = useMemo(() => {
+    return directItems.reduce((acc, it) => acc + (Number(it.totalPrice) || 0), 0);
+  }, [directItems]);
+
+  const directTaxTotal = useMemo(() => {
+    return directSubTotal * 0.18;
+  }, [directSubTotal]);
+
+  const directAdditionalTotal = useMemo(() => {
+    return directAdditionalCharges.reduce((acc, c) => acc + (Number(c.amount) || 0), 0);
+  }, [directAdditionalCharges]);
+
+  const directGrandTotal = useMemo(() => {
+    return directSubTotal + directTaxTotal + directAdditionalTotal;
+  }, [directSubTotal, directTaxTotal, directAdditionalTotal]);
 
   const handleCreatePOSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -209,6 +308,8 @@ function PurchaseOrdersHubContent() {
         subTotal: quote.subTotal || quote.subtotal || 0,
         taxTotal: quote.taxTotal || 0,
         freightCharges: 0,
+        otherCharges: quote.otherCharges || 0,
+        additionalCharges: quote.additionalCharges || [],
         grandTotal: quote.grandTotal,
         items: poItems,
         revisionNumber: 0,
@@ -227,26 +328,29 @@ function PurchaseOrdersHubContent() {
       const supplierName = sup?.supplierName || sup?.name || 'Selected Supplier';
 
       const poItems: POItem[] = directItems.map((it, idx) => {
-        const itemTotal = it.orderedQuantity * it.unitPrice;
+        const qty = Number(it.orderedQuantity) || 0;
+        const rate = Number(it.unitPrice) || 0;
+        const itemTotal = qty * rate;
         return {
           id: `POI-${Date.now()}-${idx}`,
-          itemCode: it.itemCode,
-          itemName: it.itemName,
-          specification: it.specification,
-          category: it.category,
-          orderedQuantity: it.orderedQuantity,
-          unitOfMeasure: it.unitOfMeasure,
-          unitPrice: it.unitPrice,
+          itemCode: it.itemCode || `ITEM-0${idx + 1}`,
+          itemName: it.itemName || 'Material Item',
+          specification: it.specification || '',
+          category: 'Raw Material',
+          orderedQuantity: qty,
+          unitOfMeasure: it.unit || it.unitOfMeasure || 'KG',
+          unitPrice: rate,
           totalPrice: itemTotal,
-          gstPercentage: it.gstPercentage,
+          gstPercentage: it.gstPercentage || 18,
           netPrice: itemTotal,
           hsnCode: '7219',
         };
       });
 
-      const subTotal = poItems.reduce((sum, item) => sum + item.netPrice, 0);
-      const taxTotal = Math.round(subTotal * 0.18);
-      const grandTotal = subTotal + taxTotal;
+      const selectedProj = (projectJobs || []).find(
+        (p) => (p.projectNumber || p.id) === directJobId || p.id === directJobId
+      );
+      const projDisplay = selectedProj?.projectNumber || directJobId || 'GENERAL';
 
       const newPO: PurchaseOrder = {
         id: `PO-${Date.now().toString().slice(-6)}`,
@@ -254,18 +358,24 @@ function PurchaseOrdersHubContent() {
         poDate: new Date().toISOString().split('T')[0],
         supplierId: selectedSupplierId,
         supplierName,
-        jobId: directJobId || 'JOB-2026-001',
-        jobNumber: directJobId || 'JOB-2026-001',
+        quotationId: undefined,
+        supplierQuotationNumber: quotationRef.trim() || undefined,
+        rfqNumber: selectedRfqId || undefined,
+        projectId: projDisplay,
+        jobId: projDisplay,
+        jobNumber: projDisplay,
         status: 'Submitted',
         expectedDeliveryDate: newDeliveryDate,
-        paymentTerms: newPaymentTerms,
-        deliveryTerms: newDeliveryTerms,
+        paymentTerms: newPaymentTerms || '30 Days Credit',
+        deliveryTerms: newDeliveryTerms || 'FOR Rajpur Works',
         dispatchMode: newDispatchMode,
         specialInstructions: newSpecialInstructions,
-        subTotal,
-        taxTotal,
+        subTotal: directSubTotal,
+        taxTotal: directTaxTotal,
         freightCharges: 0,
-        grandTotal,
+        otherCharges: directAdditionalTotal,
+        additionalCharges: directAdditionalCharges.filter((c) => c.name.trim() !== '' || c.amount > 0),
+        grandTotal: directGrandTotal,
         items: poItems,
         revisionNumber: 0,
         createdAt: new Date().toISOString(),
@@ -274,6 +384,13 @@ function PurchaseOrdersHubContent() {
       addPurchaseOrder(newPO);
       setShowCreateModal(false);
       showToast(`Purchase Order ${newPO.poNumber} created successfully!`);
+
+      // Reset Direct Form
+      setSelectedRfqId('');
+      setSelectedSupplierId('');
+      setQuotationRef('');
+      setDirectJobId('');
+      setDirectAdditionalCharges([]);
     }
   };
 
@@ -536,11 +653,11 @@ function PurchaseOrdersHubContent() {
             ),
           },
           {
-            key: 'job',
-            header: 'JOB / PROJECT',
+            key: 'project',
+            header: 'PROJECT',
             cell: (po) => (
               <span className="px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200 text-[11px] font-mono font-bold">
-                {po.jobNumber || po.jobId || 'Direct'}
+                {po.projectId || po.jobNumber || po.jobId || 'Direct'}
               </span>
             ),
           },
@@ -754,8 +871,8 @@ function PurchaseOrdersHubContent() {
 
                         <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-[#EBE3DB] text-xs">
                           <div>
-                            <span className="text-[#8D7B70]">Job / Project:</span>
-                            <div className="font-bold text-[#211B17]">{po.jobNumber || po.jobId}</div>
+                            <span className="text-[#8D7B70]">Project Reference:</span>
+                            <div className="font-bold text-[#211B17]">{po.projectId || po.jobNumber || po.jobId}</div>
                           </div>
                           <div>
                             <span className="text-[#8D7B70]">Required Delivery:</span>
@@ -940,198 +1057,481 @@ function PurchaseOrdersHubContent() {
       {/* MODAL: CREATE PURCHASE ORDER                              */}
       {/* ========================================================= */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#EBE3DB] bg-[#FAF7F2]">
               <div className="flex items-center gap-2">
                 <ShoppingCart className="w-5 h-5 text-crm-brand-700" />
                 <h3 className="text-base font-black text-[#211B17]">Create Purchase Order (PO)</h3>
               </div>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]"
+                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#EFE8DF] transition"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Mode Switcher */}
-            <div className="flex items-center gap-2 bg-[#FAF7F2] p-1 rounded-xl border border-[#EBE3DB] text-xs">
-              <button
-                type="button"
-                onClick={() => setCreateMode('from_quotation')}
-                className={`flex-1 py-1.5 rounded-lg font-bold transition ${
-                  createMode === 'from_quotation'
-                    ? 'bg-crm-brand-700 text-white shadow-xs'
-                    : 'text-[#70665F] hover:text-[#211B17]'
-                }`}
-              >
-                From Approved Quotation ({supplierQuotations.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setCreateMode('direct')}
-                className={`flex-1 py-1.5 rounded-lg font-bold transition ${
-                  createMode === 'direct'
-                    ? 'bg-crm-brand-700 text-white shadow-xs'
-                    : 'text-[#70665F] hover:text-[#211B17]'
-                }`}
-              >
-                Direct Manual Entry
-              </button>
+            <div className="px-6 py-3 border-b border-[#EBE3DB] bg-white">
+              <div className="flex items-center gap-2 bg-[#FAF7F2] p-1 rounded-xl border border-[#EBE3DB] text-xs max-w-md mx-auto">
+                <button
+                  type="button"
+                  onClick={() => setCreateMode('from_quotation')}
+                  className={`flex-1 py-1.5 rounded-lg font-bold transition ${
+                    createMode === 'from_quotation'
+                      ? 'bg-crm-brand-700 text-white shadow-xs'
+                      : 'text-[#70665F] hover:text-[#211B17]'
+                  }`}
+                >
+                  From Approved Quotation ({supplierQuotations.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCreateMode('direct')}
+                  className={`flex-1 py-1.5 rounded-lg font-bold transition ${
+                    createMode === 'direct'
+                      ? 'bg-crm-brand-700 text-white shadow-xs'
+                      : 'text-[#70665F] hover:text-[#211B17]'
+                  }`}
+                >
+                  Direct Manual Entry
+                </button>
+              </div>
             </div>
 
-            <form onSubmit={handleCreatePOSubmit} className="space-y-4 text-xs">
+            <form onSubmit={handleCreatePOSubmit} className="flex-1 overflow-y-auto p-6 space-y-5 text-xs">
               {createMode === 'from_quotation' ? (
-                <div>
-                  <label className="font-bold text-[#544B45] block mb-1">Select Supplier Quotation *</label>
-                  <select
-                    value={selectedQuoteId}
-                    onChange={(e) => setSelectedQuoteId(e.target.value)}
-                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
-                  >
-                    {supplierQuotations.map((sq) => (
-                      <option key={sq.id} value={sq.id}>
-                        {sq.quotationNumber} • {sq.supplierName} • {formatCurrency(sq.grandTotal)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-4">
                   <div>
-                    <label className="font-bold text-[#544B45] block mb-1">Supplier *</label>
+                    <label className="font-bold text-[#544B45] block mb-1">Select Supplier Quotation *</label>
                     <select
-                      required
-                      value={selectedSupplierId}
-                      onChange={(e) => setSelectedSupplierId(e.target.value)}
-                      className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
+                      value={selectedQuoteId}
+                      onChange={(e) => setSelectedQuoteId(e.target.value)}
+                      className="w-full p-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                     >
-                      <option value="">-- Choose Supplier --</option>
-                      {suppliers.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.supplierName || s.name} ({s.vendorCode || s.supplierCode})
+                      {supplierQuotations.map((sq) => (
+                        <option key={sq.id} value={sq.id}>
+                          {sq.quotationNumber} • {sq.supplierName} • {formatCurrency(sq.grandTotal)}
                         </option>
                       ))}
                     </select>
                   </div>
-                  <div>
-                    <label className="font-bold text-[#544B45] block mb-1">Linked Job / Project</label>
-                    <select
-                      value={directJobId}
-                      onChange={(e) => setDirectJobId(e.target.value)}
-                      className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
-                    >
-                      {projectJobs.map((j) => (
-                        <option key={j.id} value={j.jobNumber || j.id}>
-                          {j.jobNumber} • {j.productName?.slice(0, 20)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              )}
 
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="font-bold text-[#544B45] block mb-1">Delivery Due Date</label>
-                  <input
-                    type="date"
-                    value={newDeliveryDate}
-                    onChange={(e) => setNewDeliveryDate(e.target.value)}
-                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-[#544B45] block mb-1">Payment Terms</label>
-                  <input
-                    type="text"
-                    value={newPaymentTerms}
-                    onChange={(e) => setNewPaymentTerms(e.target.value)}
-                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-[#544B45] block mb-1">Delivery Terms</label>
-                  <input
-                    type="text"
-                    value={newDeliveryTerms}
-                    onChange={(e) => setNewDeliveryTerms(e.target.value)}
-                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium focus:outline-none"
-                  />
-                </div>
-              </div>
+                  {(() => {
+                    const q = supplierQuotations.find((sq) => sq.id === selectedQuoteId);
+                    if (!q) return null;
+                    return (
+                      <div className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl p-4 space-y-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                          <div>
+                            <span className="text-[#8D7B70] block">Supplier:</span>
+                            <span className="font-bold text-[#211B17]">{q.supplierName}</span>
+                          </div>
+                          <div>
+                            <span className="text-[#8D7B70] block">Quotation Ref:</span>
+                            <span className="font-bold text-[#211B17] font-mono">{q.supplierQuotationRef || q.quotationNumber}</span>
+                          </div>
+                          <div>
+                            <span className="text-[#8D7B70] block">Linked RFQ:</span>
+                            <span className="font-bold text-sky-700 font-mono">{q.rfqNumber || 'DIRECT'}</span>
+                          </div>
+                          <div>
+                            <span className="text-[#8D7B70] block">Total Items:</span>
+                            <span className="font-bold text-[#211B17]">{q.items?.length || 0} Materials</span>
+                          </div>
+                        </div>
 
-              {createMode === 'direct' && (
-                <div className="border border-[#EBE3DB] rounded-xl p-3 bg-[#FAF7F2] space-y-2">
-                  <div className="flex items-center justify-between font-bold text-[#211B17]">
-                    <span>PO Line Items</span>
-                    <button
-                      type="button"
-                      onClick={handleAddDirectItem}
-                      className="text-[11px] text-crm-brand-700 hover:underline flex items-center gap-1"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Add Item</span>
-                    </button>
-                  </div>
+                        <div className="border border-[#EBE3DB] rounded-xl overflow-hidden bg-white">
+                          <table className="w-full text-left text-xs">
+                            <thead className="bg-[#FAF7F2] border-b border-[#EBE3DB] font-bold text-[#544B45]">
+                              <tr>
+                                <th className="py-2 px-3">Item / Description</th>
+                                <th className="py-2 px-3">Specification</th>
+                                <th className="py-2 px-3 text-center">Qty</th>
+                                <th className="py-2 px-3 text-right">Unit Rate</th>
+                                <th className="py-2 px-3 text-right">Total</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#EBE3DB]">
+                              {(q.items || []).map((it, idx) => (
+                                <tr key={idx}>
+                                  <td className="py-2 px-3 font-bold text-[#211B17]">{it.itemName}</td>
+                                  <td className="py-2 px-3 text-[#70665F]">{it.specification || '-'}</td>
+                                  <td className="py-2 px-3 text-center font-mono">{it.quotedQuantity || it.quantity || 1} {it.unit || 'KG'}</td>
+                                  <td className="py-2 px-3 text-right font-mono text-emerald-800 font-bold">{formatCurrency(it.unitPrice)}</td>
+                                  <td className="py-2 px-3 text-right font-mono font-bold text-[#211B17]">{formatCurrency(it.totalPrice || 0)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
 
-                  {directItems.map((item, idx) => (
-                    <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+                        <div className="flex justify-between items-center pt-2 border-t border-[#EBE3DB]">
+                          <span className="font-bold text-[#544B45]">Grand Total (incl. Taxes & Charges):</span>
+                          <span className="text-base font-black text-emerald-800 font-mono">{formatCurrency(q.grandTotal)}</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="font-bold text-[#544B45] block mb-1">Delivery Due Date</label>
                       <input
-                        type="text"
-                        placeholder="Item Code"
-                        value={item.itemCode}
-                        onChange={(e) => {
-                          const c = [...directItems];
-                          c[idx].itemCode = e.target.value;
-                          setDirectItems(c);
-                        }}
-                        className="col-span-3 p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Item Name"
-                        value={item.itemName}
-                        onChange={(e) => {
-                          const c = [...directItems];
-                          c[idx].itemName = e.target.value;
-                          setDirectItems(c);
-                        }}
-                        className="col-span-4 p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs"
-                      />
-                      <input
-                        type="number"
-                        placeholder="Qty"
-                        value={item.orderedQuantity}
-                        onChange={(e) => {
-                          const c = [...directItems];
-                          c[idx].orderedQuantity = Number(e.target.value);
-                          setDirectItems(c);
-                        }}
-                        className="col-span-2 p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs text-center"
-                      />
-                      <input
-                        type="number"
-                        placeholder="Rate"
-                        value={item.unitPrice}
-                        onChange={(e) => {
-                          const c = [...directItems];
-                          c[idx].unitPrice = Number(e.target.value);
-                          setDirectItems(c);
-                        }}
-                        className="col-span-3 p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs text-right font-mono"
+                        type="date"
+                        value={newDeliveryDate}
+                        onChange={(e) => setNewDeliveryDate(e.target.value)}
+                        className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
                       />
                     </div>
-                  ))}
+                    <div>
+                      <label className="font-bold text-[#544B45] block mb-1">Payment Terms</label>
+                      <input
+                        type="text"
+                        value={newPaymentTerms}
+                        onChange={(e) => setNewPaymentTerms(e.target.value)}
+                        className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-bold text-[#544B45] block mb-1">Delivery Terms</label>
+                      <input
+                        type="text"
+                        value={newDeliveryTerms}
+                        onChange={(e) => setNewDeliveryTerms(e.target.value)}
+                        className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
+                      />
+                    </div>
+                  </div>
                 </div>
+              ) : (
+                /* Direct Manual Entry (Matching Vendor Quotation Entry Exactly) */
+                <>
+                  {/* Top Row: Link RFQ, Supplier, Quote Ref, Linked Project */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-[#544B45] mb-1">
+                        Link RFQ / Purchase Request
+                      </label>
+                      <select
+                        value={selectedRfqId}
+                        onChange={(e) => handleSelectRfqForDirect(e.target.value)}
+                        className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                      >
+                        <option value="">-- Direct PO (No RFQ) --</option>
+                        {rfqs?.map((rfq) => (
+                          <option key={rfq.id} value={rfq.id}>
+                            {rfq.rfqNumber} • {rfq.supplierName || 'General Vendor'}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#544B45] mb-1">
+                        Select Supplier / Vendor *
+                      </label>
+                      <select
+                        required
+                        value={selectedSupplierId}
+                        onChange={(e) => setSelectedSupplierId(e.target.value)}
+                        className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                      >
+                        <option value="">-- Choose Supplier --</option>
+                        {suppliers.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.supplierName || s.name} {s.city ? `(${s.city})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#544B45] mb-1">
+                        Vendor Quote Reference No *
+                      </label>
+                      <input
+                        type="text"
+                        value={quotationRef}
+                        onChange={(e) => setQuotationRef(e.target.value)}
+                        placeholder="e.g. QTN-2026-904"
+                        className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#544B45] mb-1">
+                        Linked Project
+                      </label>
+                      <select
+                        value={directJobId}
+                        onChange={(e) => setDirectJobId(e.target.value)}
+                        className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                      >
+                        <option value="">-- Choose Project --</option>
+                        {(projectJobs || []).map((p) => (
+                          <option key={p.id} value={p.projectNumber || p.id}>
+                            {p.projectNumber || p.id} • {p.projectName?.slice(0, 25)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Line Items Table */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-extrabold text-[#211B17] uppercase tracking-wider">
+                        PO Material Items & Rates
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={handleAddDirectItem}
+                        className="px-2.5 py-1 bg-[#FAF7F2] hover:bg-[#EFE8DF] text-crm-brand-700 text-xs font-bold rounded-lg border border-[#EBE3DB] flex items-center gap-1 transition shadow-2xs cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Add Material Line
+                      </button>
+                    </div>
+
+                    <div className="border border-[#EBE3DB] rounded-xl overflow-x-auto">
+                      <table className="w-full text-left text-xs min-w-[700px]">
+                        <thead className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[#544B45] font-bold">
+                          <tr>
+                            <th className="py-2 px-3 w-10">#</th>
+                            <th className="py-2 px-3">Item Name / Material</th>
+                            <th className="py-2 px-3">Specification / Make</th>
+                            <th className="py-2 px-3 w-20 text-center">Unit</th>
+                            <th className="py-2 px-3 w-24 text-right">Quantity</th>
+                            <th className="py-2 px-3 w-28 text-right">Unit Rate (₹)</th>
+                            <th className="py-2 px-3 w-28 text-right">Total (₹)</th>
+                            <th className="py-2 px-3 w-12 text-center"></th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#EBE3DB]">
+                          {directItems.map((it, idx) => (
+                            <tr key={it.id || idx}>
+                              <td className="py-2 px-3 font-mono text-[#8D7B70]">{idx + 1}</td>
+                              <td className="py-2 px-3">
+                                <input
+                                  type="text"
+                                  required
+                                  value={it.itemName}
+                                  onChange={(e) => updateDirectItem(idx, 'itemName', e.target.value)}
+                                  placeholder="e.g. SS 316 L HR PLATE"
+                                  className="w-full p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-semibold focus:outline-none"
+                                />
+                              </td>
+                              <td className="py-2 px-3">
+                                <input
+                                  type="text"
+                                  value={it.specification}
+                                  onChange={(e) => updateDirectItem(idx, 'specification', e.target.value)}
+                                  placeholder="12MM THK - Jindal Make"
+                                  className="w-full p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs focus:outline-none"
+                                />
+                              </td>
+                              <td className="py-2 px-3">
+                                <select
+                                  value={it.unit || 'KG'}
+                                  onChange={(e) => {
+                                    updateDirectItem(idx, 'unit', e.target.value);
+                                    updateDirectItem(idx, 'unitOfMeasure', e.target.value);
+                                  }}
+                                  className="w-full p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-semibold focus:outline-none text-center"
+                                >
+                                  <option value="KG">KG</option>
+                                  <option value="NOS">NOS</option>
+                                  <option value="MTR">MTR</option>
+                                  <option value="SET">SET</option>
+                                  <option value="TON">TON</option>
+                                  <option value="PKT">PKT</option>
+                                </select>
+                              </td>
+                              <td className="py-2 px-3">
+                                <input
+                                  type="number"
+                                  min="0.1"
+                                  step="any"
+                                  value={it.orderedQuantity === 0 ? '' : it.orderedQuantity}
+                                  onChange={(e) => {
+                                    const val =
+                                      e.target.value === '' ? 0 : parseFloat(e.target.value);
+                                    updateDirectItem(idx, 'orderedQuantity', isNaN(val) ? 0 : val);
+                                  }}
+                                  placeholder="0"
+                                  className="w-full p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-mono text-right focus:outline-none"
+                                />
+                              </td>
+                              <td className="py-2 px-3">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  value={it.unitPrice === 0 ? '' : it.unitPrice}
+                                  onChange={(e) => {
+                                    const val =
+                                      e.target.value === '' ? 0 : parseFloat(e.target.value);
+                                    updateDirectItem(idx, 'unitPrice', isNaN(val) ? 0 : val);
+                                  }}
+                                  placeholder="0"
+                                  className="w-full p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-mono text-right font-bold text-emerald-800 focus:outline-none"
+                                />
+                              </td>
+                              <td className="py-2 px-3 text-right font-mono font-bold text-[#211B17]">
+                                {formatCurrency(it.totalPrice || 0)}
+                              </td>
+                              <td className="py-2 px-3 text-center">
+                                {directItems.length > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveDirectItem(idx)}
+                                    className="p-1 text-rose-500 hover:text-rose-700 rounded transition"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Additional Charges / Terms & Summary */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB]">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h5 className="text-xs font-extrabold text-[#211B17] uppercase tracking-wider">
+                          Additional Charges
+                        </h5>
+                        <button
+                          type="button"
+                          onClick={handleAddDirectCharge}
+                          className="px-2.5 py-1 bg-white hover:bg-[#EFE8DF] text-crm-brand-700 text-xs font-bold rounded-lg border border-[#EBE3DB] flex items-center gap-1 transition shadow-2xs cursor-pointer"
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Add Additional Charge
+                        </button>
+                      </div>
+
+                      {directAdditionalCharges.length === 0 ? (
+                        <div className="py-3 px-3 bg-white/70 border border-dashed border-[#D5C7B8] rounded-xl text-center text-xs text-[#8D7B70]">
+                          No additional charges added. Click <span className="font-bold text-crm-brand-700">+ Add Additional Charge</span> to add Delivery, Packaging, etc.
+                        </div>
+                      ) : (
+                        <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                          {directAdditionalCharges.map((charge) => (
+                            <div
+                              key={charge.id}
+                              className="flex items-center gap-2 bg-white p-2 rounded-xl border border-[#EBE3DB]"
+                            >
+                              <div className="flex-1">
+                                <input
+                                  type="text"
+                                  value={charge.name}
+                                  onChange={(e) =>
+                                    handleDirectChargeChange(charge.id, 'name', e.target.value)
+                                  }
+                                  placeholder="Charge Name (e.g. Delivery / Packaging)"
+                                  className="w-full p-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                                />
+                              </div>
+                              <div className="w-28">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="any"
+                                  value={charge.amount === 0 ? '' : charge.amount}
+                                  onChange={(e) => {
+                                    const val =
+                                      e.target.value === '' ? 0 : parseFloat(e.target.value);
+                                    handleDirectChargeChange(charge.id, 'amount', isNaN(val) ? 0 : val);
+                                  }}
+                                  placeholder="0"
+                                  className="w-full p-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs font-mono font-bold text-right text-emerald-800 focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveDirectCharge(charge.id)}
+                                className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition"
+                                title="Remove Charge"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[#8D7B70] block mb-1">Delivery Terms</label>
+                          <input
+                            type="text"
+                            value={newDeliveryTerms}
+                            onChange={(e) => setNewDeliveryTerms(e.target.value)}
+                            placeholder="e.g. FOR Rajpur Works"
+                            className="w-full p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[#8D7B70] block mb-1">Delivery Due Date</label>
+                          <input
+                            type="date"
+                            value={newDeliveryDate}
+                            onChange={(e) => setNewDeliveryDate(e.target.value)}
+                            className="w-full p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-semibold"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Calculation Summary */}
+                    <div className="space-y-1.5 text-xs text-right border-l border-[#EBE3DB] pl-4">
+                      <div className="flex justify-between text-[#8D7B70]">
+                        <span>Material Subtotal:</span>
+                        <span className="font-mono font-bold text-[#211B17]">
+                          {formatCurrency(directSubTotal)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-[#8D7B70]">
+                        <span>GST (18%):</span>
+                        <span className="font-mono text-[#211B17]">
+                          {formatCurrency(directTaxTotal)}
+                        </span>
+                      </div>
+                      {directAdditionalCharges.map((c) => {
+                        const amt = Number(c.amount) || 0;
+                        if (amt <= 0 && !c.name.trim()) return null;
+                        return (
+                          <div key={c.id} className="flex justify-between text-[#8D7B70]">
+                            <span className="truncate pr-2">{c.name || 'Additional Charge'}:</span>
+                            <span className="font-mono text-[#211B17]">
+                              {formatCurrency(amt)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                      <div className="pt-2 border-t border-[#EBE3DB] flex justify-between items-center">
+                        <span className="font-black text-sm text-[#211B17]">Grand Total:</span>
+                        <span className="font-black text-base text-emerald-800 font-mono">
+                          {formatCurrency(directGrandTotal)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </>
               )}
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
+              {/* Modal Footer Actions */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#EBE3DB]">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 bg-white border border-[#EBE3DB] text-[#211B17] font-bold text-xs rounded-xl hover:bg-[#FAF7F2]"
+                  className="px-4 py-2 border border-[#EBE3DB] text-[#211B17] font-bold text-xs rounded-xl hover:bg-[#FAF7F2] transition"
                 >
                   Cancel
                 </button>
@@ -1308,8 +1708,8 @@ function PurchaseOrdersHubContent() {
                           <span className="font-black text-xs font-mono">{viewPO.poNumber}</span>
                         </div>
                         <div className="flex justify-between py-0.5">
-                          <span className="font-bold">JOB / PROJECT:</span>
-                          <span className="font-bold">{viewPO.jobNumber || viewPO.jobId || 'GENERAL'}</span>
+                          <span className="font-bold">PROJECT:</span>
+                          <span className="font-bold">{viewPO.projectId || viewPO.jobNumber || viewPO.jobId || 'GENERAL'}</span>
                         </div>
                         <div className="flex justify-between py-0.5">
                           <span className="font-bold">BUYER:</span>
@@ -1423,15 +1823,40 @@ function PurchaseOrdersHubContent() {
                           </td>
                         </tr>
                       )}
-                      {viewPO.freightCharges && viewPO.freightCharges > 0 && (
-                        <tr className="border-b border-black/30 font-bold">
-                          <td colSpan={3} className="border-r-2 border-black py-1.5 px-3 text-right">
-                            FREIGHT:
-                          </td>
-                          <td colSpan={2} className="py-1.5 px-3 text-right font-mono font-bold">
-                            {formatCurrency(viewPO.freightCharges)}
-                          </td>
-                        </tr>
+                      {viewPO.additionalCharges && viewPO.additionalCharges.length > 0 ? (
+                        viewPO.additionalCharges.map((ac, idx) => (
+                          <tr key={ac.id || idx} className="border-b border-black/30 font-bold">
+                            <td colSpan={3} className="border-r-2 border-black py-1.5 px-3 text-right uppercase">
+                              {ac.name || 'ADDITIONAL CHARGE'}:
+                            </td>
+                            <td colSpan={2} className="py-1.5 px-3 text-right font-mono font-bold">
+                              {formatCurrency(ac.amount)}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <>
+                          {viewPO.otherCharges && viewPO.otherCharges > 0 && (
+                            <tr className="border-b border-black/30 font-bold">
+                              <td colSpan={3} className="border-r-2 border-black py-1.5 px-3 text-right uppercase">
+                                OTHER CHARGES:
+                              </td>
+                              <td colSpan={2} className="py-1.5 px-3 text-right font-mono font-bold">
+                                {formatCurrency(viewPO.otherCharges)}
+                              </td>
+                            </tr>
+                          )}
+                          {viewPO.freightCharges && viewPO.freightCharges > 0 && (
+                            <tr className="border-b border-black/30 font-bold">
+                              <td colSpan={3} className="border-r-2 border-black py-1.5 px-3 text-right">
+                                FREIGHT:
+                              </td>
+                              <td colSpan={2} className="py-1.5 px-3 text-right font-mono font-bold">
+                                {formatCurrency(viewPO.freightCharges)}
+                              </td>
+                            </tr>
+                          )}
+                        </>
                       )}
                       <tr className="font-black bg-gray-50 text-sm">
                         <td colSpan={3} className="border-r-2 border-black py-2 px-3 text-right uppercase">

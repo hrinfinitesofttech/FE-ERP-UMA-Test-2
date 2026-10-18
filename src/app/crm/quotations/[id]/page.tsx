@@ -265,94 +265,87 @@ export default function QuotationDetailPage() {
             </button>
           </div>
 
-          {/* Workflow Status Buttons */}
+          {/* Direct Action Buttons (Always directly visible) */}
           <div className="flex items-center gap-2 flex-wrap">
-            {currentRev.status === 'draft' && (
-              <button
-                onClick={handleApprove}
-                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold flex items-center gap-1 shadow-sm"
-              >
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Approve Proposal</span>
-              </button>
-            )}
+            {/* 1. Send Email Quotation (Directly Visible) */}
+            <button
+              onClick={handleSendEmailQuotation}
+              disabled={isSendingEmail}
+              className="px-3.5 py-1.5 bg-crm-brand-700 hover:bg-crm-brand-800 disabled:opacity-60 text-white rounded-lg font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer text-xs"
+              title={`Send Quotation via Email to ${quotation.contactEmail || quotation.customerName}`}
+            >
+              {isSendingEmail ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Sending Email...</span>
+                </>
+              ) : (
+                <>
+                  <Mail className="w-3.5 h-3.5" />
+                  <span>{currentRev.status === 'sent' ? 'Resend Email' : 'Send Email Quotation'}</span>
+                </>
+              )}
+            </button>
 
-            {(currentRev.status === 'approved' || currentRev.status === 'sent') && (
-              <button
-                onClick={handleSendEmailQuotation}
-                disabled={isSendingEmail}
-                className="px-3.5 py-1.5 bg-crm-brand-700 hover:bg-crm-brand-800 disabled:opacity-60 text-white rounded-lg font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer"
-                title={`Send Quotation via Email to ${quotation.contactEmail || quotation.customerName}`}
-              >
-                {isSendingEmail ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>Sending Email...</span>
-                  </>
-                ) : (
-                  <>
-                    <Mail className="w-3.5 h-3.5" />
-                    <span>{currentRev.status === 'sent' ? 'Resend Email Quotation' : 'Send Email Quotation'}</span>
-                  </>
-                )}
-              </button>
-            )}
+            {/* 2. Customer PO (Directly Available) */}
+            <button
+              onClick={() => {
+                if (currentRev.status !== 'accepted') {
+                  updateQuotationStatus(quotation.id, currentRev.revisionNumber, 'accepted');
+                }
+                setShowPoModal(true);
+              }}
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold flex items-center gap-1.5 shadow-sm text-xs cursor-pointer transition active:scale-95"
+              title="Record Customer Purchase Order (PO)"
+            >
+              <FileCheck2 className="w-3.5 h-3.5" />
+              <span>Customer PO</span>
+            </button>
 
-            {(currentRev.status === 'sent' || currentRev.status === 'negotiation' || currentRev.status === 'approved') && (
-              <button
-                onClick={handleCustomerAccept}
-                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold flex items-center gap-1 shadow-sm"
-              >
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Customer Accepted (Receive PO)</span>
-              </button>
-            )}
+            {/* 3. WhatsApp Direct Share (Directly Available) */}
+            <a
+              href={
+                quotation.contactMobile
+                  ? `https://wa.me/91${quotation.contactMobile.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(
+                      `Dear ${quotation.contactPerson || quotation.customerName},\n\nGreetings from UMA Techno Fab Pvt. Ltd.\n\nPlease find details for Quotation ${quotation.quotationNumber} (${currentRev.revisionNumber}) for ${formatCurrency(currentRev.grandTotal)}.\nValidity: ${formatDate(quotation.validUntil)}.\n\nKindly review and let us know your feedback.`
+                    )}`
+                  : `https://wa.me/?text=${encodeURIComponent(
+                      `Dear ${quotation.contactPerson || quotation.customerName},\n\nGreetings from UMA Techno Fab Pvt. Ltd.\n\nPlease find details for Quotation ${quotation.quotationNumber} (${currentRev.revisionNumber}) for ${formatCurrency(currentRev.grandTotal)}.\nValidity: ${formatDate(quotation.validUntil)}.\n\nKindly review and let us know your feedback.`
+                    )}`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              title={
+                quotation.contactMobile
+                  ? `Share quotation via WhatsApp (+91 ${quotation.contactMobile.slice(-10)})`
+                  : 'Share quotation via WhatsApp'
+              }
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold flex items-center gap-1.5 shadow-sm text-xs cursor-pointer transition active:scale-95"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>WhatsApp Quote</span>
+            </a>
 
-            {currentRev.status === 'accepted' && (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setShowPoModal(true)}
-                  className="px-3.5 py-1.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-lg font-bold flex items-center gap-1 shadow-sm cursor-pointer"
-                >
-                  <FileCheck2 className="w-3.5 h-3.5" />
-                  <span>Record / Inward Customer PO</span>
-                </button>
-                <Link
-                  href="/crm/customer-po"
-                  className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#F3ECE4] text-[#75401F] border border-[#E7DED5] rounded-lg font-bold text-xs flex items-center gap-1 transition"
-                >
-                  <span>View in Customer PO Register</span>
-                </Link>
-              </div>
-            )}
-
-            {/* WhatsApp Direct Share */}
-            {quotation.contactMobile && (
-              <a
-                href={`https://wa.me/91${quotation.contactMobile.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(
-                  `Dear ${quotation.contactPerson || quotation.customerName},\n\nGreetings from UMA Techno Fab Pvt. Ltd.\n\nPlease find details for Quotation ${quotation.quotationNumber} (${currentRev.revisionNumber}) for ${formatCurrency(currentRev.grandTotal)}.\nValidity: ${formatDate(quotation.validUntil)}.\n\nKindly review and let us know your feedback.`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={`Share quotation via WhatsApp (+91 ${quotation.contactMobile.slice(-10)})`}
-                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold flex items-center gap-1 shadow-sm text-xs cursor-pointer transition"
-              >
-                <MessageSquare className="w-3.5 h-3.5" />
-                <span>WhatsApp Quote</span>
-              </a>
-            )}
-
-            {/* Schedule Follow-up button */}
+            {/* 4. Schedule Follow-up (Directly Available) */}
             <button
               onClick={() => {
                 setFlwPurpose(`Quotation follow-up for ${quotation.quotationNumber} (${currentRev.revisionNumber})`);
                 setShowFlwModal(true);
               }}
-              className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#F3ECE4] text-[#75401F] border border-[#E7DED5] rounded-lg font-bold text-xs flex items-center gap-1 transition cursor-pointer"
+              className="px-3.5 py-1.5 bg-[#FAF7F2] hover:bg-[#F3ECE4] text-[#75401F] border border-[#E7DED5] rounded-lg font-bold text-xs flex items-center gap-1.5 transition cursor-pointer active:scale-95 shadow-2xs"
             >
               <PhoneCall className="w-3.5 h-3.5" />
               <span>Schedule Follow-up</span>
             </button>
+
+            {currentRev.status === 'accepted' && (
+              <Link
+                href="/crm/customer-po"
+                className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#F3ECE4] text-[#75401F] border border-[#E7DED5] rounded-lg font-bold text-xs flex items-center gap-1 transition"
+              >
+                <span>View PO Register</span>
+              </Link>
+            )}
           </div>
         </div>
       </div>

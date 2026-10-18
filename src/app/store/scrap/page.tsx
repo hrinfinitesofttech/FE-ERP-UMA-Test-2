@@ -46,11 +46,11 @@ export default function ScrapPage() {
     },
     {
       key: 'source',
-      header: 'SOURCE & JOB NO',
+      header: 'SOURCE & PROJECT NO',
       cell: (s: ScrapEntry) => (
         <div>
           <div className="font-medium text-amber-700">{s.source}</div>
-          <div className="text-[11px] text-gray-400 font-mono">{s.jobId || 'Shop Floor General'}</div>
+          <div className="text-[11px] text-gray-400 font-mono">{s.projectId || s.jobId || 'Shop Floor General'}</div>
         </div>
       ),
     },

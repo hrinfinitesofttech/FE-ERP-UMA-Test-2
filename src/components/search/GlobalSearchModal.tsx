@@ -229,6 +229,15 @@ export const ERP_PAGES_MASTER: PageItem[] = [
     description: 'Stage planning, work breakdown structure, and milestone scheduling.',
     keywords: ['planning', 'wbs', 'project plan', 'milestones', 'stages'],
   },
+  {
+    id: 'page-projects-tasks',
+    title: 'Task Management (Department-wise)',
+    category: 'Projects',
+    path: '/projects/tasks',
+    icon: CheckSquare,
+    description: 'Manage master tasks department-wise (Design, Store, Purchase, Production, Accounts) with multi-line creation.',
+    keywords: ['tasks', 'task management', 'department tasks', 'cutting', 'welding', 'master tasks'],
+  },
 
 
 
@@ -352,7 +361,7 @@ export const ERP_PAGES_MASTER: PageItem[] = [
     category: 'Store',
     path: '/store/material-issue',
     icon: Truck,
-    description: 'Issue raw materials against Job # and Work Orders with heat number tagging.',
+    description: 'Issue raw materials against Project # and Work Orders with heat number tagging.',
     keywords: ['material issue', 'dispatch to shop', 'job issue', 'store issue voucher'],
   },
   {
@@ -1166,7 +1175,7 @@ export function GlobalSearchModal() {
                 setSelectedIndex(0);
               }}
               onKeyDown={handleInputKeyDown}
-              placeholder="Search any page, module, job #, lead, customer, stock, PO..."
+              placeholder="Search any page, module, project #, lead, customer, stock, PO..."
               className="w-full text-base sm:text-lg font-bold bg-transparent text-[#211B17] placeholder:text-[#9E8E82] focus:outline-none"
             />
             <div className="text-[11px] text-[#70665F] truncate">

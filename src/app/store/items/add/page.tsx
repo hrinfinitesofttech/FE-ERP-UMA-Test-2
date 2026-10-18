@@ -25,6 +25,7 @@ export default function CreateItemMasterPage() {
     itemType: 'Plate',
     category: itemCategories[0]?.categoryName || 'Stainless Steel Plates & Sheets',
     description: '',
+    currentStock: 1,
     specification: '',
     brandMake: 'Jindal / SAIL',
     hsnSac: '72193200',
@@ -98,6 +99,7 @@ export default function CreateItemMasterPage() {
         defaultPurchaseRate: Number(formData.defaultPurchaseRate) || 0,
         lastPurchaseRate: Number(formData.defaultPurchaseRate) || 0,
         standardCost: Number(formData.standardCost) || 0,
+        currentStock: Number(formData.currentStock) || 0,
       });
 
       setTimeout(() => {
@@ -171,8 +173,23 @@ export default function CreateItemMasterPage() {
               setFormData({ ...formData, itemName: e.target.value });
               if (errors.itemName) setErrors({ ...errors, itemName: '' });
             }}
-            placeholder="e.g. SS 304 Plate 10mm"
+            placeholder="e.g. SS PIPE or MS CIRCLE"
             error={errors.itemName}
+          />
+
+          <ERPInput
+            label="Description (પરિમાણ / સાઇઝ / સ્પેસિફિકેશન)"
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            placeholder="e.g. OD-145/ID-50/32MM THK or 500 X 500 X 20 MM"
+          />
+
+          <ERPInput
+            label="Stock Quantity (કોન્ટીટી)"
+            type="number"
+            value={formData.currentStock}
+            onChange={(e) => setFormData({ ...formData, currentStock: Number(e.target.value) })}
+            placeholder="Available Quantity"
           />
 
           <ERPInput

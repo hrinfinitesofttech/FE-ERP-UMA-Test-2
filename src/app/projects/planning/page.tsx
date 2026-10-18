@@ -766,10 +766,16 @@ export default function ProjectPlanningPage() {
                           className="w-full px-2.5 py-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-semibold text-[#211B17] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                         >
                           <option value="">-- Choose Master Task --</option>
-                          {masterTasks.map((mt) => (
-                            <option key={mt.id} value={mt.taskName}>
-                              {mt.taskName} ({mt.department})
-                            </option>
+                          {Array.from(new Set(masterTasks.map((m) => m.department || 'General'))).map((dept) => (
+                            <optgroup key={dept} label={`📁 ${dept} Department`}>
+                              {masterTasks
+                                .filter((m) => (m.department || 'General') === dept)
+                                .map((mt) => (
+                                  <option key={mt.id} value={mt.taskName}>
+                                    {mt.taskName} {mt.taskCode ? `[${mt.taskCode}]` : ''} ({mt.estimatedDays || 1}d)
+                                  </option>
+                                ))}
+                            </optgroup>
                           ))}
                         </select>
                       </td>
@@ -901,21 +907,29 @@ export default function ProjectPlanningPage() {
             </div>
 
             {/* Quick Template Suggestions */}
-            <div className="pt-2 flex flex-wrap items-center gap-2">
-              <span className="text-xs text-slate-500 font-semibold flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5 text-purple-600" /> Quick Add From Master:
-              </span>
-              {masterTasks.slice(0, 6).map((mt) => (
-                <button
-                  key={mt.id}
-                  type="button"
-                  onClick={() => handleAddTaskRow(mt)}
-                  className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-[11px] font-semibold text-slate-700 transition cursor-pointer flex items-center gap-1"
-                >
-                  <Plus className="w-2.5 h-2.5" />
-                  <span>{mt.taskName}</span>
-                </button>
-              ))}
+            <div className="pt-2 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs text-slate-500 font-semibold flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5 text-purple-600" /> Quick Add From Master:
+                </span>
+                {masterTasks.slice(0, 6).map((mt) => (
+                  <button
+                    key={mt.id}
+                    type="button"
+                    onClick={() => handleAddTaskRow(mt)}
+                    className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-[11px] font-semibold text-slate-700 transition cursor-pointer flex items-center gap-1"
+                  >
+                    <Plus className="w-2.5 h-2.5" />
+                    <span>{mt.taskName}</span>
+                  </button>
+                ))}
+              </div>
+              <Link
+                href="/projects/tasks"
+                className="text-xs font-semibold text-crm-brand-700 hover:text-crm-brand-800 underline decoration-crm-brand-300 flex items-center gap-1"
+              >
+                <span>Manage Department Tasks Master →</span>
+              </Link>
             </div>
 
             {/* Form Footer Save Button Bar */}

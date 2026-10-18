@@ -30,6 +30,7 @@ export default function EditItemMasterPage() {
     itemType: 'Plate',
     category: 'Stainless Steel Plates & Sheets',
     description: '',
+    currentStock: 1,
     specification: '',
     brandMake: '',
     hsnSac: '72193200',
@@ -59,6 +60,7 @@ export default function EditItemMasterPage() {
         itemType: (currentItem.itemType as any) || 'Plate',
         category: currentItem.category || 'Stainless Steel Plates & Sheets',
         description: currentItem.description || '',
+        currentStock: currentItem.currentStock ?? 1,
         specification: currentItem.specification || '',
         brandMake: currentItem.brandMake || '',
         hsnSac: currentItem.hsnSac || '72193200',
@@ -116,6 +118,7 @@ export default function EditItemMasterPage() {
           itemType: formData.itemType as any,
           category: formData.category,
           description: formData.description,
+          currentStock: Number(formData.currentStock) || 0,
           specification: formData.specification,
           brandMake: formData.brandMake,
           hsnSac: formData.hsnSac,
@@ -221,6 +224,21 @@ export default function EditItemMasterPage() {
             }}
             placeholder="Item Name"
             error={errors.itemName}
+          />
+
+          <ERPInput
+            label="Description (પરિમાણ / સાઇઝ / સ્પેસિફિકેશન)"
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            placeholder="e.g. OD-145/ID-50/32MM THK or 500 X 500 X 20 MM"
+          />
+
+          <ERPInput
+            label="Stock Quantity (કોન્ટીટી)"
+            type="number"
+            value={formData.currentStock}
+            onChange={(e) => setFormData({ ...formData, currentStock: Number(e.target.value) })}
+            placeholder="Quantity"
           />
 
           <ERPInput

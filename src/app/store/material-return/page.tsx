@@ -379,11 +379,11 @@ function MaterialReturnContent() {
 
   const handleExport = () => {
     if (materialReturns.length === 0) return;
-    const headers = ['Return No', 'Date', 'Job No', 'Issue No', 'Returned By', 'Warehouse', 'Value (INR)', 'Receiver'];
+    const headers = ['Return No', 'Date', 'Project No', 'Issue No', 'Returned By', 'Warehouse', 'Value (INR)', 'Receiver'];
     const rows = materialReturns.map((r) => [
       r.returnNumber || (r as any).return_number || r.id,
       r.returnDate || '',
-      r.jobId || '',
+      r.projectId || r.jobId || '',
       r.materialIssueNumber || '',
       `"${r.returnedBy || ''}"`,
       `"${r.warehouseName || ''}"`,
@@ -496,7 +496,7 @@ function MaterialReturnContent() {
         addNewLabel="+ Return Material / Offcut"
         onAddNew={handleOpenModal}
         onExport={handleExport}
-        searchPlaceholder="Search return slip #, job #, returned by..."
+        searchPlaceholder="Search return slip #, project #, returned by..."
       />
 
       {/* Add Return Slip Modal */}
@@ -522,16 +522,16 @@ function MaterialReturnContent() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-3.5">
-              {/* Job selection */}
+              {/* Project selection */}
               <div>
-                <label className="block text-[#70665F] font-bold mb-1">Target Job / Project *</label>
+                <label className="block text-[#70665F] font-bold mb-1">Target Project *</label>
                 <select
                   value={jobId}
                   onChange={(e) => handleJobChange(e.target.value)}
                   className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-mono font-bold"
                   required
                 >
-                  <option value="">-- Select Target Job / Project --</option>
+                  <option value="">-- Select Target Project --</option>
                   {projectJobs.map((j) => (
                     <option key={j.id} value={j.jobNumber}>
                       {j.jobNumber} — {j.customerName ? `[${j.customerName}] ` : ''}

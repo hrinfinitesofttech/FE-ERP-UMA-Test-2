@@ -560,6 +560,7 @@ interface ERPContextType {
   // Task Master (Company Master Tasks)
   masterTasks: MasterTask[];
   addMasterTask: (task: Omit<MasterTask, 'id' | 'createdAt' | 'updatedAt'>) => MasterTask;
+  addMasterTasksBatch: (tasks: Array<Omit<MasterTask, 'id' | 'createdAt' | 'updatedAt'>>) => Promise<MasterTask[]>;
   updateMasterTask: (id: string, updates: Partial<MasterTask>) => void;
   deleteMasterTask: (id: string) => void;
 
@@ -3175,6 +3176,17 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       // 2. Fetch other related project resources concurrently in parallel
       const tasksPromise = api.projects.tasks()
         .then((data) => applyLive<ProjectTask>(data, setProjectTasks, 'projectTasks'))
+        .catch(() => {});
+
+      const masterTasksPromise = api.projects.masterTasks.list()
+        .then((data) => {
+          if (data && Array.isArray(data) && data.length > 0) {
+            setMasterTasks(data);
+            if (typeof window !== 'undefined') {
+              try { localStorage.setItem('UMA_ERP_masterTasks', JSON.stringify(data)); } catch (_) {}
+            }
+          }
+        })
         .catch(() => {});
 
       const milestonesPromise = api.projects.milestones()
@@ -7805,7 +7817,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const nextNum = masterTasks.length + 1;
     const newTask: MasterTask = {
       ...taskData,
-      id: `MT-${String(nextNum).padStart(3, '0')}`,
+      id: `MT-${String(nextNum).padStart(3, '0')}-${Date.now().toString().slice(-4)}`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -7816,7 +7828,44 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
       return updated;
     });
+    api.projects.masterTasks.create(newTask).catch((err) => {
+      console.warn('Failed to sync master task to backend:', err);
+    });
     return newTask;
+  };
+
+  const addMasterTasksBatch = async (
+    tasksData: Array<Omit<MasterTask, 'id' | 'createdAt' | 'updatedAt'>>
+  ): Promise<MasterTask[]> => {
+    const nextStart = masterTasks.length + 1;
+    const payload: MasterTask[] = tasksData.map((t, idx) => ({
+      ...t,
+      id: `MT-${String(nextStart + idx).padStart(3, '0')}-${Date.now().toString().slice(-4)}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }));
+
+    setMasterTasks((prev) => {
+      const updated = [...prev, ...payload];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_masterTasks', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
+    try {
+      await api.projects.masterTasks.batchCreate(payload);
+      const fresh = await api.projects.masterTasks.list();
+      if (fresh && Array.isArray(fresh) && fresh.length > 0) {
+        setMasterTasks(fresh);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_masterTasks', JSON.stringify(fresh)); } catch (_) {}
+        }
+      }
+    } catch (err) {
+      console.warn('Backend batch master tasks creation error:', err);
+    }
+    return payload;
   };
 
   const updateMasterTask = (id: string, updates: Partial<MasterTask>) => {
@@ -7827,6 +7876,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
       return updated;
     });
+    api.projects.masterTasks.update(id, updates).catch((err) => {
+      console.warn('Failed to update master task on backend:', err);
+    });
   };
 
   const deleteMasterTask = (id: string) => {
@@ -7836,6 +7888,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         try { localStorage.setItem('UMA_ERP_masterTasks', JSON.stringify(updated)); } catch (_) {}
       }
       return updated;
+    });
+    api.projects.masterTasks.delete(id).catch((err) => {
+      console.warn('Failed to delete master task on backend:', err);
     });
   };
 
@@ -10251,16 +10306,40 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       grnNumber: newGrn.grnNumber || grnNumber,
       grn_number: newGrn.grnNumber || grnNumber,
       date: (newGrn as any).grnDate || newGrn.createdAt || new Date().toISOString().split('T')[0],
+      grn_date: (newGrn as any).grnDate || new Date().toISOString().split('T')[0],
       po_id: (newGrn as any).poId || '',
       po_number: (newGrn as any).poNumber || '',
+      po_date: (newGrn as any).poDate || '',
+      indent_number: (newGrn as any).indentNumber || '',
+      indent_date: (newGrn as any).indentDate || '',
       supplier_id: (newGrn as any).supplierId || '',
       supplier_name: (newGrn as any).supplierName || '',
+      supplier_address: (newGrn as any).supplierAddress || '',
+      gate_entry_number: (newGrn as any).gateEntryNumber || '',
+      gate_entry_date: (newGrn as any).gateEntryDate || '',
       challan_number: (newGrn as any).deliveryChallanNumber || (newGrn as any).challanNumber || '',
-      invoice_number: (newGrn as any).invoiceNumber || '',
+      delivery_challan_number: (newGrn as any).deliveryChallanNumber || (newGrn as any).challanNumber || '',
+      challan_date: (newGrn as any).challanDate || '',
+      invoice_number: (newGrn as any).invoiceNumber || (newGrn as any).billNumber || '',
+      bill_number: (newGrn as any).billNumber || (newGrn as any).invoiceNumber || '',
+      bill_date: (newGrn as any).billDate || '',
+      lr_number: (newGrn as any).lrNumber || '',
       vehicle_number: (newGrn as any).vehicleNumber || '',
+      transporter_name: (newGrn as any).transporterName || '',
+      authorized: (newGrn as any).authorized || 'Yes',
+      inspection_required: (newGrn as any).inspectionRequired || 'Yes',
+      grand_total: Number((newGrn as any).grandTotal || (newGrn as any).totalReceivedValue || 0),
+      total_received_value: Number((newGrn as any).totalReceivedValue || (newGrn as any).grandTotal || 0),
+      prepared_by: (newGrn as any).preparedBy || 'EDP / PREPARED BY',
+      store_manager: (newGrn as any).storeManager || 'STORE MANAGER',
+      inspected_by: (newGrn as any).inspectedBy || 'INSPECTED BY',
+      hod: (newGrn as any).hod || 'H.O.D.',
+      account_manager: (newGrn as any).accountManager || 'ACCOUNT MANAGER',
       received_by: (newGrn as any).receivedBy || 'Store Officer',
       warehouse_id: (newGrn as any).warehouseId || '',
+      warehouse_name: (newGrn as any).warehouseName || '',
       notes: (newGrn as any).remarks || '',
+      remarks: (newGrn as any).remarks || '',
       items: newGrn.items || [],
       status: (newGrn as any).status || 'received',
     };
@@ -13734,6 +13813,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         deleteProjectTask,
         masterTasks,
         addMasterTask,
+        addMasterTasksBatch,
         updateMasterTask,
         deleteMasterTask,
         projectPlanningRecords,
