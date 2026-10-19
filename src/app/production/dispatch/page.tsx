@@ -1,24 +1,28 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
-import { DispatchOrder, DispatchStatus } from '../../../types/production';
+import {
+  DeliveryChallanDoc,
+  DeliveryChallanItem,
+  DispatchOrder,
+  ProductionCompletion,
+} from '../../../types/production';
+import { formatDate } from '../../../lib/utils';
 import {
   Truck,
   Plus,
   ShieldCheck,
-  Building,
   Search,
   Printer,
   Eye,
   Edit,
   Trash2,
   X,
-  Layers,
-  Cpu,
   CheckCircle2,
   AlertTriangle,
-  QrCode,
   ArrowUpRight,
   MapPin,
   Calendar,
@@ -26,461 +30,760 @@ import {
   FileText,
   User,
   Package,
+  Layers,
+  Sparkles,
+  Award,
+  Building,
+  RotateCcw,
+  Check,
+  Save,
+  Share2,
+  Palette,
+  Clock,
 } from 'lucide-react';
 
+// Default sample challans (including exact replica of user photo Ch. No. 547)
+const INITIAL_DELIVERY_CHALLANS: DeliveryChallanDoc[] = [
+  {
+    id: 'CHALLAN-547',
+    challanNo: '547',
+    date: '2026-06-26',
+    copyNumber: '1',
+    companyName: 'UMA TECHNOFAB',
+    companyLogoText: 'UMA TECHNO FAB',
+    companyTagline: 'All Industrial Equipments. Tranki Projects...',
+    companyPhones: 'Mo. : 98250 98367 / 99250 11676',
+    companyAddress:
+      'S.No. 1040/3, Village : Rajpur, Nr. Sandvik Tube, Ta-Kadi, Dist-Mehsana. Pin Code - 382721',
+    gstin: '24AAEFU9027H1Z3',
+    jurisdiction: 'Subject to KALOL (N.G) Jurisdiction',
+    customerName: 'UMA Food',
+    customerAddress: 'GIDC Industrial Estate, Rajpur Road, Kadi - 382715',
+    destinationCity: 'Kadi',
+    vehicleNumber: 'GJ-02.AT.3826',
+    transporterName: 'Local Transport (Kadi)',
+    items: [
+      {
+        srNo: 1,
+        particulars: 'Berger Luxol PU Enamel. W-305\n05 Drum.',
+        quantity: '20',
+        unitOrAmount: '4 Ltr',
+        notes: '05 Drums of 4 Ltr each (Total 20 Ltr)',
+      },
+    ],
+    totalQuantity: '20 Ltr',
+    totalAmount: '20 Ltr',
+    department: 'Paint & Surface Coating Store',
+    receiverSign: '',
+    authorizedSignatory: 'UMA Technofab Dispatch Officer',
+    status: 'Delivered',
+    remarks: 'Dispatched in Vehicle GJ-02.AT.3826. Received in good condition.',
+    createdAt: '2026-06-26T10:30:00Z',
+  },
+  {
+    id: 'CHALLAN-548',
+    challanNo: '548',
+    date: '2026-05-09',
+    copyNumber: '1',
+    companyName: 'UMA TECHNOFAB',
+    companyLogoText: 'UMA TECHNO FAB',
+    companyTagline: 'All Industrial Equipments. Tranki Projects...',
+    companyPhones: 'Mo. : 98250 98367 / 99250 11676',
+    companyAddress:
+      'S.No. 1040/3, Village : Rajpur, Nr. Sandvik Tube, Ta-Kadi, Dist-Mehsana. Pin Code - 382721',
+    gstin: '24AAEFU9027H1Z3',
+    jurisdiction: 'Subject to KALOL (N.G) Jurisdiction',
+    customerName: 'Ananth Chem',
+    customerAddress: 'Plot 102/B, GIDC Chemical Zone, Jhagadia, Dist. Bharuch, Gujarat - 393110',
+    destinationCity: 'Jhagadia',
+    projectId: 'PRJ-2026-001',
+    jobNumber: 'UTF-26-46 B',
+    workOrderNumber: 'UTF-26-46 B',
+    qcReportNo: 'QC-2026-001 (F - QAS - 02)',
+    vehicleNumber: 'GJ-01-CZ-4521',
+    transporterName: 'Mahavir Heavy Logistics',
+    lrNumber: 'LR-2026-9182',
+    driverName: 'Ramesh Patel',
+    driverMobile: '98254 77812',
+    eWayBillNumber: 'EWB-24-99812401',
+    items: [
+      {
+        srNo: 1,
+        particulars:
+          '25 KL Vertical Tank (SS304 / MS)\nInspection Cleared as per Doc no.: F - QAS - 02\nHydro Tested & Primer Painted.',
+        quantity: '1',
+        unitOrAmount: '1 Nos',
+        notes: 'Loaded on Low-bed Trailer with wooden saddles and tarpaulin cover.',
+      },
+    ],
+    totalQuantity: '1 Nos',
+    totalAmount: '1 Nos Equipment',
+    department: 'Heavy Fabrication Dispatch',
+    receiverSign: '',
+    authorizedSignatory: 'UMA Technofab Dispatch Officer',
+    status: 'In Transit',
+    remarks: 'Dispatched with Gate Out Pass & E-Way Bill after QC Clearance.',
+    createdAt: '2026-05-09T14:15:00Z',
+  },
+];
+
 export default function DispatchPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const {
     dispatchOrders,
     finishedGoods,
-    workOrders,
     customers,
     projectJobs,
+    projectPlanningRecords,
+    productionCompletions,
     addDispatchOrder,
-    updateDispatchOrder,
-    deleteDispatchOrder,
-    markDispatchInTransit,
-    markDispatchDelivered,
-    openJobModal,
   } = useERP();
 
-  const [mounted, setMounted] = useState(false);
+  // Delivery Challan List (Persisted in localStorage)
+  const [challans, setChallans] = useState<DeliveryChallanDoc[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('UMA_ERP_deliveryChallans');
+        if (saved) return JSON.parse(saved);
+      } catch (_) {}
+    }
+    return INITIAL_DELIVERY_CHALLANS;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('UMA_ERP_deliveryChallans', JSON.stringify(challans));
+      } catch (_) {}
+    }
+  }, [challans]);
+
+  // Inspection Reports from localStorage (for 1-click QC link)
+  const [inspectionReports, setInspectionReports] = useState<ProductionCompletion[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('UMA_ERP_inspectionReports');
+        if (saved) return JSON.parse(saved);
+      } catch (_) {}
+    }
+    return productionCompletions || [];
+  });
+
+  // UI State
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<string>('ALL');
-  const [filterCustomer, setFilterCustomer] = useState<string>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'Draft' | 'Issued' | 'In Transit' | 'Delivered'>('ALL');
   const [showModal, setShowModal] = useState(false);
-  const [editingDisp, setEditingDisp] = useState<DispatchOrder | null>(null);
-  const [viewChallan, setViewChallan] = useState<DispatchOrder | null>(null);
+  const [viewChallan, setViewChallan] = useState<DeliveryChallanDoc | null>(null);
+  const [editingChallanId, setEditingChallanId] = useState<string | null>(null);
 
+  // Print View Theme: 'yellow' (authentic physical yellow paper) or 'white' (clean A4 paper)
+  const [slipTheme, setSlipTheme] = useState<'yellow' | 'white'>('yellow');
+
+  // Quick Toast
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  // --------------------------------------------------------------------------
+  // FORM STATE FOR NEW / EDIT DELIVERY CHALLAN (Doc replica)
+  // --------------------------------------------------------------------------
+  const [formChallanNo, setFormChallanNo] = useState('549');
+  const [formDate, setFormDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [formCopyNo, setFormCopyNo] = useState('1');
+  const [formCustomerName, setFormCustomerName] = useState('');
+  const [formCustomerAddress, setFormCustomerAddress] = useState('');
+  const [formDestinationCity, setFormDestinationCity] = useState('');
+  const [formVehicleNumber, setFormVehicleNumber] = useState('GJ-02.AT.3826');
+  const [formTransporterName, setFormTransporterName] = useState('');
+  const [formLrNumber, setFormLrNumber] = useState('');
+  const [formDriverName, setFormDriverName] = useState('');
+  const [formDriverMobile, setFormDriverMobile] = useState('');
+  const [formEWayBillNumber, setFormEWayBillNumber] = useState('');
+  const [formDepartment, setFormDepartment] = useState('Dispatch / Store');
+  const [formStatus, setFormStatus] = useState<'Draft' | 'Issued' | 'In Transit' | 'Delivered'>('Issued');
+  const [formRemarks, setFormRemarks] = useState('');
+  const [formJobNumber, setFormJobNumber] = useState('');
+  const [formQcReportNo, setFormQcReportNo] = useState('');
+
+  // Dynamic Line Items
+  const [formItems, setFormItems] = useState<DeliveryChallanItem[]>([
+    {
+      srNo: 1,
+      particulars: 'Industrial Equipment Fabrication / Parts',
+      quantity: '1',
+      unitOrAmount: '1 Nos',
+      notes: '',
+    },
+  ]);
+
+  // Next Challan Number Generator
+  const generateNextChallanNo = () => {
+    const nums = challans
+      .map((c) => parseInt(c.challanNo, 10))
+      .filter((n) => !isNaN(n));
+    const max = nums.length > 0 ? Math.max(...nums) : 548;
+    return String(max + 1);
+  };
+
+  // Check URL params on load (e.g. from completion QC page: /production/dispatch?fromQC=...)
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    const fromQC = searchParams?.get('fromQC');
+    const cust = searchParams?.get('customer');
+    const item = searchParams?.get('item');
+    const qty = searchParams?.get('qty');
+    const job = searchParams?.get('job');
 
-  // Form State
-  const defaultWo = workOrders[0]?.workOrderNumber || '';
-  const defaultJob = workOrders[0]?.jobNumber || '';
-  const defaultCust = customers[0]?.companyName || '';
-
-  const [selectedFg, setSelectedFg] = useState('');
-  const [selectedWo, setSelectedWo] = useState(defaultWo);
-  const [selectedJob, setSelectedJob] = useState(defaultJob);
-  const [customerName, setCustomerName] = useState(defaultCust);
-  const [customerAddress, setCustomerAddress] = useState('');
-  const [destinationCity, setDestinationCity] = useState('');
-  const [productName, setProductName] = useState('');
-  const [specification, setSpecification] = useState('');
-  const [quantity, setQuantity] = useState<number | string>(1);
-  const [uom, setUom] = useState('Unit');
-  const [serialNumber, setSerialNumber] = useState('');
-  const [batchNumber, setBatchNumber] = useState('');
-  const [weightMT, setWeightMT] = useState<number | string>('');
-  const [transporterName, setTransporterName] = useState('');
-  const [vehicleNumber, setVehicleNumber] = useState('');
-  const [lrNumber, setLrNumber] = useState('');
-  const [driverName, setDriverName] = useState('');
-  const [driverMobile, setDriverMobile] = useState('');
-  const [eWayBillNumber, setEWayBillNumber] = useState('');
-  const [invoiceNumber, setInvoiceNumber] = useState('');
-  const [packagingType, setPackagingType] = useState('');
-  const [dispatchType, setDispatchType] = useState('');
-  const [qcClearanceBy, setQcClearanceBy] = useState('');
-  const [dispatchedBy, setDispatchedBy] = useState('');
-  const [status, setStatus] = useState<DispatchStatus>('Ready for Dispatch');
-  const [remarks, setRemarks] = useState('');
-
-  // Handle ESC key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setShowModal(false);
-        setEditingDisp(null);
-        setViewChallan(null);
+    if (fromQC || cust || item) {
+      setFormChallanNo(generateNextChallanNo());
+      setFormDate(new Date().toISOString().split('T')[0]);
+      if (cust) setFormCustomerName(decodeURIComponent(cust));
+      if (job) setFormJobNumber(decodeURIComponent(job));
+      if (fromQC) setFormQcReportNo(decodeURIComponent(fromQC));
+      if (item) {
+        setFormItems([
+          {
+            srNo: 1,
+            particulars: `${decodeURIComponent(item)}\n(QC Cleared as per Doc no.: F - QAS - 02)`,
+            quantity: qty || '1',
+            unitOrAmount: `${qty || 1} Nos`,
+            notes: 'Final Inspection Cleared',
+          },
+        ]);
       }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  const handleFgSelect = (fgNo: string) => {
-    setSelectedFg(fgNo);
-    const fg = finishedGoods.find((f) => f.finishedGoodsNumber === fgNo || f.id === fgNo);
-    if (fg) {
-      setSelectedWo(fg.workOrderNumber || defaultWo);
-      setSelectedJob(fg.jobNumber || defaultJob);
-      setProductName(fg.productName || '');
-      setSpecification(fg.specification || '');
-      setSerialNumber(fg.serialNumber || `UTF-SER-${Date.now().toString().slice(-4)}`);
-      setBatchNumber(fg.batchNumber || '');
-      setQuantity(fg.quantity || 1);
-      setUom(fg.uom || 'Unit');
+      setShowModal(true);
+      showToast(`Pre-filled from QC Inspection: ${cust || 'Project'}`);
     }
-  };
+  }, [searchParams]);
 
-  const handleCustomerSelect = (custName: string) => {
-    setCustomerName(custName);
-    const c = customers.find((cust) => cust.companyName === custName);
-    if (c) {
-      setCustomerAddress(c.shippingAddress || c.billingAddress || `${c.city}, ${c.state}`);
-      setDestinationCity(c.city || 'Ahmedabad');
-    }
-  };
+  // Open Create Modal
+  const handleOpenCreate = () => {
+    setEditingChallanId(null);
+    setFormChallanNo(generateNextChallanNo());
+    setFormDate(new Date().toISOString().split('T')[0]);
+    setFormCopyNo('1');
 
-  const openCreateModal = () => {
-    setEditingDisp(null);
-    const firstFg = finishedGoods[0];
-    if (firstFg) {
-      handleFgSelect(firstFg.finishedGoodsNumber);
-    } else {
-      setSelectedWo(workOrders[0]?.workOrderNumber || '');
-      setSelectedJob(workOrders[0]?.jobNumber || '');
-      setProductName('');
-    }
+    // Default to first customer if available
     const cust = customers[0];
-    setCustomerName(cust?.companyName || '');
-    setCustomerAddress(cust?.shippingAddress || '');
-    setDestinationCity(cust?.city || '');
-    setWeightMT('');
-    setTransporterName('');
-    setVehicleNumber('');
-    setLrNumber('');
-    setDriverName('');
-    setDriverMobile('');
-    setEWayBillNumber('');
-    setInvoiceNumber('');
-    setPackagingType('');
-    setDispatchType('');
-    setStatus('Ready for Dispatch');
-    setShowModal(true);
-  };
-
-  const openEditModal = (disp: DispatchOrder) => {
-    setEditingDisp(disp);
-    setSelectedFg(disp.finishedGoodsNumber || '');
-    setSelectedWo(disp.workOrderNumber || '');
-    setSelectedJob(disp.jobNumber || '');
-    setCustomerName(disp.customerName || '');
-    setCustomerAddress(disp.customerAddress || '');
-    setDestinationCity(disp.destinationCity || '');
-    setProductName(disp.productName || '');
-    setSpecification(disp.specification || '');
-    setQuantity(disp.quantity || 1);
-    setUom(disp.uom || 'Unit');
-    setSerialNumber(disp.serialNumber || '');
-    setBatchNumber(disp.batchNumber || '');
-    setWeightMT(disp.weightMT || 0);
-    setTransporterName(disp.transporterName || '');
-    setVehicleNumber(disp.vehicleNumber || '');
-    setLrNumber(disp.lrNumber || '');
-    setDriverName(disp.driverName || '');
-    setDriverMobile(disp.driverMobile || '');
-    setEWayBillNumber(disp.eWayBillNumber || '');
-    setInvoiceNumber(disp.invoiceNumber || '');
-    setPackagingType(disp.packagingType || 'Wooden Saddle & Tarpaulin Protection');
-    setDispatchType(disp.dispatchType || 'Road Freight (Semi Low Bed Trailer)');
-    setStatus(disp.status || 'Ready for Dispatch');
-    setRemarks(disp.remarks || '');
-    setShowModal(true);
-  };
-
-  const handleDelete = (id: string, dispNo: string) => {
-    if (confirm(`Are you sure you want to delete Dispatch record ${dispNo}?`)) {
-      deleteDispatchOrder(id);
+    if (cust) {
+      setFormCustomerName(cust.companyName);
+      setFormCustomerAddress(cust.shippingAddress || cust.billingAddress || `${cust.city}, Gujarat`);
+      setFormDestinationCity(cust.city || 'Ahmedabad');
+    } else {
+      setFormCustomerName('UMA Food');
+      setFormCustomerAddress('GIDC Industrial Estate, Rajpur Road, Kadi - 382715');
+      setFormDestinationCity('Kadi');
     }
+
+    setFormVehicleNumber('GJ-02.AT.3826');
+    setFormTransporterName('');
+    setFormLrNumber('');
+    setFormDriverName('');
+    setFormDriverMobile('');
+    setFormEWayBillNumber('');
+    setFormDepartment('Dispatch / Fabrication');
+    setFormStatus('Issued');
+    setFormRemarks('');
+    setFormJobNumber('');
+    setFormQcReportNo('');
+    setFormItems([
+      {
+        srNo: 1,
+        particulars: 'Industrial Equipment Scope / Job Parts',
+        quantity: '1',
+        unitOrAmount: '1 Nos',
+        notes: '',
+      },
+    ]);
+    setShowModal(true);
   };
 
-  const handleStatusCycle = (disp: DispatchOrder) => {
-    const sequence: DispatchStatus[] = [
-      'Ready for Dispatch',
-      'Vehicle Loading',
-      'In Transit',
-      'Delivered to Site',
-      'Handover Complete',
-    ];
-    const currentIndex = sequence.indexOf(disp.status);
-    const nextStatus = sequence[(currentIndex + 1) % sequence.length];
-    updateDispatchOrder(disp.id, { status: nextStatus });
+  // Open Edit Modal
+  const handleOpenEdit = (ch: DeliveryChallanDoc) => {
+    setEditingChallanId(ch.id);
+    setFormChallanNo(ch.challanNo);
+    setFormDate(ch.date);
+    setFormCopyNo(String(ch.copyNumber || '1'));
+    setFormCustomerName(ch.customerName);
+    setFormCustomerAddress(ch.customerAddress);
+    setFormDestinationCity(ch.destinationCity || '');
+    setFormVehicleNumber(ch.vehicleNumber || '');
+    setFormTransporterName(ch.transporterName || '');
+    setFormLrNumber(ch.lrNumber || '');
+    setFormDriverName(ch.driverName || '');
+    setFormDriverMobile(ch.driverMobile || '');
+    setFormEWayBillNumber(ch.eWayBillNumber || '');
+    setFormDepartment(ch.department || 'Dispatch');
+    setFormStatus(ch.status as any);
+    setFormRemarks(ch.remarks || '');
+    setFormJobNumber(ch.jobNumber || '');
+    setFormQcReportNo(ch.qcReportNo || '');
+    setFormItems(ch.items.map((it) => ({ ...it })));
+    setShowModal(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // 1-Click Pre-fill from QC Inspection Reports (Doc no.: F-QAS-02)
+  const handlePreFillFromQC = (reportId: string) => {
+    const r = inspectionReports.find((x) => x.id === reportId || x.completionNumber === reportId);
+    if (!r) return;
+    setFormCustomerName(r.customerName || 'Customer');
+    setFormJobNumber(r.jobNumber || r.workOrderNumber || '');
+    setFormQcReportNo(r.completionNumber || 'F-QAS-02');
+    setFormCustomerAddress(
+      `${r.customerName} Delivery Site / Plant Location`
+    );
+    setFormItems([
+      {
+        srNo: 1,
+        particulars: `${r.productName || 'Process Equipment'}\n(Inspection Cleared Doc no.: F - QAS - 02)\nInspected by: ${r.inspectionBy || r.completedBy}`,
+        quantity: String(r.completedQuantity || 1),
+        unitOrAmount: `${r.completedQuantity || 1} Nos`,
+        notes: 'Quality Inspection Cleared. Fit for dispatch.',
+      },
+    ]);
+    showToast(`Pre-filled from QC Report ${r.completionNumber}`);
+  };
+
+  // 1-Click Pre-fill from Finished Goods
+  const handlePreFillFromFG = (fgId: string) => {
+    const fg = finishedGoods.find((f) => f.id === fgId || f.finishedGoodsNumber === fgId);
+    if (!fg) return;
+    setFormJobNumber(fg.jobNumber || fg.workOrderNumber || '');
+    const relatedJob = projectJobs.find((p) => p.jobNumber === fg.jobNumber || p.id === fg.jobId);
+    setFormCustomerName(fg.customerName || relatedJob?.customerName || 'Customer');
+    setFormItems([
+      {
+        srNo: 1,
+        particulars: `${fg.productName}\n${fg.specification || ''}`,
+        quantity: String(fg.quantity || 1),
+        unitOrAmount: `${fg.quantity || 1} ${fg.uom || 'NOS'}`,
+        notes: `Finished Goods Bay: ${fg.locationBin || 'Bay 4'}`,
+      },
+    ]);
+    showToast(`Pre-filled from Finished Goods ${fg.finishedGoodsNumber}`);
+  };
+
+  // Add Item Row
+  const handleAddItemRow = () => {
+    setFormItems((prev) => [
+      ...prev,
+      {
+        srNo: prev.length + 1,
+        particulars: '',
+        quantity: '1',
+        unitOrAmount: '1 Nos',
+        notes: '',
+      },
+    ]);
+  };
+
+  // Update Item Row
+  const handleUpdateItemRow = (index: number, field: keyof DeliveryChallanItem, val: any) => {
+    setFormItems((prev) =>
+      prev.map((it, idx) => (idx === index ? { ...it, [field]: val } : it))
+    );
+  };
+
+  // Remove Item Row
+  const handleRemoveItemRow = (index: number) => {
+    if (formItems.length <= 1) return;
+    setFormItems((prev) =>
+      prev
+        .filter((_, idx) => idx !== index)
+        .map((it, idx) => ({ ...it, srNo: idx + 1 }))
+    );
+  };
+
+  // Calculate Total Quantity
+  const calculatedTotalQuantity = useMemo(() => {
+    const numericTotal = formItems.reduce((acc, it) => {
+      const parsed = parseFloat(String(it.quantity).replace(/[^0-9.]/g, ''));
+      return acc + (isNaN(parsed) ? 0 : parsed);
+    }, 0);
+    const firstUnit = formItems[0]?.unitOrAmount || '';
+    return numericTotal > 0 ? `${numericTotal} ${firstUnit.includes('Ltr') ? 'Ltr' : firstUnit}`.trim() : '0';
+  }, [formItems]);
+
+  // Submit / Save Challan
+  const handleSaveChallan = (e: React.FormEvent) => {
     e.preventDefault();
-    const matchedWo = workOrders.find((w) => w.workOrderNumber === selectedWo);
-    const matchedJob = projectJobs.find((j) => j.jobNumber === (matchedWo?.jobNumber || selectedJob));
 
-    const payload = {
-      dispatchDate: new Date().toISOString().split('T')[0],
-      jobId: matchedWo?.jobId || matchedJob?.id || selectedJob || '',
-      jobNumber: matchedWo?.jobNumber || matchedJob?.jobNumber || selectedJob || '',
-      workOrderNumber: selectedWo || '',
-      finishedGoodsNumber: selectedFg || undefined,
-      customerId: customers.find((c) => c.companyName === customerName || (c as any).name === customerName)?.id || customers[0]?.id || '',
-      customerName: customerName.trim(),
-      customerAddress: customerAddress.trim(),
-      destinationCity: destinationCity.trim(),
-      productName: productName.trim(),
-      specification: specification.trim(),
-      quantity: Number(quantity) || 1,
-      uom: uom || 'Unit',
-      serialNumber: serialNumber.trim() || undefined,
-      batchNumber: batchNumber.trim() || undefined,
-      weightMT: Number(weightMT) || 0,
-      transporterName: transporterName.trim(),
-      vehicleNumber: vehicleNumber.trim().toUpperCase(),
-      lrNumber: lrNumber.trim() || undefined,
-      driverName: driverName.trim() || undefined,
-      driverMobile: driverMobile.trim() || undefined,
-      eWayBillNumber: eWayBillNumber.trim() || undefined,
-      invoiceNumber: invoiceNumber.trim() || undefined,
-      packagingType: packagingType,
-      dispatchType: dispatchType,
-      qcClearanceBy: qcClearanceBy,
-      dispatchedBy: dispatchedBy,
-      status: status,
-      remarks: remarks,
+    const newChallanDoc: DeliveryChallanDoc = {
+      id: editingChallanId || `CHALLAN-${Date.now()}`,
+      challanNo: formChallanNo || generateNextChallanNo(),
+      date: formDate,
+      copyNumber: formCopyNo || '1',
+      companyName: 'UMA TECHNOFAB',
+      companyLogoText: 'UMA TECHNO FAB',
+      companyTagline: 'All Industrial Equipments. Tranki Projects...',
+      companyPhones: 'Mo. : 98250 98367 / 99250 11676',
+      companyAddress:
+        'S.No. 1040/3, Village : Rajpur, Nr. Sandvik Tube, Ta-Kadi, Dist-Mehsana. Pin Code - 382721',
+      gstin: '24AAEFU9027H1Z3',
+      jurisdiction: 'Subject to KALOL (N.G) Jurisdiction',
+      customerName: formCustomerName || 'M/s Customer',
+      customerAddress: formCustomerAddress || 'Customer Site Address',
+      destinationCity: formDestinationCity,
+      projectId: formJobNumber,
+      jobNumber: formJobNumber,
+      workOrderNumber: formJobNumber,
+      qcReportNo: formQcReportNo,
+      vehicleNumber: formVehicleNumber,
+      transporterName: formTransporterName,
+      lrNumber: formLrNumber,
+      driverName: formDriverName,
+      driverMobile: formDriverMobile,
+      eWayBillNumber: formEWayBillNumber,
+      items: formItems,
+      totalQuantity: calculatedTotalQuantity,
+      totalAmount: calculatedTotalQuantity,
+      department: formDepartment || 'Dispatch / Logistics',
+      receiverSign: '',
+      authorizedSignatory: 'UMA Technofab Dispatch Officer',
+      status: formStatus,
+      remarks: formRemarks,
+      createdAt: new Date().toISOString(),
     };
 
-    if (editingDisp) {
-      updateDispatchOrder(editingDisp.id, payload);
+    if (editingChallanId) {
+      setChallans((prev) =>
+        prev.map((c) => (c.id === editingChallanId ? newChallanDoc : c))
+      );
+      showToast(`Delivery Challan #${formChallanNo} updated successfully!`);
     } else {
-      addDispatchOrder(payload);
+      setChallans((prev) => [newChallanDoc, ...prev]);
+
+      // Also sync with dispatch orders for compatibility
+      addDispatchOrder({
+        dispatchDate: formDate,
+        jobId: formJobNumber || 'JOB-DISP',
+        jobNumber: formJobNumber || 'JOB-DISP',
+        workOrderNumber: formJobNumber || 'WO-DISP',
+        customerId: formCustomerName,
+        customerName: formCustomerName,
+        customerAddress: formCustomerAddress,
+        destinationCity: formDestinationCity,
+        productName: formItems[0]?.particulars || 'Fabrication Equipment',
+        specification: `Challan #${formChallanNo} - Vehicle: ${formVehicleNumber}`,
+        quantity: parseFloat(calculatedTotalQuantity) || 1,
+        uom: 'NOS',
+        transporterName: formTransporterName || 'Direct Logistics',
+        vehicleNumber: formVehicleNumber,
+        lrNumber: formLrNumber,
+        driverName: formDriverName,
+        driverMobile: formDriverMobile,
+        eWayBillNumber: formEWayBillNumber,
+        status: formStatus === 'Delivered' ? 'Delivered to Site' : 'In Transit',
+        remarks: formRemarks,
+      });
+
+      showToast(`Delivery Challan #${formChallanNo} created & issued!`);
     }
 
     setShowModal(false);
-    setEditingDisp(null);
   };
 
-  // Filtered Dispatches
-  const filtered = useMemo(() => {
-    return dispatchOrders.filter((disp) => {
-      const q = searchTerm.trim().toLowerCase();
-      const matchesSearch =
-        !q ||
-        disp.dispatchNumber?.toLowerCase().includes(q) ||
-        disp.jobNumber?.toLowerCase().includes(q) ||
-        disp.workOrderNumber?.toLowerCase().includes(q) ||
-        disp.customerName?.toLowerCase().includes(q) ||
-        disp.productName?.toLowerCase().includes(q) ||
-        disp.vehicleNumber?.toLowerCase().includes(q) ||
-        disp.lrNumber?.toLowerCase().includes(q) ||
-        disp.eWayBillNumber?.toLowerCase().includes(q);
+  // Delete Challan
+  const handleDeleteChallan = (id: string, chNo: string) => {
+    if (confirm(`Are you sure you want to delete Delivery Challan #${chNo}?`)) {
+      setChallans((prev) => prev.filter((c) => c.id !== id));
+      showToast(`Delivery Challan #${chNo} deleted`);
+    }
+  };
 
-      const matchesStatus = filterStatus === 'ALL' || disp.status === filterStatus;
-      const matchesCustomer = filterCustomer === 'ALL' || disp.customerName === filterCustomer;
+  // Quick Status Advance
+  const handleAdvanceStatus = (ch: DeliveryChallanDoc) => {
+    const nextStatus =
+      ch.status === 'Draft'
+        ? 'Issued'
+        : ch.status === 'Issued'
+        ? 'In Transit'
+        : ch.status === 'In Transit'
+        ? 'Delivered'
+        : 'Acknowledged';
 
-      return matchesSearch && matchesStatus && matchesCustomer;
-    });
-  }, [dispatchOrders, searchTerm, filterStatus, filterCustomer]);
-
-  // Metrics
-  const totalDispatches = dispatchOrders.length;
-  const inTransitCount = dispatchOrders.filter((d) => d.status === 'In Transit' || d.status === 'Vehicle Loading').length;
-  const deliveredCount = dispatchOrders.filter((d) => d.status === 'Delivered to Site' || d.status === 'Handover Complete').length;
-  const totalWeightMT = dispatchOrders.reduce((sum, d) => sum + Number(d.weightMT || 0), 0);
-
-  if (!mounted) {
-    return (
-      <div className="p-6 bg-[#FAF7F2] min-h-screen text-[#544B45] flex items-center justify-center">
-        <div className="text-xs font-mono text-[#70665F]">Loading Dispatch & Logistics Management...</div>
-      </div>
+    setChallans((prev) =>
+      prev.map((c) => (c.id === ch.id ? { ...c, status: nextStatus as any } : c))
     );
-  }
+    showToast(`Challan #${ch.challanNo} status updated to "${nextStatus}"`);
+  };
+
+  // Filtered Challans
+  const filteredChallans = useMemo(() => {
+    return challans.filter((c) => {
+      if (statusFilter !== 'ALL' && c.status !== statusFilter) return false;
+      if (searchTerm.trim()) {
+        const q = searchTerm.toLowerCase();
+        return (
+          c.challanNo.toLowerCase().includes(q) ||
+          c.customerName.toLowerCase().includes(q) ||
+          (c.customerAddress && c.customerAddress.toLowerCase().includes(q)) ||
+          (c.vehicleNumber && c.vehicleNumber.toLowerCase().includes(q)) ||
+          (c.transporterName && c.transporterName.toLowerCase().includes(q)) ||
+          c.items.some((it) => it.particulars.toLowerCase().includes(q))
+        );
+      }
+      return true;
+    });
+  }, [challans, statusFilter, searchTerm]);
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 bg-[#FAF7F2] text-[#544B45]" suppressHydrationWarning>
-      {/* Header Banner */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-700 border border-indigo-500/20">
-            <Truck className="w-6 h-6" />
+    <div className="space-y-4">
+      {/* Toast Alert */}
+      {toastMessage && (
+        <div className="fixed top-5 right-5 z-50 bg-[#211B17] text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-[#EBE3DB]/20 text-xs animate-in slide-in-from-top-2 duration-200">
+          <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
+          <span className="font-semibold">{toastMessage}</span>
+        </div>
+      )}
+
+      {/* HEADER & TOP ACTIONS */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
+        <div>
+          <div className="text-[11px] font-semibold tracking-wider uppercase text-slate-400 mb-0.5">
+            DASHBOARD / PRODUCTION &amp; LOGISTICS / DISPATCH &amp; DELIVERY CHALLAN
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs px-2.5 py-0.5 rounded bg-indigo-500/10 text-indigo-800 font-mono font-bold border border-indigo-500/20">
-                LOGISTICS & TRANSPORT
-              </span>
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-800 font-bold border border-emerald-500/30">
-                Delivery Challan (Form Annexure 1)
-              </span>
-            </div>
-            <h1 className="text-xl sm:text-2xl font-black text-[#211B17] tracking-tight mt-1">
-              Equipment Dispatch & Delivery Challans
-            </h1>
-            <p className="text-xs text-[#70665F]">
-              Gate-Out Delivery Challans, E-Way Bills, Transporter LR, Vehicle Loading, and Customer Site Handover
-            </p>
-          </div>
+          <h1 className="text-2xl font-black text-[#211B17] tracking-tight flex items-center gap-2">
+            <Truck className="w-6 h-6 text-amber-600" />
+            <span>Delivery Challan &amp; Gate-Out Pass</span>
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold border border-amber-300 font-mono">
+              ડીલેવરી ચલણ (Challan Slip)
+            </span>
+          </h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            UMA TECHNOFAB Official Delivery Challans. Generate after Production &amp; QC Clearance. Physical Yellow Slip replica with GSTIN &amp; Vehicle tracking.
+          </p>
         </div>
 
-        <button
-          onClick={openCreateModal}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-700 text-white font-bold text-xs shadow-lg shadow-indigo-700/20 hover:bg-indigo-800 transition active:scale-95"
-        >
-          <Plus className="w-4 h-4" /> Generate Delivery Challan
-        </button>
-      </div>
-
-      {/* KPI Metrics */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-sm">
-          <div className="text-[11px] font-bold text-[#70665F] uppercase">Total Dispatches</div>
-          <div className="text-2xl font-black text-[#211B17] font-mono mt-1">{totalDispatches}</div>
-          <div className="text-[11px] text-[#70665F] mt-0.5">Recorded Gate Passes</div>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-sm">
-          <div className="text-[11px] font-bold text-amber-700 uppercase">Vehicles In Transit</div>
-          <div className="text-2xl font-black text-amber-700 font-mono mt-1">{inTransitCount} En Route</div>
-          <div className="text-[11px] text-amber-600 mt-0.5">On Road to Client Site</div>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-sm">
-          <div className="text-[11px] font-bold text-emerald-700 uppercase">Delivered & Handover</div>
-          <div className="text-2xl font-black text-emerald-700 font-mono mt-1">{deliveredCount} Units</div>
-          <div className="text-[11px] text-emerald-600 mt-0.5">Received at Customer Plant</div>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-sm">
-          <div className="text-[11px] font-bold text-indigo-700 uppercase">Total Freight Weight</div>
-          <div className="text-2xl font-black text-indigo-700 font-mono mt-1">{totalWeightMT.toFixed(1)} MT</div>
-          <div className="text-[11px] text-indigo-600 mt-0.5">Heavy Fabricated Load</div>
-        </div>
-      </div>
-
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-sm">
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          <div className="relative w-full sm:w-72">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
-            <input
-              type="text"
-              placeholder="Search Challan #, Project #, Client, Vehicle, LR..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-xs bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] placeholder-[#70665F] focus:outline-none focus:border-indigo-600"
-            />
-          </div>
-
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] focus:outline-none focus:border-indigo-600 font-medium"
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleOpenCreate}
+            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
           >
-            <option value="ALL">All Statuses</option>
-            <option value="Ready for Dispatch">Ready for Dispatch</option>
-            <option value="Vehicle Loading">Vehicle Loading</option>
-            <option value="In Transit">In Transit</option>
-            <option value="Delivered to Site">Delivered to Site</option>
-            <option value="Handover Complete">Handover Complete</option>
+            <Plus className="w-4 h-4" />
+            <span>+ Generate Delivery Challan (નવું ચલણ)</span>
+          </button>
+          <Link
+            href="/production/completion"
+            className="px-3.5 py-2 bg-white border border-[#EBE3DB] hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-xs"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <span>QC Clearance (F - QAS - 02)</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* KPI METRIC CARDS */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Total Challans</span>
+            <FileText className="w-4 h-4 text-slate-600" />
+          </div>
+          <div className="text-2xl font-black text-[#211B17]">{challans.length}</div>
+          <div className="text-[11px] text-slate-500">Challan Records Logged</div>
+        </div>
+
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-blue-600">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">In Transit / On Road</span>
+            <Truck className="w-4 h-4 text-blue-600" />
+          </div>
+          <div className="text-2xl font-black text-blue-700">
+            {challans.filter((c) => c.status === 'In Transit').length}
+          </div>
+          <div className="text-[11px] text-slate-500">Vehicle Moving to Site</div>
+        </div>
+
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-emerald-600">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Delivered &amp; Handed Over</span>
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+          </div>
+          <div className="text-2xl font-black text-emerald-700">
+            {challans.filter((c) => c.status === 'Delivered').length}
+          </div>
+          <div className="text-[11px] text-slate-500">Site Acknowledged</div>
+        </div>
+
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-amber-600">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Official Slip Format</span>
+            <Award className="w-4 h-4 text-amber-600" />
+          </div>
+          <div className="text-lg font-mono font-black text-[#211B17]">UMA TECHNOFAB</div>
+          <div className="text-[11px] text-slate-500">GST: 24AAEFU9027H1Z3</div>
+        </div>
+      </div>
+
+      {/* SEARCH & FILTERS BAR */}
+      <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
+        <div className="relative w-full md:w-80">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Search by Ch. No (e.g. 547), Customer, Vehicle #..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-9 pr-3 py-1.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-[#211B17]"
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-slate-500 text-xs font-semibold">Status:</span>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as any)}
+            className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"
+          >
+            <option value="ALL">All Delivery Challans ({challans.length})</option>
+            <option value="Issued">Issued / Ready for Gate-Out</option>
+            <option value="In Transit">In Transit (Vehicle on Road)</option>
+            <option value="Delivered">Delivered &amp; Received</option>
+            <option value="Draft">Draft</option>
           </select>
         </div>
-
-        <div className="text-xs text-[#70665F] font-mono">
-          Showing <span className="text-[#211B17] font-bold">{filtered.length}</span> of{' '}
-          <span className="text-[#211B17] font-bold">{dispatchOrders.length}</span> Consignments
-        </div>
       </div>
 
-      {/* Dispatch Table */}
-      <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-sm overflow-hidden">
+      {/* TABLE: DELIVERY CHALLANS LIST */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-[#544B45]">
-            <thead className="bg-[#FAF7F2] text-[#70665F] font-mono uppercase text-[10px] tracking-wider border-b border-[#EBE3DB]">
-              <tr>
-                <th className="p-3.5">Challan # & Date</th>
-                <th className="p-3.5">Customer & Destination</th>
-                <th className="p-3.5">Job & Equipment</th>
-                <th className="p-3.5">Vehicle & Transporter</th>
-                <th className="p-3.5 text-right">Weight (MT)</th>
-                <th className="p-3.5">E-Way Bill & LR</th>
-                <th className="p-3.5 text-center">Status</th>
-                <th className="p-3.5 text-right">Actions</th>
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase text-[11px] tracking-wider">
+                <th className="py-3 px-4 min-w-[120px]">Challan # &amp; Date</th>
+                <th className="py-3 px-4 min-w-[200px]">Customer (M/s) &amp; Address</th>
+                <th className="py-3 px-4 min-w-[240px]">Particulars (Material / Equipment)</th>
+                <th className="py-3 px-4 min-w-[140px]">Vehicle &amp; Transporter</th>
+                <th className="py-3 px-4 min-w-[100px]">Total Qty</th>
+                <th className="py-3 px-4 min-w-[110px]">Status</th>
+                <th className="py-3 px-4 w-40 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EBE3DB]">
-              {filtered.length === 0 ? (
+            <tbody className="divide-y divide-slate-100">
+              {filteredChallans.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-[#70665F]">
-                    No dispatch delivery challans found. Click &quot;Generate Delivery Challan&quot; to issue a gate pass.
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                    <Truck className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+                    <p className="font-semibold text-slate-600 text-sm">No delivery challans found</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Click "+ Generate Delivery Challan" to issue one.</p>
                   </td>
                 </tr>
               ) : (
-                filtered.map((disp) => (
-                  <tr key={disp.id} className="hover:bg-[#FAF7F2]/60 transition">
-                    <td className="p-3.5 font-medium">
-                      <div className="font-mono font-bold text-indigo-700">{disp.dispatchNumber}</div>
-                      <div className="text-[10px] text-[#70665F] mt-0.5">{disp.dispatchDate}</div>
-                    </td>
-                    <td className="p-3.5 max-w-xs">
-                      <div className="font-bold text-[#211B17] flex items-center gap-1">
-                        <Building className="w-3.5 h-3.5 text-indigo-600" />
-                        {disp.customerName}
+                filteredChallans.map((ch) => (
+                  <tr key={ch.id} className="hover:bg-amber-50/20 transition">
+                    {/* Challan No & Date */}
+                    <td className="py-3 px-4 font-mono">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-black text-amber-700 text-sm">
+                          Ch. No: {ch.challanNo}
+                        </span>
+                        <span className="w-4 h-4 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold flex items-center justify-center border border-amber-300">
+                          {ch.copyNumber || 1}
+                        </span>
                       </div>
-                      <div className="text-[10px] text-[#70665F] flex items-center gap-1 mt-0.5">
-                        <MapPin className="w-3 h-3 text-rose-500" />
-                        {disp.destinationCity || 'Site Location'}
+                      <span className="text-[11px] text-slate-500 font-mono block mt-0.5">
+                        {ch.date}
+                      </span>
+                    </td>
+
+                    {/* Customer & Address */}
+                    <td className="py-3 px-4">
+                      <div className="font-bold text-slate-900 text-xs">
+                        M/s. {ch.customerName}
                       </div>
-                    </td>
-                    <td className="p-3.5 max-w-xs">
-                      <div className="font-semibold text-[#211B17]">{disp.productName}</div>
-                      <div className="font-mono text-emerald-700 text-[11px] mt-0.5 flex items-center gap-1">
-                        <Cpu className="w-3 h-3" />
-                        {disp.jobNumber} • {disp.workOrderNumber}
+                      <div className="text-[11px] text-slate-500 truncate max-w-[220px]">
+                        {ch.customerAddress}
                       </div>
+                      {ch.jobNumber && (
+                        <span className="inline-block px-1.5 py-0.2 mt-1 rounded bg-slate-100 text-slate-700 font-mono text-[10px] font-bold">
+                          Job: {ch.jobNumber}
+                        </span>
+                      )}
                     </td>
-                    <td className="p-3.5">
-                      <div className="font-mono font-bold text-[#211B17] bg-[#FAF7F2] px-2 py-0.5 rounded border border-[#EBE3DB] w-fit">
-                        {disp.vehicleNumber}
+
+                    {/* Particulars & Items */}
+                    <td className="py-3 px-4">
+                      {ch.items.map((it, idx) => (
+                        <div key={idx} className="mb-1 last:mb-0">
+                          <div className="font-semibold text-slate-800 line-clamp-2">
+                            {it.particulars}
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-mono">
+                            Qty: <span className="font-bold text-slate-700">{it.quantity}</span> ({it.unitOrAmount})
+                          </div>
+                        </div>
+                      ))}
+                    </td>
+
+                    {/* Vehicle & Logistics */}
+                    <td className="py-3 px-4">
+                      <div className="font-mono font-black text-slate-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 inline-block text-xs">
+                        {ch.vehicleNumber || 'No Vehicle'}
                       </div>
-                      <div className="text-[11px] text-[#70665F] mt-0.5">{disp.transporterName}</div>
+                      {ch.transporterName && (
+                        <div className="text-[11px] text-slate-500 mt-0.5 truncate max-w-[140px]">
+                          {ch.transporterName}
+                        </div>
+                      )}
+                      {ch.eWayBillNumber && (
+                        <div className="text-[10px] text-sky-700 font-mono">
+                          EWB: {ch.eWayBillNumber}
+                        </div>
+                      )}
                     </td>
-                    <td className="p-3.5 text-right font-mono font-bold text-[#211B17]">
-                      {disp.weightMT ? `${disp.weightMT} MT` : '-'}
+
+                    {/* Total Qty */}
+                    <td className="py-3 px-4 font-mono font-bold text-slate-800 text-xs">
+                      {ch.totalQuantity}
                     </td>
-                    <td className="p-3.5 font-mono text-[11px]">
-                      <div className="text-sky-700 font-bold">{disp.eWayBillNumber || 'Pending EWB'}</div>
-                      <div className="text-[#70665F] mt-0.5">LR: {disp.lrNumber || '-'}</div>
-                    </td>
-                    <td className="p-3.5 text-center">
+
+                    {/* Status with quick 1-click advance */}
+                    <td className="py-3 px-4">
                       <button
-                        onClick={() => handleStatusCycle(disp)}
+                        onClick={() => handleAdvanceStatus(ch)}
                         title="Click to advance status"
-                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition ${
-                          disp.status === 'Delivered to Site' || disp.status === 'Handover Complete'
-                            ? 'bg-emerald-500/15 text-emerald-800 border-emerald-500/30'
-                            : disp.status === 'In Transit'
-                            ? 'bg-amber-500/15 text-amber-800 border-amber-500/30'
-                            : 'bg-sky-500/15 text-sky-800 border-sky-500/30'
+                        className={`px-2.5 py-1 rounded-full text-[10.5px] font-bold inline-flex items-center gap-1 border cursor-pointer hover:opacity-80 transition ${
+                          ch.status === 'Delivered'
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                            : ch.status === 'In Transit'
+                            ? 'bg-blue-50 text-blue-800 border-blue-300'
+                            : 'bg-amber-50 text-amber-800 border-amber-300'
                         }`}
                       >
-                        <Truck className="w-3 h-3" />
-                        {disp.status}
+                        {ch.status === 'Delivered' ? (
+                          <Check className="w-3 h-3 text-emerald-600" />
+                        ) : (
+                          <Truck className="w-3 h-3 text-blue-600" />
+                        )}
+                        <span>{ch.status}</span>
                       </button>
                     </td>
-                    <td className="p-3.5 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+
+                    {/* Actions */}
+                    <td className="py-3 px-4">
+                      <div className="flex items-center justify-center gap-1.5">
                         <button
-                          onClick={() => openJobModal(disp.jobNumber)}
-                          className="px-2 py-1 rounded-lg bg-[#FAF7F2] hover:bg-indigo-50 text-indigo-800 border border-[#EBE3DB] hover:border-indigo-300 text-[11px] font-bold transition"
-                          title="360° Traceability"
-                        >
-                          360° Trace
-                        </button>
-                        <button
-                          onClick={() => setViewChallan(disp)}
-                          className="p-1.5 rounded-lg bg-[#FAF7F2] hover:bg-emerald-50 text-emerald-800 border border-[#EBE3DB] hover:border-emerald-300 transition"
-                          title="View & Print Delivery Challan"
+                          onClick={() => setViewChallan(ch)}
+                          className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-xs transition flex items-center gap-1 active:scale-95 cursor-pointer shadow-xs"
+                          title="View Official Yellow Challan Slip"
                         >
                           <Eye className="w-3.5 h-3.5" />
+                          <span>View Slip (જુઓ)</span>
                         </button>
                         <button
-                          onClick={() => openEditModal(disp)}
-                          className="p-1.5 rounded-lg bg-[#FAF7F2] hover:bg-sky-50 text-sky-800 border border-[#EBE3DB] hover:border-sky-300 transition"
-                          title="Edit Dispatch Record"
+                          onClick={() => handleOpenEdit(ch)}
+                          className="p-1 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+                          title="Edit"
                         >
                           <Edit className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => handleDelete(disp.id, disp.dispatchNumber)}
-                          className="p-1.5 rounded-lg bg-[#FAF7F2] hover:bg-rose-50 text-rose-700 border border-[#EBE3DB] hover:border-rose-300 transition"
-                          title="Delete Dispatch Record"
+                          onClick={() => handleDeleteChallan(ch.id, ch.challanNo)}
+                          className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                          title="Delete"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -494,277 +797,428 @@ export default function DispatchPage() {
         </div>
       </div>
 
-      {/* Generate / Edit Dispatch Challan Modal */}
+      {/* ========================================================================= */}
+      {/* MODAL 1: GENERATE / EDIT DELIVERY CHALLAN (FORM)                           */}
+      {/* ========================================================================= */}
       {showModal && (
-        <div
-          onClick={() => setShowModal(false)}
-          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-2xl p-6 space-y-4 shadow-2xl text-[#544B45] max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-150"
-          >
-            <div className="flex justify-between items-center border-b border-[#EBE3DB] pb-3">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 overflow-y-auto animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl shadow-2xl border-2 border-slate-800 w-full max-w-4xl overflow-hidden my-4">
+            {/* Modal Header */}
+            <div className="bg-[#211B17] text-white p-4 flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-[#211B17] flex items-center gap-2">
-                  <Truck className="w-5 h-5 text-indigo-700" />
-                  {editingDisp ? 'Edit Delivery Challan' : 'Generate Delivery Challan & Gate Pass'}
+                <div className="text-[10px] text-amber-400 font-mono tracking-widest uppercase font-bold">
+                  UMA TECHNOFAB — DISPATCH &amp; LOGISTICS
+                </div>
+                <h3 className="text-base font-black text-white uppercase tracking-wider font-mono flex items-center gap-2">
+                  <Truck className="w-4 h-4 text-amber-400" />
+                  <span>{editingChallanId ? 'Edit Delivery Challan' : 'Generate Delivery Challan (ડીલેવરી ચલણ)'}</span>
                 </h3>
-                <p className="text-[11px] text-[#70665F]">
-                  Form Annexure 1 Dispatch Note for Heavy Engineering Equipment Transportation.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                className="text-[#70665F] hover:text-[#211B17] font-bold text-lg p-1 rounded-lg hover:bg-gray-100"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-              {/* Equipment & Job Link */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-[#70665F] mb-1">Select Finished Goods Item</label>
-                  <select
-                    value={selectedFg}
-                    onChange={(e) => handleFgSelect(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-indigo-600 font-mono"
-                  >
-                    <option value="">-- Choose Finished Goods (Optional) --</option>
-                    {finishedGoods.map((fg) => (
-                      <option key={fg.id} value={fg.finishedGoodsNumber}>
-                        {fg.finishedGoodsNumber} — {fg.productName.slice(0, 30)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-[#70665F] mb-1">Target Work Order *</label>
-                  <select
-                    required
-                    value={selectedWo}
-                    onChange={(e) => setSelectedWo(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-indigo-600 font-mono"
-                  >
-                    {workOrders.length > 0 ? (
-                      workOrders.map((w) => (
-                        <option key={w.id} value={w.workOrderNumber}>
-                          {w.workOrderNumber} — {w.jobNumber}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="">Select Work Order</option>
-                    )}
-                  </select>
-                </div>
               </div>
 
-              {/* Customer Details */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-[#70665F] mb-1">Consignee / Customer *</label>
-                  <select
-                    required
-                    value={customerName}
-                    onChange={(e) => handleCustomerSelect(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-indigo-600 font-semibold"
-                  >
-                    {customers.length > 0 ? (
-                      customers.map((c) => (
-                        <option key={c.id} value={c.companyName}>
-                          {c.companyName} ({c.city})
-                        </option>
-                      ))
-                    ) : (
-                      <option value="Reliance Industries Limited (Jamnagar)">
-                        Reliance Industries Limited (Jamnagar)
-                      </option>
-                    )}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-[#70665F] mb-1">Destination City / Site *</label>
-                  <input
-                    type="text"
-                    required
-                    value={destinationCity}
-                    onChange={(e) => setDestinationCity(e.target.value)}
-                    placeholder="e.g. Jamnagar, Dahej, Hazira"
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-indigo-600"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-[#70665F] mb-1">Customer Delivery Address</label>
-                <input
-                  type="text"
-                  value={customerAddress}
-                  onChange={(e) => setCustomerAddress(e.target.value)}
-                  placeholder="Full Delivery Site Address"
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-indigo-600"
-                />
-              </div>
-
-              {/* Product Specifications */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-[#70665F] mb-1">Machine / Product Description *</label>
-                  <input
-                    type="text"
-                    required
-                    value={productName}
-                    onChange={(e) => setProductName(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-indigo-600"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-[#70665F] mb-1">Equipment Serial Number</label>
-                  <input
-                    type="text"
-                    value={serialNumber}
-                    onChange={(e) => setSerialNumber(e.target.value)}
-                    placeholder="e.g. UTF-CR-2026-001"
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-indigo-600 font-mono"
-                  />
-                </div>
-              </div>
-
-              {/* Logistics & Transporter Details */}
-              <div className="p-4 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] space-y-3">
-                <div className="text-xs font-bold text-[#211B17]">Transport & Vehicle Logistics</div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-[#70665F] mb-1">Vehicle / Trailer # *</label>
-                    <input
-                      type="text"
-                      required
-                      value={vehicleNumber}
-                      onChange={(e) => setVehicleNumber(e.target.value)}
-                      placeholder="e.g. GJ-01-XX-9900"
-                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-1.5 text-[#211B17] font-mono font-bold uppercase focus:border-indigo-600 focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold text-[#70665F] mb-1">Transporter Name *</label>
-                    <input
-                      type="text"
-                      required
-                      value={transporterName}
-                      onChange={(e) => setTransporterName(e.target.value)}
-                      placeholder="e.g. Mahavir Heavy Logistics"
-                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-1.5 text-[#211B17] focus:border-indigo-600 focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold text-[#70665F] mb-1">Lorry Receipt (LR) #</label>
-                    <input
-                      type="text"
-                      value={lrNumber}
-                      onChange={(e) => setLrNumber(e.target.value)}
-                      placeholder="e.g. LR-2026-8899"
-                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-1.5 text-[#211B17] font-mono focus:border-indigo-600 focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-[#70665F] mb-1">Driver Name</label>
-                    <input
-                      type="text"
-                      value={driverName}
-                      onChange={(e) => setDriverName(e.target.value)}
-                      placeholder="Driver Name"
-                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-1.5 text-[#211B17] focus:border-indigo-600 focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-[#70665F] mb-1">Driver Mobile</label>
-                    <input
-                      type="text"
-                      value={driverMobile}
-                      onChange={(e) => setDriverMobile(e.target.value)}
-                      placeholder="9825xxxxxx"
-                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-1.5 text-[#211B17] font-mono focus:border-indigo-600 focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-[#70665F] mb-1">E-Way Bill #</label>
-                    <input
-                      type="text"
-                      value={eWayBillNumber}
-                      onChange={(e) => setEWayBillNumber(e.target.value)}
-                      placeholder="EWB-24-xxxx"
-                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-1.5 text-sky-700 font-mono font-bold focus:border-sky-600 focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-[#70665F] mb-1">Weight (MT)</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={weightMT}
-                      onChange={(e) => setWeightMT(e.target.value === '' ? '' : Number(e.target.value))}
-                      placeholder="8.5"
-                      className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-1.5 text-[#211B17] font-mono font-bold focus:border-indigo-600 focus:outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Status and Packaging */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-[#70665F] mb-1">Packaging Protection</label>
-                  <select
-                    value={packagingType}
-                    onChange={(e) => setPackagingType(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-indigo-600"
-                  >
-                    <option value="Wooden Saddle & Tarpaulin Protection">Wooden Saddle & Tarpaulin Protection</option>
-                    <option value="Heavy Wooden Crate (Export Packaging)">Heavy Wooden Crate (Export Packaging)</option>
-                    <option value="Steel Skid with Shrink Wrap">Steel Skid with Shrink Wrap</option>
-                    <option value="Bare Equipment on Trailer">Bare Equipment on Trailer</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-[#70665F] mb-1">Dispatch Status *</label>
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value as any)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-indigo-600 font-bold"
-                  >
-                    <option value="Ready for Dispatch">Ready for Dispatch</option>
-                    <option value="Vehicle Loading">Vehicle Loading</option>
-                    <option value="In Transit">In Transit</option>
-                    <option value="Delivered to Site">Delivered to Site</option>
-                    <option value="Handover Complete">Handover Complete</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="pt-2 flex justify-end gap-2 border-t border-[#EBE3DB]">
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1 bg-amber-400/20 rounded-lg text-xs font-mono font-bold text-amber-300 border border-amber-400/30">
+                  Ch. No : {formChallanNo}
+                </span>
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] font-semibold hover:bg-[#EBE3DB] transition"
+                  className="p-1 rounded-lg text-slate-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSaveChallan} className="p-5 space-y-4 text-xs">
+              {/* Quick Fill Bar: From QC Reports or Finished Goods */}
+              <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                  <span className="font-bold text-slate-800">Quick Fill from QC Cleared Projects / FG:</span>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {inspectionReports.length > 0 && (
+                    <select
+                      onChange={(e) => {
+                        if (e.target.value) handlePreFillFromQC(e.target.value);
+                      }}
+                      className="px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-amber-500"
+                    >
+                      <option value="">-- Pre-fill from QC Report (F-QAS-02) --</option>
+                      {inspectionReports.map((qc) => (
+                        <option key={qc.id} value={qc.id}>
+                          QC: {qc.completionNumber} • {qc.customerName} • {qc.productName}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+
+                  {finishedGoods.length > 0 && (
+                    <select
+                      onChange={(e) => {
+                        if (e.target.value) handlePreFillFromFG(e.target.value);
+                      }}
+                      className="px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-amber-500"
+                    >
+                      <option value="">-- Pre-fill from Finished Goods --</option>
+                      {finishedGoods.map((fg) => (
+                        <option key={fg.id} value={fg.id}>
+                          FG: {fg.finishedGoodsNumber} • {fg.productName}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              </div>
+
+              {/* SECTION 1: HEADER & CHALLAN METADATA (MATCHING PHYSICAL SLIP) */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                {/* Challan No */}
+                <div>
+                  <label className="block font-bold text-slate-800 mb-1">
+                    Ch. No (ચલણ નંબર): <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formChallanNo}
+                    onChange={(e) => setFormChallanNo(e.target.value)}
+                    placeholder="e.g. 547"
+                    className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-mono font-bold text-amber-800 text-sm focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+
+                {/* Date */}
+                <div>
+                  <label className="block font-bold text-slate-800 mb-1">
+                    Date (તારીખ): <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={formDate}
+                    onChange={(e) => setFormDate(e.target.value)}
+                    className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-900 focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+
+                {/* Copy Number */}
+                <div>
+                  <label className="block font-bold text-slate-800 mb-1">
+                    Copy No (પ્રત નંબર):
+                  </label>
+                  <select
+                    value={formCopyNo}
+                    onChange={(e) => setFormCopyNo(e.target.value)}
+                    className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-bold text-slate-900 focus:ring-2 focus:ring-amber-500"
+                  >
+                    <option value="1">1 - Original (Consignee Copy)</option>
+                    <option value="2">2 - Duplicate (Transporter Copy)</option>
+                    <option value="3">3 - Triplicate (Office Copy)</option>
+                  </select>
+                </div>
+
+                {/* Status */}
+                <div>
+                  <label className="block font-bold text-slate-800 mb-1">
+                    Dispatch Status:
+                  </label>
+                  <select
+                    value={formStatus}
+                    onChange={(e) => setFormStatus(e.target.value as any)}
+                    className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-bold text-slate-900 focus:ring-2 focus:ring-amber-500"
+                  >
+                    <option value="Issued">Issued / Ready for Gate-Out</option>
+                    <option value="In Transit">In Transit (On Road)</option>
+                    <option value="Delivered">Delivered &amp; Handed Over</option>
+                    <option value="Draft">Draft</option>
+                  </select>
+                </div>
+
+                {/* M/s. Customer Name */}
+                <div className="md:col-span-2">
+                  <label className="block font-bold text-slate-800 mb-1">
+                    M/s. (Customer / Buyer Name): <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formCustomerName}
+                    onChange={(e) => setFormCustomerName(e.target.value)}
+                    placeholder="e.g. UMA Food / Ananth Chem"
+                    className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-bold text-slate-900 focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+
+                {/* Delivery Address */}
+                <div className="md:col-span-2">
+                  <label className="block font-bold text-slate-800 mb-1">
+                    Address (ડિલિવરી સ્થળ / સરનામું): <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formCustomerAddress}
+                    onChange={(e) => setFormCustomerAddress(e.target.value)}
+                    placeholder="e.g. GIDC Industrial Estate, Rajpur Road, Kadi - 382715"
+                    className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-semibold text-slate-900 focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+              </div>
+
+              {/* SECTION 2: TRANSPORT & VEHICLE LOGISTICS (MATCHING WRITTEN NOTES ON SLIP) */}
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                <div className="font-black text-slate-900 uppercase text-xs tracking-wider flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Truck className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Transport, Vehicle &amp; Delivery Logistics</span>
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-normal">
+                    (Annotated on Delivery Slip)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  {/* Vehicle Number (Prominent on slip: GJ-02.AT.3826) */}
+                  <div>
+                    <label className="block font-bold text-slate-800 mb-1">
+                      Vehicle No (વાહન નંબર): <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formVehicleNumber}
+                      onChange={(e) => setFormVehicleNumber(e.target.value)}
+                      placeholder="e.g. GJ-02.AT.3826"
+                      className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg font-mono font-black text-amber-900 uppercase focus:ring-2 focus:ring-amber-500 text-xs"
+                    />
+                  </div>
+
+                  {/* Transporter Name */}
+                  <div>
+                    <label className="block font-bold text-slate-800 mb-1">
+                      Transporter Name:
+                    </label>
+                    <input
+                      type="text"
+                      value={formTransporterName}
+                      onChange={(e) => setFormTransporterName(e.target.value)}
+                      placeholder="e.g. Mahavir Heavy Logistics"
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-900 focus:ring-2 focus:ring-amber-500 text-xs"
+                    />
+                  </div>
+
+                  {/* LR Number */}
+                  <div>
+                    <label className="block font-bold text-slate-800 mb-1">
+                      Lorry Receipt (LR) #:
+                    </label>
+                    <input
+                      type="text"
+                      value={formLrNumber}
+                      onChange={(e) => setFormLrNumber(e.target.value)}
+                      placeholder="e.g. LR-2026-547"
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-mono text-slate-900 focus:ring-2 focus:ring-amber-500 text-xs"
+                    />
+                  </div>
+
+                  {/* E-Way Bill Number */}
+                  <div>
+                    <label className="block font-bold text-slate-800 mb-1">
+                      E-Way Bill #:
+                    </label>
+                    <input
+                      type="text"
+                      value={formEWayBillNumber}
+                      onChange={(e) => setFormEWayBillNumber(e.target.value)}
+                      placeholder="e.g. EWB-24-99812"
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-mono text-sky-700 font-bold focus:ring-2 focus:ring-sky-500 text-xs"
+                    />
+                  </div>
+
+                  {/* Driver Name */}
+                  <div>
+                    <label className="block font-bold text-slate-800 mb-1">
+                      Driver Name:
+                    </label>
+                    <input
+                      type="text"
+                      value={formDriverName}
+                      onChange={(e) => setFormDriverName(e.target.value)}
+                      placeholder="Driver Name"
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-900 focus:ring-2 focus:ring-amber-500 text-xs"
+                    />
+                  </div>
+
+                  {/* Driver Mobile */}
+                  <div>
+                    <label className="block font-bold text-slate-800 mb-1">
+                      Driver Mobile:
+                    </label>
+                    <input
+                      type="text"
+                      value={formDriverMobile}
+                      onChange={(e) => setFormDriverMobile(e.target.value)}
+                      placeholder="9825xxxxxx"
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-mono text-slate-900 focus:ring-2 focus:ring-amber-500 text-xs"
+                    />
+                  </div>
+
+                  {/* Department */}
+                  <div>
+                    <label className="block font-bold text-slate-800 mb-1">
+                      Department (ડિપાર્ટમેન્ટ):
+                    </label>
+                    <input
+                      type="text"
+                      value={formDepartment}
+                      onChange={(e) => setFormDepartment(e.target.value)}
+                      placeholder="e.g. Paint Store / Dispatch"
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-900 focus:ring-2 focus:ring-amber-500 text-xs"
+                    />
+                  </div>
+
+                  {/* Job No / QC Ref */}
+                  <div>
+                    <label className="block font-bold text-slate-800 mb-1">
+                      Job / QC Reference:
+                    </label>
+                    <input
+                      type="text"
+                      value={formJobNumber}
+                      onChange={(e) => setFormJobNumber(e.target.value)}
+                      placeholder="e.g. UTF-26-46 B"
+                      className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-mono text-slate-900 focus:ring-2 focus:ring-amber-500 text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 3: ITEMS TABLE (MATCHING PHYSICAL SLIP COLUMNS: Sr. No., Particulars, Qty., Amount) */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-black text-slate-900 uppercase text-xs tracking-wider flex items-center gap-1.5">
+                    <span>Particulars &amp; Quantity Table</span>
+                    <span className="text-[10px] text-slate-400 font-normal">
+                      (Sr. No. | Particulars | Qty. | Amount/Unit)
+                    </span>
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={handleAddItemRow}
+                    className="text-xs text-amber-700 hover:underline font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Add Line Item</span>
+                  </button>
+                </div>
+
+                <div className="border border-slate-300 rounded-xl overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-slate-100 border-b border-slate-300 font-black text-slate-900 uppercase text-[11px]">
+                        <th className="p-2.5 w-16 border-r border-slate-300 text-center">Sr. No.</th>
+                        <th className="p-2.5 min-w-[280px] border-r border-slate-300">
+                          Particulars (વર્ણન)
+                        </th>
+                        <th className="p-2.5 w-28 border-r border-slate-300">Qty. (જથ્થો)</th>
+                        <th className="p-2.5 w-32 border-r border-slate-300">Amount / Unit</th>
+                        <th className="p-2.5 w-12 text-center">Act</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {formItems.map((item, idx) => (
+                        <tr key={idx} className="hover:bg-amber-50/20">
+                          {/* Sr No */}
+                          <td className="p-2 border-r border-slate-300 text-center font-mono font-bold align-top">
+                            {item.srNo}
+                          </td>
+
+                          {/* Particulars */}
+                          <td className="p-2 border-r border-slate-300 align-top">
+                            <textarea
+                              rows={2}
+                              required
+                              value={item.particulars}
+                              onChange={(e) =>
+                                handleUpdateItemRow(idx, 'particulars', e.target.value)
+                              }
+                              placeholder="e.g. Berger Luxol PU Enamel. W-305 / 05 Drum."
+                              className="w-full p-1.5 bg-white border border-slate-200 rounded font-semibold text-slate-900 text-xs focus:ring-1 focus:ring-amber-500"
+                            />
+                          </td>
+
+                          {/* Qty */}
+                          <td className="p-2 border-r border-slate-300 align-top">
+                            <input
+                              type="text"
+                              required
+                              value={item.quantity}
+                              onChange={(e) =>
+                                handleUpdateItemRow(idx, 'quantity', e.target.value)
+                              }
+                              placeholder="e.g. 20"
+                              className="w-full p-1.5 bg-white border border-slate-200 rounded font-mono font-bold text-slate-900 text-xs text-center"
+                            />
+                          </td>
+
+                          {/* Amount / Unit */}
+                          <td className="p-2 border-r border-slate-300 align-top">
+                            <input
+                              type="text"
+                              value={item.unitOrAmount}
+                              onChange={(e) =>
+                                handleUpdateItemRow(idx, 'unitOrAmount', e.target.value)
+                              }
+                              placeholder="e.g. 4 Ltr / NOS"
+                              className="w-full p-1.5 bg-white border border-slate-200 rounded font-bold text-slate-900 text-xs"
+                            />
+                          </td>
+
+                          {/* Delete row */}
+                          <td className="p-2 text-center align-top">
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveItemRow(idx)}
+                              disabled={formItems.length <= 1}
+                              className="p-1 text-slate-400 hover:text-rose-600 disabled:opacity-30"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className="bg-amber-50 font-black border-t-2 border-slate-300">
+                        <td colSpan={2} className="p-2.5 text-right uppercase tracking-wider text-slate-700">
+                          GSTIN No. : 24AAEFU9027H1Z3 &nbsp;&nbsp;|&nbsp;&nbsp; TOTAL:
+                        </td>
+                        <td colSpan={3} className="p-2.5 font-mono text-amber-900 text-sm">
+                          {calculatedTotalQuantity}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+
+              {/* ACTION BUTTONS */}
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-indigo-700 font-bold text-white hover:bg-indigo-800 shadow-lg shadow-indigo-700/20 transition active:scale-95"
+                  className="px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-md transition cursor-pointer flex items-center gap-1.5 active:scale-95"
                 >
-                  {editingDisp ? 'Update Delivery Challan' : 'Issue Delivery Challan & Gate Pass'}
+                  <Save className="w-4 h-4" />
+                  <span>{editingChallanId ? 'Update Delivery Challan' : 'Save & Issue Delivery Challan'}</span>
                 </button>
               </div>
             </form>
@@ -772,159 +1226,289 @@ export default function DispatchPage() {
         </div>
       )}
 
-      {/* Printable Delivery Challan Slip Modal */}
+      {/* ========================================================================= */}
+      {/* MODAL 2: VIEW & PRINT OFFICIAL DELIVERY CHALLAN (EXACT REPLICA OF USER PHOTO) */}
+      {/* ========================================================================= */}
       {viewChallan && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-3xl w-full p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150 max-h-[92vh] overflow-y-auto">
-            {/* Slip Header */}
-            <div className="flex items-start justify-between border-b border-[#EBE3DB] pb-4">
-              <div>
-                <span className="px-2.5 py-0.5 rounded bg-indigo-500/15 text-indigo-800 font-mono text-[10px] font-bold">
-                  DELIVERY CHALLAN & GATE-OUT PASS (ANNEXURE 1)
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 overflow-y-auto animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl shadow-2xl border-2 border-black w-full max-w-3xl overflow-hidden my-4 print:m-0 print:border-none print:shadow-none print:w-full">
+            {/* Control Bar (Hidden during Print) */}
+            <div className="bg-[#211B17] text-white p-3.5 flex items-center justify-between print:hidden">
+              <div className="flex items-center gap-2">
+                <Truck className="w-4 h-4 text-amber-400" />
+                <span className="font-bold text-xs">Official Delivery Challan Slip Preview</span>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 font-mono">
+                  Ch. No: {viewChallan.challanNo}
                 </span>
-                <h3 className="text-xl font-black text-[#211B17] mt-1">
-                  {viewChallan.dispatchNumber}
-                </h3>
-                <p className="text-xs text-[#70665F]">
-                  Date: <span className="font-bold text-[#211B17]">{viewChallan.dispatchDate}</span> • Status:{' '}
-                  <span className="font-bold text-indigo-700">{viewChallan.status}</span>
-                </p>
               </div>
 
               <div className="flex items-center gap-2">
+                {/* Theme Toggle: Yellow vs Clean White */}
+                <button
+                  type="button"
+                  onClick={() => setSlipTheme(slipTheme === 'yellow' ? 'white' : 'yellow')}
+                  className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
+                  title="Toggle between authentic yellow paper and clean white"
+                >
+                  <Palette className="w-3.5 h-3.5 text-amber-300" />
+                  <span>{slipTheme === 'yellow' ? 'Yellow Paper Slip' : 'White Print'}</span>
+                </button>
+
                 <button
                   onClick={() => window.print()}
-                  className="p-2 rounded-xl bg-[#FAF7F2] hover:bg-indigo-50 text-indigo-800 border border-[#EBE3DB] text-xs font-bold transition flex items-center gap-1.5"
+                  className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
                 >
-                  <Printer className="w-4 h-4" />
-                  Print Challan
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Print Challan (પ્રિન્ટ)</span>
                 </button>
                 <button
                   onClick={() => setViewChallan(null)}
-                  className="p-2 rounded-xl text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-white"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            {/* Consignor & Consignee */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
-                <div className="text-[10px] font-bold text-[#70665F] uppercase">Consignor (Dispatched By)</div>
-                <div className="font-black text-sm text-[#211B17] mt-0.5">UMA TECHNO FAB</div>
-                <div className="text-[#70665F] text-[11px] mt-0.5">
-                  Plot 45, GIDC Vatva Industrial Estate, Ahmedabad, Gujarat - 382445
-                </div>
-                <div className="text-[#70665F] text-[11px] font-mono mt-1">GSTIN: 24AAACU1234M1Z5</div>
-              </div>
-
-              <div className="p-3 bg-indigo-50/40 rounded-xl border border-indigo-200">
-                <div className="text-[10px] font-bold text-indigo-700 uppercase">Consignee (Delivered To)</div>
-                <div className="font-black text-sm text-[#211B17] mt-0.5">{viewChallan.customerName}</div>
-                <div className="text-[#544B45] text-[11px] mt-0.5">
-                  {viewChallan.customerAddress || `${viewChallan.destinationCity}, Site Location`}
-                </div>
-                <div className="text-[#70665F] text-[11px] font-mono mt-1">Destination: {viewChallan.destinationCity}</div>
-              </div>
-            </div>
-
-            {/* Equipment Description */}
-            <div className="p-4 bg-white rounded-xl border border-[#EBE3DB] space-y-2 text-xs">
-              <div className="flex justify-between items-start">
-                <div>
-                  <div className="font-black text-sm text-[#211B17]">{viewChallan.productName}</div>
-                  {viewChallan.specification && (
-                    <div className="text-[#70665F] text-[11px] mt-0.5">{viewChallan.specification}</div>
-                  )}
-                </div>
-                <div className="text-right font-mono">
-                  <div className="font-extrabold text-sm text-emerald-800">
-                    {viewChallan.quantity} {viewChallan.uom}
+            {/* =================================================================== */}
+            {/* AUTHENTIC DELIVERY CHALLAN SLIP (REPRODUCING THE USER'S PHOTO SLIP) */}
+            {/* =================================================================== */}
+            <div
+              className={`p-6 sm:p-8 font-sans transition-colors ${
+                slipTheme === 'yellow'
+                  ? 'bg-[#FEF08A] text-slate-950 border-8 border-[#FDE047]'
+                  : 'bg-white text-slate-950'
+              } print:p-0 print:border-none print:bg-white`}
+            >
+              <div className="border-2 border-black p-4 space-y-2 text-black bg-transparent">
+                {/* TOP HEADER */}
+                <div className="flex items-start justify-between border-b-2 border-black pb-2">
+                  {/* Left: Brand Logo & Title */}
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      {/* Logo Box */}
+                      <div className="border-2 border-black px-2 py-0.5 font-black text-lg tracking-wider font-mono">
+                        UMA
+                      </div>
+                      <div className="text-xl sm:text-2xl font-black tracking-tight uppercase">
+                        UMA TECHNOFAB
+                      </div>
+                    </div>
+                    <div className="text-[11px] font-bold tracking-tight text-slate-800">
+                      All Industrial Equipments. Tranki Projects...
+                    </div>
                   </div>
-                  {viewChallan.weightMT ? <div className="text-[11px] text-[#70665F]">{viewChallan.weightMT} MT</div> : null}
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-[#EBE3DB] text-[11px] font-mono">
-                <div>
-                  <span className="text-[#70665F]">Project #:</span>{' '}
-                  <span className="font-bold text-[#211B17]">{viewChallan.projectId || viewChallan.jobNumber}</span>
-                </div>
-                <div>
-                  <span className="text-[#70665F]">WO #:</span>{' '}
-                  <span className="font-bold text-[#211B17]">{viewChallan.workOrderNumber}</span>
-                </div>
-                <div>
-                  <span className="text-[#70665F]">Serial #:</span>{' '}
-                  <span className="font-bold text-[#211B17]">{viewChallan.serialNumber || 'N/A'}</span>
-                </div>
-                <div>
-                  <span className="text-[#70665F]">Heat #:</span>{' '}
-                  <span className="font-bold text-[#211B17]">{viewChallan.batchNumber || 'N/A'}</span>
-                </div>
-              </div>
-            </div>
+                  {/* Center: Main Title */}
+                  <div className="text-center">
+                    <h2 className="text-lg sm:text-xl font-black uppercase tracking-wider border-b-2 border-black inline-block px-3 pb-0.5">
+                      DELIVERY CHALLAN
+                    </h2>
+                  </div>
 
-            {/* Transport & Vehicle Details */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB] text-xs">
-              <div>
-                <span className="text-[10px] text-[#70665F] uppercase font-bold block">Vehicle Number</span>
-                <span className="font-mono font-bold text-[#211B17] text-sm">{viewChallan.vehicleNumber}</span>
-              </div>
-              <div>
-                <span className="text-[10px] text-[#70665F] uppercase font-bold block">Transporter</span>
-                <span className="font-semibold text-[#211B17]">{viewChallan.transporterName}</span>
-              </div>
-              <div>
-                <span className="text-[10px] text-[#70665F] uppercase font-bold block">LR (Lorry Receipt) #</span>
-                <span className="font-mono font-bold text-indigo-700">{viewChallan.lrNumber || '-'}</span>
-              </div>
-              <div>
-                <span className="text-[10px] text-[#70665F] uppercase font-bold block">E-Way Bill #</span>
-                <span className="font-mono font-bold text-sky-700">{viewChallan.eWayBillNumber || '-'}</span>
-              </div>
-            </div>
+                  {/* Right: Mobile numbers & Circled copy number */}
+                  <div className="text-right space-y-1">
+                    <div className="text-[11px] font-bold font-mono">
+                      Mo. : 98250 98367
+                      <br />
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;99250 11676
+                    </div>
+                    <div className="flex justify-end">
+                      <div className="w-7 h-7 rounded-full border-2 border-black font-bold flex items-center justify-center text-xs font-mono">
+                        {viewChallan.copyNumber || '1'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-            {/* Driver & Signoff */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-white rounded-xl border border-[#EBE3DB] text-xs">
-              <div>
-                <span className="text-[10px] text-[#70665F] block font-semibold">Driver Details</span>
-                <span className="font-bold text-[#211B17]">{viewChallan.driverName || 'Designated Driver'}</span>
-                {viewChallan.driverMobile && (
-                  <span className="text-[#70665F] block font-mono text-[11px]">{viewChallan.driverMobile}</span>
-                )}
-              </div>
-              <div>
-                <span className="text-[10px] text-[#70665F] block font-semibold">QC Clearance Signoff</span>
-                <span className="font-bold text-emerald-700">{viewChallan.qcClearanceBy || 'Quality Manager'}</span>
-                <span className="text-[10px] text-emerald-600 block">FAT & Hydro Passed</span>
-              </div>
-              <div>
-                <span className="text-[10px] text-[#70665F] block font-semibold">Dispatched By</span>
-                <span className="font-bold text-[#211B17]">{viewChallan.dispatchedBy || 'Dispatch Lead'}</span>
-                <span className="text-[10px] text-[#70665F] block">Gate Out Passed</span>
+                {/* FACTORY ADDRESS BOX */}
+                <div className="border-b-2 border-black pb-2 text-center text-[10.5px] sm:text-[11.5px] font-semibold leading-tight">
+                  S.No. 1040/3, Village : Rajpur, Nr. Sandvik Tube,
+                  <br />
+                  Ta-Kadi, Dist-Mehsana. Pin Code - 382721
+                </div>
+
+                {/* CONSIGNEE (BUYER) & CHALLAN METADATA GRID */}
+                <div className="grid grid-cols-12 border-b-2 border-black pb-2 text-xs">
+                  {/* Left: M/s & Address (8 cols) */}
+                  <div className="col-span-8 pr-3 border-r-2 border-black space-y-1">
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="font-black text-sm whitespace-nowrap">M/s.</span>
+                      <span className="font-black text-sm sm:text-base border-b border-black flex-1 pb-0.5">
+                        {viewChallan.customerName}
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline gap-1.5 pt-1">
+                      <span className="font-bold text-xs whitespace-nowrap">Address</span>
+                      <span className="font-semibold text-xs border-b border-black flex-1 pb-0.5">
+                        {viewChallan.customerAddress}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Right: Ch. No & Date (4 cols) */}
+                  <div className="col-span-4 pl-3 space-y-2">
+                    <div className="flex items-baseline justify-between">
+                      <span className="font-black text-sm">Ch. No :</span>
+                      <span className="font-black font-mono text-base border-b-2 border-black px-2 pb-0.5">
+                        {viewChallan.challanNo}
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline justify-between">
+                      <span className="font-bold text-xs">Date :</span>
+                      <span className="font-black font-mono text-xs border-b border-black px-2 pb-0.5">
+                        {viewChallan.date}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* MAIN TABLE: SR NO | PARTICULARS | QTY | AMOUNT */}
+                <div className="border-2 border-black">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="border-b-2 border-black font-black uppercase text-[11px] text-center">
+                        <th className="p-2 w-14 border-r-2 border-black">Sr. No.</th>
+                        <th className="p-2 border-r-2 border-black text-left">Particulars</th>
+                        <th className="p-2 w-20 border-r-2 border-black">Qty.</th>
+                        <th className="p-2 w-24">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-black/40 min-h-[220px]">
+                      {viewChallan.items.map((it, idx) => (
+                        <tr key={idx} className="align-top">
+                          {/* Sr No with circled number like photo */}
+                          <td className="p-2.5 border-r-2 border-black text-center font-bold font-mono">
+                            <span className="inline-block w-5 h-5 rounded-full border border-black text-[11px] leading-4">
+                              {it.srNo}
+                            </span>
+                          </td>
+
+                          {/* Particulars (includes material & packaging) */}
+                          <td className="p-2.5 border-r-2 border-black space-y-1.5">
+                            <div className="font-bold text-sm leading-snug whitespace-pre-line">
+                              {it.particulars}
+                            </div>
+                            {it.notes && (
+                              <div className="text-[11px] text-slate-800 italic">
+                                {it.notes}
+                              </div>
+                            )}
+
+                            {/* Transport / Vehicle Details written in body (exactly like photo) */}
+                            {idx === viewChallan.items.length - 1 && viewChallan.vehicleNumber && (
+                              <div className="pt-6 pb-2">
+                                <span className="font-black font-mono text-sm border-2 border-black px-3 py-1 bg-black/5 rounded">
+                                  {viewChallan.vehicleNumber}
+                                </span>
+                                {viewChallan.transporterName && (
+                                  <span className="text-[11px] font-semibold text-slate-800 ml-2">
+                                    ({viewChallan.transporterName})
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </td>
+
+                          {/* Qty */}
+                          <td className="p-2.5 border-r-2 border-black text-center font-black font-mono text-sm">
+                            {it.quantity}
+                          </td>
+
+                          {/* Amount / Unit */}
+                          <td className="p-2.5 text-center font-bold text-xs">
+                            {it.unitOrAmount}
+                          </td>
+                        </tr>
+                      ))}
+
+                      {/* Spacer rows if few items to fill the Challan height like physical ledger */}
+                      {viewChallan.items.length < 3 && (
+                        <tr>
+                          <td className="p-6 border-r-2 border-black">&nbsp;</td>
+                          <td className="p-6 border-r-2 border-black">&nbsp;</td>
+                          <td className="p-6 border-r-2 border-black">&nbsp;</td>
+                          <td className="p-6">&nbsp;</td>
+                        </tr>
+                      )}
+                    </tbody>
+
+                    {/* TABLE FOOTER: GSTIN NO & TOTAL */}
+                    <tfoot>
+                      <tr className="border-t-2 border-black font-black text-xs">
+                        <td colSpan={2} className="p-2.5 border-r-2 border-black">
+                          <span className="font-black font-mono text-xs sm:text-sm">
+                            GSTIN No. : {viewChallan.gstin || '24AAEFU9027H1Z3'}
+                          </span>
+                        </td>
+                        <td className="p-2.5 border-r-2 border-black text-center uppercase tracking-wider font-bold">
+                          TOTAL
+                        </td>
+                        <td className="p-2.5 text-center font-black font-mono text-sm">
+                          {viewChallan.totalQuantity}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+
+                {/* BOTTOM FOOTER: JURISDICTION, RECEIVER SIGN & FOR UMA TECHNOFAB */}
+                <div className="pt-3 grid grid-cols-2 gap-4 text-xs">
+                  {/* Left: Jurisdiction & Receiver */}
+                  <div className="space-y-4">
+                    <div className="text-[11px] font-bold">
+                      Subject to KALOL (N.G) Jurisdiction
+                    </div>
+                    <div className="font-bold">
+                      Receiver Signature &amp; Date
+                    </div>
+                    <div className="pt-2 font-bold flex items-center gap-1.5">
+                      <span>Department:-</span>
+                      <span className="border-b border-black flex-1 font-semibold">
+                        {viewChallan.department || 'Dispatch'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Right: For, UMA Technofab */}
+                  <div className="text-right space-y-8 flex flex-col justify-between">
+                    <div className="font-black text-sm">
+                      For, UMA Technofab
+                    </div>
+                    <div className="pt-6">
+                      <div className="border-t border-black inline-block w-48 text-center text-[10.5px] font-bold">
+                        Authorized Signatory
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Bottom Actions */}
-            <div className="flex items-center justify-between pt-2">
-              <button
-                onClick={() => {
-                  setViewChallan(null);
-                  openJobModal(viewChallan.jobNumber);
-                }}
-                className="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-800 border border-indigo-300 text-xs font-bold flex items-center gap-1 hover:bg-indigo-100 transition"
-              >
-                View 360° Trace <ArrowUpRight className="w-3.5 h-3.5" />
-              </button>
-
-              <button
-                onClick={() => setViewChallan(null)}
-                className="px-5 py-2 rounded-xl bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#211B17] text-xs font-semibold"
-              >
-                Close Challan
-              </button>
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between print:hidden">
+              <div className="text-xs text-slate-500 font-medium">
+                Certified copy of delivery challan for vehicle gate pass and customer receipt.
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Print Slip</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewChallan(null)}
+                  className="px-4 py-2 bg-white border border-slate-300 text-slate-700 font-bold rounded-xl text-xs hover:bg-slate-100"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>

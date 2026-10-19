@@ -575,6 +575,20 @@ interface ERPContextType {
     newStatus: 'pending' | 'in_progress' | 'completed',
     progressPercent?: number
   ) => void;
+  dispatchProjectPlanningToDepartments: (planningId: string) => { success: boolean; dispatchedDepartments: string[]; taskCount: number };
+  updateProjectPlanningTaskSupervisorProgress: (
+    planningRecordId: string,
+    taskId: string,
+    updates: {
+      status?: 'pending' | 'in_progress' | 'completed' | 'on_hold';
+      progressPercent?: number;
+      workDoneDetails?: string;
+      stageReached?: string;
+      supervisorName?: string;
+      workstationOrBay?: string;
+      notes?: string;
+    }
+  ) => void;
 
   projectPlanningStages: ProjectPlanningStage[];
   updatePlanningStage: (id: string, stage: Partial<ProjectPlanningStage>) => void;
@@ -8427,6 +8441,228 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const dispatchProjectPlanningToDepartments = (planningId: string) => {
+    let dispatchedDepts: string[] = [];
+    let count = 0;
+
+    setProjectPlanningRecords((prev) => {
+      const target = prev.find((r) => r.id === planningId || r.projectId === planningId || r.projectNumber === planningId);
+      if (!target) return prev;
+
+      // Detect departments from tasks
+      const deptSet = new Set<string>();
+      const tasksWithDepts = (target.tasks || []).map((t) => {
+        let dept = t.department;
+        if (!dept) {
+          const tName = (t.taskName || '').toLowerCase();
+          if (tName.includes('design') || tName.includes('cad') || tName.includes('drawing') || tName.includes('bom')) dept = 'Design';
+          else if (tName.includes('store') || tName.includes('stock') || tName.includes('inventory') || tName.includes('grn')) dept = 'Store';
+          else if (tName.includes('purchase') || tName.includes('rfq') || tName.includes('procurement') || tName.includes('supplier')) dept = 'Purchase';
+          else if (tName.includes('qc') || tName.includes('testing') || tName.includes('inspection') || tName.includes('ndt') || tName.includes('hydro')) dept = 'Quality';
+          else if (tName.includes('invoice') || tName.includes('billing') || tName.includes('advance') || tName.includes('accounting')) dept = 'Accounts';
+          else dept = 'Production';
+        }
+        deptSet.add(dept);
+        return {
+          ...t,
+          department: dept,
+          status: (t.status === 'completed' ? 'completed' : 'in_progress') as 'completed' | 'in_progress',
+        };
+      });
+
+      dispatchedDepts = Array.from(deptSet);
+      count = tasksWithDepts.length;
+
+      const now = new Date().toISOString();
+      const updatedRecord: ProjectPlanningRecord = {
+        ...target,
+        tasks: tasksWithDepts,
+        status: target.status === 'completed' ? 'completed' : 'in_progress',
+        isDispatched: true,
+        dispatchedAt: now,
+        dispatchedDepartments: dispatchedDepts,
+        updatedAt: now,
+      };
+
+      const updated = prev.map((r) => (r.id === target.id ? updatedRecord : r));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_projectPlanningRecords', JSON.stringify(updated)); } catch (_) {}
+      }
+
+      // Send in-app notifications with audio chime to each department
+      dispatchedDepts.forEach((dept) => {
+        const lowerDept = dept.toLowerCase();
+        let targetDeptType: any = 'production';
+        let linkUrl = '/production/supervisor-tasks';
+        let deptLabel = 'Production';
+
+        if (lowerDept.includes('design')) {
+          targetDeptType = 'designer';
+          linkUrl = '/designer/jobs';
+          deptLabel = 'Design & Engineering';
+        } else if (lowerDept.includes('store')) {
+          targetDeptType = 'store';
+          linkUrl = '/production/mrp';
+          deptLabel = 'Store & Inventory';
+        } else if (lowerDept.includes('purchase')) {
+          targetDeptType = 'purchase';
+          linkUrl = '/purchase/requisition';
+          deptLabel = 'Purchase';
+        } else if (lowerDept.includes('account')) {
+          targetDeptType = 'accounting';
+          linkUrl = '/accounting/invoices';
+          deptLabel = 'Accounting';
+        } else if (lowerDept.includes('quality') || lowerDept.includes('qc')) {
+          targetDeptType = 'production';
+          linkUrl = '/production/completion';
+          deptLabel = 'Quality & Inspection';
+        }
+
+        const deptTasksCount = tasksWithDepts.filter((t) => (t.department || '').toLowerCase() === lowerDept).length || 1;
+
+        sendNotification({
+          title: `🚀 ${deptLabel} Tasks Dispatched: ${target.projectNumber}`,
+          message: `Planning completed for ${target.customerName} - ${target.productName}. ${deptTasksCount} task(s) assigned to ${deptLabel}. Action required.`,
+          type: 'alert',
+          department: targetDeptType,
+          priority: 'high',
+          linkUrl,
+        });
+      });
+
+      // Update project job status to production
+      setProjectJobs((prevJobs) =>
+        prevJobs.map((j) =>
+          j.id === target.projectId || j.projectNumber === target.projectNumber
+            ? { ...j, status: j.status === 'completed' ? 'completed' : 'production' }
+            : j
+        )
+      );
+
+      return updated;
+    });
+
+    return { success: true, dispatchedDepartments: dispatchedDepts, taskCount: count };
+  };
+
+  const updateProjectPlanningTaskSupervisorProgress = (
+    planningRecordId: string,
+    taskId: string,
+    updates: {
+      status?: 'pending' | 'in_progress' | 'completed' | 'on_hold';
+      progressPercent?: number;
+      workDoneDetails?: string;
+      stageReached?: string;
+      supervisorName?: string;
+      workstationOrBay?: string;
+      notes?: string;
+    }
+  ) => {
+    setProjectPlanningRecords((prev) => {
+      const record = prev.find(
+        (r) => r.id === planningRecordId || r.projectId === planningRecordId || r.projectNumber === planningRecordId
+      );
+      if (!record) return prev;
+
+      const now = new Date().toISOString();
+      const updatedTasks = (record.tasks || []).map((t) => {
+        if (t.id !== taskId) return t;
+
+        const newStatus = updates.status !== undefined ? updates.status : (updates.progressPercent !== undefined && updates.progressPercent >= 100) ? 'completed' : t.status;
+        const newPct = updates.progressPercent !== undefined ? updates.progressPercent : newStatus === 'completed' ? 100 : t.progressPercent;
+
+        const newLogEntry = {
+          id: `LOG-${Date.now()}`,
+          timestamp: now,
+          supervisorName: updates.supervisorName || t.supervisorName || 'Shopfloor Supervisor',
+          stageReached: updates.stageReached !== undefined ? updates.stageReached : t.stageReached,
+          workDoneDetails: updates.workDoneDetails !== undefined ? updates.workDoneDetails : t.workDoneDetails,
+          progressPercent: newPct,
+          status: newStatus,
+          workstationOrBay: updates.workstationOrBay !== undefined ? updates.workstationOrBay : t.workstationOrBay,
+          notes: updates.notes,
+        };
+
+        return {
+          ...t,
+          status: newStatus,
+          progressPercent: newPct,
+          workDoneDetails: updates.workDoneDetails !== undefined ? updates.workDoneDetails : t.workDoneDetails,
+          stageReached: updates.stageReached !== undefined ? updates.stageReached : t.stageReached,
+          supervisorName: updates.supervisorName !== undefined ? updates.supervisorName : t.supervisorName,
+          workstationOrBay: updates.workstationOrBay !== undefined ? updates.workstationOrBay : t.workstationOrBay,
+          lastUpdatedDate: now,
+          progressLogs: [newLogEntry, ...(t.progressLogs || [])],
+        };
+      });
+
+      // Advance next task if completed
+      const thisTask = updatedTasks.find((t) => t.id === taskId);
+      if (thisTask && (thisTask.status === 'completed' || thisTask.progressPercent === 100)) {
+        const completedIndex = updatedTasks.findIndex((t) => t.id === taskId);
+        if (completedIndex !== -1 && completedIndex + 1 < updatedTasks.length) {
+          const nextTask = updatedTasks[completedIndex + 1];
+          if (nextTask.status === 'pending') {
+            updatedTasks[completedIndex + 1] = {
+              ...nextTask,
+              status: 'in_progress',
+              progressPercent: 25,
+              lastUpdatedDate: now,
+            };
+          }
+        }
+      }
+
+      const total = updatedTasks.length;
+      const completed = updatedTasks.filter((t) => t.status === 'completed' || t.progressPercent === 100).length;
+      const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+      const overallStatus = progress >= 100 ? 'completed' : progress > 0 ? 'in_progress' : record.status;
+
+      const updatedRecord: ProjectPlanningRecord = {
+        ...record,
+        tasks: updatedTasks,
+        totalTasks: total,
+        completedTasks: completed,
+        overallProgress: progress,
+        status: overallStatus,
+        updatedAt: now,
+      };
+
+      const updated = prev.map((r) => (r.id === record.id ? updatedRecord : r));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_projectPlanningRecords', JSON.stringify(updated)); } catch (_) {}
+      }
+
+      // Notification on completion or significant progress
+      if (thisTask && (thisTask.status === 'completed' || thisTask.progressPercent === 100)) {
+        sendNotification({
+          title: `✅ Operation Completed: ${thisTask.taskName}`,
+          message: `Supervisor ${updates.supervisorName || 'Production'} completed operation 100% for ${record.projectNumber} (${record.customerName}).`,
+          type: 'success',
+          department: 'production',
+          priority: 'normal',
+          linkUrl: '/production/supervisor-tasks',
+        });
+      }
+
+      // Update project job
+      setProjectJobs((prevJobs) =>
+        prevJobs.map((j) =>
+          j.id === record.projectId || j.projectNumber === record.projectNumber
+            ? {
+                ...j,
+                progressPercent: progress,
+                status: progress >= 100 ? 'completed' : 'production',
+                currentStage: updatedTasks.find((t) => t.status === 'in_progress')?.taskName || (progress >= 100 ? 'Completed' : 'Production'),
+              }
+            : j
+        )
+      );
+
+      return updated;
+    });
+  };
+
   const reorderPlanningStages = (projectId: string, newOrderedStages: ProjectPlanningStage[]) => {
     setProjectPlanningStages((prev) => {
       const otherStages = prev.filter(
@@ -11404,7 +11640,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       type: 'info',
       department: 'production',
       priority: 'normal',
-      linkUrl: '/production/work-orders',
+      linkUrl: '/production/supervisor-tasks',
     });
     api.production.workOrders.create(newWo).then((res) => {
       if (res && res.id) {
@@ -11423,7 +11659,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       type: 'info',
       department: 'production',
       priority: 'high',
-      linkUrl: '/production/work-orders',
+      linkUrl: '/production/supervisor-tasks',
     });
 
     const payload = target ? { ...target, status: 'Released' } : { id, workOrderNumber: id, status: 'Released' };
@@ -11682,7 +11918,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       type: 'success',
       department: 'production',
       priority: 'high',
-      linkUrl: '/production/work-orders',
+      linkUrl: '/production/supervisor-tasks',
     });
 
     // 1. Update Work Order status to Completed
@@ -14221,6 +14457,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         saveProjectPlanningRecord,
         deleteProjectPlanningRecord,
         updateProjectPlanningTaskStatus,
+        dispatchProjectPlanningToDepartments,
+        updateProjectPlanningTaskSupervisorProgress,
         projectPlanningStages: deduplicatePlanningStages(projectPlanningStages),
         updatePlanningStage,
         generateDefaultPlanningStages,

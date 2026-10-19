@@ -384,6 +384,30 @@ export interface ProductionScrap {
   remarks?: string;
 }
 
+export interface InProcessInspectionRow {
+  processName: string; // 'Cutting' | 'Grinding' | 'Bending' | 'Taking' | 'Welding' | 'Final Grinding' | 'Sand Blasting' | 'Painting'
+  parameters: string; // 'Length, Width & Thickness' | 'Finishing' | 'ID , OD' | 'Dimensions' | 'Leakage' | 'Corazon' | 'Color Shade'
+  testingMethod: string; // 'Measure Tape & Vernier Caliper' | 'Visual' | 'Measure Tape & Gauge' | 'DP Test & X Ray & Hydraulic test (As Per customer Req.)'
+  requirements: string; // 'As Per dwg. 5THK x 7860 x 5500...'
+  actual: string; // 'OK' | 'No Req' | 'Deviation'
+  remarks?: string;
+}
+
+export interface InspectionReportDoc {
+  docNo: string; // 'F - QAS - 02'
+  reportTitle: string; // 'In process cum final inspection report'
+  companyName: string; // 'UMA TECHNO FAB'
+  customerName: string;
+  item: string;
+  workOrderOrJobNo: string;
+  qty: string;
+  date: string;
+  inspectionRows: InProcessInspectionRow[];
+  inspectionBy: string;
+  inspectionDate?: string;
+  finalStatus: 'Approved' | 'Rejected' | 'Accepted with Concession';
+}
+
 export interface ProductionCompletion {
   id: string;
   completionNumber: string;
@@ -392,6 +416,7 @@ export interface ProductionCompletion {
   jobNumber: string;
   workOrderNumber: string;
   productName: string;
+  customerName?: string;
   completedQuantity: number;
   rejectedQuantity: number;
   reworkQuantity: number;
@@ -399,7 +424,11 @@ export interface ProductionCompletion {
   completedBy: string;
   qcStatus: 'Pending' | 'Passed' | 'Failed';
   remarks?: string;
-  // Detailed Quality Clearance Fields
+  // Detailed Quality Clearance Fields (Doc No. F - QAS - 02)
+  docNo?: string;
+  inspectionReport?: InspectionReportDoc;
+  inspectionRows?: InProcessInspectionRow[];
+  inspectionBy?: string;
   hydroTestPressure?: string | number;
   hydroHoldingDuration?: string;
   hydroTestStatus?: 'Passed' | 'Failed' | 'Waived';
@@ -419,6 +448,7 @@ export interface FinishedGoodsItem {
   jobNumber: string;
   workOrderNumber: string;
   productionOrderNumber: string;
+  customerName?: string;
   productName: string;
   specification: string;
   quantity: number;
@@ -495,6 +525,99 @@ export interface DispatchOrder {
   qcClearanceBy?: string;
   dispatchedBy?: string;
   status: DispatchStatus;
+  remarks?: string;
+  createdAt?: string;
+}
+
+// ==========================================
+// WORK PROFILE DAILY ROUTINE (વર્કર ડેઇલી રૂટીન)
+// ==========================================
+export interface WorkerMaster {
+  id: string;
+  slNo: number;
+  workerName: string;
+  trade: string; // T: 'Fitter' | 'Welder' | 'Helper' | 'Gas Cutter' | 'Machinist' | 'Grinder' | 'Plasma' | 'Rolling' | string;
+  defaultShift?: string; // S: 'General' | 'Day' | 'Night'
+  phone?: string;
+  isActive: boolean;
+}
+
+export interface WorkerDailyRoutineEntry {
+  id: string;
+  date: string; // YYYY-MM-DD
+  workerId: string;
+  slNo: number;
+  workerName: string;
+  trade: string; // T
+  shiftStatus: 'Present' | 'Absent' | 'Half Day'; // S
+  shiftType?: 'General' | 'Shift 1' | 'Shift 2' | 'Night';
+  jobOrProjectNo?: string; // e.g. 'UTF-26-138'
+  workDetails: string; // WORKER column in physical sheet
+  quantityNos?: string; // e.g. '4 Nos'
+  hoursWorked?: number;
+  overtimeHours?: number;
+  remarks?: string;
+  isVerified?: boolean; // ✓ tickmark by supervisor
+  supervisorName?: string;
+  updatedAt?: string;
+}
+
+// ==========================================
+// DELIVERY CHALLAN (ડીલેવરી ચલણ - MATCHING PHYSICAL SLIP)
+// ==========================================
+export interface DeliveryChallanItem {
+  srNo: number;
+  particulars: string; // e.g. "Burger Luxol PU Enamel. W-305 / 05 Drum."
+  quantity: string | number; // e.g. "20"
+  unitOrAmount: string; // e.g. "4 Ltr" or "Unit" or "NOS"
+  notes?: string;
+}
+
+export interface DeliveryChallanDoc {
+  id: string;
+  challanNo: string; // e.g. "547"
+  date: string; // e.g. "26.06.2026"
+  copyNumber?: string | number; // Top-right circled indicator, e.g. "1" (Original)
+
+  // Consignor Header Details (Pre-printed on physical slip)
+  companyName: string; // "UMA TECHNOFAB"
+  companyLogoText: string; // "UMA TECHNO FAB"
+  companyTagline: string; // "All Industrial Equipments. Tranki Projects..."
+  companyPhones: string; // "Mo. : 98250 98367 / 99250 11676"
+  companyAddress: string; // "S.No. 1040/3, Village : Rajpur, Nr. Sandvik Tube, Ta-Kadi, Dist-Mehsana. Pin Code - 382721"
+  gstin: string; // "GSTIN No. : 24AAEFU9027H1Z3"
+  jurisdiction: string; // "Subject to KALOL (N.G) Jurisdiction"
+
+  // Consignee (Buyer) Details
+  customerName: string; // "M/s. UMA Food"
+  customerAddress: string; // "Address: ..."
+  destinationCity?: string;
+
+  // Project / Job Reference (linked from QC & Production)
+  projectId?: string;
+  jobNumber?: string;
+  workOrderNumber?: string;
+  qcReportNo?: string; // e.g. "QC-2026-001 (F - QAS - 02)"
+
+  // Transport details (annotated in body / logistics)
+  vehicleNumber?: string; // e.g. "GJ-02.AT.3826"
+  transporterName?: string;
+  lrNumber?: string;
+  driverName?: string;
+  driverMobile?: string;
+  eWayBillNumber?: string;
+
+  // Line Items & Totals
+  items: DeliveryChallanItem[];
+  totalQuantity: string; // e.g. "20 Ltr"
+  totalAmount?: string;
+
+  // Footer Signoffs
+  department?: string; // "Department: -"
+  receiverSign?: string; // "Receiver Signature & Date"
+  authorizedSignatory?: string; // "For, UMA Technofab"
+
+  status: 'Draft' | 'Issued' | 'In Transit' | 'Delivered' | 'Acknowledged';
   remarks?: string;
   createdAt?: string;
 }

@@ -729,8 +729,8 @@ export default function DashboardPage() {
               {(dashboardData?.moduleShortcuts && dashboardData.moduleShortcuts.length > 0
                 ? dashboardData.moduleShortcuts
                 : [
-                    { module: 'production', label: 'Work Orders', href: '/production/work-orders', icon: 'Play' },
-                    { module: 'projects', label: 'Project Planning', href: '/projects/planning', icon: 'Factory' },
+                    { module: 'production', label: 'Production Planning', href: '/production/planning', icon: 'Factory' },
+                    { module: 'projects', label: 'Project Planning', href: '/projects/planning', icon: 'Workflow' },
                     { module: 'store', label: 'Stock Matrix', href: '/store/stock', icon: 'Box' },
                     { module: 'designer', label: 'Designer BOM', href: '/designer/bom', icon: 'Palette' },
                     { module: 'purchase', label: 'Indent / PR', href: '/purchase/requisition', icon: 'ShoppingCart' },

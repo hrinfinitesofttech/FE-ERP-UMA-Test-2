@@ -30,6 +30,9 @@ import {
   ChevronDown,
   Sparkles,
   RefreshCw,
+  Send,
+  Check,
+  Factory,
 } from 'lucide-react';
 
 export default function ProjectPlanningPage() {
@@ -38,6 +41,7 @@ export default function ProjectPlanningPage() {
     projectPlanningRecords,
     saveProjectPlanningRecord,
     deleteProjectPlanningRecord,
+    dispatchProjectPlanningToDepartments,
     projectJobs,
     masterTasks,
     employees,
@@ -71,6 +75,14 @@ export default function ProjectPlanningPage() {
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 4000);
+  };
+
+  // Dispatch Project Planning to Departments
+  const handleDispatchPlan = (planId: string, projNo: string) => {
+    const res = dispatchProjectPlanningToDepartments(planId);
+    if (res.success) {
+      showToast(`🚀 Plan ${projNo} dispatched to ${res.dispatchedDepartments.join(', ')}! Department pages & notifications updated.`);
+    }
   };
 
   // Search & Filter for List
@@ -190,6 +202,7 @@ export default function ProjectPlanningPage() {
       id: `ROW-${Date.now()}-${taskList.length + 1}`,
       masterTaskId: templateTask?.id,
       taskName: templateTask?.taskName || (masterTasks[taskList.length % masterTasks.length]?.taskName || 'Production Stage'),
+      department: templateTask?.department || masterTasks[taskList.length % masterTasks.length]?.department || 'Production',
       assignedPersons: [],
       startDate: today,
       endDate: end,
@@ -218,11 +231,12 @@ export default function ProjectPlanningPage() {
 
         const updated = { ...t, [field]: value };
 
-        // If taskName changed from master tasks, update masterTaskId and duration
+        // If taskName changed from master tasks, update masterTaskId and duration and department
         if (field === 'taskName') {
           const matched = masterTasks.find((m) => m.taskName === value);
           if (matched) {
             updated.masterTaskId = matched.id;
+            updated.department = matched.department || 'Production';
             if (matched.estimatedDays && !t.durationDays) {
               updated.durationDays = matched.estimatedDays;
             }
@@ -485,6 +499,26 @@ export default function ProjectPlanningPage() {
       header: 'Actions',
       cell: (r) => (
         <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+          {r.isDispatched ? (
+            <button
+              onClick={() => handleDispatchPlan(r.id, r.projectNumber)}
+              title={`Dispatched to ${r.dispatchedDepartments?.join(', ') || 'departments'}. Click to re-send.`}
+              className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg transition cursor-pointer flex items-center gap-1 font-bold text-[11px]"
+            >
+              <Check className="w-3 h-3 text-emerald-600" />
+              <span>Sent</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => handleDispatchPlan(r.id, r.projectNumber)}
+              title="Send plan and notify departments (Production, Design, Store...)"
+              className="px-2.5 py-1 text-white bg-amber-600 hover:bg-amber-700 border border-amber-600 rounded-lg transition cursor-pointer flex items-center gap-1 font-bold text-[11px] shadow-xs active:scale-95"
+            >
+              <Send className="w-3 h-3" />
+              <span>સેન્ડ</span>
+            </button>
+          )}
+
           <button
             onClick={() => handleOpenEdit(r)}
             title="Edit Project Plan"
@@ -753,13 +787,14 @@ export default function ProjectPlanningPage() {
                 <thead className="bg-[#FAF7F2] text-[#544B45] font-bold border-b border-[#EBE3DB]">
                   <tr>
                     <th className="py-2.5 px-3 w-10 text-center">#</th>
-                    <th className="py-2.5 px-3 min-w-[220px]">Task / Operation (from Task Master)</th>
-                    <th className="py-2.5 px-3 min-w-[200px]">Assigned Person(s)</th>
-                    <th className="py-2.5 px-3 min-w-[130px]">Start Date</th>
-                    <th className="py-2.5 px-3 min-w-[130px]">End Date</th>
-                    <th className="py-2.5 px-3 w-24 text-center">Days</th>
-                    <th className="py-2.5 px-3 min-w-[120px]">Status</th>
-                    <th className="py-2.5 px-3 min-w-[110px]">Progress %</th>
+                    <th className="py-2.5 px-3 min-w-[200px]">Task / Operation (from Task Master)</th>
+                    <th className="py-2.5 px-3 min-w-[130px]">Department</th>
+                    <th className="py-2.5 px-3 min-w-[180px]">Assigned Person(s)</th>
+                    <th className="py-2.5 px-3 min-w-[120px]">Start Date</th>
+                    <th className="py-2.5 px-3 min-w-[120px]">End Date</th>
+                    <th className="py-2.5 px-3 w-20 text-center">Days</th>
+                    <th className="py-2.5 px-3 min-w-[110px]">Status</th>
+                    <th className="py-2.5 px-3 min-w-[100px]">Progress %</th>
                     <th className="py-2.5 px-3 w-12 text-center">Action</th>
                   </tr>
                 </thead>
@@ -790,6 +825,22 @@ export default function ProjectPlanningPage() {
                                 ))}
                             </optgroup>
                           ))}
+                        </select>
+                      </td>
+
+                      {/* Department Selector */}
+                      <td className="py-2 px-3">
+                        <select
+                          value={task.department || 'Production'}
+                          onChange={(e) => handleUpdateTaskField(task.id, 'department', e.target.value)}
+                          className="w-full px-2 py-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-semibold text-[#211B17] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                        >
+                          <option value="Production">Production (પ્રોડક્શન)</option>
+                          <option value="Design">Design (ડિઝાઇનિંગ)</option>
+                          <option value="Store">Store (સ્ટોર/મટિરિયલ)</option>
+                          <option value="Purchase">Purchase (ખરીદી)</option>
+                          <option value="Quality">Quality / QC (ક્વોલિટી)</option>
+                          <option value="Accounts">Accounts (એકાઉન્ટ)</option>
                         </select>
                       </td>
 
@@ -1066,23 +1117,38 @@ export default function ProjectPlanningPage() {
                 </table>
               </div>
 
-              <div className="p-4 border-t border-[#EBE3DB] bg-[#FAF7F2] -mx-5 -mb-5 flex justify-end gap-2">
+              <div className="p-4 border-t border-[#EBE3DB] bg-[#FAF7F2] -mx-5 -mb-5 flex flex-wrap items-center justify-between gap-2">
                 <button
+                  type="button"
                   onClick={() => {
-                    const rec = viewingRecord;
-                    setViewingRecord(null);
-                    handleOpenEdit(rec);
+                    handleDispatchPlan(viewingRecord.id, viewingRecord.projectNumber);
                   }}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition cursor-pointer"
+                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow-xs active:scale-95"
                 >
-                  Edit This Plan
+                  <Send className="w-3.5 h-3.5" />
+                  <span>
+                    {viewingRecord.isDispatched ? 'Resend to Departments' : 'Send to Departments (સેન્ડ કરો)'}
+                  </span>
                 </button>
-                <button
-                  onClick={() => setViewingRecord(null)}
-                  className="px-4 py-2 bg-white border border-[#EBE3DB] hover:bg-slate-50 text-[#544B45] font-bold rounded-xl text-xs transition cursor-pointer"
-                >
-                  Close
-                </button>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      const rec = viewingRecord;
+                      setViewingRecord(null);
+                      handleOpenEdit(rec);
+                    }}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition cursor-pointer"
+                  >
+                    Edit This Plan
+                  </button>
+                  <button
+                    onClick={() => setViewingRecord(null)}
+                    className="px-4 py-2 bg-white border border-[#EBE3DB] hover:bg-slate-50 text-[#544B45] font-bold rounded-xl text-xs transition cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           </div>

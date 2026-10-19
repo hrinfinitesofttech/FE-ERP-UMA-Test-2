@@ -431,13 +431,13 @@ export const ERP_PAGES_MASTER: PageItem[] = [
     keywords: ['production planning', 'capacity planning', 'shop schedule', 'loading'],
   },
   {
-    id: 'page-prod-work-orders',
-    title: 'Shop Floor Work Orders',
+    id: 'page-prod-worker-daily-routine',
+    title: 'Worker Profile Daily Routine (વર્કર ડાયરી)',
     category: 'Production',
-    path: '/production/work-orders',
+    path: '/production/worker-daily-routine',
     icon: FileText,
-    description: 'Operation-level work travelers and shift supervisor assignments.',
-    keywords: ['work orders', 'job travelers', 'operation orders', 'routing cards'],
+    description: 'Shopfloor worker daily routine tasks, attendance, and job logs.',
+    keywords: ['worker daily routine', 'worker diary', 'labor log', 'daily work profile', 'attendance'],
   },
   {
     id: 'page-prod-mrp',

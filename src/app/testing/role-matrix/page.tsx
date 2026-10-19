@@ -58,7 +58,7 @@ export default function RoleMatrixPage() {
     { name: 'Design & BOM', route: '/designer/boms', superAdmin: true, plantDir: true, sales: false, design: true, purchase: true, store: true, prod: true, acc: false, hr: false, service: false },
     { name: 'Purchase & RFQ', route: '/purchase/pos', superAdmin: true, plantDir: true, sales: false, design: false, purchase: true, store: true, prod: true, acc: true, hr: false, service: false },
     { name: 'Store & Inventory', route: '/store/inventory', superAdmin: true, plantDir: true, sales: false, design: false, purchase: true, store: true, prod: true, acc: true, hr: false, service: false },
-    { name: 'Production & MRP', route: '/production/work-orders', superAdmin: true, plantDir: true, sales: false, design: false, purchase: false, store: true, prod: true, acc: false, hr: false, service: false },
+    { name: 'Production & MRP', route: '/production/planning', superAdmin: true, plantDir: true, sales: false, design: false, purchase: false, store: true, prod: true, acc: false, hr: false, service: false },
     { name: 'Accounting & GST', route: '/accounting/vouchers', superAdmin: true, plantDir: true, sales: false, design: false, purchase: false, store: false, prod: false, acc: true, hr: false, service: false },
     { name: 'HR & Payroll', route: '/hr/monthly-payroll', superAdmin: true, plantDir: true, sales: false, design: false, purchase: false, store: false, prod: false, acc: false, hr: true, service: false },
     { name: 'Maintenance & Service', route: '/maintenance/breakdowns', superAdmin: true, plantDir: true, sales: false, design: false, purchase: false, store: false, prod: false, acc: false, hr: false, service: true },
@@ -168,7 +168,7 @@ export default function RoleMatrixPage() {
               <option value="/purchase/pos" className="bg-white">/purchase/pos (Purchase Management)</option>
               <option value="/designer/boms" className="bg-white">/designer/boms (Design & Engineering)</option>
               <option value="/store/inventory" className="bg-white">/store/inventory (Store & Warehouse)</option>
-              <option value="/production/work-orders" className="bg-white">/production/work-orders (Production & Shop Floor)</option>
+              <option value="/production/planning" className="bg-white">/production/planning (Production & Shop Floor)</option>
               <option value="/crm/leads" className="bg-white">/crm/leads (CRM & Sales)</option>
               <option value="/projects/planning" className="bg-white">/projects/planning (Project Planning)</option>
               <option value="/maintenance/breakdowns" className="bg-white">/maintenance/breakdowns (Maintenance & Breakdowns)</option>

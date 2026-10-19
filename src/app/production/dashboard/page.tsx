@@ -179,10 +179,10 @@ export default function ProductionDashboardPage() {
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center gap-2.5">
           <Link
-            href="/production/work-orders"
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 text-[#211B17] font-medium text-xs hover:brightness-110 shadow-lg shadow-orange-600/20 transition"
+            href="/production/supervisor-tasks"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 text-white font-medium text-xs hover:brightness-110 shadow-lg shadow-orange-600/20 transition"
           >
-            <Plus className="w-4 h-4" /> Create Work Order
+            <Factory className="w-4 h-4" /> Supervisor Tasks Hub
           </Link>
           <button
             onClick={() => openJobModal(manufacturingJobs[0]?.jobNumber || '')}
@@ -620,8 +620,8 @@ export default function ProductionDashboardPage() {
           <h3 className="text-base font-bold text-[#211B17] flex items-center gap-2">
             <ClipboardList className="w-5 h-5 text-orange-400" /> Active Work Orders & Progress Status
           </h3>
-          <Link href="/production/work-orders" className="text-xs text-orange-400 hover:underline flex items-center gap-1">
-            View All Work Orders <ChevronRight className="w-3.5 h-3.5" />
+          <Link href="/production/supervisor-tasks" className="text-xs text-orange-400 hover:underline flex items-center gap-1">
+            View Supervisor Operations <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 

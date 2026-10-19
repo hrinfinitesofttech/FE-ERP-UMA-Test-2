@@ -576,10 +576,23 @@ export interface MasterTask {
   updatedAt?: string;
 }
 
+export interface TaskProgressLog {
+  id: string;
+  timestamp: string;
+  supervisorName: string;
+  stageReached?: string; // "આ એટલે પહોંચ્યો"
+  workDoneDetails?: string; // "આનું કામ આટલું થયું"
+  progressPercent: number;
+  status: 'pending' | 'in_progress' | 'completed' | 'on_hold';
+  workstationOrBay?: string;
+  notes?: string;
+}
+
 export interface PlannedTaskItem {
   id: string;
   masterTaskId?: string;
   taskName: string;
+  department?: string;
   assignedPersons: string[];
   startDate: string;
   endDate: string;
@@ -587,6 +600,13 @@ export interface PlannedTaskItem {
   status: 'pending' | 'in_progress' | 'completed' | 'on_hold';
   progressPercent: number;
   remarks?: string;
+  // Supervisor tracking fields
+  workDoneDetails?: string; // "આનું કામ આટલું થયું"
+  stageReached?: string; // "આ એટલે પહોંચ્યો"
+  workstationOrBay?: string;
+  supervisorName?: string;
+  lastUpdatedDate?: string;
+  progressLogs?: TaskProgressLog[];
 }
 
 export interface ProjectPlanningRecord {
@@ -603,6 +623,9 @@ export interface ProjectPlanningRecord {
   completedTasks: number;
   overallProgress: number;
   status: 'draft' | 'planned' | 'in_progress' | 'completed';
+  isDispatched?: boolean;
+  dispatchedAt?: string;
+  dispatchedDepartments?: string[];
   createdAt: string;
   updatedAt: string;
 }

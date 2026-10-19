@@ -1,699 +1,1057 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
-import { 
-  CheckCircle2, ShieldCheck, PackageCheck, AlertCircle, AlertTriangle, Plus, 
-  ChevronRight, Printer, X, Eye, FileText, Cpu, Building, Award, Sparkles, Filter, Search
+import { InProcessInspectionRow, InspectionReportDoc, ProductionCompletion } from '../../../types/production';
+import { formatDate } from '../../../lib/utils';
+import {
+  CheckCircle2,
+  ShieldCheck,
+  PackageCheck,
+  AlertCircle,
+  Plus,
+  Printer,
+  X,
+  Eye,
+  FileText,
+  Search,
+  Filter,
+  Factory,
+  ChevronRight,
+  Sparkles,
+  Award,
+  Building,
+  RotateCcw,
+  Check,
+  Calendar,
+  Layers,
+  Save,
+  Trash2,
+  Truck,
 } from 'lucide-react';
-import { ProductionCompletion, WorkOrder } from '../../../types/production';
 
-function WorkOrderCompletionContent() {
+// Default standard 9-stage inspection rows matching the physical sheet (Doc no.: F - QAS - 02)
+const DEFAULT_INSPECTION_ROWS: InProcessInspectionRow[] = [
+  {
+    processName: 'Cutting',
+    parameters: 'Length, Width & Thickness',
+    testingMethod: 'Measure Tape & Vernier Caliper',
+    requirements: 'As per dwg. 5THK x 7860 x 5500 mm / 4THK x 2516 x 2516 mm / ISMC 100x50 - 5012',
+    actual: 'OK',
+    remarks: '',
+  },
+  {
+    processName: 'Grinding',
+    parameters: 'Finishing',
+    testingMethod: 'Visual',
+    requirements: 'Ok / not ok',
+    actual: 'OK',
+    remarks: '',
+  },
+  {
+    processName: 'Bending',
+    parameters: 'ID , OD',
+    testingMethod: 'Measure Tape & Gauge',
+    requirements: 'As per dwg 5THK x 7860 x 5500 / 4THK x 2516 x 2516 / ISMC 100x50 - 5012',
+    actual: 'OK',
+    remarks: '',
+  },
+  {
+    processName: 'Taking (Fit-up & Tack)',
+    parameters: 'Dimensions',
+    testingMethod: 'Measure Tape',
+    requirements: 'As per dwg Tank shell, Top, Cone, Channel',
+    actual: 'OK',
+    remarks: '',
+  },
+  {
+    processName: 'Welding',
+    parameters: 'Leakage',
+    testingMethod: 'DP Test & X Ray & Hydraulic test (As Per customer Req.)',
+    requirements: 'Normal storage water - No Leakage, Time 9:00 to 11:00',
+    actual: 'OK',
+    remarks: 'No Leakage',
+  },
+  {
+    processName: 'Welding',
+    parameters: 'Finishing',
+    testingMethod: 'Visual',
+    requirements: 'OK',
+    actual: 'OK',
+    remarks: '',
+  },
+  {
+    processName: 'Final Grinding',
+    parameters: 'Finishing',
+    testingMethod: 'Visual',
+    requirements: 'Ok / not ok',
+    actual: 'OK',
+    remarks: '',
+  },
+  {
+    processName: 'Sand Blasting',
+    parameters: 'Corazon (Surface Profile)',
+    testingMethod: 'Visual',
+    requirements: 'Ok / not ok',
+    actual: 'No Req',
+    remarks: '',
+  },
+  {
+    processName: 'Painting',
+    parameters: 'Color Shade',
+    testingMethod: 'Visual',
+    requirements: 'Ok / not ok',
+    actual: 'No Req But MS Plates Primer Paint',
+    remarks: '',
+  },
+];
+
+// Initial mock completions for demonstration if storage is empty
+const INITIAL_MOCK_COMPLETIONS: ProductionCompletion[] = [
+  {
+    id: 'COMP-2026-001',
+    completionNumber: 'QC-2026-001',
+    completionDate: '2026-05-08',
+    jobId: 'PRJ-2026-001',
+    jobNumber: 'UTF-26-46 B',
+    workOrderNumber: 'UTF-26-46 B',
+    customerName: 'Ananth Chem',
+    productName: '25 KL Vertical Tank',
+    completedQuantity: 1,
+    rejectedQuantity: 0,
+    reworkQuantity: 0,
+    scrapQuantity: 0,
+    completedBy: 'Rohit (QC Inspector)',
+    qcStatus: 'Passed',
+    docNo: 'F - QAS - 02',
+    inspectionBy: 'Rohit',
+    remarks: 'Normal storage water - No Leakage observed. Primer paint applied on MS plates.',
+    inspectionRows: DEFAULT_INSPECTION_ROWS,
+    inspectionReport: {
+      docNo: 'F - QAS - 02',
+      reportTitle: 'In process cum final inspection report',
+      companyName: 'UMA TECHNO FAB',
+      customerName: 'Ananth Chem',
+      item: '25 KL Vertical Tank',
+      workOrderOrJobNo: 'UTF-26-46 B',
+      qty: '1 Nos',
+      date: '2026-05-08',
+      inspectionRows: DEFAULT_INSPECTION_ROWS,
+      inspectionBy: 'Rohit',
+      finalStatus: 'Approved',
+    },
+  },
+];
+
+export default function ProductionCompletionPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { workOrders, completeWorkOrder, addFinishedGoods, openJobModal, productionCompletions } = useERP();
+  const {
+    projectJobs,
+    projectPlanningRecords,
+    productionCompletions,
+    completeWorkOrder,
+    addFinishedGoods,
+  } = useERP();
 
-  const [showModal, setShowModal] = useState(false);
-  const [selectedCertificate, setSelectedCertificate] = useState<any>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successNotification, setSuccessNotification] = useState<{
-    woNumber: string;
-    productName: string;
-    certNo: string;
-    serialNo: string;
-  } | null>(null);
-
-  // Form State
-  const [selectedWo, setSelectedWo] = useState('');
-  const [completedQty, setCompletedQty] = useState(1);
-  const [completedBy, setCompletedBy] = useState('');
-  const [qcInspector, setQcInspector] = useState('');
-
-  // QC Testing Specifics
-  const [hydroDesignPressure, setHydroDesignPressure] = useState('6.0 Bar');
-  const [hydroTestPressure, setHydroTestPressure] = useState('9.0 Bar (1.5x Design)');
-  const [hydroHoldingDuration, setHydroHoldingDuration] = useState('60 Minutes');
-  const [hydroStatus, setHydroStatus] = useState<'Passed' | 'Failed'>('Passed');
-
-  const [dpWeldsInspected, setDpWeldsInspected] = useState('100% Long Seam, Circ Seam & Nozzle Neck Welds');
-  const [dpObservation, setDpObservation] = useState('Nil Cracks, Zero Porosity, Clean Uniform Penetration');
-  const [dpStatus, setDpStatus] = useState<'Accepted' | 'Defects Found'>('Accepted');
-
-  const [dimensionReportNo, setDimensionReportNo] = useState(() => `QC-DIM-2026-${Date.now().toString().slice(-4)}`);
-  const [dimensionStatus, setDimensionStatus] = useState<'Within ASME Tolerance (±2mm)' | 'Deviation Approved'>('Within ASME Tolerance (±2mm)');
-
-  const [equipmentSerialNo, setEquipmentSerialNo] = useState(() => `UTF-EQ-2026-${Date.now().toString().slice(-4)}`);
-  const [warehouseLocation, setWarehouseLocation] = useState('Finished Goods Bay 4 (Dispatch Gate)');
-  const [remarks, setRemarks] = useState('Final manufacturing sign-off completed. Hydro testing and DP clearance certified.');
-
-  const handledParamWoRef = useRef<string | null>(null);
-
-  const handleWoChange = (woNumber: string) => {
-    setSelectedWo(woNumber);
-    const wo = workOrders.find((w) => w.workOrderNumber === woNumber);
-    if (wo) {
-      setCompletedQty(wo.productionQuantity || 1);
-      setEquipmentSerialNo(`UTF-${wo.jobNumber?.replace('JOB-', '') || 'EQ'}-${Date.now().toString().slice(-4)}`);
-      // Dynamically extract design pressure if specified in product description
-      const match = wo.productName?.match(/(\d+(\.\d+)?)\s*Bar/i);
-      if (match) {
-        setHydroDesignPressure(`${match[1]} Bar`);
-        setHydroTestPressure(`${(Number(match[1]) * 1.5).toFixed(1)} Bar (1.5x Design)`);
-      }
+  // Completed / Inspection Records List (Persisted in localStorage)
+  const [completions, setCompletions] = useState<ProductionCompletion[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('UMA_ERP_inspectionReports');
+        if (saved) return JSON.parse(saved);
+      } catch (_) {}
     }
-  };
+    return productionCompletions && productionCompletions.length > 0 ? productionCompletions : INITIAL_MOCK_COMPLETIONS;
+  });
 
-  const closeModal = () => {
-    setShowModal(false);
-    // Clear query parameter from URL so it doesn't re-trigger on state changes
-    if (searchParams.get('woNumber')) {
-      router.replace('/production/completion');
-    }
-  };
-
-  // Pre-fill from query param (?woNumber=...)
   useEffect(() => {
-    const paramWo = searchParams.get('woNumber');
-    if (paramWo) {
-      if (handledParamWoRef.current !== paramWo) {
-        handledParamWoRef.current = paramWo;
-        handleWoChange(paramWo);
-        setShowModal(true);
-      }
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('UMA_ERP_inspectionReports', JSON.stringify(completions));
+      } catch (_) {}
+    }
+  }, [completions]);
+
+  // Modals
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [viewingReport, setViewingReport] = useState<ProductionCompletion | null>(null);
+
+  // Search & Filter
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'Passed' | 'Failed' | 'Pending'>('all');
+
+  // Form Fields for New QC Inspection Entry (Doc no.: F - QAS - 02)
+  const [formCustomerName, setFormCustomerName] = useState('Ananth Chem');
+  const [formItem, setFormItem] = useState('25 KL Vertical Tank');
+  const [formWorkOrderNo, setFormWorkOrderNo] = useState('UTF-26-46 B');
+  const [formQty, setFormQty] = useState('1 Nos');
+  const [formDate, setFormDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [formInspectionBy, setFormInspectionBy] = useState('Rohit (QC Inspector)');
+  const [formStatus, setFormStatus] = useState<'Passed' | 'Failed' | 'Pending'>('Passed');
+  const [formRemarks, setFormRemarks] = useState('');
+  const [formInspectionRows, setFormInspectionRows] = useState<InProcessInspectionRow[]>(
+    DEFAULT_INSPECTION_ROWS.map((r) => ({ ...r }))
+  );
+
+  // Quick Toast Notification
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  // When project/job is selected from dropdown, auto-fill form
+  const handleSelectProject = (projId: string) => {
+    const prj = projectJobs.find((p) => p.id === projId || p.projectNumber === projId);
+    if (prj) {
+      setFormWorkOrderNo(prj.jobNumber || prj.projectNumber || 'UTF-2026');
+      setFormCustomerName(prj.customerName || 'Customer');
+      setFormItem(prj.productName || 'Process Equipment');
+      setFormQty(`${prj.quantity || 1} Nos`);
     } else {
-      handledParamWoRef.current = null;
-      if (workOrders.length > 0 && !selectedWo) {
-        const pendingWo = workOrders.find((w) => w.status !== 'Completed') || workOrders[0];
-        if (pendingWo) {
-          handleWoChange(pendingWo.workOrderNumber);
-        }
+      const plan = projectPlanningRecords.find((p) => p.id === projId || p.projectNumber === projId);
+      if (plan) {
+        setFormWorkOrderNo(plan.projectNumber);
+        setFormCustomerName(plan.customerName);
+        setFormItem(plan.productName);
+        setFormQty('1 Nos');
       }
-    }
-  }, [searchParams, workOrders, selectedWo]);
-
-  // Matching Work Order
-  const currentWo = useMemo(() => {
-    return workOrders.find((w) => w.workOrderNumber === selectedWo) || workOrders[0];
-  }, [workOrders, selectedWo]);
-
-  const handleCompleteSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentWo) {
-      alert('Please select a valid work order.');
-      return;
-    }
-
-    if (currentWo.status === 'Completed') {
-      alert(`Work Order ${currentWo.workOrderNumber} is already completed and transferred to Finished Goods Warehouse.`);
-      closeModal();
-      return;
-    }
-
-    // Critical QC Guard: Block completion if Hydro or DP test failed
-    if (hydroStatus === 'Failed' || dpStatus === 'Defects Found') {
-      alert('QUALITY CLEARANCE REJECTED: Equipment failed Hydrostatic Pressure Test or NDT DP inspection. You cannot clear this work order or transfer to Finished Goods. Please log a Rework Order.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const certNo = `QC-CERT-2026-${Date.now().toString().slice(-5)}`;
-
-      // 1. Mark Work Order Completed & Log QC Clearance
-      completeWorkOrder({
-        completionDate: new Date().toISOString().split('T')[0],
-        jobId: currentWo.jobId || 'PRJ-2026-0001',
-        jobNumber: currentWo.jobNumber || '',
-        workOrderNumber: currentWo.workOrderNumber,
-        productName: currentWo.productName || 'Industrial Process Equipment',
-        completedQuantity: Number(completedQty) || 1,
-        rejectedQuantity: 0,
-        reworkQuantity: 0,
-        scrapQuantity: 0,
-        completedBy,
-        qcStatus: 'Passed',
-        remarks,
-        // QC Tests
-        hydroTestPressure: `${hydroDesignPressure} / ${hydroTestPressure} (${hydroHoldingDuration})`,
-        hydroHoldingDuration,
-        hydroTestStatus: hydroStatus,
-        dpTestJoints: `${dpWeldsInspected} - ${dpObservation}`,
-        dpTestStatus: dpStatus,
-        dimensionReportNo,
-        dimensionStatus,
-        qcInspectorName: qcInspector,
-        certificateNumber: certNo,
-        equipmentSerialNumber: equipmentSerialNo,
-      });
-
-      // 2. Automatically transfer to Finished Goods Warehouse Master
-      addFinishedGoods({
-        jobId: currentWo.jobId || 'PRJ-2026-0001',
-        jobNumber: currentWo.jobNumber || '',
-        workOrderNumber: currentWo.workOrderNumber,
-        productionOrderNumber: 'PO-PROD-2026-001',
-        productName: currentWo.productName || 'Industrial Process Equipment',
-        specification: `Hydro Tested @ ${hydroTestPressure}, DP Cleared by ${qcInspector}`,
-        quantity: Number(completedQty) || 1,
-        uom: currentWo.uom || 'Unit',
-        serialNumber: equipmentSerialNo,
-        batchNumber: `HEAT-MTC-${Date.now().toString().slice(-4)}`,
-        warehouseId: 'WH-FG-01',
-        warehouseName: warehouseLocation,
-        locationBin: 'Bay-04-ReadyYard',
-        completionDate: new Date().toISOString().split('T')[0],
-        qcStatus: 'QC Passed',
-        status: 'Ready for Dispatch',
-      });
-
-      closeModal();
-      setSuccessNotification({
-        woNumber: currentWo.workOrderNumber,
-        productName: currentWo.productName || 'Industrial Process Equipment',
-        certNo,
-        serialNo: equipmentSerialNo,
-      });
-      alert(`✅ SUCCESS: Work Order ${currentWo.workOrderNumber} has been certified and transferred to Finished Goods Warehouse! Certificate #${certNo}`);
-    } catch (err: any) {
-      console.error(err);
-      alert('Failed to complete work order. Please try again.');
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
-  // Filtered Work Orders
-  const filteredWorkOrders = useMemo(() => {
-    return workOrders.filter((wo) => {
-      const q = searchTerm.trim().toLowerCase();
-      if (!q) return true;
-      return (
-        wo.workOrderNumber?.toLowerCase().includes(q) ||
-        wo.jobNumber?.toLowerCase().includes(q) ||
-        wo.productName?.toLowerCase().includes(q) ||
-        wo.customerName?.toLowerCase().includes(q)
-      );
+  // Open Create Modal
+  const handleOpenCreateModal = () => {
+    setShowAddModal(true);
+    setFormInspectionRows(DEFAULT_INSPECTION_ROWS.map((r) => ({ ...r })));
+    setFormDate(new Date().toISOString().split('T')[0]);
+    if (projectJobs.length > 0) {
+      const first = projectJobs[0];
+      setFormWorkOrderNo(first.jobNumber || first.projectNumber);
+      setFormCustomerName(first.customerName);
+      setFormItem(first.productName);
+      setFormQty(`${first.quantity || 1} Nos`);
+    }
+  };
+
+  // Update a specific inspection row in form
+  const handleUpdateInspectionRow = (
+    index: number,
+    field: keyof InProcessInspectionRow,
+    value: string
+  ) => {
+    setFormInspectionRows((prev) =>
+      prev.map((row, i) => (i === index ? { ...row, [field]: value } : row))
+    );
+  };
+
+  // Add custom inspection row
+  const handleAddCustomRow = () => {
+    setFormInspectionRows((prev) => [
+      ...prev,
+      {
+        processName: 'Special Inspection',
+        parameters: 'Specification Check',
+        testingMethod: 'Visual / Gauge',
+        requirements: 'As per customer drawing',
+        actual: 'OK',
+        remarks: '',
+      },
+    ]);
+  };
+
+  // Remove inspection row
+  const handleRemoveRow = (index: number) => {
+    if (formInspectionRows.length <= 1) return;
+    setFormInspectionRows((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Submit and Save Inspection Report
+  const handleSaveInspectionReport = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const certId = `QC-2026-${Date.now().toString().slice(-4)}`;
+    const newReportDoc: InspectionReportDoc = {
+      docNo: 'F - QAS - 02',
+      reportTitle: 'In process cum final inspection report',
+      companyName: 'UMA TECHNO FAB',
+      customerName: formCustomerName,
+      item: formItem,
+      workOrderOrJobNo: formWorkOrderNo,
+      qty: formQty,
+      date: formDate,
+      inspectionRows: formInspectionRows,
+      inspectionBy: formInspectionBy,
+      finalStatus: formStatus === 'Passed' ? 'Approved' : 'Rejected',
+    };
+
+    const newRecord: ProductionCompletion = {
+      id: `COMP-${Date.now()}`,
+      completionNumber: certId,
+      completionDate: formDate,
+      jobId: formWorkOrderNo,
+      jobNumber: formWorkOrderNo,
+      workOrderNumber: formWorkOrderNo,
+      customerName: formCustomerName,
+      productName: formItem,
+      completedQuantity: parseInt(formQty, 10) || 1,
+      rejectedQuantity: 0,
+      reworkQuantity: 0,
+      scrapQuantity: 0,
+      completedBy: formInspectionBy,
+      qcStatus: formStatus,
+      docNo: 'F - QAS - 02',
+      inspectionBy: formInspectionBy,
+      remarks: formRemarks || 'Inspection cleared as per Doc no.: F - QAS - 02 specifications.',
+      inspectionRows: formInspectionRows,
+      inspectionReport: newReportDoc,
+    };
+
+    setCompletions((prev) => [newRecord, ...prev]);
+
+    // Add to Finished Goods automatically if Passed
+    if (formStatus === 'Passed') {
+      addFinishedGoods({
+        jobId: formWorkOrderNo,
+        jobNumber: formWorkOrderNo,
+        workOrderNumber: formWorkOrderNo,
+        productionOrderNumber: formWorkOrderNo,
+        productName: formItem,
+        specification: `Inspection F-QAS-02 Certified: ${formCustomerName}`,
+        quantity: parseInt(formQty, 10) || 1,
+        uom: 'NOS',
+        warehouseId: 'WH-FG-01',
+        warehouseName: 'Finished Goods Bay',
+        locationBin: 'Bay 4 (Dispatch Inspection Cleared)',
+        completionDate: formDate,
+        qcStatus: 'QC Passed',
+        status: 'Production Complete',
+      });
+    }
+
+    setShowAddModal(false);
+    showToast(`Inspection Report ${certId} (F - QAS - 02) created & saved!`);
+  };
+
+  // Filtered List
+  const filteredCompletions = useMemo(() => {
+    return completions.filter((c) => {
+      if (statusFilter !== 'all' && c.qcStatus !== statusFilter) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        return (
+          (c.completionNumber && c.completionNumber.toLowerCase().includes(q)) ||
+          (c.jobNumber && c.jobNumber.toLowerCase().includes(q)) ||
+          (c.customerName && c.customerName.toLowerCase().includes(q)) ||
+          (c.productName && c.productName.toLowerCase().includes(q)) ||
+          (c.inspectionBy && c.inspectionBy.toLowerCase().includes(q))
+        );
+      }
+      return true;
     });
-  }, [workOrders, searchTerm]);
+  }, [completions, statusFilter, searchQuery]);
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 bg-[#FAF7F2] min-h-screen text-[#544B45]">
-      {/* Top Banner Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-[#EBE3DB] shadow-xs">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-emerald-50 rounded-xl text-emerald-700 border border-emerald-200">
-            <CheckCircle2 className="w-7 h-7" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
-                FINAL STAGE CLEARANCE
-              </span>
-            </div>
-            <h1 className="text-2xl font-black text-[#211B17] tracking-tight mt-1">
-              Work Order Completion & QC Clearance
-            </h1>
-            <p className="text-xs text-[#70665F]">
-              Hydrostatic Pressure Testing • DP Dye Penetrant Inspection • Dimensional Check • Finished Goods Handover
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => {
-              const pendingWo = workOrders.find((w) => w.status !== 'Completed') || workOrders[0];
-              if (pendingWo) {
-                handleWoChange(pendingWo.workOrderNumber);
-              }
-              setShowModal(true);
-            }}
-            className="flex items-center gap-2 bg-[#8B2500] hover:bg-[#701E00] text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs transition active:scale-95 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Sign-Off Work Order & QC</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Success Notification Banner */}
-      {successNotification && (
-        <div className="bg-emerald-50 border border-emerald-300 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs animate-in fade-in">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-xl">
-              <CheckCircle2 className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="text-xs font-bold text-emerald-900 flex items-center gap-2">
-                <span>Work Order {successNotification.woNumber} Successfully Certified & Transferred!</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-200 text-emerald-900 font-mono">
-                  Cert: {successNotification.certNo}
-                </span>
-              </div>
-              <p className="text-[11px] text-emerald-700 mt-0.5">
-                {successNotification.productName} • Serial: <span className="font-mono font-bold">{successNotification.serialNo}</span> • Now available in Finished Goods Warehouse.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 self-end sm:self-auto">
-            <button
-              onClick={() => setSuccessNotification(null)}
-              className="p-2 text-emerald-700 hover:text-emerald-900 rounded-lg hover:bg-emerald-100 cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+    <div className="space-y-4">
+      {/* Toast Alert */}
+      {toastMessage && (
+        <div className="fixed top-5 right-5 z-50 bg-[#211B17] text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-[#EBE3DB]/20 text-xs animate-in slide-in-from-top-2 duration-200">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+          <span className="font-semibold">{toastMessage}</span>
         </div>
       )}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#70665F] uppercase">Active Work Orders</span>
-            <div className="p-2 bg-indigo-50 rounded-lg text-indigo-700">
-              <Cpu className="w-4 h-4" />
-            </div>
+      {/* HEADER & ACTIONS */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
+        <div>
+          <div className="text-[11px] font-semibold tracking-wider uppercase text-slate-400 mb-0.5">
+            DASHBOARD / PRODUCTION &amp; SHOP FLOOR / COMPLETION &amp; QC CLEARANCE
           </div>
-          <div className="text-2xl font-black text-[#211B17] mt-2 font-mono">
-            {workOrders.length}
-          </div>
-          <p className="text-[11px] text-[#8C827A] mt-1 font-medium">In fabrication queue</p>
+          <h1 className="text-2xl font-black text-[#211B17] tracking-tight flex items-center gap-2">
+            <ShieldCheck className="w-6 h-6 text-emerald-600" />
+            <span>In Process Cum Final Inspection &amp; QC Clearance</span>
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-bold border border-emerald-300 font-mono">
+              Doc no.: F - QAS - 02
+            </span>
+          </h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Quality Assurance standard inspection reports (Cutting, Bending, Tacking, Welding, Grinding, Blasting, Painting). Certified before dispatch.
+          </p>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#70665F] uppercase">Completed & Cleared</span>
-            <div className="p-2 bg-emerald-50 rounded-lg text-emerald-700">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-black text-emerald-700 mt-2 font-mono">
-            {workOrders.filter((w) => w.status === 'Completed').length}
-          </div>
-          <p className="text-[11px] text-[#8C827A] mt-1 font-medium">100% FAT, Hydro & QC passed</p>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#70665F] uppercase">Awaiting QC Handover</span>
-            <div className="p-2 bg-amber-50 rounded-lg text-amber-700">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-black text-amber-700 mt-2 font-mono">
-            {workOrders.filter((w) => w.status !== 'Completed').length}
-          </div>
-          <p className="text-[11px] text-[#8C827A] mt-1 font-medium">Ready for pressure testing sign-off</p>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleOpenCreateModal}
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ New QC Inspection Entry</span>
+          </button>
+          <Link
+            href="/production/dispatch"
+            className="px-3.5 py-2 bg-amber-50 border border-amber-200 hover:bg-amber-100 text-amber-900 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-xs"
+          >
+            <Truck className="w-3.5 h-3.5 text-amber-700" />
+            <span>Delivery Challans (ડીલેવરી ચલણ)</span>
+          </Link>
+          <Link
+            href="/production/supervisor-tasks"
+            className="px-3.5 py-2 bg-white border border-[#EBE3DB] hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-xs"
+          >
+            <Factory className="w-3.5 h-3.5 text-amber-600" />
+            <span>Supervisor Tasks</span>
+          </Link>
         </div>
       </div>
 
-      {/* Work Orders Handover Table */}
-      <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-xs overflow-hidden">
-        <div className="p-4 border-b border-[#EBE3DB] flex items-center justify-between">
-          <div className="relative w-80">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8C827A]" />
-            <input
-              type="text"
-              placeholder="Search WO #, Job #, Product Name..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl pl-9 pr-4 py-2 text-xs text-[#211B17] focus:outline-hidden focus:border-[#8B2500]"
-            />
+      {/* KPI METRIC CARDS */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Total QC Reports</span>
+            <FileText className="w-4 h-4 text-slate-600" />
           </div>
-          <div className="text-xs text-[#70665F] font-mono">
-            Showing <strong className="text-[#211B17]">{filteredWorkOrders.length}</strong> Work Orders
-          </div>
+          <div className="text-2xl font-black text-[#211B17]">{completions.length}</div>
+          <div className="text-[11px] text-slate-500">Inspection Reports Logged</div>
         </div>
 
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-emerald-600">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">QC Passed / Cleared</span>
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+          </div>
+          <div className="text-2xl font-black text-emerald-700">
+            {completions.filter((c) => c.qcStatus === 'Passed').length}
+          </div>
+          <div className="text-[11px] text-slate-500">Cleared for Dispatch</div>
+        </div>
+
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-amber-600">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">QC Standard Form</span>
+            <Award className="w-4 h-4 text-amber-600" />
+          </div>
+          <div className="text-xl font-mono font-black text-[#211B17]">F - QAS - 02</div>
+          <div className="text-[11px] text-slate-500">UMA TECHNO FAB Standard</div>
+        </div>
+
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-blue-600">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Inspection Stages</span>
+            <Layers className="w-4 h-4 text-blue-600" />
+          </div>
+          <div className="text-2xl font-black text-blue-700">9 Stages</div>
+          <div className="text-[11px] text-slate-500">Cutting to Primer Paint</div>
+        </div>
+      </div>
+
+      {/* SEARCH & FILTERS BAR */}
+      <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
+        <div className="relative w-full md:w-80">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Search by Report #, Job #, Customer..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-1.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-[#211B17]"
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-slate-500 text-xs font-semibold">Status:</span>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as any)}
+            className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            <option value="all">All Reports ({completions.length})</option>
+            <option value="Passed">QC Passed ({completions.filter((c) => c.qcStatus === 'Passed').length})</option>
+            <option value="Pending">Pending Review</option>
+            <option value="Failed">Rejected / Defective</option>
+          </select>
+        </div>
+      </div>
+
+      {/* TABLE: PAST INSPECTION REPORTS */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-[#544B45]">
-            <thead className="bg-[#FAF7F2] text-[#70665F] font-bold uppercase text-[10px] tracking-wider border-b border-[#EBE3DB]">
-              <tr>
-                <th className="py-3 px-4">Work Order #</th>
-                <th className="py-3 px-4">Job Number</th>
-                <th className="py-3 px-4">Equipment / Product Name</th>
-                <th className="py-3 px-4 text-right">Qty</th>
-                <th className="py-3 px-4">Target Date</th>
-                <th className="py-3 px-4 text-center">Status</th>
-                <th className="py-3 px-4 text-right">Action</th>
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase text-[11px] tracking-wider">
+                <th className="py-3 px-4 min-w-[140px]">Report No &amp; Doc</th>
+                <th className="py-3 px-4 min-w-[130px]">Job / Order No</th>
+                <th className="py-3 px-4 min-w-[180px]">Customer Name</th>
+                <th className="py-3 px-4 min-w-[200px]">Item / Equipment Scope</th>
+                <th className="py-3 px-4 min-w-[100px]">Inspection Date</th>
+                <th className="py-3 px-4 min-w-[140px]">Inspected By</th>
+                <th className="py-3 px-4 min-w-[100px]">QC Status</th>
+                <th className="py-3 px-4 w-32 text-center">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EBE3DB]">
-              {filteredWorkOrders.map((wo) => {
-                const isCompleted = wo.status === 'Completed';
-
-                return (
-                  <tr key={wo.id} className="hover:bg-[#FAF7F2]/60 transition">
-                    <td className="py-3 px-4 font-mono font-bold text-[#8B2500]">{wo.workOrderNumber}</td>
-                    <td className="py-3 px-4 font-mono font-bold text-[#211B17]">
-                      <div className="flex items-center gap-1">
-                        <Cpu className="w-3.5 h-3.5 text-[#8B2500]" />
-                        {wo.jobNumber}
-                      </div>
+            <tbody className="divide-y divide-slate-100">
+              {filteredCompletions.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-slate-400">
+                    <ShieldCheck className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+                    <p className="font-semibold text-slate-600 text-sm">No inspection reports found</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Click "+ New QC Inspection Entry" to create one.</p>
+                  </td>
+                </tr>
+              ) : (
+                filteredCompletions.map((comp) => (
+                  <tr key={comp.id} className="hover:bg-emerald-50/20 transition">
+                    <td className="py-3 px-4 font-mono">
+                      <span className="font-bold text-[#7C3AED] block">{comp.completionNumber}</span>
+                      <span className="text-[10px] text-slate-500 font-mono block">Doc: {comp.docNo || 'F - QAS - 02'}</span>
                     </td>
-                    <td className="py-3 px-4 font-semibold text-[#211B17] max-w-xs">{wo.productName}</td>
-                    <td className="py-3 px-4 text-right font-mono font-bold text-[#211B17]">
-                      {wo.productionQuantity} {wo.uom}
+                    <td className="py-3 px-4 font-mono font-bold text-slate-800">
+                      {comp.jobNumber || comp.workOrderNumber}
                     </td>
-                    <td className="py-3 px-4 font-mono text-[#70665F]">{wo.plannedEndDate}</td>
-                    <td className="py-3 px-4 text-center">
+                    <td className="py-3 px-4 font-bold text-slate-900">
+                      {comp.customerName || 'Customer'}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="font-semibold text-slate-900 block truncate max-w-[200px]">
+                        {comp.productName}
+                      </span>
+                      <span className="text-[11px] text-slate-500 font-mono">Qty: {comp.completedQuantity} Nos</span>
+                    </td>
+                    <td className="py-3 px-4 font-mono text-[11px] text-slate-700">
+                      {formatDate(comp.completionDate)}
+                    </td>
+                    <td className="py-3 px-4 text-slate-800 font-semibold">
+                      {comp.inspectionBy || comp.completedBy}
+                    </td>
+                    <td className="py-3 px-4">
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                          isCompleted
-                            ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-                            : 'bg-indigo-50 text-indigo-800 border-indigo-200'
+                        className={`px-2.5 py-1 rounded-full text-[10.5px] font-bold inline-flex items-center gap-1 border ${
+                          comp.qcStatus === 'Passed'
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                            : 'bg-rose-50 text-rose-800 border-rose-300'
                         }`}
                       >
-                        {wo.status}
+                        {comp.qcStatus === 'Passed' ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                        <span>{comp.qcStatus === 'Passed' ? 'Approved ✓' : 'Rejected'}</span>
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right">
-                      {!isCompleted ? (
+                    <td className="py-3 px-4 text-center">
+                      <div className="flex items-center justify-center gap-1.5">
                         <button
-                          onClick={() => {
-                            handleWoChange(wo.workOrderNumber);
-                            setShowModal(true);
-                          }}
-                          className="px-3 py-1.5 rounded-xl bg-[#8B2500] hover:bg-[#701E00] text-white text-xs font-bold transition shadow-xs flex items-center gap-1 ml-auto cursor-pointer"
+                          onClick={() => setViewingReport(comp)}
+                          className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg text-xs transition flex items-center justify-center gap-1 active:scale-95 cursor-pointer shadow-xs"
                         >
-                          <ShieldCheck className="w-3.5 h-3.5" />
-                          <span>QC Sign-Off & Transfer</span>
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>View / Print</span>
                         </button>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-emerald-800 font-bold text-xs">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-700" />
-                          <span>Transferred to FG</span>
-                        </span>
-                      )}
+                        {comp.qcStatus === 'Passed' && (
+                          <Link
+                            href={`/production/dispatch?fromQC=${encodeURIComponent(comp.completionNumber)}&customer=${encodeURIComponent(comp.customerName || '')}&item=${encodeURIComponent(comp.productName || '')}&qty=${comp.completedQuantity || 1}&job=${encodeURIComponent(comp.jobNumber || '')}`}
+                            className="px-2 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-xs transition flex items-center justify-center gap-1 active:scale-95 cursor-pointer shadow-xs"
+                            title="Generate Delivery Challan"
+                          >
+                            <Truck className="w-3.5 h-3.5" />
+                            <span>Challan (ચલણ)</span>
+                          </Link>
+                        )}
+                      </div>
                     </td>
                   </tr>
-                );
-              })}
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* QC Clearance & Sign-off Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-2xl p-6 space-y-4 shadow-2xl text-xs max-h-[92vh] overflow-y-auto">
-            <div className="flex justify-between items-center border-b border-[#EBE3DB] pb-3">
+      {/* ========================================================================= */}
+      {/* MODAL 1: ADD NEW QC INSPECTION REPORT (FORM EXACTLY MATCHING USER IMAGE)   */}
+      {/* ========================================================================= */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 overflow-y-auto animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl shadow-2xl border-2 border-slate-800 w-full max-w-4xl overflow-hidden my-4">
+            {/* Report Document Header (Exact reproduction of letterhead) */}
+            <div className="bg-[#211B17] text-white p-4 flex items-center justify-between">
               <div>
-                <h3 className="text-base font-black text-[#211B17] flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-emerald-700" />
-                  Official Work Order Completion & Quality Clearance
+                <div className="text-[10px] text-amber-400 font-mono tracking-widest uppercase font-bold">
+                  UMA TECHNO FAB — QUALITY ASSURANCE SYSTEM
+                </div>
+                <h3 className="text-base font-black text-white uppercase tracking-wider font-mono">
+                  In process cum final inspection report
                 </h3>
-                <p className="text-[11px] text-[#70665F]">
-                  Hydro Pressure Testing, DP Dye Penetrant and Finished Goods Registration
-                </p>
-              </div>
-              <button onClick={closeModal} className="text-[#8C827A] hover:text-[#211B17] text-base p-1 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCompleteSubmit} className="space-y-4">
-              {/* Work Order Info */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-[#70665F] mb-1">Target Work Order *</label>
-                  <select
-                    value={selectedWo}
-                    onChange={(e) => handleWoChange(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-mono font-bold"
-                  >
-                    {workOrders.map((w) => (
-                      <option key={w.id} value={w.workOrderNumber}>
-                        {w.workOrderNumber} — {w.status === 'Completed' ? '✓ Completed' : 'Pending QC'} — {w.jobNumber} ({w.productName ? w.productName.slice(0, 22) : 'Equipment'})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-bold text-[#70665F] mb-1">Quantity Cleared *</label>
-                  <input
-                    type="number"
-                    min="1"
-                    required
-                    value={completedQty}
-                    onChange={(e) => setCompletedQty(Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-mono font-bold"
-                  />
-                </div>
               </div>
 
-              {/* TEST 1: Hydrostatic Pressure Test Section */}
-              <div className="p-3.5 rounded-xl bg-sky-50/60 border border-sky-200 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-sky-950 flex items-center gap-1.5 text-xs">
-                    <Sparkles className="w-4 h-4 text-sky-700" />
-                    1. Hydrostatic Pressure Testing Inspection
-                  </span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-100 text-sky-900 border border-sky-300">
-                    ASME Sec VIII Div 1
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="block text-[10px] font-bold text-sky-900 mb-0.5">Design Pressure</label>
-                    <input
-                      type="text"
-                      value={hydroDesignPressure}
-                      onChange={(e) => setHydroDesignPressure(e.target.value)}
-                      className="w-full bg-white border border-sky-200 rounded-lg px-2.5 py-1.5 font-mono text-xs font-bold text-[#211B17]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-sky-900 mb-0.5">Hydro Test Pressure (1.5x)</label>
-                    <input
-                      type="text"
-                      value={hydroTestPressure}
-                      onChange={(e) => setHydroTestPressure(e.target.value)}
-                      className="w-full bg-white border border-sky-200 rounded-lg px-2.5 py-1.5 font-mono text-xs font-bold text-[#8B2500]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-sky-900 mb-0.5">Holding Duration</label>
-                    <input
-                      type="text"
-                      value={hydroHoldingDuration}
-                      onChange={(e) => setHydroHoldingDuration(e.target.value)}
-                      className="w-full bg-white border border-sky-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#211B17]"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-[11px] text-[#70665F]">Pressure hold outcome:</span>
-                  <select
-                    value={hydroStatus}
-                    onChange={(e) => setHydroStatus(e.target.value as any)}
-                    className={`px-2.5 py-1 rounded text-xs font-bold border cursor-pointer ${
-                      hydroStatus === 'Passed'
-                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                        : 'bg-red-50 text-red-800 border-red-300 font-black'
-                    }`}
-                  >
-                    <option value="Passed">✓ Hydro Test Passed (Zero Drop)</option>
-                    <option value="Failed">❌ Hydro Test Failed (Pressure Drop / Leak)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* TEST 2: DP (Dye Penetrant / NDT) Inspection */}
-              <div className="p-3.5 rounded-xl bg-purple-50/60 border border-purple-200 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-purple-950 flex items-center gap-1.5 text-xs">
-                    <ShieldCheck className="w-4 h-4 text-purple-700" />
-                    2. Liquid Dye Penetrant (DP / NDT) Testing
-                  </span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-300">
-                    ISO 3452-1 / ASME Sec V
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-[10px] font-bold text-purple-900 mb-0.5">Welds Joint Coverage</label>
-                    <input
-                      type="text"
-                      value={dpWeldsInspected}
-                      onChange={(e) => setDpWeldsInspected(e.target.value)}
-                      className="w-full bg-white border border-purple-200 rounded-lg px-2.5 py-1.5 text-xs text-[#211B17]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-purple-900 mb-0.5">Visual & Penetrant Observation</label>
-                    <input
-                      type="text"
-                      value={dpObservation}
-                      onChange={(e) => setDpObservation(e.target.value)}
-                      className="w-full bg-white border border-purple-200 rounded-lg px-2.5 py-1.5 text-xs text-[#211B17]"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-[11px] text-[#70665F]">Liquid Penetrant observation:</span>
-                  <select
-                    value={dpStatus}
-                    onChange={(e) => setDpStatus(e.target.value as any)}
-                    className={`px-2.5 py-1 rounded text-xs font-bold border cursor-pointer ${
-                      dpStatus === 'Accepted'
-                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                        : 'bg-red-50 text-red-800 border-red-300 font-black'
-                    }`}
-                  >
-                    <option value="Accepted">✓ DP Accepted (Nil Surface Defects)</option>
-                    <option value="Defects Found">❌ Defects Found (Cracks / Porosity Detected)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* TEST 3: Dimensional Check & Equipment Tagging */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-[#70665F] mb-1">Dimension Inspection Report #</label>
-                  <input
-                    type="text"
-                    value={dimensionReportNo}
-                    onChange={(e) => setDimensionReportNo(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-mono font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-[#70665F] mb-1">Equipment Serial / Tag No *</label>
-                  <input
-                    type="text"
-                    required
-                    value={equipmentSerialNo}
-                    onChange={(e) => setEquipmentSerialNo(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#8B2500] font-mono font-bold"
-                  />
-                </div>
-              </div>
-
-              {/* Inspectors & Destination Warehouse */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-[#70665F] mb-1">Lead Quality Inspector *</label>
-                  <input
-                    type="text"
-                    required
-                    value={qcInspector}
-                    onChange={(e) => setQcInspector(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-semibold"
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-[#70665F] mb-1">Transfer to Warehouse Bay *</label>
-                  <input
-                    type="text"
-                    required
-                    value={warehouseLocation}
-                    onChange={(e) => setWarehouseLocation(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-semibold"
-                  />
-                </div>
-              </div>
-
-              {/* Remarks */}
-              <div>
-                <label className="block font-bold text-[#70665F] mb-1">Clearance Remarks</label>
-                <input
-                  type="text"
-                  value={remarks}
-                  onChange={(e) => setRemarks(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17]"
-                />
-              </div>
-
-              {/* Quality Rejection Enforcement Banner */}
-              {(hydroStatus === 'Failed' || dpStatus === 'Defects Found') && (
-                <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-900 flex items-start gap-2.5 animate-in fade-in">
-                  <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-                  <div className="space-y-1">
-                    <div className="font-bold text-xs">QUALITY REJECTION ENFORCED: Work Order Clearance Blocked</div>
-                    <p className="text-[11px] text-red-700 leading-relaxed">
-                      Equipment failed mandatory quality testing ({hydroStatus === 'Failed' ? 'Hydrostatic Pressure Test' : ''}
-                      {hydroStatus === 'Failed' && dpStatus === 'Defects Found' ? ' and ' : ''}
-                      {dpStatus === 'Defects Found' ? 'Liquid Dye Penetrant NDT Inspection' : ''}). This equipment CANNOT be cleared as Finished Goods. You must route it for rework.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => router.push(`/production/rework?woNumber=${selectedWo}`)}
-                      className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-[11px] cursor-pointer"
-                    >
-                      <span>Route to Rework Order →</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Already Completed Status Banner */}
-              {currentWo?.status === 'Completed' && (
-                <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 flex items-start gap-2.5 animate-in fade-in">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
-                  <div className="space-y-1">
-                    <div className="font-bold text-xs text-emerald-950">
-                      WORK ORDER ALREADY COMPLETED & TRANSFERRED
-                    </div>
-                    <p className="text-[11px] text-emerald-800 leading-relaxed">
-                      Work Order <strong>{currentWo.workOrderNumber}</strong> ({currentWo.productName}) has already been certified and transferred to Finished Goods Warehouse.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Modal Actions */}
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1 bg-white/10 rounded-lg text-xs font-mono font-bold text-amber-300 border border-white/20">
+                  Doc no.: F - QAS - 02
+                </span>
                 <button
                   type="button"
-                  onClick={closeModal}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] font-semibold cursor-pointer hover:bg-[#EFE8DF] transition"
+                  onClick={() => setShowAddModal(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSaveInspectionReport} className="p-5 space-y-4 text-xs">
+              {/* Quick Fill from Existing Projects Dropdown */}
+              <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                  <span className="font-bold text-slate-800">Quick Fill from Active Projects:</span>
+                </div>
+                <select
+                  onChange={(e) => {
+                    if (e.target.value) handleSelectProject(e.target.value);
+                  }}
+                  className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-amber-500"
+                >
+                  <option value="">-- Choose Existing Project to Pre-fill --</option>
+                  {projectJobs.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.jobNumber || p.projectNumber} • {p.customerName} • {p.productName}
+                    </option>
+                  ))}
+                  {projectPlanningRecords.map((plan) => (
+                    <option key={plan.id} value={plan.id}>
+                      {plan.projectNumber} • {plan.customerName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* TOP HEADER FIELDS (Exact match with user image) */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                {/* Customer Name */}
+                <div>
+                  <label className="block font-bold text-slate-800 mb-1">
+                    Customer Name: <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formCustomerName}
+                    onChange={(e) => setFormCustomerName(e.target.value)}
+                    placeholder="e.g. Ananth Chem"
+                    className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                {/* Work order / Job No */}
+                <div>
+                  <label className="block font-bold text-slate-800 mb-1">
+                    Work order No. / Job No: <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formWorkOrderNo}
+                    onChange={(e) => setFormWorkOrderNo(e.target.value)}
+                    placeholder="e.g. UTF-26-46 B"
+                    className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                {/* Date */}
+                <div>
+                  <label className="block font-bold text-slate-800 mb-1">
+                    Date: <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={formDate}
+                    onChange={(e) => setFormDate(e.target.value)}
+                    className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-mono font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                {/* Item / Product */}
+                <div className="md:col-span-2">
+                  <label className="block font-bold text-slate-800 mb-1">
+                    Item (Equipment Name / Specification): <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formItem}
+                    onChange={(e) => setFormItem(e.target.value)}
+                    placeholder="e.g. 25 KL Vertical Tank"
+                    className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                {/* Quantity */}
+                <div>
+                  <label className="block font-bold text-slate-800 mb-1">
+                    Qty: <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formQty}
+                    onChange={(e) => setFormQty(e.target.value)}
+                    placeholder="e.g. 1 Nos"
+                    className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              {/* INSPECTION TABLE (EXACT 5 COLUMNS FROM USER PHOTO) */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-black text-slate-900 uppercase text-xs tracking-wider flex items-center gap-1.5">
+                    <span>Inspection Parameters &amp; Test Matrix</span>
+                    <span className="text-[10px] text-slate-400 font-normal">
+                      (As per Doc no.: F - QAS - 02)
+                    </span>
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={handleAddCustomRow}
+                    className="text-xs text-emerald-700 hover:underline font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Add Custom Inspection Stage</span>
+                  </button>
+                </div>
+
+                <div className="border border-slate-300 rounded-xl overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-slate-100 border-b border-slate-300 font-black text-slate-900 uppercase text-[11px]">
+                        <th className="p-2.5 w-28 border-r border-slate-300">Process</th>
+                        <th className="p-2.5 min-w-[150px] border-r border-slate-300">
+                          In process Parameters
+                        </th>
+                        <th className="p-2.5 min-w-[160px] border-r border-slate-300">
+                          Testing Method
+                        </th>
+                        <th className="p-2.5 min-w-[200px] border-r border-slate-300">
+                          Requirements (Drawing / Spec)
+                        </th>
+                        <th className="p-2.5 w-28 border-r border-slate-300">Actual</th>
+                        <th className="p-2.5 w-24">Remarks</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {formInspectionRows.map((row, idx) => (
+                        <tr key={idx} className="hover:bg-amber-50/20">
+                          {/* 1. Process */}
+                          <td className="p-2 border-r border-slate-300 align-top">
+                            <input
+                              type="text"
+                              value={row.processName}
+                              onChange={(e) =>
+                                handleUpdateInspectionRow(idx, 'processName', e.target.value)
+                              }
+                              className="w-full p-1 bg-white border border-slate-200 rounded font-bold text-slate-900 text-xs"
+                            />
+                          </td>
+
+                          {/* 2. In Process Parameters */}
+                          <td className="p-2 border-r border-slate-300 align-top">
+                            <input
+                              type="text"
+                              value={row.parameters}
+                              onChange={(e) =>
+                                handleUpdateInspectionRow(idx, 'parameters', e.target.value)
+                              }
+                              className="w-full p-1 bg-white border border-slate-200 rounded text-xs text-slate-800"
+                            />
+                          </td>
+
+                          {/* 3. Testing Method */}
+                          <td className="p-2 border-r border-slate-300 align-top">
+                            <input
+                              type="text"
+                              value={row.testingMethod}
+                              onChange={(e) =>
+                                handleUpdateInspectionRow(idx, 'testingMethod', e.target.value)
+                              }
+                              className="w-full p-1 bg-white border border-slate-200 rounded text-xs text-slate-800"
+                            />
+                          </td>
+
+                          {/* 4. Requirements */}
+                          <td className="p-2 border-r border-slate-300 align-top">
+                            <textarea
+                              rows={2}
+                              value={row.requirements}
+                              onChange={(e) =>
+                                handleUpdateInspectionRow(idx, 'requirements', e.target.value)
+                              }
+                              className="w-full p-1 bg-white border border-slate-200 rounded text-xs text-slate-800"
+                            />
+                          </td>
+
+                          {/* 5. Actual */}
+                          <td className="p-2 border-r border-slate-300 align-top">
+                            <select
+                              value={row.actual}
+                              onChange={(e) =>
+                                handleUpdateInspectionRow(idx, 'actual', e.target.value)
+                              }
+                              className={`w-full p-1 font-bold rounded border text-xs ${
+                                row.actual === 'OK'
+                                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                                  : 'bg-white text-slate-800 border-slate-200'
+                              }`}
+                            >
+                              <option value="OK">OK</option>
+                              <option value="No Req">No Req</option>
+                              <option value="No Req But MS Plates Primer Paint">
+                                Primer Paint OK
+                              </option>
+                              <option value="Deviation Approved">Deviation</option>
+                              <option value="Not OK">Not OK</option>
+                            </select>
+                          </td>
+
+                          {/* 6. Remarks */}
+                          <td className="p-2 align-top">
+                            <input
+                              type="text"
+                              value={row.remarks || ''}
+                              onChange={(e) =>
+                                handleUpdateInspectionRow(idx, 'remarks', e.target.value)
+                              }
+                              placeholder="Notes"
+                              className="w-full p-1 bg-white border border-slate-200 rounded text-xs text-slate-700"
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* FOOTER SIGN-OFF: INSPECTION BY & FINAL STATUS */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div>
+                  <label className="block font-bold text-slate-800 mb-1">
+                    Inspection By (Sign / Inspector Name): <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formInspectionBy}
+                    onChange={(e) => setFormInspectionBy(e.target.value)}
+                    placeholder="e.g. Rohit (QC Inspector)"
+                    className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-800 mb-1">
+                    Final Quality Clearance Status:
+                  </label>
+                  <select
+                    value={formStatus}
+                    onChange={(e) => setFormStatus(e.target.value as any)}
+                    className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="Passed">🟢 Approved &amp; Cleared for Dispatch</option>
+                    <option value="Pending">🟡 Pending Inspection / Clearance</option>
+                    <option value="Failed">🔴 Rejected / Rework Required</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* ACTION BUTTONS */}
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting || hydroStatus === 'Failed' || dpStatus === 'Defects Found' || currentWo?.status === 'Completed'}
-                  className={`px-5 py-2 rounded-xl text-white font-bold shadow-xs transition active:scale-95 flex items-center gap-1.5 ${
-                    isSubmitting || hydroStatus === 'Failed' || dpStatus === 'Defects Found' || currentWo?.status === 'Completed'
-                      ? 'bg-stone-300 cursor-not-allowed opacity-60 text-stone-600'
-                      : 'bg-[#8B2500] hover:bg-[#701E00] cursor-pointer'
-                  }`}
+                  className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition cursor-pointer flex items-center gap-1.5 active:scale-95"
                 >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>
-                    {isSubmitting
-                      ? 'Processing & Certifying...'
-                      : currentWo?.status === 'Completed'
-                      ? '✓ Already Completed & Transferred'
-                      : 'Certify & Transfer to Finished Goods'}
-                  </span>
+                  <Save className="w-4 h-4" />
+                  <span>Save Inspection Report (F - QAS - 02)</span>
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-    </div>
-  );
-}
 
-export default function WorkOrderCompletionPage() {
-  return (
-    <Suspense fallback={
-      <div className="p-8 text-center text-stone-500 font-semibold bg-[#FAF7F2] min-h-screen flex items-center justify-center">
-        Loading Work Order Completion & QC Clearance...
-      </div>
-    }>
-      <WorkOrderCompletionContent />
-    </Suspense>
+      {/* ========================================================================= */}
+      {/* MODAL 2: VIEW & PRINT INSPECTION REPORT (EXACT REPLICA OF PHYSICAL SHEET)  */}
+      {/* ========================================================================= */}
+      {viewingReport && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 overflow-y-auto animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl shadow-2xl border-2 border-black w-full max-w-4xl overflow-hidden my-4 print:m-0 print:border-none print:shadow-none">
+            {/* Action Bar (Hidden in Print) */}
+            <div className="bg-[#211B17] text-white p-3.5 flex items-center justify-between print:hidden">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span className="font-bold text-xs">Official Inspection Certificate Preview</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {viewingReport.qcStatus === 'Passed' && (
+                  <Link
+                    href={`/production/dispatch?fromQC=${encodeURIComponent(viewingReport.completionNumber)}&customer=${encodeURIComponent(viewingReport.customerName || '')}&item=${encodeURIComponent(viewingReport.productName || '')}&qty=${viewingReport.completedQuantity || 1}&job=${encodeURIComponent(viewingReport.jobNumber || '')}`}
+                    className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+                  >
+                    <Truck className="w-3.5 h-3.5" />
+                    <span>Issue Delivery Challan (ડીલેવરી ચલણ)</span>
+                  </Link>
+                )}
+                <button
+                  onClick={() => window.print()}
+                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Print Certificate (પ્રિન્ટ)</span>
+                </button>
+                <button
+                  onClick={() => setViewingReport(null)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* PRINTABLE REPORT DOCUMENT BODY (EXACT LAYOUT OF USER'S ATTACHED IMAGE) */}
+            <div className="p-8 text-black font-sans space-y-4 print:p-0">
+              {/* Report Header Table */}
+              <div className="border-2 border-black">
+                <div className="grid grid-cols-4 border-b-2 border-black text-center items-center py-2">
+                  {/* Logo Column */}
+                  <div className="p-2 border-r-2 border-black flex items-center justify-center">
+                    <div className="text-xl font-black tracking-tighter text-slate-900 font-serif">
+                      UMA
+                    </div>
+                  </div>
+
+                  {/* Company & Document Title Column */}
+                  <div className="col-span-2 p-2 border-r-2 border-black">
+                    <h2 className="text-sm font-black uppercase tracking-wider font-mono">
+                      UMA TECHNO FAB
+                    </h2>
+                    <h3 className="text-xs font-serif italic font-bold">
+                      In process cum final inspection report
+                    </h3>
+                  </div>
+
+                  {/* Doc No Column */}
+                  <div className="p-2 text-right pr-4 font-mono">
+                    <div className="text-[10px] text-slate-600">Doc no.:</div>
+                    <div className="text-sm font-black">F - QAS - 02</div>
+                  </div>
+                </div>
+
+                {/* Metadata Fields Grid */}
+                <div className="grid grid-cols-2 text-xs border-b border-black">
+                  <div className="p-2 border-r border-black flex items-center justify-between">
+                    <span className="font-bold">Customer Name:</span>
+                    <span className="font-serif italic font-bold text-sm">
+                      {viewingReport.customerName}
+                    </span>
+                  </div>
+                  <div className="p-2 flex items-center justify-between">
+                    <span className="font-bold">Work order No.:</span>
+                    <span className="font-mono font-bold text-sm">
+                      {viewingReport.workOrderNumber || viewingReport.jobNumber}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 text-xs">
+                  <div className="p-2 border-r border-black flex items-center justify-between">
+                    <span className="font-bold">Item:</span>
+                    <span className="font-bold">{viewingReport.productName}</span>
+                  </div>
+                  <div className="p-2 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <span>Qty: <strong>{viewingReport.completedQuantity} Nos</strong></span>
+                    </div>
+                    <div>
+                      <span>Date: <strong>{formatDate(viewingReport.completionDate)}</strong></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* In Process Inspection Table */}
+              <div className="border-2 border-black overflow-hidden">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="border-b-2 border-black font-black uppercase text-[11px] bg-slate-100 print:bg-transparent">
+                      <th className="p-2 border-r-2 border-black w-24">Process</th>
+                      <th className="p-2 border-r-2 border-black w-40">In process Parameters</th>
+                      <th className="p-2 border-r-2 border-black w-44">Testing Method</th>
+                      <th className="p-2 border-r-2 border-black">Requirements</th>
+                      <th className="p-2 border-r-2 border-black w-24 text-center">Actual</th>
+                      <th className="p-2 w-24">Remarks</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-black">
+                    {(viewingReport.inspectionRows && viewingReport.inspectionRows.length > 0
+                      ? viewingReport.inspectionRows
+                      : DEFAULT_INSPECTION_ROWS
+                    ).map((row, rIdx) => (
+                      <tr key={rIdx} className="border-b border-black">
+                        <td className="p-2 border-r-2 border-black font-bold align-top">
+                          {row.processName}
+                        </td>
+                        <td className="p-2 border-r-2 border-black align-top">
+                          {row.parameters}
+                        </td>
+                        <td className="p-2 border-r-2 border-black align-top font-sans">
+                          {row.testingMethod}
+                        </td>
+                        <td className="p-2 border-r-2 border-black align-top font-mono text-[11px]">
+                          {row.requirements}
+                        </td>
+                        <td className="p-2 border-r-2 border-black align-top font-bold text-center">
+                          {row.actual}
+                        </td>
+                        <td className="p-2 align-top text-[11px] italic">
+                          {row.remarks || '-'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Inspection Footer & Sign-off Block */}
+              <div className="border-2 border-black p-4 flex items-center justify-between text-xs">
+                <div>
+                  <span className="font-bold block">Inspection By :-</span>
+                  <div className="font-serif italic font-bold text-base mt-2 underline">
+                    {viewingReport.inspectionBy || viewingReport.completedBy}
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                    Date: {formatDate(viewingReport.completionDate)}
+                  </div>
+                </div>
+
+                {/* Official Stamp */}
+                <div className="border-2 border-emerald-700 text-emerald-800 p-2 rounded-lg text-center font-mono font-black text-xs">
+                  <div>UMA TECHNO FAB</div>
+                  <div className="text-sm">QC APPROVED ✓</div>
+                  <div className="text-[9px]">CLEARED FOR DISPATCH</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

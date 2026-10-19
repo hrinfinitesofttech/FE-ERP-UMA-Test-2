@@ -747,13 +747,24 @@ export function Sidebar() {
                 <Compass className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Production Planning</span>}
               </Link>
-              <Link href="/production/work-orders" className={subNavItemClass('/production/work-orders')}>
-                <ClipboardList className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+              <Link href="/production/supervisor-tasks" className={subNavItemClass('/production/supervisor-tasks')}>
+                <Factory className="w-3.5 h-3.5 flex-shrink-0 text-amber-600 group-hover:text-amber-800 transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
-                    <span>Work Orders</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
-                      {workOrders ? workOrders.length : 0}
+                    <span>Supervisor Tasks (સુપરવાઇઝર)</span>
+                    <span className="px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 font-mono text-[9px] font-bold border border-amber-300">
+                      Hub
+                    </span>
+                  </div>
+                )}
+              </Link>
+              <Link href="/production/worker-daily-routine" className={subNavItemClass('/production/worker-daily-routine')}>
+                <ClipboardList className="w-3.5 h-3.5 flex-shrink-0 text-purple-600 group-hover:text-purple-800 transition-colors" />
+                {!sidebarCollapsed && (
+                  <div className="flex items-center justify-between w-full">
+                    <span>Worker Daily Routine (વર્કર ડાયરી)</span>
+                    <span className="px-1.5 py-0.2 rounded-full bg-purple-100 text-purple-800 font-mono text-[9px] font-bold border border-purple-300">
+                      Daily
                     </span>
                   </div>
                 )}

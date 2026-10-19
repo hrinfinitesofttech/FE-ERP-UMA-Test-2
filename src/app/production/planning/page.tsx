@@ -31,6 +31,7 @@ import {
   Eye,
   CheckSquare,
   HelpCircle,
+  Send,
 } from 'lucide-react';
 
 export default function ProductionPlanningPage() {
@@ -38,6 +39,7 @@ export default function ProductionPlanningPage() {
   const {
     projectPlanningRecords,
     updateProjectPlanningTaskStatus,
+    dispatchProjectPlanningToDepartments,
     isInitialLoading,
   } = useERP();
 
@@ -54,6 +56,17 @@ export default function ProductionPlanningPage() {
   const showToast = (title: string, text: string) => {
     setToastMessage({ title, text });
     setTimeout(() => setToastMessage(null), 4500);
+  };
+
+  // Dispatch Plan to All Departments
+  const handleDispatchPlan = (planId: string, projNo: string) => {
+    const res = dispatchProjectPlanningToDepartments(planId);
+    if (res.success) {
+      showToast(
+        '🚀 Plan Dispatched to Departments!',
+        `Tasks for ${projNo} sent to ${res.dispatchedDepartments.join(', ')}. Audio alerts & department pages updated!`
+      );
+    }
   };
 
   // Currently Selected Project Record for Task Execution
@@ -187,6 +200,13 @@ export default function ProductionPlanningPage() {
             </div>
 
             <div className="flex items-center gap-2">
+              <Link
+                href="/production/supervisor-tasks"
+                className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-xs"
+              >
+                <Factory className="w-3.5 h-3.5" />
+                <span>Supervisor Tasks Hub (સુપરવાઇઝર ટાસ્ક)</span>
+              </Link>
               <Link
                 href="/projects/planning"
                 className="px-3.5 py-2 bg-white border border-[#EBE3DB] hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-xs"
@@ -444,16 +464,40 @@ export default function ProductionPlanningPage() {
                             </span>
                           </td>
 
-                          {/* Action Button */}
+                          {/* Action Buttons: Send to Depts + View Tasks */}
                           <td className="py-3.5 px-4 text-center" onClick={(e) => e.stopPropagation()}>
-                            <button
-                              type="button"
-                              onClick={() => handleOpenProjectTasks(r)}
-                              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-xs transition shadow-xs flex items-center justify-center gap-1.5 mx-auto active:scale-95 cursor-pointer"
-                            >
-                              <span>View Tasks</span>
-                              <ArrowRight className="w-3.5 h-3.5" />
-                            </button>
+                            <div className="flex items-center justify-center gap-1.5">
+                              {r.isDispatched ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDispatchPlan(r.id, r.projectNumber)}
+                                  className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold rounded-lg text-[11px] transition shadow-xs flex items-center gap-1 cursor-pointer"
+                                  title="Plan is already dispatched to departments. Click to re-notify."
+                                >
+                                  <Check className="w-3 h-3 text-emerald-600" />
+                                  <span>Sent ✓</span>
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDispatchPlan(r.id, r.projectNumber)}
+                                  className="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-lg text-xs transition shadow-xs flex items-center gap-1 active:scale-95 cursor-pointer animate-pulse"
+                                  title="Send and notify all departments for execution"
+                                >
+                                  <Send className="w-3 h-3" />
+                                  <span>સેન્ડ (Send)</span>
+                                </button>
+                              )}
+
+                              <button
+                                type="button"
+                                onClick={() => handleOpenProjectTasks(r)}
+                                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg text-xs transition shadow-xs flex items-center gap-1 active:scale-95 cursor-pointer"
+                              >
+                                <span>Tasks</span>
+                                <ArrowRight className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -491,13 +535,38 @@ export default function ProductionPlanningPage() {
               <span>← Back to All Projects</span>
             </button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-purple-50 text-purple-800 border border-purple-200">
                 {currentPlan.projectNumber}
               </span>
               <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200">
                 {currentPlan.planningNumber}
               </span>
+
+              {/* Send to Departments Button */}
+              <button
+                type="button"
+                onClick={() => handleDispatchPlan(currentPlan.id, currentPlan.projectNumber)}
+                className={`px-3 py-1.5 font-bold text-xs rounded-xl transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95 ${
+                  currentPlan.isDispatched
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    : 'bg-amber-600 hover:bg-amber-700 text-white animate-pulse'
+                }`}
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>
+                  {currentPlan.isDispatched ? 'Resend to Departments' : 'Send to Departments (સેન્ડ કરો)'}
+                </span>
+              </button>
+
+              <Link
+                href="/production/supervisor-tasks"
+                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition flex items-center gap-1"
+              >
+                <Factory className="w-3.5 h-3.5" />
+                <span>Open Supervisor Hub</span>
+              </Link>
+
               <Link
                 href={`/projects/planning?mode=edit&id=${currentPlan.id}`}
                 className="px-3 py-1.5 bg-white border border-[#EBE3DB] hover:bg-slate-50 text-xs font-bold text-slate-700 rounded-xl transition flex items-center gap-1"

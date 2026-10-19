@@ -134,7 +134,7 @@ function getPrimaryHref(currentUser: any): string {
     if (first.includes('design')) return '/designer/bom';
     if (first.includes('purch')) return '/purchase/orders';
     if (first.includes('store') || first.includes('wareh')) return '/store/material-issue';
-    if (first.includes('prod')) return '/production/work-orders';
+    if (first.includes('prod')) return '/production/planning';
   }
   return '/';
 }
