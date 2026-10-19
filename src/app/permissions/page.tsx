@@ -304,8 +304,8 @@ export default function PermissionsPage() {
             className={cn(
               'px-4 py-2 rounded-lg font-bold text-xs transition flex items-center gap-2 cursor-pointer',
               activeTab === 'employee'
-                ? 'bg-crm-brand-700 text-white shadow-sm'
-                : 'text-[#70665F] hover:text-[#211B17]'
+                ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-sm'
+                : 'text-[#70665F] hover:text-[#211B17] hover:bg-[#F3ECE4]'
             )}
           >
             <UserCheck className="w-4 h-4" />
@@ -316,8 +316,8 @@ export default function PermissionsPage() {
             className={cn(
               'px-4 py-2 rounded-lg font-bold text-xs transition flex items-center gap-2 cursor-pointer',
               activeTab === 'roles'
-                ? 'bg-crm-brand-700 text-white shadow-sm'
-                : 'text-[#70665F] hover:text-[#211B17]'
+                ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-sm'
+                : 'text-[#70665F] hover:text-[#211B17] hover:bg-[#F3ECE4]'
             )}
           >
             <Sliders className="w-4 h-4" />

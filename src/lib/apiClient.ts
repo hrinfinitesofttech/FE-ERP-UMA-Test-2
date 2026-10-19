@@ -1845,6 +1845,33 @@ export const api = {
     markRead: (id: string) => request<any>(`/notifications/${id}/`, { method: 'PATCH', body: JSON.stringify({ isRead: true }) }),
     delete: (id: string) => request<any>(`/notifications/${id}/`, { method: 'DELETE' }),
   },
+
+  // Versioning & Visual Diff Engine (Figma / Sheets Model)
+  versions: {
+    list: (params?: { entityType?: string; entityId?: string; milestoneOnly?: boolean }) => {
+      const q = new URLSearchParams();
+      if (params?.entityType) q.append('entityType', params.entityType);
+      if (params?.entityId) q.append('entityId', params.entityId);
+      if (params?.milestoneOnly) q.append('milestoneOnly', 'true');
+      const qs = q.toString();
+      return request<any[]>(`/versions/${qs ? `?${qs}` : ''}`);
+    },
+    create: (data: any) => request<any>('/versions/', { method: 'POST', body: JSON.stringify(data) }),
+    get: (id: string) => request<any>(`/versions/${id}/`),
+    compare: (params: { baseVersionId?: string; targetVersionId?: string; versionA?: any; versionB?: any }) =>
+      request<any>('/versions/compare/', { method: 'POST', body: JSON.stringify(params) }),
+  },
+  fieldHistory: {
+    list: (params?: { entityType?: string; entityId?: string; fieldPath?: string }) => {
+      const q = new URLSearchParams();
+      if (params?.entityType) q.append('entityType', params.entityType);
+      if (params?.entityId) q.append('entityId', params.entityId);
+      if (params?.fieldPath) q.append('fieldPath', params.fieldPath);
+      const qs = q.toString();
+      return request<any[]>(`/field-history/${qs ? `?${qs}` : ''}`);
+    },
+    create: (data: any) => request<any>('/field-history/', { method: 'POST', body: JSON.stringify(data) }),
+  },
 };
 
 export default api;

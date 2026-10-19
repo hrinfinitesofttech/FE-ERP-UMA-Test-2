@@ -281,7 +281,7 @@ function MRPContent() {
           className={cn(
             'inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer',
             activeTab === 'mrp'
-              ? 'bg-crm-brand-700 text-white shadow-xs'
+              ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-xs'
               : 'bg-white border border-[#EBE3DB] text-[#544B45] hover:bg-[#FAF7F2]'
           )}
         >
@@ -302,7 +302,7 @@ function MRPContent() {
           className={cn(
             'inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer',
             activeTab === 'availability'
-              ? 'bg-crm-brand-700 text-white shadow-xs'
+              ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-xs'
               : 'bg-white border border-[#EBE3DB] text-[#544B45] hover:bg-[#FAF7F2]'
           )}
         >
@@ -323,7 +323,7 @@ function MRPContent() {
           className={cn(
             'inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer',
             activeTab === 'issue'
-              ? 'bg-crm-brand-700 text-white shadow-xs'
+              ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-xs'
               : 'bg-white border border-[#EBE3DB] text-[#544B45] hover:bg-[#FAF7F2]'
           )}
         >

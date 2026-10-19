@@ -538,7 +538,7 @@ function PurchaseOrdersHubContent() {
             onClick={() => setActiveTab('orders')}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'orders'
-                ? 'bg-crm-brand-700 text-white shadow-xs'
+                ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-xs'
                 : 'text-[#6E5D53] hover:text-[#211B17] hover:bg-[#F3ECE4]'
             }`}
           >
@@ -553,7 +553,7 @@ function PurchaseOrdersHubContent() {
             onClick={() => setActiveTab('approvals')}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'approvals'
-                ? 'bg-crm-brand-700 text-white shadow-xs'
+                ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-xs'
                 : 'text-[#6E5D53] hover:text-[#211B17] hover:bg-[#F3ECE4]'
             }`}
           >
@@ -570,7 +570,7 @@ function PurchaseOrdersHubContent() {
             onClick={() => setActiveTab('followup')}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'followup'
-                ? 'bg-crm-brand-700 text-white shadow-xs'
+                ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-xs'
                 : 'text-[#6E5D53] hover:text-[#211B17] hover:bg-[#F3ECE4]'
             }`}
           >
@@ -825,8 +825,8 @@ function PurchaseOrdersHubContent() {
                 onClick={() => setApprovalTab('pending')}
                 className={`px-3 py-1.5 rounded-lg font-bold transition ${
                   approvalTab === 'pending'
-                    ? 'bg-crm-brand-700 text-white shadow-xs'
-                    : 'text-[#70665F] hover:text-[#211B17]'
+                    ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-xs'
+                    : 'text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]'
                 }`}
               >
                 Pending Approvals ({pendingPOs.length})
@@ -835,8 +835,8 @@ function PurchaseOrdersHubContent() {
                 onClick={() => setApprovalTab('revisions')}
                 className={`px-3 py-1.5 rounded-lg font-bold transition ${
                   approvalTab === 'revisions'
-                    ? 'bg-crm-brand-700 text-white shadow-xs'
-                    : 'text-[#70665F] hover:text-[#211B17]'
+                    ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-xs'
+                    : 'text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]'
                 }`}
               >
                 Revision Audit Logs ({poRevisions.length})

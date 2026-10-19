@@ -1204,7 +1204,7 @@ export function GlobalSearchModal() {
               }}
               className={`px-3 py-1 rounded-full font-bold text-[11px] whitespace-nowrap transition cursor-pointer ${
                 selectedCategory === cat
-                  ? 'bg-crm-brand-700 text-white shadow-xs'
+                  ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-xs'
                   : 'bg-white text-[#70665F] hover:bg-[#F3EDE4] border border-[#E5DDD0]'
               }`}
             >

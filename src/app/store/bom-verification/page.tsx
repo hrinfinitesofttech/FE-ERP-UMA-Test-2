@@ -611,7 +611,7 @@ function BOMMaterialVerificationContent() {
             onClick={() => setStatusFilter('ALL')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
               statusFilter === 'ALL'
-                ? 'bg-crm-brand-700 text-white shadow-xs'
+                ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-xs'
                 : 'bg-[#FAF7F2] text-[#544B45] hover:bg-[#EFE8DF]'
             }`}
           >
@@ -621,22 +621,22 @@ function BOMMaterialVerificationContent() {
             onClick={() => setStatusFilter('IN_STOCK')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
               statusFilter === 'IN_STOCK'
-                ? 'bg-emerald-700 text-white shadow-xs'
+                ? 'bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs'
                 : 'bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100'
             }`}
           >
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            <CheckCircle2 className={`w-3.5 h-3.5 ${statusFilter === 'IN_STOCK' ? 'text-white' : 'text-emerald-600'}`} />
             <span>In Stock ({inStockItemsCount})</span>
           </button>
           <button
             onClick={() => setStatusFilter('SHORTAGE')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
               statusFilter === 'SHORTAGE'
-                ? 'bg-rose-700 text-white shadow-xs'
+                ? 'bg-rose-700 hover:bg-rose-800 text-white shadow-xs'
                 : 'bg-rose-50 text-rose-800 border border-rose-300 hover:bg-rose-100'
             }`}
           >
-            <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+            <AlertTriangle className={`w-3.5 h-3.5 ${statusFilter === 'SHORTAGE' ? 'text-white' : 'text-rose-600'}`} />
             <span>Shortage / Out of Stock ({shortageItemsCount})</span>
           </button>
         </div>

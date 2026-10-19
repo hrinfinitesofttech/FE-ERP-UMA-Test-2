@@ -527,7 +527,7 @@ export default function TaskManagementPage() {
                 className={cn(
                   'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border',
                   selectedDeptFilter === 'all'
-                    ? 'bg-crm-brand-700 text-white border-crm-brand-700 shadow-xs'
+                    ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white border-crm-brand-700 shadow-xs'
                     : 'bg-[#FAF8F5] text-[#4A3B32] border-[#EBE3DB] hover:bg-[#F3ECE4]'
                 )}
               >
@@ -544,7 +544,7 @@ export default function TaskManagementPage() {
                     className={cn(
                       'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border flex items-center gap-1.5',
                       isSelected
-                        ? 'bg-crm-brand-700 text-white border-crm-brand-700 shadow-xs'
+                        ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white border-crm-brand-700 shadow-xs'
                         : 'bg-[#FAF8F5] text-[#4A3B32] border-[#EBE3DB] hover:bg-[#F3ECE4]'
                     )}
                   >

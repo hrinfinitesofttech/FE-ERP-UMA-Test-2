@@ -118,6 +118,36 @@ body, .crm-app {
   background: var(--crm-brand-800);
 }
 
+/* Sidebar Active & Hover Navigation Item Contrast Guarantee */
+aside a[class*="bg-crm-brand-700"] {
+  color: #ffffff !important;
+}
+
+aside a[class*="bg-crm-brand-700"] svg {
+  color: #ffffff !important;
+  stroke: currentColor !important;
+}
+
+aside a[class*="bg-crm-brand-700"] span:not([class*="font-mono"]) {
+  color: #ffffff !important;
+}
+
+aside a[class*="bg-crm-brand-700"]:hover {
+  background-color: var(--crm-brand-800, #5f3218) !important;
+  color: #ffffff !important;
+}
+
+aside a[class*="bg-crm-brand-700"]:hover svg {
+  color: #ffffff !important;
+  stroke: currentColor !important;
+}
+
+aside a[class*="bg-crm-brand-700"] span[class*="font-mono"] {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
 .crm-focusable:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--crm-brand-500), transparent 60%);
   outline-offset: 2px;

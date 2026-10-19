@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useERP } from '../../context/ERPContext';
@@ -170,6 +170,32 @@ export function Sidebar() {
   const [testingOpen, setTestingOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
+  useEffect(() => {
+    if (!pathname) return;
+    if (pathname === '/crm' || pathname.startsWith('/crm/')) setCrmOpen(true);
+    if (pathname === '/projects' || pathname.startsWith('/projects/')) setProjectOpen(true);
+    if (pathname === '/designer' || pathname.startsWith('/designer/')) setDesignerOpen(true);
+    if (pathname === '/purchase' || pathname.startsWith('/purchase/')) setPurchaseOpen(true);
+    if (pathname === '/store' || pathname.startsWith('/store/')) setStoreOpen(true);
+    if (pathname === '/production' || pathname.startsWith('/production/')) setProductionOpen(true);
+    if (pathname === '/accounting' || pathname.startsWith('/accounting/')) setAccountingOpen(true);
+    if (pathname === '/maintenance' || pathname.startsWith('/maintenance/')) setMaintenanceOpen(true);
+    if (pathname === '/hr' || pathname.startsWith('/hr/')) setHrOpen(true);
+    if (pathname === '/qc' || pathname.startsWith('/qc/') || pathname.startsWith('/quality')) setTestingOpen(true);
+    if (pathname === '/integration' || pathname.startsWith('/integration/')) setIntegrationOpen(true);
+    if (pathname === '/testing' || pathname.startsWith('/testing/')) setTestingOpen(true);
+    if (
+      pathname.startsWith('/settings') ||
+      pathname.startsWith('/users') ||
+      pathname.startsWith('/roles') ||
+      pathname.startsWith('/departments') ||
+      pathname.startsWith('/permissions') ||
+      pathname.startsWith('/notifications')
+    ) {
+      setSettingsOpen(true);
+    }
+  }, [pathname]);
+
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
     if (pathname === href) return true;
@@ -177,21 +203,25 @@ export function Sidebar() {
     return pathname.startsWith(href + '/');
   };
 
-  const navItemClass = (href: string) =>
-    cn(
+  const navItemClass = (href: string) => {
+    const active = isActive(href);
+    return cn(
       'flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all group relative',
-      isActive(href)
-        ? 'bg-crm-brand-700 text-white shadow-xs font-semibold'
+      active
+        ? 'bg-crm-brand-700 text-white shadow-xs font-semibold hover:bg-crm-brand-800 hover:text-white [&_svg]:!text-white [&_span]:!text-white'
         : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
     );
+  };
 
-  const subNavItemClass = (href: string) =>
-    cn(
+  const subNavItemClass = (href: string) => {
+    const active = isActive(href);
+    return cn(
       'flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11.5px] font-medium transition-all group relative',
-      isActive(href)
-        ? 'bg-crm-brand-700 text-white font-medium shadow-xs'
+      active
+        ? 'bg-crm-brand-700 text-white font-medium shadow-xs hover:bg-crm-brand-800 hover:text-white [&_svg]:!text-white [&_span:not(.font-mono)]:!text-white [&_span.font-mono]:!bg-white/20 [&_span.font-mono]:!text-white [&_span.font-mono]:!border-white/30'
         : 'text-[#6E5D53] hover:text-[#211B17] hover:bg-[#F3ECE4]'
     );
+  };
 
   return (
     <aside
@@ -238,7 +268,7 @@ export function Sidebar() {
           className={cn(
             'flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all group relative',
             isActive('/')
-              ? 'bg-crm-brand-700 text-white shadow-xs'
+              ? 'bg-crm-brand-700 text-white shadow-xs hover:bg-crm-brand-800 hover:text-white [&_svg]:!text-white'
               : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
           )}
         >
@@ -277,7 +307,7 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 crmOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60'
+                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
                   : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
               )}
             >
@@ -304,7 +334,7 @@ export function Sidebar() {
                 <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
-                    <span className="font-bold text-[#3E2723]">Leads</span>
+                    <span>Leads</span>
                     <span suppressHydrationWarning className="px-1.5 py-0.2 rounded-full bg-crm-brand-100 text-crm-brand-800 font-mono text-[9px] font-bold border border-crm-brand-200">
                       {leads.length}
                     </span>
@@ -380,7 +410,7 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 projectOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60'
+                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
                   : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
               )}
             >
@@ -443,7 +473,7 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 designerOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60'
+                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
                   : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
               )}
             >
@@ -493,7 +523,7 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 purchaseOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60'
+                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
                   : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
               )}
             >
@@ -591,7 +621,7 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 storeOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60'
+                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
                   : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
               )}
             >
@@ -690,7 +720,7 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 productionOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60'
+                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
                   : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
               )}
             >
@@ -759,7 +789,7 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 accountingOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60'
+                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
                   : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
               )}
             >
@@ -901,7 +931,7 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 maintenanceOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60'
+                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
                   : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
               )}
             >
@@ -950,7 +980,7 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 hrOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60'
+                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
                   : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
               )}
             >
@@ -1150,7 +1180,7 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 integrationOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60'
+                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
                   : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
               )}
             >
@@ -1220,7 +1250,7 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 testingOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60'
+                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
                   : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
               )}
             >
@@ -1281,7 +1311,7 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 settingsOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60'
+                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
                   : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
               )}
             >
