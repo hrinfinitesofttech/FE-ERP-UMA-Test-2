@@ -27,7 +27,11 @@ import {
   ClipboardList,
   User,
   Pencil,
+  CalendarDays,
+  List,
 } from 'lucide-react';
+import { ERPCalendarView, CalendarEventItem } from '../../../components/ui/ERPCalendarView';
+import { ERPDatePicker } from '../../../components/ui/ERPDatePicker';
 
 export default function FollowUpsPage() {
   const router = useRouter();
@@ -43,6 +47,7 @@ export default function FollowUpsPage() {
     availableEmployees,
   } = useERP();
 
+  const [viewType, setViewType] = useState<'list' | 'calendar'>('list');
   const [viewFilter, setViewFilter] = useState<'all' | 'today' | 'upcoming' | 'overdue' | 'completed'>('today');
   const [entityFilter, setEntityFilter] = useState<'all' | 'lead' | 'enquiry' | 'quotation' | 'customer'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -185,6 +190,47 @@ export default function FollowUpsPage() {
       return true;
     });
   }, [followUps, viewFilter, entityFilter, searchQuery, todayStr]);
+
+  const followUpCalendarEvents: CalendarEventItem[] = useMemo(() => {
+    return followUps.map((f) => {
+      const isCompleted = f.status === 'completed';
+      const isOverdue = !isCompleted && f.date < todayStr;
+      const isToday = !isCompleted && f.date === todayStr;
+
+      const badgeColor = isCompleted
+        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+        : isOverdue
+        ? 'bg-rose-50 text-rose-800 border-rose-200'
+        : isToday
+        ? 'bg-amber-50 text-amber-900 border-amber-200'
+        : 'bg-blue-50 text-blue-800 border-blue-200';
+
+      const dotColor = isCompleted
+        ? 'bg-emerald-500'
+        : isOverdue
+        ? 'bg-rose-500'
+        : isToday
+        ? 'bg-amber-500'
+        : 'bg-blue-500';
+
+      const typeLabel = (f.type || 'call').toUpperCase();
+
+      return {
+        id: f.id,
+        title: `${typeLabel}: ${f.leadOrCustomerName || 'Client'}`,
+        date: f.date || '',
+        time: f.time,
+        category: f.type || 'call',
+        badgeColor,
+        dotColor,
+        description: f.purpose || (f as any).discussionSummary || `Follow-up with ${f.leadOrCustomerName}`,
+        location: (f as any).location,
+        person: f.assignedToName,
+        status: isCompleted ? 'Completed' : isOverdue ? 'Overdue' : isToday ? 'Due Today' : 'Scheduled',
+        raw: f,
+      };
+    });
+  }, [followUps, todayStr]);
 
   const handleComplete = (id: string) => {
     if (!completionNotes.trim()) {
@@ -610,32 +656,78 @@ export default function FollowUpsPage() {
           </button>
         </div>
 
-        {/* Entity Type Filter Bar */}
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
-          <span className="text-[10px] font-bold text-slate-500 uppercase px-1.5">Target:</span>
-          {(['all', 'lead', 'enquiry', 'quotation', 'customer'] as const).map((ent) => (
+        {/* View Switcher & Entity Filter */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Entity Type Filter Bar */}
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
+            <span className="text-[10px] font-bold text-slate-500 uppercase px-1.5">Target:</span>
+            {(['all', 'lead', 'enquiry', 'quotation', 'customer'] as const).map((ent) => (
+              <button
+                key={ent}
+                type="button"
+                onClick={() => setEntityFilter(ent)}
+                className={`px-2.5 py-1 rounded text-[11px] font-bold capitalize transition cursor-pointer ${
+                  entityFilter === ent ? 'bg-white text-[#7C3AED] shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {ent === 'all' ? 'All' : ent}
+              </button>
+            ))}
+          </div>
+
+          {/* List vs Calendar Toggle */}
+          <div className="flex items-center border border-slate-200 rounded-lg p-0.5 bg-slate-100">
             <button
-              key={ent}
               type="button"
-              onClick={() => setEntityFilter(ent)}
-              className={`px-2.5 py-1 rounded text-[11px] font-bold capitalize transition cursor-pointer ${
-                entityFilter === ent ? 'bg-white text-[#7C3AED] shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-              }`}
+              onClick={() => setViewType('list')}
+              className={`p-1.5 rounded-md transition cursor-pointer ${viewType === 'list' ? 'bg-white text-[#7C3AED] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+              title="Table List View"
             >
-              {ent === 'all' ? 'All' : ent}
+              <List className="w-4 h-4" />
             </button>
-          ))}
+            <button
+              type="button"
+              onClick={() => setViewType('calendar')}
+              className={`p-1.5 rounded-md transition cursor-pointer ${viewType === 'calendar' ? 'bg-white text-[#7C3AED] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+              title="Interactive Calendar View"
+            >
+              <CalendarDays className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Main Shasvatm ERP Standard List View */}
-      <ERPListPageLayout<FollowUp>
-        breadcrumbs={['DASHBOARD', 'CRM & SALES', 'FOLLOW-UPS']}
-        columns={columns}
-        data={filteredFollowUps}
-        addNewLabel="+ Schedule Follow-up"
-        onAddNew={() => router.push('/crm/follow-ups/new')}
-        onExport={() => {
+      {viewType === 'calendar' ? (
+        <ERPCalendarView
+          events={followUpCalendarEvents}
+          title="CRM Follow-Up & Communication Calendar"
+          subtitle="Interactive schedule of customer calls, site meetings, WhatsApp follow-ups, and quotation reviews."
+          onAddEvent={() => router.push('/crm/follow-ups/new')}
+          onSelectEvent={(ev) => {
+            if (ev.raw) {
+              setCompleteModalId(ev.raw.id);
+              setCompletionNotes('');
+              setOutcome('connected');
+              setCompleteError('');
+            }
+          }}
+          addEventLabel="+ Schedule Follow-up"
+          categories={[
+            { key: 'call', label: 'Phone Call', color: 'bg-amber-500' },
+            { key: 'whatsapp', label: 'WhatsApp', color: 'bg-emerald-500' },
+            { key: 'meeting', label: 'Meeting', color: 'bg-blue-500' },
+            { key: 'visit', label: 'Site Visit', color: 'bg-purple-500' },
+            { key: 'email', label: 'Email', color: 'bg-sky-500' },
+          ]}
+        />
+      ) : (
+        <ERPListPageLayout<FollowUp>
+          breadcrumbs={['DASHBOARD', 'CRM & SALES', 'FOLLOW-UPS']}
+          columns={columns}
+          data={filteredFollowUps}
+          addNewLabel="+ Schedule Follow-up"
+          onAddNew={() => router.push('/crm/follow-ups/new')}
+          onExport={() => {
           const csv = [
             ['Follow-up No', 'Entity Type', 'Target', 'Assigned To', 'Due Date', 'Status', 'Outcome', 'Notes'].join(','),
             ...filteredFollowUps.map(f => [
@@ -658,6 +750,7 @@ export default function FollowUpsPage() {
         }}
         searchPlaceholder="Search follow-ups, clients, assignee, notes..."
       />
+      )}
 
       {/* COMPLETION & LOG INTERACTION MODAL */}
       {completeModalId && (
@@ -754,15 +847,14 @@ export default function FollowUpsPage() {
                 {scheduleNext && (
                   <div>
                     <label className="block text-[#70665F] text-[11px] mb-1">Next Follow-up Due Date</label>
-                    <input
-                      type="date"
-                      min={todayStr}
+                    <ERPDatePicker
+                      minDate={todayStr}
                       value={nextFollowUpDate}
-                      onChange={(e) => {
-                        setNextFollowUpDate(e.target.value);
+                      onChange={(val) => {
+                        setNextFollowUpDate(val);
                         if (completeError) setCompleteError('');
                       }}
-                      className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg font-mono text-xs"
+                      className="w-full"
                     />
                   </div>
                 )}

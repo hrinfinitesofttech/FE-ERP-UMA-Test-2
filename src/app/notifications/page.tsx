@@ -27,6 +27,14 @@ import {
   Volume2,
   VolumeX,
   Volume1,
+  Package,
+  Factory,
+  Compass,
+  ShoppingBag,
+  Truck,
+  Receipt,
+  ShieldCheck,
+  X,
 } from 'lucide-react';
 import {
   isSoundEnabled,
@@ -286,7 +294,8 @@ export default function NotificationsPage() {
             className="px-3 py-2 rounded-xl bg-white border border-[#D5C7B8] hover:bg-[#FAF7F2] text-slate-800 font-bold text-xs flex items-center gap-1.5 transition shadow-2xs"
             title="Test Chime and Voice Speech"
           >
-            <span>🔊 Test Audio</span>
+            <Volume2 className="w-3.5 h-3.5 text-[#75401F]" />
+            <span>Test Audio</span>
           </button>
 
           <button
@@ -596,34 +605,57 @@ export default function NotificationsPage() {
                         !notif.isRead ? 'bg-[#9B4A1B]/[0.03]' : ''
                       }`}
                     >
-                      <div className="flex items-start gap-3.5 flex-1">
-                        {/* Icon based on notification type */}
-                        <div className="mt-0.5 flex-shrink-0">
-                          {notif.type === 'alert' || notif.type === 'warning' ? (
-                            <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center">
-                              <AlertTriangle className="w-4 h-4" />
-                            </div>
-                          ) : notif.type === 'success' ? (
-                            <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                              <CheckCircle2 className="w-4 h-4" />
-                            </div>
-                          ) : notif.priority === 'high' ? (
-                            <div className="w-8 h-8 rounded-full bg-red-100 text-red-700 flex items-center justify-center">
-                              <ShieldAlert className="w-4 h-4" />
-                            </div>
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-[#9B4A1B]/10 text-[#9B4A1B] flex items-center justify-center">
-                              <Bell className="w-4 h-4" />
-                            </div>
-                          )}
-                        </div>
+                      {(() => {
+                        const cleanTitle = (notif.title || '')
+                          .replace(/^[\s\p{Emoji}\u200d\uFE0F✓✕⚠️🚨🚀📦⚙️🛍️📝📋✅❌♻️🚛📄💰💸🔊]+/gu, '')
+                          .trim();
+                        const titleLower = (notif.title || '').toLowerCase();
+                        const deptLower = (notif.department || '').toLowerCase();
 
-                        {/* Text & Meta */}
-                        <div className="space-y-1.5 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-bold text-slate-900 text-xs">
-                              {notif.title}
-                            </span>
+                        let badgeColor = 'bg-crm-brand-50 text-crm-brand-700 border-crm-brand-200/80';
+                        let IconComp = Bell;
+
+                        if (deptLower === 'store' || titleLower.includes('material') || titleLower.includes('stock') || titleLower.includes('grn')) {
+                          badgeColor = 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
+                          IconComp = Package;
+                        } else if (deptLower === 'production' || titleLower.includes('production') || titleLower.includes('work order') || titleLower.includes('job')) {
+                          badgeColor = 'bg-sky-50 text-sky-700 border-sky-200/80';
+                          IconComp = Factory;
+                        } else if (deptLower === 'design' || titleLower.includes('design') || titleLower.includes('bom') || titleLower.includes('engineering')) {
+                          badgeColor = 'bg-purple-50 text-purple-700 border-purple-200/80';
+                          IconComp = Compass;
+                        } else if (deptLower === 'purchase' || titleLower.includes('po ') || titleLower.includes('pr ') || titleLower.includes('purchase')) {
+                          badgeColor = 'bg-amber-50 text-amber-700 border-amber-200/80';
+                          IconComp = ShoppingBag;
+                        } else if (deptLower === 'dispatch' || titleLower.includes('dispatch') || titleLower.includes('challan')) {
+                          badgeColor = 'bg-indigo-50 text-indigo-700 border-indigo-200/80';
+                          IconComp = Truck;
+                        } else if (deptLower === 'accounts' || titleLower.includes('invoice') || titleLower.includes('payment') || titleLower.includes('receipt')) {
+                          badgeColor = 'bg-teal-50 text-teal-700 border-teal-200/80';
+                          IconComp = Receipt;
+                        } else if (notif.type === 'alert' || notif.type === 'warning' || notif.priority === 'high') {
+                          badgeColor = 'bg-rose-50 text-rose-700 border-rose-200/80';
+                          IconComp = AlertTriangle;
+                        } else if (notif.type === 'success') {
+                          badgeColor = 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
+                          IconComp = CheckCircle2;
+                        }
+
+                        return (
+                          <div className="flex items-start gap-3.5 flex-1">
+                            {/* Icon based on notification department & type */}
+                            <div className="mt-0.5 flex-shrink-0">
+                              <div className={`w-9 h-9 rounded-xl flex items-center justify-center border shadow-2xs ${badgeColor}`}>
+                                <IconComp className="w-4 h-4" />
+                              </div>
+                            </div>
+
+                            {/* Text & Meta */}
+                            <div className="space-y-1.5 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-bold text-slate-900 text-xs">
+                                  {cleanTitle || notif.title}
+                                </span>
 
                             <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-[#FAF7F2] font-mono text-[10px] uppercase font-bold text-[#70665F]">
                               {notif.department}
@@ -660,6 +692,8 @@ export default function NotificationsPage() {
                           </div>
                         </div>
                       </div>
+                    );
+                  })()}
 
                       {/* Action buttons */}
                       <div className="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
@@ -709,10 +743,11 @@ export default function NotificationsPage() {
                 <h3 className="font-bold text-slate-900 text-sm">Create New Notification / Operational Alert</h3>
               </div>
               <button
+                type="button"
                 onClick={() => setShowAddModal(false)}
-                className="w-7 h-7 rounded-lg hover:bg-slate-200 flex items-center justify-center text-[#70665F]"
+                className="w-7 h-7 rounded-lg hover:bg-slate-200 flex items-center justify-center text-[#70665F] transition"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

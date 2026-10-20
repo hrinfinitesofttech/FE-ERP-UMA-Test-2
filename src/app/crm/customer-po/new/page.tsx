@@ -5,11 +5,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useERP } from '@/context/ERPContext';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { toast } from '@/context/ToastContext';
 import {
   ArrowLeft,
   Briefcase,
   Sparkles,
   Upload,
+  CheckCircle2,
 } from 'lucide-react';
 
 function CustomerPOFormContent() {
@@ -100,7 +102,7 @@ function CustomerPOFormContent() {
     e.preventDefault();
 
     if (!poNumber.trim()) {
-      alert('Please enter a valid Customer Purchase Order Number.');
+      toast.warning('Required Field', 'Please enter a valid Customer Purchase Order Number.');
       return;
     }
 
@@ -133,6 +135,7 @@ function CustomerPOFormContent() {
       );
     }
 
+    toast.success('Customer PO Created', `PO ${poNumber.trim()} registered successfully.`);
     router.push('/crm/customer-po');
   };
 
@@ -271,8 +274,9 @@ function CustomerPOFormContent() {
               <Upload className="w-5 h-5 mx-auto text-slate-400" />
               <span className="block text-slate-600 font-semibold text-xs">
                 {attachedFileName ? (
-                  <span className="text-emerald-700 font-bold font-mono">
-                    ✓ Attached: {attachedFileName}
+                  <span className="text-emerald-700 font-bold font-mono inline-flex items-center gap-1.5 justify-center">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Attached: {attachedFileName}</span>
                   </span>
                 ) : (
                   'Upload scanned Customer Purchase Order file'

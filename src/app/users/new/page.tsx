@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useERP } from '../../../context/ERPContext';
 import { ArrowLeft, UserPlus, Shield, Building, Key, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { CustomSelect } from '../../../components/ui/CustomSelect';
+import { ERPDatePicker } from '../../../components/ui/ERPDatePicker';
 
 export default function NewUserPage() {
   const router = useRouter();
@@ -181,16 +183,16 @@ export default function NewUserPage() {
                 )}
               </div>
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Gender</label>
-                <select
+                <CustomSelect
+                  label="Gender"
                   value={formData.gender}
-                  onChange={(e) => setFormData({ ...formData, gender: e.target.value as any })}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
-                >
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                </select>
+                  onChange={(val) => setFormData({ ...formData, gender: val as any })}
+                  options={[
+                    { value: 'male', label: 'Male' },
+                    { value: 'female', label: 'Female' },
+                    { value: 'other', label: 'Other' },
+                  ]}
+                />
               </div>
             </div>
 
@@ -241,18 +243,14 @@ export default function NewUserPage() {
                 )}
               </div>
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Date of Birth (Min 18 Yrs)</label>
-                <input
-                  type="date"
-                  max={maxDob}
+                <ERPDatePicker
+                  label="Date of Birth (Min 18 Yrs)"
                   value={formData.dob}
-                  onChange={(e) => {
-                    setFormData({ ...formData, dob: e.target.value });
+                  maxDate={maxDob}
+                  onChange={(val) => {
+                    setFormData({ ...formData, dob: val });
                     if (errors.dob) setErrors(prev => ({ ...prev, dob: '' }));
                   }}
-                  className={`w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg text-slate-900 dark:text-[#211B17] font-mono ${
-                    errors.dob ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[#EBE3DB]'
-                  }`}
                 />
                 {errors.dob && (
                   <p className="text-rose-500 text-[10px] mt-1 flex items-center gap-1 font-semibold">
@@ -282,16 +280,17 @@ export default function NewUserPage() {
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Department *</label>
-                <select
+                <CustomSelect
+                  label="Department"
+                  required
+                  searchable
                   value={formData.departmentId}
-                  onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
-                >
-                  {departments.map((d) => (
-                    <option key={d.id} value={d.id}>{d.name} ({d.code})</option>
-                  ))}
-                </select>
+                  onChange={(val) => setFormData({ ...formData, departmentId: val })}
+                  options={departments.map((d) => ({
+                    value: d.id,
+                    label: `${d.name} (${d.code})`,
+                  }))}
+                />
               </div>
 
               <div>
@@ -307,55 +306,56 @@ export default function NewUserPage() {
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Assigned Role *</label>
-                <select
+                <CustomSelect
+                  label="Assigned Role"
+                  required
+                  searchable
                   value={formData.roleId}
-                  onChange={(e) => setFormData({ ...formData, roleId: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17] font-mono"
-                >
-                  {roles.map((r) => (
-                    <option key={r.id} value={r.id}>{r.name}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setFormData({ ...formData, roleId: val })}
+                  options={roles.map((r) => ({
+                    value: r.id,
+                    label: r.name,
+                  }))}
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Reporting Manager</label>
-                <select
+                <CustomSelect
+                  label="Reporting Manager"
+                  searchable
                   value={formData.reportingManagerId}
-                  onChange={(e) => setFormData({ ...formData, reportingManagerId: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
-                >
-                  <option value="">None (Top Level)</option>
-                  {employees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>{emp.firstName} {emp.lastName} ({emp.designation})</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Joining Date</label>
-                <input
-                  type="date"
-                  value={formData.joiningDate}
-                  onChange={(e) => setFormData({ ...formData, joiningDate: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
+                  onChange={(val) => setFormData({ ...formData, reportingManagerId: val })}
+                  options={[
+                    { value: '', label: 'None (Top Level)' },
+                    ...employees.map((emp) => ({
+                      value: emp.id,
+                      label: `${emp.firstName} ${emp.lastName} (${emp.designation})`,
+                    })),
+                  ]}
                 />
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Employment Type</label>
-                <select
+                <ERPDatePicker
+                  label="Joining Date"
+                  value={formData.joiningDate}
+                  onChange={(val) => setFormData({ ...formData, joiningDate: val })}
+                />
+              </div>
+
+              <div>
+                <CustomSelect
+                  label="Employment Type"
                   value={formData.employmentType}
-                  onChange={(e) => setFormData({ ...formData, employmentType: e.target.value as any })}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
-                >
-                  <option value="full_time">Full Time Regular</option>
-                  <option value="contract">Contractor</option>
-                  <option value="probation">Probationary</option>
-                </select>
+                  onChange={(val) => setFormData({ ...formData, employmentType: val as any })}
+                  options={[
+                    { value: 'full_time', label: 'Full Time Regular' },
+                    { value: 'contract', label: 'Contractor' },
+                    { value: 'probation', label: 'Probationary' },
+                  ]}
+                />
               </div>
             </div>
           </div>

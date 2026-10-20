@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import { ScrapEntry, ScrapStatus } from '../../../types/store';
-import { Trash2, Plus, AlertTriangle, Cpu } from 'lucide-react';
+import { Trash2, Plus, AlertTriangle, Cpu, X } from 'lucide-react';
 import { ERPListPageLayout } from '../../../components/ui/ERPListPageLayout';
+import { toast } from '@/context/ToastContext';
 
 export default function ScrapPage() {
   const { scrapEntries, addScrapEntry, itemMasters, warehouses, projectJobs } = useERP();
@@ -26,7 +27,7 @@ export default function ScrapPage() {
       key: 'scrapNumber',
       header: 'SCRAP ENTRY NO & DATE',
       isCodeLink: true,
-      onCodeClick: (s: ScrapEntry) => alert(`Scrap Entry #${s.scrapNumber}\nReason: ${s.reason || 'N/A'}\nCreated By: ${s.createdBy || 'N/A'}`),
+      onCodeClick: (s: ScrapEntry) => toast.info(`Scrap Entry #${s.scrapNumber}`, `Reason: ${s.reason || 'N/A'} • Created By: ${s.createdBy || 'N/A'}`),
       cell: (s: ScrapEntry) => (
         <div>
           <div className="font-semibold text-[#7C3AED] hover:underline cursor-pointer">{s.scrapNumber}</div>
@@ -174,8 +175,12 @@ export default function ScrapPage() {
                 <Trash2 className="w-5 h-5 text-yellow-400" />
                 Add Scrap & Rejection Record
               </h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-[#70665F] hover:text-[#211B17] text-xs">
-                ✕
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] transition"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 

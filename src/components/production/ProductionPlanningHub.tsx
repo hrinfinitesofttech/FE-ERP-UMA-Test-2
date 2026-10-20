@@ -166,7 +166,7 @@ function ProductionPlanningHubContent({ initialTab = 'planning' }: ProductionPla
     const res = dispatchProjectPlanningToDepartments(planId);
     if (res.success) {
       showToast(
-        '🚀 Plan Dispatched to Departments!',
+        'Plan Dispatched to Departments',
         `Tasks for ${projNo} sent to ${res.dispatchedDepartments.join(', ')}. Audio alerts & department pages updated!`
       );
     }
@@ -376,7 +376,7 @@ function ProductionPlanningHubContent({ initialTab = 'planning' }: ProductionPla
     });
 
     showToast(
-      isFinished ? '🎉 Operation Completed!' : '✓ Progress Updated',
+      isFinished ? 'Operation Completed' : 'Progress Updated',
       `"${task.taskName}" for ${projectNumber} set to ${pct}%.`
     );
   };
@@ -401,7 +401,7 @@ function ProductionPlanningHubContent({ initialTab = 'planning' }: ProductionPla
     });
 
     showToast(
-      is100 ? '🎉 Operation 100% Complete!' : '✓ Supervisor Log Saved',
+      is100 ? 'Operation 100% Complete' : 'Supervisor Log Saved',
       `Progress details updated for "${activeModalData.task.taskName}" (${activeModalData.projectNumber}).`
     );
 
@@ -425,7 +425,7 @@ function ProductionPlanningHubContent({ initialTab = 'planning' }: ProductionPla
     const isLast = taskIndex === currentPlan.tasks.length - 1;
 
     showToast(
-      isLast ? '🎉 All Tasks Finished!' : '✓ Task Completed',
+      isLast ? 'All Tasks Finished' : 'Task Completed',
       isLast
         ? `All operations completed for ${currentPlan.projectNumber}!`
         : `"${taskName}" completed. Next operation "${nextTask?.taskName || 'Next Operation'}" is ready to start!`
@@ -816,7 +816,7 @@ function ProductionPlanningHubContent({ initialTab = 'planning' }: ProductionPla
                                   title="Plan is already dispatched to departments. Click to re-notify."
                                 >
                                   <Check className="w-3 h-3 text-emerald-600" />
-                                  <span>Sent ✓</span>
+                                  <span>Dispatched</span>
                                 </button>
                               ) : (
                                 <button
@@ -1141,8 +1141,9 @@ function ProductionPlanningHubContent({ initialTab = 'planning' }: ProductionPla
                                 {row.projectNumber}
                               </button>
                               {row.isDispatched ? (
-                                <span className="text-[9.5px] px-1.5 py-0.2 rounded font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                  ✓ Sent
+                                <span className="inline-flex items-center gap-1 text-[9.5px] px-1.5 py-0.5 rounded font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  <Check className="w-2.5 h-2.5 text-emerald-600" />
+                                  <span>Sent</span>
                                 </span>
                               ) : (
                                 <button
@@ -1483,7 +1484,7 @@ function ProductionPlanningHubContent({ initialTab = 'planning' }: ProductionPla
                     {currentPlan.tasks?.filter((t) => t.status === 'completed' || t.progressPercent === 100).length || 0} of {currentPlan.tasks?.length || 0} Tasks Completed
                   </span>
                   <span className="font-bold text-emerald-700">
-                    {(currentPlan.overallProgress || 0) >= 100 ? '✓ Complete' : 'In Progress'}
+                    {(currentPlan.overallProgress || 0) >= 100 ? 'Completed' : 'In Progress'}
                   </span>
                 </div>
               </div>
@@ -1575,8 +1576,9 @@ function ProductionPlanningHubContent({ initialTab = 'planning' }: ProductionPla
                                 </span>
                               )}
                               {isCompleted && (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                                  ✓ 100% Completed
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
+                                  <Check className="w-3 h-3 text-emerald-700" />
+                                  100% Completed
                                 </span>
                               )}
                             </div>
@@ -1721,7 +1723,7 @@ function ProductionPlanningHubContent({ initialTab = 'planning' }: ProductionPla
                                 className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95"
                               >
                                 <Check className="w-4 h-4" />
-                                <span>100% Complete ✓</span>
+                                <span>Mark 100% Complete</span>
                               </button>
                             ) : (
                               <button
@@ -1859,14 +1861,14 @@ function ProductionPlanningHubContent({ initialTab = 'planning' }: ProductionPla
                     }}
                     className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 text-[#211B17]"
                   >
-                    <option value="in_progress">🟡 In Progress</option>
-                    <option value="completed">🟢 100% Completed</option>
-                    <option value="pending">⚪ Pending</option>
-                    <option value="on_hold">🔴 On Hold</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">100% Completed</option>
+                    <option value="pending">Pending</option>
+                    <option value="on_hold">On Hold</option>
                   </select>
                   <div className="text-[11px] text-slate-500 pt-1">
                     {modalStatus === 'completed'
-                      ? '✓ Setting to 100% will automatically unlock the next sequential operation.'
+                      ? 'Setting to 100% will automatically unlock the next sequential operation.'
                       : 'Real-time updates shopfloor board and master plan.'}
                   </div>
                 </div>

@@ -17,9 +17,11 @@ import {
   ChevronRight,
   ShieldCheck,
   Zap,
+  X,
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { TestCaseItem } from '../../../types/testing';
+import { CustomSelect } from '../../../components/ui/CustomSelect';
 
 export default function UATHubPage() {
   const { testCases, updateTestCaseStatus, resetTestCases, runAllMTOVerifications } = useERP();
@@ -85,7 +87,7 @@ export default function UATHubPage() {
         setSimulationStep(step + 1);
         setWorkflowLog((prev) => [
           ...prev,
-          `[${new Date().toLocaleTimeString()}] ✓ Step ${step + 1}: ${currentStepData.log}`,
+          `[${new Date().toLocaleTimeString()}] [PASS] Step ${step + 1}: ${currentStepData.log}`,
         ]);
         if (currentStepData.testId) {
           updateTestCaseStatus(currentStepData.testId, 'Pass', currentStepData.log);
@@ -257,42 +259,47 @@ export default function UATHubPage() {
       {/* Filters & Search */}
       <div className="bg-white border border-[#EBE3DB] p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 bg-[#FAF7F2] px-3 py-1.5 rounded-xl border border-[#EBE3DB]">
-            <Filter className="w-3.5 h-3.5 text-[#70665F]" />
-            <span className="text-xs text-[#544B45] font-semibold">Module:</span>
-            <select
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-[#544B45] font-semibold flex items-center gap-1.5">
+              <Filter className="w-3.5 h-3.5 text-[#70665F]" /> Module:
+            </span>
+            <CustomSelect
+              size="sm"
               value={selectedModule}
-              onChange={(e) => setSelectedModule(e.target.value)}
-              className="bg-transparent text-xs text-[#211B17] focus:outline-none cursor-pointer"
-            >
-              <option value="All" className="bg-white">All Modules (11)</option>
-              <option value="Foundation" className="bg-white">Foundation</option>
-              <option value="CRM" className="bg-white">CRM</option>
-              <option value="Project" className="bg-white">Project & Job</option>
-              <option value="Design" className="bg-white">Design & BOM</option>
-              <option value="Purchase" className="bg-white">Purchase</option>
-              <option value="Store" className="bg-white">Store & Warehouse</option>
-              <option value="Production" className="bg-white">Production / MRP</option>
-              <option value="Accounting" className="bg-white">Accounting & Finance</option>
-              <option value="HR" className="bg-white">HR & Payroll</option>
-              <option value="Maintenance" className="bg-white">Maintenance</option>
-              <option value="Integration" className="bg-white">360° Integration</option>
-            </select>
+              onChange={(val) => setSelectedModule(val)}
+              className="w-48"
+              options={[
+                { value: 'All', label: 'All Modules (11)' },
+                { value: 'Foundation', label: 'Foundation' },
+                { value: 'CRM', label: 'CRM' },
+                { value: 'Project', label: 'Project & Job' },
+                { value: 'Design', label: 'Design & BOM' },
+                { value: 'Purchase', label: 'Purchase' },
+                { value: 'Store', label: 'Store & Warehouse' },
+                { value: 'Production', label: 'Production / MRP' },
+                { value: 'Accounting', label: 'Accounting & Finance' },
+                { value: 'HR', label: 'HR & Payroll' },
+                { value: 'Maintenance', label: 'Maintenance' },
+                { value: 'Integration', label: '360° Integration' },
+              ]}
+            />
           </div>
 
-          <div className="flex items-center gap-2 bg-[#FAF7F2] px-3 py-1.5 rounded-xl border border-[#EBE3DB]">
+          <div className="flex items-center gap-2">
             <span className="text-xs text-[#544B45] font-semibold">Status:</span>
-            <select
+            <CustomSelect
+              size="sm"
               value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="bg-transparent text-xs text-[#211B17] focus:outline-none cursor-pointer"
-            >
-              <option value="All" className="bg-white">All Statuses</option>
-              <option value="Pass" className="bg-white">Pass</option>
-              <option value="Fail" className="bg-white">Fail</option>
-              <option value="Blocked" className="bg-white">Blocked</option>
-              <option value="Pending" className="bg-white">Pending</option>
-            </select>
+              onChange={(val) => setSelectedStatus(val)}
+              className="w-36"
+              options={[
+                { value: 'All', label: 'All Statuses' },
+                { value: 'Pass', label: 'Pass' },
+                { value: 'Fail', label: 'Fail' },
+                { value: 'Blocked', label: 'Blocked' },
+                { value: 'Pending', label: 'Pending' },
+              ]}
+            />
           </div>
         </div>
 
@@ -402,10 +409,11 @@ export default function UATHubPage() {
                 Update Test Outcome: {editingTestCase.id}
               </div>
               <button
+                type="button"
                 onClick={() => setEditingTestCase(null)}
-                className="text-[#70665F] hover:text-[#211B17] text-xs"
+                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] transition"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

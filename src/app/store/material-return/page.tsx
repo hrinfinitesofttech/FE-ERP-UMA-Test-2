@@ -6,6 +6,7 @@ import { useERP } from '../../../context/ERPContext';
 import { MaterialReturn, ReturnCondition, MaterialIssue, MaterialIssueItem } from '../../../types/store';
 import { CornerUpLeft, Plus, Search, Cpu, CheckCircle, Printer, X, Eye, AlertCircle } from 'lucide-react';
 import { ERPListPageLayout } from '../../../components/ui/ERPListPageLayout';
+import { toast } from '../../../context/ToastContext';
 
 function MaterialReturnContent() {
   const searchParams = useSearchParams();
@@ -403,18 +404,18 @@ function MaterialReturnContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedItem || !selectedWh) {
-      alert('Please select a valid item and receiving warehouse.');
+      toast.warning('Please select a valid item and receiving warehouse.');
       return;
     }
 
     if (numReturnQty <= 0) {
-      alert('Please enter a valid return quantity greater than 0.');
+      toast.warning('Please enter a valid return quantity greater than 0.');
       return;
     }
 
     const issuedQty = selectedItem.issuedQty || 500;
     if (numReturnQty > issuedQty) {
-      alert(
+      toast.warning(
         `Invalid Return Quantity: Return quantity (${numReturnQty} ${selectedItem.uom}) cannot exceed issued quantity (${issuedQty} ${selectedItem.uom}). Please enter ${issuedQty} or less.`
       );
       return;
@@ -459,13 +460,16 @@ function MaterialReturnContent() {
       });
 
       const retNumber = (createdRet as any)?.returnNumber || `RET-${new Date().getFullYear()}`;
+      toast.success(
+        `Material Return Slip ${retNumber} created successfully! ${numReturnQty} ${selectedItem.uom} of ${selectedItem.itemName} inwarded back to ${selectedWh.warehouseName}.`
+      );
       setSuccessMessage(
         `Material Return Slip ${retNumber} created successfully! ${numReturnQty} ${selectedItem.uom} of ${selectedItem.itemName} inwarded back to ${selectedWh.warehouseName}.`
       );
       setIsModalOpen(false);
     } catch (err: any) {
       console.error('Error creating material return:', err);
-      alert('Error creating material return: ' + (err?.message || 'Unknown error'));
+      toast.error('Error creating material return: ' + (err?.message || 'Unknown error'));
     } finally {
       setIsSubmitting(false);
     }

@@ -13,6 +13,7 @@ import {
 import { SiteVisit } from '../../../types/crm';
 import { formatDate } from '../../../lib/utils';
 import { MapPin, X, Save, Eye, CheckCircle2 } from 'lucide-react';
+import { toast } from '@/context/ToastContext';
 
 export default function VisitsPage() {
   const router = useRouter();
@@ -69,37 +70,37 @@ export default function VisitsPage() {
     switch (out) {
       case 'positive':
         return (
-          <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+          <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full whitespace-nowrap inline-flex items-center select-none">
             Positive Progress
           </span>
         );
       case 'order_expected':
         return (
-          <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
+          <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full whitespace-nowrap inline-flex items-center select-none">
             Order Expected
           </span>
         );
       case 'quotation_required':
         return (
-          <span className="text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
+          <span className="text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full whitespace-nowrap inline-flex items-center select-none">
             Quotation Required
           </span>
         );
       case 'follow_up_required':
         return (
-          <span className="text-[11px] font-semibold text-purple-700 bg-purple-50 border border-purple-200 px-2.5 py-0.5 rounded-full">
+          <span className="text-[11px] font-semibold text-purple-700 bg-purple-50 border border-purple-200 px-2.5 py-0.5 rounded-full whitespace-nowrap inline-flex items-center select-none">
             Follow-Up Required
           </span>
         );
       case 'not_interested':
         return (
-          <span className="text-[11px] font-semibold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full">
+          <span className="text-[11px] font-semibold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full whitespace-nowrap inline-flex items-center select-none">
             Not Interested
           </span>
         );
       default:
         return (
-          <span className="text-[11px] font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+          <span className="text-[11px] font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded whitespace-nowrap inline-flex items-center select-none">
             {out}
           </span>
         );
@@ -115,7 +116,7 @@ export default function VisitsPage() {
       cell: (v) => (
         <button
           onClick={() => setViewingVisit(v)}
-          className="text-[#2563EB] hover:text-[#1D4ED8] underline font-bold font-mono text-xs cursor-pointer text-left"
+          className="text-[#2563EB] hover:text-[#1D4ED8] underline font-bold font-mono text-xs cursor-pointer text-left whitespace-nowrap"
         >
           {v.visitNo}
         </button>
@@ -156,7 +157,7 @@ export default function VisitsPage() {
     {
       key: 'engineer',
       header: 'VISITING ENGINEER',
-      cell: (v) => <span className="font-semibold text-[#334155]">{v.employeeName}</span>,
+      cell: (v) => <span className="font-semibold text-[#334155] whitespace-nowrap">{v.employeeName}</span>,
     },
     {
       key: 'outcome',
@@ -191,9 +192,20 @@ export default function VisitsPage() {
         onView={(v) => setViewingVisit(v)}
         onEdit={(v) => setEditingVisit(v)}
         onDelete={(v) => {
-          if (confirm(`Are you sure you want to delete visit report "${v.visitNo}"?`)) {
-            deleteSiteVisit(v.id);
-          }
+          toast.confirm({
+            title: 'Delete Site Visit Report',
+            message: `Are you sure you want to delete visit report "${v.visitNo}"?`,
+            confirmText: 'Yes, Delete',
+            cancelText: 'Cancel',
+            variant: 'danger',
+            onConfirm: () => {
+              deleteSiteVisit(v.id);
+              toast.success(`Visit report "${v.visitNo}" deleted`);
+            },
+          });
+
+
+
         }}
         isLoading={isInitialLoading}
         defaultPageSize={50}

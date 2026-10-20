@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useERP } from '../../../../context/ERPContext';
+import { toast } from '@/context/ToastContext';
 import { StatusBadge } from '../../../../components/workflow/StatusBadge';
 import { formatCurrency, formatDate } from '../../../../lib/utils';
 import { Lead, LeadSource, LeadStatus } from '../../../../types/crm';
@@ -118,6 +119,24 @@ export default function LeadDetailPage() {
     setShowEditModal(true);
   };
 
+  const handleCloseEditModal = () => {
+    if (isEditDirty) {
+      toast.confirm({
+        title: 'Unsaved Changes',
+        message: 'You have unsaved changes. Are you sure you want to close without saving?',
+        confirmText: 'Discard & Close',
+        cancelText: 'Keep Editing',
+        variant: 'warning',
+        onConfirm: () => {
+          setShowEditModal(false);
+          setIsEditDirty(false);
+        },
+      });
+      return;
+    }
+    setShowEditModal(false);
+  };
+
   const handleEditChange = (field: string, value: any) => {
     let cleanVal = value;
     if (field === 'mobile') {
@@ -130,7 +149,7 @@ export default function LeadDetailPage() {
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editFormData.companyName || !editFormData.contactPerson || !editFormData.mobile) {
-      alert('Please fill all required fields (Company Name, Contact Person, 10-digit Mobile).');
+      toast.warning('Required Fields Missing', 'Please fill all required fields (Company Name, Contact Person, 10-digit Mobile).');
       return;
     }
 
@@ -651,8 +670,7 @@ export default function LeadDetailPage() {
           className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
-              if (isEditDirty && !window.confirm('You have unsaved changes. Are you sure you want to close?')) return;
-              setShowEditModal(false);
+              handleCloseEditModal();
             }
           }}
         >
@@ -676,10 +694,7 @@ export default function LeadDetailPage() {
                 </div>
               </div>
               <button
-                onClick={() => {
-                  if (isEditDirty && !window.confirm('You have unsaved changes. Are you sure you want to close?')) return;
-                  setShowEditModal(false);
-                }}
+                onClick={handleCloseEditModal}
                 className="p-1.5 text-[#70665F] hover:text-[#211B17] hover:bg-white/60 rounded-xl transition cursor-pointer"
               >
                 <X className="w-5 h-5" />

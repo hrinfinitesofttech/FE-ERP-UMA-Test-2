@@ -27,6 +27,11 @@ import {
   Volume1,
   ExternalLink,
   Check,
+  Package,
+  Factory,
+  ShoppingBag,
+  Truck,
+  Receipt,
 } from 'lucide-react';
 import { formatDateTime } from '../../lib/utils';
 import { ThemeSwitcher } from '../theme/ThemeSwitcher';
@@ -169,17 +174,17 @@ export function Topbar() {
 
               {/* Sound & Voice Settings Bar */}
               <div className="px-3.5 py-2 bg-[#F6F1EA] border-b border-[#EDE5DC] flex items-center justify-between gap-2 text-[11px]">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3">
                   {/* Sound Toggle */}
                   <button
                     type="button"
                     onClick={toggleSound}
-                    className={`flex items-center gap-1 font-bold px-2 py-0.5 rounded-lg transition cursor-pointer ${
+                    className={`flex items-center gap-1.5 font-bold px-2 py-1 rounded-lg transition cursor-pointer ${
                       soundActive ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-slate-200 text-slate-500'
                     }`}
                     title={soundActive ? 'Sound Chime is ON' : 'Sound Chime is OFF'}
                   >
-                    {soundActive ? <Volume2 className="w-3 h-3 text-emerald-700" /> : <VolumeX className="w-3 h-3 text-slate-500" />}
+                    {soundActive ? <Volume2 className="w-3.5 h-3.5 text-emerald-700" /> : <VolumeX className="w-3.5 h-3.5 text-slate-500" />}
                     <span>{soundActive ? 'Chime ON' : 'Chime OFF'}</span>
                   </button>
 
@@ -187,12 +192,12 @@ export function Topbar() {
                   <button
                     type="button"
                     onClick={toggleVoice}
-                    className={`flex items-center gap-1 font-bold px-2 py-0.5 rounded-lg transition cursor-pointer ${
+                    className={`flex items-center gap-1.5 font-bold px-2 py-1 rounded-lg transition cursor-pointer ${
                       voiceActive ? 'bg-purple-100 text-purple-800 border border-purple-300' : 'bg-slate-200 text-slate-500'
                     }`}
                     title={voiceActive ? 'Voice Alert is ON' : 'Voice Alert is OFF'}
                   >
-                    <Volume1 className="w-3 h-3 text-purple-700" />
+                    <Volume1 className="w-3.5 h-3.5 text-purple-700" />
                     <span>{voiceActive ? 'Voice ON' : 'Voice OFF'}</span>
                   </button>
                 </div>
@@ -201,10 +206,11 @@ export function Topbar() {
                 <button
                   type="button"
                   onClick={testNotificationSound}
-                  className="px-2 py-0.5 bg-white border border-[#D5C7B8] hover:bg-[#FAF7F2] text-slate-700 font-bold rounded-lg text-[10px] transition cursor-pointer flex items-center gap-1 shadow-2xs"
+                  className="px-2.5 py-1 bg-white border border-[#D5C7B8] hover:bg-[#FAF7F2] text-slate-700 font-bold rounded-lg text-[10px] transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
                   title="Test Sound & Voice"
                 >
-                  <span>🔊 Test</span>
+                  <Volume2 className="w-3 h-3 text-[#75401F]" />
+                  <span>Test</span>
                 </button>
               </div>
 
@@ -216,41 +222,72 @@ export function Topbar() {
                     <p className="font-semibold text-xs">No notifications yet</p>
                   </div>
                 ) : (
-                  notifications.slice(0, 6).map((notif) => (
-                    <div
-                      key={notif.id}
-                      onClick={() => handleNotifClick(notif)}
-                      className={`p-3.5 hover:bg-[#FAF7F2] cursor-pointer transition flex items-start gap-3 ${
-                        !notif.isRead ? 'bg-[#FCF5ED]' : 'bg-white'
-                      }`}
-                    >
-                      <div className="mt-0.5">
-                        {notif.type === 'alert' || notif.type === 'warning' ? (
-                          <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                        ) : notif.type === 'success' ? (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                        ) : (
-                          <Bell className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                        )}
+                  notifications.slice(0, 6).map((notif) => {
+                    const cleanTitle = (notif.title || '')
+                      .replace(/^[\s\p{Emoji}\u200d\uFE0F✓✕⚠️🚨🚀📦⚙️🛍️📝📋✅❌♻️🚛📄💰💸🔊]+/gu, '')
+                      .trim();
+                    const titleLower = (notif.title || '').toLowerCase();
+                    const deptLower = (notif.department || '').toLowerCase();
+
+                    let badgeColor = 'bg-crm-brand-50 text-crm-brand-700 border-crm-brand-200/80';
+                    let IconComp = Bell;
+
+                    if (deptLower === 'store' || titleLower.includes('material') || titleLower.includes('stock') || titleLower.includes('grn')) {
+                      badgeColor = 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
+                      IconComp = Package;
+                    } else if (deptLower === 'production' || titleLower.includes('production') || titleLower.includes('work order') || titleLower.includes('job')) {
+                      badgeColor = 'bg-sky-50 text-sky-700 border-sky-200/80';
+                      IconComp = Factory;
+                    } else if (deptLower === 'design' || titleLower.includes('design') || titleLower.includes('bom') || titleLower.includes('engineering')) {
+                      badgeColor = 'bg-purple-50 text-purple-700 border-purple-200/80';
+                      IconComp = Compass;
+                    } else if (deptLower === 'purchase' || titleLower.includes('po ') || titleLower.includes('pr ') || titleLower.includes('purchase')) {
+                      badgeColor = 'bg-amber-50 text-amber-700 border-amber-200/80';
+                      IconComp = ShoppingBag;
+                    } else if (deptLower === 'dispatch' || titleLower.includes('dispatch') || titleLower.includes('challan')) {
+                      badgeColor = 'bg-indigo-50 text-indigo-700 border-indigo-200/80';
+                      IconComp = Truck;
+                    } else if (deptLower === 'accounts' || titleLower.includes('invoice') || titleLower.includes('payment') || titleLower.includes('receipt')) {
+                      badgeColor = 'bg-teal-50 text-teal-700 border-teal-200/80';
+                      IconComp = Receipt;
+                    } else if (notif.type === 'alert' || notif.type === 'warning') {
+                      badgeColor = 'bg-rose-50 text-rose-700 border-rose-200/80';
+                      IconComp = AlertTriangle;
+                    } else if (notif.type === 'success') {
+                      badgeColor = 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
+                      IconComp = CheckCircle2;
+                    }
+
+                    return (
+                      <div
+                        key={notif.id}
+                        onClick={() => handleNotifClick(notif)}
+                        className={`p-3.5 hover:bg-[#FAF7F2] cursor-pointer transition flex items-start gap-3 ${
+                          !notif.isRead ? 'bg-[#FCF5ED]' : 'bg-white'
+                        }`}
+                      >
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 border shadow-2xs ${badgeColor}`}>
+                          <IconComp className="w-4 h-4" />
+                        </div>
+                        <div className="space-y-0.5 flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className={`font-bold truncate text-xs ${!notif.isRead ? 'text-[#211B17]' : 'text-slate-700'}`}>
+                              {cleanTitle || notif.title}
+                            </span>
+                            {!notif.isRead && (
+                              <span className="w-2 h-2 rounded-full bg-crm-brand-700 flex-shrink-0" />
+                            )}
+                          </div>
+                          <div className="text-slate-600 text-[11px] leading-relaxed line-clamp-2">
+                            {notif.message}
+                          </div>
+                          <div className="text-[10px] text-slate-400 font-mono pt-0.5">
+                            {formatDateTime(notif.timestamp)}
+                          </div>
+                        </div>
                       </div>
-                      <div className="space-y-0.5 flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className={`font-bold truncate ${!notif.isRead ? 'text-[#211B17]' : 'text-slate-700'}`}>
-                            {notif.title}
-                          </span>
-                          {!notif.isRead && (
-                            <span className="w-2 h-2 rounded-full bg-crm-brand-700 flex-shrink-0" />
-                          )}
-                        </div>
-                        <div className="text-slate-600 text-[11px] leading-relaxed line-clamp-2">
-                          {notif.message}
-                        </div>
-                        <div className="text-[10px] text-slate-400 font-mono pt-0.5">
-                          {formatDateTime(notif.timestamp)}
-                        </div>
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
 

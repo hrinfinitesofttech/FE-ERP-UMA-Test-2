@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import { BOMHeader, BOMItem, BOMItemType, ProcurementType } from '../../../types/designer';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
+import { toast } from '../../../context/ToastContext';
 import {
   FileSpreadsheet,
   Plus,
@@ -193,7 +194,7 @@ export default function MasterBOMPage() {
   const exportBOMToExcel = (bomToExport?: BOMHeader, project?: any) => {
     const targetBOM = bomToExport || activeBOM;
     if (!targetBOM) {
-      alert('No BOM found to export.');
+      toast.warning('No BOM found to export.');
       return;
     }
 
@@ -429,12 +430,12 @@ export default function MasterBOMPage() {
     e.preventDefault();
 
     if (!createSelectedProjectId && !createProjectName.trim()) {
-      alert('Please select a Target Project.');
+      toast.warning('Please select a Target Project.');
       return;
     }
 
     if (createMaterialLines.length === 0) {
-      alert('Please add at least one material line item to the BOM.');
+      toast.warning('Please add at least one material line item to the BOM.');
       return;
     }
 
@@ -623,21 +624,25 @@ export default function MasterBOMPage() {
   const handleDeleteItem = (itemId: string) => {
     if (!activeBOM || activeBOM.isLocked) return;
     const itemToDelete = activeBOM.items.find((i) => i.id === itemId);
-    if (!confirm(`Are you sure you want to remove "${itemToDelete?.itemName || 'this item'}" from the BOM?`)) {
-      return;
-    }
-    const updatedItems = activeBOM.items.filter((i) => i.id !== itemId);
-    const newTotal = updatedItems.reduce(
-      (s, i) => s + (i.totalEstimatedAmount || (Number(i.quantity || 1) * Number(i.estimatedRate || 0))),
-      0
-    );
-    updateBOM(activeBOM.id, {
-      items: updatedItems,
-      totalItemsCount: updatedItems.length,
-      estimatedTotalCost: newTotal,
+    toast.confirm({
+      title: 'Remove Item from BOM',
+      message: `Are you sure you want to remove "${itemToDelete?.itemName || 'this item'}" from the BOM?`,
+      confirmText: 'Yes, Remove',
+      cancelText: 'Cancel',
+      variant: 'danger',
+      onConfirm: () => {
+        const updatedItems = activeBOM.items.filter((i) => i.id !== itemId);
+        const newTotal = updatedItems.reduce(
+          (s, i) => s + (i.totalEstimatedAmount || (Number(i.quantity || 1) * Number(i.estimatedRate || 0))),
+          0
+        );
+        updateBOM(activeBOM.id, {
+          items: updatedItems,
+          totalEstimatedCost: newTotal,
+        });
+        toast.success(`Item "${itemToDelete?.itemName || 'Item'}" removed from BOM.`);
+      },
     });
-    setSuccessToast(`Item removed from BOM ${activeBOM.bomNumber}!`);
-    setTimeout(() => setSuccessToast(''), 4000);
   };
 
   const handleLockBOM = () => {

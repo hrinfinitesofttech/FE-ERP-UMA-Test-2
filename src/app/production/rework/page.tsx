@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { useERP } from '../../../context/ERPContext';
-import { RotateCcw, Plus, AlertTriangle, CheckCircle2, Clock, Wrench } from 'lucide-react';
+import { RotateCcw, Plus, AlertTriangle, CheckCircle2, Clock, Wrench, X } from 'lucide-react';
+import { toast } from '../../../context/ToastContext';
 
 export default function ReworkOrderPage() {
   const { reworkOrders, workOrders, availableEmployees, addReworkOrder, isInitialLoading } = useERP();
@@ -38,7 +39,7 @@ export default function ReworkOrderPage() {
     });
 
     setShowModal(false);
-    alert('Rework Order created and saved to Database successfully!');
+    toast.success('Rework Order created and saved to Database successfully!');
   };
 
   return (
@@ -151,8 +152,12 @@ export default function ReworkOrderPage() {
           <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl text-[#544B45]">
             <div className="flex justify-between items-center border-b border-[#EBE3DB] pb-3">
               <h3 className="text-base font-bold text-[#211B17]">Issue Rework Order</h3>
-              <button onClick={() => setShowModal(false)} className="text-[#70665F] hover:text-[#211B17] font-bold text-lg">
-                ✕
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] transition"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 

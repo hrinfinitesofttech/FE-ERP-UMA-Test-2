@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { ERPProvider } from '@/context/ERPContext';
+import { ToastProvider } from '@/context/ToastContext';
 import { ClientThemeProvider } from '@/components/theme/ClientThemeProvider';
 import { AppShell } from '@/components/layout/AppShell';
 
@@ -29,7 +30,9 @@ export default function RootLayout({
       <body className="h-full overflow-hidden crm-app font-sans">
         <ClientThemeProvider clientThemeId="umaTechnoFab">
           <ERPProvider>
-            <AppShell>{children}</AppShell>
+            <ToastProvider>
+              <AppShell>{children}</AppShell>
+            </ToastProvider>
           </ERPProvider>
         </ClientThemeProvider>
       </body>

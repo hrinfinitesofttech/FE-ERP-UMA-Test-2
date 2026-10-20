@@ -348,8 +348,8 @@ export function ERPListPageLayout<T extends Record<string, any>>({
 
       {/* 4. High-Density Polished Data Grid */}
       <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-xs overflow-hidden flex flex-col flex-1">
-        <div className="overflow-x-auto min-h-[350px]">
-          <table className="w-full text-left border-collapse text-xs">
+        <div className="overflow-x-auto min-h-[350px] w-full">
+          <table className="min-w-full w-full text-left border-collapse text-xs whitespace-nowrap">
             <thead className="bg-[#F8FAFC] text-[#475569] font-bold border-b border-[#E2E8F0] uppercase tracking-wider text-[11px] sticky top-0 z-10">
               <tr>
                 {initialColumns
@@ -379,7 +379,7 @@ export function ERPListPageLayout<T extends Record<string, any>>({
                     {initialColumns
                       .filter((col) => visibleColumnKeys[col.key] !== false)
                       .map((col, cIdx) => (
-                        <td key={`skel-${rIdx}-${cIdx}`} className={cn(rowPaddingClass)}>
+                        <td key={`skel-${rIdx}-${cIdx}`} className={cn(rowPaddingClass, 'whitespace-nowrap')}>
                           <div
                             className="h-3.5 bg-slate-200 rounded animate-pulse"
                             style={{
@@ -402,7 +402,7 @@ export function ERPListPageLayout<T extends Record<string, any>>({
                       initialColumns.filter((c) => visibleColumnKeys[c.key] !== false).length +
                       (onEdit || onDelete || onView ? 1 : 0)
                     }
-                    className="text-center py-16 text-[#94A3B8]"
+                    className="text-center py-16 text-[#94A3B8] whitespace-normal"
                   >
                     <p className="font-semibold text-sm text-[#334155]">No Records Found</p>
                     <p className="text-xs mt-1 text-[#94A3B8]">
@@ -427,7 +427,7 @@ export function ERPListPageLayout<T extends Record<string, any>>({
                           return (
                             <td
                               key={col.key}
-                              className={cn(rowPaddingClass, 'text-[#334155] align-middle', col.className)}
+                              className={cn(rowPaddingClass, 'text-[#334155] align-middle whitespace-nowrap', col.className)}
                             >
                               {col.cell ? (
                                 col.cell(row, rowIdx)

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
+import { toast } from '../../../context/ToastContext';
 import {
   Cpu,
   ShieldCheck,
@@ -130,7 +131,7 @@ function MRPContent() {
       status: 'pending_approval',
     });
 
-    alert(`Purchase Requisition created for ${item.itemName} (${item.netRequirementQty} ${item.uom})! Transferred to Purchase.`);
+    toast.success(`Purchase Requisition created for ${item.itemName} (${item.netRequirementQty} ${item.uom})! Transferred to Purchase.`);
   };
 
   // Action: Issue Submit
@@ -174,7 +175,7 @@ function MRPContent() {
 
     setShowIssueModal(false);
     setIssueRemarks('');
-    alert('Material Request Slip created successfully!');
+    toast.success('Material Request Slip created successfully!');
   };
 
   return (
@@ -470,7 +471,7 @@ function MRPContent() {
               <button
                 onClick={() => {
                   releaseWorkOrder(selectedWo.id);
-                  alert(`Work Order ${selectedWo.workOrderNumber} authorized and released to shop floor!`);
+                  toast.success(`Work Order ${selectedWo.workOrderNumber} authorized and released to shop floor!`);
                 }}
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs shadow-xs transition cursor-pointer"
               >

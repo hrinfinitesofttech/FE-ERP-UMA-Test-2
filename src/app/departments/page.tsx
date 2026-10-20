@@ -478,7 +478,7 @@ export default function DepartmentsPage() {
                 <span className="font-bold text-slate-900">{confirmDeleteDept.name}</span> ({confirmDeleteDept.code})?
                 {confirmDeleteDept.employeeCount > 0 && (
                   <span className="block mt-1 font-semibold text-rose-800">
-                    ⚠️ Note: There are currently {confirmDeleteDept.employeeCount} active staff member(s) listed under this department.
+                    Note: There are currently {confirmDeleteDept.employeeCount} active staff member(s) listed under this department.
                   </span>
                 )}
               </p>

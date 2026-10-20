@@ -310,7 +310,7 @@ function EnquiryFormContent() {
               className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-[#75401F] focus:ring-2 focus:ring-[#75401F]/15 transition"
             >
               <option value="">-- Choose from Leads or Registered Customers --</option>
-              <optgroup label="📋 Active Sales Leads (Pending Technical Enquiry)">
+              <optgroup label="Active Sales Leads (Pending Technical Enquiry)">
                 {availableLeads.length === 0 ? (
                   <option disabled value="">(No pending leads - all leads have enquiries)</option>
                 ) : (
@@ -321,7 +321,7 @@ function EnquiryFormContent() {
                   ))
                 )}
               </optgroup>
-              <optgroup label="🏢 Existing Customers">
+              <optgroup label="Existing Customers">
                 {customers.map((c) => (
                   <option key={`cust:${c.id}`} value={`cust:${c.id}`}>
                     [Customer] {c.customerCode ? `${c.customerCode} - ` : ''}{c.companyName} ({c.contactPerson || 'Account'})

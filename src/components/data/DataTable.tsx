@@ -168,12 +168,12 @@ export function DataTable<T extends Record<string, any>>({
       </div>
 
       {/* Table Content */}
-      <div className="overflow-x-auto min-h-[240px]">
-        <table className="w-full text-left text-xs">
+      <div className="overflow-x-auto min-h-[240px] w-full">
+        <table className="min-w-full w-full text-left text-xs whitespace-nowrap">
           <thead className="bg-[#FAF7F2] text-[#70665F] font-bold border-b border-[#E7DED5] uppercase tracking-wider sticky top-0 z-10 text-[10px]">
             <tr>
               {columns.map((col, idx) => (
-                <th key={idx} className={cn('py-3.5 px-4 font-bold text-[#70665F]', col.className || 'whitespace-nowrap')}>
+                <th key={idx} className={cn('py-3.5 px-4 font-bold text-[#70665F] whitespace-nowrap select-none', col.className)}>
                   {col.header}
                 </th>
               ))}
@@ -184,7 +184,7 @@ export function DataTable<T extends Record<string, any>>({
               Array.from({ length: 6 }).map((_, rIdx) => (
                 <tr key={`skel-row-${rIdx}`}>
                   {columns.map((col, cIdx) => (
-                    <td key={`skel-col-${cIdx}`} className="py-4 px-4">
+                    <td key={`skel-col-${cIdx}`} className="py-4 px-4 whitespace-nowrap">
                       <div
                         className="h-3.5 rounded-md animate-shimmer"
                         style={{ width: `${Math.max(30, Math.min(95, 45 + ((rIdx * 23 + cIdx * 37) % 50)))}%` }}
@@ -195,7 +195,7 @@ export function DataTable<T extends Record<string, any>>({
               ))
             ) : paginatedData.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="text-center py-12 text-[#8D827A]">
+                <td colSpan={columns.length} className="text-center py-12 text-[#8D827A] whitespace-normal">
                   <p className="font-semibold text-xs text-[#211B17]">No matching records found.</p>
                   <p className="text-[11px] mt-1 text-[#8D827A]">Try adjusting your search criteria or filters.</p>
                 </td>
@@ -213,7 +213,7 @@ export function DataTable<T extends Record<string, any>>({
                   )}
                 >
                   {columns.map((col, colIdx) => (
-                    <td key={colIdx} className={cn('py-3 px-4 text-[#211B17] font-medium align-middle', col.className || 'whitespace-nowrap')}>
+                    <td key={colIdx} className={cn('py-3 px-4 text-[#211B17] font-medium align-middle whitespace-nowrap', col.className)}>
                       {col.cell ? col.cell(row) : col.accessorKey ? String(row[col.accessorKey] ?? '-') : '-'}
                     </td>
                   ))}

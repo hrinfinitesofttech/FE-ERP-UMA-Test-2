@@ -487,7 +487,7 @@ function BOMMaterialVerificationContent() {
                 <CheckCircle2 className="w-6 h-6 text-emerald-300 shrink-0" />
                 <div>
                   <h4 className="font-black text-sm text-emerald-100">
-                    🎉 All {totalBOMItems} Items 100% In Stock in Store Room!
+                    All {totalBOMItems} Items 100% In Stock in Store Room
                   </h4>
                   <p className="text-xs text-white/90 mt-0.5">
                     Previously shortage items have arrived via GRN. All materials are ready. Proceed to Material Issue to dispatch to production floor.

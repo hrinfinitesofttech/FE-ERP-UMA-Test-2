@@ -30,6 +30,8 @@ import { api } from '../../lib/apiClient';
 import { cn } from '../../lib/utils';
 import { useERP } from '../../context/ERPContext';
 import { ERP_MODULES } from './PermissionMatrixModal';
+import { CustomSelect } from '../ui/CustomSelect';
+import { ERPDatePicker } from '../ui/ERPDatePicker';
 
 interface EmployeeFormModalProps {
   isOpen: boolean;
@@ -449,24 +451,23 @@ export function EmployeeFormModal({
 
               <div>
                 <label className="block text-xs font-semibold text-stone-700 mb-1">Gender</label>
-                <select
+                <CustomSelect
                   value={formData.gender}
-                  onChange={(e) => setFormData({ ...formData, gender: e.target.value as any })}
-                  className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-crm-brand-700 bg-white"
-                >
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                </select>
+                  onChange={(val) => setFormData({ ...formData, gender: val as any })}
+                  options={[
+                    { label: 'Male', value: 'male' },
+                    { label: 'Female', value: 'female' },
+                    { label: 'Other', value: 'other' },
+                  ]}
+                />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-stone-700 mb-1">Date of Birth</label>
-                <input
-                  type="date"
+                <ERPDatePicker
                   value={formData.dob}
-                  onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                  className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-crm-brand-700"
+                  onChange={(val) => setFormData({ ...formData, dob: val })}
+                  placeholder="Select Date of Birth..."
                 />
               </div>
 
@@ -528,20 +529,18 @@ export function EmployeeFormModal({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1">
-                  Assigned Department <span className="text-red-500">*</span>
-                </label>
-                <select
+                <CustomSelect
+                  label="Assigned Department"
+                  required
                   value={formData.departmentId}
-                  onChange={(e) => handleDepartmentChange(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-crm-brand-700 bg-white"
-                >
-                  {departments.map((dept) => (
-                    <option key={dept.id} value={dept.id}>
-                      {dept.code} — {dept.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => handleDepartmentChange(val)}
+                  options={departments.map((dept) => ({
+                    value: dept.id,
+                    label: `${dept.code} — ${dept.name}`,
+                  }))}
+                  searchable
+                  placeholder="Select Department..."
+                />
               </div>
 
               <div>
@@ -556,43 +555,42 @@ export function EmployeeFormModal({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1">Reporting Manager</label>
-                <select
+                <CustomSelect
+                  label="Reporting Manager"
                   value={formData.reportingManagerId}
-                  onChange={(e) => setFormData({ ...formData, reportingManagerId: e.target.value })}
-                  className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-crm-brand-700 bg-white"
-                >
-                  <option value="">No Direct Manager / Top Level</option>
-                  {employees
-                    .filter((emp) => emp.id !== formData.id)
-                    .map((emp) => (
-                      <option key={emp.id} value={emp.id}>
-                        {emp.name || `${emp.firstName} ${emp.lastName}`} ({emp.id} - {emp.departmentName || 'Staff'})
-                      </option>
-                    ))}
-                </select>
+                  onChange={(val) => setFormData({ ...formData, reportingManagerId: val })}
+                  options={[
+                    { value: '', label: 'No Direct Manager / Top Level' },
+                    ...employees
+                      .filter((emp) => emp.id !== formData.id)
+                      .map((emp) => ({
+                        value: emp.id,
+                        label: `${emp.name || `${emp.firstName} ${emp.lastName}`} (${emp.id} - ${emp.departmentName || 'Staff'})`,
+                      })),
+                  ]}
+                  searchable
+                  placeholder="Select Reporting Manager..."
+                />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1">Employment Type</label>
-                <select
+                <CustomSelect
+                  label="Employment Type"
                   value={formData.employmentType}
-                  onChange={(e) => setFormData({ ...formData, employmentType: e.target.value })}
-                  className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-crm-brand-700 bg-white"
-                >
-                  <option value="full_time">Full Time Permanent</option>
-                  <option value="contract">Contractual</option>
-                  <option value="probation">Probationary Period</option>
-                </select>
+                  onChange={(val) => setFormData({ ...formData, employmentType: val })}
+                  options={[
+                    { value: 'full_time', label: 'Full Time Permanent' },
+                    { value: 'contract', label: 'Contractual' },
+                    { value: 'probation', label: 'Probationary Period' },
+                  ]}
+                />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1">Joining Date</label>
-                <input
-                  type="date"
+                <ERPDatePicker
+                  label="Joining Date"
                   value={formData.joiningDate}
-                  onChange={(e) => setFormData({ ...formData, joiningDate: e.target.value })}
-                  className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-crm-brand-700"
+                  onChange={(val) => setFormData({ ...formData, joiningDate: val })}
                 />
               </div>
 
@@ -608,15 +606,15 @@ export function EmployeeFormModal({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1">Account Status</label>
-                <select
+                <CustomSelect
+                  label="Account Status"
                   value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-crm-brand-700 bg-white"
-                >
-                  <option value="active">Active (Full Access)</option>
-                  <option value="inactive">Inactive (Deactivated)</option>
-                </select>
+                  onChange={(val) => setFormData({ ...formData, status: val })}
+                  options={[
+                    { value: 'active', label: 'Active (Full Access)' },
+                    { value: 'inactive', label: 'Inactive (Deactivated)' },
+                  ]}
+                />
               </div>
             </div>
           )}
@@ -732,9 +730,10 @@ export function EmployeeFormModal({
                       selectedDepartment.assignedModules.map((m) => (
                         <span
                           key={m}
-                          className="px-2 py-0.5 bg-blue-50 text-blue-800 border border-blue-200 rounded text-xs font-medium"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-800 border border-blue-200 rounded text-xs font-medium"
                         >
-                          ✓ {m} (Inherited)
+                          <Check className="w-3 h-3 text-blue-600" />
+                          <span>{m} (Inherited)</span>
                         </span>
                       ))
                     ) : (
@@ -790,33 +789,33 @@ export function EmployeeFormModal({
               {/* Role Type & Scope */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-1">Role Type</label>
-                  <select
+                  <CustomSelect
+                    label="Role Type"
                     value={formData.roleType}
-                    onChange={(e) => setFormData({ ...formData, roleType: e.target.value as any })}
-                    className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-crm-brand-700 bg-white"
-                  >
-                    <option value="employee">Department Employee</option>
-                    <option value="department_manager">Department Manager</option>
-                    <option value="admin">Administrator</option>
-                    {isSuperAdmin && <option value="super_admin">Super Admin</option>}
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, roleType: val as any })}
+                    options={[
+                      { value: 'employee', label: 'Department Employee' },
+                      { value: 'department_manager', label: 'Department Manager' },
+                      { value: 'admin', label: 'Administrator' },
+                      ...(isSuperAdmin ? [{ value: 'super_admin', label: 'Super Admin' }] : []),
+                    ]}
+                  />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-1">Data Visibility Scope</label>
-                  <select
+                  <CustomSelect
+                    label="Data Visibility Scope"
                     value={formData.dataScope}
-                    onChange={(e) => setFormData({ ...formData, dataScope: e.target.value as any })}
-                    className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-crm-brand-700 bg-white"
-                  >
-                    <option value="own">Own Records Only (Highest Isolation)</option>
-                    <option value="assigned">Assigned Records (Assigned Tasks & Jobs)</option>
-                    <option value="department">Department Records (All Team Records)</option>
-                    {(isSuperAdmin || currentUser?.dataScope === 'all') && (
-                      <option value="all">All Company Records (Full Visibility)</option>
-                    )}
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, dataScope: val as any })}
+                    options={[
+                      { value: 'own', label: 'Own Records Only (Highest Isolation)' },
+                      { value: 'assigned', label: 'Assigned Records (Assigned Tasks & Jobs)' },
+                      { value: 'department', label: 'Department Records (All Team Records)' },
+                      ...((isSuperAdmin || currentUser?.dataScope === 'all')
+                        ? [{ value: 'all', label: 'All Company Records (Full Visibility)' }]
+                        : []),
+                    ]}
+                  />
                 </div>
               </div>
 

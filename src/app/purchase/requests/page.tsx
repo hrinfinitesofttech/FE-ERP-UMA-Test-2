@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
 import { RequestForQuotation, RFQItem, Supplier } from '../../../types/purchase';
+import { toast } from '../../../context/ToastContext';
 import {
   FileText,
   Plus,
@@ -51,10 +52,8 @@ export default function PurchaseRequestsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   // Success Toast
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 4000);
+    toast.success(msg);
   };
 
   // ---------------------------------------------------------------------------
@@ -243,7 +242,7 @@ export default function PurchaseRequestsPage() {
   // Remove Item Line
   const handleRemoveItem = (id: string) => {
     if (formData.items.length <= 1) {
-      alert('At least one material item is required.');
+      toast.warning('At least one material item is required.');
       return;
     }
     setFormData((prev: any) => ({
@@ -287,12 +286,12 @@ export default function PurchaseRequestsPage() {
   const handleSubmitForm = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.vendorName.trim()) {
-      alert('Please enter Vendor / Supplier Name or select from Supplier Master.');
+      toast.warning('Please enter Vendor / Supplier Name or select from Supplier Master.');
       return;
     }
     const validItems = formData.items.filter((itm: any) => itm.itemName?.trim() || itm.groupTitle?.trim());
     if (validItems.length === 0) {
-      alert('Please enter at least one material description.');
+      toast.warning('Please enter at least one material description.');
       return;
     }
 
@@ -357,10 +356,17 @@ export default function PurchaseRequestsPage() {
 
   // Delete Request
   const handleDeleteRequest = (req: RequestForQuotation) => {
-    if (confirm(`Are you sure you want to delete Purchase Request "${req.rfqNumber}" for ${req.supplierName}?`)) {
-      deleteRFQ(req.id);
-      showToast(`Purchase Request ${req.rfqNumber} deleted.`);
-    }
+    toast.confirm({
+      title: 'Delete Purchase Request',
+      message: `Are you sure you want to delete Purchase Request "${req.rfqNumber}"${req.supplierName ? ` for ${req.supplierName}` : ''}? This action cannot be undone.`,
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel',
+      variant: 'danger',
+      onConfirm: () => {
+        deleteRFQ(req.id);
+        toast.success(`Purchase Request ${req.rfqNumber} deleted.`);
+      },
+    });
   };
 
   // Send WhatsApp Inquiry
@@ -560,13 +566,6 @@ export default function PurchaseRequestsPage() {
 
   return (
     <div className="space-y-4">
-      {/* Toast */}
-      {toastMessage && (
-        <div className="fixed top-5 right-5 z-50 bg-emerald-700 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-xs font-bold animate-in fade-in slide-from-top-2">
-          <CheckCircle2 className="w-4 h-4" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
 
       {/* KPI Cards Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">

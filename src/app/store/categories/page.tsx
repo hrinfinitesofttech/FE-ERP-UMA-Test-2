@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import { ItemCategory } from '../../../types/store';
-import { Layers, Plus, Search, Tag, CheckCircle } from 'lucide-react';
+import { Layers, Plus, Search, Tag, CheckCircle, X } from 'lucide-react';
 
 export default function ItemCategoriesPage() {
   const { itemCategories, addItemCategory } = useERP();
@@ -131,8 +131,12 @@ export default function ItemCategoriesPage() {
                 <Layers className="w-5 h-5 text-crm-brand-500" />
                 Add Item Category
               </h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-[#70665F] hover:text-[#211B17] text-xs">
-                ✕
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] transition"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 

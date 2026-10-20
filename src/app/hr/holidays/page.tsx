@@ -21,6 +21,7 @@ import {
   X,
   LayoutGrid,
   List,
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
   Sun,
@@ -29,6 +30,8 @@ import {
   RefreshCw,
   SlidersHorizontal,
 } from 'lucide-react';
+import { ERPCalendarView, CalendarEventItem } from '../../../components/ui/ERPCalendarView';
+import { ERPDatePicker } from '../../../components/ui/ERPDatePicker';
 
 const DEPARTMENT_OPTIONS = [
   'All Departments',
@@ -56,7 +59,7 @@ export default function HolidayCalendarPage() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [monthFilter, setMonthFilter] = useState('all');
   const [deptFilter, setDeptFilter] = useState('all');
-  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const [viewMode, setViewMode] = useState<'calendar' | 'cards' | 'table'>('calendar');
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -357,6 +360,43 @@ export default function HolidayCalendarPage() {
   const publicCount = (holidays || []).filter((h) => h.holidayType === 'Public Holiday' || h.holidayType === 'Festival').length;
   const optionalCount = (holidays || []).filter((h) => h.isOptional || h.holidayType === 'Optional Holiday').length;
 
+  const holidayCalendarEvents: CalendarEventItem[] = useMemo(() => {
+    return filteredHolidays.map((hol) => {
+      const type = hol.holidayType || 'Public Holiday';
+      const isFestival = type === 'Festival';
+      const isOptional = hol.isOptional;
+      const isCompany = type === 'Company Holiday';
+
+      const badgeColor = isOptional
+        ? 'bg-purple-50 text-purple-800 border-purple-200'
+        : isFestival
+        ? 'bg-amber-50 text-amber-900 border-amber-200'
+        : isCompany
+        ? 'bg-sky-50 text-sky-800 border-sky-200'
+        : 'bg-emerald-50 text-emerald-800 border-emerald-200';
+
+      const dotColor = isOptional
+        ? 'bg-purple-500'
+        : isFestival
+        ? 'bg-amber-500'
+        : isCompany
+        ? 'bg-sky-500'
+        : 'bg-emerald-500';
+
+      return {
+        id: hol.id,
+        title: hol.holidayName || (hol as any).name || 'Holiday',
+        date: hol.holidayDate || hol.date || '',
+        category: type,
+        badgeColor,
+        dotColor,
+        description: hol.description || `${type} • ${(hol.applicableDepartments || []).join(', ')}`,
+        status: hol.status || 'Active',
+        raw: hol,
+      };
+    });
+  }, [filteredHolidays]);
+
   return (
     <div className="p-6 space-y-6 bg-[#FDFBF9] min-h-screen text-[#211B17]">
       {/* Toast Notification */}
@@ -508,6 +548,13 @@ export default function HolidayCalendarPage() {
 
           <div className="flex items-center border border-[#EBE3DB] rounded-lg p-0.5 bg-[#FAF7F2]">
             <button
+              onClick={() => setViewMode('calendar')}
+              className={`p-1.5 rounded-md transition ${viewMode === 'calendar' ? 'bg-white text-amber-700 shadow-xs' : 'text-[#70665F]'}`}
+              title="Interactive Calendar View"
+            >
+              <CalendarDays className="w-4 h-4" />
+            </button>
+            <button
               onClick={() => setViewMode('cards')}
               className={`p-1.5 rounded-md transition ${viewMode === 'cards' ? 'bg-white text-amber-700 shadow-xs' : 'text-[#70665F]'}`}
               title="Card View"
@@ -525,12 +572,34 @@ export default function HolidayCalendarPage() {
         </div>
       </div>
 
-      {/* Holiday Content Grid / Table */}
+      {/* Holiday Content: Calendar / Cards / Table */}
       {isLoading ? (
         <div className="bg-white border border-[#EBE3DB] rounded-2xl p-12 text-center shadow-sm">
           <RefreshCw className="w-8 h-8 text-amber-600 animate-spin mx-auto mb-3" />
           <p className="text-sm font-semibold text-[#544B45]">Loading holidays...</p>
         </div>
+      ) : viewMode === 'calendar' ? (
+        <ERPCalendarView
+          events={holidayCalendarEvents}
+          title="Company Holiday & Festival Calendar"
+          subtitle="Interactive monthly grid with declared factory holidays, national festivals, and departmental leaves."
+          onAddEvent={(dateStr) => {
+            handleOpenAddModal();
+            if (dateStr) {
+              setFormData((prev) => ({ ...prev, holidayDate: dateStr }));
+            }
+          }}
+          onSelectEvent={(ev) => {
+            if (ev.raw) handleOpenEditModal(ev.raw);
+          }}
+          addEventLabel="Add Holiday"
+          categories={[
+            { key: 'Public Holiday', label: 'Public Holiday', color: 'bg-emerald-500' },
+            { key: 'Festival', label: 'Festival', color: 'bg-amber-500' },
+            { key: 'Company Holiday', label: 'Company Holiday', color: 'bg-sky-500' },
+            { key: 'Optional Holiday', label: 'Optional', color: 'bg-purple-500' },
+          ]}
+        />
       ) : filteredHolidays.length === 0 ? (
         <div className="bg-white border border-[#EBE3DB] rounded-2xl p-12 text-center space-y-3 shadow-sm">
           <Calendar className="w-12 h-12 text-[#A89F91] mx-auto" />
@@ -855,17 +924,14 @@ export default function HolidayCalendarPage() {
                   <label className="block text-[#544B45] font-semibold mb-1">
                     Holiday Date <span className="text-rose-500">*</span>
                   </label>
-                  <input
-                    ref={dateInputRef}
-                    type="date"
+                  <ERPDatePicker
                     value={formData.holidayDate}
-                    onBlur={() => handleBlur('holidayDate')}
-                    onChange={(e) => handleChange('holidayDate', e.target.value)}
-                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs font-mono text-[#211B17] focus:outline-none transition ${
-                      formErrors.holidayDate
-                        ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                        : 'border-[#EBE3DB] focus:border-amber-600'
-                    }`}
+                    onChange={(val) => {
+                      handleChange('holidayDate', val);
+                      handleBlur('holidayDate');
+                    }}
+                    placeholder="Select holiday date..."
+                    className="w-full"
                   />
                   {formErrors.holidayDate && (
                     <p className="text-rose-600 text-[11px] mt-1 flex items-center gap-1 font-medium animate-in fade-in duration-150">

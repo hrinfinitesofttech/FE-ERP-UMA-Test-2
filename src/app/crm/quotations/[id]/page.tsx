@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useERP } from '../../../../context/ERPContext';
+import { toast } from '@/context/ToastContext';
 import { api } from '../../../../lib/apiClient';
 import { StatusBadge } from '../../../../components/workflow/StatusBadge';
 import { formatCurrency, formatDate } from '../../../../lib/utils';
@@ -13,6 +14,8 @@ import {
   FileCheck2,
   CheckCircle2,
   XCircle,
+  AlertCircle,
+  Info,
   Plus,
   Send,
   Building,
@@ -94,7 +97,7 @@ export default function QuotationDetailPage() {
   const handleSendEmailQuotation = async () => {
     const recipient = String(quotation.contactEmail || '').trim();
     if (!recipient) {
-      alert(`No customer email address is linked to quotation ${quotation.quotationNumber}. Please ensure a valid customer email exists.`);
+      toast.warning('Missing Email', `No customer email address is linked to quotation ${quotation.quotationNumber}. Please ensure a valid customer email exists.`);
       return;
     }
 
@@ -203,9 +206,15 @@ export default function QuotationDetailPage() {
               : 'bg-amber-50 border-amber-200 text-amber-900'
           }`}
         >
-          <span className="text-sm font-black">
-            {actionFeedback.type === 'success' ? '✓' : actionFeedback.type === 'error' ? '⚠️' : 'ℹ️'}
-          </span>
+          <div className="shrink-0 mt-0.5">
+            {actionFeedback.type === 'success' ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            ) : actionFeedback.type === 'error' ? (
+              <XCircle className="w-4 h-4 text-rose-600" />
+            ) : (
+              <Info className="w-4 h-4 text-amber-600" />
+            )}
+          </div>
           <div className="flex-1 text-xs leading-relaxed">
             {actionFeedback.message}
           </div>

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { BackupRecord } from '../../../types/testing';
+import { toast } from '../../../context/ToastContext';
 
 export default function BackupRestorePage() {
   const { backupRecords, createBackupRecord, restoreBackupRecord } = useERP();
@@ -36,14 +37,22 @@ export default function BackupRestorePage() {
   };
 
   const handleRestore = (id: string, backupNo: string) => {
-    if (confirm(`Are you sure you want to restore ERP database to snapshot ${backupNo}? All current states will be aligned.`)) {
-      setRestoringId(id);
-      setTimeout(() => {
-        restoreBackupRecord(id);
-        setRestoringId(null);
-        showToast(`ERP System successfully restored to snapshot ${backupNo}!`);
-      }, 1500);
-    }
+    toast.confirm({
+      title: 'Restore Database Snapshot',
+      message: `Are you sure you want to restore ERP database to snapshot ${backupNo}? All current states will be aligned.`,
+      confirmText: 'Yes, Restore',
+      cancelText: 'Cancel',
+      variant: 'warning',
+      onConfirm: () => {
+        setRestoringId(id);
+        setTimeout(() => {
+          restoreBackupRecord(id);
+          setRestoringId(null);
+          toast.success(`ERP System successfully restored to snapshot ${backupNo}!`);
+          showToast(`ERP System successfully restored to snapshot ${backupNo}!`);
+        }, 1500);
+      },
+    });
   };
 
   const showToast = (msg: string) => {
@@ -181,7 +190,7 @@ export default function BackupRestorePage() {
                   </td>
                   <td className="py-3 px-4 text-right space-x-2">
                     <button
-                      onClick={() => alert(`Downloading snapshot ${bk.fileName} to local system...`)}
+                      onClick={() => toast.info(`Downloading snapshot ${bk.fileName} to local system...`)}
                       className="px-2.5 py-1 bg-[#FAF7F2] hover:bg-[#FAF7F2] text-[#544B45] rounded-lg text-[11px] font-semibold transition border border-[#EBE3DB] inline-flex items-center gap-1"
                     >
                       <Download className="w-3 h-3" />

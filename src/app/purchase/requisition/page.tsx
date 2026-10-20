@@ -12,6 +12,7 @@ import {
 } from '../../../components/ui/ERPFormLayout';
 import { PurchaseRequisition, PRItem } from '../../../types/purchase';
 import { formatDate } from '../../../lib/utils';
+import { toast } from '../../../context/ToastContext';
 import {
   Eye,
   CheckCircle2,
@@ -195,7 +196,7 @@ export default function PurchaseRequisitionPage() {
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (itemsList.length === 0) {
-      alert('Please add at least one line item.');
+      toast.warning('Please add at least one line item.');
       return;
     }
 

@@ -523,3 +523,195 @@ html.dark select option,
 .animate-page-enter {
   animation: pageEnter 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* ========================================================================= */
+/* GLOBAL ERP TABLE NO-WRAP & RESPONSIVE HORIZONTAL SCROLL ENGINE            */
+/* ========================================================================= */
+
+/* Ensure all table headers and data cells strictly keep single-line text */
+table th,
+table td,
+table th > *,
+table td > * {
+  white-space: nowrap;
+}
+
+table th,
+table td {
+  white-space: nowrap !important;
+}
+
+/* Ensure badges, chips, status pills, tags, buttons, and text-background containers never wrap */
+.rounded-full,
+.badge,
+.badge-pill,
+.status-pill,
+.status-badge,
+[data-badge],
+span[class*="bg-"],
+span[class*="rounded-full"],
+div[class*="rounded-full"],
+div[class*="bg-"][class*="px-"],
+table .rounded-full,
+table .rounded-lg,
+table .rounded-md,
+table .rounded,
+table [class*="bg-"],
+table span,
+table button,
+table a,
+table .badge {
+  white-space: nowrap !important;
+  flex-shrink: 0;
+}
+
+/* Allow explicit wrapping only if specifically designated or when printing */
+table .allow-wrap,
+table .whitespace-normal,
+table th.allow-wrap,
+table td.allow-wrap,
+table th.whitespace-normal,
+table td.whitespace-normal,
+table .whitespace-normal *,
+table .allow-wrap * {
+  white-space: normal !important;
+}
+
+/* Guarantee all table wrappers support smooth horizontal scrolling */
+.overflow-x-auto,
+.table-responsive {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+/* Ensure tables fill at least 100% of their container so they don't look artificially collapsed */
+table {
+  min-width: 100%;
+}
+
+@media print {
+  table th,
+  table td,
+  table span,
+  table div {
+    white-space: normal !important;
+  }
+}
+
+/* ========================================================================= */
+/* GLOBAL ERP MODERN CALENDAR & DATE PICKER DESIGN SYSTEM                   */
+/* ========================================================================= */
+
+/* Native Date Input Global Polish */
+input[type="date"] {
+  font-family: var(--crm-font-mono, monospace), sans-serif;
+  letter-spacing: -0.01em;
+  accent-color: var(--crm-brand-700, #75401f);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  filter: invert(0.35) sepia(0.3) saturate(2) hue-rotate(350deg);
+  transition: all 0.15s ease-in-out;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  background-color: rgba(117, 64, 31, 0.1);
+  filter: invert(0.2) sepia(0.5) saturate(3) hue-rotate(350deg);
+  transform: scale(1.1);
+}
+
+/* Custom Calendar Animations */
+@keyframes calendarPopoverEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.calendar-popover-enter {
+  animation: calendarPopoverEnter 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Calendar Event Chips */
+.calendar-event-pill {
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.calendar-event-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* ========================================================================= */
+/* GLOBAL ERP MODERN SELECT & DROPDOWN DESIGN SYSTEM                        */
+/* ========================================================================= */
+
+select:not([multiple]) {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2375401F' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  background-size: 14px;
+  padding-right: 2.25rem !important;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  cursor: pointer;
+}
+
+select:not([multiple]):hover {
+  border-color: var(--crm-brand-400, #b67f48);
+}
+
+select:not([multiple]):focus {
+  outline: none;
+  border-color: var(--crm-brand-700, #75401f) !important;
+  box-shadow: 0 0 0 3px rgba(117, 64, 31, 0.12) !important;
+}
+
+select option {
+  background-color: #ffffff;
+  color: #211b17;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+select option:checked {
+  background-color: var(--crm-brand-50, #f8f0e8);
+  color: var(--crm-brand-700, #75401f);
+  font-weight: 600;
+}
+
+select:disabled {
+  background-color: #f5efe7 !important;
+  color: #8d827a !important;
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+/* Dropdown popover entrance animation */
+@keyframes dropdownPopoverEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.dropdown-popover-enter {
+  animation: dropdownPopoverEnter 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+

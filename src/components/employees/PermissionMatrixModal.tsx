@@ -231,7 +231,7 @@ export function PermissionMatrixModal({
     try {
       const res = await updateEmployeePermissions(employee.id, payload);
       if (res.success) {
-        setSaveSuccess(`✓ Permissions and RBAC policies successfully updated for ${employee.firstName} ${employee.lastName}.`);
+        setSaveSuccess(`Permissions and RBAC policies successfully updated for ${employee.firstName} ${employee.lastName}.`);
         await fetchEffectivePermissions(employee.id);
         if (onSaved) {
           onSaved({

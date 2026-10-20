@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { PurchaseReturn, PurchaseReturnItem } from '../../../types/purchase';
 import { ERPListPageLayout } from '../../../components/ui/ERPListPageLayout';
+import { toast } from '../../../context/ToastContext';
 
 export default function PurchaseReturnsPage() {
   const { purchaseReturns, purchaseOrders, suppliers, addPurchaseReturn, currentUser } = useERP();
@@ -43,7 +44,7 @@ export default function PurchaseReturnsPage() {
   const handleCreateReturnSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPoId) {
-      alert('Please select a Purchase Order.');
+      toast.warning('Please select a Purchase Order.');
       return;
     }
     const poObj = purchaseOrders.find(p => p.id === selectedPoId);
@@ -83,6 +84,7 @@ export default function PurchaseReturnsPage() {
     };
 
     addPurchaseReturn(newReturn);
+    toast.success(`Purchase Return ${newReturn.returnNumber} created successfully!`);
     setShowAddModal(false);
   };
 
@@ -92,7 +94,7 @@ export default function PurchaseReturnsPage() {
       header: 'RETURN NOTE NO',
       isCodeLink: true,
       onCodeClick: (r: PurchaseReturn) =>
-        alert(`Purchase Return: ${r.returnNumber}\nSupplier: ${r.supplierName}\nPO Ref: ${r.poNumber}\nDebit Note: ${r.debitNoteNumber}\nReason: ${r.reasonForReturn || 'N/A'}`),
+        toast.info(`Purchase Return: ${r.returnNumber}\nSupplier: ${r.supplierName}\nPO Ref: ${r.poNumber}\nDebit Note: ${r.debitNoteNumber}\nReason: ${r.reasonForReturn || 'N/A'}`),
       cell: (r: PurchaseReturn) => (
         <span className="font-semibold text-[#7C3AED] hover:underline cursor-pointer">{r.returnNumber}</span>
       ),

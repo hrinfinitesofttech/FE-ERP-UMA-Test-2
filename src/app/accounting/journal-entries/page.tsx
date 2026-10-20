@@ -13,6 +13,7 @@ import {
   X,
   MinusCircle,
 } from 'lucide-react';
+import { toast } from '../../../context/ToastContext';
 
 export default function JournalEntriesPage() {
   const { journalEntries, addJournalEntry, deleteJournalEntry, chartOfAccounts } = useERP();
@@ -61,7 +62,7 @@ export default function JournalEntriesPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isBalanced) {
-      alert('Cannot post Journal Voucher! Total Debits must equal Total Credits.');
+      toast.warning('Cannot post Journal Voucher! Total Debits must equal Total Credits.');
       return;
     }
 
@@ -97,12 +98,21 @@ export default function JournalEntriesPage() {
     });
 
     setIsModalOpen(false);
+    toast.success('Journal Voucher posted successfully!');
   };
 
   const handleDelete = (id: string, jvNumber: string) => {
-    if (confirm(`Are you sure you want to delete Journal Voucher "${jvNumber}"?`)) {
-      deleteJournalEntry(id);
-    }
+    toast.confirm({
+      title: 'Delete Journal Voucher',
+      message: `Are you sure you want to delete Journal Voucher "${jvNumber}"?`,
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel',
+      variant: 'danger',
+      onConfirm: () => {
+        deleteJournalEntry(id);
+        toast.success(`Journal Voucher "${jvNumber}" deleted.`);
+      },
+    });
   };
 
   return (

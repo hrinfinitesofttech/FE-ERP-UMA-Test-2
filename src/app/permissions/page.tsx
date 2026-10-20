@@ -24,6 +24,7 @@ import {
 import { Employee } from '../../types/crm';
 import { cn } from '../../lib/utils';
 import { PermissionMatrixModal } from '../../components/employees/PermissionMatrixModal';
+import { CustomSelect } from '../../components/ui/CustomSelect';
 
 const ALL_ERP_MODULES = [
   { id: 'crm', label: 'CRM & Sales', desc: 'Leads, Opportunities, Quotations, Sales Orders' },
@@ -461,19 +462,17 @@ export default function PermissionsPage() {
                   {/* Hierarchy & Scope Controls */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block font-bold text-[#3E2723] mb-1">
-                        1. Employee Hierarchy Level:
-                      </label>
-                      <select
+                      <CustomSelect
+                        label="1. Employee Hierarchy Level"
                         value={empRoleType}
-                        onChange={(e) => setEmpRoleType(e.target.value)}
-                        className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] font-bold focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
-                      >
-                        <option value="super_admin">Tier 1: Super Admin (Owner - Full ERP Control)</option>
-                        <option value="admin">Tier 2: Admin (Operations & Department Overseer)</option>
-                        <option value="department_manager">Tier 3: Department Manager (Assigns Tasks, Approves Leaves)</option>
-                        <option value="employee">Tier 4: Department Employee (Self-Service & Workspace)</option>
-                      </select>
+                        onChange={(val) => setEmpRoleType(val)}
+                        options={[
+                          { value: 'super_admin', label: 'Tier 1: Super Admin (Owner - Full ERP Control)' },
+                          { value: 'admin', label: 'Tier 2: Admin (Operations & Department Overseer)' },
+                          { value: 'department_manager', label: 'Tier 3: Department Manager (Assigns Tasks, Approves Leaves)' },
+                          { value: 'employee', label: 'Tier 4: Department Employee (Self-Service & Workspace)' },
+                        ]}
+                      />
                       <p className="text-[10px] text-[#8C7A6F] mt-1">
                         {empRoleType === 'super_admin' && 'Has unrestricted access to all modules, financial data, and system configurations.'}
                         {empRoleType === 'admin' && 'Can manage users, oversee departments, and access designated operational modules.'}
@@ -483,19 +482,17 @@ export default function PermissionsPage() {
                     </div>
 
                     <div>
-                      <label className="block font-bold text-[#3E2723] mb-1">
-                        2. Data Visibility Scope:
-                      </label>
-                      <select
+                      <CustomSelect
+                        label="2. Data Visibility Scope"
                         value={empDataScope}
-                        onChange={(e) => setEmpDataScope(e.target.value)}
-                        className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] font-bold focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
-                      >
-                        <option value="own">Self Only (Personal Profile, Leaves, and Punches only)</option>
-                        <option value="assigned">Assigned Records (Only Tasks & Orders assigned to them)</option>
-                        <option value="department">Department Scope (All records within their department)</option>
-                        <option value="all">Enterprise All (Full company-wide data visibility)</option>
-                      </select>
+                        onChange={(val) => setEmpDataScope(val)}
+                        options={[
+                          { value: 'own', label: 'Self Only (Personal Profile, Leaves, and Punches only)' },
+                          { value: 'assigned', label: 'Assigned Records (Only Tasks & Orders assigned to them)' },
+                          { value: 'department', label: 'Department Scope (All records within their department)' },
+                          { value: 'all', label: 'Enterprise All (Full company-wide data visibility)' },
+                        ]}
+                      />
                       <p className="text-[10px] text-[#8C7A6F] mt-1">
                         Restricts record visibility in listings, reports, and search queries.
                       </p>
@@ -731,17 +728,15 @@ export default function PermissionsPage() {
             </div>
 
             <div className="flex items-center gap-3 w-full sm:w-auto">
-              <select
+              <CustomSelect
                 value={selectedRoleId}
-                onChange={(e) => setSelectedRoleId(e.target.value)}
-                className="px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] font-bold font-mono focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
-              >
-                {roles.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    ROLE: {r.name?.toUpperCase()}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setSelectedRoleId(val)}
+                className="w-64"
+                options={roles.map((r) => ({
+                  value: r.id,
+                  label: `ROLE: ${r.name?.toUpperCase()}`,
+                }))}
+              />
 
               <button
                 onClick={handleSaveRole}

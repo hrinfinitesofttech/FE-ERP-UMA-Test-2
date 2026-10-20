@@ -11,6 +11,7 @@ import {
   ProductionCompletion,
 } from '../../../types/production';
 import { formatDate } from '../../../lib/utils';
+import { toast } from '@/context/ToastContext';
 import {
   Truck,
   Plus,
@@ -487,10 +488,17 @@ export default function DispatchPage() {
 
   // Delete Challan
   const handleDeleteChallan = (id: string, chNo: string) => {
-    if (confirm(`Are you sure you want to delete Delivery Challan #${chNo}?`)) {
-      setChallans((prev) => prev.filter((c) => c.id !== id));
-      showToast(`Delivery Challan #${chNo} deleted`);
-    }
+    toast.confirm({
+      title: 'Delete Delivery Challan',
+      message: `Are you sure you want to delete Delivery Challan #${chNo}?`,
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel',
+      variant: 'danger',
+      onConfirm: () => {
+        setChallans((prev) => prev.filter((c) => c.id !== id));
+        toast.success(`Delivery Challan #${chNo} deleted`);
+      },
+    });
   };
 
   // Quick Status Advance

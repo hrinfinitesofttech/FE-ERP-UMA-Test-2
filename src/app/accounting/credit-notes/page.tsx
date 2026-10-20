@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import { CreditCard, Plus, Search, FileText, Edit2, Trash2, X, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { CreditNote } from '../../../types/accounting';
+import { toast } from '../../../context/ToastContext';
 
 export default function CreditNotesPage() {
   const { creditNotes, addCreditNote, updateCreditNote, deleteCreditNote, customers, salesInvoices } = useERP();
@@ -90,12 +91,13 @@ export default function CreditNotesPage() {
     const total = numTaxable + numTax;
 
     if (total <= 0) {
-      alert('Please enter a valid credit amount greater than 0.');
+      toast.warning('Invalid Amount', 'Please enter a valid credit amount greater than 0.');
       return;
     }
 
     if (selectedInvoice && total > maxAllowableCredit) {
-      alert(
+      toast.warning(
+        'Credit Limit Exceeded',
         `Cannot issue Credit Note! Total amount (₹${total.toLocaleString()}) exceeds the maximum allowable credit balance of ₹${maxAllowableCredit.toLocaleString()} on Invoice ${invoiceNumber}.`
       );
       return;
@@ -114,6 +116,7 @@ export default function CreditNotesPage() {
       createdBy: 'Accounts Team',
     });
 
+    toast.success('Credit Note Issued', `Credit Note issued for ₹${total.toLocaleString()}`);
     setIsModalOpen(false);
     setTaxableAmount('');
     setTaxAmount('');
@@ -132,13 +135,22 @@ export default function CreditNotesPage() {
       taxAmount: numTax,
       totalAmount: total,
     });
+    toast.success('Credit Note Updated', `Credit Note ${editingCreditNote.creditNoteNumber} updated.`);
     setEditingCreditNote(null);
   };
 
   const handleDelete = (id: string, cnNumber: string) => {
-    if (confirm(`Are you sure you want to delete Credit Note "${cnNumber}"?`)) {
-      deleteCreditNote(id);
-    }
+    toast.confirm({
+      title: 'Delete Credit Note',
+      message: `Are you sure you want to delete Credit Note "${cnNumber}"?`,
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel',
+      variant: 'danger',
+      onConfirm: () => {
+        deleteCreditNote(id);
+        toast.success(`Credit Note "${cnNumber}" deleted.`);
+      },
+    });
   };
 
   const filtered = creditNotes.filter(

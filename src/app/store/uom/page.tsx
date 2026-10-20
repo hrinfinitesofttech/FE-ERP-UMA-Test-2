@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useERP } from '../../../context/ERPContext';
-import { Compass, Plus, Search, Calculator, CheckCircle } from 'lucide-react';
+import { Scale, Plus, Search, Calculator, CheckCircle, X } from 'lucide-react';
 
 export default function UOMPage() {
   const { uoms, addUOM } = useERP();
@@ -173,11 +173,15 @@ export default function UOMPage() {
           <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
               <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
-                <Compass className="w-5 h-5 text-amber-400" />
+                <Scale className="w-5 h-5 text-amber-600" />
                 Add Unit of Measurement
               </h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-[#70665F] hover:text-[#211B17] text-xs">
-                ✕
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] transition"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 

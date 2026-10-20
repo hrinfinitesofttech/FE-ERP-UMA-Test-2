@@ -7,6 +7,7 @@ import { useERP } from '../../../context/ERPContext';
 import { GoodsReceiptNote, GRNItem, GRNStatus } from '../../../types/store';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
 import { formatCurrency, formatDate } from '../../../lib/utils';
+import { toast } from '../../../context/ToastContext';
 import {
   PackageCheck,
   Plus,
@@ -295,7 +296,7 @@ function GoodsReceiptContent() {
 
   const removeItemLine = (idx: number) => {
     if (inwardItems.length <= 1) {
-      alert('At least one material item line is required in the Material Receipt Note.');
+      toast.warning('At least one material item line is required in the Material Receipt Note.');
       return;
     }
     setInwardItems((prev) => prev.filter((_, i) => i !== idx));
@@ -310,7 +311,7 @@ function GoodsReceiptContent() {
     if (isSubmitting) return;
 
     if (inwardItems.length === 0) {
-      alert('Please add at least one item line to inward.');
+      toast.warning('Please add at least one item line to inward.');
       return;
     }
 
@@ -399,13 +400,14 @@ function GoodsReceiptContent() {
       });
 
       setIsModalOpen(false);
+      toast.success(`GRN ${finalGrnNumber} created successfully! Stock register updated.`);
       setSuccessMessage(`GRN ${finalGrnNumber} created successfully! Stock register updated.`);
       if (directInward) {
         setStockAddedBanner(true);
       }
     } catch (err: any) {
       console.error(err);
-      alert(err?.message || 'Error creating GRN');
+      toast.error(err?.message || 'Error creating GRN');
     } finally {
       setIsSubmitting(false);
     }

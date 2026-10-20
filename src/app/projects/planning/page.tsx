@@ -8,6 +8,7 @@ import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPage
 import { StatusBadge } from '../../../components/workflow/StatusBadge';
 import { ProjectPlanningRecord, PlannedTaskItem, ProjectJobMaster, MasterTask } from '../../../types/crm';
 import { formatDate } from '../../../lib/utils';
+import { ERPDatePicker } from '../../../components/ui/ERPDatePicker';
 import {
   Workflow,
   Plus,
@@ -81,7 +82,7 @@ export default function ProjectPlanningPage() {
   const handleDispatchPlan = (planId: string, projNo: string) => {
     const res = dispatchProjectPlanningToDepartments(planId);
     if (res.success) {
-      showToast(`🚀 Plan ${projNo} dispatched to ${res.dispatchedDepartments.join(', ')}! Department pages & notifications updated.`);
+      showToast(`Plan ${projNo} dispatched to ${res.dispatchedDepartments.join(', ')}! Department pages & notifications updated.`);
     }
   };
 
@@ -815,7 +816,7 @@ export default function ProjectPlanningPage() {
                         >
                           <option value="">-- Choose Master Task --</option>
                           {Array.from(new Set(masterTasks.map((m) => m.department || 'General'))).map((dept) => (
-                            <optgroup key={dept} label={`📁 ${dept} Department`}>
+                            <optgroup key={dept} label={`${dept} Department`}>
                               {masterTasks
                                 .filter((m) => (m.department || 'General') === dept)
                                 .map((mt) => (
@@ -888,7 +889,7 @@ export default function ProjectPlanningPage() {
                               const isAssigned = task.assignedPersons?.includes(name);
                               return (
                                 <option key={emp.id} value={name} disabled={isAssigned}>
-                                  {isAssigned ? `✓ ${name}` : name} ({(emp as any).department || 'Staff'})
+                                  {isAssigned ? `[Assigned] ${name}` : name} ({(emp as any).department || 'Staff'})
                                 </option>
                               );
                             })}
@@ -898,21 +899,21 @@ export default function ProjectPlanningPage() {
 
                       {/* Start Date */}
                       <td className="py-2 px-3">
-                        <input
-                          type="date"
+                        <ERPDatePicker
                           value={task.startDate}
-                          onChange={(e) => handleUpdateTaskField(task.id, 'startDate', e.target.value)}
-                          className="w-full px-2 py-1 bg-white border border-[#EBE3DB] rounded-lg font-mono text-xs text-[#211B17]"
+                          onChange={(val) => handleUpdateTaskField(task.id, 'startDate', val)}
+                          size="sm"
+                          className="min-w-[130px]"
                         />
                       </td>
 
                       {/* End Date */}
                       <td className="py-2 px-3">
-                        <input
-                          type="date"
+                        <ERPDatePicker
                           value={task.endDate}
-                          onChange={(e) => handleUpdateTaskField(task.id, 'endDate', e.target.value)}
-                          className="w-full px-2 py-1 bg-white border border-[#EBE3DB] rounded-lg font-mono text-xs text-[#211B17]"
+                          onChange={(val) => handleUpdateTaskField(task.id, 'endDate', val)}
+                          size="sm"
+                          className="min-w-[130px]"
                         />
                       </td>
 

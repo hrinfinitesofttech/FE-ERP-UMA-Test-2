@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
 import { formatCurrency, formatDate } from '../../../lib/utils';
+import { toast } from '../../../context/ToastContext';
 
 export interface IssueLineItem {
   lineId: string;
@@ -448,7 +449,7 @@ function MaterialIssueContent() {
 
     const validLines = issueLines.filter((l) => Number(l.issueQty) > 0);
     if (validLines.length === 0) {
-      alert('Please enter an issue quantity greater than 0 for at least one item.');
+      toast.warning('Please enter an issue quantity greater than 0 for at least one item.');
       return;
     }
 
@@ -487,6 +488,7 @@ function MaterialIssueContent() {
         })),
       });
 
+      toast.success(`Material issue slip successfully created & stock deducted for ${validLines.length} item(s) on Job ${selectedJob?.jobNumber || jobId}!`);
       setSuccessMessage(`Material issue slip successfully created & stock deducted for ${validLines.length} item(s) on Job ${selectedJob?.jobNumber || jobId}!`);
       setHasDismissedParam(true);
       setIsModalOpen(false);
@@ -497,7 +499,7 @@ function MaterialIssueContent() {
       }, 6000);
     } catch (err: any) {
       console.error('Error creating material issue:', err);
-      alert(`Error creating material issue: ${err.message || 'Please check input data'}`);
+      toast.error(`Error creating material issue: ${err.message || 'Please check input data'}`);
     } finally {
       setIsSubmitting(false);
     }

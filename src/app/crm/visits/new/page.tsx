@@ -20,6 +20,7 @@ import {
   CalendarPlus,
   Briefcase,
   Layers,
+  X,
 } from 'lucide-react';
 
 function VisitFormContent() {
@@ -687,9 +688,10 @@ function VisitFormContent() {
                           setNextFollowUpDate('');
                           setNextFollowUpTime('');
                         }}
-                        className="text-[11px] font-bold text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 cursor-pointer"
+                        className="text-[11px] font-bold text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 cursor-pointer flex items-center gap-1"
                       >
-                        ✕ Cancel
+                        <X className="w-3 h-3" />
+                        <span>Cancel</span>
                       </button>
                     </div>
 

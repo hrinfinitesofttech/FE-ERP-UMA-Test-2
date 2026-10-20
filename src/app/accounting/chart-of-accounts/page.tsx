@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Download,
+  X,
 } from 'lucide-react';
 
 export default function ChartOfAccountsPage() {
@@ -185,8 +186,12 @@ export default function ChartOfAccountsPage() {
           <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
               <h3 className="text-base font-bold text-[#211B17]">Create New Ledger Account</h3>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-[#70665F] hover:text-[#211B17]">
-                ✕
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(false)}
+                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] transition"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 

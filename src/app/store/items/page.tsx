@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
 import { ItemMaster } from '../../../types/store';
+import { toast } from '../../../context/ToastContext';
 import {
   CheckCircle2,
   Eye,
@@ -972,6 +973,7 @@ export default function ItemMasterListPage() {
       } as any);
     }
 
+    toast.success('Inward details saved to database successfully!');
     setInwardSuccessToast('Inward details saved to database successfully!');
     setIsEditingInward(false);
     setTimeout(() => setInwardSuccessToast(''), 4000);
@@ -985,11 +987,19 @@ export default function ItemMasterListPage() {
   };
 
   const handleDelete = (item: ItemMaster) => {
-    if (confirm(`Are you sure you want to delete item "${item.itemName}" (${item.itemCode})? This action cannot be undone.`)) {
-      if (deleteItemMaster) {
-        deleteItemMaster(item.id);
-      }
-    }
+    toast.confirm({
+      title: 'Delete Item Master',
+      message: `Are you sure you want to delete item "${item.itemName}" (${item.itemCode})? This action cannot be undone.`,
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel',
+      variant: 'danger',
+      onConfirm: () => {
+        if (deleteItemMaster) {
+          deleteItemMaster(item.id);
+        }
+        toast.success(`Item "${item.itemName}" deleted successfully.`);
+      },
+    });
   };
 
   // Helper to extract stock/quantity

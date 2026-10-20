@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useERP } from '../../../context/ERPContext';
-import { RotateCcw, Plus, Search, Landmark, Coins, ArrowRightLeft, Trash2, CheckCircle2, AlertCircle, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { RotateCcw, Plus, Search, Landmark, Coins, ArrowRightLeft, Trash2, CheckCircle2, AlertCircle, ArrowUpRight, ArrowDownLeft, X } from 'lucide-react';
+import { toast } from '../../../context/ToastContext';
 
 export default function ContraEntriesPage() {
   const { contraEntries, addContraEntry, deleteContraEntry, bankAccounts, chartOfAccounts } = useERP();
@@ -87,11 +88,11 @@ export default function ContraEntriesPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!amount || Number(amount) <= 0) {
-      alert('Please enter a valid transfer amount.');
+      toast.warning('Invalid Amount', 'Please enter a valid transfer amount.');
       return;
     }
     if (fromAccountId === toAccountId) {
-      alert('Source Account and Destination Account cannot be the same.');
+      toast.warning('Account Conflict', 'Source Account and Destination Account cannot be the same.');
       return;
     }
 
@@ -114,13 +115,22 @@ export default function ContraEntriesPage() {
       createdBy: 'Rajesh Patel (Accounts)',
     });
 
+    toast.success('Contra Voucher Created', `Transfer of ₹${Number(amount).toLocaleString()} posted.`);
     setIsModalOpen(false);
   };
 
   const handleDelete = (id: string, no: string) => {
-    if (confirm(`Are you sure you want to delete Contra Voucher ${no}?`)) {
-      deleteContraEntry(id);
-    }
+    toast.confirm({
+      title: 'Delete Contra Voucher',
+      message: `Are you sure you want to delete Contra Voucher ${no}?`,
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel',
+      variant: 'danger',
+      onConfirm: () => {
+        deleteContraEntry(id);
+        toast.success(`Contra Voucher ${no} deleted.`);
+      },
+    });
   };
 
   return (
@@ -271,9 +281,9 @@ export default function ContraEntriesPage() {
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-[#70665F] hover:text-[#211B17] font-bold text-base"
+                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] transition"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

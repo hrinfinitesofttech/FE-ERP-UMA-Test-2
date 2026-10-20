@@ -7,6 +7,7 @@ import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPage
 import { Customer } from '../../../types/crm';
 import { formatCurrency } from '../../../lib/utils';
 import { CheckCircle2, Building2 } from 'lucide-react';
+import { toast } from '../../../context/ToastContext';
 
 function CustomerMasterListContent() {
   const router = useRouter();
@@ -24,11 +25,19 @@ function CustomerMasterListContent() {
   };
 
   const handleDelete = (c: Customer) => {
-    if (confirm(`Are you sure you want to delete customer "${c.companyName}"? This action cannot be undone.`)) {
-      if (deleteCustomer) {
-        deleteCustomer(c.id);
-      }
-    }
+    toast.confirm({
+      title: 'Delete Customer',
+      message: `Are you sure you want to delete customer "${c.companyName}"? This action cannot be undone.`,
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel',
+      variant: 'danger',
+      onConfirm: () => {
+        if (deleteCustomer) {
+          deleteCustomer(c.id);
+        }
+        toast.success(`Customer "${c.companyName}" deleted successfully.`);
+      },
+    });
   };
 
   const columns: ERPColumn<Customer>[] = [

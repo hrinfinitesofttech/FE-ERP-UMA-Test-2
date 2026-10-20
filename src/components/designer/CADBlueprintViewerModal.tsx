@@ -192,35 +192,38 @@ export default function CADBlueprintViewerModal({
               <button
                 type="button"
                 onClick={() => setActiveTab('blueprint')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
                   activeTab === 'blueprint'
                     ? 'bg-[#3E2723] text-white shadow-xs'
                     : 'text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]'
                 }`}
               >
-                📐 CAD Blueprint
+                <Compass className="w-3.5 h-3.5" />
+                <span>CAD Blueprint</span>
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('nozzles')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
                   activeTab === 'nozzles'
                     ? 'bg-[#3E2723] text-white shadow-xs'
                     : 'text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]'
                 }`}
               >
-                📋 Nozzle Schedule
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                <span>Nozzle Schedule</span>
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('specs')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
                   activeTab === 'specs'
                     ? 'bg-[#3E2723] text-white shadow-xs'
                     : 'text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]'
                 }`}
               >
-                ⚙️ Design Specs
+                <Sliders className="w-3.5 h-3.5" />
+                <span>Design Specs</span>
               </button>
             </div>
 

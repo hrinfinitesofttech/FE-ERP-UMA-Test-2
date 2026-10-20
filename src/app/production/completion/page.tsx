@@ -739,9 +739,9 @@ function ProductionCompletionContent() {
                     onChange={(e) => setFormStatus(e.target.value as any)}
                     className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   >
-                    <option value="Passed">🟢 Approved &amp; Cleared for Dispatch</option>
-                    <option value="Pending">🟡 Pending Inspection / Clearance</option>
-                    <option value="Failed">🔴 Rejected / Rework Required</option>
+                    <option value="Passed">Approved &amp; Cleared for Dispatch</option>
+                    <option value="Pending">Pending Inspection / Clearance</option>
+                    <option value="Failed">Rejected / Rework Required</option>
                   </select>
                 </div>
 
@@ -986,7 +986,7 @@ function ProductionCompletionContent() {
                             {row.qcStatus === 'Passed' ? (
                               <>
                                 <Check className="w-3 h-3 text-emerald-600" />
-                                <span>Passed ✓</span>
+                                <span>Passed</span>
                               </>
                             ) : row.qcStatus === 'Pending' ? (
                               <span>Pending</span>
@@ -1197,7 +1197,7 @@ function ProductionCompletionContent() {
                 {/* Official Stamp */}
                 <div className="border-2 border-emerald-700 text-emerald-800 p-2 rounded-lg text-center font-mono font-black text-xs">
                   <div>UMA TECHNO FAB</div>
-                  <div className="text-sm">QC APPROVED ✓</div>
+                  <div className="text-sm">QC APPROVED</div>
                   <div className="text-[9px]">CLEARED FOR DISPATCH</div>
                 </div>
               </div>

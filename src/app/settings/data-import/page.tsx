@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { DataImportLog } from '../../../types/testing';
+import { toast } from '../../../context/ToastContext';
 
 export default function DataImportWizardPage() {
   const { dataImportLogs, executeDataImport } = useERP();
@@ -28,7 +29,7 @@ export default function DataImportWizardPage() {
 
   const handleStartImport = () => {
     if (!draggedFile) {
-      alert('Please select or upload a CSV / XLSX data file');
+      toast.warning('Please select or upload a CSV / XLSX data file');
       return;
     }
 
@@ -43,6 +44,7 @@ export default function DataImportWizardPage() {
         clearInterval(interval);
         executeDataImport(selectedEntity, draggedFile, recordCount);
         setIsImporting(false);
+        toast.success(`Successfully imported ${recordCount} ${selectedEntity} records into Uma Techno Fab ERP database!`);
         setSuccessToast(`Successfully imported ${recordCount} ${selectedEntity} records into Uma Techno Fab ERP database!`);
         setTimeout(() => setSuccessToast(null), 4000);
       }
@@ -78,7 +80,7 @@ export default function DataImportWizardPage() {
         </div>
 
         <button
-          onClick={() => alert(`Downloading official sample CSV template for entity: ${selectedEntity}`)}
+          onClick={() => toast.info(`Downloading official sample CSV template for entity: ${selectedEntity}`)}
           className="flex items-center gap-2 px-4 py-2.5 bg-[#FAF7F2] hover:bg-[#FAF7F2] text-[#544B45] rounded-xl text-xs font-semibold transition border border-[#EBE3DB]"
         >
           <Download className="w-4 h-4" />

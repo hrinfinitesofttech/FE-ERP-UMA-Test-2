@@ -87,7 +87,10 @@ export default function SecurityHubPage() {
           </div>
           <div className="bg-[#FAF7F2] p-3 rounded-xl border border-[#EBE3DB] font-mono text-xs text-emerald-400 space-y-1 max-h-40 overflow-y-auto">
             {scanOutput.map((out, idx) => (
-              <div key={idx}>✓ {out}</div>
+              <div key={idx} className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                <span>{out}</span>
+              </div>
             ))}
           </div>
         </div>

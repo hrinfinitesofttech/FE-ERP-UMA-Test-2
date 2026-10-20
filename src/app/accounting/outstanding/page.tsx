@@ -49,8 +49,8 @@ export default function OutstandingRemindersPage() {
 
         <div className="text-right">
           <div className="text-xs text-[#70665F]">Total Overdue Amount</div>
-          <div className="text-lg font-bold text-amber-400 font-mono">
-            ₹{overdueInvoices.reduce((acc, i) => acc + i.grandTotal, 0)?.toLocaleString()}
+          <div className="text-lg font-bold text-amber-600 font-mono">
+            ₹{overdueInvoices.reduce((acc, i) => acc + Math.max(0, Number(i.grandTotal || 0) - Number(i.paidAmount || 0)), 0)?.toLocaleString('en-IN')}
           </div>
         </div>
       </div>
@@ -83,25 +83,35 @@ export default function OutstandingRemindersPage() {
           <tbody className="divide-y divide-[#EBE3DB] font-mono">
             {filtered.map((inv) => {
               const isReminded = sentReminders.includes(inv.invoiceNumber);
+              const due = Math.max(0, Number(inv.grandTotal || 0) - Number(inv.paidAmount || 0));
 
               return (
                 <tr key={inv.id} className="hover:bg-white/40 transition">
-                  <td className="py-3.5 px-4 font-bold text-amber-400">{inv.invoiceNumber}</td>
+                  <td className="py-3.5 px-4 font-bold text-amber-700">{inv.invoiceNumber}</td>
                   <td className="py-3.5 px-4 font-sans font-semibold text-[#3E2723]">{inv.customerName}</td>
                   <td className="py-3.5 px-4 font-sans text-[#70665F]">{inv.invoiceDate}</td>
-                  <td className="py-3.5 px-4 text-rose-400 font-sans font-semibold">{inv.dueDate}</td>
-                  <td className="py-3.5 px-4 text-right font-bold text-[#211B17]">₹{inv.grandTotal?.toLocaleString()}</td>
+                  <td className="py-3.5 px-4 text-rose-500 font-sans font-semibold">{inv.dueDate}</td>
+                  <td className="py-3.5 px-4 text-right font-black text-rose-700">₹{due.toLocaleString('en-IN')}</td>
                   <td className="py-3.5 px-4 text-center font-sans">
-                    <button
-                      onClick={() => handleSendReminder(inv.invoiceNumber, inv.customerName)}
-                      disabled={isReminded}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition inline-flex items-center gap-1.5 ${
-                        isReminded ? 'bg-white text-[#70665F] cursor-not-allowed' : 'bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold'
-                      }`}
-                    >
-                      <Bell className="w-3.5 h-3.5" />
-                      <span>{isReminded ? 'Reminder Dispatched' : 'Send Payment Reminder'}</span>
-                    </button>
+                    <div className="flex items-center justify-center gap-1.5">
+                      <button
+                        onClick={() => handleSendReminder(inv.invoiceNumber, inv.customerName)}
+                        disabled={isReminded}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition inline-flex items-center gap-1.5 ${
+                          isReminded ? 'bg-slate-100 text-[#70665F] cursor-not-allowed' : 'bg-amber-600 hover:bg-amber-500 text-white font-bold'
+                        }`}
+                      >
+                        <Bell className="w-3.5 h-3.5" />
+                        <span>{isReminded ? 'Reminder Sent' : 'Send Reminder'}</span>
+                      </button>
+                      <Link
+                        href={`/accounting/customer-receipts?customerId=${encodeURIComponent(inv.customerId || '')}&invoiceId=${encodeURIComponent(inv.invoiceNumber || inv.id)}`}
+                        className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition inline-flex items-center gap-1"
+                      >
+                        <span>Collect</span>
+                        <ArrowUpRight className="w-3 h-3" />
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               );

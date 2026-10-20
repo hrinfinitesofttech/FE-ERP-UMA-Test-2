@@ -645,7 +645,7 @@ export default function EmployeeDocumentsPage() {
                           value={dt.typeName}
                           disabled={isAlreadyUploaded && !dt.allowMultiple}
                         >
-                          {dt.typeName} {isAlreadyUploaded ? (dt.allowMultiple ? '— (Uploaded • Add Another)' : '✓ (Already Uploaded)') : ''}
+                          {dt.typeName} {isAlreadyUploaded ? (dt.allowMultiple ? '— (Uploaded • Add Another)' : '[Already Uploaded]') : ''}
                         </option>
                       );
                     })}
@@ -745,10 +745,10 @@ export default function EmployeeDocumentsPage() {
                           setSelectedFileSize('');
                           setFilePreviewUrl('');
                         }}
-                        className="p-1 text-rose-500 hover:bg-rose-100 rounded-lg ml-2 cursor-pointer"
+                        className="p-1 text-rose-500 hover:bg-rose-100 rounded-lg ml-2 cursor-pointer transition"
                         title="Remove file"
                       >
-                        ✕
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ) : (

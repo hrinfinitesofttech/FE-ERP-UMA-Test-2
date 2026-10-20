@@ -478,10 +478,20 @@ export default function AppraisalPage() {
                     </div>
                   </div>
                   <div className="pt-2 flex items-center justify-between border-t border-[#EBE3DB] text-xs">
-                    <span>
-                      Promotion Recommended:{' '}
-                      <strong className={apr.promotionRecommended ? 'text-emerald-600' : 'text-[#70665F]'}>
-                        {apr.promotionRecommended ? '✓ Yes' : '✗ No'}
+                    <span className="flex items-center gap-1.5">
+                      <span>Promotion Recommended:</span>
+                      <strong className={`inline-flex items-center gap-1 font-bold ${apr.promotionRecommended ? 'text-emerald-600' : 'text-[#70665F]'}`}>
+                        {apr.promotionRecommended ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>Yes</span>
+                          </>
+                        ) : (
+                          <>
+                            <X className="w-3.5 h-3.5 text-slate-400" />
+                            <span>No</span>
+                          </>
+                        )}
                       </strong>
                     </span>
                     <span>

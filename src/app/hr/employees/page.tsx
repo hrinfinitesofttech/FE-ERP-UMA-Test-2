@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
+import { toast } from '../../../context/ToastContext';
 import {
   Users,
   Search,
@@ -398,7 +399,7 @@ function EmployeeMasterContent() {
     setAddErrors({});
     setShowAddModal(false);
     setAddSaving(false);
-    alert('Employee profile created successfully!');
+    toast.success('Employee profile created successfully!');
   };
 
   const canViewSensitiveData = currentUser?.role === 'Super Admin' || currentUser?.role === 'HR Manager' || currentUser?.role === 'Admin';
@@ -587,10 +588,19 @@ function EmployeeMasterContent() {
         }}
         onEdit={(emp: Employee) => router.push(`/hr/employees/${emp.id}/edit`)}
         onDelete={(emp: Employee) => {
-          if (confirm(`Are you sure you want to delete employee "${getEmpName(emp)}"?`)) {
-            deleteEmployee(emp.id);
-            if (selectedEmployee?.id === emp.id) setSelectedEmployee(null);
-          }
+          const empName = getEmpName(emp);
+          toast.confirm({
+            title: 'Delete Employee',
+            message: `Are you sure you want to delete employee "${empName}"? This action cannot be undone.`,
+            confirmText: 'Yes, Delete',
+            cancelText: 'Cancel',
+            variant: 'danger',
+            onConfirm: () => {
+              deleteEmployee(emp.id);
+              if (selectedEmployee?.id === emp.id) setSelectedEmployee(null);
+              toast.success(`Employee "${empName}" deleted successfully.`);
+            },
+          });
         }}
       />
 

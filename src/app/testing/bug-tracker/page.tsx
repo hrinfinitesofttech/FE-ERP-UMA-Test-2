@@ -14,9 +14,12 @@ import {
   Tag,
   ChevronRight,
   ShieldAlert,
+  X,
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { BugTicket } from '../../../types/testing';
+import { CustomSelect } from '../../../components/ui/CustomSelect';
+import { toast } from '@/context/ToastContext';
 
 export default function BugTrackerPage() {
   const { bugTickets, addBugTicket, updateBugTicketStatus } = useERP();
@@ -54,7 +57,7 @@ export default function BugTrackerPage() {
   const handleCreateBug = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !stepsToReproduce) {
-      alert('Please fill in required fields (Title, Steps to reproduce)');
+      toast.warning('Please fill in required fields (Title, Steps to reproduce)');
       return;
     }
 
@@ -78,6 +81,7 @@ export default function BugTrackerPage() {
     setStepsToReproduce('');
     setExpectedResult('');
     setActualResult('');
+    toast.success('Technical defect report submitted successfully!');
   };
 
   return (
@@ -111,24 +115,25 @@ export default function BugTrackerPage() {
 
       {/* Filters & Search */}
       <div className="bg-white border border-[#EBE3DB] p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-[#FAF7F2] px-3 py-1.5 rounded-xl border border-[#EBE3DB]">
-            <Filter className="w-3.5 h-3.5 text-[#70665F]" />
-            <span className="text-xs text-[#544B45] font-semibold">Status:</span>
-            <select
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-[#544B45] font-semibold flex items-center gap-1.5">
+              <Filter className="w-3.5 h-3.5 text-[#70665F]" /> Status:
+            </span>
+            <CustomSelect
+              size="sm"
               value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="bg-transparent text-xs text-[#211B17] focus:outline-none cursor-pointer"
-            >
-              <option value="All" className="bg-white">All Bug Statuses</option>
-              <option value="Open" className="bg-white">Open</option>
-              <option value="In_Progress" className="bg-white">In Progress</option>
-              <option value="Fixed" className="bg-white">Fixed</option>
-              <option value="Retest" className="bg-white">Retest</option>
-              <option value="Closed" className="bg-white">Closed</option>
-            </select>
+              onChange={(val) => setSelectedStatus(val)}
+              className="w-44"
+              options={[
+                { value: 'All', label: 'All Bug Statuses' },
+                { value: 'Open', label: 'Open' },
+                { value: 'In_Progress', label: 'In Progress' },
+                { value: 'Fixed', label: 'Fixed' },
+                { value: 'Retest', label: 'Retest' },
+                { value: 'Closed', label: 'Closed' },
+              ]}
+            />
           </div>
-        </div>
 
         <div className="relative min-w-[240px]">
           <Search className="w-4 h-4 text-[#70665F] absolute left-3 top-1/2 -translate-y-1/2" />
@@ -247,32 +252,34 @@ export default function BugTrackerPage() {
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="text-[#70665F] hover:text-[#211B17] text-xs"
+                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] transition"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="text-[#70665F] font-semibold">ERP Module *</label>
-                <select
+                <CustomSelect
+                  label="ERP Module"
+                  required
+                  searchable
                   value={moduleName}
-                  onChange={(e) => setModuleName(e.target.value)}
-                  className="w-full bg-[#FAF7F2] text-[#211B17] p-2.5 rounded-xl border border-[#EBE3DB] mt-1"
-                >
-                  <option value="Foundation">ERP Foundation</option>
-                  <option value="CRM">CRM & Sales</option>
-                  <option value="Project">Project & Job</option>
-                  <option value="Design">Design & Engineering</option>
-                  <option value="Purchase">Purchase & RFQ</option>
-                  <option value="Store">Store & Warehouse</option>
-                  <option value="Production">Production & Work Orders</option>
-                  <option value="Accounting">Accounting & Finance</option>
-                  <option value="HR">HR & Payroll</option>
-                  <option value="Maintenance">Maintenance & Service</option>
-                  <option value="Integration">Integration Layer</option>
-                </select>
+                  onChange={(val) => setModuleName(val)}
+                  options={[
+                    { value: 'Foundation', label: 'ERP Foundation' },
+                    { value: 'CRM', label: 'CRM & Sales' },
+                    { value: 'Project', label: 'Project & Job' },
+                    { value: 'Design', label: 'Design & Engineering' },
+                    { value: 'Purchase', label: 'Purchase & RFQ' },
+                    { value: 'Store', label: 'Store & Warehouse' },
+                    { value: 'Production', label: 'Production & Work Orders' },
+                    { value: 'Accounting', label: 'Accounting & Finance' },
+                    { value: 'HR', label: 'HR & Payroll' },
+                    { value: 'Maintenance', label: 'Maintenance & Service' },
+                    { value: 'Integration', label: 'Integration Layer' },
+                  ]}
+                />
               </div>
 
               <div>
@@ -312,31 +319,31 @@ export default function BugTrackerPage() {
               </div>
 
               <div>
-                <label className="text-[#70665F] font-semibold">Severity</label>
-                <select
+                <CustomSelect
+                  label="Severity"
                   value={severity}
-                  onChange={(e) => setSeverity(e.target.value as any)}
-                  className="w-full bg-[#FAF7F2] text-[#211B17] p-2.5 rounded-xl border border-[#EBE3DB] mt-1"
-                >
-                  <option value="Critical">Critical</option>
-                  <option value="High">High</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Low">Low</option>
-                </select>
+                  onChange={(val) => setSeverity(val as any)}
+                  options={[
+                    { value: 'Critical', label: 'Critical' },
+                    { value: 'High', label: 'High' },
+                    { value: 'Medium', label: 'Medium' },
+                    { value: 'Low', label: 'Low' },
+                  ]}
+                />
               </div>
 
               <div>
-                <label className="text-[#70665F] font-semibold">Priority</label>
-                <select
+                <CustomSelect
+                  label="Priority"
                   value={priority}
-                  onChange={(e) => setPriority(e.target.value as any)}
-                  className="w-full bg-[#FAF7F2] text-[#211B17] p-2.5 rounded-xl border border-[#EBE3DB] mt-1"
-                >
-                  <option value="Urgent">Urgent</option>
-                  <option value="High">High</option>
-                  <option value="Normal">Normal</option>
-                  <option value="Low">Low</option>
-                </select>
+                  onChange={(val) => setPriority(val as any)}
+                  options={[
+                    { value: 'Urgent', label: 'Urgent' },
+                    { value: 'High', label: 'High' },
+                    { value: 'Normal', label: 'Normal' },
+                    { value: 'Low', label: 'Low' },
+                  ]}
+                />
               </div>
             </div>
 

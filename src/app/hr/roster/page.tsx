@@ -22,6 +22,7 @@ import {
   Info,
 } from 'lucide-react';
 import { ShiftRosterItem } from '../../../types/hr';
+import { toast } from '@/context/ToastContext';
 
 export default function ShiftRosterPage() {
   const {
@@ -69,10 +70,22 @@ export default function ShiftRosterPage() {
 
   const closeModalWithConfirm = () => {
     if (isFormDirty && !editingId) {
-      const confirmClose = window.confirm(
-        'You have unsaved changes. Are you sure you want to close?'
-      );
-      if (!confirmClose) return;
+      toast.confirm({
+        title: 'Unsaved Changes',
+        message: 'You have unsaved changes. Are you sure you want to close without saving?',
+        confirmText: 'Discard & Close',
+        cancelText: 'Keep Editing',
+        variant: 'warning',
+        onConfirm: () => {
+          setShowModal(false);
+          setEditingId(null);
+          setFormData(initialFormState);
+          setFormErrors({});
+          setConflictWarning(null);
+          setTouched({});
+        },
+      });
+      return;
     }
     setShowModal(false);
     setEditingId(null);
@@ -264,7 +277,7 @@ export default function ShiftRosterPage() {
 
     // Block if hard leave conflict
     if (conflictWarning && conflictWarning.startsWith('Conflict:')) {
-      alert(conflictWarning);
+      toast.warning('Shift Conflict', conflictWarning);
       return;
     }
 

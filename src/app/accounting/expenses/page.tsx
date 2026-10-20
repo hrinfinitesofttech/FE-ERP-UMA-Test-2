@@ -121,7 +121,7 @@ export default function ExpensesPage() {
       description,
     });
 
-    setToastMessage(`✓ Expense of ₹${grandTotal.toLocaleString()} logged successfully!`);
+    setToastMessage(`Expense of ₹${grandTotal.toLocaleString()} logged successfully!`);
     setTimeout(() => setToastMessage(''), 4000);
 
     // Reset Form
@@ -133,14 +133,14 @@ export default function ExpensesPage() {
 
   const handleApprove = (id: string) => {
     approveExpenseEntry(id, 'Super Admin');
-    setToastMessage(`✓ Expense ${id} approved successfully!`);
+    setToastMessage(`Expense ${id} approved successfully!`);
     setTimeout(() => setToastMessage(''), 4000);
   };
 
   const handleDelete = (id: string) => {
     deleteExpenseEntry(id);
     setDeleteConfirmId(null);
-    setToastMessage(`✓ Expense ${id} deleted.`);
+    setToastMessage(`Expense ${id} deleted.`);
     setTimeout(() => setToastMessage(''), 4000);
   };
 
@@ -332,10 +332,11 @@ export default function ExpensesPage() {
                                 Confirm
                               </button>
                               <button
+                                type="button"
                                 onClick={() => setDeleteConfirmId(null)}
-                                className="px-1.5 py-0.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-[10px] rounded"
+                                className="p-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded transition"
                               >
-                                ✕
+                                <X className="w-3 h-3" />
                               </button>
                             </div>
                           ) : (

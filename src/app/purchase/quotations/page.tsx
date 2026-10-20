@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
+import { toast } from '../../../context/ToastContext';
 import {
   FileCheck2,
   Plus,
@@ -237,11 +238,11 @@ export default function SupplierQuotationsPage() {
   const handleSaveQuotation = (e: React.FormEvent) => {
     e.preventDefault();
     if (!quotationRef.trim()) {
-      alert('Please enter Vendor Quotation Reference number.');
+      toast.warning('Please enter Vendor Quotation Reference number.');
       return;
     }
     if (!supplierName.trim()) {
-      alert('Please select or specify a Supplier.');
+      toast.warning('Please select or specify a Supplier.');
       return;
     }
 
@@ -289,6 +290,7 @@ export default function SupplierQuotationsPage() {
     setSelectedSupplierId('');
     setSupplierName('');
     setAdditionalCharges([]);
+    toast.success(`Quotation ${nextNumber} recorded successfully!`);
   };
 
   // Status badge styling

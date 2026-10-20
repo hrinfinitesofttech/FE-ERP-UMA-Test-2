@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import {
   Job360Full,
@@ -826,6 +826,7 @@ interface ERPContextType {
   purchaseInvoices: PurchaseInvoice[];
   addPurchaseInvoice: (inv: Omit<PurchaseInvoice, 'id' | 'invoiceNumber' | 'createdAt'>) => void;
   postPurchaseInvoice: (id: string) => void;
+  updatePurchaseInvoicePayment?: (id: string, paymentData: { paymentStatus: 'Paid' | 'Partially Paid' | 'Unpaid'; paidAmount?: number; paymentMode?: string; referenceNumber?: string; paymentDate?: string }) => void;
   creditNotes: CreditNote[];
   addCreditNote: (cn: Omit<CreditNote, 'id' | 'creditNoteNumber'>) => void;
   updateCreditNote: (id: string, cn: Partial<CreditNote>) => void;
@@ -836,8 +837,10 @@ interface ERPContextType {
   deleteDebitNote: (id: string) => void;
   customerReceipts: CustomerReceipt[];
   addCustomerReceipt: (rec: Omit<CustomerReceipt, 'id' | 'receiptNumber'>) => void;
+  deleteCustomerReceipt?: (id: string) => void;
   supplierPayments: SupplierPayment[];
   addSupplierPayment: (pay: Omit<SupplierPayment, 'id' | 'paymentNumber'>) => void;
+  deleteSupplierPayment?: (id: string) => void;
   journalEntries: JournalEntry[];
   addJournalEntry: (jv: Omit<JournalEntry, 'id' | 'journalNumber'>) => void;
   deleteJournalEntry: (id: string) => void;
@@ -2789,8 +2792,100 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const [fixedAssets, setFixedAssets] = useState<FixedAsset[]>([]);
   const [depreciationEntries, setDepreciationEntries] = useState<DepreciationEntry[]>([]);
   const [jobCostings, setJobCostings] = useState<JobCostingSummary[]>([]);
-  const [receivableAging, setReceivableAging] = useState<ReceivableAging[]>([]);
-  const [payableAging, setPayableAging] = useState<PayableAging[]>([]);
+
+  // Dynamically calculate live Accounts Receivable Aging from Sales Invoices
+  const receivableAging: ReceivableAging[] = useMemo(() => {
+    const map = new Map<string, ReceivableAging>();
+    const now = Date.now();
+    (salesInvoices || []).forEach((inv) => {
+      const grandTotal = Number(inv.grandTotal ?? (inv as any).grand_total ?? 0);
+      const paid = Number(inv.paidAmount ?? (inv as any).paid_amount ?? 0);
+      const due = Math.max(0, grandTotal - paid);
+      if (due <= 0 || inv.paymentStatus === 'Paid') return;
+
+      const custId = inv.customerId || 'CUST-001';
+      const custName = inv.customerName || 'Customer';
+      if (!map.has(custId)) {
+        map.set(custId, {
+          customerId: custId,
+          customerName: custName,
+          days0to30: 0,
+          days1_30: 0,
+          days31to60: 0,
+          days31_60: 0,
+          days61to90: 0,
+          days61_90: 0,
+          days90Plus: 0,
+          totalOutstanding: 0,
+        });
+      }
+      const item = map.get(custId)!;
+      const invDate = inv.dueDate || inv.invoiceDate || '';
+      const days = invDate ? Math.max(0, Math.floor((now - new Date(invDate).getTime()) / (1000 * 60 * 60 * 24))) : 0;
+
+      item.totalOutstanding += due;
+      if (days <= 30) {
+        item.days0to30 = (item.days0to30 || 0) + due;
+        item.days1_30 = item.days0to30;
+      } else if (days <= 60) {
+        item.days31to60 = (item.days31to60 || 0) + due;
+        item.days31_60 = item.days31to60;
+      } else if (days <= 90) {
+        item.days61to90 = (item.days61to90 || 0) + due;
+        item.days61_90 = item.days61to90;
+      } else {
+        item.days90Plus = (item.days90Plus || 0) + due;
+      }
+    });
+    return Array.from(map.values());
+  }, [salesInvoices]);
+
+  // Dynamically calculate live Accounts Payable Aging from Purchase Invoices
+  const payableAging: PayableAging[] = useMemo(() => {
+    const map = new Map<string, PayableAging>();
+    const now = Date.now();
+    (purchaseInvoices || []).forEach((inv) => {
+      const grandTotal = Number(inv.grandTotal ?? (inv as any).grand_total ?? 0);
+      const paid = Number(inv.paidAmount ?? (inv as any).paid_amount ?? 0);
+      const due = Math.max(0, grandTotal - paid);
+      if (due <= 0 || inv.paymentStatus === 'Paid') return;
+
+      const suppId = inv.supplierId || 'SUPP-001';
+      const suppName = inv.supplierName || 'Supplier';
+      if (!map.has(suppId)) {
+        map.set(suppId, {
+          supplierId: suppId,
+          supplierName: suppName,
+          days0to30: 0,
+          days1_30: 0,
+          days31to60: 0,
+          days31_60: 0,
+          days61to90: 0,
+          days61_90: 0,
+          days90Plus: 0,
+          totalOutstanding: 0,
+        });
+      }
+      const item = map.get(suppId)!;
+      const invDate = inv.dueDate || inv.invoiceDate || '';
+      const days = invDate ? Math.max(0, Math.floor((now - new Date(invDate).getTime()) / (1000 * 60 * 60 * 24))) : 0;
+
+      item.totalOutstanding += due;
+      if (days <= 30) {
+        item.days0to30 = (item.days0to30 || 0) + due;
+        item.days1_30 = item.days0to30;
+      } else if (days <= 60) {
+        item.days31to60 = (item.days31to60 || 0) + due;
+        item.days31_60 = item.days31to60;
+      } else if (days <= 90) {
+        item.days61to90 = (item.days61to90 || 0) + due;
+        item.days61_90 = item.days61to90;
+      } else {
+        item.days90Plus = (item.days90Plus || 0) + due;
+      }
+    });
+    return Array.from(map.values());
+  }, [purchaseInvoices]);
 
   // Traceability & Audit & Notification
   const [jobs, setJobs] = useState<JobTraceabilityRecord[]>([]);
@@ -8429,7 +8524,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         const completedTask = (targetRecord?.tasks || []).find((t) => t.id === taskId);
         const tName = completedTask?.taskName || 'Operation';
         sendNotification({
-          title: `✓ Operation Completed: ${tName}`,
+          title: `Operation Completed: ${tName}`,
           message: `Operation for ${targetRecord?.projectNumber || targetRecord?.customerName || 'Project'} finished 100%.`,
           type: 'success',
           department: 'production',
@@ -8522,7 +8617,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         const deptTasksCount = tasksWithDepts.filter((t) => (t.department || '').toLowerCase() === lowerDept).length || 1;
 
         sendNotification({
-          title: `🚀 ${deptLabel} Tasks Dispatched: ${target.projectNumber}`,
+          title: `${deptLabel} Tasks Dispatched: ${target.projectNumber}`,
           message: `Planning completed for ${target.customerName} - ${target.productName}. ${deptTasksCount} task(s) assigned to ${deptLabel}. Action required.`,
           type: 'alert',
           department: targetDeptType,
@@ -8637,7 +8732,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       // Notification on completion or significant progress
       if (thisTask && (thisTask.status === 'completed' || thisTask.progressPercent === 100)) {
         sendNotification({
-          title: `✅ Operation Completed: ${thisTask.taskName}`,
+          title: `Operation Completed: ${thisTask.taskName}`,
           message: `Supervisor ${updates.supervisorName || 'Production'} completed operation 100% for ${record.projectNumber} (${record.customerName}).`,
           type: 'success',
           department: 'production',
@@ -9785,7 +9880,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     logAction('APPROVE', 'Designer', 'Design Release', desJob.id, `Design Job ${desJob.designJobNumber} (${desJob.jobNumber}) released to Purchase, Store & Production departments by ${releasedBy}`);
 
     sendNotification({
-      title: `🚀 Design Released for Manufacturing: ${desJob.jobNumber}`,
+      title: `Design Released for Manufacturing: ${desJob.jobNumber}`,
       message: `Design Job ${desJob.designJobNumber} (${desJob.productName}) approved and released to production by ${releasedBy}. Material planning can now begin.`,
       type: 'success',
       department: 'project',
@@ -9841,7 +9936,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     logAction('REJECT', 'Designer', 'Design Release', desJob.id, `Design Job ${desJob.designJobNumber} (${desJob.jobNumber}) release disapproved/revoked by ${revokedBy}`);
 
     sendNotification({
-      title: `⚠️ Design Release Revoked: ${desJob.jobNumber}`,
+      title: `Design Release Revoked: ${desJob.jobNumber}`,
       message: `Design Job ${desJob.designJobNumber} (${desJob.productName}) release was disapproved/revoked by ${revokedBy}. Status reset to In Progress.`,
       type: 'warning',
       department: 'project',
@@ -9873,7 +9968,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     logAction('APPROVE', 'Designer', 'Design Job', desJob.id, `Design Job ${desJob.designJobNumber} (${desJob.jobNumber}) approved by ${approvedBy}`);
 
     sendNotification({
-      title: `✅ Design Approved: ${desJob.jobNumber}`,
+      title: `Design Approved: ${desJob.jobNumber}`,
       message: `Design Job ${desJob.designJobNumber} (${desJob.productName}) was approved by ${approvedBy}. Ready for release to production.`,
       type: 'success',
       department: 'project',
@@ -9905,7 +10000,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     logAction('REJECT', 'Designer', 'Design Job', desJob.id, `Design Job ${desJob.designJobNumber} (${desJob.jobNumber}) rejected by ${disapprovedBy}: ${rejectionReason}`);
 
     sendNotification({
-      title: `❌ Design Job Disapproved: ${desJob.jobNumber}`,
+      title: `Design Job Disapproved: ${desJob.jobNumber}`,
       message: `Design Job ${desJob.designJobNumber} (${desJob.productName}) was disapproved by ${disapprovedBy}. Reason: ${rejectionReason}`,
       type: 'alert',
       department: 'project',
@@ -9992,7 +10087,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     });
     logAction('CREATE', 'Purchase', 'Purchase Requisition', newPr.id, `Created PR ${newPr.prNumber} for job ${data.jobNumber || (data as any).jobId}`);
     sendNotification({
-      title: `📝 PR Created: ${newPr.prNumber}`,
+      title: `Material Requisition Created: ${newPr.prNumber}`,
       message: `Purchase Requisition created for ${data.jobNumber || (data as any).jobId || 'Production'}. Priority: ${newPr.priority || 'High'}`,
       type: 'info',
       department: 'purchase',
@@ -10367,7 +10462,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
     logAction('CREATE', 'Purchase', 'Purchase Orders', newPo.id, `Created PO ${newPo.poNumber} for supplier ${newPo.supplierName}`);
     sendNotification({
-      title: `📋 PO Created: ${newPo.poNumber}`,
+      title: `Purchase Order Created: ${newPo.poNumber}`,
       message: `Purchase Order issued to ${newPo.supplierName} for ₹${Number(newPo.grandTotal || 0).toLocaleString('en-IN')}`,
       type: 'info',
       department: 'purchase',
@@ -10461,7 +10556,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     logAction('APPROVE', 'Purchase', 'PO Approval', id, `Approved PO ${targetPo.poNumber} by ${approvedBy}`);
 
     sendNotification({
-      title: `🛍️ PO Approved & Ready for Supplier: ${targetPo.poNumber}`,
+      title: `PO Approved & Ready for Supplier: ${targetPo.poNumber}`,
       message: `Purchase Order ${targetPo.poNumber} (₹${targetPo.grandTotal?.toLocaleString('en-IN')}) approved for ${targetPo.supplierName}. Expediting & follow-up initiated.`,
       type: 'success',
       department: 'project',
@@ -10873,7 +10968,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
     logAction('CREATE', 'Store', 'Goods Receipt', newGrn.id, `Received GRN ${newGrn.grnNumber} from ${newGrn.supplierName}`);
     sendNotification({
-      title: `📦 GRN Created: ${newGrn.grnNumber}`,
+      title: `GRN Created: ${newGrn.grnNumber}`,
       message: `Goods received from ${newGrn.supplierName} for PO ${newGrn.poNumber}. Auto-generated QC inspection.`,
       type: 'info',
       department: 'store',
@@ -11084,7 +11179,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
     logAction('UPDATE', 'Store', 'Goods Receipt', targetGrn.id, `Direct Inward: Stock added for ${targetGrn.grnNumber}`);
     sendNotification({
-      title: `📦 Stock Updated: ${targetGrn.grnNumber}`,
+      title: `Stock Balance Updated: ${targetGrn.grnNumber}`,
       message: `Goods inwarded and store stock balances updated for ${targetGrn.supplierName}.`,
       type: 'success',
       department: 'store',
@@ -11251,7 +11346,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
     logAction('APPROVE', 'Store', 'QC Inspection', targetQc.id, `QC Inspection ${targetQc.inspectionNumber} set to ${qcResult} by ${inspectorName}`);
     sendNotification({
-      title: `✅ QC Completed: ${targetQc.inspectionNumber}`,
+      title: `QC Inspection Completed: ${targetQc.inspectionNumber}`,
       message: `${targetQc.itemCode} evaluated as ${qcResult}. Accepted: ${acceptedQty}, Rejected: ${rejectedQty}`,
       type: qcResult === 'Pass' ? 'success' : qcResult === 'Fail' ? 'alert' : 'warning',
       department: 'store',
@@ -11397,7 +11492,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
     logAction('CREATE', 'Store', 'Material Issue', newIssue.id, `Issued material slip ${newIssue.issueNumber} for Job ${newIssue.jobId}`);
     sendNotification({
-      title: `📦 Material Dispatched: ${newIssue.issueNumber}`,
+      title: `Material Dispatched: ${newIssue.issueNumber}`,
       message: `Issued raw materials for Job ${newIssue.jobId}. Stock balance deducted.`,
       type: 'success',
       department: 'store',
@@ -11636,7 +11731,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
     logAction('CREATE', 'Production', 'Work Orders', newWo.id, `Generated Work Order ${newWo.workOrderNumber} for ${newWo.jobNumber}`);
     sendNotification({
-      title: `⚙️ Work Order Generated: ${newWo.workOrderNumber}`,
+      title: `Work Order Generated: ${newWo.workOrderNumber}`,
       message: `Work Order created for Job ${newWo.jobNumber || 'Shop Floor'}.`,
       type: 'info',
       department: 'production',
@@ -11655,7 +11750,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     setWorkOrders((prev) => prev.map((w) => (w.id === id || w.workOrderNumber === id ? { ...w, status: 'Released' } : w)));
     logAction('UPDATE', 'Production', 'Work Orders', id, `Released Work Order ${id} to shop floor`);
     sendNotification({
-      title: `🚀 Work Order Released: ${id}`,
+      title: `Work Order Released: ${id}`,
       message: `Work Order ${id} has been released to the shop floor for active execution.`,
       type: 'info',
       department: 'production',
@@ -11876,7 +11971,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     setReworkOrders((prev) => [newRework, ...prev]);
     logAction('CREATE', 'Production', 'Rework Orders', newRework.id, `Created Rework Order ${newRework.reworkNumber} for ${newRework.workOrderNumber}`);
     sendNotification({
-      title: `⚠️ Rework Order Raised: ${newRework.reworkNumber}`,
+      title: `Rework Order Raised: ${newRework.reworkNumber}`,
       message: `Rework needed for ${newRework.workOrderNumber}. Reason: ${(newRework as any).reason || (newRework as any).issueDescription || 'Defect reported'}`,
       type: 'warning',
       department: 'production',
@@ -11892,7 +11987,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     setProductionScraps((prev) => [newScrap, ...prev]);
     logAction('CREATE', 'Production', 'Production Scrap', newScrap.id, `Logged production scrap ${newScrap.scrapNumber} for ${newScrap.materialName}`);
     sendNotification({
-      title: `♻️ Production Scrap Logged: ${newScrap.scrapNumber}`,
+      title: `Production Scrap Logged: ${newScrap.scrapNumber}`,
       message: `Scrap logged: ${newScrap.materialName} (${newScrap.quantity} ${newScrap.uom || 'Kg'}). Reason: ${newScrap.reason}`,
       type: 'warning',
       department: 'production',
@@ -11914,7 +12009,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     });
 
     sendNotification({
-      title: `✅ Work Order Completed: ${newComp.workOrderNumber}`,
+      title: `Work Order Completed: ${newComp.workOrderNumber}`,
       message: `Manufacturing finished for ${newComp.workOrderNumber}. Total completed: ${newComp.completedQuantity}`,
       type: 'success',
       department: 'production',
@@ -12030,7 +12125,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
     logAction('CREATE', 'Production', 'Dispatch & Delivery Challan', newDisp.id, `Created Dispatch Note ${newDisp.dispatchNumber} for ${newDisp.customerName} (Vehicle: ${newDisp.vehicleNumber})`);
     sendNotification({
-      title: `🚛 Dispatch Challan Issued: ${newDisp.dispatchNumber}`,
+      title: `Dispatch Challan Issued: ${newDisp.dispatchNumber}`,
       message: `${newDisp.productName} for ${newDisp.customerName} cleared for dispatch via ${newDisp.transporterName} (${newDisp.vehicleNumber}).`,
       type: 'success',
       department: 'project',
@@ -12205,7 +12300,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     setSalesInvoices((prev) => [newInv, ...prev]);
     logAction('CREATE', 'Accounting', 'Sales Invoices', newInv.id, `Generated Sales Invoice ${newInv.invoiceNumber} for ₹${newInv.grandTotal?.toLocaleString()}`);
     sendNotification({
-      title: `📄 Sales Invoice Generated: ${newInv.invoiceNumber}`,
+      title: `Sales Invoice Generated: ${newInv.invoiceNumber}`,
       message: `Tax invoice generated for ₹${Number(newInv.grandTotal || 0).toLocaleString('en-IN')}`,
       type: 'info',
       department: 'accounting',
@@ -12323,6 +12418,44 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     api.accounting.purchaseInvoices.post(id).catch((err) => console.warn('Failed to post purchase invoice:', err));
   };
 
+  const updatePurchaseInvoicePayment = (id: string, paymentData: {
+    paymentStatus: 'Paid' | 'Partially Paid' | 'Unpaid';
+    paidAmount?: number;
+    paymentMode?: string;
+    referenceNumber?: string;
+    paymentDate?: string;
+  }) => {
+    setPurchaseInvoices((prev) => {
+      const updated: PurchaseInvoice[] = prev.map((inv) =>
+        inv.id === id ||
+        inv.invoiceNumber === id ||
+        (inv as any).invoice_number === id ||
+        String(inv.id).toLowerCase() === String(id).toLowerCase() ||
+        String(inv.invoiceNumber).toLowerCase() === String(id).toLowerCase()
+          ? {
+              ...inv,
+              paymentStatus: paymentData.paymentStatus,
+              paidAmount: paymentData.paidAmount !== undefined ? paymentData.paidAmount : (paymentData.paymentStatus === 'Paid' ? inv.grandTotal : inv.paidAmount || 0),
+              outstandingAmount: paymentData.paymentStatus === 'Paid' ? 0 : Math.max(0, inv.grandTotal - (paymentData.paidAmount !== undefined ? paymentData.paidAmount : inv.paidAmount || 0)),
+              paymentMode: paymentData.paymentMode || (inv as any).paymentMode,
+              paymentReference: paymentData.referenceNumber || (inv as any).paymentReference,
+              paymentDate: paymentData.paymentDate || new Date().toISOString().split('T')[0],
+            }
+          : inv
+      );
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('UMA_ERP_purchaseInvoices', JSON.stringify(updated));
+        } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('UPDATE', 'Accounting', 'Purchase Invoices', id, `Updated payment status to ${paymentData.paymentStatus} for Purchase Invoice ${id}`);
+    api.accounting.purchaseInvoices.update(id, paymentData).catch((err) => {
+      console.warn('Backend update purchase invoice payment failed:', err);
+    });
+  };
+
   const addCreditNote = (cn: Omit<CreditNote, 'id' | 'creditNoteNumber'>) => {
     const creditNoteNumber = `CN-2026-${String(creditNotes.length + 1).padStart(3, '0')}`;
     const newCN: CreditNote = { ...cn, id: creditNoteNumber, creditNoteNumber };
@@ -12434,9 +12567,25 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
+    // Update target Bank/Cash Account balance (+ Credit/Deposit)
+    const recAmt = Number(newRec.amountPaid ?? newRec.amount ?? 0);
+    if (recAmt > 0 && newRec.bankAccountId) {
+      setBankAccounts((prev) => {
+        const updated = prev.map((b) =>
+          b.id === newRec.bankAccountId || b.bankName === newRec.bankName
+            ? { ...b, currentBalance: Number(b.currentBalance || 0) + recAmt }
+            : b
+        );
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_bankAccounts', JSON.stringify(updated)); } catch (_) {}
+        }
+        return updated;
+      });
+    }
+
     logAction('CREATE', 'Accounting', 'Customer Receipts', newRec.id, `Recorded Receipt ${newRec.receiptNumber} from ${newRec.customerName} (₹${(newRec.amountPaid ?? 0)?.toLocaleString()})`);
     sendNotification({
-      title: `💰 Payment Received: ${newRec.receiptNumber}`,
+      title: `Payment Received: ${newRec.receiptNumber}`,
       message: `Received ₹${Number(newRec.amountPaid ?? newRec.amount ?? 0).toLocaleString('en-IN')} from ${newRec.customerName} via ${newRec.paymentMode}.`,
       type: 'success',
       department: 'accounting',
@@ -12446,12 +12595,166 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     api.accounting.customerReceipts.create(newRec).catch((err) => console.warn('Failed to add customer receipt:', err));
   };
 
+  const deleteCustomerReceipt = (id: string) => {
+    let deletedRec: CustomerReceipt | undefined;
+    setCustomerReceipts((prev) => {
+      deletedRec = prev.find((r) => r.id === id || r.receiptNumber === id);
+      const updated = prev.filter((r) => r.id !== id && r.receiptNumber !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_customerReceipts', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
+    if (deletedRec) {
+      const recAmt = Number(deletedRec.amountPaid ?? deletedRec.amount ?? 0);
+      // Revert bank balance (- credit)
+      if (recAmt > 0 && deletedRec.bankAccountId) {
+        setBankAccounts((prev) => {
+          const updated = prev.map((b) =>
+            b.id === deletedRec!.bankAccountId || b.bankName === deletedRec!.bankName
+              ? { ...b, currentBalance: Math.max(0, Number(b.currentBalance || 0) - recAmt) }
+              : b
+          );
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_bankAccounts', JSON.stringify(updated)); } catch (_) {}
+          }
+          return updated;
+        });
+      }
+      // Revert sales invoice payment
+      if (deletedRec.salesInvoiceNumber && deletedRec.salesInvoiceNumber !== 'Direct Receipt') {
+        const matchedInv = salesInvoices.find(
+          (inv) =>
+            inv.invoiceNumber === deletedRec!.salesInvoiceNumber ||
+            inv.id === deletedRec!.salesInvoiceNumber
+        );
+        if (matchedInv) {
+          const currentPaid = Number(matchedInv.paidAmount ?? (matchedInv as any).paid_amount ?? 0);
+          const newPaid = Math.max(0, currentPaid - recAmt);
+          const total = Number(matchedInv.grandTotal ?? (matchedInv as any).grand_total ?? 0);
+          const newStatus = newPaid <= 0 ? 'Unpaid' : newPaid >= total ? 'Paid' : 'Partially Paid';
+          updateSalesInvoicePayment(matchedInv.id || matchedInv.invoiceNumber, {
+            paymentStatus: newStatus,
+            paidAmount: newPaid,
+          });
+        }
+      }
+    }
+    logAction('DELETE', 'Accounting', 'Customer Receipts', id, `Deleted Receipt ${id}`);
+    api.accounting.customerReceipts.delete(id).catch((err) => console.warn('Failed to delete customer receipt on backend:', err));
+  };
+
   const addSupplierPayment = (pay: Omit<SupplierPayment, 'id' | 'paymentNumber'>) => {
     const paymentNumber = `PAY-2026-${String(supplierPayments.length + 1).padStart(4, '0')}`;
     const newPay: SupplierPayment = { ...pay, id: paymentNumber, paymentNumber };
-    setSupplierPayments((prev) => [newPay, ...prev]);
+    setSupplierPayments((prev) => {
+      const updated = [newPay, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_supplierPayments', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
+    // Update Purchase Invoice payment status and balance
+    const payAmt = Number(newPay.amountPaid ?? newPay.amount ?? 0);
+    if (newPay.purchaseInvoiceNumber && newPay.purchaseInvoiceNumber !== 'Direct Payment') {
+      const matchedInv = purchaseInvoices.find(
+        (inv) =>
+          inv.invoiceNumber === newPay.purchaseInvoiceNumber ||
+          inv.id === newPay.purchaseInvoiceNumber ||
+          (inv as any).invoice_number === newPay.purchaseInvoiceNumber
+      );
+      if (matchedInv) {
+        const currentPaid = Number(matchedInv.paidAmount ?? (matchedInv as any).paid_amount ?? 0);
+        const total = Number(matchedInv.grandTotal ?? (matchedInv as any).grand_total ?? 0);
+        const newPaid = currentPaid + payAmt;
+        const newStatus = newPaid >= total ? 'Paid' : 'Partially Paid';
+        updatePurchaseInvoicePayment(matchedInv.id || matchedInv.invoiceNumber, {
+          paymentStatus: newStatus,
+          paidAmount: newPaid,
+          paymentMode: String(newPay.paymentMode),
+          referenceNumber: newPay.referenceNumber,
+          paymentDate: newPay.paymentDate || new Date().toISOString().split('T')[0],
+        });
+      }
+    }
+
+    // Update paying Bank/Cash Account balance (- Debit/Withdrawal)
+    if (payAmt > 0 && newPay.bankAccountId) {
+      setBankAccounts((prev) => {
+        const updated = prev.map((b) =>
+          b.id === newPay.bankAccountId || b.bankName === newPay.bankName
+            ? { ...b, currentBalance: Math.max(0, Number(b.currentBalance || 0) - payAmt) }
+            : b
+        );
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_bankAccounts', JSON.stringify(updated)); } catch (_) {}
+        }
+        return updated;
+      });
+    }
+
     logAction('CREATE', 'Accounting', 'Supplier Payments', newPay.id, `Recorded Payment ${newPay.paymentNumber} to ${newPay.supplierName} (₹${(newPay.amountPaid ?? 0)?.toLocaleString()})`);
+    sendNotification({
+      title: `Supplier Payment Disbursed: ${newPay.paymentNumber}`,
+      message: `Disbursed ₹${payAmt.toLocaleString('en-IN')} to ${newPay.supplierName} via ${newPay.paymentMode}.`,
+      type: 'info',
+      department: 'accounting',
+      priority: 'normal',
+      linkUrl: '/accounting/payments',
+    });
     api.accounting.supplierPayments.create(newPay).catch((err) => console.warn('Failed to add supplier payment:', err));
+  };
+
+  const deleteSupplierPayment = (id: string) => {
+    let deletedPay: SupplierPayment | undefined;
+    setSupplierPayments((prev) => {
+      deletedPay = prev.find((p) => p.id === id || p.paymentNumber === id);
+      const updated = prev.filter((p) => p.id !== id && p.paymentNumber !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_supplierPayments', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+
+    if (deletedPay) {
+      const payAmt = Number(deletedPay.amountPaid ?? deletedPay.amount ?? 0);
+      // Revert bank balance (+ refund)
+      if (payAmt > 0 && deletedPay.bankAccountId) {
+        setBankAccounts((prev) => {
+          const updated = prev.map((b) =>
+            b.id === deletedPay!.bankAccountId || b.bankName === deletedPay!.bankName
+              ? { ...b, currentBalance: Number(b.currentBalance || 0) + payAmt }
+              : b
+          );
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_bankAccounts', JSON.stringify(updated)); } catch (_) {}
+          }
+          return updated;
+        });
+      }
+      // Revert purchase invoice payment
+      if (deletedPay.purchaseInvoiceNumber && deletedPay.purchaseInvoiceNumber !== 'Direct Payment') {
+        const matchedInv = purchaseInvoices.find(
+          (inv) =>
+            inv.invoiceNumber === deletedPay!.purchaseInvoiceNumber ||
+            inv.id === deletedPay!.purchaseInvoiceNumber
+        );
+        if (matchedInv && updatePurchaseInvoicePayment) {
+          const currentPaid = Number(matchedInv.paidAmount ?? (matchedInv as any).paid_amount ?? 0);
+          const newPaid = Math.max(0, currentPaid - payAmt);
+          const total = Number(matchedInv.grandTotal ?? (matchedInv as any).grand_total ?? 0);
+          const newStatus = newPaid <= 0 ? 'Unpaid' : newPaid >= total ? 'Paid' : 'Partially Paid';
+          updatePurchaseInvoicePayment(matchedInv.id || matchedInv.invoiceNumber, {
+            paymentStatus: newStatus,
+            paidAmount: newPaid,
+          });
+        }
+      }
+    }
+    logAction('DELETE', 'Accounting', 'Supplier Payments', id, `Deleted Supplier Payment ${id}`);
+    api.accounting.supplierPayments.delete(id).catch((err) => console.warn('Failed to delete supplier payment on backend:', err));
   };
 
   const addJournalEntry = (jv: Omit<JournalEntry, 'id' | 'journalNumber'>) => {
@@ -12491,19 +12794,63 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
       return updated;
     });
+
+    // Update balances of fromAccount (-amount) and toAccount (+amount)
+    const contraAmt = Number(newContra.amount || 0);
+    if (contraAmt > 0) {
+      setBankAccounts((prev) => {
+        const updated = prev.map((b) => {
+          if (b.id === newContra.fromAccountId || b.bankName === newContra.fromAccountName) {
+            return { ...b, currentBalance: Number(b.currentBalance || 0) - contraAmt };
+          }
+          if (b.id === newContra.toAccountId || b.bankName === newContra.toAccountName) {
+            return { ...b, currentBalance: Number(b.currentBalance || 0) + contraAmt };
+          }
+          return b;
+        });
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_bankAccounts', JSON.stringify(updated)); } catch (_) {}
+        }
+        return updated;
+      });
+    }
+
     logAction('CREATE', 'Accounting', 'Contra Entries', newContra.id, `Created Contra ${newContra.contraNumber} for ₹${newContra.amount?.toLocaleString()}`);
     // Sync to PythonAnywhere backend
     api.accounting.contraEntries.create(newContra).catch((err) => console.warn('Failed to sync contra entry to backend:', err));
   };
 
   const deleteContraEntry = (id: string) => {
+    let deletedContra: ContraEntry | undefined;
     setContraEntries((prev) => {
-      const updated = prev.filter((c) => c.id !== id);
+      deletedContra = prev.find((c) => c.id === id || c.contraNumber === id);
+      const updated = prev.filter((c) => c.id !== id && c.contraNumber !== id);
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_contraEntries', JSON.stringify(updated)); } catch (_) {}
       }
       return updated;
     });
+
+    if (deletedContra) {
+      const contraAmt = Number(deletedContra.amount || 0);
+      if (contraAmt > 0) {
+        setBankAccounts((prev) => {
+          const updated = prev.map((b) => {
+            if (b.id === deletedContra!.fromAccountId || b.bankName === deletedContra!.fromAccountName) {
+              return { ...b, currentBalance: Number(b.currentBalance || 0) + contraAmt };
+            }
+            if (b.id === deletedContra!.toAccountId || b.bankName === deletedContra!.toAccountName) {
+              return { ...b, currentBalance: Math.max(0, Number(b.currentBalance || 0) - contraAmt) };
+            }
+            return b;
+          });
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_bankAccounts', JSON.stringify(updated)); } catch (_) {}
+          }
+          return updated;
+        });
+      }
+    }
     logAction('DELETE', 'Accounting', 'Contra Entries', id, `Deleted Contra Entry ${id}`);
     api.accounting.contraEntries.delete(id).catch((err) => console.warn('Failed to delete contra entry on backend:', err));
   };
@@ -12550,13 +12897,47 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const approveExpenseEntry = (id: string, approvedBy: string) => {
+    let expAmt = 0;
+    let expPaymentMode = '';
     setExpenseEntries((prev) => {
-      const updated = prev.map((exp) => (exp.id === id || exp.expenseNumber === id ? { ...exp, status: 'Approved', approvedBy } : exp));
+      const updated = prev.map((exp) => {
+        if (exp.id === id || exp.expenseNumber === id) {
+          expAmt = Number(exp.grandTotal ?? exp.totalAmount ?? exp.amount ?? 0);
+          expPaymentMode = exp.paymentMode || 'Bank_Transfer';
+          return { ...exp, status: 'Approved' as const, approvedBy };
+        }
+        return exp;
+      });
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_expenseEntries', JSON.stringify(updated)); } catch (_) {}
       }
       return updated;
     });
+
+    // Deduct approved expense amount from bank/cash account
+    if (expAmt > 0) {
+      setBankAccounts((prev) => {
+        if (!prev || prev.length === 0) return prev;
+        const isCash = expPaymentMode?.toLowerCase().includes('cash');
+        let deducted = false;
+        const updated = prev.map((b) => {
+          if (!deducted) {
+            const matchCash = isCash && ((b as any).accountType === 'Cash' || b.bankName?.toLowerCase().includes('cash'));
+            const matchBank = !isCash && ((b as any).accountType !== 'Cash' || !b.bankName?.toLowerCase().includes('cash'));
+            if (matchCash || matchBank) {
+              deducted = true;
+              return { ...b, currentBalance: Math.max(0, Number(b.currentBalance || 0) - expAmt) };
+            }
+          }
+          return b;
+        });
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_bankAccounts', JSON.stringify(updated)); } catch (_) {}
+        }
+        return updated;
+      });
+    }
+
     logAction('APPROVE', 'Accounting', 'Expense Entries', id, `Approved Expense Entry ${id} by ${approvedBy}`);
     api.accounting.expenses.approve(id, approvedBy).catch((err) => console.warn('Failed to approve expense on backend:', err));
   };
@@ -14668,6 +15049,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         purchaseInvoices: sortByLatestDesc(purchaseInvoices),
         addPurchaseInvoice,
         postPurchaseInvoice,
+        updatePurchaseInvoicePayment,
         creditNotes: sortByLatestDesc(creditNotes),
         addCreditNote,
         updateCreditNote,
@@ -14678,8 +15060,10 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         deleteDebitNote,
         customerReceipts: sortByLatestDesc(customerReceipts),
         addCustomerReceipt,
+        deleteCustomerReceipt,
         supplierPayments: sortByLatestDesc(supplierPayments),
         addSupplierPayment,
+        deleteSupplierPayment,
         journalEntries: sortByLatestDesc(journalEntries),
         addJournalEntry,
         deleteJournalEntry,

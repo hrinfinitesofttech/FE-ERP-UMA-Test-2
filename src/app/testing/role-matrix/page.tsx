@@ -19,6 +19,7 @@ import {
   Building,
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
+import { CustomSelect } from '../../../components/ui/CustomSelect';
 
 export default function RoleMatrixPage() {
   const { roles, currentUser } = useERP();
@@ -138,60 +139,61 @@ export default function RoleMatrixPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label className="text-xs font-semibold text-[#70665F]">Select Role to Test:</label>
-            <select
+            <CustomSelect
+              label="Select Role to Test"
+              searchable
               value={selectedRole}
-              onChange={(e) => {
-                setSelectedRole(e.target.value);
+              onChange={(val) => {
+                setSelectedRole(val);
                 setSimulationResult(null);
               }}
-              className="w-full bg-[#FAF7F2] text-xs text-[#211B17] p-2.5 rounded-xl border border-[#EBE3DB] focus:outline-none focus:border-crm-brand-600 mt-1 cursor-pointer"
-            >
-              {availableRoleNames.map((r) => (
-                <option key={r} value={r} className="bg-white">{r}</option>
-              ))}
-            </select>
+              options={availableRoleNames.map((r) => ({
+                value: r,
+                label: r,
+              }))}
+            />
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-[#70665F]">Target Module Route:</label>
-            <select
+            <CustomSelect
+              label="Target Module Route"
+              searchable
               value={testRoute}
-              onChange={(e) => {
-                setTestRoute(e.target.value);
+              onChange={(val) => {
+                setTestRoute(val);
                 setSimulationResult(null);
               }}
-              className="w-full bg-[#FAF7F2] text-xs text-[#211B17] p-2.5 rounded-xl border border-[#EBE3DB] focus:outline-none focus:border-crm-brand-600 mt-1 cursor-pointer"
-            >
-              <option value="/hr/monthly-payroll" className="bg-white">/hr/monthly-payroll (HR & Payroll)</option>
-              <option value="/accounting/vouchers" className="bg-white">/accounting/vouchers (Accounting & Finance)</option>
-              <option value="/purchase/pos" className="bg-white">/purchase/pos (Purchase Management)</option>
-              <option value="/designer/boms" className="bg-white">/designer/boms (Design & Engineering)</option>
-              <option value="/store/inventory" className="bg-white">/store/inventory (Store & Warehouse)</option>
-              <option value="/production/planning" className="bg-white">/production/planning (Production & Shop Floor)</option>
-              <option value="/crm/leads" className="bg-white">/crm/leads (CRM & Sales)</option>
-              <option value="/projects/planning" className="bg-white">/projects/planning (Project Planning)</option>
-              <option value="/maintenance/breakdowns" className="bg-white">/maintenance/breakdowns (Maintenance & Breakdowns)</option>
-              <option value="/users" className="bg-white">/users (ERP Foundation / System Admin)</option>
-            </select>
+              options={[
+                { value: '/hr/monthly-payroll', label: '/hr/monthly-payroll (HR & Payroll)' },
+                { value: '/accounting/vouchers', label: '/accounting/vouchers (Accounting & Finance)' },
+                { value: '/purchase/pos', label: '/purchase/pos (Purchase Management)' },
+                { value: '/designer/boms', label: '/designer/boms (Design & Engineering)' },
+                { value: '/store/inventory', label: '/store/inventory (Store & Warehouse)' },
+                { value: '/production/planning', label: '/production/planning (Production & Shop Floor)' },
+                { value: '/crm/leads', label: '/crm/leads (CRM & Sales)' },
+                { value: '/projects/planning', label: '/projects/planning (Project Planning)' },
+                { value: '/maintenance/breakdowns', label: '/maintenance/breakdowns (Maintenance & Breakdowns)' },
+                { value: '/users', label: '/users (ERP Foundation / System Admin)' },
+              ]}
+            />
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-[#70665F]">Target Action Scope:</label>
-            <select
+            <CustomSelect
+              label="Target Action Scope"
               value={testAction}
-              onChange={(e) => {
-                setTestAction(e.target.value as any);
+              onChange={(val) => {
+                setTestAction(val as any);
                 setSimulationResult(null);
               }}
-              className="w-full bg-[#FAF7F2] text-xs text-[#211B17] p-2.5 rounded-xl border border-[#EBE3DB] focus:outline-none focus:border-crm-brand-600 mt-1 cursor-pointer"
-            >
-              <option value="read">READ (View Page)</option>
-              <option value="create">CREATE (Add Record)</option>
-              <option value="update">UPDATE (Edit Record)</option>
-              <option value="delete">DELETE (Remove Record)</option>
-              <option value="approve">APPROVE (Sign-off)</option>
-            </select>
+              options={[
+                { value: 'read', label: 'READ (View Page)' },
+                { value: 'create', label: 'CREATE (Add Record)' },
+                { value: 'update', label: 'UPDATE (Edit Record)' },
+                { value: 'delete', label: 'DELETE (Remove Record)' },
+                { value: 'approve', label: 'APPROVE (Sign-off)' },
+              ]}
+            />
           </div>
 
           <div className="flex items-end">
@@ -223,7 +225,7 @@ export default function RoleMatrixPage() {
               )}
               <div>
                 <div className="font-bold uppercase tracking-wider text-xs">
-                  {simulationResult.allowed ? '✅ ACCESS GRANTED' : '🛡️ ACCESS RESTRICTED (SECURITY RULE ENFORCED)'}
+                  {simulationResult.allowed ? 'Access Granted' : 'Access Restricted (Security Rule Enforced)'}
                 </div>
                 <div className="text-[11px] mt-0.5 opacity-90">
                   {simulationResult.reason}

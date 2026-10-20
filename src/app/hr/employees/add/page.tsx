@@ -11,6 +11,7 @@ import {
   ERPSelect,
   ERPCheckbox,
 } from '../../../../components/ui/ERPFormLayout';
+import { toast } from '../../../../context/ToastContext';
 
 const ALL_ERP_MODULES = [
   { id: 'crm', label: 'CRM & Sales' },
@@ -116,7 +117,7 @@ export default function AddEmployeePage() {
   const handleSubmit = (e?: React.FormEvent, isDraft = false) => {
     if (e) e.preventDefault();
     if (!isDraft && !validate()) {
-      alert('Please correct the validation errors before saving.');
+      toast.warning('Please correct the validation errors before saving.');
       return;
     }
 
@@ -161,10 +162,10 @@ export default function AddEmployeePage() {
         assignedModules: form.assignedModules,
       } as any);
 
-      alert(`Employee ${fullName} created successfully!`);
+      toast.success(`Employee ${fullName} created successfully!`);
       router.push('/hr/employees');
     } catch (err: any) {
-      alert(`Error creating employee: ${err.message || 'Unknown error'}`);
+      toast.error(`Error creating employee: ${err.message || 'Unknown error'}`);
     } finally {
       setSubmitting(false);
     }

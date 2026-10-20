@@ -5,6 +5,7 @@ import { useERP } from '../../../context/ERPContext';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
 import { NumberingSetting } from '../../../types/crm';
 import { INITIAL_NUMBERING } from '../../../data/dbStore';
+import { toast } from '@/context/ToastContext';
 import {
   Hash,
   Edit,
@@ -245,11 +246,17 @@ export default function NumberingSettingsPage() {
         <button
           type="button"
           onClick={() => {
-            if (confirm('Are you sure you want to restore all standard ERP document numbering series to default?')) {
-              resetNumbering();
-              setSavedMsg('Restored all document numbering rules to default ERP standard series.');
-              setTimeout(() => setSavedMsg(''), 3000);
-            }
+            toast.confirm({
+              title: 'Restore Default Numbering',
+              message: 'Are you sure you want to restore all standard ERP document numbering series to default?',
+              confirmText: 'Restore Defaults',
+              cancelText: 'Cancel',
+              variant: 'warning',
+              onConfirm: () => {
+                resetNumbering();
+                toast.success('Numbering Restored', 'Restored all document numbering rules to default ERP standard series.');
+              },
+            });
           }}
           className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg border border-slate-200 transition flex items-center gap-1.5 cursor-pointer"
           title="Reset series to default"

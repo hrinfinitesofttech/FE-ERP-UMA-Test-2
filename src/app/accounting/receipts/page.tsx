@@ -7,9 +7,10 @@ import {
   Coins, Plus, Search, Landmark, CheckCircle2, 
   ArrowUpRight, Download, Filter, Eye, Printer, 
   FileSpreadsheet, Calendar, User, ShieldCheck, X,
-  FileText, ArrowRight, AlertCircle, CreditCard, Wallet, Sparkles
+  FileText, ArrowRight, AlertCircle, CreditCard, Wallet, Sparkles, Trash2, Zap
 } from 'lucide-react';
 import { BankAccount, SalesInvoice } from '../../../types/accounting';
+import { toast } from '../../../context/ToastContext';
 
 function numberToIndianWords(num: number): string {
   if (!num || isNaN(num) || num <= 0) return 'Zero Rupees Only';
@@ -46,7 +47,7 @@ function numberToIndianWords(num: number): string {
 function CustomerReceiptsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { customerReceipts, addCustomerReceipt, customers, salesInvoices, bankAccounts } = useERP();
+  const { customerReceipts, addCustomerReceipt, deleteCustomerReceipt, customers, salesInvoices, bankAccounts } = useERP();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -206,19 +207,19 @@ function CustomerReceiptsContent() {
     e.preventDefault();
     const cust = customers.find((c) => c.id === customerId) || customers[0];
     if (!cust) {
-      alert('Please select a valid customer.');
+      toast.warning('Please select a valid customer.');
       return;
     }
 
     const bank = activeBankAccounts.find((b) => b.id === bankAccountId) || activeBankAccounts[0];
     if (!bank) {
-      alert('Please select a valid bank account.');
+      toast.warning('Please select a valid bank account.');
       return;
     }
 
     const numAmount = Number(amountPaid);
     if (!numAmount || numAmount <= 0) {
-      alert('Please enter a valid received amount greater than 0.');
+      toast.warning('Please enter a valid received amount greater than 0.');
       return;
     }
 
@@ -244,9 +245,10 @@ function CustomerReceiptsContent() {
       setAmountPaid('');
       setReferenceNo('');
       setNotes('');
+      toast.success(`Customer receipt recorded successfully!`);
     } catch (err) {
       console.error('Error recording customer receipt:', err);
-      alert('Failed to record receipt. Please check details.');
+      toast.error('Failed to record receipt. Please check details.');
     }
   };
 
@@ -442,13 +444,34 @@ function CustomerReceiptsContent() {
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-right">
-                        <button
-                          onClick={() => setSelectedReceipt(r)}
-                          className="p-1.5 hover:bg-[#FAF7F2] rounded-lg text-[#8B2500] hover:text-[#701E00] transition cursor-pointer"
-                          title="View Official Receipt Voucher"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => setSelectedReceipt(r)}
+                            className="p-1.5 hover:bg-[#FAF7F2] rounded-lg text-[#8B2500] hover:text-[#701E00] transition cursor-pointer"
+                            title="View Official Receipt Voucher"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              toast.confirm({
+                                title: 'Delete Receipt Voucher',
+                                message: `Are you sure you want to delete receipt ${r.receiptNumber}? This will reverse the customer invoice payment and deduct ₹${Number(r.amountPaid || r.amount || 0).toLocaleString('en-IN')} from the bank account.`,
+                                confirmText: 'Yes, Delete',
+                                cancelText: 'Cancel',
+                                variant: 'danger',
+                                onConfirm: () => {
+                                  deleteCustomerReceipt?.(r.id);
+                                  toast.success(`Receipt voucher ${r.receiptNumber} deleted.`);
+                                },
+                              });
+                            }}
+                            className="p-1.5 hover:bg-rose-50 rounded-lg text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                            title="Delete Receipt"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -597,9 +620,10 @@ function CustomerReceiptsContent() {
                       <button
                         type="button"
                         onClick={handleFillFullDue}
-                        className="text-[11px] font-bold text-[#8B2500] hover:text-[#701E00] bg-white px-2.5 py-1 rounded-lg border border-amber-300 shadow-2xs hover:bg-amber-50 cursor-pointer flex items-center gap-1"
+                        className="text-[11px] font-bold text-[#8B2500] hover:text-[#701E00] bg-white px-2.5 py-1 rounded-lg border border-amber-300 shadow-2xs hover:bg-amber-50 cursor-pointer flex items-center gap-1.5"
                       >
-                        ⚡ Settle Full Balance (₹{invoiceStats.outstandingDue.toLocaleString('en-IN')})
+                        <Zap className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Settle Full Balance (₹{invoiceStats.outstandingDue.toLocaleString('en-IN')})</span>
                       </button>
                     </div>
                   )}

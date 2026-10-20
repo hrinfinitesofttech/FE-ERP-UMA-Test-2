@@ -7,6 +7,7 @@ import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPage
 import { Supplier } from '../../../types/purchase';
 import { formatDate } from '../../../lib/utils';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { toast } from '../../../context/ToastContext';
 
 export default function SupplierMasterListPage() {
   const router = useRouter();
@@ -18,9 +19,17 @@ export default function SupplierMasterListPage() {
 
   const handleDelete = (s: Supplier) => {
     const name = s.supplierName || s.name || s.vendorCode;
-    if (confirm(`Are you sure you want to delete vendor "${name}"? This action cannot be undone.`)) {
-      deleteSupplier(s.id);
-    }
+    toast.confirm({
+      title: 'Delete Vendor',
+      message: `Are you sure you want to delete vendor "${name}"? This action cannot be undone.`,
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel',
+      variant: 'danger',
+      onConfirm: () => {
+        deleteSupplier(s.id);
+        toast.success(`Vendor "${name}" deleted successfully.`);
+      },
+    });
   };
 
   const handleEdit = (s: Supplier) => {

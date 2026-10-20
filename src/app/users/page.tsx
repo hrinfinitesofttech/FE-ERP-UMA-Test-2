@@ -43,6 +43,7 @@ import { EmployeeFormModal } from '../../components/employees/EmployeeFormModal'
 import { PermissionMatrixModal } from '../../components/employees/PermissionMatrixModal';
 import { EmployeeProfileModal } from '../../components/employees/EmployeeProfileModal';
 import { ERPListPageLayout } from '../../components/ui/ERPListPageLayout';
+import { CustomSelect } from '../../components/ui/CustomSelect';
 
 export default function UsersPage() {
   const {
@@ -270,9 +271,10 @@ export default function UsersPage() {
           {Array.isArray(emp.explicitRestrictions) && emp.explicitRestrictions.length > 0 && (
             <span
               title="Active explicit restrictions"
-              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 text-[9px] font-bold mt-0.5 border border-rose-200"
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 text-[9px] font-bold mt-0.5 border border-rose-200"
             >
-              🚫 Restricted
+              <Lock className="w-2.5 h-2.5 text-rose-600" />
+              <span>Restricted</span>
             </span>
           )}
         </div>
@@ -600,7 +602,7 @@ export default function UsersPage() {
     try {
       const result = await resetEmployeePassword(resetModalEmployee.id, newPassword);
       setActionSuccess(
-        `✓ Password updated for ${resetModalEmployee.firstName} ${resetModalEmployee.lastName} (@${resetModalEmployee.username})! New password: "${newPassword}"`
+        `Password updated for ${resetModalEmployee.firstName} ${resetModalEmployee.lastName} (@${resetModalEmployee.username})! New password: "${newPassword}"`
       );
       setResetModalEmployee(null);
       setTimeout(() => setActionSuccess(''), 6000);
@@ -694,7 +696,7 @@ export default function UsersPage() {
           </div>
           <p className="text-xl font-extrabold text-amber-900">{reviewRequiredCount}</p>
           <span className="text-[10px] text-amber-700">
-            {filterReviewRequiredOnly ? '✓ Filter applied (click to reset)' : 'Department transferred staff'}
+            {filterReviewRequiredOnly ? 'Filter active (click to reset)' : 'Department transferred staff'}
           </span>
         </div>
       </div>
@@ -747,61 +749,68 @@ export default function UsersPage() {
 
       {/* Department & Role Quick Filter Pills */}
       <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-xs flex flex-wrap items-center gap-2.5">
-        <select
-          suppressHydrationWarning
+        <CustomSelect
+          size="sm"
           value={selectedDept}
-          onChange={(e) => setSelectedDept(e.target.value)}
-          className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-700 font-medium focus:outline-none focus:border-[#7C3AED]"
-        >
-          <option value="all">All Departments</option>
-          {isMounted &&
-            (departments || []).map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name || d.departmentName}
-              </option>
-            ))}
-        </select>
+          onChange={(val) => setSelectedDept(val)}
+          searchable
+          className="w-48"
+          options={[
+            { value: 'all', label: 'All Departments' },
+            ...(isMounted && departments
+              ? departments.map((d) => ({
+                  value: d.id,
+                  label: d.name || d.departmentName || '',
+                }))
+              : []),
+          ]}
+        />
 
-        <select
-          suppressHydrationWarning
+        <CustomSelect
+          size="sm"
           value={selectedRole}
-          onChange={(e) => setSelectedRole(e.target.value)}
-          className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-700 font-medium focus:outline-none focus:border-[#7C3AED]"
-        >
-          <option value="all">All Roles</option>
-          {isMounted &&
-            (roles || []).map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name}
-              </option>
-            ))}
-        </select>
+          onChange={(val) => setSelectedRole(val)}
+          searchable
+          className="w-44"
+          options={[
+            { value: 'all', label: 'All Roles' },
+            ...(isMounted && roles
+              ? roles.map((r) => ({
+                  value: r.id,
+                  label: r.name,
+                }))
+              : []),
+          ]}
+        />
 
-        <select
-          suppressHydrationWarning
+        <CustomSelect
+          size="sm"
           value={selectedDesignation}
-          onChange={(e) => setSelectedDesignation(e.target.value)}
-          className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-700 font-medium focus:outline-none focus:border-[#7C3AED]"
-        >
-          <option value="all">All Designations</option>
-          {isMounted &&
-            availableDesignations.map((desig) => (
-              <option key={desig} value={desig}>
-                {desig}
-              </option>
-            ))}
-        </select>
+          onChange={(val) => setSelectedDesignation(val)}
+          searchable
+          className="w-48"
+          options={[
+            { value: 'all', label: 'All Designations' },
+            ...(isMounted
+              ? availableDesignations.map((desig) => ({
+                  value: desig,
+                  label: desig,
+                }))
+              : []),
+          ]}
+        />
 
-        <select
-          suppressHydrationWarning
+        <CustomSelect
+          size="sm"
           value={selectedStatus}
-          onChange={(e) => setSelectedStatus(e.target.value)}
-          className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-700 font-medium focus:outline-none focus:border-[#7C3AED]"
-        >
-          <option value="all">All Status</option>
-          <option value="active">Active Only</option>
-          <option value="inactive">Inactive Only</option>
-        </select>
+          onChange={(val) => setSelectedStatus(val)}
+          className="w-36"
+          options={[
+            { value: 'all', label: 'All Status' },
+            { value: 'active', label: 'Active Only' },
+            { value: 'inactive', label: 'Inactive Only' },
+          ]}
+        />
 
         {(selectedDept !== 'all' ||
           selectedRole !== 'all' ||

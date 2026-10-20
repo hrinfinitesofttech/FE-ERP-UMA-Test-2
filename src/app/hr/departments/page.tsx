@@ -19,6 +19,7 @@ import {
   Search,
   Loader2,
 } from 'lucide-react';
+import { toast } from '../../../context/ToastContext';
 import { Department } from '../../../types/crm';
 
 export default function DepartmentsPage() {
@@ -355,10 +356,18 @@ export default function DepartmentsPage() {
   };
 
   const handleDelete = (id: string, name: string) => {
-    if (confirm(`Are you sure you want to delete department "${name}"?`)) {
-      deleteDepartment(id);
-      if (viewStaffDept?.id === id) setViewStaffDept(null);
-    }
+    toast.confirm({
+      title: 'Delete Department',
+      message: `Are you sure you want to delete department "${name}"?`,
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel',
+      variant: 'danger',
+      onConfirm: () => {
+        deleteDepartment(id);
+        if (viewStaffDept?.id === id) setViewStaffDept(null);
+        toast.success(`Department "${name}" deleted successfully.`);
+      },
+    });
   };
 
   return (

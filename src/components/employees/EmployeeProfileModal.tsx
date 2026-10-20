@@ -465,9 +465,10 @@ export function EmployeeProfileModal({
                     {explicitRestrictions.map((restr: string, idx: number) => (
                       <span
                         key={idx}
-                        className="px-2.5 py-1 rounded-md bg-rose-100 text-rose-800 font-mono text-[11px] font-bold border border-rose-300 flex items-center gap-1"
+                        className="px-2.5 py-1 rounded-md bg-rose-100 text-rose-800 font-mono text-[11px] font-bold border border-rose-300 flex items-center gap-1.5"
                       >
-                        🚫 {restr}
+                        <ShieldAlert className="w-3 h-3 text-rose-600" />
+                        <span>{restr}</span>
                       </span>
                     ))}
                   </div>

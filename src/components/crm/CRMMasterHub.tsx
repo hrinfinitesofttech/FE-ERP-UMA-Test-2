@@ -9,6 +9,7 @@ import { CustomSelect } from '../ui/CustomSelect';
 import { StatusBadge } from '../workflow/StatusBadge';
 import { Lead, LeadStatus, LeadSource, PriorityLevel, Employee } from '../../types/crm';
 import { formatCurrency, formatDate } from '../../lib/utils';
+import { toast } from '../../context/ToastContext';
 import {
   UserPlus,
   FileText,
@@ -153,7 +154,7 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
       setTimeout(() => setSuccessMsg(''), 4000);
     } catch (err: any) {
       console.error('Failed to update lead:', err);
-      alert('Failed to update lead: ' + (err?.message || 'Unknown error'));
+      toast.error('Failed to update lead: ' + (err?.message || 'Unknown error'));
     } finally {
       setIsSavingEdit(false);
     }
@@ -170,7 +171,7 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
       setTimeout(() => setSuccessMsg(''), 4000);
     } catch (err: any) {
       console.error('Failed to delete lead:', err);
-      alert('Error deleting lead: ' + (err?.message || 'Server error'));
+      toast.error('Error deleting lead: ' + (err?.message || 'Server error'));
     } finally {
       setIsDeleting(false);
     }

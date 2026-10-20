@@ -1,12 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { PurchaseInvoice } from '../../../types/accounting';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
+import { toast } from '../../../context/ToastContext';
 import { FileText, Search, Plus, Filter, CheckCircle2, Clock, Eye, Download, Building, ShieldCheck, Scale } from 'lucide-react';
 
 export default function PurchaseInvoicesPage() {
+  const router = useRouter();
   const { purchaseInvoices, addPurchaseInvoice, postPurchaseInvoice, suppliers, goodsReceipts, purchaseOrders } = useERP();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('All');
@@ -98,7 +101,7 @@ export default function PurchaseInvoicesPage() {
       key: 'invoiceNumber',
       header: 'ERP PINV NO',
       isCodeLink: true,
-      onCodeClick: (inv) => alert(`Purchase Invoice: ${inv.invoiceNumber}\nSupplier: ${inv.supplierName}\nAmount: ₹${Number(inv.grandTotal || 0).toLocaleString('en-IN')}`),
+      onCodeClick: (inv) => toast.info(`Purchase Invoice: ${inv.invoiceNumber}\nSupplier: ${inv.supplierName}\nAmount: ₹${Number(inv.grandTotal || 0).toLocaleString('en-IN')}`),
     },
     {
       key: 'vendorInvoiceNumber',
@@ -192,8 +195,40 @@ export default function PurchaseInvoicesPage() {
       },
     },
     {
+      key: 'paymentStatus',
+      header: 'PAYMENT',
+      cell: (inv) => {
+        const grandTotal = Number(inv.grandTotal ?? (inv as any).grand_total ?? 0);
+        const paid = Number(inv.paidAmount ?? (inv as any).paid_amount ?? 0);
+        const due = Math.max(0, grandTotal - paid);
+        const isPaid = inv.paymentStatus === 'Paid' || (due === 0 && grandTotal > 0);
+        const isPartial = inv.paymentStatus === 'Partially Paid' || (paid > 0 && due > 0);
+
+        return (
+          <div className="space-y-0.5">
+            <span
+              className={`px-2 py-0.5 rounded text-[10px] font-bold inline-block ${
+                isPaid
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  : isPartial
+                  ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                  : 'bg-rose-50 text-rose-700 border border-rose-200'
+              }`}
+            >
+              {isPaid ? 'Paid' : isPartial ? 'Partially Paid' : 'Unpaid'}
+            </span>
+            {due > 0 && (
+              <div className="text-[10px] text-slate-500 font-mono">
+                Due: ₹{Math.round(due).toLocaleString('en-IN')}
+              </div>
+            )}
+          </div>
+        );
+      },
+    },
+    {
       key: 'status',
-      header: 'STATUS',
+      header: 'POSTING',
       cell: (inv) => {
         const isPosted = inv.status === 'Posted' || (inv.status as string)?.toLowerCase() === 'posted';
         return (
@@ -214,18 +249,43 @@ export default function PurchaseInvoicesPage() {
       header: 'ACTIONS',
       cell: (inv) => {
         const isPosted = inv.status === 'Posted' || (inv.status as string)?.toLowerCase() === 'posted';
-        return !isPosted ? (
-          <button
-            type="button"
-            onClick={() => postPurchaseInvoice(inv.id || inv.invoiceNumber || (inv as any).invoice_number)}
-            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-semibold rounded-lg transition shadow-xs cursor-pointer"
-          >
-            Post to Ledger
-          </button>
-        ) : (
-          <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold text-[10px]">
-            <CheckCircle2 className="w-3.5 h-3.5" /> Posted
-          </span>
+        const grandTotal = Number(inv.grandTotal ?? (inv as any).grand_total ?? 0);
+        const paid = Number(inv.paidAmount ?? (inv as any).paid_amount ?? 0);
+        const due = Math.max(0, grandTotal - paid);
+        const isPaid = inv.paymentStatus === 'Paid' || (due === 0 && grandTotal > 0);
+
+        return (
+          <div className="flex items-center gap-1.5">
+            {!isPosted && (
+              <button
+                type="button"
+                onClick={() => postPurchaseInvoice(inv.id || inv.invoiceNumber || (inv as any).invoice_number)}
+                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-semibold rounded-lg transition shadow-xs cursor-pointer"
+              >
+                Post
+              </button>
+            )}
+            {!isPaid && (
+              <button
+                type="button"
+                onClick={() =>
+                  router.push(
+                    `/accounting/payments?supplierId=${encodeURIComponent(inv.supplierId || '')}&invoiceNo=${encodeURIComponent(
+                      inv.invoiceNumber || inv.id || ''
+                    )}&amount=${due}`
+                  )
+                }
+                className="px-2.5 py-1 bg-[#211B17] hover:bg-black text-white text-[10px] font-bold rounded-lg transition shadow-xs cursor-pointer"
+              >
+                Pay Bill
+              </button>
+            )}
+            {isPaid && (
+              <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold text-[10px]">
+                <CheckCircle2 className="w-3.5 h-3.5" /> Cleared
+              </span>
+            )}
+          </div>
         );
       },
     },

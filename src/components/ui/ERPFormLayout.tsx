@@ -16,6 +16,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { CustomSelect } from './CustomSelect';
 
 export interface ERPFormSectionProps {
   number?: string | number; // e.g. "1." or "2."
@@ -153,7 +154,7 @@ export function ERPInput({
   );
 }
 
-// Standard Form Select
+// Standard Form Select powered by modern CustomSelect
 export function ERPSelect({
   label,
   required,
@@ -169,7 +170,7 @@ export function ERPSelect({
   label: string;
   required?: boolean;
   value: string | number;
-  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLSelectElement> | any) => void;
   options: { label: string; value: string | number }[];
   disabled?: boolean;
   error?: string;
@@ -178,39 +179,22 @@ export function ERPSelect({
   prefix?: React.ReactNode;
 }) {
   return (
-    <div className={cn('flex flex-col space-y-1', className)}>
-      <label className="text-[11.5px] font-semibold text-[#475569] flex items-center gap-0.5">
-        <span>{label}</span>
-        {required && <span className="text-rose-500 font-bold">*</span>}
-      </label>
-      <div className="relative flex items-center">
-        {prefix && (
-          <div className="absolute left-3 text-xs text-[#64748B] pointer-events-none font-medium">
-            {prefix}
-          </div>
-        )}
-        <select
-          name={name}
-          value={value ?? ''}
-          onChange={onChange}
-          disabled={disabled}
-          className={cn(
-            'w-full py-2 px-3 text-xs bg-white border rounded-lg text-[#1E293B] transition shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] cursor-pointer appearance-none pr-8',
-            prefix ? 'pl-8' : '',
-            disabled ? 'bg-[#F8FAFC] text-[#94A3B8] cursor-not-allowed border-[#E2E8F0]' : 'border-[#CBD5E1]',
-            error ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200' : ''
-          )}
-        >
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        <ChevronDown className="w-3.5 h-3.5 absolute right-3 text-[#94A3B8] pointer-events-none" />
-      </div>
-      {error && <span className="text-[10.5px] text-rose-500 font-medium">{error}</span>}
-    </div>
+    <CustomSelect
+      label={label}
+      required={required}
+      value={value}
+      onChange={(selectedVal, event) => {
+        if (onChange) {
+          onChange(event || { target: { value: selectedVal, name: name || '' } });
+        }
+      }}
+      options={options}
+      disabled={disabled}
+      error={error}
+      className={className}
+      name={name}
+      prefix={prefix}
+    />
   );
 }
 

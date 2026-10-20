@@ -13,6 +13,7 @@ import {
   Award,
   Clock,
   ChevronRight,
+  X,
 } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 
@@ -85,7 +86,7 @@ export default function ReleaseNotesPage() {
             <Award className="w-7 h-7" />
           </div>
           <h2 className="text-xl font-extrabold text-emerald-400 tracking-wider">
-            🎉 UMA TECHNO FAB MANUFACTURING ERP IS LIVE IN PRODUCTION! 🎉
+            UMA TECHNO FAB MANUFACTURING ERP IS LIVE IN PRODUCTION
           </h2>
           <p className="text-xs text-[#544B45] max-w-2xl mx-auto">
             All 11 Core Modules have been audited, validated, verified and approved. The system is 100% operational for daily business transactions, job tracking, and financial ledgers.
@@ -150,8 +151,12 @@ export default function ReleaseNotesPage() {
                 <Rocket className="w-4 h-4 text-crm-brand-500" />
                 Production Go-Live Gatekeeper Sign-Off Checklist
               </div>
-              <button onClick={() => setGoLiveModalOpen(false)} className="text-[#70665F] hover:text-[#211B17] text-xs">
-                ✕
+              <button
+                type="button"
+                onClick={() => setGoLiveModalOpen(false)}
+                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] transition"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 

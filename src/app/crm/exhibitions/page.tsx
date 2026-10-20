@@ -7,6 +7,7 @@ import { useERP } from '../../../context/ERPContext';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
 import { Exhibition } from '../../../types/crm';
 import { formatCurrency, formatDate } from '../../../lib/utils';
+import { toast } from '@/context/ToastContext';
 import {
   Calendar,
   Plus,
@@ -24,7 +25,8 @@ import {
   FileText,
   Briefcase,
   ExternalLink,
-  UserPlus
+  UserPlus,
+  X,
 } from 'lucide-react';
 
 function ExhibitionsContent() {
@@ -167,9 +169,20 @@ function ExhibitionsContent() {
   };
 
   const handleDelete = (expo: Exhibition) => {
-    if (confirm(`Are you sure you want to delete exhibition "${expo.expoName}"?`)) {
-      deleteExhibition(expo.id);
-    }
+    toast.confirm({
+      title: 'Delete Exhibition',
+      message: `Are you sure you want to delete exhibition "${expo.expoName}"?`,
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel',
+      variant: 'danger',
+      onConfirm: () => {
+        deleteExhibition(expo.id);
+        toast.success(`Exhibition "${expo.expoName}" deleted`);
+      },
+    });
+
+
+
   };
 
   // Metrics summary
@@ -376,9 +389,9 @@ function ExhibitionsContent() {
               <button
                 type="button"
                 onClick={() => setShowEditModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-lg leading-none"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -555,9 +568,9 @@ function ExhibitionsContent() {
               <button
                 type="button"
                 onClick={() => setShowViewModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-lg leading-none"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
 

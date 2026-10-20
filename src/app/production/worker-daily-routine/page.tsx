@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useERP } from '../../../context/ERPContext';
 import { WorkerMaster, WorkerDailyRoutineEntry } from '../../../types/production';
 import { formatDate } from '../../../lib/utils';
+import { ERPDatePicker } from '../../../components/ui/ERPDatePicker';
 import {
   ClipboardList,
   Calendar,
@@ -317,7 +318,7 @@ export default function WorkerDailyRoutinePage() {
       updatedMap[w.id] = { ...entry, isVerified: true, updatedAt: new Date().toISOString() };
     });
     setDailyRoutines((prev) => ({ ...prev, [selectedDate]: updatedMap }));
-    showToast('All daily entries marked Verified (✓).');
+    showToast('All daily entries marked Verified.');
   };
 
   // Add Worker Submit
@@ -499,12 +500,14 @@ export default function WorkerDailyRoutinePage() {
               <span>DATE: {formattedDisplayDate}</span>
             </div>
 
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="px-2.5 py-1 bg-white/20 text-white text-xs font-mono font-semibold rounded-lg border border-white/20 focus:outline-none focus:ring-1 focus:ring-amber-400"
-            />
+            <div className="w-36">
+              <ERPDatePicker
+                value={selectedDate}
+                onChange={(val) => val && setSelectedDate(val)}
+                size="sm"
+                buttonClassName="bg-white/20 text-white border-white/20 hover:bg-white/30 text-xs"
+              />
+            </div>
 
             <button
               onClick={handleNextDay}
@@ -567,7 +570,7 @@ export default function WorkerDailyRoutinePage() {
 
         <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs space-y-1 col-span-2 md:col-span-1">
           <div className="flex items-center justify-between text-blue-600">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Verified (✓)</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Verified</span>
             <CheckSquare className="w-4 h-4 text-blue-600" />
           </div>
           <div className="text-2xl font-black text-blue-700">
@@ -609,7 +612,7 @@ export default function WorkerDailyRoutinePage() {
               className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-300 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1 shadow-xs"
             >
               <Check className="w-3.5 h-3.5" />
-              <span>Verify All (✓)</span>
+              <span>Verify All</span>
             </button>
           </div>
         </div>
@@ -678,27 +681,27 @@ export default function WorkerDailyRoutinePage() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full min-w-full text-left border-collapse text-xs whitespace-nowrap">
             <thead>
-              <tr className="bg-slate-100 border-b-2 border-slate-800 text-slate-900 font-black uppercase text-xs tracking-wider">
-                <th className="py-2.5 px-3 w-14 text-center border-r border-slate-300">
+              <tr className="bg-slate-100 border-b-2 border-slate-800 text-slate-900 font-black uppercase text-xs tracking-wider whitespace-nowrap">
+                <th className="py-2.5 px-3 w-14 text-center border-r border-slate-300 whitespace-nowrap">
                   SL NO.
                 </th>
-                <th className="py-2.5 px-3.5 min-w-[200px] border-r border-slate-300">
+                <th className="py-2.5 px-3.5 min-w-[200px] border-r border-slate-300 whitespace-nowrap">
                   WORKER NAME
                 </th>
-                <th className="py-2.5 px-2 w-12 text-center border-r border-slate-300" title="Trade / Type">
+                <th className="py-2.5 px-2 w-12 text-center border-r border-slate-300 whitespace-nowrap" title="Trade / Type">
                   T
                 </th>
-                <th className="py-2.5 px-2 w-14 text-center border-r border-slate-300" title="Shift / Status">
+                <th className="py-2.5 px-2 w-14 text-center border-r border-slate-300 whitespace-nowrap" title="Shift / Status">
                   S
                 </th>
-                <th className="py-2.5 px-4 min-w-[420px] border-r border-slate-300">
+                <th className="py-2.5 px-4 min-w-[420px] border-r border-slate-300 whitespace-nowrap">
                   DAILY ROUTINE WORK / JOB DETAILS
                 </th>
-                <th className="py-2.5 px-3 w-20 text-center print:hidden">
-                  VERIFIED (✓)
+                <th className="py-2.5 px-3 w-20 text-center print:hidden whitespace-nowrap">
+                  VERIFIED
                 </th>
               </tr>
             </thead>
@@ -726,11 +729,11 @@ export default function WorkerDailyRoutinePage() {
                       }`}
                     >
                       {/* 1. SL NO. (Serial Number) */}
-                      <td className="py-2.5 px-3 text-center font-mono font-bold text-slate-700 border-r border-slate-300 align-top">
-                        <div className="flex items-center justify-center gap-1">
+                      <td className="py-2.5 px-3 text-center font-mono font-bold text-slate-700 border-r border-slate-300 align-top whitespace-nowrap">
+                        <div className="flex items-center justify-center gap-1 whitespace-nowrap">
                           {/* Checked Checkmark icon on left edge just like handwriting on sheet */}
                           {isVerified ? (
-                            <span className="text-emerald-700 font-bold text-sm">✓</span>
+                            <Check className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
                           ) : (
                             <span className="text-slate-300 text-xs">•</span>
                           )}
@@ -739,25 +742,25 @@ export default function WorkerDailyRoutinePage() {
                       </td>
 
                       {/* 2. NAME (Worker Name + Trade Badge) */}
-                      <td className="py-2.5 px-3.5 border-r border-slate-300 align-top">
-                        <div className="space-y-0.5">
+                      <td className="py-2.5 px-3.5 border-r border-slate-300 align-top whitespace-nowrap">
+                        <div className="space-y-0.5 whitespace-nowrap">
                           <span
-                            className={`font-black tracking-wide block text-xs ${
+                            className={`font-black tracking-wide block text-xs whitespace-nowrap ${
                               isAbsent ? 'text-rose-900 line-through opacity-80' : 'text-slate-900'
                             }`}
                           >
                             {worker.workerName}
                           </span>
-                          <span className="text-[10px] text-slate-500 font-mono block">
+                          <span className="text-[10px] text-slate-500 font-mono block whitespace-nowrap">
                             {worker.trade}
                           </span>
                         </div>
                       </td>
 
                       {/* 3. T (Trade / Type Code) */}
-                      <td className="py-2.5 px-2 text-center font-mono font-bold text-slate-600 border-r border-slate-300 align-top">
+                      <td className="py-2.5 px-2 text-center font-mono font-bold text-slate-600 border-r border-slate-300 align-top whitespace-nowrap">
                         <span
-                          className="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] border border-slate-200"
+                          className="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] border border-slate-200 whitespace-nowrap"
                           title={worker.trade}
                         >
                           {worker.trade.slice(0, 3).toUpperCase()}
@@ -765,11 +768,11 @@ export default function WorkerDailyRoutinePage() {
                       </td>
 
                       {/* 4. S (Shift / Status: P / A / HD) */}
-                      <td className="py-2.5 px-2 text-center border-r border-slate-300 align-top font-mono">
+                      <td className="py-2.5 px-2 text-center border-r border-slate-300 align-top font-mono whitespace-nowrap">
                         <button
                           type="button"
                           onClick={() => handleToggleAbsent(worker.id)}
-                          className={`w-8 h-7 rounded font-black text-xs transition cursor-pointer border flex items-center justify-center mx-auto active:scale-95 ${
+                          className={`w-8 h-7 rounded font-black text-xs transition cursor-pointer border flex items-center justify-center mx-auto active:scale-95 whitespace-nowrap ${
                             isAbsent
                               ? 'bg-rose-600 text-white border-rose-700'
                               : isHalfDay
@@ -780,13 +783,13 @@ export default function WorkerDailyRoutinePage() {
                         >
                           {isAbsent ? 'A' : isHalfDay ? 'HD' : 'P'}
                         </button>
-                        <span className="text-[9px] text-slate-400 block mt-0.5">
+                        <span className="text-[9px] text-slate-400 block mt-0.5 whitespace-nowrap">
                           {isAbsent ? 'Absent' : isHalfDay ? 'Half Day' : 'Present'}
                         </span>
                       </td>
 
                       {/* 5. WORKER (Work Profile / Routine Job Description) */}
-                      <td className="py-2.5 px-4 border-r border-slate-300 align-top">
+                      <td className="py-2.5 px-4 border-r border-slate-300 align-top whitespace-normal allow-wrap">
                         {isAbsent ? (
                           <div className="flex items-center justify-between py-1 px-3 bg-rose-50 border border-rose-200 rounded-lg">
                             <span className="font-serif italic font-bold text-rose-700 text-sm tracking-wide">
@@ -833,9 +836,10 @@ export default function WorkerDailyRoutinePage() {
                               <button
                                 type="button"
                                 onClick={() => handleToggleAbsent(worker.id)}
-                                className="px-1.5 py-0.2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded text-[9.5px] font-bold transition cursor-pointer ml-auto"
+                                className="px-1.5 py-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded text-[9.5px] font-bold transition cursor-pointer ml-auto inline-flex items-center gap-1"
                               >
-                                ✕ Mark Absent
+                                <UserX className="w-2.5 h-2.5" />
+                                <span>Mark Absent</span>
                               </button>
                             </div>
                           </div>
@@ -843,11 +847,11 @@ export default function WorkerDailyRoutinePage() {
                       </td>
 
                       {/* 6. VERIFIED (Supervisor Checkmark ✓) */}
-                      <td className="py-2.5 px-3 text-center align-top print:hidden">
+                      <td className="py-2.5 px-3 text-center align-top print:hidden whitespace-nowrap">
                         <button
                           type="button"
                           onClick={() => handleToggleVerify(worker.id)}
-                          className={`w-8 h-8 rounded-xl border flex items-center justify-center mx-auto transition cursor-pointer active:scale-90 ${
+                          className={`w-8 h-8 rounded-xl border flex items-center justify-center mx-auto transition cursor-pointer active:scale-90 whitespace-nowrap ${
                             isVerified
                               ? 'bg-emerald-600 text-white border-emerald-700 shadow-xs'
                               : 'bg-slate-100 hover:bg-slate-200 text-slate-400 border-slate-300'
@@ -856,7 +860,7 @@ export default function WorkerDailyRoutinePage() {
                         >
                           <Check className="w-4 h-4" />
                         </button>
-                        <span className="text-[9.5px] text-slate-400 block mt-1 font-mono">
+                        <span className="text-[9.5px] text-slate-400 block mt-1 font-mono whitespace-nowrap">
                           {isVerified ? 'Checked' : 'Check'}
                         </span>
                       </td>

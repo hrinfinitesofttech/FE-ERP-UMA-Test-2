@@ -43,7 +43,13 @@ import {
   Workflow,
   Palette,
   Compass,
+  DraftingCompass,
   Box,
+  Warehouse,
+  Boxes,
+  ShoppingBag,
+  FolderKanban,
+  Trash2,
   FileSpreadsheet,
   GitBranch,
   FolderOpen,
@@ -411,7 +417,7 @@ export function Sidebar() {
                 )}
               </Link>
               <Link href="/crm/customer-po" className={subNavItemClass('/crm/customer-po')}>
-                <Briefcase className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <FileCheck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Customer POs</span>}
               </Link>
             </div>
@@ -433,7 +439,7 @@ export function Sidebar() {
               )}
             >
               <div className="flex items-center gap-2.5">
-                <Briefcase className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
+                <FolderKanban className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
                 <span>Project Management</span>
               </div>
               <ChevronDown
@@ -452,7 +458,7 @@ export function Sidebar() {
                 {!sidebarCollapsed && <span>Dashboard</span>}
               </Link>
               <Link href="/projects/list" className={subNavItemClass('/projects/list')}>
-                <Briefcase className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <FolderKanban className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Projects</span>
@@ -496,7 +502,7 @@ export function Sidebar() {
               )}
             >
               <div className="flex items-center gap-2.5">
-                <Palette className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
+                <DraftingCompass className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
                 <span>Designer & Engineering</span>
               </div>
               <ChevronDown
@@ -511,7 +517,7 @@ export function Sidebar() {
           {(designerOpen || sidebarCollapsed) && (
             <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[#E5DCD3] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
               <Link href="/designer/jobs" className={subNavItemClass('/designer/jobs')}>
-                <Palette className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Compass className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Design Jobs</span>
@@ -546,7 +552,7 @@ export function Sidebar() {
               )}
             >
               <div className="flex items-center gap-2.5">
-                <ShoppingCart className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
+                <ShoppingBag className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
                 <span>Purchase Management</span>
               </div>
               <ChevronDown
@@ -604,7 +610,7 @@ export function Sidebar() {
                 )}
               </Link>
               <Link href="/purchase/po" className={subNavItemClass('/purchase/po')}>
-                <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <ShoppingBag className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Purchase Orders & Approvals</span>
@@ -644,7 +650,7 @@ export function Sidebar() {
               )}
             >
               <div className="flex items-center gap-2.5">
-                <Box className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
+                <Warehouse className="w-4 h-4 text-crm-brand-700 flex-shrink-0" />
                 <span>Store & Warehouse</span>
               </div>
               <ChevronDown
@@ -680,7 +686,7 @@ export function Sidebar() {
                 {!sidebarCollapsed && <span>Item Categories</span>}
               </Link>
               <Link href="/store/uom" className={subNavItemClass('/store/uom')}>
-                <Compass className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Scale className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Units of Measurement</span>}
               </Link>
               <Link href="/store/grn" className={subNavItemClass('/store/grn')}>
@@ -716,11 +722,11 @@ export function Sidebar() {
                 {!sidebarCollapsed && <span>Material Return</span>}
               </Link>
               <Link href="/store/scrap" className={subNavItemClass('/store/scrap')}>
-                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Trash2 className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Scrap & Rejection</span>}
               </Link>
               <Link href="/store/reorder" className={subNavItemClass('/store/reorder')}>
-                <Zap className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Boxes className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Low Stock / Reorder</span>}
               </Link>
 

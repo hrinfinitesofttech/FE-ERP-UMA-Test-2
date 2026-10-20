@@ -442,7 +442,10 @@ export default function TaskManagementPage() {
               <Layers className="w-4 h-4 text-crm-brand-700" />
             </div>
             <div className="text-2xl font-bold text-[#211B17]">{masterTasks.length}</div>
-            <div className="text-[10px] text-emerald-700 mt-1 font-medium">✓ Stored in Central DB</div>
+            <div className="text-[10px] text-emerald-700 mt-1 font-medium flex items-center gap-1">
+              <Check className="w-2.5 h-2.5" />
+              <span>Stored in Central DB</span>
+            </div>
           </div>
 
           <div className="bg-white p-3.5 rounded-xl border border-[#EBE3DB] shadow-xs">
@@ -658,7 +661,14 @@ export default function TaskManagementPage() {
                               : 'bg-stone-100 text-stone-600 border border-stone-200'
                           )}
                         >
-                          {task.status === 'active' ? '✓ Active' : 'Inactive'}
+                          {task.status === 'active' ? (
+                            <>
+                              <Check className="w-2.5 h-2.5 text-emerald-600" />
+                              <span>Active</span>
+                            </>
+                          ) : (
+                            'Inactive'
+                          )}
                         </span>
                       </td>
                       <td className="py-2.5 px-3 text-right">

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Clock, User, ArrowRight, History } from 'lucide-react';
+import { Clock, User, ArrowRight, History, X } from 'lucide-react';
 import { SingleFieldHistoryEntry } from '@/types/versioning';
 import { formatDateTime } from '@/lib/utils';
 
@@ -46,10 +46,11 @@ export function FieldHistoryTooltip({
               <span>Edit History: {fieldLabel}</span>
             </div>
             <button
+              type="button"
               onClick={() => setIsOpen(false)}
-              className="text-slate-400 hover:text-slate-700 text-xs font-bold"
+              className="text-slate-400 hover:text-slate-700 p-0.5 rounded hover:bg-slate-100 transition"
             >
-              ✕
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
 
