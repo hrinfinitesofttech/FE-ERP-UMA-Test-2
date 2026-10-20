@@ -580,8 +580,8 @@ export interface TaskProgressLog {
   id: string;
   timestamp: string;
   supervisorName: string;
-  stageReached?: string; // "આ એટલે પહોંચ્યો"
-  workDoneDetails?: string; // "આનું કામ આટલું થયું"
+  stageReached?: string; // Current Stage / Bay reached
+  workDoneDetails?: string; // Work Done Details
   progressPercent: number;
   status: 'pending' | 'in_progress' | 'completed' | 'on_hold';
   workstationOrBay?: string;
@@ -601,8 +601,8 @@ export interface PlannedTaskItem {
   progressPercent: number;
   remarks?: string;
   // Supervisor tracking fields
-  workDoneDetails?: string; // "આનું કામ આટલું થયું"
-  stageReached?: string; // "આ એટલે પહોંચ્યો"
+  workDoneDetails?: string; // Work Done Details
+  stageReached?: string; // Current Stage / Bay reached
   workstationOrBay?: string;
   supervisorName?: string;
   lastUpdatedDate?: string;

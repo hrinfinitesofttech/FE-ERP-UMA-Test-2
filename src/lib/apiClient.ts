@@ -581,6 +581,67 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
     d.issued_to = d.issuedTo || d.issued_to || d.requestedBy || 'Production Head';
     d.issue_date = d.issueDate || d.issue_date || nowStr;
   }
+  // Accounting & Finance Normalization
+  else if (ep.includes('/sales-invoices')) {
+    d.invoiceNumber = d.invoiceNumber || d.invoice_number || d.id || `SINV-2026-${Date.now().toString().slice(-4)}`;
+    d.invoice_number = d.invoiceNumber;
+    d.invoiceDate = d.invoiceDate || d.invoice_date || d.date || nowStr;
+    d.invoice_date = d.invoiceDate;
+    d.customerId = d.customerId || d.customer_id || '';
+    d.customer_id = d.customerId;
+    d.customerName = d.customerName || d.customer_name || 'Valued Customer';
+    d.customer_name = d.customerName;
+    d.salesOrderNumber = d.salesOrderNumber || d.sales_order_number || '';
+    d.sales_order_number = d.salesOrderNumber;
+    d.grandTotal = d.grandTotal !== undefined ? Number(d.grandTotal) : (d.grand_total !== undefined ? Number(d.grand_total) : 0);
+    d.grand_total = d.grandTotal;
+    d.paidAmount = d.paidAmount !== undefined ? Number(d.paidAmount) : (d.paid_amount !== undefined ? Number(d.paid_amount) : 0);
+    d.paid_amount = d.paidAmount;
+    d.outstandingAmount = d.outstandingAmount !== undefined ? Number(d.outstandingAmount) : (d.outstanding_amount !== undefined ? Number(d.outstanding_amount) : Math.max(0, d.grandTotal - d.paidAmount));
+    d.outstanding_amount = d.outstandingAmount;
+  } else if (ep.includes('/customer-receipts')) {
+    d.receiptNumber = d.receiptNumber || d.receipt_number || d.id || `RCT-2026-${Date.now().toString().slice(-4)}`;
+    d.receipt_number = d.receiptNumber;
+    d.receiptDate = d.receiptDate || d.receipt_date || d.date || nowStr;
+    d.receipt_date = d.receiptDate;
+    d.date = d.receiptDate;
+    d.customerId = d.customerId || d.customer_id || '';
+    d.customer_id = d.customerId;
+    d.customerName = d.customerName || d.customer_name || 'Customer';
+    d.customer_name = d.customerName;
+    d.salesInvoiceNumber = d.salesInvoiceNumber || d.sales_invoice_number || '';
+    d.sales_invoice_number = d.salesInvoiceNumber;
+    const amt = d.amountPaid !== undefined ? Number(d.amountPaid) : (d.amount !== undefined ? Number(d.amount) : 0);
+    d.amount = amt;
+    d.amount_paid = amt;
+    d.amountPaid = amt;
+    d.paymentMode = d.paymentMode || d.payment_mode || 'Bank Transfer';
+    d.payment_mode = d.paymentMode;
+  } else if (ep.includes('/supplier-payments')) {
+    d.paymentNumber = d.paymentNumber || d.payment_number || d.id || `PAY-2026-${Date.now().toString().slice(-4)}`;
+    d.payment_number = d.paymentNumber;
+    d.paymentDate = d.paymentDate || d.payment_date || d.date || nowStr;
+    d.payment_date = d.paymentDate;
+    d.supplierId = d.supplierId || d.supplier_id || '';
+    d.supplier_id = d.supplierId;
+    d.supplierName = d.supplierName || d.supplier_name || 'Supplier';
+    d.supplier_name = d.supplierName;
+    d.purchaseInvoiceNumber = d.purchaseInvoiceNumber || d.purchase_invoice_number || '';
+    d.purchase_invoice_number = d.purchaseInvoiceNumber;
+    const amt = d.amountPaid !== undefined ? Number(d.amountPaid) : (d.amount !== undefined ? Number(d.amount) : 0);
+    d.amount = amt;
+    d.amount_paid = amt;
+    d.paymentMode = d.paymentMode || d.payment_mode || 'Bank Transfer';
+    d.payment_mode = d.paymentMode;
+  } else if (ep.includes('/contacts')) {
+    d.customerId = d.customerId || d.customer_id || '';
+    d.customer_id = d.customerId;
+    d.customerName = d.customerName || d.customer_name || '';
+    d.customer_name = d.customerName;
+    d.isPrimary = d.isPrimary !== undefined ? Boolean(d.isPrimary) : (d.is_primary !== undefined ? Boolean(d.is_primary) : false);
+    d.is_primary = d.isPrimary;
+    d.mobile = d.mobile || d.phone || '9999999999';
+  }
   return d;
 }
 
@@ -1770,6 +1831,20 @@ export const api = {
       post: (id: string) => request<any>(`/purchase-invoices/${id}/`, { method: 'PATCH', body: JSON.stringify({ status: 'Posted' }) }),
       recordPayment: (id: string, data: { amount: number; paymentMode?: string; referenceNumber?: string }) =>
         request<any>(`/purchase-invoices/${id}/record-payment/`, { method: 'POST', body: JSON.stringify(data) }),
+    },
+    customerReceipts: {
+      list: () => request<any[]>('/customer-receipts/'),
+      get: (id: string) => request<any>(`/customer-receipts/${id}/`),
+      create: (data: any) => request<any>('/customer-receipts/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/customer-receipts/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/customer-receipts/${id}/`, { method: 'DELETE' }),
+    },
+    supplierPayments: {
+      list: () => request<any[]>('/supplier-payments/'),
+      get: (id: string) => request<any>(`/supplier-payments/${id}/`),
+      create: (data: any) => request<any>('/supplier-payments/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/supplier-payments/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/supplier-payments/${id}/`, { method: 'DELETE' }),
     },
     receipts: () => request<any[]>('/customer-receipts/'),
     payments: () => request<any[]>('/supplier-payments/'),

@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { SalesInvoice } from '../../../types/accounting';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
-import { Receipt, Search, Plus, Filter, CheckCircle2, Clock, Eye, Download, FileSpreadsheet, Building, Users, Printer, X, Coins } from 'lucide-react';
+import { Receipt, Search, Plus, Filter, CheckCircle2, Clock, Eye, Download, FileSpreadsheet, Building, Users, Printer, X, Coins, Sparkles } from 'lucide-react';
 
-export default function SalesInvoicesPage() {
+function SalesInvoicesContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { salesInvoices, addSalesInvoice, approveSalesInvoice, customers, salesOrders } = useERP();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('All');
@@ -30,6 +31,52 @@ export default function SalesInvoicesPage() {
   const [items, setItems] = useState<Array<{ description: string; hsnSac: string; qty: number | string; unitPrice: number | string; taxRate: number | string }>>([
     { description: 'Automated Hydraulic Scrap Baling Press 100-Ton', hsnSac: '8462', qty: 1, unitPrice: 3800000, taxRate: 18 },
   ]);
+
+  // Handle URL query params from Dispatch (Delivery Challans)
+  useEffect(() => {
+    const challanNo = searchParams.get('challanNo');
+    const custName = searchParams.get('customerName');
+    const jobNo = searchParams.get('jobNumber');
+    const veh = searchParams.get('vehicle');
+    const soId = searchParams.get('soId');
+
+    if (challanNo || custName || soId) {
+      if (soId) {
+        handleSelectSalesOrder(soId);
+      } else if (custName) {
+        const matched = customers.find(
+          (c) =>
+            c.companyName?.toLowerCase() === custName.toLowerCase() ||
+            (c as any).name?.toLowerCase() === custName.toLowerCase()
+        );
+        if (matched) {
+          setCustomerId(matched.id);
+          if (matched.gstin && !matched.gstin.startsWith('24')) {
+            setPlaceOfSupply('Other State (Interstate IGST)');
+          } else {
+            setPlaceOfSupply('Gujarat (24)');
+          }
+        }
+      }
+
+      if (challanNo) {
+        setItems([
+          {
+            description: `Goods Dispatched under Delivery Challan #${challanNo}${custName ? ' (' + custName + ')' : ''}${jobNo ? ' • Job: ' + jobNo : ''}${veh ? ' • Vehicle: ' + veh : ''}`,
+            hsnSac: '8462',
+            qty: 1,
+            unitPrice: 250000,
+            taxRate: 18,
+          },
+        ]);
+        if (jobNo) {
+          setSalesOrderNumber(jobNo);
+        }
+      }
+
+      setIsModalOpen(true);
+    }
+  }, [searchParams, customers, salesOrders]);
 
   // Handle Sales Order Selection - Automatically prefill Customer, Items, Rates & GST
   const handleSelectSalesOrder = (soIdOrNo: string) => {
@@ -796,5 +843,13 @@ export default function SalesInvoicesPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function SalesInvoicesPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-slate-500">Loading Sales Invoices...</div>}>
+      <SalesInvoicesContent />
+    </Suspense>
   );
 }

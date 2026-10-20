@@ -12443,7 +12443,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       priority: 'high',
       linkUrl: '/accounting/receipts',
     });
-    api.post('/customer-receipts/', newRec).catch((err) => console.warn('Failed to add customer receipt:', err));
+    api.accounting.customerReceipts.create(newRec).catch((err) => console.warn('Failed to add customer receipt:', err));
   };
 
   const addSupplierPayment = (pay: Omit<SupplierPayment, 'id' | 'paymentNumber'>) => {
@@ -12451,7 +12451,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     const newPay: SupplierPayment = { ...pay, id: paymentNumber, paymentNumber };
     setSupplierPayments((prev) => [newPay, ...prev]);
     logAction('CREATE', 'Accounting', 'Supplier Payments', newPay.id, `Recorded Payment ${newPay.paymentNumber} to ${newPay.supplierName} (₹${(newPay.amountPaid ?? 0)?.toLocaleString()})`);
-    api.post('/supplier-payments/', newPay).catch((err) => console.warn('Failed to add supplier payment:', err));
+    api.accounting.supplierPayments.create(newPay).catch((err) => console.warn('Failed to add supplier payment:', err));
   };
 
   const addJournalEntry = (jv: Omit<JournalEntry, 'id' | 'journalNumber'>) => {

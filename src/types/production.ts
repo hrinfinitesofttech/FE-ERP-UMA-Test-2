@@ -530,7 +530,7 @@ export interface DispatchOrder {
 }
 
 // ==========================================
-// WORK PROFILE DAILY ROUTINE (વર્કર ડેઇલી રૂટીન)
+// WORK PROFILE DAILY ROUTINE
 // ==========================================
 export interface WorkerMaster {
   id: string;
@@ -563,7 +563,7 @@ export interface WorkerDailyRoutineEntry {
 }
 
 // ==========================================
-// DELIVERY CHALLAN (ડીલેવરી ચલણ - MATCHING PHYSICAL SLIP)
+// DELIVERY CHALLAN (MATCHING PHYSICAL SLIP)
 // ==========================================
 export interface DeliveryChallanItem {
   srNo: number;

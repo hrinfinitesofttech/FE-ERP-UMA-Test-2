@@ -515,7 +515,7 @@ export default function ProjectPlanningPage() {
               className="px-2.5 py-1 text-white bg-amber-600 hover:bg-amber-700 border border-amber-600 rounded-lg transition cursor-pointer flex items-center gap-1 font-bold text-[11px] shadow-xs active:scale-95"
             >
               <Send className="w-3 h-3" />
-              <span>સેન્ડ</span>
+              <span>Send</span>
             </button>
           )}
 
@@ -835,12 +835,12 @@ export default function ProjectPlanningPage() {
                           onChange={(e) => handleUpdateTaskField(task.id, 'department', e.target.value)}
                           className="w-full px-2 py-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-semibold text-[#211B17] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                         >
-                          <option value="Production">Production (પ્રોડક્શન)</option>
-                          <option value="Design">Design (ડિઝાઇનિંગ)</option>
-                          <option value="Store">Store (સ્ટોર/મટિરિયલ)</option>
-                          <option value="Purchase">Purchase (ખરીદી)</option>
-                          <option value="Quality">Quality / QC (ક્વોલિટી)</option>
-                          <option value="Accounts">Accounts (એકાઉન્ટ)</option>
+                          <option value="Production">Production</option>
+                          <option value="Design">Design</option>
+                          <option value="Store">Store / Material</option>
+                          <option value="Purchase">Purchase</option>
+                          <option value="Quality">Quality / QC</option>
+                          <option value="Accounts">Accounts</option>
                         </select>
                       </td>
 
@@ -1127,7 +1127,7 @@ export default function ProjectPlanningPage() {
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>
-                    {viewingRecord.isDispatched ? 'Resend to Departments' : 'Send to Departments (સેન્ડ કરો)'}
+                    {viewingRecord.isDispatched ? 'Resend to Departments' : 'Send to Departments'}
                   </span>
                 </button>
 

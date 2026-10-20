@@ -549,7 +549,7 @@ export default function DispatchPage() {
             <Truck className="w-6 h-6 text-amber-600" />
             <span>Delivery Challan &amp; Gate-Out Pass</span>
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold border border-amber-300 font-mono">
-              ડીલેવરી ચલણ (Challan Slip)
+              Official Delivery Slip
             </span>
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -563,7 +563,7 @@ export default function DispatchPage() {
             className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Generate Delivery Challan (નવું ચલણ)</span>
+            <span>+ Generate Delivery Challan</span>
           </button>
           <Link
             href="/production/completion"
@@ -771,8 +771,16 @@ export default function DispatchPage() {
                           title="View Official Yellow Challan Slip"
                         >
                           <Eye className="w-3.5 h-3.5" />
-                          <span>View Slip (જુઓ)</span>
+                          <span>View Slip</span>
                         </button>
+                        <Link
+                          href={`/accounting/sales-invoices?challanNo=${encodeURIComponent(ch.challanNo)}&customerName=${encodeURIComponent(ch.customerName)}&jobNumber=${encodeURIComponent(ch.jobNumber || '')}&vehicle=${encodeURIComponent(ch.vehicleNumber || '')}`}
+                          className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold rounded-lg text-xs transition flex items-center gap-1 active:scale-95 cursor-pointer shadow-xs"
+                          title="Generate GST Tax Invoice"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-emerald-700" />
+                          <span>Invoice</span>
+                        </Link>
                         <button
                           onClick={() => handleOpenEdit(ch)}
                           className="p-1 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100"
@@ -811,7 +819,7 @@ export default function DispatchPage() {
                 </div>
                 <h3 className="text-base font-black text-white uppercase tracking-wider font-mono flex items-center gap-2">
                   <Truck className="w-4 h-4 text-amber-400" />
-                  <span>{editingChallanId ? 'Edit Delivery Challan' : 'Generate Delivery Challan (ડીલેવરી ચલણ)'}</span>
+                  <span>{editingChallanId ? 'Edit Delivery Challan' : 'Generate Delivery Challan'}</span>
                 </h3>
               </div>
 
@@ -877,7 +885,7 @@ export default function DispatchPage() {
                 {/* Challan No */}
                 <div>
                   <label className="block font-bold text-slate-800 mb-1">
-                    Ch. No (ચલણ નંબર): <span className="text-rose-500">*</span>
+                    Challan No: <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -892,7 +900,7 @@ export default function DispatchPage() {
                 {/* Date */}
                 <div>
                   <label className="block font-bold text-slate-800 mb-1">
-                    Date (તારીખ): <span className="text-rose-500">*</span>
+                    Date: <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="date"
@@ -906,7 +914,7 @@ export default function DispatchPage() {
                 {/* Copy Number */}
                 <div>
                   <label className="block font-bold text-slate-800 mb-1">
-                    Copy No (પ્રત નંબર):
+                    Copy No:
                   </label>
                   <select
                     value={formCopyNo}
@@ -954,7 +962,7 @@ export default function DispatchPage() {
                 {/* Delivery Address */}
                 <div className="md:col-span-2">
                   <label className="block font-bold text-slate-800 mb-1">
-                    Address (ડિલિવરી સ્થળ / સરનામું): <span className="text-rose-500">*</span>
+                    Address (Destination / Site): <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -983,7 +991,7 @@ export default function DispatchPage() {
                   {/* Vehicle Number (Prominent on slip: GJ-02.AT.3826) */}
                   <div>
                     <label className="block font-bold text-slate-800 mb-1">
-                      Vehicle No (વાહન નંબર): <span className="text-rose-500">*</span>
+                      Vehicle No: <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -1068,7 +1076,7 @@ export default function DispatchPage() {
                   {/* Department */}
                   <div>
                     <label className="block font-bold text-slate-800 mb-1">
-                      Department (ડિપાર્ટમેન્ટ):
+                      Department:
                     </label>
                     <input
                       type="text"
@@ -1120,9 +1128,9 @@ export default function DispatchPage() {
                       <tr className="bg-slate-100 border-b border-slate-300 font-black text-slate-900 uppercase text-[11px]">
                         <th className="p-2.5 w-16 border-r border-slate-300 text-center">Sr. No.</th>
                         <th className="p-2.5 min-w-[280px] border-r border-slate-300">
-                          Particulars (વર્ણન)
+                          Particulars
                         </th>
-                        <th className="p-2.5 w-28 border-r border-slate-300">Qty. (જથ્થો)</th>
+                        <th className="p-2.5 w-28 border-r border-slate-300">Qty.</th>
                         <th className="p-2.5 w-32 border-r border-slate-300">Amount / Unit</th>
                         <th className="p-2.5 w-12 text-center">Act</th>
                       </tr>
@@ -1254,12 +1262,21 @@ export default function DispatchPage() {
                   <span>{slipTheme === 'yellow' ? 'Yellow Paper Slip' : 'White Print'}</span>
                 </button>
 
+                <Link
+                  href={`/accounting/sales-invoices?challanNo=${encodeURIComponent(viewChallan.challanNo)}&customerName=${encodeURIComponent(viewChallan.customerName)}&jobNumber=${encodeURIComponent(viewChallan.jobNumber || '')}&vehicle=${encodeURIComponent(viewChallan.vehicleNumber || '')}`}
+                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+                  title="Create GST Tax Invoice for this delivery challan"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Create Tax Invoice</span>
+                </Link>
+
                 <button
                   onClick={() => window.print()}
                   className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
                 >
                   <Printer className="w-3.5 h-3.5" />
-                  <span>Print Challan (પ્રિન્ટ)</span>
+                  <span>Print Challan</span>
                 </button>
                 <button
                   onClick={() => setViewChallan(null)}

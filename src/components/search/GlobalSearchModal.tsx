@@ -432,7 +432,7 @@ export const ERP_PAGES_MASTER: PageItem[] = [
   },
   {
     id: 'page-prod-worker-daily-routine',
-    title: 'Worker Profile Daily Routine (વર્કર ડાયરી)',
+    title: 'Worker Profile Daily Routine',
     category: 'Production',
     path: '/production/worker-daily-routine',
     icon: FileText,

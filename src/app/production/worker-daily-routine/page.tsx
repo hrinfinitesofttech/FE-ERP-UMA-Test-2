@@ -70,44 +70,44 @@ const INITIAL_WORKER_MASTER: WorkerMaster[] = [
   { id: 'WRK-030', slNo: 30, workerName: 'JAGDISH PRAJAPATI', trade: 'Plate Marker', defaultShift: 'General', isActive: true },
 ];
 
-// Sample default work descriptions from the photo for initial display
+// Sample default work descriptions for initial display
 const SAMPLE_PREFILLED_ROUTINES: Record<string, string> = {
-  'WRK-001': 'UTF-26-138 ગ્લાસ ટાંકી ટોપિંગ, એંગલ - 4 Nos બેન્ડીંગ M.S. જીબી ૨૦ S.S. 304 રોલ બેન્ડીંગ - 1 Nos.',
+  'WRK-001': 'UTF-26-138 Glass tank topping, Angle - 4 Nos bending M.S. GB 20 S.S. 304 roll bending - 1 Nos.',
   'WRK-002': 'Absent',
   'WRK-003': 'Absent',
-  'WRK-004': '23-293 ગ્લાસ બિડિંગ, 26-127 સપોર્ટિંગ, 2 નંગ પાઇપ કટીંગ, 40x40 ની 2 નંગ પાઇપ કટીંગ...',
-  'WRK-005': '26-101 50x50 ની ડ્રોઇંગ પાઇપ કટીંગ, 6 નંગ પાઇપમાં હોલિંગ, 2 નંગ રિંગ બનાવ્યા, 35 નંગ પાઇપ કટીંગ...',
-  'WRK-006': 'સ્ટીલ કાર્બન રોલ - 2 Nos બેન્ડીંગ રોલિંગ - 1 નંગ મોડલ રોલિંગ પાટા રોલિંગ.',
-  'WRK-007': 'સ્ટીલ કાર્બન રોલ - 2 Nos વેલ્ડિંગ આર્ગોન, બોટમ મોડલ પટ્ટી માં આર્ગોન વેલ્ડિંગ.',
-  'WRK-008': 'બીમાર હોવાથી 1 વાગે ઘરે ગયો. એપ્લિકેશન સબમિટ કરી.',
-  'WRK-009': '26-128 100x50 ની એંગલ કટીંગ, 2 નંગ બેન્ડીંગ, 26-136 100x200 I બીમનાં સપોર્ટ કટીંગ અને હોલિંગ...',
-  'WRK-010': '26-101 2 નંગ સીલી નાં બેન્ડીંગ (લેસર કટીંગ) 2 નંગ સ્ટેન્ડ બનાવ્યા, 26-138 ચેનલ કટીંગ કામ ચાલુ.',
+  'WRK-004': '23-293 Glass beading, 26-127 Supporting, 2 Nos pipe cutting, 40x40 2 Nos pipe cutting...',
+  'WRK-005': '26-101 50x50 Drawing pipe cutting, 6 Nos pipe holing, 2 Nos rings fabricated, 35 Nos pipe cutting...',
+  'WRK-006': 'Steel carbon roll - 2 Nos bending & rolling - 1 No model rolling strip rolling.',
+  'WRK-007': 'Steel carbon roll - 2 Nos argon welding, bottom model strip argon welding.',
+  'WRK-008': 'Left at 1:00 PM due to illness. Leave application submitted.',
+  'WRK-009': '26-128 100x50 Angle cutting, 2 Nos bending, 26-136 100x200 I-beam support cutting & holing...',
+  'WRK-010': '26-101 2 Nos sealing bending (laser cut), 2 Nos stands fabricated, 26-138 channel cutting in progress.',
   'WRK-011': 'Absent',
-  'WRK-012': '25-49 ગ્લાસ બિડિંગ ચાર કટકામાં ગ્લાસ બિડિંગ ઓકે કર્યું, હોપરમાં ગ્લાસ બિડિંગ ઓકે...',
-  'WRK-013': '25-49 પાયાની પટ્ટી કટીંગ કરી રોલિંગ કરી, પાયા ફિટિંગ કામ ચાલુ.',
-  'WRK-014': '26-116 પ્લેટ કટીંગ કરી બ્રેકેટ બનાવ્યા, 26-45 સપોર્ટનું માર્કિંગ, ગ્રાઇન્ડિંગ અને કટીંગ.',
+  'WRK-012': '25-49 Glass beading in 4 sections completed OK, hopper glass beading OK...',
+  'WRK-013': '25-49 Base strip cut and rolled, base fitment work in progress.',
+  'WRK-014': '26-116 Plate cutting and bracket fabrication, 26-45 support marking, grinding and cutting.',
   'WRK-015': 'Absent',
-  'WRK-016': '26-75 શિફ્ટિંગ 1 નંગ વેલ્ડિંગ પૂરું, 1 વાગે રજા ઉપર બીમાર હોવાથી.',
-  'WRK-017': '26-116 6 નંગ પીન બનાવી ખોટા કર્યા, 26-10 ભુસ માં ખોલ્યા, 1 વાગે ઘરે ગયા.',
-  'WRK-018': 'પ્લાન્ટ માં હેલ્પર તરીકે રો મટિરિયલ શિફ્ટિંગ અને સફાઈ કામ કર્યું.',
-  'WRK-019': 'UTF-26-180, 181 - M.S. બોક્સ - 6 Nos આર્ક વેલ્ડિંગ. UTF-26-135 રોલ માં બહારથી વેલ્ડિંગ.',
-  'WRK-020': 'UTF-26-138 બોટમ 3mm પટ્ટી માં ગ્રાઇન્ડિંગ, UTF-26-129 ગ્રાઇન્ડિંગ અને બોલ્ટિંગ.',
-  'WRK-021': '26-130 1 નંગ ડિશ 10 ઇંચ માં વેલ્ડિંગ, 2 ડિશ માં 4 નંગ કનેક્શન વેલ્ડિંગ. 26-136 આર્ગોન વેલ્ડિંગ.',
-  'WRK-022': 'SS પ્લાન્ટ માં હેલ્પર, સાફ સફાઈ કરી, ડીલ મો.',
+  'WRK-016': '26-75 Shifting 1 No welding completed, left at 1:00 PM due to medical leave.',
+  'WRK-017': '26-116 6 Nos pins machined and prepared, 26-10 bush disassembly, left at 1:00 PM.',
+  'WRK-018': 'Plant helper - raw material shifting and housekeeping completed.',
+  'WRK-019': 'UTF-26-180, 181 - M.S. Box - 6 Nos arc welding. UTF-26-135 roll external welding.',
+  'WRK-020': 'UTF-26-138 Bottom 3mm strip grinding, UTF-26-129 grinding and bolting.',
+  'WRK-021': '26-130 1 No 10-inch dish welding, 2 dishes with 4 Nos connection welding. 26-136 argon welding.',
+  'WRK-022': 'SS Plant helper, cleaning and shopfloor maintenance.',
 };
 
-// Quick chips in Gujarati for rapid supervisor entry
-const GUJARATI_QUICK_CHIPS = [
-  'ગ્લાસ ટાંકી ટોપિંગ એંગલ બેન્ડીંગ (4 Nos)',
-  'પાઇપ કટીંગ અને ગ્રાઇન્ડિંગ',
-  'પ્લેટ કટીંગ અને બેન્ડીંગ કામ પૂરું',
-  'સીમ વેલ્ડિંગ અને જોઈન્ટ ટાંકા',
-  'આર્ગોન વેલ્ડિંગ (Argon Welding Done)',
-  'નોઝલ અને ફ્લેંજ ફિટમેન્ટ કમ્પ્લીટ',
-  'હાઇડ્રો અને એનડીટી ટેસ્ટ ક્લિયર',
-  'SS પ્લાન્ટ માં હેલ્પર, સાફ સફાઈ',
-  'બીમાર હોવાથી 1 વાગે ઘરે ગયો',
-  'ઓવરટાઇમ 2 કલાક કર્યો (2 Hrs OT)',
+// Quick chips for rapid supervisor entry
+const WORK_QUICK_CHIPS = [
+  'Glass tank topping angle bending (4 Nos)',
+  'Pipe cutting and grinding',
+  'Plate cutting and bending complete',
+  'Seam welding and tacking',
+  'TIG / Argon welding complete',
+  'Nozzle & flange fitment complete',
+  'Hydro & NDT test cleared',
+  'Shopfloor cleaning & shifting',
+  'Half day leave - sick',
+  '2 Hours Overtime completed',
 ];
 
 export default function WorkerDailyRoutinePage() {
@@ -431,7 +431,7 @@ export default function WorkerDailyRoutinePage() {
           </div>
           <h1 className="text-2xl font-black text-[#211B17] tracking-tight flex items-center gap-2">
             <ClipboardList className="w-6 h-6 text-amber-600" />
-            <span>Worker Profile Daily Routine (વર્કર ડેઇલી રૂટીન)</span>
+            <span>Worker Profile Daily Routine</span>
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold border border-amber-300 font-mono">
               ~100 Workers
             </span>
@@ -448,7 +448,7 @@ export default function WorkerDailyRoutinePage() {
             title="Print Routine Sheet matching physical form"
           >
             <Printer className="w-3.5 h-3.5 text-slate-600" />
-            <span>Print Sheet (પ્રિન્ટ)</span>
+            <span>Print Sheet</span>
           </button>
           <button
             onClick={() => setShowAddWorkerModal(true)}
@@ -537,7 +537,7 @@ export default function WorkerDailyRoutinePage() {
 
         <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs space-y-1">
           <div className="flex items-center justify-between text-emerald-600">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Present (હાજર)</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Present</span>
             <UserCheck className="w-4 h-4 text-emerald-600" />
           </div>
           <div className="text-2xl font-black text-emerald-700">{dayMetrics.present}</div>
@@ -546,7 +546,7 @@ export default function WorkerDailyRoutinePage() {
 
         <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs space-y-1">
           <div className="flex items-center justify-between text-rose-600">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Absent (ગેરહાજર)</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Absent</span>
             <UserX className="w-4 h-4 text-rose-600" />
           </div>
           <div className="text-2xl font-black text-rose-700">{dayMetrics.absent}</div>
@@ -624,8 +624,8 @@ export default function WorkerDailyRoutinePage() {
               className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-amber-500"
             >
               <option value="all">All Workers ({workers.length})</option>
-              <option value="Present">Present (હાજર) ({dayMetrics.present})</option>
-              <option value="Absent">Absent (ગેરહાજર) ({dayMetrics.absent})</option>
+              <option value="Present">Present ({dayMetrics.present})</option>
+              <option value="Absent">Absent ({dayMetrics.absent})</option>
               <option value="Half Day">Half Day ({dayMetrics.halfDay})</option>
             </select>
           </div>
@@ -649,8 +649,8 @@ export default function WorkerDailyRoutinePage() {
 
           {/* Quick preset chips to quickly click & paste */}
           <div className="hidden lg:flex items-center gap-1 ml-auto overflow-x-auto max-w-xl py-0.5">
-            <span className="text-[10px] text-slate-400 font-bold whitespace-nowrap">Gujarati Quick Words:</span>
-            {GUJARATI_QUICK_CHIPS.slice(0, 3).map((chip, cIdx) => (
+            <span className="text-[10px] text-slate-400 font-bold whitespace-nowrap">Quick Work Presets:</span>
+            {WORK_QUICK_CHIPS.slice(0, 3).map((chip, cIdx) => (
               <span
                 key={cIdx}
                 className="px-2 py-0.5 bg-amber-50 text-amber-900 border border-amber-200 rounded text-[10px] font-medium whitespace-nowrap cursor-default"
@@ -686,7 +686,7 @@ export default function WorkerDailyRoutinePage() {
                   SL NO.
                 </th>
                 <th className="py-2.5 px-3.5 min-w-[200px] border-r border-slate-300">
-                  NAME (કારીગરનું નામ)
+                  WORKER NAME
                 </th>
                 <th className="py-2.5 px-2 w-12 text-center border-r border-slate-300" title="Trade / Type">
                   T
@@ -695,7 +695,7 @@ export default function WorkerDailyRoutinePage() {
                   S
                 </th>
                 <th className="py-2.5 px-4 min-w-[420px] border-r border-slate-300">
-                  WORKER (ડેઇલી રૂટીન કાર્ય વર્ણન / Job Details)
+                  DAILY ROUTINE WORK / JOB DETAILS
                 </th>
                 <th className="py-2.5 px-3 w-20 text-center print:hidden">
                   VERIFIED (✓)
@@ -781,7 +781,7 @@ export default function WorkerDailyRoutinePage() {
                           {isAbsent ? 'A' : isHalfDay ? 'HD' : 'P'}
                         </button>
                         <span className="text-[9px] text-slate-400 block mt-0.5">
-                          {isAbsent ? 'ગેરહાજર' : isHalfDay ? 'અડધો' : 'હાજર'}
+                          {isAbsent ? 'Absent' : isHalfDay ? 'Half Day' : 'Present'}
                         </span>
                       </td>
 
@@ -809,16 +809,16 @@ export default function WorkerDailyRoutinePage() {
                               onChange={(e) =>
                                 handleUpdateRoutine(worker.id, 'workDetails', e.target.value)
                               }
-                              placeholder="દા.ત. UTF-26-138 4 Nos એંગલ કટીંગ, બેન્ડીંગ કામ પૂરું..."
+                              placeholder="e.g. UTF-26-138 4 Nos angle cutting, bending completed..."
                               className="w-full px-2.5 py-1.5 bg-slate-50/80 hover:bg-white focus:bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500 transition resize-y"
                             />
 
-                            {/* Gujarati Fast Chip Suggestions for this Worker */}
+                            {/* Fast Chip Suggestions for this Worker */}
                             <div className="flex flex-wrap items-center gap-1 print:hidden">
                               <span className="text-[9.5px] text-slate-400 font-semibold mr-0.5">
-                                + ક્વિક ટેક્સ્ટ:
+                                + Quick Select:
                               </span>
-                              {GUJARATI_QUICK_CHIPS.slice(0, 4).map((chip, chIdx) => (
+                              {WORK_QUICK_CHIPS.slice(0, 4).map((chip, chIdx) => (
                                 <button
                                   key={chIdx}
                                   type="button"
@@ -835,7 +835,7 @@ export default function WorkerDailyRoutinePage() {
                                 onClick={() => handleToggleAbsent(worker.id)}
                                 className="px-1.5 py-0.2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded text-[9.5px] font-bold transition cursor-pointer ml-auto"
                               >
-                                ✕ Absent કરો
+                                ✕ Mark Absent
                               </button>
                             </div>
                           </div>
@@ -888,7 +888,7 @@ export default function WorkerDailyRoutinePage() {
             <div className="bg-[#211B17] text-white p-4 flex items-center justify-between">
               <h3 className="text-sm font-bold flex items-center gap-2">
                 <Users className="w-4 h-4 text-amber-500" />
-                <span>Add New Shopfloor Worker (નવો વર્કર ઉમેરો)</span>
+                <span>Add New Shopfloor Worker</span>
               </h3>
               <button
                 type="button"
@@ -902,7 +902,7 @@ export default function WorkerDailyRoutinePage() {
             <form onSubmit={handleAddWorker} className="p-5 space-y-4 text-xs">
               <div>
                 <label className="block font-bold text-slate-800 mb-1">
-                  Worker Full Name (કારીગરનું પૂરું નામ) <span className="text-rose-500">*</span>
+                  Worker Full Name <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -916,22 +916,22 @@ export default function WorkerDailyRoutinePage() {
 
               <div>
                 <label className="block font-bold text-slate-800 mb-1">
-                  Trade / Skill (કામનો પ્રકાર / ટ્રેડ)
+                  Trade / Skill
                 </label>
                 <select
                   value={newWorkerTrade}
                   onChange={(e) => setNewWorkerTrade(e.target.value)}
                   className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl font-semibold focus:ring-2 focus:ring-amber-500 text-slate-900"
                 >
-                  <option value="Fitter">Fitter / Fabricator (ફિટર)</option>
-                  <option value="TIG / Argon Welder">TIG / Argon Welder (આર્ગોન વેલ્ડર)</option>
-                  <option value="MIG / Arc Welder">MIG / Arc Welder (વેલ્ડર)</option>
-                  <option value="Plasma / Cutting">Plasma / Laser Cutter (કટીંગ)</option>
-                  <option value="Plate Bending & Rolling">Plate Bending &amp; Rolling (રોલિંગ)</option>
-                  <option value="Lathe / Machinist">Lathe / Machinist (ટર્નર/મશીનિસ્ટ)</option>
-                  <option value="Surface Grinder">Surface Grinder (ગ્રાઇન્ડર)</option>
-                  <option value="Helper / Shifting">Helper / Housekeeping (હેલ્પર)</option>
-                  <option value="Crane Operator">Crane Operator (ક્રેન ઓપરેટર)</option>
+                  <option value="Fitter">Fitter / Fabricator</option>
+                  <option value="TIG / Argon Welder">TIG / Argon Welder</option>
+                  <option value="MIG / Arc Welder">MIG / Arc Welder</option>
+                  <option value="Plasma / Cutting">Plasma / Laser Cutter</option>
+                  <option value="Plate Bending & Rolling">Plate Bending &amp; Rolling</option>
+                  <option value="Lathe / Machinist">Lathe / Machinist</option>
+                  <option value="Surface Grinder">Surface Grinder</option>
+                  <option value="Helper / Shifting">Helper / Housekeeping</option>
+                  <option value="Crane Operator">Crane Operator</option>
                 </select>
               </div>
 
