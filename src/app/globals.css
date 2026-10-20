@@ -512,16 +512,71 @@ html.dark select option,
 @keyframes pageEnter {
   0% {
     opacity: 0;
-    transform: translateY(6px);
   }
   100% {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
 .animate-page-enter {
-  animation: pageEnter 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: pageEnter 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ========================================================================= */
+/* ENTERPRISE UNIVERSAL MODAL SYSTEM & VIEWPORT CENTERING ENGINE            */
+/* ========================================================================= */
+
+/* Prevent background document scrolling when any modal or dialog is open */
+body.erp-modal-open,
+body:has(.erp-modal-backdrop),
+body:has([data-erp-modal]) {
+  overflow: hidden !important;
+}
+
+/* Universal Full-Viewport Modal Backdrop Overlay */
+.erp-modal-backdrop,
+[data-erp-modal],
+.fixed.inset-0:has(> [class*="bg-white"]),
+.fixed.inset-0:has(> [class*="bg-stone"]),
+.fixed.inset-0:has(> [class*="bg-slate"]),
+.fixed.inset-0:has(> [class*="bg-[#"]),
+.fixed.inset-0:has(> [role="dialog"]),
+.fixed.inset-0:has(> form) {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  margin: 0 !important;
+  z-index: 9999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1rem !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  pointer-events: auto !important;
+}
+
+/* Universal Center-Anchored Modal Dialog Card */
+.erp-modal-backdrop > div:not([class*="fixed"]),
+.erp-modal-dialog,
+[data-erp-modal] > div:not([class*="fixed"]),
+.fixed.inset-0:has(> [class*="bg-white"]) > div:not([class*="fixed"]),
+.fixed.inset-0:has(> [class*="bg-stone"]) > div:not([class*="fixed"]),
+.fixed.inset-0:has(> [class*="bg-slate"]) > div:not([class*="fixed"]),
+.fixed.inset-0:has(> [class*="bg-[#"]) > div:not([class*="fixed"]),
+.fixed.inset-0:has(> [role="dialog"]) > div:not([class*="fixed"]),
+.fixed.inset-0:has(> form) > div:not([class*="fixed"]),
+.fixed.inset-0:has(> form) > form {
+  margin: auto !important;
+  position: relative !important;
+  z-index: 10000 !important;
+  max-height: calc(100dvh - 2rem) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 0, 0, 0.08) !important;
 }
 
 /* ========================================================================= */
@@ -713,5 +768,176 @@ select:disabled {
 .dropdown-popover-enter {
   animation: dropdownPopoverEnter 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* ==========================================================================
+   ENTERPRISE PRINT STYLESHEET (@media print)
+   ========================================================================== */
+
+@page {
+  size: A4 portrait;
+  margin: 10mm 8mm 10mm 8mm;
+}
+
+body.erp-print-landscape {
+  @page {
+    size: A4 landscape;
+    margin: 8mm 8mm 8mm 8mm;
+  }
+}
+
+@media print {
+  /* 1. Global Reset: Remove fixed viewport heights and scroll locks */
+  html,
+  body,
+  .crm-app,
+  #__next {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    font-size: 11pt !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 2. Hide all ERP navigation chrome, sidebars, headers, floating menus, dialog overlays */
+  aside,
+  header,
+  nav,
+  #sidebar,
+  #topbar,
+  .print\:hidden,
+  .no-print,
+  [data-print-hide],
+  .toast-container,
+  #toast-root,
+  .fixed.inset-0.z-50:not(:has(.erp-print-target)) {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* 3. When an isolated print target is active (body.erp-printing-active) */
+  body.erp-printing-active {
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  body.erp-printing-active * {
+    visibility: hidden !important;
+  }
+
+  body.erp-printing-active .erp-print-target,
+  body.erp-printing-active .erp-print-target * {
+    visibility: visible !important;
+  }
+
+  body.erp-printing-active .erp-print-target {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    overflow: visible !important;
+    display: block !important;
+    z-index: 9999999 !important;
+  }
+
+  /* Hide interactive elements inside target (buttons, icons, uploaders, dropdown carets) */
+  body.erp-printing-active .erp-print-target .print\:hidden,
+  body.erp-printing-active .erp-print-target .no-print,
+  body.erp-printing-active .erp-print-target button:not(.print\:block):not([data-print-keep]),
+  body.erp-printing-active .erp-print-target input[type="file"],
+  body.erp-printing-active .erp-print-target a[class*="bg-"]:not(.print\:block):not([data-print-keep]) {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* 4. Default Page/Report Print (when not in isolated target mode) */
+  body:not(.erp-printing-active) .crm-app > div,
+  body:not(.erp-printing-active) main {
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    display: block !important;
+  }
+
+  /* If a modal is open during standard print, isolate modal and hide main page behind it */
+  body:not(.erp-printing-active):has(.fixed.inset-0.z-50) main {
+    display: none !important;
+  }
+
+  body:not(.erp-printing-active) .fixed.inset-0.z-50 {
+    position: static !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+
+  body:not(.erp-printing-active) .fixed.inset-0.z-50 > div {
+    max-height: none !important;
+    overflow: visible !important;
+    border: none !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* 5. Typography & Table Page-Break Protection */
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  tr, td, th {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  tfoot {
+    display: table-footer-group !important;
+  }
+
+  .print-avoid-break,
+  .erp-print-avoid-break,
+  .signature-box,
+  .signature-section {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .print-page-break {
+    page-break-before: always !important;
+    break-before: always !important;
+  }
+
+  /* Remove box shadows and rounded card borders that look murky on paper */
+  .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl, .shadow-xs, .shadow-2xs {
+    box-shadow: none !important;
+  }
+}
+
 
 

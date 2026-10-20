@@ -44,7 +44,7 @@ export default function AccountingSettingsPage() {
                   {fy.status === 'Active' ? (
                     <button
                       onClick={() => closeFinancialYear(fy.id, 'Super Admin')}
-                      className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-[#211B17] text-xs font-semibold transition"
+                      className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-xs transition cursor-pointer"
                     >
                       Close Year
                     </button>

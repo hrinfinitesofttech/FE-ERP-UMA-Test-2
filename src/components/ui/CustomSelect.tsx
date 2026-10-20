@@ -65,7 +65,7 @@ export function CustomSelect({
   // Extract options from props or children (<option> tags)
   const options: SelectOption[] = useMemo(() => {
     if (propOptions && propOptions.length > 0) {
-      return propOptions;
+      return propOptions.filter(Boolean);
     }
     const extracted: SelectOption[] = [];
     React.Children.forEach(children, (child) => {
@@ -80,12 +80,12 @@ export function CustomSelect({
         });
       }
     });
-    return extracted;
+    return extracted.filter(Boolean);
   }, [propOptions, children]);
 
   // Find currently selected option
   const selectedOption = useMemo(() => {
-    return options.find((opt) => String(opt.value) === String(value));
+    return options.find((opt) => opt && String(opt.value ?? '') === String(value ?? ''));
   }, [options, value]);
 
   // Close when clicking outside
@@ -164,10 +164,12 @@ export function CustomSelect({
   const filteredOptions = useMemo(() => {
     if (!searchQuery.trim()) return options;
     const q = searchQuery.toLowerCase();
-    return options.filter((opt) =>
-      opt.label.toLowerCase().includes(q) ||
-      (opt.description && opt.description.toLowerCase().includes(q))
-    );
+    return options.filter((opt) => {
+      if (!opt) return false;
+      const labelMatch = String(opt.label || '').toLowerCase().includes(q);
+      const descMatch = opt.description ? String(opt.description).toLowerCase().includes(q) : false;
+      return labelMatch || descMatch;
+    });
   }, [options, searchQuery]);
 
   // Size styling classes

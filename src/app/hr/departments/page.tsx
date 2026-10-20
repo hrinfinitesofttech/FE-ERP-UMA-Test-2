@@ -416,10 +416,12 @@ export default function DepartmentsPage() {
       )}
 
       {/* Info Alert */}
-      <div className="p-4 bg-cyan-950/20 border border-cyan-800/40 rounded-xl flex items-center gap-3 text-xs text-cyan-900">
-        <Shield className="w-5 h-5 text-crm-brand-500 flex-shrink-0" />
-        <div>
-          <span className="font-bold">ERP Integration Integrity Rule:</span> This page references the central ERP Department Master. All employee assignments across Production, Maintenance, Accounting, and Store synchronize with this hierarchy.
+      <div className="p-4 sm:p-5 bg-cyan-50/90 border border-cyan-200 rounded-2xl flex items-center gap-3.5 text-xs text-cyan-950 shadow-xs">
+        <div className="w-9 h-9 rounded-xl bg-cyan-100 border border-cyan-200 flex items-center justify-center flex-shrink-0 text-cyan-700">
+          <Shield className="w-5 h-5 text-cyan-700" />
+        </div>
+        <div className="leading-relaxed">
+          <span className="font-bold text-cyan-950">ERP Integration Integrity Rule:</span> This page references the central ERP Department Master. All employee assignments across Production, Maintenance, Accounting, and Store synchronize with this hierarchy.
         </div>
       </div>
 

@@ -12,6 +12,7 @@ import {
 } from '../../../types/production';
 import { formatDate } from '../../../lib/utils';
 import { toast } from '@/context/ToastContext';
+import { printContent } from '@/lib/printUtils';
 import {
   Truck,
   Plus,
@@ -1280,7 +1281,7 @@ export default function DispatchPage() {
                 </Link>
 
                 <button
-                  onClick={() => window.print()}
+                  onClick={() => printContent('printable-delivery-challan', { title: viewChallan ? `Challan_${viewChallan.challanNo}` : 'Delivery_Challan' })}
                   className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
                 >
                   <Printer className="w-3.5 h-3.5" />
@@ -1299,6 +1300,7 @@ export default function DispatchPage() {
             {/* AUTHENTIC DELIVERY CHALLAN SLIP (REPRODUCING THE USER'S PHOTO SLIP) */}
             {/* =================================================================== */}
             <div
+              id="printable-delivery-challan"
               className={`p-6 sm:p-8 font-sans transition-colors ${
                 slipTheme === 'yellow'
                   ? 'bg-[#FEF08A] text-slate-950 border-8 border-[#FDE047]'
@@ -1520,7 +1522,7 @@ export default function DispatchPage() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => window.print()}
+                  onClick={() => printContent('printable-delivery-challan', { title: viewChallan ? `Challan_${viewChallan.challanNo}` : 'Delivery_Challan' })}
                   className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
                 >
                   <Printer className="w-4 h-4" />

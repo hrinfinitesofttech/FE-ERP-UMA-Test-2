@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useERP } from '../../../context/ERPContext';
 import { WorkerMaster, WorkerDailyRoutineEntry } from '../../../types/production';
 import { formatDate } from '../../../lib/utils';
+import { printContent } from '../../../lib/printUtils';
 import { ERPDatePicker } from '../../../components/ui/ERPDatePicker';
 import {
   ClipboardList,
@@ -444,7 +445,7 @@ export default function WorkerDailyRoutinePage() {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => window.print()}
+            onClick={() => printContent('printable-worker-routine-sheet', { title: `Worker_Daily_Routine_${formattedDisplayDate}` })}
             className="px-3.5 py-2 bg-white border border-[#EBE3DB] hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer"
             title="Print Routine Sheet matching physical form"
           >
@@ -669,7 +670,7 @@ export default function WorkerDailyRoutinePage() {
       {/* ========================================================================= */}
       {/* MAIN TABLE: EXACT MATCH WITH PHYSICAL SHEET "WORK PROFILE DAILY ROUTINE"   */}
       {/* ========================================================================= */}
-      <div className="bg-white rounded-2xl border-2 border-slate-800 shadow-md overflow-hidden print:border-black print:rounded-none">
+      <div id="printable-worker-routine-sheet" className="bg-white rounded-2xl border-2 border-slate-800 shadow-md overflow-hidden print:border-black print:rounded-none">
         {/* Printable Sheet Header (visible in print mode or standard) */}
         <div className="hidden print:block p-4 border-b-2 border-black text-center">
           <h2 className="text-xl font-black uppercase tracking-wider font-mono">

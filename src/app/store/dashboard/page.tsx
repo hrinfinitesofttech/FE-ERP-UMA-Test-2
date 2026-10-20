@@ -289,10 +289,20 @@ export default function StoreDashboardPage() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={warehouseValuationData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
-                <YAxis stroke="#94a3b8" fontSize={11} />
-                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#f8fafc' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#F0EBE6" />
+                <XAxis dataKey="name" stroke="#70665F" fontSize={11} />
+                <YAxis stroke="#70665F" fontSize={11} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#E7DED5',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
+                  }}
+                  itemStyle={{ color: '#211B17', fontWeight: 600 }}
+                  labelStyle={{ color: '#70665F', fontWeight: 700 }}
+                />
                 <Bar dataKey="valuation" fill="#6366f1" radius={[6, 6, 0, 0]} name="Stock Value (₹ Lakhs)" />
               </BarChart>
             </ResponsiveContainer>
@@ -324,8 +334,18 @@ export default function StoreDashboardPage() {
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#f8fafc' }} />
-                <Legend wrapperStyle={{ fontSize: '11px', color: '#cbd5e1' }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#E7DED5',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
+                  }}
+                  itemStyle={{ color: '#211B17', fontWeight: 600 }}
+                  labelStyle={{ color: '#70665F', fontWeight: 700 }}
+                />
+                <Legend wrapperStyle={{ fontSize: '11px', color: '#70665F' }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -343,10 +363,20 @@ export default function StoreDashboardPage() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={dailyMovementData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="day" stroke="#94a3b8" fontSize={11} />
-                <YAxis stroke="#94a3b8" fontSize={11} />
-                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#f8fafc' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#F0EBE6" />
+                <XAxis dataKey="day" stroke="#70665F" fontSize={11} />
+                <YAxis stroke="#70665F" fontSize={11} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#E7DED5',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
+                  }}
+                  itemStyle={{ color: '#211B17', fontWeight: 600 }}
+                  labelStyle={{ color: '#70665F', fontWeight: 700 }}
+                />
                 <Area type="monotone" dataKey="grnInward" stroke="#10b981" fill="#10b981" fillOpacity={0.2} name="GRN Inward" />
                 <Area type="monotone" dataKey="materialIssued" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.2} name="Material Issued" />
               </AreaChart>
@@ -366,10 +396,20 @@ export default function StoreDashboardPage() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={fastMovingData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis type="number" stroke="#94a3b8" fontSize={11} />
-                <YAxis dataKey="name" type="category" stroke="#94a3b8" fontSize={10} width={130} />
-                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#f8fafc' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#F0EBE6" />
+                <XAxis type="number" stroke="#70665F" fontSize={11} />
+                <YAxis dataKey="name" type="category" stroke="#70665F" fontSize={10} width={130} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#E7DED5',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
+                  }}
+                  itemStyle={{ color: '#211B17', fontWeight: 600 }}
+                  labelStyle={{ color: '#70665F', fontWeight: 700 }}
+                />
                 <Bar dataKey="turns" fill="#f59e0b" radius={[0, 6, 6, 0]} name="Inventory Turnover Rate" />
               </BarChart>
             </ResponsiveContainer>
@@ -388,10 +428,20 @@ export default function StoreDashboardPage() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={jobReservationData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="job" stroke="#94a3b8" fontSize={11} />
-                <YAxis stroke="#94a3b8" fontSize={11} />
-                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#f8fafc' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#F0EBE6" />
+                <XAxis dataKey="job" stroke="#70665F" fontSize={11} />
+                <YAxis stroke="#70665F" fontSize={11} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#E7DED5',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
+                  }}
+                  itemStyle={{ color: '#211B17', fontWeight: 600 }}
+                  labelStyle={{ color: '#70665F', fontWeight: 700 }}
+                />
                 <Bar dataKey="reservedVal" fill="#f43f5e" radius={[6, 6, 0, 0]} name="Reserved Stock Value" />
                 <Bar dataKey="consumedVal" fill="#10b981" radius={[6, 6, 0, 0]} name="Issued Consumption" />
               </BarChart>
@@ -411,10 +461,20 @@ export default function StoreDashboardPage() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={valuationTrendData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} />
-                <YAxis stroke="#94a3b8" fontSize={11} />
-                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#f8fafc' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#F0EBE6" />
+                <XAxis dataKey="month" stroke="#70665F" fontSize={11} />
+                <YAxis stroke="#70665F" fontSize={11} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#E7DED5',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
+                  }}
+                  itemStyle={{ color: '#211B17', fontWeight: 600 }}
+                  labelStyle={{ color: '#70665F', fontWeight: 700 }}
+                />
                 <Line type="monotone" dataKey="totalValue" stroke="#06b6d4" strokeWidth={3} dot={{ r: 5 }} name="Total Stock Value" />
               </LineChart>
             </ResponsiveContainer>

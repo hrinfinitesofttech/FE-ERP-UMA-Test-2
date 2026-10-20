@@ -20,6 +20,7 @@ import {
   ShieldCheck,
   Building
 } from 'lucide-react';
+import { printContent } from '@/lib/printUtils';
 
 interface EWayBillRecord {
   id: string;
@@ -516,7 +517,7 @@ export default function EWayBillPage() {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => window.print()}
+                  onClick={() => printContent('printable-ewaybill-slip', { title: selectedBillForPrint ? `EWayBill_${selectedBillForPrint.ewayBillNo}` : 'EWayBill_Slip' })}
                   className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs flex items-center gap-1 cursor-pointer"
                 >
                   <Printer className="w-3.5 h-3.5" />
@@ -532,7 +533,7 @@ export default function EWayBillPage() {
             </div>
 
             {/* Print Slip Layout */}
-            <div className="border border-slate-300 rounded-xl p-5 space-y-4 text-xs font-sans">
+            <div id="printable-ewaybill-slip" className="border border-slate-300 rounded-xl p-5 space-y-4 text-xs font-sans">
               <div className="text-center border-b pb-3 border-slate-300">
                 <h2 className="text-base font-black uppercase tracking-wider text-slate-900 font-mono">
                   GOVERNMENT OF INDIA — E-WAY BILL SYSTEM

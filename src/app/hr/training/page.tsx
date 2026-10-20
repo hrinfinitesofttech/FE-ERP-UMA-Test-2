@@ -94,12 +94,12 @@ export default function TrainingDevelopmentPage() {
 
             {tr.status !== 'Completed' && (
               <div className="pt-2 border-t border-[#EBE3DB]/50 text-right">
-                <button
-                  onClick={() => updateTrainingStatus(tr.id, 'Completed')}
-                  className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] text-xs font-bold rounded shadow transition"
-                >
-                  Mark Completed & Issue Certificates
-                </button>
+                  <button
+                    onClick={() => updateTrainingStatus(tr.id, 'Completed')}
+                    className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-xs transition cursor-pointer"
+                  >
+                    Mark Completed &amp; Issue Certificates
+                  </button>
               </div>
             )}
           </div>

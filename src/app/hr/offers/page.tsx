@@ -48,7 +48,7 @@ export default function OfferManagementPage() {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] font-semibold text-sm rounded-lg shadow-md transition"
+          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg shadow-sm transition cursor-pointer"
         >
           <Plus className="w-4 h-4" /> Issue Offer Letter
         </button>
@@ -92,7 +92,7 @@ export default function OfferManagementPage() {
               <span className="text-[#70665F]">Letterhead PDF generated</span>
               <Link
                 href="/hr/onboarding"
-                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] font-bold rounded-lg shadow transition flex items-center gap-1"
+                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-xs transition flex items-center gap-1 cursor-pointer"
               >
                 <UserCheck className="w-3.5 h-3.5" /> Convert to Onboarding
               </Link>
@@ -165,7 +165,7 @@ export default function OfferManagementPage() {
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-white text-[#544B45] font-semibold rounded-lg">
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] font-semibold rounded-lg">
+                <button type="submit" className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-xs transition cursor-pointer">
                   Generate Offer Letter
                 </button>
               </div>

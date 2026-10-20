@@ -56,7 +56,7 @@ export default function PerformanceManagementPage() {
             <p className="text-xs text-[#70665F]">Active Cycle: <strong className="text-emerald-400">FY 2025-26 Annual Review</strong></p>
             <Link
               href="/hr/appraisals"
-              className="inline-block w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] text-xs font-semibold rounded-lg text-center transition"
+              className="inline-block w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg text-center transition shadow-xs cursor-pointer"
             >
               Open Appraisal Reviews
             </Link>

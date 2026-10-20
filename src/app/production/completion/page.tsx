@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { InProcessInspectionRow, InspectionReportDoc, ProductionCompletion } from '../../../types/production';
 import { formatDate } from '../../../lib/utils';
+import { printContent } from '../../../lib/printUtils';
 import {
   CheckCircle2,
   ShieldCheck,
@@ -1063,7 +1064,7 @@ function ProductionCompletionContent() {
                   </Link>
                 )}
                 <button
-                  onClick={() => window.print()}
+                  onClick={() => printContent('printable-qc-certificate', { title: viewingReport ? `QC_${viewingReport.completionNumber}` : 'QC_Certificate' })}
                   className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
                 >
                   <Printer className="w-3.5 h-3.5" />
@@ -1079,7 +1080,7 @@ function ProductionCompletionContent() {
             </div>
 
             {/* PRINTABLE REPORT DOCUMENT BODY (EXACT LAYOUT OF USER'S ATTACHED IMAGE) */}
-            <div className="p-8 text-black font-sans space-y-4 print:p-0">
+            <div id="printable-qc-certificate" className="p-8 text-black font-sans space-y-4 print:p-0 bg-white">
               {/* Report Header Table */}
               <div className="border-2 border-black">
                 <div className="grid grid-cols-4 border-b-2 border-black text-center items-center py-2">

@@ -76,8 +76,8 @@ export default function DepreciationSchedulePage() {
               />
             </div>
 
-            <button type="submit" className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-[#211B17] font-semibold transition">
-              Run Depreciation & Post JV
+            <button type="submit" className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-xs transition cursor-pointer">
+              Run Depreciation &amp; Post JV
             </button>
           </form>
         </div>

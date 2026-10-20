@@ -157,12 +157,14 @@ export default function ManagementDashboardPage() {
       </div>
 
       {/* Role Active Alert Banner */}
-      <div className="p-3 bg-indigo-950/40 border border-indigo-800/60 rounded-xl flex items-center justify-between text-xs text-indigo-200">
-        <div className="flex items-center gap-2">
-          <UserCheck className="w-4 h-4 text-indigo-400" />
-          <span>Active Persona Scope: <strong className="text-[#211B17]">{activeRoleView}</strong>. KPIs and analytics panels are tailored for {activeRoleView} visibility level.</span>
+      <div className="p-3.5 sm:p-4 bg-indigo-50/90 border border-indigo-200/80 rounded-2xl flex items-center justify-between text-xs text-indigo-950 shadow-xs">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-indigo-100 border border-indigo-200/80 flex items-center justify-center flex-shrink-0 text-indigo-700">
+            <UserCheck className="w-4 h-4" />
+          </div>
+          <span>Active Persona Scope: <strong className="text-indigo-950 font-bold">{activeRoleView}</strong>. KPIs and analytics panels are tailored for {activeRoleView} visibility level.</span>
         </div>
-        <span className="text-[10px] bg-crm-brand-600/20 px-2 py-0.5 rounded font-mono font-bold text-indigo-300">RBAC Enforced</span>
+        <span className="text-[10px] bg-indigo-100 text-indigo-800 border border-indigo-200 px-2.5 py-0.5 rounded-full font-mono font-bold">RBAC Enforced</span>
       </div>
 
       {/* Executive KPI Cards Grid */}

@@ -538,53 +538,53 @@ export default function DashboardPage() {
       {viewMode === 'executive' ? (
         <div className="space-y-4 md:space-y-6">
           {/* A. LUXURY EXECUTIVE HERO BANNER */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1C1510] via-[#2A1D16] to-[#150F0B] border border-amber-900/30 p-6 sm:p-7 shadow-xl text-white">
-            {/* Subtle Industrial Grid Background Pattern */}
-            <div className="absolute inset-0 bg-[radial-gradient(#d97706_1px,transparent_1px)] [background-size:24px_24px] opacity-10 pointer-events-none" />
+          <div className="relative overflow-hidden rounded-3xl bg-white border border-[#E7DED5] p-6 sm:p-7 shadow-xs text-[#211B17]">
+            {/* Subtle Warm Amber Gradient Accent */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-amber-100/40 via-transparent to-transparent pointer-events-none rounded-tr-3xl" />
             
             <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-              <div className="space-y-2.5 max-w-2xl">
+              <div className="space-y-3 max-w-2xl">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 text-[10.5px] font-mono font-bold tracking-wider uppercase">
-                    <CircleDot className="w-2.5 h-2.5 animate-pulse text-amber-400" />
-                    Commercial Operations & 360° Job Traceability
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-800 text-[11px] font-mono font-bold tracking-wider uppercase">
+                    <CircleDot className="w-2.5 h-2.5 animate-pulse text-amber-600" />
+                    Commercial Operations &amp; 360° Job Traceability
                   </span>
-                  <span className="px-2 py-0.5 rounded-full bg-white/10 text-slate-300 text-[10px] font-semibold border border-white/15">
+                  <span className="px-2.5 py-1 rounded-full bg-[#FAF7F2] text-[#70665F] text-[10.5px] font-semibold border border-[#E7DED5]">
                     ISO 9001:2015 Verified
                   </span>
                 </div>
 
-                <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-black tracking-tight leading-tight text-white">
-                  Heavy Fabrication & Process Equipment Operations
+                <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-black tracking-tight leading-tight text-[#211B17]">
+                  Heavy Fabrication &amp; Process Equipment Operations
                 </h1>
-                <p className="text-xs sm:text-sm text-amber-100/75 leading-relaxed max-w-xl">
+                <p className="text-xs sm:text-sm text-[#70665F] leading-relaxed max-w-xl">
                   Unified orchestrator for Customer Enquiries, Multi-Revision Engineering BOMs, Approved Customer POs, and Shop Floor Fabrication Milestones.
                 </p>
 
                 {/* Telemetry Strip */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-white/10 text-xs">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-[#EBE3DB] text-xs">
                   <div>
-                    <span className="text-[10px] uppercase font-mono text-amber-200/60 block">Live Backlog</span>
-                    <strong className="text-base font-bold font-mono text-white tracking-tight" suppressHydrationWarning>
+                    <span className="text-[10px] uppercase font-mono text-[#70665F] block font-semibold">Live Backlog</span>
+                    <strong className="text-base font-bold font-mono text-[#211B17] tracking-tight" suppressHydrationWarning>
                       ₹ {activeBacklog?.toLocaleString('en-IN')}
                     </strong>
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-mono text-amber-200/60 block">Active Bay WIP</span>
-                    <strong className="text-base font-bold font-mono text-white tracking-tight">
+                    <span className="text-[10px] uppercase font-mono text-[#70665F] block font-semibold">Active Bay WIP</span>
+                    <strong className="text-base font-bold font-mono text-[#211B17] tracking-tight">
                       {activeFloorCount} Equipment
                     </strong>
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-mono text-amber-200/60 block">QA Pass Rate</span>
-                    <strong className="text-base font-bold font-mono text-emerald-400 tracking-tight">
+                    <span className="text-[10px] uppercase font-mono text-[#70665F] block font-semibold">QA Pass Rate</span>
+                    <strong className="text-base font-bold font-mono text-emerald-700 tracking-tight">
                       {qualityRate}% Pass
                     </strong>
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-mono text-amber-200/60 block">Production Health</span>
-                    <strong className="text-base font-bold text-amber-300 flex items-center gap-1 tracking-tight">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                    <span className="text-[10px] uppercase font-mono text-[#70665F] block font-semibold">Production Health</span>
+                    <strong className="text-base font-bold text-amber-800 flex items-center gap-1.5 tracking-tight">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
                       Nominal
                     </strong>
                   </div>
@@ -592,49 +592,49 @@ export default function DashboardPage() {
               </div>
 
               {/* Right Side Visual Telemetry Panel */}
-              <div className="w-full lg:w-96 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 p-4.5 space-y-3.5 shadow-lg">
-                <div className="flex items-center justify-between pb-2.5 border-b border-white/10">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center font-bold">
-                      <Gauge className="w-4 h-4" />
+              <div className="w-full lg:w-96 rounded-2xl bg-[#FAF7F2] border border-[#E7DED5] p-5 space-y-3.5 shadow-2xs">
+                <div className="flex items-center justify-between pb-3 border-b border-[#EBE3DB]">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 flex items-center justify-center font-bold">
+                      <Gauge className="w-4 h-4 text-amber-700" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-white">Fabrication Shop Floor</div>
-                      <div className="text-[10px] text-amber-200/70 font-mono">BAYS 1-4 ACTIVE SYNC</div>
+                      <div className="text-xs font-bold text-[#211B17]">Fabrication Shop Floor</div>
+                      <div className="text-[10px] text-[#70665F] font-mono">BAYS 1-4 ACTIVE SYNC</div>
                     </div>
                   </div>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                     Live Telemetry
                   </span>
                 </div>
 
                 <div className="space-y-2 text-xs">
-                  <div className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5">
-                    <span className="text-amber-100/80 text-[11px] flex items-center gap-2">
-                      <HardHat className="w-3.5 h-3.5 text-amber-400" />
-                      Bay 1: CNC Cutting & Rolling
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#E7DED5] shadow-2xs">
+                    <span className="text-[#211B17] text-[11px] font-medium flex items-center gap-2">
+                      <HardHat className="w-3.5 h-3.5 text-amber-600" />
+                      Bay 1: CNC Cutting &amp; Rolling
                     </span>
-                    <span className="text-[10px] font-mono font-bold text-emerald-400">READY</span>
+                    <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">READY</span>
                   </div>
-                  <div className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5">
-                    <span className="text-amber-100/80 text-[11px] flex items-center gap-2">
-                      <Wrench className="w-3.5 h-3.5 text-sky-400" />
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#E7DED5] shadow-2xs">
+                    <span className="text-[#211B17] text-[11px] font-medium flex items-center gap-2">
+                      <Wrench className="w-3.5 h-3.5 text-sky-600" />
                       Bay 2: SAW / TIG Welding
                     </span>
-                    <span className="text-[10px] font-mono font-bold text-sky-300">IN PROGRESS</span>
+                    <span className="text-[10px] font-mono font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">IN PROGRESS</span>
                   </div>
-                  <div className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/5">
-                    <span className="text-amber-100/80 text-[11px] flex items-center gap-2">
-                      <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
-                      Bay 3: Hydro Test & NDT
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#E7DED5] shadow-2xs">
+                    <span className="text-[#211B17] text-[11px] font-medium flex items-center gap-2">
+                      <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
+                      Bay 3: Hydro Test &amp; NDT
                     </span>
-                    <span className="text-[10px] font-mono font-bold text-purple-300">CLEARED</span>
+                    <span className="text-[10px] font-mono font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">CLEARED</span>
                   </div>
                 </div>
 
                 <Link
                   href="/integration/traceability"
-                  className="w-full py-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm"
+                  className="w-full py-2.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer active:scale-95"
                 >
                   <span>Open 360° Traceability Suite</span>
                   <ArrowRight className="w-3.5 h-3.5" />

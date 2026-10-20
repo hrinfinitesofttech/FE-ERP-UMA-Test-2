@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { BankAccount, SalesInvoice } from '../../../types/accounting';
 import { toast } from '../../../context/ToastContext';
+import { printContent } from '@/lib/printUtils';
 
 function numberToIndianWords(num: number): string {
   if (!num || isNaN(num) || num <= 0) return 'Zero Rupees Only';
@@ -717,7 +718,7 @@ function CustomerReceiptsContent() {
       {/* Official Voucher Preview & Print Modal */}
       {selectedReceipt && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
+          <div id="printable-receipt-voucher" className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
               <div>
                 <span className="text-[10px] uppercase font-bold text-[#8C827A] tracking-wider">Official Bank Inward Voucher</span>
@@ -725,7 +726,7 @@ function CustomerReceiptsContent() {
               </div>
               <button
                 onClick={() => setSelectedReceipt(null)}
-                className="p-1.5 rounded-lg text-[#8C827A] hover:bg-[#FAF7F2] hover:text-[#211B17] cursor-pointer"
+                className="p-1.5 rounded-lg text-[#8C827A] hover:bg-[#FAF7F2] hover:text-[#211B17] cursor-pointer print:hidden"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -787,9 +788,9 @@ function CustomerReceiptsContent() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2 pt-2 print:hidden">
               <button
-                onClick={() => window.print()}
+                onClick={() => printContent('printable-receipt-voucher', { title: `Receipt_${selectedReceipt.receiptNumber}` })}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FAF7F2] hover:bg-[#EFE8DF] text-[#211B17] font-semibold text-xs border border-[#E5DCD3] cursor-pointer"
               >
                 <Printer className="w-4 h-4 text-[#8B2500]" />

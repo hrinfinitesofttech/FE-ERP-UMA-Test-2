@@ -49,7 +49,7 @@ export default function ReimbursementsPage() {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-500 text-[#211B17] font-semibold text-sm rounded-lg shadow-md transition"
+          className="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-semibold text-sm rounded-lg shadow-sm transition cursor-pointer"
         >
           <Plus className="w-4 h-4" /> Submit Expense Claim
         </button>
@@ -191,7 +191,7 @@ export default function ReimbursementsPage() {
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-white text-[#544B45] font-semibold rounded-lg">
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-[#211B17] font-semibold rounded-lg">
+                <button type="submit" className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-lg shadow-sm transition cursor-pointer">
                   Submit Claim
                 </button>
               </div>

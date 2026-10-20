@@ -50,15 +50,15 @@ export default function LeaveApprovalsPage() {
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => updateLeaveRequestStatus(req.id, 'Rejected', currentUser?.name)}
-                      className="px-4 py-2 bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/30 text-xs font-semibold rounded-lg transition"
+                      className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold rounded-lg shadow-xs transition cursor-pointer"
                     >
                       Reject Request
                     </button>
                     <button
                       onClick={() => updateLeaveRequestStatus(req.id, 'Approved', currentUser?.name)}
-                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] text-xs font-bold rounded-lg shadow transition"
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-xs transition cursor-pointer"
                     >
-                      Approve & Grant Leave
+                      Approve &amp; Grant Leave
                     </button>
                   </div>
                 </div>

@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { useERP } from '../../../context/ERPContext';
 import { Calculator, Plus, Search, FileText, Download, CheckCircle2, Landmark, Check, AlertCircle, Printer, X } from 'lucide-react';
 import { toast } from '../../../context/ToastContext';
+import { printContent } from '../../../lib/printUtils';
 
 export default function TDSCompliancePage() {
   const { tdsMasters, purchaseInvoices, bankAccounts, updateBankAccount } = useERP();
@@ -92,42 +93,43 @@ export default function TDSCompliancePage() {
     <div className="p-6 space-y-6 bg-[#FAF7F2] min-h-screen text-[#211B17]">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-6 right-6 z-50 flex items-center gap-2 bg-[#211B17] text-white px-5 py-3 rounded-xl shadow-2xl border border-white/10 text-xs font-semibold animate-in fade-in slide-in-from-top-4">
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-2 bg-[#211B17] text-white px-5 py-3 rounded-xl shadow-2xl border border-white/10 text-xs font-semibold animate-in fade-in slide-in-from-top-4 print:hidden">
           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#EBE3DB] shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-violet-500/20 rounded-xl text-violet-600">
-            <Calculator className="w-6 h-6" />
+      <div id="printable-tds-report" className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#EBE3DB] shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-violet-500/20 rounded-xl text-violet-600">
+              <Calculator className="w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-[#211B17]">TDS Compliance & Form 26Q Register</h1>
+              <p className="text-xs text-[#70665F] mt-0.5">Tax Deducted at Source • Section 194C (Subcontracting), 194J (Professional), 194Q (Goods), 194I (Rent)</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-[#211B17]">TDS Compliance & Form 26Q Register</h1>
-            <p className="text-xs text-[#70665F] mt-0.5">Tax Deducted at Source • Section 194C (Subcontracting), 194J (Professional), 194Q (Goods), 194I (Rent)</p>
-          </div>
-        </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => window.print()}
-            className="flex items-center gap-2 bg-white hover:bg-slate-50 border border-[#EBE3DB] text-[#211B17] font-semibold text-xs px-4 py-2.5 rounded-xl transition"
-          >
-            <Printer className="w-4 h-4" />
-            <span>Print Form 26Q</span>
-          </button>
-          <button
-            onClick={() => setIsChallanModalOpen(true)}
-            disabled={pendingTdsDeposit <= 0}
-            className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-sm"
-          >
-            <Landmark className="w-4 h-4" />
-            <span>Pay TDS via Challan 281</span>
-          </button>
+          <div className="flex items-center gap-3 print:hidden">
+            <button
+              onClick={() => printContent('printable-tds-report', { title: 'TDS_Form26Q_Register' })}
+              className="flex items-center gap-2 bg-white hover:bg-slate-50 border border-[#EBE3DB] text-[#211B17] font-semibold text-xs px-4 py-2.5 rounded-xl transition cursor-pointer"
+            >
+              <Printer className="w-4 h-4" />
+              <span>Print Form 26Q</span>
+            </button>
+            <button
+              onClick={() => setIsChallanModalOpen(true)}
+              disabled={pendingTdsDeposit <= 0}
+              className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-sm"
+            >
+              <Landmark className="w-4 h-4" />
+              <span>Pay TDS via Challan 281</span>
+            </button>
+          </div>
         </div>
-      </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -168,7 +170,7 @@ export default function TDSCompliancePage() {
       <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-sm overflow-hidden space-y-4 p-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h2 className="text-sm font-bold text-[#211B17]">Vendor Bills Subject to TDS Withholding</h2>
-          <div className="relative w-72">
+          <div className="relative w-72 print:hidden">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
             <input
               type="text"
@@ -256,6 +258,7 @@ export default function TDSCompliancePage() {
           </div>
         </div>
       )}
+      </div>
 
       {/* Challan 281 Payment Modal */}
       {isChallanModalOpen && (

@@ -329,7 +329,15 @@ export default function PurchaseDashboardPage() {
                 <XAxis dataKey="month" stroke="#64748B" fontSize={11} tickLine={false} />
                 <YAxis stroke="#64748B" fontSize={11} tickLine={false} tickFormatter={(v) => `₹${v / 1000}k`} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', borderRadius: '12px', fontSize: '12px' }}
+                  contentStyle={{
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#E7DED5',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
+                  }}
+                  itemStyle={{ color: '#211B17', fontWeight: 600 }}
+                  labelStyle={{ color: '#70665F', fontWeight: 700 }}
                   formatter={(val: any) => [`₹${Number(val)?.toLocaleString('en-IN')}`, 'Purchase Value']}
                 />
                 <Area type="monotone" dataKey="spend" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorSpend)" />
@@ -365,9 +373,17 @@ export default function PurchaseDashboardPage() {
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', borderRadius: '12px', fontSize: '12px' }}
+                    contentStyle={{
+                      backgroundColor: '#FFFFFF',
+                      borderColor: '#E7DED5',
+                      borderRadius: '12px',
+                      fontSize: '12px',
+                      boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
+                    }}
+                    itemStyle={{ color: '#211B17', fontWeight: 600 }}
+                    labelStyle={{ color: '#70665F', fontWeight: 700 }}
                   />
-                  <Legend wrapperStyle={{ fontSize: '11px', color: '#94A3B8' }} />
+                  <Legend wrapperStyle={{ fontSize: '11px', color: '#70665F' }} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -397,9 +413,17 @@ export default function PurchaseDashboardPage() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={supplierRatingData} layout="vertical">
                 <XAxis type="number" stroke="#64748B" fontSize={11} tickLine={false} />
-                <YAxis dataKey="category" type="category" stroke="#94A3B8" fontSize={11} tickLine={false} width={130} />
+                <YAxis dataKey="category" type="category" stroke="#70665F" fontSize={11} tickLine={false} width={130} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', borderRadius: '12px', fontSize: '12px' }}
+                  contentStyle={{
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#E7DED5',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
+                  }}
+                  itemStyle={{ color: '#211B17', fontWeight: 600 }}
+                  labelStyle={{ color: '#70665F', fontWeight: 700 }}
                 />
                 <Bar dataKey="count" fill="#6366F1" radius={[0, 8, 8, 0]} barSize={18} />
               </BarChart>
@@ -424,7 +448,15 @@ export default function PurchaseDashboardPage() {
                 <XAxis dataKey="jobNo" stroke="#64748B" fontSize={11} tickLine={false} />
                 <YAxis stroke="#64748B" fontSize={11} tickLine={false} tickFormatter={(v) => `₹${v}L`} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', borderRadius: '12px', fontSize: '12px' }}
+                  contentStyle={{
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#E7DED5',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
+                  }}
+                  itemStyle={{ color: '#211B17', fontWeight: 600 }}
+                  labelStyle={{ color: '#70665F', fontWeight: 700 }}
                   formatter={(val: any) => [`₹${val} Lakhs`, 'Purchase Cost']}
                 />
                 <Bar dataKey="cost" fill="#F59E0B" radius={[8, 8, 0, 0]} barSize={24} />

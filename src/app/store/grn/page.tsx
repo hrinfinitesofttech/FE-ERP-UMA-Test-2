@@ -8,6 +8,7 @@ import { GoodsReceiptNote, GRNItem, GRNStatus } from '../../../types/store';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
 import { formatCurrency, formatDate } from '../../../lib/utils';
 import { toast } from '../../../context/ToastContext';
+import { printContent } from '@/lib/printUtils';
 import {
   PackageCheck,
   Plus,
@@ -608,7 +609,7 @@ function GoodsReceiptContent() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => window.print()}
+                  onClick={() => printContent('printable-grn-note', { title: selectedGrnForDetails ? `GRN_${selectedGrnForDetails.grnNumber}` : 'Material_Receipt_Note' })}
                   className="px-3.5 py-1.5 bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold text-xs rounded-lg transition flex items-center gap-1.5 shadow-xs cursor-pointer"
                 >
                   <Printer className="w-3.5 h-3.5" />
@@ -625,7 +626,7 @@ function GoodsReceiptContent() {
             </div>
 
             {/* Print Container matching exact image layout */}
-            <div className="border border-slate-900 text-slate-900 text-[11px] leading-tight font-sans bg-white">
+            <div id="printable-grn-note" className="border border-slate-900 text-slate-900 text-[11px] leading-tight font-sans bg-white">
               {/* Top Company Header */}
               <div className="text-center py-2 px-4 border-b border-slate-900 relative">
                 <div className="absolute left-4 top-2 text-left hidden sm:block">

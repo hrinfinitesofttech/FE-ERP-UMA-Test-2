@@ -122,12 +122,12 @@ export default function BankReconciliationPage() {
                   </td>
                   <td className="py-3 px-4 text-center font-sans">
                     {!isMatched ? (
-                      <button
-                        onClick={() => reconcileBankTransaction(tx.id, amt > 0 ? 'RCT-2026-0001' : 'PAY-2026-0001')}
-                        className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] text-[10px] font-semibold rounded-lg transition"
-                      >
-                        Match Voucher
-                      </button>
+                        <button
+                          onClick={() => reconcileBankTransaction(tx.id, amt > 0 ? 'RCT-2026-0001' : 'PAY-2026-0001')}
+                          className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-semibold rounded-lg transition shadow-xs cursor-pointer"
+                        >
+                          Match Voucher
+                        </button>
                     ) : (
                       <span className="text-[#70665F] text-[10px]">Reconciled</span>
                     )}

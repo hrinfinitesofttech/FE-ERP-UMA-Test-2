@@ -71,7 +71,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
       case 'urgent':
         return {
           label: 'URGENT PRIORITY',
-          bg: 'bg-[#991B1B] text-[#211B17] border-[#7F1D1D] shadow-xs',
+          bg: 'bg-[#991B1B] text-white border-[#7F1D1D] shadow-xs font-bold',
           dot: 'bg-white animate-ping',
         };
       case 'high':

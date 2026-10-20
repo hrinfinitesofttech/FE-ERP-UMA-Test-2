@@ -10,7 +10,7 @@ import { ERPDatePicker } from '../../../components/ui/ERPDatePicker';
 
 export default function NewUserPage() {
   const router = useRouter();
-  const { addEmployee, departments, roles, employees } = useERP();
+  const { addEmployee, departments = [], roles = [], employees = [] } = useERP();
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -28,10 +28,10 @@ export default function NewUserPage() {
     mobile: '',
     email: '',
     address: '',
-    departmentId: departments[0]?.id || 'dept-crm',
+    departmentId: departments?.[0]?.id || 'dept-crm',
     designation: '',
-    roleId: roles[0]?.id || 'role-crm-employee',
-    reportingManagerId: employees[0]?.id || '',
+    roleId: roles?.[0]?.id || 'role-crm-employee',
+    reportingManagerId: employees?.[0]?.id || '',
     joiningDate: todayStr,
     employmentType: 'full_time' as 'full_time' | 'contract' | 'probation',
     status: 'active' as 'active' | 'inactive',

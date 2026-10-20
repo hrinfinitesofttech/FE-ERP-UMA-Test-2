@@ -19,6 +19,7 @@ import {
   Landmark,
   Scale
 } from 'lucide-react';
+import { printContent } from '@/lib/printUtils';
 import { ChartOfAccount } from '../../../types/accounting';
 
 interface LedgerRow {
@@ -437,9 +438,9 @@ export default function GeneralLedgerPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 print:hidden">
           <button
-            onClick={() => window.print()}
+            onClick={() => printContent('printable-ledger-report', { title: `Ledger_${selectedAccount.accountCode}_${selectedAccount.accountName}` })}
             className="px-3.5 py-2.5 bg-white border border-[#EBE3DB] hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
           >
             <Printer className="w-4 h-4 text-slate-600" />
@@ -449,7 +450,7 @@ export default function GeneralLedgerPage() {
       </div>
 
       {/* Account & Date Selection Control Bar */}
-      <div className="bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-xs space-y-4">
+      <div className="bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-xs space-y-4 print:hidden">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Account Selector */}
           <div>

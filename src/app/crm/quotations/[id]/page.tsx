@@ -8,6 +8,7 @@ import { toast } from '@/context/ToastContext';
 import { api } from '../../../../lib/apiClient';
 import { StatusBadge } from '../../../../components/workflow/StatusBadge';
 import { formatCurrency, formatDate } from '../../../../lib/utils';
+import { printContent } from '@/lib/printUtils';
 import {
   ArrowLeft,
   Printer,
@@ -188,8 +189,8 @@ export default function QuotationDetailPage() {
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Quotations Master
         </Link>
         <button
-          onClick={() => window.print()}
-          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#FAF7F2] text-slate-700 dark:text-[#544B45] rounded-lg font-bold flex items-center gap-1.5 shadow-sm"
+          onClick={() => printContent('printable-quotation-sheet', { title: `Quotation_${quotation.quotationNumber}_${currentRev.revisionNumber}` })}
+          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#FAF7F2] text-slate-700 dark:text-[#544B45] rounded-lg font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
         >
           <Printer className="w-3.5 h-3.5" />
           <span>Print Quotation Sheet</span>
@@ -360,7 +361,7 @@ export default function QuotationDetailPage() {
       </div>
 
       {/* Quotation Document Sheet Preview (Formal Letterhead) */}
-      <div className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl p-6 shadow-sm space-y-6 print:border-none print:shadow-none print:p-0 print:m-0">
+      <div id="printable-quotation-sheet" className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl p-6 shadow-sm space-y-6 print:border-none print:shadow-none print:p-0 print:m-0">
         {/* Letterhead Header */}
         <div className="flex justify-between items-start border-b-2 border-[#EBE3DB] dark:border-slate-100 pb-4">
           <div>

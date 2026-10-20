@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useERP } from '../../../context/ERPContext';
+import { printContent } from '../../../lib/printUtils';
 import { FileText, Printer, Download, Building, DollarSign, UserCheck, ShieldCheck } from 'lucide-react';
 
 export default function PayslipsPage() {
@@ -23,7 +24,7 @@ export default function PayslipsPage() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => window.print()}
+            onClick={() => printContent('printable-salary-payslip', { title: selectedRecord ? `Payslip_${selectedRecord.employeeName.replace(/\s+/g, '_')}_${selectedRecord.monthYear}` : 'Salary_Payslip' })}
             className="flex items-center gap-2 px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-[#211B17] font-semibold text-sm rounded-lg shadow-md transition"
           >
             <Printer className="w-4 h-4" /> Print / Save PDF Payslip
@@ -52,7 +53,7 @@ export default function PayslipsPage() {
 
       {/* Printable Payslip Card Container */}
       {selectedRecord && (
-        <div className="bg-white text-slate-900 rounded-2xl p-8 max-w-4xl mx-auto shadow-2xl space-y-6 print:p-0 print:shadow-none">
+        <div id="printable-salary-payslip" className="bg-white text-slate-900 rounded-2xl p-8 max-w-4xl mx-auto shadow-2xl space-y-6 print:p-0 print:shadow-none">
           {/* Company Letterhead */}
           <div className="flex justify-between items-start border-b-2 border-[#EBE3DB] pb-4">
             <div>

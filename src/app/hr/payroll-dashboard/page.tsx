@@ -32,7 +32,7 @@ export default function PayrollDashboardPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/hr/monthly-payroll"
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] font-semibold text-sm rounded-lg shadow-md transition"
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg shadow-sm transition cursor-pointer"
           >
             <Banknote className="w-4 h-4" /> Run Payroll Processing
           </Link>

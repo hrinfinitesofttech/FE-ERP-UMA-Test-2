@@ -7,6 +7,7 @@ import { MaterialReturn, ReturnCondition, MaterialIssue, MaterialIssueItem } fro
 import { CornerUpLeft, Plus, Search, Cpu, CheckCircle, Printer, X, Eye, AlertCircle } from 'lucide-react';
 import { ERPListPageLayout } from '../../../components/ui/ERPListPageLayout';
 import { toast } from '../../../context/ToastContext';
+import { printContent } from '@/lib/printUtils';
 
 function MaterialReturnContent() {
   const searchParams = useSearchParams();
@@ -747,7 +748,7 @@ function MaterialReturnContent() {
       {/* Official Voucher Preview Modal */}
       {selectedVoucher && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+          <div id="printable-material-return-slip" className="bg-white border border-[#EBE3DB] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div className="flex items-start justify-between border-b border-[#EBE3DB] pb-3">
               <div>
                 <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-mono text-[10px] font-bold">
@@ -759,7 +760,7 @@ function MaterialReturnContent() {
               </div>
               <button
                 onClick={() => setSelectedVoucher(null)}
-                className="p-1 rounded-lg text-[#8C827A] hover:bg-[#FAF7F2] cursor-pointer"
+                className="p-1 rounded-lg text-[#8C827A] hover:bg-[#FAF7F2] cursor-pointer print:hidden"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -794,9 +795,9 @@ function MaterialReturnContent() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2 pt-2 print:hidden">
               <button
-                onClick={() => window.print()}
+                onClick={() => printContent('printable-material-return-slip', { title: selectedVoucher ? `Material_Return_${selectedVoucher.returnNumber}` : 'Material_Return_Slip' })}
                 className="px-4 py-2 rounded-xl bg-[#FAF7F2] hover:bg-[#EFE8DF] text-[#211B17] text-xs font-bold border border-[#E5DCD3] flex items-center gap-1.5 cursor-pointer"
               >
                 <Printer className="w-4 h-4 text-[#8B2500]" />

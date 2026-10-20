@@ -76,34 +76,36 @@ export default function AlertCenterPage() {
         {filteredAlerts.map((alt) => (
           <div
             key={alt.id}
-            className={`p-5 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-lg ${
+            className={`p-5 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs ${
               alt.severity === 'Critical'
-                ? 'bg-rose-950/30 border-rose-800/60 hover:border-rose-600/80'
+                ? 'bg-rose-50/80 border-rose-200 hover:border-rose-300'
                 : alt.severity === 'Warning'
-                ? 'bg-amber-950/30 border-amber-800/60 hover:border-amber-600/80'
-                : 'bg-white border-[#EBE3DB] hover:border-[#EBE3DB]'
+                ? 'bg-amber-50/80 border-amber-200 hover:border-amber-300'
+                : 'bg-white border-[#E7DED5] hover:border-[#D5C7B8]'
             }`}
           >
             <div className="flex items-start gap-4">
               <div
                 className={`p-3 rounded-xl border flex-shrink-0 mt-0.5 ${
                   alt.severity === 'Critical'
-                    ? 'bg-rose-500/20 border-rose-500/30 text-rose-400'
+                    ? 'bg-rose-100 border-rose-200 text-rose-600'
                     : alt.severity === 'Warning'
-                    ? 'bg-amber-500/20 border-amber-500/30 text-amber-400'
-                    : 'bg-crm-brand-600/20 border-crm-brand-600/30 text-crm-brand-500'
+                    ? 'bg-amber-100 border-amber-200 text-amber-700'
+                    : 'bg-crm-brand-50 border-crm-brand-200 text-crm-brand-700'
                 }`}
               >
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#FAF7F2] text-crm-brand-500 border border-[#EBE3DB]">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-white text-crm-brand-700 border border-[#E7DED5]">
                     {alt.module}
                   </span>
                   <span
                     className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                      alt.severity === 'Critical' ? 'bg-rose-500/20 text-rose-400' : 'bg-amber-500/20 text-amber-400'
+                      alt.severity === 'Critical' 
+                        ? 'bg-rose-100 text-rose-700 border border-rose-200' 
+                        : 'bg-amber-100 text-amber-800 border border-amber-200'
                     }`}
                   >
                     {alt.severity} Priority
@@ -112,7 +114,7 @@ export default function AlertCenterPage() {
                 </div>
                 <h3 className="text-sm font-bold text-[#211B17]">{alt.title}</h3>
                 <p className="text-xs text-[#544B45]">{alt.description}</p>
-                <div className="text-[11px] text-amber-300 font-semibold pt-1">
+                <div className="text-[11px] text-amber-800 font-semibold pt-1">
                   Required Action: <span className="underline">{alt.actionRequired}</span>
                 </div>
               </div>

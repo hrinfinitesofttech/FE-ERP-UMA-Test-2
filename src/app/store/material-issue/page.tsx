@@ -23,6 +23,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
+import { printContent } from '@/lib/printUtils';
 import { formatCurrency, formatDate } from '../../../lib/utils';
 import { toast } from '../../../context/ToastContext';
 
@@ -1046,7 +1047,7 @@ function MaterialIssueContent() {
       {/* Modal: View Issue Voucher */}
       {viewVoucher && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-3xl w-full p-6 space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+          <div id="printable-material-issue-slip" className="bg-white border border-[#EBE3DB] rounded-2xl max-w-3xl w-full p-6 space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
             {/* Header */}
             <div className="flex items-start justify-between border-b border-[#EBE3DB] pb-4">
               <div>
@@ -1063,17 +1064,17 @@ function MaterialIssueContent() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 print:hidden">
                 <button
-                  onClick={() => window.print()}
-                  className="p-2 rounded-xl bg-[#FAF7F2] hover:bg-emerald-50 text-[#544B45] hover:text-emerald-700 border border-[#EBE3DB] transition text-xs font-bold flex items-center gap-1.5"
+                  onClick={() => printContent('printable-material-issue-slip', { title: viewVoucher ? `Material_Issue_${viewVoucher.issueNumber}` : 'Material_Issue_Slip' })}
+                  className="p-2 rounded-xl bg-[#FAF7F2] hover:bg-emerald-50 text-[#544B45] hover:text-emerald-700 border border-[#EBE3DB] transition text-xs font-bold flex items-center gap-1.5 cursor-pointer"
                 >
                   <Printer className="w-4 h-4" />
                   Print Slip
                 </button>
                 <button
                   onClick={() => setViewVoucher(null)}
-                  className="p-2 rounded-xl text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] transition"
+                  className="p-2 rounded-xl text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] transition cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>

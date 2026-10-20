@@ -7,6 +7,7 @@ import { useERP } from '../../../context/ERPContext';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
 import { RequestForQuotation, RFQItem, Supplier } from '../../../types/purchase';
 import { toast } from '../../../context/ToastContext';
+import { printContent } from '@/lib/printUtils';
 import {
   FileText,
   Plus,
@@ -423,7 +424,9 @@ export default function PurchaseRequestsPage() {
 
   // Print Letterhead Action
   const handlePrint = () => {
-    window.print();
+    printContent('printable-rfq-letter', {
+      title: selectedRequest ? `RFQ_${selectedRequest.rfqNumber}` : 'Purchase_Requirement_RFQ',
+    });
   };
 
   // Table Columns
@@ -1092,7 +1095,7 @@ export default function PurchaseRequestsPage() {
 
             {/* Letter Content Container (Formatted strictly as Uma Technofab reference sheet) */}
             <div className="p-6 overflow-y-auto bg-slate-100 flex justify-center">
-              <div className="bg-white text-black p-8 shadow-md border border-slate-300 max-w-3xl w-full min-h-[1000px] flex flex-col justify-between font-sans text-xs">
+              <div id="printable-rfq-letter" className="bg-white text-black p-8 shadow-md border border-slate-300 max-w-3xl w-full min-h-[1000px] flex flex-col justify-between font-sans text-xs">
                 {/* 1. Official Header */}
                 <div>
                   <div className="border-b-2 border-slate-900 pb-2 flex items-center justify-between">

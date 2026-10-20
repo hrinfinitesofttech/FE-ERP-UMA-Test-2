@@ -160,7 +160,7 @@ export default function AccountingDashboardPage() {
 
           <Link
             href="/accounting/sales-invoices"
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-[#211B17] text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-lg shadow-emerald-600/20"
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-sm cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Create Sales Invoice</span>
@@ -339,14 +339,22 @@ export default function AccountingDashboardPage() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={monthlyRevenueExpenseData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" />
-                <XAxis dataKey="month" stroke="#64748B" fontSize={11} />
-                <YAxis stroke="#64748B" fontSize={11} tickFormatter={(val) => `${(val / 100000).toFixed(0)}L`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#F0EBE6" />
+                <XAxis dataKey="month" stroke="#70665F" fontSize={11} />
+                <YAxis stroke="#70665F" fontSize={11} tickFormatter={(val) => `${(val / 100000).toFixed(0)}L`} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', color: '#F8FAFC', borderRadius: '8px', fontSize: '12px' }}
+                  contentStyle={{
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#E7DED5',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
+                  }}
+                  itemStyle={{ color: '#211B17', fontWeight: 600 }}
+                  labelStyle={{ color: '#70665F', fontWeight: 700 }}
                   formatter={(value: any) => [`₹${(Number(value) / 100000).toFixed(2)} Lacs`, '']}
                 />
-                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px', color: '#70665F' }} />
                 <Bar dataKey="Revenue" fill="#10B981" radius={[4, 4, 0, 0]} name="Sales Revenue" />
                 <Bar dataKey="Expense" fill="#6366F1" radius={[4, 4, 0, 0]} name="Direct Expenses" />
               </BarChart>
@@ -366,14 +374,22 @@ export default function AccountingDashboardPage() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={cashFlowData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" />
-                <XAxis dataKey="month" stroke="#64748B" fontSize={11} />
-                <YAxis stroke="#64748B" fontSize={11} tickFormatter={(val) => `${(val / 100000).toFixed(0)}L`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#F0EBE6" />
+                <XAxis dataKey="month" stroke="#70665F" fontSize={11} />
+                <YAxis stroke="#70665F" fontSize={11} tickFormatter={(val) => `${(val / 100000).toFixed(0)}L`} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', color: '#F8FAFC', borderRadius: '8px', fontSize: '12px' }}
+                  contentStyle={{
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#E7DED5',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
+                  }}
+                  itemStyle={{ color: '#211B17', fontWeight: 600 }}
+                  labelStyle={{ color: '#70665F', fontWeight: 700 }}
                   formatter={(value: any) => [`₹${(Number(value) / 100000).toFixed(2)} Lacs`, '']}
                 />
-                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px', color: '#70665F' }} />
                 <Area type="monotone" dataKey="Inflow" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.2} name="Cash Received" />
                 <Area type="monotone" dataKey="Outflow" stroke="#EF4444" fill="#EF4444" fillOpacity={0.1} name="Cash Paid" />
               </AreaChart>
@@ -399,10 +415,18 @@ export default function AccountingDashboardPage() {
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', color: '#F8FAFC', borderRadius: '8px', fontSize: '12px' }}
+                  contentStyle={{
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#E7DED5',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
+                  }}
+                  itemStyle={{ color: '#211B17', fontWeight: 600 }}
+                  labelStyle={{ color: '#70665F', fontWeight: 700 }}
                   formatter={(value: any) => [`₹${(Number(value) / 100000).toFixed(2)} Lacs`, '']}
                 />
-                <Legend wrapperStyle={{ fontSize: '11px' }} />
+                <Legend wrapperStyle={{ fontSize: '11px', color: '#70665F' }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -426,7 +450,15 @@ export default function AccountingDashboardPage() {
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', color: '#F8FAFC', borderRadius: '8px', fontSize: '12px' }}
+                  contentStyle={{
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#E7DED5',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
+                  }}
+                  itemStyle={{ color: '#211B17', fontWeight: 600 }}
+                  labelStyle={{ color: '#70665F', fontWeight: 700 }}
                   formatter={(value: any) => [`₹${(Number(value) / 100000).toFixed(2)} Lacs`, '']}
                 />
               </PieChart>
@@ -446,11 +478,19 @@ export default function AccountingDashboardPage() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={apAgingData} layout="vertical" margin={{ top: 10, right: 10, left: 15, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" />
-                <XAxis type="number" stroke="#64748B" fontSize={11} tickFormatter={(val) => `${(val / 100000).toFixed(0)}L`} />
-                <YAxis dataKey="name" type="category" stroke="#64748B" fontSize={11} width={75} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#F0EBE6" />
+                <XAxis type="number" stroke="#70665F" fontSize={11} tickFormatter={(val) => `${(val / 100000).toFixed(0)}L`} />
+                <YAxis dataKey="name" type="category" stroke="#70665F" fontSize={11} width={75} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', color: '#F8FAFC', borderRadius: '8px', fontSize: '12px' }}
+                  contentStyle={{
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#E7DED5',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
+                  }}
+                  itemStyle={{ color: '#211B17', fontWeight: 600 }}
+                  labelStyle={{ color: '#70665F', fontWeight: 700 }}
                   formatter={(value: any) => [`₹${(Number(value) / 100000).toFixed(2)} Lacs`, '']}
                 />
                 <Bar dataKey="amount" fill="#6366F1" radius={[0, 4, 4, 0]} name="Vendor Payable Amount" />
@@ -471,14 +511,22 @@ export default function AccountingDashboardPage() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={jobCostings} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" />
-                <XAxis dataKey="jobNumber" stroke="#64748B" fontSize={10} />
-                <YAxis stroke="#64748B" fontSize={11} tickFormatter={(val) => `${(val / 100000).toFixed(0)}L`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#F0EBE6" />
+                <XAxis dataKey="jobNumber" stroke="#70665F" fontSize={10} />
+                <YAxis stroke="#70665F" fontSize={11} tickFormatter={(val) => `${(val / 100000).toFixed(0)}L`} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', color: '#F8FAFC', borderRadius: '8px', fontSize: '12px' }}
+                  contentStyle={{
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#E7DED5',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
+                  }}
+                  itemStyle={{ color: '#211B17', fontWeight: 600 }}
+                  labelStyle={{ color: '#70665F', fontWeight: 700 }}
                   formatter={(value: any) => [`₹${(Number(value) / 100000).toFixed(2)} Lacs`, '']}
                 />
-                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px', color: '#70665F' }} />
                 <Bar dataKey="salesValue" fill="#10B981" name="Sales Price" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="actualCost" fill="#F59E0B" name="Actual Production Cost" radius={[4, 4, 0, 0]} />
               </BarChart>

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { SalesInvoice } from '../../../types/accounting';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
+import { printContent } from '@/lib/printUtils';
 import { Receipt, Search, Plus, Filter, CheckCircle2, Clock, Eye, Download, FileSpreadsheet, Building, Users, Printer, X, Coins, Sparkles } from 'lucide-react';
 
 function SalesInvoicesContent() {
@@ -661,7 +662,7 @@ function SalesInvoicesContent() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => window.print()}
+                  onClick={() => printContent('printable-sales-invoice', { title: selectedInvoiceForPrint ? `Invoice_${selectedInvoiceForPrint.invoiceNumber}` : 'Tax_Invoice' })}
                   className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition cursor-pointer"
                 >
                   <Printer className="w-4 h-4" />
@@ -678,7 +679,7 @@ function SalesInvoicesContent() {
             </div>
 
             {/* Printable Invoice Document Body */}
-            <div className="space-y-6 font-sans">
+            <div id="printable-sales-invoice" className="space-y-6 font-sans">
               {/* Header Letterhead */}
               <div className="flex justify-between items-start border-b-2 border-emerald-800 pb-4">
                 <div>

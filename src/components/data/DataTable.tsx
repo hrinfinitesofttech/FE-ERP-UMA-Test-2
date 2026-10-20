@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Search, Download, Printer, ChevronLeft, ChevronRight, SlidersHorizontal, ArrowUpDown, Loader2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useERP } from '@/context/ERPContext';
+import { printContent } from '@/lib/printUtils';
 
 import { sortByLatestDesc } from '@/lib/sortHelper';
 
@@ -52,6 +53,7 @@ export function DataTable<T extends Record<string, any>>({
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(pageSizeDefault);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
 
   const prevDataLengthRef = React.useRef(data.length);
   React.useEffect(() => {
@@ -108,11 +110,17 @@ export function DataTable<T extends Record<string, any>>({
   };
 
   const handlePrint = () => {
-    window.print();
+    if (tableContainerRef.current) {
+      printContent(tableContainerRef.current, {
+        title: title ? `${title.replace(/\s+/g, '_')}_Report` : 'ERP_Table_Report',
+      });
+    } else {
+      window.print();
+    }
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E7DED5] shadow-xs overflow-hidden flex flex-col transition-all">
+    <div ref={tableContainerRef} className="bg-white rounded-2xl border border-[#E7DED5] shadow-xs overflow-hidden flex flex-col transition-all">
       {/* Header & Controls Toolbar */}
       <div className="p-4 sm:p-5 border-b border-[#E7DED5] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 bg-[#FAF7F2]">
         <div>

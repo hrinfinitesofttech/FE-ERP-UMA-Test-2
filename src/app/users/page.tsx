@@ -47,9 +47,9 @@ import { CustomSelect } from '../../components/ui/CustomSelect';
 
 export default function UsersPage() {
   const {
-    employees,
-    roles,
-    departments,
+    employees: rawEmployees = [],
+    roles: rawRoles = [],
+    departments: rawDepartments = [],
     currentUser,
     deleteEmployee,
     deactivateEmployee,
@@ -57,6 +57,10 @@ export default function UsersPage() {
     resetEmployeePassword,
     refreshEmployees,
   } = useERP();
+
+  const safeEmployees = useMemo(() => (Array.isArray(rawEmployees) ? rawEmployees.filter(Boolean) : []), [rawEmployees]);
+  const safeDepartments = useMemo(() => (Array.isArray(rawDepartments) ? rawDepartments.filter(Boolean) : []), [rawDepartments]);
+  const safeRoles = useMemo(() => (Array.isArray(rawRoles) ? rawRoles.filter(Boolean) : []), [rawRoles]);
 
   // Search & Filter States
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,13 +76,13 @@ export default function UsersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const prevEmpCountRef = React.useRef(employees.length);
+  const prevEmpCountRef = React.useRef(safeEmployees.length);
   React.useEffect(() => {
-    if (employees.length > prevEmpCountRef.current) {
+    if (safeEmployees.length > prevEmpCountRef.current) {
       setCurrentPage(1);
     }
-    prevEmpCountRef.current = employees.length;
-  }, [employees.length]);
+    prevEmpCountRef.current = safeEmployees.length;
+  }, [safeEmployees.length]);
 
   // Notification States
   const [actionSuccess, setActionSuccess] = useState('');
@@ -120,28 +124,28 @@ export default function UsersPage() {
   // Available unique designations from employees
   const availableDesignations = useMemo(() => {
     const desigs = new Set<string>();
-    const safeEmployees = Array.isArray(employees) ? employees : [];
     safeEmployees.forEach((emp) => {
-      if (emp && emp.designation && emp.designation.trim()) desigs.add(emp.designation.trim());
+      if (emp && emp.designation && typeof emp.designation === 'string' && emp.designation.trim()) {
+        desigs.add(emp.designation.trim());
+      }
     });
     return Array.from(desigs).sort();
-  }, [employees]);
+  }, [safeEmployees]);
 
   // Review Required count
   const reviewRequiredCount = useMemo(() => {
-    const safeEmployees = Array.isArray(employees) ? employees : [];
     return safeEmployees.filter((e) => e?.permissionsReviewRequired).length;
-  }, [employees]);
+  }, [safeEmployees]);
 
   // Active / Inactive counts
   const activeCount = useMemo(() => {
-    const safeEmployees = Array.isArray(employees) ? employees : [];
     return safeEmployees.filter((e) => e?.status === 'active' || e?.isActive === true).length;
-  }, [employees]);
+  }, [safeEmployees]);
 
   // Multi-field Filter Logic
   const filteredEmployees = useMemo(() => {
-    return employees.filter((emp) => {
+    return safeEmployees.filter((emp) => {
+      if (!emp) return false;
       // 1. Text Search across Name, ID, Username, Email, Phone
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
@@ -193,7 +197,7 @@ export default function UsersPage() {
       return true;
     });
   }, [
-    employees,
+    safeEmployees,
     searchQuery,
     selectedDept,
     selectedRole,
@@ -284,16 +288,18 @@ export default function UsersPage() {
       key: 'name',
       header: 'EMPLOYEE & IDENTITY',
       cell: (emp: Employee) => {
-        const fullName = `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || emp.name || emp.username;
+        if (!emp) return null;
+        const fullName = `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || emp.name || emp.username || 'Employee';
+        const firstInitial = String(emp.firstName || emp.username || 'U').charAt(0).toUpperCase();
+        const lastInitial = emp.lastName ? String(emp.lastName).charAt(0).toUpperCase() : '';
         return (
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-purple-100 text-[#7C3AED] font-bold text-xs flex items-center justify-center border border-purple-200 flex-shrink-0">
-              {emp.firstName ? emp.firstName.slice(0, 1).toUpperCase() : emp.username?.slice(0, 1).toUpperCase() || 'U'}
-              {emp.lastName ? emp.lastName.slice(0, 1).toUpperCase() : ''}
+              {firstInitial}{lastInitial}
             </div>
             <div>
               <span className="font-semibold text-gray-900 block">{fullName}</span>
-              <span className="text-[11px] text-gray-400 font-mono">@{emp.username}</span>
+              <span className="text-[11px] text-gray-400 font-mono">@{emp.username || emp.id}</span>
             </div>
           </div>
         );
@@ -448,10 +454,10 @@ export default function UsersPage() {
   ];
 
   const handleExport = () => {
-    if (employees.length === 0) return;
+    if (safeEmployees.length === 0) return;
     const headers = ['Employee ID', 'Name', 'Username', 'Email', 'Phone', 'Department', 'Designation', 'Role', 'Status'];
-    const rows = employees.map((emp) => [
-      emp.id,
+    const rows = safeEmployees.map((emp) => [
+      emp.id || '',
       `"${(`${emp.firstName || ''} ${emp.lastName || ''}`).trim() || emp.name || ''}"`,
       `"${emp.username || ''}"`,
       `"${emp.email || ''}"`,
@@ -657,7 +663,7 @@ export default function UsersPage() {
             <span>Total Staff</span>
             <Users className="w-4 h-4 text-crm-brand-700" />
           </div>
-          <p suppressHydrationWarning className="text-xl font-extrabold text-slate-900">{employees?.length || 0}</p>
+          <p suppressHydrationWarning className="text-xl font-extrabold text-slate-900">{safeEmployees.length}</p>
           <span className="text-[10px] text-slate-500">Registered records</span>
         </div>
 
@@ -675,7 +681,7 @@ export default function UsersPage() {
             <span>Inactive Accounts</span>
             <XCircle className="w-4 h-4 text-rose-600" />
           </div>
-          <p suppressHydrationWarning className="text-xl font-extrabold text-rose-800">{(employees?.length || 0) - activeCount}</p>
+          <p suppressHydrationWarning className="text-xl font-extrabold text-rose-800">{Math.max(0, safeEmployees.length - activeCount)}</p>
           <span className="text-[10px] text-rose-600 font-medium">Deactivated / Suspended</span>
         </div>
 
@@ -757,12 +763,10 @@ export default function UsersPage() {
           className="w-48"
           options={[
             { value: 'all', label: 'All Departments' },
-            ...(isMounted && departments
-              ? departments.map((d) => ({
-                  value: d.id,
-                  label: d.name || d.departmentName || '',
-                }))
-              : []),
+            ...safeDepartments.map((d) => ({
+              value: String(d.id || ''),
+              label: String(d.name || d.departmentName || d.id || 'Department'),
+            })),
           ]}
         />
 
@@ -774,12 +778,10 @@ export default function UsersPage() {
           className="w-44"
           options={[
             { value: 'all', label: 'All Roles' },
-            ...(isMounted && roles
-              ? roles.map((r) => ({
-                  value: r.id,
-                  label: r.name,
-                }))
-              : []),
+            ...safeRoles.map((r) => ({
+              value: String(r.id || ''),
+              label: String(r.name || r.id || 'Role'),
+            })),
           ]}
         />
 
@@ -791,12 +793,10 @@ export default function UsersPage() {
           className="w-48"
           options={[
             { value: 'all', label: 'All Designations' },
-            ...(isMounted
-              ? availableDesignations.map((desig) => ({
-                  value: desig,
-                  label: desig,
-                }))
-              : []),
+            ...availableDesignations.map((desig) => ({
+              value: String(desig || ''),
+              label: String(desig || ''),
+            })),
           ]}
         />
 

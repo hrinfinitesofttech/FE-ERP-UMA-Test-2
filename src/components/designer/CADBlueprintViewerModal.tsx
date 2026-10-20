@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Drawing2D } from '@/types/designer';
+import { printContent } from '@/lib/printUtils';
 import {
   X,
   Download,
@@ -148,7 +149,7 @@ export default function CADBlueprintViewerModal({
   };
 
   const handlePrint = () => {
-    window.print();
+    printContent('printable-cad-drawing-sheet', { title: `CAD_Drawing_${drawingNum}` });
   };
 
   return (
@@ -158,6 +159,7 @@ export default function CADBlueprintViewerModal({
     >
       <div
         onClick={(e) => e.stopPropagation()}
+        id="printable-cad-drawing-sheet"
         className="bg-white border border-[#E7DED5] rounded-3xl w-full max-w-6xl overflow-hidden shadow-2xl flex flex-col max-h-[94vh]"
       >
         {/* Modal Top Navigation Bar */}
@@ -186,7 +188,7 @@ export default function CADBlueprintViewerModal({
           </div>
 
           {/* Controls: Tabs & Themes & Close */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 print:hidden">
             {/* View Mode Tabs */}
             <div className="bg-white p-1 rounded-xl border border-[#E7DED5] flex items-center gap-1 text-xs">
               <button
@@ -861,7 +863,7 @@ export default function CADBlueprintViewerModal({
         </div>
 
         {/* Modal Bottom Footer Actions */}
-        <div className="bg-white border-t border-[#E7DED5] px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="bg-white border-t border-[#E7DED5] px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3 text-xs print:hidden">
           <div className="flex items-center gap-2">
             <span className="font-mono text-[#70665F]">
               Project Reference: <strong className="text-[#211B17]">{jobRef}</strong>

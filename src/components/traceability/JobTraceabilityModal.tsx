@@ -5,6 +5,7 @@ import { useERP } from '../../context/ERPContext';
 import { StatusBadge } from '../workflow/StatusBadge';
 import { WorkflowStepper } from '../workflow/WorkflowStepper';
 import { formatCurrency, formatDate } from '../../lib/utils';
+import { printContent } from '../../lib/printUtils';
 import {
   X,
   Printer,
@@ -33,12 +34,12 @@ export function JobTraceabilityModal() {
   const job = selectedJobForModal;
 
   const handlePrintJobCard = () => {
-    window.print();
+    printContent('printable-job-traceability-card', { title: `JobCard_${job.jobNumber}` });
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#211B17]/45 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white border border-[#E7DED5] rounded-3xl shadow-2xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
+      <div id="printable-job-traceability-card" className="bg-white border border-[#E7DED5] rounded-3xl shadow-2xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
         {/* Modal Top Header */}
         <div className="p-4 sm:p-5 border-b border-[#E7DED5] bg-gradient-to-r from-[#FAF3EA] via-[#F8EDE0] to-[#F1DFC9] flex items-start justify-between gap-4">
           <div className="space-y-1">

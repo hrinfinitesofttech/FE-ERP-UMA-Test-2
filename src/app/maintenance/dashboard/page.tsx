@@ -75,37 +75,39 @@ export default function MaintenanceDashboardPage() {
   return (
     <div className="p-4 sm:p-6 space-y-6 bg-slate-50 dark:bg-[#FAF7F2] ">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 rounded-2xl text-[#211B17] shadow-xl border border-[#EBE3DB]">
-        <div className="space-y-1">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E7DED5] shadow-xs">
+        <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold font-mono border border-amber-500/30">
+            <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-800 text-xs font-bold font-mono border border-amber-500/20">
               MODULE 8
             </span>
-            <span className="text-xs text-[#70665F]">Internal Equipment & Customer After-Sales</span>
+            <span className="text-xs text-[#70665F] font-medium">Internal Equipment & Customer After-Sales</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#211B17] flex items-center gap-3">
-            <Wrench className="w-8 h-8 text-amber-400" />
-            Maintenance & Service Command Center
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 flex items-center justify-center flex-shrink-0">
+              <Wrench className="w-5 h-5 text-amber-600" />
+            </div>
+            <span>Maintenance &amp; Service Command Center</span>
           </h1>
-          <p className="text-xs sm:text-sm text-[#544B45] max-w-2xl">
-            Real-time monitoring of Uma Techno Fab assets, active customer machines, emergency breakdowns, scheduled PM, technician workloads & AMC contracts.
+          <p className="text-xs sm:text-sm text-[#70665F] max-w-2xl leading-relaxed mt-1">
+            Real-time monitoring of Uma Techno Fab assets, active customer machines, emergency breakdowns, scheduled PM, technician workloads &amp; AMC contracts.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <Link
             href="/maintenance/service-requests"
-            className="px-4 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-600 text-white font-semibold text-xs transition flex items-center gap-1.5 shadow-lg shadow-crm-brand-700/30"
+            className="px-4 py-2.5 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-semibold text-xs transition flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            Log Service Request
+            <span>Log Service Request</span>
           </Link>
           <Link
             href="/maintenance/breakdowns"
-            className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold text-xs transition flex items-center gap-1.5 shadow-lg shadow-red-600/30"
+            className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-xs transition flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
           >
             <AlertTriangle className="w-4 h-4" />
-            Report Breakdown
+            <span>Report Breakdown</span>
           </Link>
         </div>
       </div>

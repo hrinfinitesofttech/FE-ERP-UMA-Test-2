@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { BankAccount, PurchaseInvoice } from '../../../types/accounting';
 import { toast } from '../../../context/ToastContext';
+import { printContent } from '@/lib/printUtils';
 
 function numberToIndianWords(num: number): string {
   if (!num || isNaN(num) || num <= 0) return 'Zero Rupees Only';
@@ -626,7 +627,7 @@ function SupplierPaymentsContent() {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => window.print()}
+                  onClick={() => printContent('printable-payment-voucher', { title: selectedPayment ? `Payment_${selectedPayment.paymentNumber}` : 'Payment_Voucher' })}
                   className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs flex items-center gap-1 cursor-pointer"
                 >
                   <Printer className="w-3.5 h-3.5" />
@@ -642,7 +643,7 @@ function SupplierPaymentsContent() {
             </div>
 
             {/* Printable Voucher Content */}
-            <div className="border border-slate-300 rounded-xl p-5 space-y-4">
+            <div id="printable-payment-voucher" className="border border-slate-300 rounded-xl p-5 space-y-4">
               <div className="flex items-start justify-between border-b pb-3 border-slate-200">
                 <div>
                   <h2 className="text-base font-black tracking-wider text-slate-900 uppercase">

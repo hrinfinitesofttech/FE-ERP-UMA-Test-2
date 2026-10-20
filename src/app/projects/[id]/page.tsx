@@ -7,6 +7,7 @@ import { useERP } from '../../../context/ERPContext';
 import { StatusBadge } from '../../../components/workflow/StatusBadge';
 import { WorkflowStepper } from '../../../components/workflow/WorkflowStepper';
 import { formatCurrency, formatDate } from '../../../lib/utils';
+import { printContent } from '../../../lib/printUtils';
 import {
   Briefcase,
   Building,
@@ -179,8 +180,8 @@ export default function ProjectDetailPage() {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => window.print()}
-            className="px-3 py-1.5 bg-slate-100 dark:bg-[#FAF7F2] hover:bg-slate-200 text-slate-700 dark:text-[#544B45] rounded-xl font-bold flex items-center gap-1.5 border border-slate-200 dark:border-[#EBE3DB]"
+            onClick={() => printContent('printable-job-traveler', { title: project ? `JobTraveler_${project.jobNumber}` : 'Job_Traveler' })}
+            className="px-3 py-1.5 bg-slate-100 dark:bg-[#FAF7F2] hover:bg-slate-200 text-slate-700 dark:text-[#544B45] rounded-xl font-bold flex items-center gap-1.5 border border-slate-200 dark:border-[#EBE3DB] cursor-pointer"
           >
             <Printer className="w-3.5 h-3.5" />
             <span>Print Job Traveler</span>
@@ -195,32 +196,33 @@ export default function ProjectDetailPage() {
         </div>
       </div>
 
-      {/* Main 360° Header Banner */}
-      <div className="bg-gradient-to-r from-[#0B1120] via-[#1E293B] to-[#0B1120] text-[#211B17] p-6 rounded-2xl border border-[#EBE3DB] shadow-xl space-y-4">
+      <div id="printable-job-traveler" className="space-y-6">
+        {/* Main 360° Header Banner */}
+        <div className="bg-white p-6 rounded-2xl border border-[#EBE3DB] shadow-xs space-y-4">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-3 flex-wrap">
-              <span className="px-3 py-1 rounded-lg bg-crm-brand-700 font-mono font-black text-sm text-white shadow-md">
+              <span className="px-3 py-1 rounded-lg bg-crm-brand-700 font-mono font-black text-sm text-white shadow-xs">
                 {project.jobNumber}
               </span>
               <span className="font-mono text-[#544B45] font-bold bg-[#FAF7F2] px-2.5 py-1 rounded-lg border border-[#EBE3DB]">
                 PRJ: {project.projectNumber}
               </span>
               <StatusBadge status={project.status as any} />
-              <span className="px-2.5 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-mono font-bold uppercase border border-amber-500/30">
+              <span className="px-2.5 py-0.5 rounded bg-amber-100 text-amber-900 text-[10px] font-mono font-bold uppercase border border-amber-300">
                 Priority: {project.priority}
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-[#211B17] mt-2">
               {project.customerName}
             </h1>
-            <p className="text-[#544B45] font-semibold text-xs flex items-center gap-2">
-              <Wrench className="w-4 h-4 text-amber-400" />
+            <p className="text-[#70665F] font-semibold text-xs flex items-center gap-2">
+              <Wrench className="w-4 h-4 text-amber-600" />
               <span>{project.productName}</span>
             </p>
           </div>
 
-          <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] min-w-[240px] space-y-2">
+          <div className="bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB] min-w-[240px] space-y-2">
             <div className="flex justify-between items-center text-xs">
               <span className="text-[#70665F]">Overall Progress:</span>
               <span className="font-bold text-crm-brand-500 text-sm font-mono">{project.progressPercent}%</span>
@@ -702,6 +704,7 @@ export default function ProjectDetailPage() {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );
