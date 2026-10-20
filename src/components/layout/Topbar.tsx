@@ -29,6 +29,7 @@ import {
   Check,
 } from 'lucide-react';
 import { formatDateTime } from '../../lib/utils';
+import { ThemeSwitcher } from '../theme/ThemeSwitcher';
 import {
   isSoundEnabled,
   setSoundEnabled,
@@ -88,7 +89,7 @@ export function Topbar() {
   };
 
   return (
-    <header className="h-16 bg-[#FCFAF7] border-b border-[#EDE5DC] px-4 sm:px-6 flex items-center justify-between gap-4 z-20 sticky top-0 flex-shrink-0 transition-all">
+    <header className="h-16 bg-[var(--crm-bg-app,#FCFAF7)] border-b border-[var(--crm-border-default,#EDE5DC)] px-4 sm:px-6 flex items-center justify-between gap-4 z-20 sticky top-0 flex-shrink-0 transition-all">
       {/* Left: Mobile Toggle & Global Search Bar */}
       <div className="flex items-center gap-3 flex-1 max-w-xl">
         <button
@@ -113,6 +114,9 @@ export function Topbar() {
 
       {/* Right Controls: + New Lead + Notifications + User Avatar */}
       <div className="flex items-center gap-3">
+        {/* Theme & Color Switcher */}
+        <ThemeSwitcher />
+
         {/* Quick Action: + New Lead */}
         <Link
           href="/crm/leads/new"

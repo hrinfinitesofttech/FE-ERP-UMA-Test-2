@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useERP } from '../../context/ERPContext';
 import { DataTable, Column } from '../data/DataTable';
+import { CustomSelect } from '../ui/CustomSelect';
 import { StatusBadge } from '../workflow/StatusBadge';
 import { Lead, LeadStatus, LeadSource, PriorityLevel, Employee } from '../../types/crm';
 import { formatCurrency, formatDate } from '../../lib/utils';
@@ -470,10 +471,9 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
           onRowClick={(lead) => router.push(`/crm/leads/${lead.id}`)}
           filterComponent={
             <div className="flex items-center gap-2 flex-wrap">
-              <select
+              <CustomSelect
                 value={leadStatusFilter}
-                onChange={(e) => setLeadStatusFilter(e.target.value)}
-                className="px-2.5 py-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs font-semibold text-[#544B45] focus:outline-none focus:border-[#75401F]"
+                onChange={(val) => setLeadStatusFilter(val)}
               >
                 <option value="all">All Statuses ({validLeads.length})</option>
                 <option value="new">New Lead</option>
@@ -483,12 +483,11 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
                 <option value="quotation_sent">Quotation Sent</option>
                 <option value="won">Won / Converted</option>
                 <option value="lost">Lost</option>
-              </select>
+              </CustomSelect>
 
-              <select
+              <CustomSelect
                 value={leadSourceFilter}
-                onChange={(e) => setLeadSourceFilter(e.target.value)}
-                className="px-2.5 py-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs font-semibold text-[#544B45] focus:outline-none focus:border-[#75401F]"
+                onChange={(val) => setLeadSourceFilter(val)}
               >
                 <option value="all">All Sources</option>
                 <option value="exhibition">Exhibition / Trade Show</option>
@@ -496,7 +495,7 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
                 <option value="phone">Direct Phone</option>
                 <option value="whatsapp">WhatsApp</option>
                 <option value="referral">Client Referral</option>
-              </select>
+              </CustomSelect>
             </div>
           }
           actions={

@@ -172,35 +172,354 @@ aside a[class*="bg-crm-brand-700"] span[class*="font-mono"] {
   background: rgba(112, 102, 95, 0.6);
 }
 
-/* Premium Warm Stone Shimmer Wave Animation */
-@keyframes shimmerWave {
+
+/* ========================================================
+   GLOBAL MODERN SELECT & DROPDOWN STYLING
+   ======================================================== */
+select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2370665f' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.75rem center !important;
+  background-size: 0.85rem !important;
+  padding-right: 2.25rem !important;
+  border-radius: 0.75rem !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease-in-out !important;
+}
+
+select:hover {
+  border-color: var(--crm-brand-500, #a96b34) !important;
+}
+
+select:focus {
+  outline: none !important;
+  border-color: var(--crm-brand-700, #75401f) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--crm-brand-700, #75401f), transparent 80%) !important;
+}
+
+/* Styled option elements */
+select option {
+  background-color: var(--crm-surface-card, #ffffff);
+  color: var(--crm-text-primary, #211b17);
+  padding: 8px 12px;
+  font-weight: 500;
+}
+
+/* ========================================================
+   OBSIDIAN NIGHT / DARK MODE COMPREHENSIVE OVERRIDES
+   ======================================================== */
+
+html.dark,
+[data-theme="obsidianDark"] {
+  color-scheme: dark;
+}
+
+/* 1. Body & Overall Canvas */
+html.dark body,
+html.dark .crm-app,
+[data-theme="obsidianDark"] body,
+[data-theme="obsidianDark"] .crm-app {
+  background-color: #0b0f19 !important;
+  color: #f8fafc !important;
+}
+
+/* Outer Canvas Frame */
+html.dark div[class*="bg-[#F4EFEA]"],
+[data-theme="obsidianDark"] div[class*="bg-[#F4EFEA]"] {
+  background-color: #080c14 !important;
+}
+
+html.dark div[class*="border-[#E6DDD2]"],
+[data-theme="obsidianDark"] div[class*="border-[#E6DDD2]"] {
+  border-color: #1e293b !important;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* 2. Primary Card Surfaces (Turn White Cards into Deep Midnight Slate) */
+html.dark .bg-white,
+html.dark .bg-\[\#ffffff\],
+[data-theme="obsidianDark"] .bg-white,
+[data-theme="obsidianDark"] .bg-\[\#ffffff\] {
+  background-color: #131b2e !important;
+  color: #f8fafc !important;
+}
+
+/* 3. Subtle / Cream / Warm Stone Backgrounds (Headers, Inner panels, Table heads) */
+html.dark .bg-\[\#FAF7F2\],
+html.dark .bg-\[\#FCFAF7\],
+html.dark .bg-\[\#FBF8F3\],
+html.dark .bg-\[\#F5EFE7\],
+html.dark .bg-\[\#F3ECE4\],
+html.dark .bg-\[\#F3EDE4\],
+html.dark .bg-\[\#FAF0E6\],
+html.dark .bg-\[\#F6F1EA\],
+html.dark .bg-\[\#FCF5ED\],
+html.dark .bg-\[\#F2EBE1\],
+html.dark .bg-\[\#FAF6EE\],
+html.dark .bg-\[\#F4EFEA\],
+html.dark .bg-slate-50,
+html.dark .bg-slate-100,
+[data-theme="obsidianDark"] .bg-\[\#FAF7F2\],
+[data-theme="obsidianDark"] .bg-\[\#FCFAF7\],
+[data-theme="obsidianDark"] .bg-\[\#FBF8F3\],
+[data-theme="obsidianDark"] .bg-\[\#F5EFE7\],
+[data-theme="obsidianDark"] .bg-\[\#F3ECE4\],
+[data-theme="obsidianDark"] .bg-\[\#F3EDE4\],
+[data-theme="obsidianDark"] .bg-\[\#FAF0E6\],
+[data-theme="obsidianDark"] .bg-\[\#F6F1EA\],
+[data-theme="obsidianDark"] .bg-\[\#FCF5ED\],
+[data-theme="obsidianDark"] .bg-\[\#F2EBE1\],
+[data-theme="obsidianDark"] .bg-\[\#FAF6EE\],
+[data-theme="obsidianDark"] .bg-\[\#F4EFEA\],
+[data-theme="obsidianDark"] .bg-slate-50,
+[data-theme="obsidianDark"] .bg-slate-100 {
+  background-color: #0b1120 !important;
+  color: #e2e8f0 !important;
+}
+
+/* Transparent overlays */
+html.dark [class*="bg-[#FAF7F2]/"],
+[data-theme="obsidianDark"] [class*="bg-[#FAF7F2]/"] {
+  background-color: rgba(11, 17, 32, 0.7) !important;
+}
+
+/* 4. Borders */
+html.dark .border-\[\#EDE5DC\],
+html.dark .border-\[\#EBE3DB\],
+html.dark .border-\[\#E5DDD0\],
+html.dark .border-\[\#E7DED5\],
+html.dark .border-\[\#D5CAC0\],
+html.dark .border-\[\#E6DDD2\],
+html.dark .border-\[\#E5DCD3\],
+html.dark .border-\[\#D5C7B8\],
+html.dark .border-\[\#F2ECE4\],
+html.dark .border-\[\#E9DFD3\],
+html.dark .border-\[\#E0D7CC\],
+html.dark .border-\[\#EAE2D8\],
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .divide-\[\#EDE5DC\] > * + *,
+html.dark .divide-\[\#F2ECE4\] > * + *,
+[data-theme="obsidianDark"] .border-\[\#EDE5DC\],
+[data-theme="obsidianDark"] .border-\[\#EBE3DB\],
+[data-theme="obsidianDark"] .border-\[\#E5DDD0\],
+[data-theme="obsidianDark"] .border-\[\#E7DED5\],
+[data-theme="obsidianDark"] .border-\[\#D5CAC0\],
+[data-theme="obsidianDark"] .border-\[\#E6DDD2\],
+[data-theme="obsidianDark"] .border-\[\#E5DCD3\],
+[data-theme="obsidianDark"] .border-\[\#D5C7B8\],
+[data-theme="obsidianDark"] .border-\[\#F2ECE4\],
+[data-theme="obsidianDark"] .border-\[\#E9DFD3\],
+[data-theme="obsidianDark"] .border-\[\#E0D7CC\],
+[data-theme="obsidianDark"] .border-\[\#EAE2D8\],
+[data-theme="obsidianDark"] .border-slate-100,
+[data-theme="obsidianDark"] .border-slate-200,
+[data-theme="obsidianDark"] .divide-\[\#EDE5DC\] > * + *,
+[data-theme="obsidianDark"] .divide-\[\#F2ECE4\] > * + * {
+  border-color: #1e293b !important;
+}
+
+/* 5. Typography: Dark brown/black text becomes bright white */
+html.dark .text-\[\#211B17\],
+html.dark .text-\[\#3E2723\],
+[data-theme="obsidianDark"] .text-\[\#211B17\],
+[data-theme="obsidianDark"] .text-\[\#3E2723\] {
+  color: #f8fafc !important;
+}
+
+/* Secondary muted text */
+html.dark .text-\[\#544B45\],
+html.dark .text-\[\#4A3B32\],
+html.dark .text-\[\#6E5D53\],
+html.dark .text-\[\#70665F\],
+html.dark .text-\[\#8D7B70\],
+html.dark .text-\[\#8D827A\],
+html.dark .text-\[\#8C7D72\],
+html.dark .text-\[\#8C7A6F\],
+html.dark .text-\[\#9E8E82\],
+html.dark .text-\[\#6F6156\],
+[data-theme="obsidianDark"] .text-\[\#544B45\],
+[data-theme="obsidianDark"] .text-\[\#4A3B32\],
+[data-theme="obsidianDark"] .text-\[\#6E5D53\],
+[data-theme="obsidianDark"] .text-\[\#70665F\],
+[data-theme="obsidianDark"] .text-\[\#8D7B70\],
+[data-theme="obsidianDark"] .text-\[\#8D827A\],
+[data-theme="obsidianDark"] .text-\[\#8C7D72\],
+[data-theme="obsidianDark"] .text-\[\#8C7A6F\],
+[data-theme="obsidianDark"] .text-\[\#9E8E82\],
+[data-theme="obsidianDark"] .text-\[\#6F6156\] {
+  color: #94a3b8 !important;
+}
+
+/* Accent copper titles become neon cyan/sky in dark mode */
+html.dark .text-\[\#9C6538\],
+[data-theme="obsidianDark"] .text-\[\#9C6538\] {
+  color: #38bdf8 !important;
+}
+
+/* 6. Dashboard Hero Banner (Turn beige gradient into cosmic midnight) */
+html.dark [class*="from-[#FAF3EA]"],
+[data-theme="obsidianDark"] [class*="from-[#FAF3EA]"] {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1120 100%) !important;
+  border-color: #1e293b !important;
+}
+
+/* 7. Hover States */
+html.dark .hover\:bg-\[\#FAF7F2\]:hover,
+html.dark .hover\:bg-\[\#F3EDE4\]:hover,
+html.dark .hover\:bg-\[\#F3ECE4\]:hover,
+html.dark .hover\:bg-white:hover,
+[data-theme="obsidianDark"] .hover\:bg-\[\#FAF7F2\]:hover,
+[data-theme="obsidianDark"] .hover\:bg-\[\#F3EDE4\]:hover,
+[data-theme="obsidianDark"] .hover\:bg-\[\#F3ECE4\]:hover,
+[data-theme="obsidianDark"] .hover\:bg-white:hover {
+  background-color: #1a253a !important;
+}
+
+/* 8. Inputs, Selects & Search Boxes */
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark select,
+html.dark textarea,
+[data-theme="obsidianDark"] input:not([type="checkbox"]):not([type="radio"]),
+[data-theme="obsidianDark"] select,
+[data-theme="obsidianDark"] textarea {
+  background-color: #0b1120 !important;
+  color: #f8fafc !important;
+  border-color: #1e293b !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder,
+[data-theme="obsidianDark"] input::placeholder,
+[data-theme="obsidianDark"] textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* Topbar Global Search Button */
+html.dark button[class*="bg-[#FAF7F2]"],
+[data-theme="obsidianDark"] button[class*="bg-[#FAF7F2]"] {
+  background-color: #0b1120 !important;
+  border-color: #1e293b !important;
+  color: #94a3b8 !important;
+}
+
+html.dark kbd,
+[data-theme="obsidianDark"] kbd {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #38bdf8 !important;
+}
+
+/* 9. Metric Badges (Avoid muddy light brown circles in dark cards) */
+html.dark .bg-\[\#F6E7D8\],
+html.dark .bg-\[\#EFE8DE\],
+[data-theme="obsidianDark"] .bg-\[\#F6E7D8\],
+[data-theme="obsidianDark"] .bg-\[\#EFE8DE\] {
+  background-color: #1e293b !important;
+  color: #38bdf8 !important;
+}
+
+html.dark .bg-crm-brand-50,
+[data-theme="obsidianDark"] .bg-crm-brand-50 {
+  background-color: #1e293b !important;
+  color: #38bdf8 !important;
+}
+
+/* 10. Tables & Grids */
+html.dark thead,
+html.dark th,
+[data-theme="obsidianDark"] thead,
+[data-theme="obsidianDark"] th {
+  background-color: #0b1120 !important;
+  color: #94a3b8 !important;
+  border-color: #1e293b !important;
+}
+
+html.dark tbody tr,
+html.dark td,
+[data-theme="obsidianDark"] tbody tr,
+[data-theme="obsidianDark"] td {
+  border-color: #1e293b !important;
+}
+
+html.dark tbody tr:hover,
+[data-theme="obsidianDark"] tbody tr:hover {
+  background-color: #172338 !important;
+}
+
+/* 11. Shadows */
+html.dark .shadow-xs,
+html.dark .shadow-sm,
+html.dark .shadow-2xs,
+[data-theme="obsidianDark"] .shadow-xs,
+[data-theme="obsidianDark"] .shadow-sm,
+[data-theme="obsidianDark"] .shadow-2xs {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Scrollbars in Dark Mode */
+html.dark ::-webkit-scrollbar-thumb,
+[data-theme="obsidianDark"] ::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover,
+[data-theme="obsidianDark"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+
+
+/* Modern Dark Mode Select */
+html.dark select,
+[data-theme="obsidianDark"] select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-color: #0b1120 !important;
+  color: #f8fafc !important;
+  border-color: #1e293b !important;
+}
+
+html.dark select option,
+[data-theme="obsidianDark"] select option {
+  background-color: #131b2e !important;
+  color: #f8fafc !important;
+}
+
+
+/* Smooth Page Navigation Route Progress Bar Animation */
+@keyframes routeProgress {
   0% {
-    background-position: -200% 0;
+    width: 0%;
+    margin-left: 0%;
+  }
+  50% {
+    width: 75%;
+    margin-left: 10%;
   }
   100% {
-    background-position: 200% 0;
+    width: 100%;
+    margin-left: 0%;
   }
 }
 
-.animate-shimmer {
-  background: linear-gradient(
-    90deg,
-    #F2EBE1 0%,
-    #FAF6EE 50%,
-    #F2EBE1 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmerWave 1.6s infinite ease-in-out;
+.animate-route-progress {
+  animation: routeProgress 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-.animate-shimmer-subtle {
-  background: linear-gradient(
-    90deg,
-    rgba(235, 227, 219, 0.6) 0%,
-    rgba(250, 247, 242, 0.9) 50%,
-    rgba(235, 227, 219, 0.6) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmerWave 1.6s infinite ease-in-out;
+
+@keyframes pageEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
+.animate-page-enter {
+  animation: pageEnter 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

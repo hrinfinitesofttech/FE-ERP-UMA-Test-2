@@ -197,6 +197,58 @@ export default function LoginPage() {
               </div>
             )}
 
+            {/* Quick One-Click Credentials */}
+            <div className="mb-5 p-3 rounded-2xl bg-[#FAF0E6]/80 border border-[#E7DED5] space-y-2">
+              <div className="flex items-center justify-between text-[11px] font-bold text-[#75401F]">
+                <span className="flex items-center gap-1.5">
+                  <KeyRound className="w-3.5 h-3.5" /> Quick Test Accounts
+                </span>
+                <span className="font-mono text-[10px] bg-white px-2 py-0.5 rounded-full border border-[#E7DED5] text-[#9C6538]">
+                  Pass: Admin@123456
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUsername('durgesh.jadav');
+                    setPassword('Admin@123456');
+                    setError('');
+                  }}
+                  className="text-left px-2.5 py-1.5 rounded-xl bg-white hover:bg-[#FAF7F2] border border-[#E7DED5] text-[11px] transition shadow-2xs cursor-pointer group"
+                >
+                  <p className="font-bold text-[#211B17] group-hover:text-[#9C6538] leading-tight">Durgesh Jadav</p>
+                  <p className="text-[10px] text-[#70665F] truncate">MD & Super Admin</p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUsername('hardik.daki');
+                    setPassword('Admin@123456');
+                    setError('');
+                  }}
+                  className="text-left px-2.5 py-1.5 rounded-xl bg-white hover:bg-[#FAF7F2] border border-[#E7DED5] text-[11px] transition shadow-2xs cursor-pointer group"
+                >
+                  <p className="font-bold text-[#211B17] group-hover:text-[#9C6538] leading-tight">Hardik Daki</p>
+                  <p className="text-[10px] text-[#70665F] truncate">Super Admin</p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUsername('admin');
+                    setPassword('Admin@123456');
+                    setError('');
+                  }}
+                  className="text-left px-2.5 py-1.5 rounded-xl bg-white hover:bg-[#FAF7F2] border border-[#E7DED5] text-[11px] transition shadow-2xs cursor-pointer group"
+                >
+                  <p className="font-bold text-[#211B17] group-hover:text-[#9C6538] leading-tight">System Admin</p>
+                  <p className="text-[10px] text-[#70665F] truncate">Full Access</p>
+                </button>
+              </div>
+            </div>
+
             {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>

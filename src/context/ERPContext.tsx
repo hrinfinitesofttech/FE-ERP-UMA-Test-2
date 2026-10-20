@@ -5255,6 +5255,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       console.warn('Backend authentication error:', err);
       const errorMsg =
         err?.data?.error ||
+        err?.data?.detail ||
         err?.message ||
         'Invalid username or password. Please check your credentials and try again.';
       return { success: false, error: errorMsg };

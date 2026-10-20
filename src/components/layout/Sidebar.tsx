@@ -102,12 +102,30 @@ export function Sidebar() {
     masterTasks = [],
   } = useERP();
 
+  const roleStr = String(
+    currentUser?.roleName ||
+    currentUser?.role ||
+    currentUser?.roleType ||
+    currentUser?.role_type ||
+    ''
+  ).toLowerCase();
+
   const isSuperAdmin =
+    roleStr.includes('super admin') ||
+    roleStr.includes('super_admin') ||
+    roleStr.includes('managing director') ||
+    roleStr.includes('director') ||
+    roleStr.includes('admin') ||
     currentUser?.roleType === 'super_admin' ||
-    currentUser?.role_type === 'super_admin' ||
-    currentUser?.roleName === 'Super Admin' ||
-    currentUser?.role === 'Super Admin' ||
-    currentUser?.username === 'admin';
+    (currentUser as any)?.role_type === 'super_admin' ||
+    currentUser?.dataScope === 'all' ||
+    (currentUser as any)?.data_scope === 'all' ||
+    currentUser?.assignedModules?.includes('all') ||
+    (currentUser as any)?.assigned_modules?.includes('all') ||
+    currentUser?.username === 'admin' ||
+    currentUser?.username === 'durgesh.jadav' ||
+    currentUser?.username === 'hardik.daki' ||
+    currentUser?.username === 'rajesh.admin';
 
   const hasModule = (moduleKey: string) => {
     const cleanK = moduleKey.toLowerCase().trim();
@@ -226,12 +244,12 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'bg-[#FAF7F2] text-[#3E2723] border-r border-[#EBE3DB] flex flex-col h-full transition-all duration-300 select-none z-30 shadow-xs relative',
+        'bg-[var(--crm-bg-sidebar,#FAF7F2)] text-[var(--crm-text-primary,#3E2723)] border-r border-[var(--crm-border-default,#EBE3DB)] flex flex-col h-full transition-all duration-300 select-none z-30 shadow-xs relative',
         sidebarCollapsed ? 'w-20' : 'w-64'
       )}
     >
       {/* Brand Header */}
-      <div className="h-16 flex items-center justify-between px-3.5 border-b border-[#EBE3DB] bg-[#FAF7F2] flex-shrink-0">
+      <div className="h-16 flex items-center justify-between px-3.5 border-b border-[var(--crm-border-default,#EBE3DB)] bg-[var(--crm-bg-sidebar,#FAF7F2)] flex-shrink-0">
         {!sidebarCollapsed ? (
           <Link href="/" className="flex items-center gap-2.5 overflow-hidden">
             <div className="w-8 h-8 rounded-xl bg-crm-brand-700 flex items-center justify-center text-white font-black text-sm shadow-xs flex-shrink-0">
@@ -1380,9 +1398,9 @@ export function Sidebar() {
       </div>
 
       {/* Quality | Innovation | Partnership Card Footer */}
-      <div className="p-3 border-t border-[#EBE3DB] bg-[#FAF7F2] flex-shrink-0">
+      <div className="p-3 border-t border-[var(--crm-border-default,#EBE3DB)] bg-[var(--crm-bg-sidebar,#FAF7F2)] flex-shrink-0">
         {!sidebarCollapsed ? (
-          <div className="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-[#EBE3DB] text-[#3E2723] shadow-xs">
+          <div className="flex items-center gap-2.5 p-2 rounded-xl bg-[var(--crm-surface-card,#FFFFFF)] border border-[var(--crm-border-default,#EBE3DB)] text-[var(--crm-text-primary,#3E2723)] shadow-xs">
             <div className="w-7 h-7 rounded-full bg-[#211B17] text-white flex items-center justify-center flex-shrink-0 font-bold text-xs shadow-xs">
               N
             </div>

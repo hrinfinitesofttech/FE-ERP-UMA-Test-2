@@ -1,7 +1,7 @@
-'use client';
-
 import Link from 'next/link';
 import { AlertCircle, ArrowLeft, Home } from 'lucide-react';
+
+export const dynamic = 'force-dynamic';
 
 export default function NotFound() {
   return (

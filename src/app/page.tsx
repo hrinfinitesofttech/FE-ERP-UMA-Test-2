@@ -39,6 +39,7 @@ import {
   Percent,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { CustomSelect } from '../components/ui/CustomSelect';
 
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
@@ -897,20 +898,17 @@ export default function DashboardPage() {
                   />
                 </div>
 
-                <div className="flex items-center gap-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-2.5 py-1.5 text-xs text-[#544B45]">
-                  <Filter className="w-3.5 h-3.5 text-[#8D827A]" />
-                  <select
-                    value={stageFilter}
-                    onChange={(e) => setStageFilter(e.target.value)}
-                    className="bg-transparent border-none text-xs font-semibold text-[#211B17] focus:outline-none cursor-pointer"
-                  >
-                    <option value="All">All Stages</option>
-                    <option value="PLANNING">Planning</option>
-                    <option value="FAB">Fabrication</option>
-                    <option value="PROD">Production</option>
-                    <option value="QUAL">Quality</option>
-                  </select>
-                </div>
+                <CustomSelect
+                  value={stageFilter}
+                  onChange={(val) => setStageFilter(val)}
+                  buttonClassName="rounded-xl px-3 py-1.5 text-xs font-semibold"
+                >
+                  <option value="All">All Stages</option>
+                  <option value="PLANNING">Planning</option>
+                  <option value="FAB">Fabrication</option>
+                  <option value="PROD">Production</option>
+                  <option value="QUAL">Quality</option>
+                </CustomSelect>
               </div>
             </div>
 

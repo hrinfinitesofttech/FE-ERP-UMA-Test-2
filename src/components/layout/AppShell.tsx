@@ -6,6 +6,7 @@ import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { JobTraceabilityModal } from '../traceability/JobTraceabilityModal';
 import { GlobalSearchModal } from '../search/GlobalSearchModal';
+import { PageTransition } from './PageTransition';
 import { useERP } from '../../context/ERPContext';
 import { ShieldAlert, ArrowLeft, Home } from 'lucide-react';
 
@@ -27,12 +28,30 @@ function isRouteAllowed(pathname: string, currentUser: any): boolean {
     return true;
   }
 
+  const roleStr = String(
+    currentUser?.roleName ||
+    currentUser?.role ||
+    currentUser?.roleType ||
+    currentUser?.role_type ||
+    ''
+  ).toLowerCase();
+
   const isSuperAdmin =
+    roleStr.includes('super admin') ||
+    roleStr.includes('super_admin') ||
+    roleStr.includes('managing director') ||
+    roleStr.includes('director') ||
+    roleStr.includes('admin') ||
     currentUser?.roleType === 'super_admin' ||
-    currentUser?.role_type === 'super_admin' ||
-    currentUser?.roleName === 'Super Admin' ||
-    currentUser?.role === 'Super Admin' ||
-    currentUser?.username === 'admin';
+    (currentUser as any)?.role_type === 'super_admin' ||
+    currentUser?.dataScope === 'all' ||
+    (currentUser as any)?.data_scope === 'all' ||
+    currentUser?.assignedModules?.includes('all') ||
+    (currentUser as any)?.assigned_modules?.includes('all') ||
+    currentUser?.username === 'admin' ||
+    currentUser?.username === 'durgesh.jadav' ||
+    currentUser?.username === 'hardik.daki' ||
+    currentUser?.username === 'rajesh.admin';
 
   if (isSuperAdmin) {
     return true;
@@ -186,19 +205,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const primaryHref = getPrimaryHref(currentUser);
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-[#F4EFEA] text-text-primary font-sans antialiased p-1.5 sm:p-2.5 md:p-3 flex flex-col">
+    <div className="h-screen w-screen overflow-hidden bg-[var(--crm-bg-app,#F4EFEA)] text-[var(--crm-text-primary,#211B17)] font-sans antialiased p-1.5 sm:p-2.5 md:p-3 flex flex-col">
       {/* Outer Luxury Floating Canvas Frame */}
-      <div className="flex-1 flex overflow-hidden h-full bg-white rounded-2xl md:rounded-3xl border border-[#E6DDD2] shadow-[0_10px_35px_rgba(62,39,35,0.06)] relative">
+      <div className="flex-1 flex overflow-hidden h-full bg-[var(--crm-surface-card,#FFFFFF)] rounded-2xl md:rounded-3xl border border-[var(--crm-border-default,#E6DDD2)] shadow-[0_10px_35px_rgba(62,39,35,0.06)] relative">
         {/* Sidebar Navigation */}
         <Sidebar />
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#FCFAF7]">
+        <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[var(--crm-bg-app,#FCFAF7)]">
           <Topbar />
 
-          <main className="flex-1 overflow-y-auto p-3 sm:p-5 md:p-6 scrollbar-thin bg-[#FCFAF7]">
+          <main className="flex-1 overflow-y-auto p-3 sm:p-5 md:p-6 scrollbar-thin bg-[var(--crm-bg-app,#FCFAF7)]">
             {allowed ? (
-              children
+              <PageTransition>
+                {children}
+              </PageTransition>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[500px]">
                 <div className="w-16 h-16 rounded-3xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center mb-4 shadow-sm">

@@ -1,11 +1,31 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { themes, defaultThemeId, getTheme, type ThemeTokens } from '../../lib/theme-tokens';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import {
+  themes,
+  defaultThemeId,
+  getTheme,
+  availableThemesList,
+  type ThemeDefinition,
+  type ThemeTokens,
+} from '../../lib/theme-tokens';
 
-function cssVarMap(tokens: ThemeTokens): Record<string, string> {
+interface ThemeContextType {
+  currentThemeId: string;
+  currentTheme: ThemeDefinition;
+  setTheme: (themeId: string) => void;
+  availableThemes: ThemeDefinition[];
+  isDark: boolean;
+  mounted: boolean;
+}
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+const THEME_STORAGE_KEY = 'uma_erp_theme_preference';
+
+function cssVarMap(tokens: ThemeDefinition): Record<string, string> {
   const c = tokens.colors;
-  return {
+  const baseMap: Record<string, string> = {
     '--color-primary': c.primary.DEFAULT,
     '--color-primary-hover': c.primary.hover,
     '--color-primary-light': c.primary.light,
@@ -32,32 +52,107 @@ function cssVarMap(tokens: ThemeTokens): Record<string, string> {
     '--color-text-secondary': c.text.secondary,
     '--color-text-muted': c.text.muted,
   };
+
+  return {
+    ...baseMap,
+    ...tokens.crmVars,
+  };
 }
 
-/**
- * Wrap the app (e.g. in app/layout.tsx) with this, passing the
- * logged-in tenant/org's theme id. It writes the client's colors
- * onto <html> as CSS variables, so every bg-primary,
- * text-danger, etc. class in the app repaints instantly —
- * no rebuild, no per-client bundle.
- */
 export function ClientThemeProvider({
-  clientThemeId,
+  clientThemeId = defaultThemeId,
   children,
 }: {
   clientThemeId?: string | null;
   children: React.ReactNode;
 }) {
-  useEffect(() => {
-    const tokens = getTheme(clientThemeId);
+  const [mounted, setMounted] = useState(false);
+  const [themeId, setThemeId] = useState<string>(clientThemeId || defaultThemeId);
+
+  const activeTheme = getTheme(themeId);
+
+  const applyThemeToDOM = useCallback((tokens: ThemeDefinition) => {
+    if (typeof document === 'undefined') return;
     const root = document.documentElement;
-    Object.entries(cssVarMap(tokens)).forEach(([key, value]) => {
+    const vars = cssVarMap(tokens);
+
+    Object.entries(vars).forEach(([key, value]) => {
       root.style.setProperty(key, value);
     });
-    root.setAttribute('data-theme', tokens.id);
-  }, [clientThemeId]);
 
-  return <>{children}</>;
+    root.setAttribute('data-theme', tokens.id);
+
+    if (tokens.isDark) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
+    try {
+      const saved = localStorage.getItem(THEME_STORAGE_KEY);
+      if (saved && themes[saved]) {
+        setThemeId(saved);
+        applyThemeToDOM(themes[saved]);
+        return;
+      }
+    } catch {
+      // Storage access blocked or restricted
+    }
+    applyThemeToDOM(activeTheme);
+  }, [applyThemeToDOM]);
+
+  useEffect(() => {
+    if (mounted) {
+      applyThemeToDOM(activeTheme);
+    }
+  }, [activeTheme, applyThemeToDOM, mounted]);
+
+  const handleSetTheme = useCallback(
+    (newThemeId: string) => {
+      if (!themes[newThemeId]) return;
+      setThemeId(newThemeId);
+      try {
+        localStorage.setItem(THEME_STORAGE_KEY, newThemeId);
+      } catch {
+        // Ignore storage errors
+      }
+      applyThemeToDOM(themes[newThemeId]);
+    },
+    [applyThemeToDOM]
+  );
+
+  return (
+    <ThemeContext.Provider
+      value={{
+        currentThemeId: themeId,
+        currentTheme: activeTheme,
+        setTheme: handleSetTheme,
+        availableThemes: availableThemesList,
+        isDark: activeTheme.isDark,
+        mounted,
+      }}
+    >
+      {children}
+    </ThemeContext.Provider>
+  );
 }
 
-export { themes, defaultThemeId };
+export function useTheme() {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    return {
+      currentThemeId: defaultThemeId,
+      currentTheme: getTheme(defaultThemeId),
+      setTheme: () => {},
+      availableThemes: availableThemesList,
+      isDark: false,
+      mounted: false,
+    };
+  }
+  return context;
+}
+
+export { themes, defaultThemeId, getTheme };
