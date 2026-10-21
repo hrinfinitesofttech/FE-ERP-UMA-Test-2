@@ -27,6 +27,8 @@ import {
   MessageSquare,
   Mail,
   Loader2,
+  FileDown,
+  FileText,
 } from 'lucide-react';
 import { QuotationRevision } from '../../../../types/crm';
 
@@ -128,7 +130,8 @@ export default function QuotationDetailPage() {
       } else {
         // Update quotation status to sent in local context
         updateQuotationStatus(quotation.id, currentRev.revisionNumber, 'sent');
-        showFeedback('success', `Quotation ${quotation.quotationNumber} (${currentRev.revisionNumber}) email successfully sent to ${recipient}!`, 7000);
+        const pdfNotice = res?.pdfFilename ? ` with attached official PDF (${res.pdfFilename})` : ' with attached official PDF';
+        showFeedback('success', `Quotation ${quotation.quotationNumber} (${currentRev.revisionNumber}) email successfully sent to ${recipient}${pdfNotice}!`, 7000);
       }
     } catch (err: any) {
       console.warn('Backend email dispatch notice:', err);
@@ -136,6 +139,26 @@ export default function QuotationDetailPage() {
       showFeedback('error', `Email sending error: ${errDetail}`, 10000);
     } finally {
       setIsSendingEmail(false);
+    }
+  };
+
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    setIsDownloadingPdf(true);
+    try {
+      await api.crm.quotations.downloadPdf(
+        quotation.id,
+        currentRev.revisionNumber,
+        `Quotation_${quotation.quotationNumber}_${currentRev.revisionNumber}.pdf`
+      );
+      toast.success('PDF Downloaded', `Official PDF for ${quotation.quotationNumber} (${currentRev.revisionNumber}) downloaded.`);
+    } catch (err: any) {
+      console.warn('PDF download fallback to direct window open:', err);
+      const directUrl = api.crm.quotations.getPdfUrl(quotation.id, currentRev.revisionNumber);
+      window.open(directUrl, '_blank');
+    } finally {
+      setIsDownloadingPdf(false);
     }
   };
 
@@ -188,13 +211,28 @@ export default function QuotationDetailPage() {
         <Link href="/crm/quotations" className="inline-flex items-center gap-1.5 text-crm-brand-700 hover:underline font-semibold">
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Quotations Master
         </Link>
-        <button
-          onClick={() => printContent('printable-quotation-sheet', { title: `Quotation_${quotation.quotationNumber}_${currentRev.revisionNumber}` })}
-          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#FAF7F2] text-slate-700 dark:text-[#544B45] rounded-lg font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
-        >
-          <Printer className="w-3.5 h-3.5" />
-          <span>Print Quotation Sheet</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleDownloadPdf}
+            disabled={isDownloadingPdf}
+            className="px-3 py-1.5 bg-[#FAF0E6] hover:bg-[#F3ECE4] text-[#75401F] border border-[#E7DED5] rounded-lg font-bold flex items-center gap-1.5 shadow-xs cursor-pointer transition active:scale-95"
+            title="Download official letterhead PDF matching quotation format"
+          >
+            {isDownloadingPdf ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <FileDown className="w-3.5 h-3.5" />
+            )}
+            <span>Download PDF</span>
+          </button>
+          <button
+            onClick={() => printContent('printable-quotation-sheet', { title: `Quotation_${quotation.quotationNumber}_${currentRev.revisionNumber}` })}
+            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#FAF7F2] text-slate-700 dark:text-[#544B45] rounded-lg font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            <span>Print Quotation Sheet</span>
+          </button>
+        </div>
       </div>
 
       {actionFeedback && (

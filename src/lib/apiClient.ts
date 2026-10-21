@@ -160,95 +160,24 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
     d.contactPerson = d.contactPerson || d.contact_person || d.name || '';
     d.mobile = d.mobile || d.phone || '';
   } else if (ep.includes('/enquiries')) {
-    if (isPatchOrPut) {
-      // For PATCH / PUT: only map camelCase to snake_case for provided fields, NEVER wipe unprovided fields with empty strings!
-      const enqMap: Record<string, string> = {
-        leadId: 'lead_id',
-        customerId: 'customer_id',
-        customerName: 'customer_name',
-        companyName: 'customer_name',
-        customerEmail: 'customer_email',
-        contactPerson: 'contact_person',
-        contactMobile: 'contact_mobile',
-        enquiryDate: 'enquiry_date',
-        machineProduct: 'machine_product',
-        machineType: 'machine_type',
-        materialGrade: 'material_grade',
-        unitOfMeasure: 'unit_of_measure',
-        operatingConditions: 'operating_conditions',
-        technicalClarifications: 'technical_clarifications',
-        expectedDelivery: 'expected_delivery',
-        assignedPersonId: 'assigned_person_id',
-        assignedPersonName: 'assigned_person_name',
-        quotationId: 'quotation_id',
-      };
-      for (const [camel, snake] of Object.entries(enqMap)) {
-        if (d[camel] !== undefined && d[snake] === undefined) {
-          d[snake] = d[camel];
-        }
-      }
-      if (d.customer_name !== undefined && d.customerName === undefined) d.customerName = d.customer_name;
-      if (d.lead_id !== undefined && d.leadId === undefined) d.leadId = d.lead_id;
-      if (d.customer_id !== undefined && d.customerId === undefined) d.customerId = d.customer_id;
-      if (d.machine_product !== undefined && d.machineProduct === undefined) d.machineProduct = d.machine_product;
-      if (d.enquiry_date !== undefined && d.enquiryDate === undefined) d.enquiryDate = d.enquiry_date;
-      if (d.expected_delivery !== undefined && d.expectedDelivery === undefined) d.expectedDelivery = d.expected_delivery;
-      if (d.assigned_person_id !== undefined && d.assignedPersonId === undefined) d.assignedPersonId = d.assigned_person_id;
-      if (d.assigned_person_name !== undefined && d.assignedPersonName === undefined) d.assignedPersonName = d.assigned_person_name;
-      if (d.quotation_id !== undefined && d.quotationId === undefined) d.quotationId = d.quotation_id;
-    } else {
-      // POST (creation)
-      const custName = d.customerName || d.customer_name || d.companyName || '';
-      d.customerName = custName;
-      d.customer_name = custName;
-      const leadId = d.leadId || d.lead_id || '';
-      d.leadId = leadId;
-      d.lead_id = leadId;
-      const custId = d.customerId || d.customer_id || '';
-      d.customerId = custId;
-      d.customer_id = custId;
-      const cPerson = d.contactPerson || d.contact_person || '';
-      d.contactPerson = cPerson;
-      d.contact_person = cPerson;
-      const cMobile = d.contactMobile || d.contact_mobile || d.mobile || d.phone || '';
-      d.contactMobile = cMobile;
-      d.contact_mobile = cMobile;
-      const cEmail = d.customerEmail || d.customer_email || d.email || '';
-      d.customerEmail = cEmail;
-      d.customer_email = cEmail;
-      const mProd = d.machineProduct || d.productName || d.machine_product || '';
-      d.machineProduct = mProd;
-      d.machine_product = mProd;
-      const enqDate = d.enquiryDate || d.date || d.enquiry_date || nowStr;
-      d.enquiryDate = enqDate;
-      d.enquiry_date = enqDate;
-      const expDel = d.expectedDelivery || d.expected_delivery || '';
-      d.expectedDelivery = expDel;
-      d.expected_delivery = expDel;
-      const req = d.requirement || d.specification || d.title || (mProd ? `Enquiry for ${mProd}` : '');
-      d.requirement = req;
-      const spec = d.specification || d.requirement || '';
-      d.specification = spec;
-      d.machine_type = d.machine_type || d.machineType || '';
-      d.machineType = d.machine_type;
-      d.material_grade = d.material_grade || d.materialGrade || '';
-      d.materialGrade = d.material_grade;
-      d.unit_of_measure = d.unit_of_measure || d.unitOfMeasure || 'Unit';
-      d.unitOfMeasure = d.unit_of_measure;
-      d.operating_conditions = d.operating_conditions || d.operatingConditions || '';
-      d.operatingConditions = d.operating_conditions;
-      d.technical_clarifications = d.technical_clarifications || d.technicalClarifications || '';
-      d.technicalClarifications = d.technical_clarifications;
-      const assId = d.assignedPersonId || d.assigned_person_id || '';
-      d.assignedPersonId = assId;
-      d.assigned_person_id = assId;
-      const assName = d.assignedPersonName || d.assigned_person_name || '';
-      d.assignedPersonName = assName;
-      d.assigned_person_name = assName;
-      const qId = d.quotationId || d.quotation_id || '';
-      d.quotationId = qId;
-      d.quotation_id = qId;
-    }
+    d.customerId = d.customerId || d.customer_id || '';
+    d.customerName = d.customerName || d.customer_name || '';
+    d.contactPerson = d.contactPerson || d.contact_person || '';
+    d.contact_person = d.contactPerson;
+    d.contactMobile = d.contactMobile || d.contact_mobile || d.mobile || d.phone || '';
+    d.contact_mobile = d.contactMobile;
+    d.customerEmail = d.customerEmail || d.customer_email || d.email || '';
+    d.customer_email = d.customerEmail;
+    d.leadId = d.leadId || d.lead_id || '';
+    d.lead_id = d.leadId;
+    d.requirement = d.requirement || d.title || d.specification || '';
+    d.machineProduct = d.machineProduct || d.productName || '';
+    d.date = d.date || d.enquiryDate || nowStr;
+    d.machine_type = d.machine_type || d.machineType || '';
+    d.material_grade = d.material_grade || d.materialGrade || '';
+    d.unit_of_measure = d.unit_of_measure || d.unitOfMeasure || 'Unit';
+    d.operating_conditions = d.operating_conditions || d.operatingConditions || '';
+    d.technical_clarifications = d.technical_clarifications || d.technicalClarifications || '';
   } else if (ep.includes('/followups')) {
     d.lead_or_customer_id = d.lead_or_customer_id || d.leadOrCustomerId || d.customerId || d.leadId || '';
     d.lead_or_customer_name = d.lead_or_customer_name || d.leadOrCustomerName || d.customerName || '';
@@ -1065,6 +994,24 @@ export const api = {
         request<any>(`/quotations/${id}/reject/`, { method: 'POST', body: JSON.stringify({ reason }) }),
       sendEmail: (id: string, recipientEmail?: string, quotationPayload?: any) =>
         request<any>(`/quotations/${id}/send-email/`, { method: 'POST', body: JSON.stringify({ recipientEmail, quotation: quotationPayload }) }),
+      getPdfUrl: (id: string, revision?: string) =>
+        `${API_BASE_URL}/quotations/${encodeURIComponent(id)}/pdf/${revision ? `?revision=${encodeURIComponent(revision)}` : ''}`,
+      downloadPdf: async (id: string, revision?: string, filename?: string) => {
+        const token = await getOrRefreshToken();
+        const headers: Record<string, string> = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const url = `${API_BASE_URL}/quotations/${encodeURIComponent(id)}/pdf/${revision ? `?revision=${encodeURIComponent(revision)}` : ''}`;
+        const res = await fetch(url, { headers });
+        if (!res.ok) throw new Error('Failed to download quotation PDF');
+        const blob = await res.blob();
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename || `Quotation_${id}_${revision || 'Rev-00'}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+      },
     },
     customerPos: {
       list: () => request<any[]>('/customer-pos/'),
@@ -1227,18 +1174,26 @@ export const api = {
       update: async (id: string, data: any) => {
         const payload = {
           ...data,
-          expo_name: data.expoName,
-          start_date: data.startDate,
-          end_date: data.endDate,
-          stall_number: data.stallNumber,
-          contact_person: data.contactPerson,
-          budget: Number(data.budget),
-          assigned_team: data.assignedTeam,
-          products_displayed: data.productsDisplayed,
-          total_contacts: Number(data.totalContacts),
-          qualified_leads: Number(data.qualifiedLeads),
-          quotations_sent: Number(data.quotationsSent),
-          converted_customers: Number(data.convertedCustomers),
+          expo_name: data.expoName ?? data.expo_name,
+          organizer: data.organizer ?? data.organizer,
+          location: data.location ?? data.location,
+          venue: data.venue ?? data.venue,
+          city: data.city ?? data.city,
+          country: data.country ?? data.country,
+          participation_status: data.participationStatus ?? data.participation_status,
+          start_date: data.startDate ?? data.start_date,
+          end_date: data.endDate ?? data.end_date,
+          stall_number: data.stallNumber ?? data.stall_number,
+          contact_person: data.contactPerson ?? data.contact_person,
+          budget: data.budget !== undefined ? Number(data.budget) : undefined,
+          actual_expenses: data.actualExpenses !== undefined ? Number(data.actualExpenses) : (data.actual_expenses !== undefined ? Number(data.actual_expenses) : undefined),
+          assigned_team: data.assignedTeam ?? data.assigned_team,
+          products_displayed: data.productsDisplayed ?? data.products_displayed,
+          notes: data.notes ?? data.notes,
+          total_contacts: data.totalContacts !== undefined ? Number(data.totalContacts) : (data.total_contacts !== undefined ? Number(data.total_contacts) : undefined),
+          qualified_leads: data.qualifiedLeads !== undefined ? Number(data.qualifiedLeads) : (data.qualified_leads !== undefined ? Number(data.qualified_leads) : undefined),
+          quotations_sent: data.quotationsSent !== undefined ? Number(data.quotationsSent) : (data.quotations_sent !== undefined ? Number(data.quotations_sent) : undefined),
+          converted_customers: data.convertedCustomers !== undefined ? Number(data.convertedCustomers) : (data.converted_customers !== undefined ? Number(data.converted_customers) : undefined),
         };
         try {
           return await request<any>(`/exhibitions/${id}/`, { method: 'PATCH', body: JSON.stringify(payload) });

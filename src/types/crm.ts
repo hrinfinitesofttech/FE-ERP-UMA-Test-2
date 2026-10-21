@@ -367,6 +367,7 @@ export interface Customer {
   nearestPortRailway?: string;
   inspectionRequirements?: string;
   specialInstructions?: string;
+  contacts?: any[];
   createdDate: string;
   createdAt?: string;
   created_at?: string;

@@ -351,6 +351,7 @@ function CreateCustomerMasterContent() {
         inspectionRequirements: formData.inspectionRequirements.trim() || undefined,
         specialInstructions: formData.specialInstructions.trim() || undefined,
         linkedLeadId: formData.linkedLeadId || undefined,
+        contacts: contacts && contacts.length > 0 ? contacts : undefined,
       });
 
       // If linked with a lead, update lead status to 'won'

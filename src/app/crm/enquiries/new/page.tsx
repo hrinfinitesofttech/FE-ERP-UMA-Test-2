@@ -69,79 +69,23 @@ function EnquiryFormContent() {
       const enq = enquiries.find((e) => e.id === editId || e.enquiryNo === editId);
       if (enq) {
         setExistingEnquiry(enq);
-
-        // Find linked lead by leadId, convertedEnquiryId, or company name
-        let linkedLead = enq.leadId ? leads.find((l) => l.id === enq.leadId || l.leadNo === enq.leadId) : null;
-        if (!linkedLead) {
-          linkedLead = leads.find((l) => l.convertedEnquiryId === enq.id || l.convertedEnquiryId === enq.enquiryNo) || null;
-        }
-        if (!linkedLead && enq.customerName && enq.customerName !== 'Valued Customer') {
-          linkedLead = leads.find((l) => l.companyName && l.companyName.toLowerCase() === enq.customerName.toLowerCase()) || null;
-        }
-
-        // Find linked customer
-        const linkedCust = enq.customerId
-          ? customers.find((c) => c.id === enq.customerId || c.customerCode === enq.customerId)
-          : customers.find((c) => enq.customerName && c.companyName && c.companyName.toLowerCase() === enq.customerName.toLowerCase());
-
-        const effectiveLeadId = enq.leadId || linkedLead?.id || '';
-        const effectiveCustId = enq.customerId || linkedCust?.id || '';
-
-        if (effectiveLeadId) {
-          setSelectedLeadId(effectiveLeadId);
-          setSelectedEntityVal(`lead:${effectiveLeadId}`);
-        } else if (effectiveCustId) {
-          setSelectedEntityVal(`cust:${effectiveCustId}`);
-        }
-
-        const resolvedCustomerName =
-          (enq.customerName && enq.customerName !== 'Valued Customer' ? enq.customerName : '') ||
-          linkedLead?.companyName ||
-          linkedCust?.companyName ||
-          enq.customerName ||
-          '';
-
-        setCustomerName(resolvedCustomerName);
-        setCustomerEmail(enq.customerEmail || linkedLead?.email || linkedCust?.email || '');
-        setContactPerson(
-          enq.contactPerson ||
-          (linkedLead?.contactPerson && linkedLead.contactPerson !== 'Contact Person' && linkedLead.contactPerson !== 'Contact' ? linkedLead.contactPerson : '') ||
-          linkedCust?.contactPerson ||
-          ''
-        );
-        setContactMobile(
-          enq.contactMobile ||
-          (linkedLead?.mobile && linkedLead.mobile !== '9999999999' ? linkedLead.mobile : '') ||
-          linkedCust?.mobile ||
-          ''
-        );
-
-        // Resolved product name
-        const resolvedProd =
-          (enq.machineProduct && enq.machineProduct !== 'Process Equipment' ? enq.machineProduct : '') ||
-          (linkedLead?.productName && linkedLead.productName !== 'Process Equipment' ? linkedLead.productName : '') ||
-          enq.machineProduct ||
-          linkedLead?.productName ||
-          '';
-        setMachineProduct(resolvedProd);
-        setQuantity(enq.quantity || linkedLead?.quantity || 1);
-
-        // Resolved requirements and specs
-        const resolvedReq =
-          (enq.specification && enq.specification !== 'Customer Requirement' ? enq.specification : '') ||
-          (enq.requirement && enq.requirement !== 'Customer Requirement' ? enq.requirement : '') ||
-          linkedLead?.requirementDescription ||
-          enq.specification ||
-          enq.requirement ||
-          '';
-        setRequirement(resolvedReq);
-
-        setExpectedDelivery(enq.expectedDelivery || linkedLead?.expectedDelivery || '');
-        setAssignedPersonId(enq.assignedPersonId || linkedLead?.assignedSalesPersonId || allStaff[0]?.id || 'EMP-001');
+        setCustomerName(enq.customerName || '');
+        setCustomerEmail(enq.customerEmail || '');
+        setContactPerson(enq.contactPerson || '');
+        setContactMobile(enq.contactMobile || '');
+        setMachineProduct(enq.machineProduct || '');
+        setQuantity(enq.quantity || 1);
+        setRequirement(enq.requirement || enq.specification || '');
+        setExpectedDelivery(enq.expectedDelivery || '');
+        setAssignedPersonId(enq.assignedPersonId || allStaff[0]?.id || 'EMP-001');
         setStatus(enq.status || 'new');
+        if (enq.leadId) {
+          setSelectedLeadId(enq.leadId);
+          setSelectedEntityVal(`lead:${enq.leadId}`);
+        }
       }
     }
-  }, [editId, enquiries, leads, customers]);
+  }, [editId, enquiries]);
 
   // Filter leads: ONLY show leads whose Enquiry has NOT been created yet (or is currently being edited)
   const availableLeads = useMemo(() => {
@@ -159,23 +103,12 @@ function EnquiryFormContent() {
     return (leads || []).filter((l) => {
       const id = String(l.id || '').trim();
       const no = String(l.leadNo || '').trim();
+      const hasEnquiry = (id && leadsWithEnquiry.has(id)) || (no && leadsWithEnquiry.has(no)) || Boolean(l.convertedEnquiryId);
 
-      // Keep currently selected lead visible in dropdown ALWAYS
+      // Keep currently selected lead visible in dropdown
       if (selectedLeadId && (id === selectedLeadId || no === selectedLeadId)) {
         return true;
       }
-      // If editing an existing enquiry that is linked to this lead, keep it visible
-      if (
-        existingEnquiry &&
-        (l.convertedEnquiryId === existingEnquiry.id ||
-          l.convertedEnquiryId === existingEnquiry.enquiryNo ||
-          l.id === existingEnquiry.leadId ||
-          l.leadNo === existingEnquiry.leadId)
-      ) {
-        return true;
-      }
-
-      const hasEnquiry = (id && leadsWithEnquiry.has(id)) || (no && leadsWithEnquiry.has(no)) || Boolean(l.convertedEnquiryId);
       return !hasEnquiry;
     });
   }, [leads, enquiries, existingEnquiry, selectedLeadId]);
@@ -395,16 +328,6 @@ function EnquiryFormContent() {
                   </option>
                 ))}
               </optgroup>
-              {selectedEntityVal.startsWith('lead:') && !availableLeads.some((l) => `lead:${l.id}` === selectedEntityVal || `lead:${l.leadNo}` === selectedEntityVal) && (
-                <option value={selectedEntityVal}>
-                  [Lead] {customerName || selectedEntityVal.replace('lead:', '')}
-                </option>
-              )}
-              {selectedEntityVal.startsWith('cust:') && !customers.some((c) => `cust:${c.id}` === selectedEntityVal || `cust:${c.customerCode}` === selectedEntityVal) && (
-                <option value={selectedEntityVal}>
-                  [Customer] {customerName || selectedEntityVal.replace('cust:', '')}
-                </option>
-              )}
             </select>
 
             {/* Selected Lead / Customer Summary Chip */}

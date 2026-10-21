@@ -126,9 +126,15 @@ export default function CustomerPOPage() {
                 <span>SO: {soNumber || 'Generated'}</span>
               </span>
             ) : (
-              <span className="text-[11px] font-mono text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
-                Received (Pending SO)
-              </span>
+              <button
+                type="button"
+                onClick={() => handleCreateSalesOrder(po.id)}
+                className="text-[11px] font-medium bg-purple-600 hover:bg-purple-700 text-white px-2 py-0.5 rounded shadow-xs transition inline-flex items-center gap-1 cursor-pointer"
+                title="Convert this Customer PO to a Confirmed Sales Order"
+              >
+                <Briefcase className="w-3 h-3" />
+                <span>Create SO</span>
+              </button>
             )}
             {po.quotationId && (
               <Link

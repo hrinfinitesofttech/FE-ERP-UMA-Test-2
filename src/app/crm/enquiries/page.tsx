@@ -350,97 +350,60 @@ export default function EnquiriesRegisterPage() {
       header: 'ENQUIRY NO',
       isCodeLink: true,
       onCodeClick: (e) => router.push(`/crm/enquiries/new?id=${encodeURIComponent(e.id || e.enquiryNo)}`),
-      cell: (e) => {
-        const matchedLead = leads.find((l) => (e.leadId && (l.id === e.leadId || l.leadNo === e.leadId)) || l.convertedEnquiryId === e.id || l.convertedEnquiryId === e.enquiryNo);
-        const displayLead = e.leadId || matchedLead?.leadNo || matchedLead?.id;
-        return (
-          <div className="space-y-0.5 whitespace-nowrap">
-            <span className="font-mono font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200 text-xs inline-block">
-              {e.enquiryNo || e.id}
-            </span>
-            {displayLead ? (
-              <div className="text-[10px] text-slate-500 font-mono mt-0.5">
-                Lead: <strong className="text-slate-700">{displayLead}</strong>
-              </div>
-            ) : (
-              <span className="text-[10px] text-slate-400 block">Direct</span>
-            )}
-          </div>
-        );
-      },
+      cell: (e) => (
+        <div className="space-y-0.5 whitespace-nowrap">
+          <span className="font-mono font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200 text-xs inline-block">
+            {e.enquiryNo || e.id}
+          </span>
+          {e.leadId ? (
+            <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+              Lead: <strong className="text-slate-700">{e.leadId}</strong>
+            </div>
+          ) : (
+            <span className="text-[10px] text-slate-400 block">Direct</span>
+          )}
+        </div>
+      ),
     },
     {
       key: 'customerName',
       header: 'CUSTOMER & CONTACT',
-      cell: (e) => {
-        const matchedLead = leads.find((l) => (e.leadId && (l.id === e.leadId || l.leadNo === e.leadId)) || l.convertedEnquiryId === e.id || l.convertedEnquiryId === e.enquiryNo);
-        const matchedCust = customers.find((c) => (e.customerId && (c.id === e.customerId || c.customerCode === e.customerId)));
-        const resolvedCustomer =
-          (e.customerName && e.customerName !== 'Valued Customer' ? e.customerName : '') ||
-          matchedLead?.companyName ||
-          matchedCust?.companyName ||
-          e.customerName ||
-          'Customer';
-        const resolvedContact =
-          e.contactPerson ||
-          (matchedLead?.contactPerson && matchedLead.contactPerson !== 'Contact Person' && matchedLead.contactPerson !== 'Contact' ? matchedLead.contactPerson : '') ||
-          matchedCust?.contactPerson ||
-          'N/A';
-        const resolvedEmail = e.customerEmail || matchedLead?.email || matchedCust?.email || '';
-
-        return (
-          <div className="space-y-0.5 min-w-[180px]">
-            <div className="font-bold text-slate-800 text-xs truncate" title={resolvedCustomer}>
-              {resolvedCustomer}
-            </div>
-            <div className="text-[11px] text-slate-500 truncate flex items-center gap-1">
-              <User className="w-3 h-3 text-slate-400 shrink-0" />
-              <span>{resolvedContact}</span>
-            </div>
-            {resolvedEmail && (
-              <div className="text-[10px] text-slate-500 truncate flex items-center gap-1">
-                <Mail className="w-3 h-3 text-slate-400 shrink-0" />
-                <span className="font-mono">{resolvedEmail}</span>
-              </div>
-            )}
+      cell: (e) => (
+        <div className="space-y-0.5 min-w-[180px]">
+          <div className="font-bold text-slate-800 text-xs truncate" title={e.customerName}>
+            {e.customerName}
           </div>
-        );
-      },
+          <div className="text-[11px] text-slate-500 truncate flex items-center gap-1">
+            <User className="w-3 h-3 text-slate-400 shrink-0" />
+            <span>{e.contactPerson || 'N/A'}</span>
+          </div>
+          {e.customerEmail && (
+            <div className="text-[10px] text-slate-500 truncate flex items-center gap-1">
+              <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+              <span className="font-mono">{e.customerEmail}</span>
+            </div>
+          )}
+        </div>
+      ),
     },
     {
       key: 'machineProduct',
       header: 'EQUIPMENT / PRODUCT',
-      cell: (e) => {
-        const matchedLead = leads.find((l) => (e.leadId && (l.id === e.leadId || l.leadNo === e.leadId)) || l.convertedEnquiryId === e.id || l.convertedEnquiryId === e.enquiryNo);
-        const resolvedProduct =
-          (e.machineProduct && e.machineProduct !== 'Process Equipment' ? e.machineProduct : '') ||
-          (matchedLead?.productName && matchedLead.productName !== 'Process Equipment' ? matchedLead.productName : '') ||
-          e.machineProduct ||
-          'Process Equipment';
-        const resolvedSpec =
-          (e.specification && e.specification !== 'Customer Requirement' ? e.specification : '') ||
-          (e.requirement && e.requirement !== 'Customer Requirement' ? e.requirement : '') ||
-          matchedLead?.requirementDescription ||
-          e.specification ||
-          e.requirement ||
-          '';
-
-        return (
-          <div className="space-y-0.5 min-w-[200px]">
-            <div className="font-bold text-slate-800 flex items-center gap-1.5 flex-wrap text-xs">
-              <span className="truncate max-w-xs" title={resolvedProduct}>{resolvedProduct}</span>
-              <span className="px-1.5 py-0.2 bg-slate-100 text-slate-700 border border-slate-200 rounded text-[10px] font-bold shrink-0">
-                Qty: {e.quantity || 1}
-              </span>
-            </div>
-            {resolvedSpec && (
-              <div className="text-[10px] text-slate-500 line-clamp-1" title={resolvedSpec}>
-                {resolvedSpec}
-              </div>
-            )}
+      cell: (e) => (
+        <div className="space-y-0.5 min-w-[200px]">
+          <div className="font-bold text-slate-800 flex items-center gap-1.5 flex-wrap text-xs">
+            <span className="truncate max-w-xs" title={e.machineProduct}>{e.machineProduct}</span>
+            <span className="px-1.5 py-0.2 bg-slate-100 text-slate-700 border border-slate-200 rounded text-[10px] font-bold shrink-0">
+              Qty: {e.quantity || 1}
+            </span>
           </div>
-        );
-      },
+          {e.specification && (
+            <div className="text-[10px] text-slate-500 line-clamp-1" title={e.specification}>
+              {e.specification}
+            </div>
+          )}
+        </div>
+      ),
     },
     {
       key: 'enquiryDate',
