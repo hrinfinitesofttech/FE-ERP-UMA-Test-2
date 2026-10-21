@@ -120,25 +120,27 @@ export function DataTable<T extends Record<string, any>>({
   };
 
   return (
-    <div ref={tableContainerRef} className="bg-white rounded-2xl border border-[#E7DED5] shadow-xs overflow-hidden flex flex-col transition-all">
+    <div ref={tableContainerRef} className="bg-white rounded-xl border border-[#E7DED5] shadow-2xs overflow-hidden flex flex-col transition-all">
       {/* Header & Controls Toolbar */}
-      <div className="p-4 sm:p-5 border-b border-[#E7DED5] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 bg-[#FAF7F2]">
-        <div>
-          {title && <h3 className="text-sm font-bold text-[#211B17] tracking-tight">{title}</h3>}
-          {isLoading && data.length === 0 ? (
-            <p className="text-xs text-amber-800 flex items-center gap-1.5 mt-0.5 font-medium">
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-800" />
-              <span>Loading live ERP records from cloud database...</span>
-            </p>
-          ) : (
-            subtitle && <p className="text-xs text-[#70665F] mt-0.5">{subtitle}</p>
-          )}
-        </div>
+      <div className="px-3.5 py-2.5 sm:py-3 border-b border-[#E7DED5] flex flex-wrap items-center justify-between gap-2.5 bg-[#FAF7F2]">
+        {(title || subtitle || (isLoading && data.length === 0)) ? (
+          <div className="shrink-0">
+            {title && <h3 className="text-xs sm:text-sm font-bold text-[#211B17] tracking-tight">{title}</h3>}
+            {isLoading && data.length === 0 ? (
+              <p className="text-[11px] text-amber-800 flex items-center gap-1.5 mt-0.5 font-medium">
+                <Loader2 className="w-3 h-3 animate-spin text-amber-800" />
+                <span>Loading live ERP records...</span>
+              </p>
+            ) : (
+              subtitle && <p className="text-[11px] text-[#70665F] mt-0.5">{subtitle}</p>
+            )}
+          </div>
+        ) : null}
 
-        <div className="flex items-center flex-wrap gap-2.5 w-full sm:w-auto print:hidden">
+        <div className="flex items-center flex-wrap gap-2 w-full sm:w-auto ml-auto print:hidden">
           {/* Search Box */}
-          <div className="relative flex-1 sm:w-64">
-            <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8D827A]" />
+          <div className="relative w-full sm:w-56 md:w-64">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8D827A]" />
             <input
               type="text"
               value={searchQuery}
@@ -147,25 +149,25 @@ export function DataTable<T extends Record<string, any>>({
                 setCurrentPage(1);
               }}
               placeholder={searchPlaceholder}
-              className="w-full pl-9 pr-3.5 py-1.5 text-xs bg-white border border-[#E7DED5] rounded-full text-[#211B17] placeholder:text-[#8D827A] focus:outline-none focus:border-[#75401F] transition shadow-xs"
+              className="w-full pl-8 pr-3 py-1 text-xs bg-white border border-[#E7DED5] rounded-lg text-[#211B17] placeholder:text-[#8D827A] focus:outline-none focus:border-[#75401F] transition shadow-2xs"
             />
           </div>
 
           {filterComponent}
 
           {/* Quick Toolbar buttons */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={exportCSV}
               title="Export to CSV"
-              className="p-1.5 text-[#70665F] hover:text-[#211B17] hover:bg-white rounded-full border border-[#E7DED5] transition cursor-pointer shadow-xs"
+              className="p-1.5 text-[#70665F] hover:text-[#211B17] hover:bg-white rounded-lg border border-[#E7DED5] transition cursor-pointer shadow-2xs"
             >
               <Download className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={handlePrint}
               title="Print Table"
-              className="p-1.5 text-[#70665F] hover:text-[#211B17] hover:bg-white rounded-full border border-[#E7DED5] transition cursor-pointer shadow-xs"
+              className="p-1.5 text-[#70665F] hover:text-[#211B17] hover:bg-white rounded-lg border border-[#E7DED5] transition cursor-pointer shadow-2xs"
             >
               <Printer className="w-3.5 h-3.5" />
             </button>

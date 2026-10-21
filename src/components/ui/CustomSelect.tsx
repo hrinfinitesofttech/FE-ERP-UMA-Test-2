@@ -67,12 +67,23 @@ export function CustomSelect({
     if (propOptions && propOptions.length > 0) {
       return propOptions.filter(Boolean);
     }
+
+    const getTextContent = (node: any): string => {
+      if (node === null || node === undefined) return '';
+      if (typeof node === 'string' || typeof node === 'number') return String(node);
+      if (Array.isArray(node)) return node.map(getTextContent).join('');
+      if (React.isValidElement(node) && (node.props as any)?.children) {
+        return getTextContent((node.props as any).children);
+      }
+      return '';
+    };
+
     const extracted: SelectOption[] = [];
     React.Children.forEach(children, (child) => {
       if (React.isValidElement(child) && child.type === 'option') {
         const props = (child as React.ReactElement<{ value?: any; children?: any; disabled?: boolean }>).props;
         const val = props.value !== undefined ? props.value : props.children;
-        const lbl = props.children ? String(props.children) : String(val);
+        const lbl = props.children ? getTextContent(props.children) : String(val);
         extracted.push({
           value: val,
           label: lbl,

@@ -351,38 +351,35 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
   ];
 
   return (
-    <div className="w-full space-y-4 md:space-y-5 text-xs pb-12">
-      {/* 1. TOP HEADER BANNER */}
-      <div className="bg-gradient-to-r from-[#FAF3EA] via-[#F8EDE0] to-[#F1DFC9] p-5 sm:p-6 rounded-2xl border border-[#E9DFD3] text-[#211B17] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xs">
+    <div className="w-full space-y-3 sm:space-y-3.5 text-xs pb-10">
+      {/* 1. TOP HEADER BANNER - COMPACT */}
+      <div className="bg-gradient-to-r from-[#FAF3EA] via-[#F8EDE0] to-[#F1DFC9] px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl border border-[#E9DFD3] text-[#211B17] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="px-2.5 py-0.5 rounded-full bg-[#F5E6D8] text-[#8C5229] border border-[#E7DED5] font-mono text-[10px] font-bold uppercase tracking-wider">
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <span className="px-2 py-0.5 rounded-full bg-[#F5E6D8] text-[#8C5229] border border-[#E7DED5] font-mono text-[9px] font-bold uppercase tracking-wider">
               CRM Engine
             </span>
-            <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200">
+            <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 text-[9px] font-bold border border-emerald-200">
               Live Cloud Sync
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-[#211B17] tracking-tight">
-            Leads Management
+          <h1 className="text-base sm:text-lg font-extrabold text-[#211B17] tracking-tight">
+            Leads Pipeline & Enquiries
           </h1>
-          <p className="text-[#6F6156] text-xs mt-1 max-w-2xl leading-relaxed">
-            Manage prospective industrial machinery leads, track pipeline values, and convert inquiries into commercial quotations.
-          </p>
         </div>
 
         {/* Global Quick Actions Bar */}
         <div className="flex items-center gap-2 flex-wrap">
           <Link
             href="/crm/leads/new"
-            className="px-3.5 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-xl font-bold transition flex items-center gap-1.5 shadow-xs"
+            className="px-3 py-1.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-lg font-bold text-xs transition flex items-center gap-1.5 shadow-2xs"
           >
             <UserPlus className="w-3.5 h-3.5" />
             <span>+ New Lead</span>
           </Link>
           <Link
             href="/crm/quotations/new"
-            className="px-3.5 py-2 bg-white hover:bg-[#FAF7F2] border border-[#E7DED5] text-slate-800 rounded-xl font-bold transition flex items-center gap-1.5 shadow-xs"
+            className="px-3 py-1.5 bg-white hover:bg-[#FAF7F2] border border-[#E7DED5] text-slate-800 rounded-lg font-bold text-xs transition flex items-center gap-1.5 shadow-2xs"
           >
             <FileText className="w-3.5 h-3.5 text-blue-600" />
             <span>+ New Quotation</span>
@@ -392,7 +389,7 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
 
       {/* SUCCESS NOTIFICATION TOAST */}
       {successMsg && (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between gap-2 animate-in fade-in duration-200 shadow-2xs">
+        <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center justify-between gap-2 animate-in fade-in duration-200 shadow-2xs">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
             <span className="font-semibold">{successMsg}</span>
@@ -403,106 +400,122 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
         </div>
       )}
 
-      {/* 2. OVERVIEW KPI CARDS */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider">Prospective Leads</span>
-            <UserPlus className="w-4 h-4 text-crm-brand-700" />
+      {/* 2. OVERVIEW KPI CARDS - COMPACT & PROPORTIONAL */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+        <div className="bg-white px-3.5 py-2.5 rounded-xl border border-[#EBE3DB] shadow-2xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-[#70665F] uppercase tracking-wider">Prospective Leads</span>
+            <div className="w-5 h-5 rounded bg-[#FAF3EA] flex items-center justify-center text-crm-brand-700">
+              <UserPlus className="w-3 h-3" />
+            </div>
           </div>
-          <div className="flex items-baseline gap-2">
-            <span suppressHydrationWarning className="text-2xl font-extrabold text-[#211B17] font-mono">{totalLeads}</span>
-            <span suppressHydrationWarning className="text-[10px] text-emerald-600 font-bold">Total</span>
-          </div>
-          <p suppressHydrationWarning className="text-[10px] text-[#70665F] mt-1 font-mono">
-            Pipeline: {formatCurrency(totalPipelineBudget)}
-          </p>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider">Active In Pipeline</span>
-            <TrendingUp className="w-4 h-4 text-blue-600" />
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span suppressHydrationWarning className="text-2xl font-extrabold text-blue-700 font-mono">{activeLeads}</span>
-            <span suppressHydrationWarning className="text-[10px] text-[#70665F] font-bold">In Discussion</span>
-          </div>
-          <p suppressHydrationWarning className="text-[10px] text-[#70665F] mt-1 font-mono">
-            Active: {formatCurrency(activePipelineBudget)}
-          </p>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider">Won & Converted</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span suppressHydrationWarning className="text-2xl font-extrabold text-emerald-700 font-mono">{wonLeads}</span>
-            <span suppressHydrationWarning className="text-[10px] text-emerald-700 font-bold">
-              ({totalLeads > 0 ? `${Math.round((wonLeads / totalLeads) * 100)}%` : '0%'} Win Rate)
+          <div className="mt-1 flex items-baseline justify-between gap-1">
+            <span suppressHydrationWarning className="text-lg font-extrabold text-[#211B17] font-mono">{totalLeads}</span>
+            <span suppressHydrationWarning className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+              Pipe {formatCurrency(totalPipelineBudget)}
             </span>
           </div>
-          <p className="text-[10px] text-[#70665F] mt-1">Ready for Quotation & Order</p>
+        </div>
+
+        <div className="bg-white px-3.5 py-2.5 rounded-xl border border-[#EBE3DB] shadow-2xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-[#70665F] uppercase tracking-wider">Active Pipeline</span>
+            <div className="w-5 h-5 rounded bg-blue-50 flex items-center justify-center text-blue-600">
+              <TrendingUp className="w-3 h-3" />
+            </div>
+          </div>
+          <div className="mt-1 flex items-baseline justify-between gap-1">
+            <span suppressHydrationWarning className="text-lg font-extrabold text-blue-700 font-mono">{activeLeads}</span>
+            <span suppressHydrationWarning className="text-[10px] text-blue-700 font-bold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+              Active {formatCurrency(activePipelineBudget)}
+            </span>
+          </div>
+        </div>
+
+        <div className="bg-white px-3.5 py-2.5 rounded-xl border border-[#EBE3DB] shadow-2xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-[#70665F] uppercase tracking-wider">Won & Converted</span>
+            <div className="w-5 h-5 rounded bg-emerald-50 flex items-center justify-center text-emerald-600">
+              <CheckCircle2 className="w-3 h-3" />
+            </div>
+          </div>
+          <div className="mt-1 flex items-baseline justify-between gap-1">
+            <span suppressHydrationWarning className="text-lg font-extrabold text-emerald-700 font-mono">{wonLeads}</span>
+            <span suppressHydrationWarning className="text-[10px] text-emerald-700 font-bold">
+              {totalLeads > 0 ? `${Math.round((wonLeads / totalLeads) * 100)}%` : '0%'} Win
+            </span>
+          </div>
         </div>
 
         <Link
           href="/crm/quotations"
-          className="bg-white p-4 rounded-xl border border-[#EBE3DB] hover:border-slate-300 transition-all hover:shadow-xs"
+          className="bg-white px-3.5 py-2.5 rounded-xl border border-[#EBE3DB] hover:border-slate-300 transition-all hover:shadow-2xs flex flex-col justify-between"
         >
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider">Commercial Quotations</span>
-            <FileCheck2 className="w-4 h-4 text-crm-brand-700" />
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-[#70665F] uppercase tracking-wider">Quotations</span>
+            <div className="w-5 h-5 rounded bg-purple-50 flex items-center justify-center text-purple-700">
+              <FileCheck2 className="w-3 h-3" />
+            </div>
           </div>
-          <div className="flex items-baseline gap-2">
-            <span suppressHydrationWarning className="text-2xl font-extrabold text-[#211B17] font-mono">{totalQuotations}</span>
-            <span suppressHydrationWarning className="text-[10px] text-crm-brand-700 font-bold">({activeQuotations} active)</span>
+          <div className="mt-1 flex items-baseline justify-between gap-1">
+            <span suppressHydrationWarning className="text-lg font-extrabold text-[#211B17] font-mono">{totalQuotations}</span>
+            <span suppressHydrationWarning className="text-[10px] text-purple-700 font-bold bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200">
+              {activeQuotations} active
+            </span>
           </div>
-          <p className="text-[10px] text-[#70665F] mt-1">Estimations & customer proposals</p>
         </Link>
       </div>
 
-      {/* 3. LEADS TABLE (CLIENT-READY, NO HORIZONTAL CUT-OFF) */}
-      <div className="space-y-4">
+      {/* 3. LEADS TABLE (CLIENT-READY, COMPACT & INTUITIVE) */}
+      <div className="space-y-3">
         <DataTable
+          title="Leads Directory"
+          subtitle={`${filteredLeads.length} records`}
           columns={leadColumns}
           data={filteredLeads}
-          searchPlaceholder="Search leads by company, machine, contact, city..."
+          searchPlaceholder="Search leads by company, machine, contact..."
           onRowClick={(lead) => router.push(`/crm/leads/${lead.id}`)}
           filterComponent={
-            <div className="flex items-center gap-2 flex-wrap">
-              <CustomSelect
-                value={leadStatusFilter}
-                onChange={(val) => setLeadStatusFilter(val)}
-              >
-                <option value="all">All Statuses ({validLeads.length})</option>
-                <option value="new">New Lead</option>
-                <option value="contacted">Contacted</option>
-                <option value="qualified">Qualified</option>
-                <option value="requirement_received">Requirement Received</option>
-                <option value="quotation_sent">Quotation Sent</option>
-                <option value="won">Won / Converted</option>
-                <option value="lost">Lost</option>
-              </CustomSelect>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <div className="w-36 sm:w-40">
+                <CustomSelect
+                  fullWidth={true}
+                  size="sm"
+                  value={leadStatusFilter}
+                  onChange={(val) => setLeadStatusFilter(val)}
+                >
+                  <option value="all">All Statuses ({validLeads.length})</option>
+                  <option value="new">New Lead</option>
+                  <option value="contacted">Contacted</option>
+                  <option value="qualified">Qualified</option>
+                  <option value="requirement_received">Requirement</option>
+                  <option value="quotation_sent">Quotation Sent</option>
+                  <option value="won">Won / Converted</option>
+                  <option value="lost">Lost</option>
+                </CustomSelect>
+              </div>
 
-              <CustomSelect
-                value={leadSourceFilter}
-                onChange={(val) => setLeadSourceFilter(val)}
-              >
-                <option value="all">All Sources</option>
-                <option value="exhibition">Exhibition / Trade Show</option>
-                <option value="website">Website Inquiry</option>
-                <option value="phone">Direct Phone</option>
-                <option value="whatsapp">WhatsApp</option>
-                <option value="referral">Client Referral</option>
-              </CustomSelect>
+              <div className="w-32 sm:w-36">
+                <CustomSelect
+                  fullWidth={true}
+                  size="sm"
+                  value={leadSourceFilter}
+                  onChange={(val) => setLeadSourceFilter(val)}
+                >
+                  <option value="all">All Sources</option>
+                  <option value="exhibition">Exhibition</option>
+                  <option value="website">Website</option>
+                  <option value="phone">Direct Phone</option>
+                  <option value="whatsapp">WhatsApp</option>
+                  <option value="referral">Referral</option>
+                </CustomSelect>
+              </div>
             </div>
           }
           actions={
             <Link
               href="/crm/leads/new"
-              className="px-3 py-1.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-lg font-bold text-xs flex items-center gap-1 transition shadow-2xs"
+              className="px-3 py-1 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-lg font-bold text-xs flex items-center gap-1 transition shadow-2xs whitespace-nowrap shrink-0"
             >
               <Plus className="w-3.5 h-3.5" /> New Lead
             </Link>
