@@ -641,6 +641,33 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
     d.isPrimary = d.isPrimary !== undefined ? Boolean(d.isPrimary) : (d.is_primary !== undefined ? Boolean(d.is_primary) : false);
     d.is_primary = d.isPrimary;
     d.mobile = d.mobile || d.phone || '9999999999';
+  } else if (ep.includes('/drawings-2d')) {
+    d.design_job_id = d.design_job_id || d.designJobId || d.jobNumber || d.projectId || 'DJ-001';
+    d.drawing_number = d.drawing_number || d.drawingNumber || d.id || `DWG-2D-${Date.now().toString().slice(-4)}`;
+    d.title = d.title || d.drawingTitle || d.drawingName || '2D CAD Drawing';
+    d.revision = d.revision || d.revisionNumber || 'REV-00';
+    d.prepared_by = d.prepared_by || d.preparedBy || d.designer || d.drawnBy || 'Super Admin';
+    d.sheet_size = d.sheet_size || d.sheetSize || 'A1';
+    d.scale = d.scale || '1:10';
+    d.status = d.status || 'approved';
+    d.file_url = d.file_url || d.fileUrl || '';
+  } else if (ep.includes('/audit-logs')) {
+    d.user_id = d.user_id || d.userId || 'EMP-000';
+    d.user_name = d.user_name || d.userName || 'Super Admin';
+    d.role = d.role || 'Super Admin';
+    d.department = d.department || 'Management';
+    d.action = d.action || 'ACTION';
+    d.module = d.module || 'General';
+    d.page = d.page || '';
+    d.record_id = d.record_id || d.recordId || '';
+    if (d.oldValue !== undefined && d.old_value === undefined) {
+      d.old_value = typeof d.oldValue === 'object' ? JSON.stringify(d.oldValue) : String(d.oldValue || '');
+    }
+    if (d.newValue !== undefined && d.new_value === undefined) {
+      d.new_value = typeof d.newValue === 'object' ? JSON.stringify(d.newValue) : String(d.newValue || '');
+    }
+    d.ip_address = d.ip_address || d.ipAddress || '';
+    d.notes = d.notes || '';
   }
   return d;
 }

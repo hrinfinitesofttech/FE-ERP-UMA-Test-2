@@ -100,45 +100,57 @@ export default function ProjectDetailPage() {
   }
 
   // Related CRM & Job Traceability records
-  const salesOrder = salesOrders.find((s) => s.id === project.salesOrderId || s.salesOrderNumber === project.salesOrderNumber);
-  const customerPO = customerPOs.find((p) => p.poNumber === project.customerPoNumber || p.id === project.customerPoNumber);
-  const quotation = quotations.find((q) => q.quotationNumber === project.quotationNumber || q.id === project.quotationNumber || q.id === salesOrder?.quotationId || q.quotationNumber === salesOrder?.quotationNumber);
-  const linkedCustomer = customers.find((c) => c.id === project.customerId || c.companyName?.toLowerCase() === project.customerName?.toLowerCase());
-  const linkedLead = leads.find((l) => l.companyName?.toLowerCase() === project.customerName?.toLowerCase() || l.id === project.customerId);
+  const custNameClean = (project.customerName || '').trim().toLowerCase();
+  const salesOrder = salesOrders.find((s) => s.id === project.salesOrderId || s.salesOrderNumber === project.salesOrderNumber || (custNameClean && s.customerName && s.customerName.trim().toLowerCase() === custNameClean));
+  const customerPO = customerPOs.find((p) => p.poNumber === project.customerPoNumber || p.id === project.customerPoNumber || (custNameClean && p.customerName && p.customerName.trim().toLowerCase() === custNameClean));
+  const quotation =
+    quotations.find((q) => (project.quotationNumber && (q.quotationNumber === project.quotationNumber || q.id === project.quotationNumber)) || (salesOrder && (q.id === salesOrder.quotationId || q.quotationNumber === salesOrder.quotationNumber))) ||
+    quotations.find((q) => custNameClean && q.customerName && q.customerName.trim().toLowerCase() === custNameClean);
+  const linkedCustomer = customers.find((c) => (project.customerId && (c.id === project.customerId || (c as any).customerCode === project.customerId)) || (custNameClean && c.companyName && c.companyName.trim().toLowerCase() === custNameClean));
+  const linkedLead = leads.find((l) => (custNameClean && l.companyName && l.companyName.trim().toLowerCase() === custNameClean) || (project.customerId && l.id === project.customerId));
   const traceableJob = jobs.find((j) => j.jobNumber === project.jobNumber);
 
-  // Dynamic Contact Information Resolution (Priority: Quotation entered data -> SO -> PO -> Customer -> Lead)
+  // Dynamic Contact Information Resolution (Priority: Direct Project Data -> Quotation -> Customer -> Lead -> PO -> SO)
   const displayContactPerson =
-    (project.customerContact && project.customerContact !== 'Harish Trivedi' ? project.customerContact : null) ||
+    (project.customerContact && project.customerContact !== 'Harish Trivedi' && project.customerContact !== '-' ? project.customerContact : null) ||
+    (project as any).contactPerson ||
     quotation?.contactPerson ||
-    (salesOrder as any)?.contactPerson ||
-    (customerPO as any)?.contactPerson ||
+    (quotation as any)?.contact_person ||
     linkedCustomer?.contactPerson ||
+    (linkedCustomer as any)?.contact_person ||
     linkedLead?.contactPerson ||
+    (linkedLead as any)?.contact_person ||
+    (salesOrder as any)?.contactPerson ||
+    (salesOrder as any)?.customerContact ||
+    (customerPO as any)?.contactPerson ||
     project.customerContact ||
     '-';
 
   const displayContactEmail =
-    (project.contactEmail && project.contactEmail !== 'harish.trivedi@gacl.co.in' ? project.contactEmail : null) ||
+    (project.contactEmail && project.contactEmail !== 'harish.trivedi@gacl.co.in' && project.contactEmail !== '-' ? project.contactEmail : null) ||
+    (project as any).email ||
     quotation?.contactEmail ||
-    (salesOrder as any)?.contactEmail ||
-    (customerPO as any)?.contactEmail ||
+    (quotation as any)?.contact_email ||
     linkedCustomer?.email ||
     linkedLead?.email ||
+    (salesOrder as any)?.contactEmail ||
+    (customerPO as any)?.contactEmail ||
     project.contactEmail ||
     '-';
 
   const displayContactMobile =
-    (project.contactMobile && project.contactMobile !== '+91 98251 99881' ? project.contactMobile : null) ||
+    (project.contactMobile && project.contactMobile !== '+91 98251 99881' && project.contactMobile !== '-' ? project.contactMobile : null) ||
+    (project as any).contactPhone ||
     quotation?.contactMobile ||
+    (quotation as any)?.contact_mobile ||
     (quotation as any)?.contactPhone ||
-    (salesOrder as any)?.contactMobile ||
-    (salesOrder as any)?.contactPhone ||
-    (customerPO as any)?.contactMobile ||
     linkedCustomer?.mobile ||
     (linkedCustomer as any)?.phone ||
     linkedLead?.mobile ||
     (linkedLead as any)?.phone ||
+    (salesOrder as any)?.contactMobile ||
+    (salesOrder as any)?.contactPhone ||
+    (customerPO as any)?.contactMobile ||
     project.contactMobile ||
     '-';
 

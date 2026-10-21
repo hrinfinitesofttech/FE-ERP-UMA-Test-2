@@ -1625,6 +1625,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         const mergedProduct = (normalized.productName && normalized.productName !== 'Process Equipment' && normalized.productName !== 'Project Work')
           ? normalized.productName
           : (existing.productName && existing.productName !== 'Process Equipment' && existing.productName !== 'Project Work' ? existing.productName : normalized.productName);
+        const mergedContact = normalized.customerContact || existing.customerContact || '';
+        const mergedEmail = normalized.contactEmail || existing.contactEmail || '';
+        const mergedMobile = normalized.contactMobile || existing.contactMobile || '';
+        const mergedQuotationNo = normalized.quotationNumber || existing.quotationNumber || '';
+        const mergedPoNo = normalized.customerPoNumber || existing.customerPoNumber || '';
+        const mergedSoNo = normalized.salesOrderNumber || existing.salesOrderNumber || '';
 
         map.set(key, {
           ...existing,
@@ -1633,6 +1639,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           projectNumber: existing.projectNumber || normalized.projectNumber,
           customerName: mergedCustomer || 'Customer',
           productName: mergedProduct || 'Process Equipment',
+          customerContact: mergedContact,
+          contactEmail: mergedEmail,
+          contactMobile: mergedMobile,
+          quotationNumber: mergedQuotationNo,
+          customerPoNumber: mergedPoNo,
+          salesOrderNumber: mergedSoNo,
         });
       } else {
         map.set(key, normalized);
@@ -9607,7 +9619,17 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
     logAction('CREATE', 'Designer', '2D Drawings', id, `Uploaded 2D Drawing ${data.drawingNumber}`);
-    api.post('/drawings-2d/', newDrw)
+    const payload = {
+      ...newDrw,
+      design_job_id: newDrw.designJobId || newDrw.jobNumber || newDrw.projectId || 'DJ-001',
+      drawing_number: newDrw.drawingNumber || newDrw.id,
+      title: newDrw.drawingTitle || newDrw.partOrAssembly || '2D CAD Drawing',
+      revision: newDrw.revision || newDrw.revisionNumber || 'REV-00',
+      prepared_by: newDrw.designer || newDrw.drawnBy || 'Super Admin',
+      sheet_size: newDrw.sheetSize || 'A1',
+      file_url: newDrw.fileUrl || '',
+    };
+    api.post('/drawings-2d/', payload)
       .then((res) => {
         if (res.data?.id) {
           setDrawings2D((prev) => {
@@ -9629,7 +9651,15 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
     logAction('CREATE', 'Designer', '3D Models', id, `Uploaded 3D Model ${data.modelName}`);
-    api.post('/models-3d/', newMod)
+    const payload = {
+      ...newMod,
+      design_job_id: newMod.designJobId || newMod.jobNumber || newMod.projectId || 'DJ-001',
+      model_number: newMod.modelNumber || newMod.designNumber || newMod.id,
+      model_name: newMod.modelName || newMod.modelTitle || '3D CAD Model',
+      modeled_by: newMod.modeledBy || newMod.designer || 'Super Admin',
+      file_url: newMod.fileUrl || '',
+    };
+    api.post('/models-3d/', payload)
       .then((res) => {
         if (res.data?.id) {
           setDesigns3D((prev) => {
