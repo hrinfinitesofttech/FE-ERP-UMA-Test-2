@@ -536,6 +536,8 @@ interface ERPContextType {
 
   customerPOs: CustomerPO[];
   addCustomerPO: (poData: Omit<CustomerPO, 'id'>) => CustomerPO;
+  updateCustomerPO: (id: string, updates: Partial<CustomerPO>) => Promise<CustomerPO | void>;
+  deleteCustomerPO: (id: string) => Promise<boolean | void>;
   convertCustomerPOToSalesOrder: (poId: string) => SalesOrder;
 
   salesOrders: SalesOrder[];
@@ -7016,6 +7018,51 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
     }).catch((err) => console.warn('Failed to sync customer PO to backend:', err));
     return newPO;
+  };
+
+  const updateCustomerPO = async (id: string, updates: Partial<CustomerPO>) => {
+    setCustomerPOs((prev) => {
+      const updated = prev.map((p) => {
+        if (p.id === id || p.poNumber === id) {
+          return { ...p, ...updates };
+        }
+        return p;
+      });
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_customerPOs', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('UPDATE', 'CRM', 'Customer PO', id, `Updated Customer PO ${id}`);
+    try {
+      const payload: any = { ...updates };
+      if (updates.poAmount !== undefined) payload.po_value = Number(updates.poAmount);
+      if (updates.poDate !== undefined) payload.po_date = updates.poDate;
+      if (updates.deliveryDate !== undefined) payload.delivery_date = updates.deliveryDate;
+      if (updates.customerName !== undefined) payload.customer_name = updates.customerName;
+      if (updates.poNumber !== undefined) payload.po_number = updates.poNumber;
+      if (updates.attachmentUrl !== undefined) payload.attachment_url = updates.attachmentUrl;
+      if (updates.scopeOfWork !== undefined) payload.scope_of_work = updates.scopeOfWork;
+      await api.patch(`/customer-pos/${id}/`, payload);
+    } catch (err) {
+      console.warn('Failed to update customer PO on backend:', err);
+    }
+  };
+
+  const deleteCustomerPO = async (id: string) => {
+    setCustomerPOs((prev) => {
+      const updated = prev.filter((p) => p.id !== id && p.poNumber !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_customerPOs', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'CRM', 'Customer PO', id, `Deleted Customer PO ${id}`);
+    try {
+      await api.delete(`/customer-pos/${id}/`);
+    } catch (err) {
+      console.warn('Failed to delete customer PO on backend:', err);
+    }
   };
 
   const convertCustomerPOToSalesOrder = (poId: string): SalesOrder => {
@@ -15030,6 +15077,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         updateQuotationStatus,
         customerPOs: deduplicateCustomerPOs(customerPOs),
         addCustomerPO,
+        updateCustomerPO,
+        deleteCustomerPO,
         convertCustomerPOToSalesOrder,
         salesOrders: deduplicateSalesOrders(salesOrders),
         addSalesOrder,

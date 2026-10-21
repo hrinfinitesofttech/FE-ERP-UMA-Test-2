@@ -464,14 +464,19 @@ export interface CustomerPO {
   poDate: string;
   customerId: string;
   customerName: string;
+  contactPerson?: string;
+  contactMobile?: string;
+  contactEmail?: string;
   quotationId: string;
   quotationNumber: string;
   salesOrderId?: string;
   poAmount: number;
   paymentTerms: string;
   deliveryDate: string;
-  status: 'received' | 'verified' | 'sales_order_created' | 'converted_to_so' | 'cancelled' | string;
+  status: 'received' | 'verified' | 'in_planning' | 'in_production' | 'completed' | 'cancelled' | string;
   attachmentUrl?: string;
+  attachments?: Array<{ name: string; url: string; size?: string; type?: string; uploadedAt?: string }>;
+  scopeOfWork?: string;
   remarks?: string;
 }
 

@@ -1044,6 +1044,7 @@ export const api = {
       list: () => request<any[]>('/customer-pos/'),
       create: (data: any) => request<any>('/customer-pos/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/customer-pos/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/customer-pos/${id}/`, { method: 'DELETE' }),
       convertToSo: (id: string) => request<any>(`/customer-pos/${id}/convert-to-so/`, { method: 'POST' }),
     },
     salesOrders: {
