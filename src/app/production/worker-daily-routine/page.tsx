@@ -460,11 +460,11 @@ export default function WorkerDailyRoutinePage() {
             <span>+ Add Worker</span>
           </button>
           <Link
-            href="/production/supervisor-tasks"
+            href="/production/planning"
             className="px-3.5 py-2 bg-[#211B17] text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-xs hover:bg-black"
           >
             <Factory className="w-3.5 h-3.5 text-amber-400" />
-            <span>Supervisor Tasks</span>
+            <span>Production Planning</span>
           </Link>
         </div>
       </div>

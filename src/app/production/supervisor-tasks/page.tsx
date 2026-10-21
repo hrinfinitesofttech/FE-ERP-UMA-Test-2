@@ -1,8 +1,14 @@
 'use client';
 
-import React from 'react';
-import { ProductionPlanningHub } from '../../../components/production/ProductionPlanningHub';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function ProductionSupervisorTasksPage() {
-  return <ProductionPlanningHub initialTab="supervisor" />;
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace('/production/planning');
+  }, [router]);
+
+  return null;
 }

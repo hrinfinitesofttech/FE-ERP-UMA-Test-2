@@ -886,6 +886,8 @@ interface ERPContextType {
   serviceRequests: ServiceRequest[];
   addServiceRequest: (sr: Omit<ServiceRequest, 'id' | 'requestNumber' | 'requestDate' | 'createdAt'>) => ServiceRequest;
   updateServiceRequestStatus: (id: string, status: ServiceRequestStatus, assignedTechId?: string, assignedTechName?: string) => void;
+  updateServiceRequest?: (id: string, updates: Partial<ServiceRequest>) => void;
+  deleteServiceRequest?: (id: string) => void;
   breakdowns: BreakdownRecord[];
   addBreakdown: (bd: Omit<BreakdownRecord, 'id' | 'breakdownNumber'>) => void;
   updateBreakdownStatus: (id: string, status: BreakdownRecord['status'], remarks?: string) => void;
@@ -8601,7 +8603,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       dispatchedDepts.forEach((dept) => {
         const lowerDept = dept.toLowerCase();
         let targetDeptType: any = 'production';
-        let linkUrl = '/production/supervisor-tasks';
+        let linkUrl = '/production/planning';
         let deptLabel = 'Production';
 
         if (lowerDept.includes('design')) {
@@ -8749,7 +8751,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           type: 'success',
           department: 'production',
           priority: 'normal',
-          linkUrl: '/production/supervisor-tasks',
+          linkUrl: `/production/planning/${encodeURIComponent(record.projectNumber)}`,
         });
       }
 
@@ -11766,7 +11768,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       type: 'info',
       department: 'production',
       priority: 'normal',
-      linkUrl: '/production/supervisor-tasks',
+      linkUrl: '/production/planning',
     });
     api.production.workOrders.create(newWo).then((res) => {
       if (res && res.id) {
@@ -11785,7 +11787,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       type: 'info',
       department: 'production',
       priority: 'high',
-      linkUrl: '/production/supervisor-tasks',
+      linkUrl: '/production/planning',
     });
 
     const payload = target ? { ...target, status: 'Released' } : { id, workOrderNumber: id, status: 'Released' };
@@ -12044,7 +12046,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       type: 'success',
       department: 'production',
       priority: 'high',
-      linkUrl: '/production/supervisor-tasks',
+      linkUrl: '/production/planning',
     });
 
     // 1. Update Work Order status to Completed
@@ -13112,17 +13114,89 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     return [];
   });
 
+  const DEFAULT_SERVICE_REQUESTS: ServiceRequest[] = [
+    {
+      id: 'SR-2026-0001',
+      requestNumber: 'SR-2026-0001',
+      requestDate: '2026-10-18',
+      customerName: 'Reliance Industries Limited',
+      contactNumber: '+91 98250 12345',
+      homeAddress: 'Plot 45, GIDC Chemical Zone, Dahej, Gujarat',
+      email: 'maintenance.dahej@ril.com',
+      requestType: 'Repair',
+      description: 'Primary mechanical seal leaking and vibration observed in reactor agitator gearbox.',
+      requestedDateTime: '2026-10-19T09:30',
+      preferredVisitDate: '2026-10-19',
+      urgencyLevel: 'Emergency',
+      priority: 'Critical',
+      applicantName: 'Vikram Joshi (Maintenance Mgr)',
+      requestSubmissionDate: '2026-10-18',
+      completedBy: 'Ramesh Mistri (Sr. Technician)',
+      completedDate: '2026-10-20',
+      approvedBy: 'Sunil Mehta (Plant Head)',
+      approvedDate: '2026-10-20',
+      status: 'Resolved',
+      createdAt: '2026-10-18T08:00:00.000Z',
+    },
+    {
+      id: 'SR-2026-0002',
+      requestNumber: 'SR-2026-0002',
+      requestDate: '2026-10-20',
+      customerName: 'Adani Ports & Special Economic Zone',
+      contactNumber: '+91 97240 67890',
+      homeAddress: 'Terminal 2, Mundra Port, Kutch, Gujarat',
+      email: 'service.mundra@adani.com',
+      requestType: 'Installation',
+      description: 'Erection & alignment commissioning for new 5000L SS316 holding vessel and piping hookup.',
+      requestedDateTime: '2026-10-22T11:00',
+      preferredVisitDate: '2026-10-22',
+      urgencyLevel: 'High',
+      priority: 'High',
+      applicantName: 'Hardik Shah (Project Lead)',
+      requestSubmissionDate: '2026-10-20',
+      completedBy: 'Devendra Parmar',
+      completedDate: '',
+      approvedBy: 'Bhavin Patel',
+      approvedDate: '',
+      status: 'Scheduled',
+      createdAt: '2026-10-20T10:15:00.000Z',
+    },
+    {
+      id: 'SR-2026-0003',
+      requestNumber: 'SR-2026-0003',
+      requestDate: '2026-10-21',
+      customerName: 'Torrent Pharmaceuticals Ltd',
+      contactNumber: '+91 98980 54321',
+      homeAddress: 'Indrad Plant, Mehsana Highway, Gujarat',
+      email: 'engineering@torrentpharma.com',
+      requestType: 'Maintenance',
+      description: 'Preventive health check-up, limpet coil hydro testing, and gasket replacement.',
+      requestedDateTime: '2026-10-25T14:00',
+      preferredVisitDate: '2026-10-25',
+      urgencyLevel: 'Medium',
+      priority: 'Medium',
+      applicantName: 'Priya Sharma (QC Officer)',
+      requestSubmissionDate: '2026-10-21',
+      completedBy: '',
+      completedDate: '',
+      approvedBy: '',
+      approvedDate: '',
+      status: 'In Progress',
+      createdAt: '2026-10-21T09:00:00.000Z',
+    },
+  ];
+
   const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>(() => {
     if (typeof window !== 'undefined') {
       try {
         const stored = localStorage.getItem('UMA_ERP_serviceRequests');
         if (stored) {
           const p = JSON.parse(stored);
-          if (Array.isArray(p)) return p;
+          if (Array.isArray(p) && p.length > 0) return p;
         }
       } catch (_) {}
     }
-    return [];
+    return DEFAULT_SERVICE_REQUESTS;
   });
 
   const [breakdowns, setBreakdowns] = useState<BreakdownRecord[]>(() => {
@@ -13424,6 +13498,30 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       ...(assignedTechId ? { assignedTechnicianId: assignedTechId, assignedTechnicianName: assignedTechName } : {}),
       ...(status === 'Closed' || status === 'Resolved' ? { closedAt: new Date().toISOString() } : {}),
     }).catch((err) => console.warn('Failed to update SR status on backend:', err));
+  };
+
+  const updateServiceRequest = (id: string, updates: Partial<ServiceRequest>) => {
+    setServiceRequests((prev) => {
+      const updated = prev.map((sr) => (sr.id === id || sr.requestNumber === id ? { ...sr, ...updates } : sr));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_serviceRequests', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('UPDATE', 'maintenance', 'service-requests', id, `Updated service request ${id}`);
+    api.patch(`/service-requests/${id}/`, updates).catch((err) => console.warn('Failed to update service request:', err));
+  };
+
+  const deleteServiceRequest = (id: string) => {
+    setServiceRequests((prev) => {
+      const updated = prev.filter((sr) => sr.id !== id && sr.requestNumber !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_serviceRequests', JSON.stringify(updated)); } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'maintenance', 'service-requests', id, `Deleted service request ${id}`);
+    api.delete(`/service-requests/${id}/`).catch((err) => console.warn('Failed to delete service request:', err));
   };
 
   const addBreakdown = (bd: Omit<BreakdownRecord, 'id' | 'breakdownNumber'>) => {
@@ -15132,6 +15230,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         serviceRequests: sortByLatestDesc(serviceRequests),
         addServiceRequest,
         updateServiceRequestStatus,
+        updateServiceRequest,
+        deleteServiceRequest,
         breakdowns: sortByLatestDesc(breakdowns),
         addBreakdown,
         updateBreakdownStatus,

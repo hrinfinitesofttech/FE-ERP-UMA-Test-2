@@ -771,21 +771,7 @@ export function Sidebar() {
                 <Compass className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
-                    <span>Production Planning &amp; Supervisor</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 font-mono text-[9px] font-bold border border-amber-300">
-                      Merged
-                    </span>
-                  </div>
-                )}
-              </Link>
-              <Link href="/production/supervisor-tasks" className={subNavItemClass('/production/supervisor-tasks')}>
-                <Factory className="w-3.5 h-3.5 flex-shrink-0 text-amber-600 group-hover:text-amber-800 transition-colors" />
-                {!sidebarCollapsed && (
-                  <div className="flex items-center justify-between w-full">
-                    <span>Supervisor Tasks</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 font-mono text-[9px] font-bold border border-amber-300">
-                      Hub
-                    </span>
+                    <span>Production Planning</span>
                   </div>
                 )}
               </Link>
@@ -1163,47 +1149,6 @@ export function Sidebar() {
               </Link>
 
 
-              {/* Performance & Development */}
-              {!sidebarCollapsed && <div className="px-3 pt-2 text-[9px] font-semibold text-slate-500 uppercase tracking-wider">Performance</div>}
-              <Link href="/hr/performance" className={subNavItemClass('/hr/performance')}>
-                <ActivityIcon className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>31. Performance Management</span>}
-              </Link>
-              <Link href="/hr/kpis" className={subNavItemClass('/hr/kpis')}>
-                <Flag className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>32. KPI Management</span>}
-              </Link>
-              <Link href="/hr/appraisals" className={subNavItemClass('/hr/appraisals')}>
-                <TrendingUp className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>33. Appraisal</span>}
-              </Link>
-              <Link href="/hr/training" className={subNavItemClass('/hr/training')}>
-                <Sparkles className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>34. Training & Development</span>}
-              </Link>
-
-              {/* Recruitment */}
-              {!sidebarCollapsed && <div className="px-3 pt-2 text-[9px] font-semibold text-slate-500 uppercase tracking-wider">Recruitment</div>}
-              <Link href="/hr/recruitment" className={subNavItemClass('/hr/recruitment')}>
-                <Users className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>35. Recruitment Dashboard</span>}
-              </Link>
-              <Link href="/hr/job-positions" className={subNavItemClass('/hr/job-positions')}>
-                <Briefcase className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>36. Job Positions</span>}
-              </Link>
-              <Link href="/hr/candidates" className={subNavItemClass('/hr/candidates')}>
-                <UserPlus className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>37. Candidates</span>}
-              </Link>
-              <Link href="/hr/interviews" className={subNavItemClass('/hr/interviews')}>
-                <PhoneCall className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>38. Interview Management</span>}
-              </Link>
-              <Link href="/hr/offers" className={subNavItemClass('/hr/offers')}>
-                <FileCheck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>39. Offer Management</span>}
-              </Link>
             </div>
           )}
         </div>
