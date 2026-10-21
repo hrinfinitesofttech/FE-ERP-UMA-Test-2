@@ -230,21 +230,38 @@ export default function DispatchPage() {
     return String(max + 1);
   };
 
-  // Check URL params on load (e.g. from completion QC page: /production/dispatch?fromQC=...)
+  // Check URL params on load (from Packaging: ?fromPacking=... OR from QC: ?fromQC=...)
   useEffect(() => {
+    const fromPacking = searchParams?.get('fromPacking');
+    const itemsJson = searchParams?.get('itemsJson');
+    const boxes = searchParams?.get('boxes');
+    const weight = searchParams?.get('weight');
+    const prj = searchParams?.get('project');
     const fromQC = searchParams?.get('fromQC');
     const cust = searchParams?.get('customer');
     const item = searchParams?.get('item');
     const qty = searchParams?.get('qty');
     const job = searchParams?.get('job');
 
-    if (fromQC || cust || item) {
+    if (fromPacking || fromQC || cust || item || itemsJson) {
       setFormChallanNo(generateNextChallanNo());
       setFormDate(new Date().toISOString().split('T')[0]);
       if (cust) setFormCustomerName(decodeURIComponent(cust));
       if (job) setFormJobNumber(decodeURIComponent(job));
       if (fromQC) setFormQcReportNo(decodeURIComponent(fromQC));
-      if (item) {
+      if (fromPacking) {
+        setFormRemarks(`Packed as per ${decodeURIComponent(fromPacking)}. Total Packages: ${boxes || '1'}, Gross Weight: ${weight || '-'}.`);
+      }
+
+      if (itemsJson) {
+        try {
+          const parsed = JSON.parse(decodeURIComponent(itemsJson));
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setFormItems(parsed);
+            showToast(`Loaded ${parsed.length} items from Packing Slip ${fromPacking || ''}`);
+          }
+        } catch (_) {}
+      } else if (item) {
         setFormItems([
           {
             srNo: 1,
@@ -254,9 +271,9 @@ export default function DispatchPage() {
             notes: 'Final Inspection Cleared',
           },
         ]);
+        showToast(`Pre-filled from QC Inspection: ${cust || 'Project'}`);
       }
       setShowModal(true);
-      showToast(`Pre-filled from QC Inspection: ${cust || 'Project'}`);
     }
   }, [searchParams]);
 

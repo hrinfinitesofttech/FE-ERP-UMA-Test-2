@@ -371,7 +371,20 @@ function MaterialIssueContent() {
     return stock?.usableQty ?? stock?.availableQty ?? 0;
   };
 
-  const selectedWh = warehouses.find((w) => w.id === warehouseId) || warehouses[0] || null;
+  const defaultWarehouse: any = {
+    id: 'wh-main',
+    warehouseCode: 'WH-MAIN',
+    warehouseName: 'Main Raw Material & Plate Yard',
+    name: 'Main Raw Material & Plate Yard',
+    warehouseType: 'Raw Material Store',
+    location: 'Makarpura Bay 1 & Bay 2',
+    status: 'Active',
+  } as any;
+
+  const selectedWh =
+    warehouses.find((w) => w.id === warehouseId) ||
+    warehouses[0] ||
+    defaultWarehouse;
   const selectedJob = projectJobs.find((j) => j.jobNumber === jobId || j.id === jobId) || projectJobs[0] || null;
 
   // Auto-populate work order and BOM when job changes
@@ -446,11 +459,14 @@ function MaterialIssueContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (issueLines.length === 0 || !selectedWh) return;
+    if (issueLines.length === 0) {
+      toast.warning('No Items in Slip', 'Please add at least one material item to the slip.');
+      return;
+    }
 
     const validLines = issueLines.filter((l) => Number(l.issueQty) > 0);
     if (validLines.length === 0) {
-      toast.warning('Please enter an issue quantity greater than 0 for at least one item.');
+      toast.warning('Invalid Issue Quantity', 'Please enter an issue quantity greater than 0 for at least one item.');
       return;
     }
 
@@ -460,14 +476,14 @@ function MaterialIssueContent() {
         issueDate: new Date().toISOString().split('T')[0],
         projectId: selectedJob?.id || 'PRJ-2026-0001',
         jobId: selectedJob?.jobNumber || jobId,
-        workOrderNumber: woNo,
-        bomNumber: bomNo,
-        bomRevision: bomRev,
-        productionStage: stage,
-        requestedBy,
-        issuedBy,
-        warehouseId: selectedWh.id,
-        warehouseName: selectedWh.warehouseName,
+        workOrderNumber: woNo || `WO-${jobId.replace('JOB-', '')}-A`,
+        bomNumber: bomNo || `BOM-${jobId.replace('JOB-', '')}`,
+        bomRevision: bomRev || 'Rev-01',
+        productionStage: stage || 'Shell & Dish End Cutting / Rolling',
+        requestedBy: requestedBy || 'Production Team',
+        issuedBy: issuedBy || 'Store In-charge',
+        warehouseId: selectedWh.id || 'wh-main',
+        warehouseName: (selectedWh as any).warehouseName || (selectedWh as any).name || 'Main Raw Material Warehouse',
         status: 'Fully Issued',
         totalIssueValue: totalIssueSlipValue,
         remarks,
@@ -484,12 +500,15 @@ function MaterialIssueContent() {
           unitPrice: line.unitPrice,
           totalCost: line.issueQty * line.unitPrice,
           batchLot: line.batchLot || batchLot || `HEAT-${Math.floor(10000 + Math.random() * 90000)}`,
-          locationCode: selectedWh.warehouseCode || 'STORE-BAY-01',
+          locationCode: (selectedWh as any).warehouseCode || 'STORE-BAY-01',
           remarks: remarks || `Issued for ${stage}`,
         })),
       });
 
-      toast.success(`Material issue slip successfully created & stock deducted for ${validLines.length} item(s) on Job ${selectedJob?.jobNumber || jobId}!`);
+      toast.success(
+        `Material slip successfully created & stock deducted!`,
+        `Deducted for ${validLines.length} item(s) on Job ${selectedJob?.jobNumber || jobId}. Stock balance updated.`
+      );
       setSuccessMessage(`Material issue slip successfully created & stock deducted for ${validLines.length} item(s) on Job ${selectedJob?.jobNumber || jobId}!`);
       setHasDismissedParam(true);
       setIsModalOpen(false);
@@ -747,14 +766,14 @@ function MaterialIssueContent() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-              {/* Project & Work Order */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* Project, Work Order & Warehouse */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-[#70665F] font-semibold mb-1">Target Project *</label>
                   <select
                     value={jobId}
                     onChange={(e) => handleJobChange(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-mono"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-mono text-xs"
                   >
                     {!projectJobs.some((j) => j.jobNumber === jobId || j.id === jobId) && (
                       <option value={jobId}>{jobId}</option>
@@ -773,8 +792,23 @@ function MaterialIssueContent() {
                     type="text"
                     value={woNo}
                     onChange={(e) => setWoNo(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-mono"
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-mono text-xs"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-[#70665F] font-semibold mb-1">Issuing Warehouse / Store</label>
+                  <select
+                    value={warehouseId || selectedWh.id}
+                    onChange={(e) => setWarehouseId(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-mono text-xs font-medium"
+                  >
+                    {(warehouses.length > 0 ? warehouses : [defaultWarehouse]).map((wh) => (
+                      <option key={`wh-opt-${wh.id}`} value={wh.id}>
+                        {wh.warehouseCode ? `[${wh.warehouseCode}] ` : ''}{(wh as any).name || (wh as any).warehouseName || wh.id}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -1011,33 +1045,38 @@ function MaterialIssueContent() {
                 />
               </div>
 
-              {/* Actions */}
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  disabled={isSubmitting}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] hover:bg-[#EBE3DB] text-xs font-semibold transition disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-5 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-semibold shadow-lg shadow-emerald-600/20 transition active:scale-95 disabled:opacity-50 flex items-center gap-2"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Saving & Deducting Stock...</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="w-3.5 h-3.5" />
-                      <span>Confirm & Deduct Stock</span>
-                    </>
-                  )}
-                </button>
+              {/* Actions - Sticky at bottom */}
+              <div className="sticky bottom-0 -mx-6 -mb-6 bg-white/95 backdrop-blur-md p-4 px-6 border-t border-[#EBE3DB] flex items-center justify-between gap-3 shadow-md rounded-b-2xl z-20">
+                <div className="text-[11px] text-[#70665F]">
+                  Issuing From: <span className="font-semibold text-emerald-800 font-mono">{(selectedWh as any)?.name || (selectedWh as any)?.warehouseName || 'Main Store'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    disabled={isSubmitting}
+                    className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] hover:bg-[#EBE3DB] text-xs font-semibold transition disabled:opacity-50 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-5 py-2.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold shadow-lg shadow-emerald-600/20 transition active:scale-95 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Saving & Deducting Stock...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-4 h-4" />
+                        <span>Confirm & Deduct Stock ({issueLines.filter(l => Number(l.issueQty) > 0).length} Items)</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </form>
           </div>

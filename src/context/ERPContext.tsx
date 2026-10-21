@@ -1542,12 +1542,21 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const deduplicateProjects = (list: any[]): ProjectJobMaster[] => {
     if (!Array.isArray(list)) return [];
     const map = new Map<string, ProjectJobMaster>();
+    const semanticMap = new Map<string, string>(); // semanticKey -> canonicalKey
+
     for (const item of list) {
       if (!item) continue;
       const prjNo = String(item.projectNumber || item.project_number || item.projectCode || item.project_code || '').trim();
       const jobNo = String(item.jobNumber || item.job_number || '').trim();
       const id = String(item.id || '').trim();
+
+      // Drop obsolete deleted duplicate project
+      if (prjNo === 'PRJ-2026-0009' || id === 'PRJ-2026-0009' || jobNo === 'JOB-2026-0009') {
+        continue;
+      }
+
       let customer = String(item.customerName || item.customer_name || '').trim();
+      const custId = String(item.customerId || item.customer_id || '').trim();
       const soNo = String(item.salesOrderNumber || item.sales_order_number || item.salesOrderId || item.sales_order_id || '').trim();
       let prodName = String(item.productName || item.product_name || '').trim();
       let deliveryDate = item.deliveryDate || item.delivery_date || item.target_delivery_date || item.targetDeliveryDate || '';
@@ -1598,7 +1607,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         salesOrderNumber: soNo || item.salesOrderNumber || '',
         customerPoNumber: item.customerPoNumber || item.customer_po_number || '',
         quotationNumber: item.quotationNumber || item.quotation_number || '',
-        customerId: item.customerId || item.customer_id || '',
+        customerId: custId || item.customerId || item.customer_id || '',
         customerName: customer || item.customerName || 'Customer',
         customerContact: item.customerContact || item.customer_contact || item.contactPerson || item.contact_person || '',
         contactEmail: item.contactEmail || item.contact_email || '',
@@ -1619,8 +1628,16 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         currentStage: item.currentStage || item.current_stage || item.stage || 'Engineering Planning',
       };
 
-      if (map.has(key)) {
-        const existing = map.get(key)!;
+      // Semantic duplicate key: match same customer + same product or quotation
+      const semanticKey = (customer && customer !== 'Customer' && prodName && prodName !== 'Process Equipment' && prodName !== 'Project Work')
+        ? `${(custId || customer).toLowerCase().trim()}__${prodName.toLowerCase().trim()}`
+        : '';
+
+      const targetKey = (semanticKey && semanticMap.has(semanticKey)) ? semanticMap.get(semanticKey)! : key;
+
+      if (map.has(targetKey)) {
+        const existing = map.get(targetKey)!;
+        const preferNormalized = Boolean(normalized.salesOrderId && !existing.salesOrderId);
         const mergedCustomer = (normalized.customerName && normalized.customerName !== 'Customer')
           ? normalized.customerName
           : (existing.customerName && existing.customerName !== 'Customer' ? existing.customerName : normalized.customerName);
@@ -1633,12 +1650,17 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         const mergedQuotationNo = normalized.quotationNumber || existing.quotationNumber || '';
         const mergedPoNo = normalized.customerPoNumber || existing.customerPoNumber || '';
         const mergedSoNo = normalized.salesOrderNumber || existing.salesOrderNumber || '';
+        const mergedSoId = normalized.salesOrderId || existing.salesOrderId || '';
 
-        map.set(key, {
+        const base = preferNormalized ? normalized : existing;
+        map.set(targetKey, {
           ...existing,
           ...normalized,
-          id: existing.id || normalized.id,
-          projectNumber: existing.projectNumber || normalized.projectNumber,
+          id: base.id,
+          projectNumber: base.projectNumber,
+          jobNumber: base.jobNumber,
+          salesOrderId: mergedSoId,
+          salesOrderNumber: mergedSoNo,
           customerName: mergedCustomer || 'Customer',
           productName: mergedProduct || 'Process Equipment',
           customerContact: mergedContact,
@@ -1646,10 +1668,12 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           contactMobile: mergedMobile,
           quotationNumber: mergedQuotationNo,
           customerPoNumber: mergedPoNo,
-          salesOrderNumber: mergedSoNo,
         });
       } else {
         map.set(key, normalized);
+        if (semanticKey) {
+          semanticMap.set(semanticKey, key);
+        }
       }
     }
     return sortByLatestDesc(Array.from(map.values()));
@@ -7269,9 +7293,11 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       (pj) =>
         (pj.salesOrderId && (pj.salesOrderId === so.id || pj.salesOrderId === so.salesOrderNumber)) ||
         (pj.salesOrderNumber && (pj.salesOrderNumber === so.salesOrderNumber || pj.salesOrderNumber === so.id)) ||
-        (so.customerPoNumber && pj.customerPoNumber && pj.customerPoNumber === so.customerPoNumber) ||
+        (so.customerPoNumber && pj.customerPoNumber && pj.customerPoNumber.trim().toLowerCase() === so.customerPoNumber.trim().toLowerCase()) ||
         (so.projectId && (pj.id === so.projectId || pj.projectNumber === so.projectId)) ||
-        (so.jobNumber && (pj.jobNumber === so.jobNumber || pj.id === so.jobNumber))
+        (so.jobNumber && (pj.jobNumber === so.jobNumber || pj.id === so.jobNumber)) ||
+        (so.quotationNumber && pj.quotationNumber && pj.quotationNumber === so.quotationNumber) ||
+        (so.customerId && pj.customerId === so.customerId && (!pj.salesOrderId || pj.salesOrderId === '-' || !pj.salesOrderNumber) && (pj.customerName === so.customerName || pj.productName.trim().toLowerCase() === (so.items?.[0]?.productName || '').trim().toLowerCase()))
     );
 
     if (existingPrj) {
@@ -7649,6 +7675,58 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       'As per Customer Purchase Order specifications';
     const poDelivDate = po.deliveryDate || lastRev?.deliveryTime || '';
     const poOrderVal = Number(po.poAmount || (po as any).po_value || (po as any).poValue || lastRev?.grandTotal || 0);
+
+    const existingPrj = projectJobs.find((pj) =>
+      (pj.customerPoNumber && po.poNumber && pj.customerPoNumber.trim().toLowerCase() === po.poNumber.trim().toLowerCase()) ||
+      ((pj as any).customerPoId && (pj as any).customerPoId === po.id) ||
+      (po.quotationNumber && pj.quotationNumber && pj.quotationNumber === po.quotationNumber) ||
+      (po.customerId && pj.customerId === po.customerId && (!pj.salesOrderId || pj.salesOrderId === '-' || !pj.salesOrderNumber) && (pj.customerName === po.customerName || pj.productName.trim().toLowerCase() === poProdName.trim().toLowerCase()))
+    );
+
+    if (existingPrj) {
+      const nowIso = new Date().toISOString();
+      const linkedExisting: ProjectJobMaster = {
+        ...existingPrj,
+        updatedAt: nowIso,
+        customerPoNumber: po.poNumber || existingPrj.customerPoNumber,
+        quotationNumber: po.quotationNumber || existingPrj.quotationNumber,
+        customerName: poCustName || existingPrj.customerName,
+        customerContact: contactPerson || existingPrj.customerContact,
+        contactEmail: contactEmail || existingPrj.contactEmail,
+        contactMobile: contactMobile || existingPrj.contactMobile,
+        productName: poProdName || existingPrj.productName,
+        orderValue: poOrderVal || existingPrj.orderValue,
+        deliveryDate: poDelivDate || existingPrj.deliveryDate,
+      };
+
+      setProjectJobs((prev) => {
+        const remaining = prev.filter(
+          (p) => p.id !== existingPrj.id && p.projectNumber !== existingPrj.projectNumber && p.jobNumber !== existingPrj.jobNumber
+        );
+        const updated = deduplicateProjects([linkedExisting, ...remaining]);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_projectJobs', JSON.stringify(updated)); } catch (_) {}
+        }
+        return updated;
+      });
+
+      setCustomerPOs((prev) => {
+        const updated = prev.map((p) =>
+          p.id === po.id || p.poNumber === po.poNumber
+            ? { ...p, status: 'project_created' as const, projectId: existingPrj.id, jobNumber: existingPrj.jobNumber }
+            : p
+        );
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_customerPOs', JSON.stringify(updated)); } catch (_) {}
+        }
+        return updated;
+      });
+
+      api.projects.update(existingPrj.id, linkedExisting).catch(() => {});
+      api.crm.customerPos.update(po.id, { status: 'project_created', projectId: existingPrj.id, jobNumber: existingPrj.jobNumber }).catch(() => {});
+
+      return linkedExisting;
+    }
 
     const newProject: ProjectJobMaster = {
       id: prjNo,
@@ -9633,9 +9711,10 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     api.post('/drawings-2d/', payload)
       .then((res) => {
-        if (res.data?.id) {
+        const resData = (res as any)?.data || res;
+        if (resData?.id) {
           setDrawings2D((prev) => {
-            const synced = prev.map((d) => (d.id === id ? { ...d, ...res.data } : d));
+            const synced = prev.map((d) => (d.id === id ? { ...d, ...resData } : d));
             try { localStorage.setItem('UMA_ERP_drawings2D', JSON.stringify(synced)); } catch (_) {}
             return synced;
           });
@@ -9663,9 +9742,10 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     };
     api.post('/models-3d/', payload)
       .then((res) => {
-        if (res.data?.id) {
+        const resData = (res as any)?.data || res;
+        if (resData?.id) {
           setDesigns3D((prev) => {
-            const synced = prev.map((m) => (m.id === id ? { ...m, ...res.data } : m));
+            const synced = prev.map((m) => (m.id === id ? { ...m, ...resData } : m));
             try { localStorage.setItem('UMA_ERP_designs3D', JSON.stringify(synced)); } catch (_) {}
             return synced;
           });
@@ -9685,9 +9765,10 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     logAction('CREATE', 'Designer', 'Assembly Drawings', id, `Uploaded Assembly Drawing ${data.assemblyNumber}`);
     api.post('/assembly-drawings/', newAsm)
       .then((res) => {
-        if (res.data?.id) {
+        const resData = (res as any)?.data || res;
+        if (resData?.id) {
           setAssemblyDrawings((prev) => {
-            const synced = prev.map((a) => (a.id === id ? { ...a, ...res.data } : a));
+            const synced = prev.map((a) => (a.id === id ? { ...a, ...resData } : a));
             try { localStorage.setItem('UMA_ERP_assemblyDrawings', JSON.stringify(synced)); } catch (_) {}
             return synced;
           });
@@ -11460,7 +11541,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           const itmCode = (it.itemCode || (it as any).partNumber || '').trim().toLowerCase();
           const itmName = (it.itemName || '').trim().toLowerCase();
           setStockBalances((prev) => {
-            const updated = prev.map((s) => {
+            const updated = (prev || []).map((s) => {
               const sCode = (s.itemCode || (s as any).item_code || '').trim().toLowerCase();
               const sName = (s.itemName || (s as any).item_name || '').trim().toLowerCase();
               const isMatch = (s.id === it.itemId) ||
@@ -11488,7 +11569,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
       // Update ProjectJobMaster status so Job shows In Progress across ERP
       setProjectJobs((prev) => {
-        const updated = prev.map((pj) => {
+        const updated = (prev || []).map((pj) => {
           if (pj.jobNumber === newIssue.jobId || pj.id === newIssue.jobId) {
             return {
               ...pj,
@@ -11507,9 +11588,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
       // Also complete material inward/allocation planning stage
       setProjectPlanningStages((prev) => {
-        const updated = prev.map((stage) => {
-          const matchesJob = stage.jobNumber === newIssue.jobId || (stage as any).jobId === newIssue.jobId;
-          const isMatStage = stage.stageName?.toLowerCase().includes('material') || stage.stageName?.toLowerCase().includes('procurement') || stage.stageName?.toLowerCase().includes('store');
+        const updated = (prev || []).map((stage) => {
+          const matchesJob = stage?.jobNumber === newIssue.jobId || (stage as any)?.jobId === newIssue.jobId;
+          const isMatStage = stage?.stageName?.toLowerCase().includes('material') || stage?.stageName?.toLowerCase().includes('procurement') || stage?.stageName?.toLowerCase().includes('store');
           if (matchesJob && isMatStage) {
             return { ...stage, status: 'completed' as const, progressPercent: 100 };
           }
@@ -11729,7 +11810,10 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       return updated;
     });
     logAction('UPDATE', 'Production', 'Manufacturing Jobs', id, `Updated manufacturing job ${id}`);
-    api.patch(`/manufacturing-jobs/${id}/`, updates).catch((err) => console.warn('Failed to update manufacturing job:', err));
+    const existing = (manufacturingJobs || []).find((j) => j && (j.id === id || j.jobNumber === id));
+    if (existing) {
+      api.patch(`/manufacturing-jobs/${existing.id || id}/`, updates).catch((err) => console.warn('Failed to update manufacturing job:', err));
+    }
   };
 
   const addProductionPlan = (data: Omit<ProductionPlan, 'id' | 'createdAt'>) => {
@@ -12228,9 +12312,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       })
     );
     logAction('UPDATE', 'Job Traceability', 'Step Progress', jobNumber, `Step ${stepId} changed to ${status}`);
-    api.patch(`/manufacturing-jobs/${jobNumber}/`, {
-      status: status === 'completed' ? 'Completed' : status === 'in_progress' ? 'In Progress' : 'Pending',
-    }).catch(() => {});
+    const mfgJob = (manufacturingJobs || []).find(
+      (m) => m && (m.id === jobNumber || m.jobNumber === jobNumber)
+    );
+    if (mfgJob) {
+      api.patch(`/manufacturing-jobs/${mfgJob.id || jobNumber}/`, {
+        status: status === 'completed' ? 'Completed' : status === 'in_progress' ? 'In Progress' : 'Pending',
+      }).catch(() => {});
+    }
   };
 
   const markNotificationRead = (id: string) => {

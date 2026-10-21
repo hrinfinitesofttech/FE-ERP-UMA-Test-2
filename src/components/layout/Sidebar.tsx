@@ -794,9 +794,13 @@ export function Sidebar() {
                 <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Completion & QC Clearance</span>}
               </Link>
+              <Link href="/production/packaging" className={subNavItemClass('/production/packaging')}>
+                <Package className="w-3.5 h-3.5 flex-shrink-0 text-amber-700 group-hover:text-amber-900 transition-colors" />
+                {!sidebarCollapsed && <span>Dispatch & Packaging</span>}
+              </Link>
               <Link href="/production/dispatch" className={subNavItemClass('/production/dispatch')}>
                 <Truck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && <span>Dispatch & Delivery Challan</span>}
+                {!sidebarCollapsed && <span>Delivery Challan</span>}
               </Link>
 
             </div>

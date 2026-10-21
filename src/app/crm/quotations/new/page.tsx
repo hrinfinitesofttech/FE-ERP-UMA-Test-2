@@ -10,6 +10,9 @@ import {
   Plus,
   Trash2,
   Sparkles,
+  Mail,
+  Phone,
+  User,
 } from 'lucide-react';
 import { QuotationItem } from '../../../../types/crm';
 import { formatCurrency, formatDate } from '../../../../lib/utils';
@@ -103,8 +106,23 @@ function QuotationFormContent() {
   const [selectedEnquiryId, setSelectedEnquiryId] = useState<string>(
     matchedEnquiry?.id || prefillEnqId || ''
   );
+  const [selectedLeadId, setSelectedLeadId] = useState<string>(
+    matchedLead?.id || prefillLeadId || matchedEnquiry?.leadId || ''
+  );
   const [customerId, setCustomerId] = useState<string>(
     matchedCustomer?.id || prefillCustId || matchedEnquiry?.customerId || ''
+  );
+
+  const [contactPerson, setContactPerson] = useState<string>(
+    matchedEnquiry?.contactPerson || matchedLead?.contactPerson || matchedCustomer?.contactPerson || ''
+  );
+  const [contactEmail, setContactEmail] = useState<string>(
+    matchedEnquiry?.customerEmail || matchedLead?.email || matchedCustomer?.email || ''
+  );
+  const [contactMobile, setContactMobile] = useState<string>(
+    (matchedEnquiry?.contactMobile && matchedEnquiry.contactMobile !== '9999999999' ? matchedEnquiry.contactMobile : '') ||
+    (matchedLead?.mobile && matchedLead.mobile !== '9999999999' ? matchedLead.mobile : '') ||
+    (matchedCustomer?.mobile && matchedCustomer.mobile !== '9999999999' ? matchedCustomer.mobile : '') || ''
   );
 
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -170,21 +188,64 @@ function QuotationFormContent() {
   // Dynamic Terms and Conditions Lines (Image 3)
   const [termsList, setTermsList] = useState<string[]>(DEFAULT_TERMS);
 
-  // Handle Enquiry / Customer Selection from Dropdown
+  // Handle Enquiry / Lead / Customer Selection from Dropdown
   const handleRecordSelect = (val: string) => {
     if (!val) {
       setSelectedEnquiryId('');
+      setSelectedLeadId('');
       setCustomerId('');
+      setContactPerson('');
+      setContactEmail('');
+      setContactMobile('');
       return;
     }
 
-    if (val.startsWith('enquiry:')) {
+    if (val.startsWith('lead:')) {
+      const lId = val.replace('lead:', '');
+      const l = leads.find((lead) => lead.id === lId || lead.leadNo === lId);
+      if (l) {
+        setSelectedLeadId(l.id);
+        setSelectedEnquiryId(l.convertedEnquiryId || '');
+        setCustomerId(l.convertedCustomerId || '');
+        setContactPerson(l.contactPerson || '');
+        setContactEmail(l.email || '');
+        setContactMobile(l.mobile && l.mobile !== '9999999999' ? l.mobile : '');
+
+        const prodName = l.productName || l.machineType || 'Industrial Process Equipment';
+        const lines: string[] = [];
+        if (l.requirementDescription) lines.push(l.requirementDescription);
+        if (l.capacity || l.machineType) {
+          lines.push([l.capacity ? `Capacity: ${l.capacity}` : '', l.machineType ? `Type: ${l.machineType}` : ''].filter(Boolean).join(', '));
+        }
+        if (lines.length === 0) lines.push(`Standard proposal for ${l.companyName}`);
+
+        setItems([
+          {
+            id: `item-lead-${Date.now()}`,
+            productName: prodName,
+            description: lines.join(' • '),
+            descriptionLines: lines,
+            quantity: Number(l.quantity) || 1,
+            unit: 'Nos',
+            rate: Number(l.budget) || 0,
+            discountPercent: 0,
+            taxPercent: 18,
+            amount: Number(l.budget) || 0,
+          },
+        ]);
+        setScopeOfSupply(`Design, fabrication, testing, and supply of ${prodName} as per specifications.`);
+        if (l.expectedDelivery) {
+          setDeliveryTime(l.expectedDelivery.startsWith('By') ? l.expectedDelivery : `By ${l.expectedDelivery}`);
+        }
+      }
+    } else if (val.startsWith('enquiry:')) {
       const enqId = val.replace('enquiry:', '');
       const enq = enquiries.find((e) => e.id === enqId || e.enquiryNo === enqId);
       if (enq) {
         setSelectedEnquiryId(enq.id);
+        setSelectedLeadId(enq.leadId || '');
 
-        // Find or map customer
+        const l = enq.leadId ? leads.find((lead) => lead.id === enq.leadId || lead.leadNo === enq.leadId) : null;
         const cust = customers.find(
           (c) =>
             (enq.customerId && (c.id === enq.customerId || c.customerCode === enq.customerId)) ||
@@ -192,10 +253,17 @@ function QuotationFormContent() {
         );
         setCustomerId(cust?.id || enq.customerId || `cust-enq-${enq.id}`);
 
+        setContactPerson(enq.contactPerson || l?.contactPerson || cust?.contactPerson || '');
+        setContactEmail(enq.customerEmail || l?.email || cust?.email || '');
+        setContactMobile(
+          (enq.contactMobile && enq.contactMobile !== '9999999999' ? enq.contactMobile : '') ||
+          (l?.mobile && l.mobile !== '9999999999' ? l.mobile : '') ||
+          (cust?.mobile && cust.mobile !== '9999999999' ? cust.mobile : '') || ''
+        );
+
         const prodName = enq.machineProduct || 'Process Equipment';
         const lines: string[] = [];
         if (enq.leadId) {
-          const l = leads.find((lead) => lead.id === enq.leadId || lead.leadNo === enq.leadId);
           if (l?.companyName) {
             lines.push(`New lead registered for ${l.companyName} by ${l.contactPerson || enq.contactPerson || 'sales'}`);
           }
@@ -219,7 +287,6 @@ function QuotationFormContent() {
         const q = Number(enq.quantity) || 1;
         const r = 0;
         const tax = 18;
-        const base = 0;
         const amt = 0;
 
         setItems([
@@ -261,16 +328,25 @@ function QuotationFormContent() {
     } else if (val.startsWith('customer:')) {
       const cId = val.replace('customer:', '');
       setSelectedEnquiryId('');
+      setSelectedLeadId('');
       setCustomerId(cId);
+      const cust = customers.find((c) => c.id === cId || c.customerCode === cId);
+      if (cust) {
+        setContactPerson(cust.contactPerson || '');
+        setContactEmail(cust.email || '');
+        setContactMobile(cust.mobile && cust.mobile !== '9999999999' ? cust.mobile : '');
+      }
     }
   };
 
-  // Sync if prefill enquiry provided in URL
+  // Sync if prefill enquiry or lead provided in URL
   useEffect(() => {
     if (prefillEnqId && !selectedEnquiryId) {
       handleRecordSelect(`enquiry:${prefillEnqId}`);
+    } else if (prefillLeadId && !selectedLeadId) {
+      handleRecordSelect(`lead:${prefillLeadId}`);
     }
-  }, [prefillEnqId]);
+  }, [prefillEnqId, prefillLeadId]);
 
   // Handle Line item numeric changes
   const handleItemChange = (idx: number, field: keyof QuotationItem, value: any) => {
@@ -417,21 +493,31 @@ function QuotationFormContent() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const cust = customers.find((c) => c.id === customerId);
+    const activeLead = leads.find((l) => l.id === selectedLeadId || l.leadNo === selectedLeadId) || matchedLead;
 
     const finalCustomerName =
       selectedEnquiry?.customerName ||
       cust?.companyName ||
-      matchedLead?.companyName ||
+      activeLead?.companyName ||
       'Valued Customer';
     const finalContactPerson =
+      contactPerson.trim() ||
       selectedEnquiry?.contactPerson ||
       cust?.contactPerson ||
-      matchedLead?.contactPerson ||
+      activeLead?.contactPerson ||
       'Purchase Head';
     const finalContactEmail =
-      selectedEnquiry?.customerEmail || cust?.email || matchedLead?.email || '';
+      contactEmail.trim() ||
+      selectedEnquiry?.customerEmail ||
+      cust?.email ||
+      activeLead?.email ||
+      '';
     const finalContactMobile =
-      selectedEnquiry?.contactMobile || cust?.mobile || matchedLead?.mobile || '';
+      contactMobile.trim() ||
+      selectedEnquiry?.contactMobile ||
+      cust?.mobile ||
+      activeLead?.mobile ||
+      '';
 
     const compiledTerms = termsList
       .map((t) => t.trim())
@@ -447,12 +533,12 @@ function QuotationFormContent() {
       contactPerson: finalContactPerson,
       contactEmail: finalContactEmail,
       contactMobile: finalContactMobile,
-      leadId: selectedEnquiry?.leadId || matchedLead?.id || prefillLeadId || undefined,
+      leadId: selectedLeadId || selectedEnquiry?.leadId || activeLead?.id || prefillLeadId || undefined,
       enquiryId: selectedEnquiry?.id || prefillEnqId || matchedEnquiry?.id || undefined,
       latestSummary: {
         grandTotal,
         status: 'draft',
-        machineProduct: items[0]?.productName || selectedEnquiry?.machineProduct || 'Industrial Process Equipment',
+        machineProduct: items[0]?.productName || selectedEnquiry?.machineProduct || activeLead?.productName || 'Industrial Process Equipment',
       },
       revisions: [
         {
@@ -571,6 +657,8 @@ function QuotationFormContent() {
                 value={
                   selectedEnquiryId
                     ? `enquiry:${selectedEnquiryId}`
+                    : selectedLeadId
+                    ? `lead:${selectedLeadId}`
                     : customerId
                     ? `customer:${customerId}`
                     : ''
@@ -578,9 +666,9 @@ function QuotationFormContent() {
                 onChange={(e) => handleRecordSelect(e.target.value)}
                 className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-bold text-[#211B17] focus:outline-none focus:border-crm-brand-700"
               >
-                <option value="">-- Select Pending Inquiry / Customer --</option>
+                <option value="">-- Select Pending Inquiry, Lead, or Customer --</option>
 
-                {/* 1. Only Inquiries with pending quotation */}
+                {/* 1. Inquiries with pending quotation */}
                 {availableEnquiries.length > 0 ? (
                   <optgroup label="Pending Technical Inquiries (Quotation Needed)">
                     {availableEnquiries.map((enq) => (
@@ -591,11 +679,22 @@ function QuotationFormContent() {
                   </optgroup>
                 ) : (
                   <optgroup label="Pending Technical Inquiries">
-                    <option value="" disabled>No pending inquiries (all inquiries have quotations)</option>
+                    <option value="" disabled>No pending inquiries</option>
                   </optgroup>
                 )}
 
-                {/* 2. Direct Registered Customers */}
+                {/* 2. Direct Leads with contact & requirements */}
+                {leads.length > 0 && (
+                  <optgroup label="Active CRM Leads (Direct Quotation)">
+                    {leads.map((l) => (
+                      <option key={`lead-${l.id}`} value={`lead:${l.id}`}>
+                        {l.companyName} — {l.leadNo || l.id} ({l.productName || l.email || 'Lead'})
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+
+                {/* 3. Direct Registered Customers */}
                 {customers.length > 0 && (
                   <optgroup label="Registered Customer Accounts">
                     {customers.map((c) => (
@@ -626,6 +725,69 @@ function QuotationFormContent() {
                 onChange={(e) => setValidUntil(e.target.value)}
                 className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-mono font-medium text-[#211B17]"
               />
+            </div>
+          </div>
+
+          {/* RECIPIENT & CONTACT DETAILS CARD */}
+          <div className="p-4 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl space-y-3 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-xs text-[#211B17] flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5 text-crm-brand-700" />
+                Quotation Recipient & Contact Details (Email Dispatch Target)
+              </span>
+              {contactEmail ? (
+                <span className="text-[11px] bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                  Email Linked: {contactEmail}
+                </span>
+              ) : (
+                <span className="text-[11px] bg-amber-50 text-amber-800 font-semibold px-2.5 py-0.5 rounded-full border border-amber-200">
+                  ⚠️ Please enter recipient email ID
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-[#544B45] font-semibold mb-1 flex items-center gap-1">
+                  <User className="w-3 h-3 text-[#70665F]" /> Attention / Contact Person
+                </label>
+                <input
+                  type="text"
+                  value={contactPerson}
+                  onChange={(e) => setContactPerson(e.target.value)}
+                  placeholder="e.g. Ramesh Patel"
+                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg font-medium text-[#211B17] focus:outline-none focus:border-crm-brand-700"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[#544B45] font-semibold mb-1 flex items-center gap-1">
+                  <Mail className="w-3 h-3 text-[#70665F]" />
+                  Recipient Email ID (Quotation will be sent here) <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  placeholder="e.g. client@company.com"
+                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg font-medium text-[#211B17] focus:outline-none focus:border-crm-brand-700"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[#544B45] font-semibold mb-1 flex items-center gap-1">
+                  <Phone className="w-3 h-3 text-[#70665F]" /> Contact Mobile Number
+                </label>
+                <input
+                  type="tel"
+                  value={contactMobile}
+                  onChange={(e) => setContactMobile(e.target.value)}
+                  placeholder="e.g. 9876543210"
+                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg font-medium text-[#211B17] focus:outline-none focus:border-crm-brand-700"
+                />
+              </div>
             </div>
           </div>
 

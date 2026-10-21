@@ -35,14 +35,37 @@ import { QuotationRevision } from '../../../../types/crm';
 export default function QuotationDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { quotations, addQuotationRevision, updateQuotationStatus, currentUser, addCustomerPO, addFollowUp } = useERP();
+  const { quotations, leads, enquiries, customers, addQuotationRevision, updateQuotationStatus, currentUser, addCustomerPO, addFollowUp } = useERP();
 
   const quotationId = String(params.id);
   const quotation = quotations.find((q) => q.id === quotationId);
 
+  // Link lead, enquiry, customer to automatically discover contact email
+  const linkedLead = leads.find(
+    (l) =>
+      (quotation?.leadId && (l.id === quotation.leadId || l.leadNo === quotation.leadId)) ||
+      (quotation?.customerName && l.companyName?.toLowerCase().trim() === quotation.customerName?.toLowerCase().trim())
+  );
+  const linkedEnquiry = enquiries.find(
+    (e) => quotation?.enquiryId && (e.id === quotation.enquiryId || e.enquiryNo === quotation.enquiryId)
+  );
+  const linkedCustomer = customers.find(
+    (c) => quotation?.customerId && (c.id === quotation.customerId || c.customerCode === quotation.customerId)
+  );
+
+  const resolvedEmail = String(
+    quotation?.contactEmail ||
+    linkedLead?.email ||
+    linkedEnquiry?.customerEmail ||
+    linkedCustomer?.email ||
+    ''
+  ).trim();
+
   const [selectedRevNum, setSelectedRevNum] = useState<string>(quotation?.currentRevision || 'Rev-00');
   const [showRevModal, setShowRevModal] = useState(false);
   const [showPoModal, setShowPoModal] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [targetEmail, setTargetEmail] = useState('');
   const [poNumber, setPoNumber] = useState('');
   const [poDate, setPoDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [deliveryDate, setDeliveryDate] = useState(() => {
@@ -97,21 +120,23 @@ export default function QuotationDetailPage() {
 
   const [isSendingEmail, setIsSendingEmail] = useState(false);
 
-  const handleSendEmailQuotation = async () => {
-    const recipient = String(quotation.contactEmail || '').trim();
+  const handleSendEmailQuotation = async (customEmail?: string) => {
+    const recipient = String(customEmail || targetEmail || resolvedEmail || quotation?.contactEmail || '').trim();
     if (!recipient) {
-      toast.warning('Missing Email', `No customer email address is linked to quotation ${quotation.quotationNumber}. Please ensure a valid customer email exists.`);
+      setTargetEmail('');
+      setShowEmailModal(true);
       return;
     }
 
     setIsSendingEmail(true);
-    showFeedback('info', `Sending quotation proposal to ${recipient}...`, 0);
+    showFeedback('info', `Dispatching quotation proposal to ${recipient}...`, 0);
 
     try {
       // Dispatch email via Django backend SMTP endpoint with active revision details
       const quoAny = quotation as any;
       const enrichedQuotation = {
         ...quotation,
+        contactEmail: recipient,
         currentRevision: currentRev?.revisionNumber || quotation.currentRevision || 'Rev-00',
         items: currentRev?.items || quoAny.items || [],
         subtotal: currentRev?.subTotal ?? (currentRev as any)?.subtotal ?? quoAny.subtotal ?? 0,
@@ -119,12 +144,21 @@ export default function QuotationDetailPage() {
         grandTotal: currentRev?.grandTotal ?? quoAny.grandTotal ?? 0,
         machineProduct: currentRev?.items?.[0]?.productName || quoAny.machineProduct || '',
       };
+
+      // Ensure quotation record in context and DB is permanently saved with this email
+      if (quotation && quotation.contactEmail !== recipient) {
+        quotation.contactEmail = recipient;
+        api.crm.quotations.update(quotation.id, { contactEmail: recipient }).catch(() => {});
+      }
+
       const res = await api.crm.quotations.sendEmail(quotation.id, recipient, enrichedQuotation);
+
+      setShowEmailModal(false);
 
       if (res && res.success === false) {
         showFeedback(
           'error',
-          `Quotation updated, but Email sending failed: ${res.error || 'SMTP Authentication required'}.`,
+          `Quotation updated with ${recipient}, but SMTP dispatch reported: ${res.error || 'Server SMTP transport unavailable'}.`,
           10000
         );
       } else {
@@ -317,10 +351,13 @@ export default function QuotationDetailPage() {
           <div className="flex items-center gap-2 flex-wrap">
             {/* 1. Send Email Quotation (Directly Visible) */}
             <button
-              onClick={handleSendEmailQuotation}
+              onClick={() => {
+                setTargetEmail(quotation.contactEmail || resolvedEmail);
+                setShowEmailModal(true);
+              }}
               disabled={isSendingEmail}
               className="px-3.5 py-1.5 bg-crm-brand-700 hover:bg-crm-brand-800 disabled:opacity-60 text-white rounded-lg font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer text-xs"
-              title={`Send Quotation via Email to ${quotation.contactEmail || quotation.customerName}`}
+              title={`Send Quotation via Email to ${quotation.contactEmail || resolvedEmail || quotation.customerName}`}
             >
               {isSendingEmail ? (
                 <>
@@ -419,8 +456,22 @@ export default function QuotationDetailPage() {
           <div>
             <span className="text-[#70665F] block font-semibold">Quotation Addressed To:</span>
             <strong className="text-slate-900 dark:text-[#211B17] block text-xs">{quotation.customerName}</strong>
-            <span className="text-slate-600 dark:text-[#544B45] block">Attn: {quotation.contactPerson}</span>
-            <span className="text-[#70665F] block">{quotation.contactEmail}</span>
+            <span className="text-slate-600 dark:text-[#544B45] block">Attn: {quotation.contactPerson || linkedLead?.contactPerson || 'Purchase Head'}</span>
+            <div className="mt-0.5">
+              {quotation.contactEmail || resolvedEmail ? (
+                <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-600 font-medium font-mono text-xs">
+                  <Mail className="w-3 h-3" />
+                  {quotation.contactEmail || resolvedEmail}
+                  {!quotation.contactEmail && linkedLead?.email && (
+                    <span className="text-[10px] bg-amber-50 text-amber-800 border border-amber-200 px-1 rounded font-sans">from Lead</span>
+                  )}
+                </span>
+              ) : (
+                <span className="text-amber-600 text-[10px] flex items-center gap-1">
+                  <Mail className="w-3 h-3" /> No email linked
+                </span>
+              )}
+            </div>
           </div>
           <div className="text-right">
             <span className="text-[#70665F] block font-semibold">Prepared By:</span>
@@ -704,6 +755,111 @@ export default function QuotationDetailPage() {
                   className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-lg font-bold shadow-xs cursor-pointer"
                 >
                   Save in Follow-up Center
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Quotation Send Email Modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#2C241F] rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-xl border border-[#E7DED5]">
+            <div className="flex items-center justify-between border-b border-[#E7DED5] pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center font-bold">
+                  <Mail className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-[#211B17] dark:text-white">
+                    Send Commercial Quotation Proposal
+                  </h3>
+                  <p className="text-[11px] text-[#70665F]">
+                    Dispatches formal quotation with attached engineering PDF.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowEmailModal(false)}
+                className="text-[#70665F] hover:text-[#211B17] text-lg font-bold p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSendEmailQuotation(targetEmail);
+              }}
+              className="space-y-4 text-xs"
+            >
+              <div className="p-3 bg-[#FAF7F2] dark:bg-[#1f1915] rounded-xl border border-[#E7DED5] space-y-2">
+                <div className="flex justify-between items-center text-[11px]">
+                  <span className="text-[#70665F]">Customer:</span>
+                  <strong className="text-[#211B17] dark:text-white font-bold">{quotation.customerName}</strong>
+                </div>
+                <div className="flex justify-between items-center text-[11px]">
+                  <span className="text-[#70665F]">Quotation Reference:</span>
+                  <span className="font-mono font-bold text-crm-brand-700">{quotation.quotationNumber} ({currentRev.revisionNumber})</span>
+                </div>
+                <div className="flex justify-between items-center text-[11px]">
+                  <span className="text-[#70665F]">PDF Attachment:</span>
+                  <span className="font-mono text-slate-700 dark:text-slate-300">Quotation_{quotation.quotationNumber}_{currentRev.revisionNumber}.pdf</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[#544B45] font-semibold mb-1 flex items-center justify-between">
+                  <span>Recipient Customer / Lead Email ID <span className="text-rose-500">*</span></span>
+                  {linkedLead?.email && targetEmail === linkedLead.email && (
+                    <span className="text-[10px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded border border-emerald-200">
+                      ✓ Auto-populated from Lead ({linkedLead.leadNo})
+                    </span>
+                  )}
+                </label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-[#70665F] absolute left-3 top-2.5" />
+                  <input
+                    type="email"
+                    required
+                    value={targetEmail}
+                    onChange={(e) => setTargetEmail(e.target.value)}
+                    placeholder="Enter customer email address"
+                    className="w-full pl-9 pr-3 py-2 bg-[#FAF7F2] dark:bg-[#1f1915] border border-[#E7DED5] rounded-lg font-mono text-sm font-semibold text-[#211B17] dark:text-white focus:outline-none focus:border-crm-brand-700"
+                  />
+                </div>
+                <p className="text-[10px] text-[#70665F] mt-1">
+                  The quotation details and official generated PDF proposal will be dispatched to this email address.
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-[#E7DED5]">
+                <button
+                  type="button"
+                  onClick={() => setShowEmailModal(false)}
+                  disabled={isSendingEmail}
+                  className="px-4 py-2 border border-[#E7DED5] rounded-lg font-semibold text-[#544B45] hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSendingEmail || !targetEmail.trim()}
+                  className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 disabled:opacity-60 text-white rounded-lg font-bold shadow-xs cursor-pointer flex items-center gap-1.5"
+                >
+                  {isSendingEmail ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Sending Email Proposal...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="w-3.5 h-3.5" />
+                      <span>Send Commercial Proposal</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

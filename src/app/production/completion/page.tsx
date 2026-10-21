@@ -32,6 +32,7 @@ import {
   Trash2,
   Truck,
   ArrowLeft,
+  Package,
 } from 'lucide-react';
 
 // Default standard 9-stage inspection rows matching the physical sheet (Doc no.: F - QAS - 02)
@@ -1010,12 +1011,12 @@ function ProductionCompletionContent() {
                             </button>
                             {row.qcStatus === 'Passed' && (
                               <Link
-                                href={`/production/dispatch?fromQC=${encodeURIComponent(row.completionNumber)}&customer=${encodeURIComponent(row.customerName || '')}&item=${encodeURIComponent(row.productName || '')}&qty=${row.completedQuantity || 1}&job=${encodeURIComponent(row.jobNumber || '')}`}
+                                href={`/production/packaging?fromQC=${encodeURIComponent(row.completionNumber)}&customer=${encodeURIComponent(row.customerName || '')}&item=${encodeURIComponent(row.productName || '')}&qty=${row.completedQuantity || 1}&job=${encodeURIComponent(row.jobNumber || '')}`}
                                 className="px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-xs transition flex items-center gap-1 shadow-xs cursor-pointer active:scale-95"
-                                title="Issue Delivery Challan for this cleared item"
+                                title="Package this cleared equipment & add extra hardware"
                               >
-                                <Truck className="w-3.5 h-3.5" />
-                                <span>Dispatch</span>
+                                <Package className="w-3.5 h-3.5" />
+                                <span>Package &amp; Dispatch</span>
                               </Link>
                             )}
                           </div>
@@ -1056,11 +1057,11 @@ function ProductionCompletionContent() {
               <div className="flex items-center gap-2">
                 {viewingReport.qcStatus === 'Passed' && (
                   <Link
-                    href={`/production/dispatch?fromQC=${encodeURIComponent(viewingReport.completionNumber)}&customer=${encodeURIComponent(viewingReport.customerName || '')}&item=${encodeURIComponent(viewingReport.productName || '')}&qty=${viewingReport.completedQuantity || 1}&job=${encodeURIComponent(viewingReport.jobNumber || '')}`}
+                    href={`/production/packaging?fromQC=${encodeURIComponent(viewingReport.completionNumber)}&customer=${encodeURIComponent(viewingReport.customerName || '')}&item=${encodeURIComponent(viewingReport.productName || '')}&qty=${viewingReport.completedQuantity || 1}&job=${encodeURIComponent(viewingReport.jobNumber || '')}`}
                     className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
                   >
-                    <Truck className="w-3.5 h-3.5" />
-                    <span>Issue Delivery Challan</span>
+                    <Package className="w-3.5 h-3.5" />
+                    <span>Proceed to Packaging</span>
                   </Link>
                 )}
                 <button

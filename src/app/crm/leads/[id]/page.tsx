@@ -106,10 +106,62 @@ export default function LeadDetailPage() {
     );
   }
 
+  const relatedEnquiries = enquiries.filter(
+    (e) =>
+      e.leadId === lead.id ||
+      e.leadId === lead.leadNo ||
+      e.id === lead.convertedEnquiryId ||
+      (e.customerName && lead.companyName && lead.companyName !== 'Valued Customer' && e.customerName.toLowerCase() === lead.companyName.toLowerCase()) ||
+      (lead.mobile && ((e as any).mobile || (e as any).contactMobile) && lead.mobile === ((e as any).mobile || (e as any).contactMobile))
+  );
+  const relatedFollowUps = followUps.filter(
+    (f) =>
+      f.leadOrCustomerId === lead.id ||
+      f.leadOrCustomerId === lead.leadNo ||
+      (lead.leadNo && f.leadOrCustomerName && f.leadOrCustomerName.includes(lead.leadNo)) ||
+      (lead.companyName && lead.companyName !== 'Valued Customer' && f.leadOrCustomerName && f.leadOrCustomerName.toLowerCase().includes(lead.companyName.toLowerCase()))
+  );
+  const relatedVisits = siteVisits.filter(
+    (v) =>
+      v.customerId === lead.convertedCustomerId ||
+      v.customerId === lead.id ||
+      v.customerId === lead.leadNo ||
+      (lead.companyName && lead.companyName !== 'Valued Customer' && v.customerName && v.customerName.toLowerCase().includes(lead.companyName.toLowerCase()))
+  );
+  const relatedQuotations = quotations.filter(
+    (q) =>
+      q.leadId === lead.id ||
+      q.leadId === lead.leadNo ||
+      (lead.convertedEnquiryId && q.enquiryId === lead.convertedEnquiryId) ||
+      (q.customerName && lead.companyName && lead.companyName !== 'Valued Customer' && q.customerName.toLowerCase().includes(lead.companyName.toLowerCase())) ||
+      (lead.mobile && (q as any).mobile && lead.mobile === (q as any).mobile)
+  );
+
+  // Auto-resolve real company name & contact person from linked Quotations / Enquiries if lead has placeholder
+  const resolvedCompanyName =
+    lead.companyName && lead.companyName !== 'Valued Customer'
+      ? lead.companyName
+      : relatedQuotations[0]?.customerName || relatedEnquiries[0]?.customerName || lead.companyName || 'Valued Customer';
+
+  const resolvedContactPerson =
+    lead.contactPerson && lead.contactPerson !== 'Contact Person' && lead.contactPerson !== 'Contact'
+      ? lead.contactPerson
+      : (relatedQuotations[0] as any)?.contactPerson || (relatedEnquiries[0] as any)?.contactPerson || lead.contactPerson || '';
+
+  const resolvedProductName =
+    lead.productName && lead.productName !== 'Process Equipment' && lead.productName !== 'Industrial Process Equipment'
+      ? lead.productName
+      : (relatedQuotations[0] as any)?.machineProduct || (relatedEnquiries[0] as any)?.machineProduct || (relatedQuotations[0] as any)?.items?.[0]?.description || lead.productName || 'Process Equipment';
+
+  const resolvedQuantity =
+    lead.quantity && lead.quantity > 0
+      ? lead.quantity
+      : (relatedQuotations[0] as any)?.quantity || ((relatedQuotations[0] as any)?.items?.[0]?.quantity as number) || (relatedEnquiries[0] as any)?.quantity || lead.quantity || 0;
+
   const handleOpenEdit = () => {
     setEditFormData({
-      companyName: lead.companyName || '',
-      contactPerson: lead.contactPerson || '',
+      companyName: lead.companyName && lead.companyName !== 'Valued Customer' ? lead.companyName : (resolvedCompanyName || ''),
+      contactPerson: lead.contactPerson && lead.contactPerson !== 'Contact Person' && lead.contactPerson !== 'Contact' ? lead.contactPerson : (resolvedContactPerson || ''),
       mobile: lead.mobile || '',
       email: lead.email || '',
       address: lead.address || '',
@@ -213,34 +265,6 @@ export default function LeadDetailPage() {
     setShowFlwModal(false);
   };
 
-  const relatedEnquiries = enquiries.filter(
-    (e) =>
-      e.leadId === lead.id ||
-      e.leadId === lead.leadNo ||
-      e.id === lead.convertedEnquiryId ||
-      (e.customerName && lead.companyName && e.customerName.toLowerCase() === lead.companyName.toLowerCase())
-  );
-  const relatedFollowUps = followUps.filter(
-    (f) =>
-      f.leadOrCustomerId === lead.id ||
-      f.leadOrCustomerId === lead.leadNo ||
-      (lead.leadNo && f.leadOrCustomerName && f.leadOrCustomerName.includes(lead.leadNo)) ||
-      (lead.companyName && f.leadOrCustomerName && f.leadOrCustomerName.toLowerCase().includes(lead.companyName.toLowerCase()))
-  );
-  const relatedVisits = siteVisits.filter(
-    (v) =>
-      v.customerId === lead.convertedCustomerId ||
-      v.customerId === lead.id ||
-      v.customerId === lead.leadNo ||
-      (lead.companyName && v.customerName && v.customerName.toLowerCase().includes(lead.companyName.toLowerCase()))
-  );
-  const relatedQuotations = quotations.filter(
-    (q) =>
-      q.leadId === lead.id ||
-      q.leadId === lead.leadNo ||
-      (q.customerName && lead.companyName && q.customerName.toLowerCase().includes(lead.companyName.toLowerCase()))
-  );
-
   return (
     <div className="max-w-5xl mx-auto space-y-4 text-xs pb-10">
       <Link href="/crm/leads" className="inline-flex items-center gap-1.5 text-crm-brand-700 hover:underline font-semibold">
@@ -269,8 +293,8 @@ export default function LeadDetailPage() {
                 </Link>
               )}
             </div>
-            <h1 className="text-lg font-bold text-slate-900 dark:text-[#211B17] mt-1">{lead.companyName}</h1>
-            <p className="text-[#70665F]">{lead.productName} • Quantity: {lead.quantity}</p>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-[#211B17] mt-1">{resolvedCompanyName}</h1>
+            <p className="text-[#70665F]">{resolvedProductName} • Quantity: {resolvedQuantity}</p>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
@@ -356,7 +380,7 @@ export default function LeadDetailPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-100 dark:border-[#EBE3DB] text-[11px]">
           <div>
             <span className="text-[#70665F] block">Contact Person</span>
-            <span className="font-bold text-slate-800 dark:text-[#544B45]">{lead.contactPerson}</span>
+            <span className="font-bold text-slate-800 dark:text-[#544B45]">{resolvedContactPerson || '-'}</span>
             <span className="text-[#70665F] block">{lead.designation}</span>
           </div>
           <div>

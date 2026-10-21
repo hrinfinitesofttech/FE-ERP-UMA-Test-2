@@ -622,3 +622,76 @@ export interface DeliveryChallanDoc {
   createdAt?: string;
 }
 
+// ==========================================
+// DISPATCH & PACKAGING (PACKING SLIP & CHECKLIST)
+// ==========================================
+export type PackagingItemCategory =
+  | 'Main Equipment'
+  | 'Fasteners & Hardware' // Nuts, Bolts, Washers, Studs
+  | 'Foundation Hardware' // Foundation J-Bolts, Anchor Fasteners
+  | 'Gaskets & Seals' // Flange Gaskets, O-Rings, Seals
+  | 'Pipe Fittings & Clamps'
+  | 'Spares & Consumables'
+  | 'Electrical & Sensors'
+  | 'Documentation & Manuals' // O&M Manual, TC, Warranty
+  | 'Other Accessories';
+
+export interface PackagingItem {
+  id: string;
+  srNo: number;
+  category: PackagingItemCategory;
+  particulars: string; // e.g. "M16 x 65mm Hex Head Bolts with Nuts & Double Washers (Grade 8.8)"
+  quantity: string | number;
+  unit: string; // "Nos", "Sets", "Kg", "Bags", "Packets", "Rolls", "Pairs"
+  boxNo?: string; // e.g. "Box 1/2", "Box 2/2", "Wooden Crate"
+  itemWeightKg?: number | string;
+  notes?: string;
+  isVerified?: boolean;
+}
+
+export interface PackagingBox {
+  id: string;
+  boxNumber: string; // e.g. "Box 1 of 2", "Crate A"
+  packageType: string; // "Wooden Box" | "Wooden Crate" | "Corrugated Box" | "Pallet / Skid" | "Steel Frame" | "Gunny Bag" | "Loose / Open"
+  dimensions?: string; // e.g. "120 x 80 x 90 cm"
+  grossWeightKg?: number | string;
+  netWeightKg?: number | string;
+  handlingInstructions?: string; // "This Side Up", "Fragile", "Handle with Crane", "Keep Dry"
+}
+
+export interface PackagingSlipDoc {
+  id: string;
+  packingSlipNo: string; // e.g. "PKG-2026-001"
+  date: string;
+  projectId?: string;
+  projectNumber?: string;
+  projectName?: string;
+  jobId?: string;
+  jobNumber?: string;
+  workOrderNumber?: string;
+  qcInspectionNumber?: string;
+  customerId: string;
+  customerName: string;
+  customerAddress?: string;
+  destinationCity?: string;
+  productName: string;
+  specification?: string;
+  packageType: string;
+  packageDimensions?: string;
+  totalQuantity?: number | string;
+  uom?: string;
+  totalPackages: number;
+  totalGrossWeightKg: number;
+  totalNetWeightKg: number;
+  packedBy: string;
+  verifiedBy?: string;
+  status: 'Draft' | 'Packing in Progress' | 'Packed & Verified' | 'Ready for Dispatch' | 'Dispatched';
+  boxes: PackagingBox[];
+  items: PackagingItem[];
+  deliveryChallanId?: string;
+  deliveryChallanNo?: string;
+  remarks?: string;
+  createdAt?: string;
+}
+
+

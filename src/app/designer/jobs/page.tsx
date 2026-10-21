@@ -30,6 +30,7 @@ import {
   Building2,
   Tag,
   ArrowRight,
+  Loader2,
 } from 'lucide-react';
 
 interface UploadedDesignFile {
@@ -65,6 +66,7 @@ export default function DesignJobsPage() {
   const [modalDrawingRevision, setModalDrawingRevision] = useState('REV-01');
   const [modalIsDragging, setModalIsDragging] = useState(false);
   const [modalRemarks, setModalRemarks] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const modalFileInputRef = useRef<HTMLInputElement | null>(null);
 
   // View / Preview Modal State
@@ -82,22 +84,94 @@ export default function DesignJobsPage() {
 
   const processFiles = (files: FileList | File[]) => {
     Array.from(files).forEach((file) => {
-      const sizeText = formatFileSize(file.size);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const ext = file.name.split('.').pop()?.toUpperCase() || 'FILE';
-        const newFileItem: UploadedDesignFile = {
-          name: file.name,
-          sizeText,
-          type: file.type || ext,
-          dataUrl: event.target?.result as string,
+      const isImg = file.type.startsWith('image/') || /\.(jpg|jpeg|png|webp|bmp)$/i.test(file.name);
+
+      if (isImg) {
+        // High-resolution canvas downscaling (max 1600px, 85% JPEG) to prevent oversized payloads and 400 errors
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const rawData = e.target?.result as string;
+          const img = new Image();
+          img.onload = () => {
+            try {
+              const canvas = document.createElement('canvas');
+              const maxDim = 1600;
+              let width = img.width;
+              let height = img.height;
+              if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                  height = Math.round((height * maxDim) / width);
+                  width = maxDim;
+                } else {
+                  width = Math.round((width * maxDim) / height);
+                  height = maxDim;
+                }
+              }
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                ctx.drawImage(img, 0, 0, width, height);
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                const approxBytes = Math.round((compressedDataUrl.length - 23) * 0.75);
+                const newFileItem: UploadedDesignFile = {
+                  name: file.name.replace(/\.[^/.]+$/, '.jpg'),
+                  sizeText: formatFileSize(approxBytes > 0 ? approxBytes : file.size),
+                  type: 'image/jpeg',
+                  dataUrl: compressedDataUrl,
+                };
+                setModalUploadFiles((prev) => [...prev, newFileItem]);
+                if (!modalDrawingTitle) {
+                  setModalDrawingTitle(file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' '));
+                }
+                return;
+              }
+            } catch (err) {
+              console.warn('Canvas resize fallback:', err);
+            }
+            // Fallback if canvas context fails
+            const newFileItem: UploadedDesignFile = {
+              name: file.name,
+              sizeText: formatFileSize(file.size),
+              type: file.type || 'image/jpeg',
+              dataUrl: rawData,
+            };
+            setModalUploadFiles((prev) => [...prev, newFileItem]);
+            if (!modalDrawingTitle) {
+              setModalDrawingTitle(file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' '));
+            }
+          };
+          img.onerror = () => {
+            const newFileItem: UploadedDesignFile = {
+              name: file.name,
+              sizeText: formatFileSize(file.size),
+              type: file.type || 'image/jpeg',
+              dataUrl: rawData,
+            };
+            setModalUploadFiles((prev) => [...prev, newFileItem]);
+          };
+          img.src = rawData;
         };
-        setModalUploadFiles((prev) => [...prev, newFileItem]);
-        if (!modalDrawingTitle) {
-          setModalDrawingTitle(file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' '));
-        }
-      };
-      reader.readAsDataURL(file);
+        reader.readAsDataURL(file);
+      } else {
+        // CAD, PDF, ZIP files
+        const sizeText = formatFileSize(file.size);
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const ext = file.name.split('.').pop()?.toUpperCase() || 'FILE';
+          const newFileItem: UploadedDesignFile = {
+            name: file.name,
+            sizeText,
+            type: file.type || ext,
+            dataUrl: event.target?.result as string,
+          };
+          setModalUploadFiles((prev) => [...prev, newFileItem]);
+          if (!modalDrawingTitle) {
+            setModalDrawingTitle(file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' '));
+          }
+        };
+        reader.readAsDataURL(file);
+      }
     });
   };
 
@@ -219,86 +293,93 @@ export default function DesignJobsPage() {
   };
 
   // Save Uploaded Design
-  const handleSaveUploadDesign = (andComplete = false) => {
+  const handleSaveUploadDesign = async (andComplete = false) => {
     if (!uploadingJob) return;
 
-    const primaryFile = modalUploadFiles[0];
-    const drwCategory = modalDrawingCategory || 'GA';
-    const drwNum = `DWG-${uploadingJob.jobNumber || uploadingJob.projectNumber || '2026'}-${Date.now().toString().slice(-3)}`;
-    const drwTitle = modalDrawingTitle || (primaryFile ? primaryFile.name.replace(/\.[^/.]+$/, '') : `${uploadingJob.productName} Drawing`);
-    const drwRev = modalDrawingRevision || 'REV-01';
+    setIsSaving(true);
+    try {
+      const primaryFile = modalUploadFiles[0];
+      const drwCategory = modalDrawingCategory || 'GA';
+      const drwNum = `DWG-${uploadingJob.jobNumber || uploadingJob.projectNumber || '2026'}-${Date.now().toString().slice(-3)}`;
+      const drwTitle = modalDrawingTitle || (primaryFile ? primaryFile.name.replace(/\.[^/.]+$/, '') : `${uploadingJob.productName} Drawing`);
+      const drwRev = modalDrawingRevision || 'REV-01';
 
-    const existingAtts = uploadingJob.attachments || [];
-    const newAtts = modalUploadFiles.map((f, idx) => ({
-      id: `ATT-${Date.now()}-${idx}`,
-      name: f.name,
-      size: f.sizeText,
-      type: f.type,
-      category: drwCategory,
-      url: f.dataUrl,
-      uploadedAt: new Date().toISOString().split('T')[0],
-    }));
+      const existingAtts = uploadingJob.attachments || [];
+      const newAtts = modalUploadFiles.map((f, idx) => ({
+        id: `ATT-${Date.now()}-${idx}`,
+        name: f.name,
+        size: f.sizeText,
+        type: f.type,
+        category: drwCategory,
+        url: f.dataUrl,
+        uploadedAt: new Date().toISOString().split('T')[0],
+      }));
 
-    const updates: Partial<DesignJob> = {
-      drawingTitle: drwTitle,
-      drawingCategory: drwCategory,
-      activeRevision: drwRev,
-      remarks: modalRemarks ? `${uploadingJob.remarks ? uploadingJob.remarks + ' | ' : ''}${modalRemarks}` : uploadingJob.remarks,
-    };
-
-    if (primaryFile) {
-      updates.drawingFileName = primaryFile.name;
-      updates.drawingNumber = drwNum;
-      updates.drawingFormat = primaryFile.name.split('.').pop()?.toUpperCase() || 'FILE';
-      updates.fileSize = primaryFile.sizeText;
-      updates.fileUrl = primaryFile.dataUrl;
-      updates.attachments = [...newAtts, ...existingAtts];
-    }
-
-    if (andComplete) {
-      updates.status = 'approved';
-      updates.completedDate = new Date().toISOString().split('T')[0];
-      updates.completedBy = currentUser?.name || uploadingJob.assignedDesigner || 'Designer';
-    } else {
-      if (uploadingJob.status === 'assigned') {
-        updates.status = 'in_progress';
-      }
-    }
-
-    updateDesignJob(uploadingJob.id, updates);
-
-    // If andComplete is requested, trigger completeDesignJob logic as well to sync project planning
-    if (andComplete) {
-      completeDesignJob(uploadingJob.id, currentUser?.name || uploadingJob.assignedDesigner, 'Completed with design file upload');
-    }
-
-    // Register drawing in 2D Drawing registry
-    if (primaryFile && addDrawing2D) {
-      addDrawing2D({
-        drawingNumber: drwNum,
-        projectId: uploadingJob.projectId,
-        jobNumber: uploadingJob.jobNumber,
-        designJobId: uploadingJob.designJobNumber || uploadingJob.id,
-        machineName: uploadingJob.productName,
+      const updates: Partial<DesignJob> = {
         drawingTitle: drwTitle,
-        category: drwCategory as any,
-        revision: drwRev,
-        designer: uploadingJob.assignedDesigner || 'Design Team',
-        fileFormat: (primaryFile.name.split('.').pop()?.toUpperCase() as any) || 'IMAGE',
-        fileUrl: primaryFile.dataUrl,
-        fileSize: primaryFile.sizeText,
-        status: andComplete ? 'approved' : 'draft',
-      });
-    }
+        drawingCategory: drwCategory,
+        activeRevision: drwRev,
+        remarks: modalRemarks ? `${uploadingJob.remarks ? uploadingJob.remarks + ' | ' : ''}${modalRemarks}` : uploadingJob.remarks,
+      };
 
-    setNotificationMsg(
-      andComplete
-        ? `Uploaded design "${primaryFile?.name || drwTitle}" and marked Job ${uploadingJob.designJobNumber} as COMPLETED!`
-        : `Uploaded design file(s) for Job ${uploadingJob.designJobNumber} successfully!`
-    );
-    setTimeout(() => setNotificationMsg(''), 6000);
-    setUploadingJob(null);
-    setModalUploadFiles([]);
+      if (primaryFile) {
+        updates.drawingFileName = primaryFile.name;
+        updates.drawingNumber = drwNum;
+        updates.drawingFormat = primaryFile.name.split('.').pop()?.toUpperCase() || 'FILE';
+        updates.fileSize = primaryFile.sizeText;
+        updates.fileUrl = primaryFile.dataUrl;
+        updates.attachments = [...newAtts, ...existingAtts];
+      }
+
+      if (andComplete) {
+        updates.status = 'approved';
+        updates.completedDate = new Date().toISOString().split('T')[0];
+        updates.completedBy = currentUser?.name || uploadingJob.assignedDesigner || 'Designer';
+      } else {
+        if (uploadingJob.status === 'assigned') {
+          updates.status = 'in_progress';
+        }
+      }
+
+      updateDesignJob(uploadingJob.id, updates);
+
+      // If andComplete is requested, trigger completeDesignJob logic as well to sync project planning
+      if (andComplete) {
+        completeDesignJob(uploadingJob.id, currentUser?.name || uploadingJob.assignedDesigner, 'Completed with design file upload');
+      }
+
+      // Register drawing in 2D Drawing registry
+      if (primaryFile && addDrawing2D) {
+        addDrawing2D({
+          drawingNumber: drwNum,
+          projectId: uploadingJob.projectId,
+          jobNumber: uploadingJob.jobNumber,
+          designJobId: uploadingJob.designJobNumber || uploadingJob.id,
+          machineName: uploadingJob.productName,
+          drawingTitle: drwTitle,
+          category: drwCategory as any,
+          revision: drwRev,
+          designer: uploadingJob.assignedDesigner || 'Design Team',
+          fileFormat: (primaryFile.name.split('.').pop()?.toUpperCase() as any) || 'IMAGE',
+          fileUrl: primaryFile.dataUrl,
+          fileSize: primaryFile.sizeText,
+          status: andComplete ? 'approved' : 'draft',
+        });
+      }
+
+      setNotificationMsg(
+        andComplete
+          ? `Uploaded design "${primaryFile?.name || drwTitle}" and marked Job ${uploadingJob.designJobNumber} as COMPLETED!`
+          : `Uploaded design file(s) for Job ${uploadingJob.designJobNumber} successfully!`
+      );
+      setTimeout(() => setNotificationMsg(''), 6000);
+      setUploadingJob(null);
+      setModalUploadFiles([]);
+    } catch (err) {
+      console.error('Error saving design upload:', err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Table Columns Definition
@@ -853,27 +934,40 @@ export default function DesignJobsPage() {
             <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
               <button
                 type="button"
+                disabled={isSaving}
                 onClick={() => setUploadingJob(null)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition cursor-pointer"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition cursor-pointer disabled:opacity-50"
               >
                 Cancel
               </button>
 
               <button
                 type="button"
+                disabled={isSaving}
                 onClick={() => handleSaveUploadDesign(false)}
-                className="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold rounded-xl text-xs transition cursor-pointer"
+                className="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
               >
-                Upload File Only
+                {isSaving && <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-500" />}
+                <span>Upload File Only</span>
               </button>
 
               <button
                 type="button"
+                disabled={isSaving}
                 onClick={() => handleSaveUploadDesign(true)}
-                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md transition cursor-pointer flex items-center gap-1.5"
+                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md transition cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
               >
-                <Check className="w-4 h-4" />
-                <span>Upload & Complete Work</span>
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Saving & Syncing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span>Upload & Complete Work</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

@@ -640,7 +640,7 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
     d.customer_name = d.customerName;
     d.isPrimary = d.isPrimary !== undefined ? Boolean(d.isPrimary) : (d.is_primary !== undefined ? Boolean(d.is_primary) : false);
     d.is_primary = d.isPrimary;
-    d.mobile = d.mobile || d.phone || '9999999999';
+    d.mobile = d.mobile || d.phone || '';
   } else if (ep.includes('/drawings-2d')) {
     d.design_job_id = d.design_job_id || d.designJobId || d.jobNumber || d.projectId || 'DJ-001';
     d.drawing_number = d.drawing_number || d.drawingNumber || d.id || `DWG-2D-${Date.now().toString().slice(-4)}`;
