@@ -10,6 +10,11 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'Uma Techno Fab - Enterprise Make-to-Order ERP',
   description: 'Integrated MTO Manufacturing & Job Traceability ERP System',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/icon.png',
+  },
 };
 
 export default function RootLayout({
