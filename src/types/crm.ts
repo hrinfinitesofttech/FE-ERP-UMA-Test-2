@@ -897,4 +897,6 @@ export interface ProjectJobMaster {
   is_planning_saved?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  created_at?: string;
+  updated_at?: string;
 }

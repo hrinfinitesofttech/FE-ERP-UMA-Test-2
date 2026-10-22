@@ -1628,6 +1628,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         status: item.status || item.current_status || item.currentStatus || 'planning',
         progressPercent: Number(item.progressPercent ?? item.progress_percent ?? 0),
         currentStage: item.currentStage || item.current_stage || item.stage || 'Engineering Planning',
+        createdAt: item.createdAt || item.created_at || (item.startDate ? `${item.startDate}T00:00:00.000Z` : ''),
+        created_at: item.created_at || item.createdAt || (item.startDate ? `${item.startDate}T00:00:00.000Z` : ''),
       };
 
       // Semantic duplicate key: match same customer + same product or quotation
@@ -1670,6 +1672,10 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           contactMobile: mergedMobile,
           quotationNumber: mergedQuotationNo,
           customerPoNumber: mergedPoNo,
+          createdAt: existing.createdAt || normalized.createdAt || existing.created_at || normalized.created_at,
+          created_at: existing.created_at || normalized.created_at || existing.createdAt || normalized.createdAt,
+          updatedAt: normalized.updatedAt || new Date().toISOString(),
+          updated_at: normalized.updated_at || new Date().toISOString(),
         });
       } else {
         map.set(key, normalized);
@@ -7419,6 +7425,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       projectNumber: prjNo,
       jobNumber: jobNo,
       createdAt: new Date().toISOString(),
+      created_at: new Date().toISOString(),
       salesOrderId: so.id,
       salesOrderNumber: so.salesOrderNumber,
       customerPoNumber: so.customerPoNumber,
@@ -7780,6 +7787,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       projectNumber: prjNo,
       jobNumber: jobNo,
       createdAt: new Date().toISOString(),
+      created_at: new Date().toISOString(),
       salesOrderId: (po as any).salesOrderId || '',
       salesOrderNumber: (po as any).salesOrderId || '',
       customerPoNumber: po.poNumber,

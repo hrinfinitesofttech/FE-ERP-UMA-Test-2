@@ -58,9 +58,24 @@ export function CustomSelect({
   fullWidth = true,
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [placement, setPlacement] = useState<'bottom' | 'top'>('bottom');
   const [searchQuery, setSearchQuery] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-detect optimal placement (open upwards if close to bottom of screen)
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      if (spaceBelow < 260 && spaceAbove > spaceBelow) {
+        setPlacement('top');
+      } else {
+        setPlacement('bottom');
+      }
+    }
+  }, [isOpen]);
 
   // Extract options from props or children (<option> tags)
   const options: SelectOption[] = useMemo(() => {
@@ -195,6 +210,7 @@ export function CustomSelect({
       ref={containerRef}
       className={cn(
         'relative text-left',
+        isOpen ? 'z-50' : 'z-auto',
         fullWidth ? 'w-full' : 'inline-block',
         className
       )}
@@ -265,7 +281,8 @@ export function CustomSelect({
       {isOpen && (
         <div
           className={cn(
-            'absolute mt-1.5 min-w-[200px] w-full z-50 rounded-xl shadow-2xl border overflow-hidden animate-in fade-in zoom-in-95 duration-150',
+            'absolute min-w-[200px] w-full z-50 rounded-xl shadow-2xl border overflow-hidden animate-in fade-in zoom-in-95 duration-150',
+            placement === 'top' ? 'bottom-full mb-1.5' : 'top-full mt-1.5',
             'bg-white border-[#E2E8F0] ring-1 ring-black/5',
             align === 'right' ? 'right-0' : 'left-0',
             menuClassName

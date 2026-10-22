@@ -42,12 +42,17 @@ export function ERPFormSection({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   return (
-    <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-xs overflow-hidden transition-all">
+    <div
+      className={cn(
+        'bg-white border border-[#E2E8F0] rounded-xl shadow-xs transition-all relative',
+        isCollapsible && !isExpanded ? 'overflow-hidden' : 'overflow-visible'
+      )}
+    >
       {/* Section Header */}
       <div
         onClick={() => isCollapsible && setIsExpanded(!isExpanded)}
         className={cn(
-          'p-4 sm:p-5 flex items-center justify-between border-b border-[#F1F5F9] select-none',
+          'p-4 sm:p-5 flex items-center justify-between border-b border-[#F1F5F9] select-none rounded-t-xl',
           isCollapsible && 'cursor-pointer hover:bg-[#F8FAFC]'
         )}
       >
@@ -73,7 +78,7 @@ export function ERPFormSection({
 
       {/* Section Body */}
       {(!isCollapsible || isExpanded) && (
-        <div className="p-4 sm:p-6 space-y-4 animate-in slide-in-from-top-1 duration-150">
+        <div className="p-4 sm:p-6 space-y-4 animate-in slide-in-from-top-1 duration-150 overflow-visible">
           {children}
         </div>
       )}
