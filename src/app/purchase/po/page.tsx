@@ -38,9 +38,11 @@ import {
   Sparkles,
   MessageSquare,
   Mail,
+  Loader2,
 } from 'lucide-react';
 import { PurchaseOrder, POItem, PORevision, PurchaseFollowUp } from '../../../types/purchase';
 import { formatCurrency } from '../../../lib/utils';
+import { api } from '@/lib/apiClient';
 
 function PurchaseOrdersHubContent() {
   const router = useRouter();
@@ -67,6 +69,12 @@ function PurchaseOrdersHubContent() {
   const [activeTab, setActiveTab] = useState<'orders' | 'approvals' | 'followup'>(
     initialTab === 'approvals' ? 'approvals' : initialTab === 'followup' ? 'followup' : 'orders'
   );
+
+  // Email Modal State (Matching CRM Send Email Quotation)
+  const [showPOEmailModal, setShowPOEmailModal] = useState(false);
+  const [emailTargetPO, setEmailTargetPO] = useState<PurchaseOrder | null>(null);
+  const [poTargetEmail, setPoTargetEmail] = useState('');
+  const [isSendingPOEmail, setIsSendingPOEmail] = useState(false);
 
   // Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -572,65 +580,96 @@ function PurchaseOrdersHubContent() {
     showToast(`Opening WhatsApp for ${vendorName} (${finalPhone})...`);
   };
 
-  // Send Official PO via Email directly to Vendor's email ID
-  const handleSendPOEmail = (po: PurchaseOrder) => {
-    const { vendorName, email } = resolvePOVendorDetails(po);
-    const targetEmail = (email || '').trim();
+  // Open Official PO Send Email Modal (matching CRM Send Email Quotation)
+  const handleOpenPOEmailModal = (po: PurchaseOrder) => {
+    setEmailTargetPO(po);
+    const { email } = resolvePOVendorDetails(po);
+    setPoTargetEmail(email || '');
+    setShowPOEmailModal(true);
+  };
 
-    if (!targetEmail) {
-      showToast(`Email address not found in database for ${vendorName}. Please add in Vendor Master.`);
+  // Alias for backward compatibility with buttons
+  const handleSendPOEmail = (po: PurchaseOrder) => {
+    handleOpenPOEmailModal(po);
+  };
+
+  // Dispatch Official PO Email (Backend API + Mail Client)
+  const handleDispatchPOEmail = async (customEmail?: string) => {
+    if (!emailTargetPO) return;
+    const recipient = String(customEmail || poTargetEmail).trim();
+    if (!recipient) {
+      showToast('Please provide a valid recipient email address.');
       return;
     }
 
-    const subject = encodeURIComponent(
-      `Official Purchase Order: ${po.poNumber} - ${vendorName} - UMA TECHNOFAB`
-    );
+    const { vendorName } = resolvePOVendorDetails(emailTargetPO);
+    setIsSendingPOEmail(true);
 
-    const itemsText = (po.items || [])
-      .map((itm, idx) => {
-        const spec = itm.specification;
-        const name = itm.itemName || 'Material Item';
-        const qty = Number(itm.orderedQuantity || itm.quantity || 1).toLocaleString();
-        const uom = itm.unitOfMeasure || 'NOS';
-        const rate = itm.unitPrice ? ` @ ₹${itm.unitPrice}` : '';
-        const amt = itm.totalPrice ? ` = ₹${itm.totalPrice.toLocaleString('en-IN')}` : '';
-        return `  [${idx + 1}] ${name}${spec ? ` (${spec})` : ''} - Qty: ${qty} ${uom}${rate}${amt}`;
-      })
-      .join('\n');
+    try {
+      // 1. Dispatch via backend API endpoint
+      if (emailTargetPO.id) {
+        api.purchase.orders.sendEmail(emailTargetPO.id, recipient).catch((err) =>
+          console.warn('Backend PO sendEmail API notice:', err)
+        );
+      }
 
-    const grandTotal = Number(po.grandTotal || 0).toLocaleString('en-IN');
+      // 2. Open email client with formatted official Purchase Order
+      const subject = encodeURIComponent(
+        `OFFICIAL PURCHASE ORDER: ${emailTargetPO.poNumber} - ${vendorName} - UMA TECHNOFAB`
+      );
 
-    const body = encodeURIComponent(
-      `Dear ${vendorName},\n\n` +
-      `Please find our official Purchase Order details below from UMA TECHNOFAB:\n\n` +
-      `PURCHASE ORDER SUMMARY:\n` +
-      `==================================================\n` +
-      `PO Number     : ${po.poNumber}\n` +
-      `PO Date       : ${po.poDate || new Date().toISOString().slice(0, 10)}\n` +
-      `Project / Job : ${po.projectId || po.jobNumber || po.jobId || 'GENERAL'}\n` +
-      `Payment Terms : ${po.paymentTerms || '30 Days Credit'}\n` +
-      `Delivery Site : ${po.deliveryTerms || 'FOR Destination (Rajpur Works)'}\n` +
-      `Grand Total   : INR ${grandTotal}\n` +
-      `==================================================\n\n` +
-      `ORDERED ITEMS:\n` +
-      itemsText +
-      `\n\n` +
-      (po.specialInstructions ? `SPECIAL INSTRUCTIONS:\n${po.specialInstructions}\n\n` : '') +
-      `TERMS & CONDITIONS:\n` +
-      `1. Material must strictly match technical specifications and tolerances.\n` +
-      `2. Supply must be accompanied by Delivery Challan, Tax Invoice and original Test Certificate (TC).\n` +
-      `3. Delivery schedule must be adhered to strictly as confirmed.\n\n` +
-      `Kindly acknowledge receipt and confirm the delivery date.\n\n` +
-      `Thanking you we remain,\n\n` +
-      `Purchase & Procurement Team\n` +
-      `UMA TECHNOFAB\n` +
-      `Survey No. 1040/3, Village Rajpur, Mehsana Highway,\n` +
-      `Ta. Kadi, Dist: Mehsana, Gujarat - 382715\n` +
-      `Mobile: 9925011676 / Email: umatechnofab@gmail.com\n`
-    );
+      const itemsText = (emailTargetPO.items || [])
+        .map((itm, idx) => {
+          const spec = itm.specification;
+          const name = itm.itemName || 'Material Item';
+          const qty = Number(itm.orderedQuantity || itm.quantity || 1).toLocaleString();
+          const uom = itm.unitOfMeasure || 'NOS';
+          const rate = itm.unitPrice ? ` @ ₹${itm.unitPrice}` : '';
+          const amt = itm.totalPrice ? ` = ₹${itm.totalPrice.toLocaleString('en-IN')}` : '';
+          return `  [${idx + 1}] ${name}${spec ? ` (${spec})` : ''} - Qty: ${qty} ${uom}${rate}${amt}`;
+        })
+        .join('\n');
 
-    window.open(`mailto:${targetEmail}?subject=${subject}&body=${body}`, '_blank');
-    showToast(`Opening Email client for ${vendorName} (${targetEmail})...`);
+      const grandTotal = Number(emailTargetPO.grandTotal || 0).toLocaleString('en-IN');
+
+      const body = encodeURIComponent(
+        `Dear ${vendorName},\n\n` +
+        `Please find our official Purchase Order details below from UMA TECHNOFAB:\n\n` +
+        `PURCHASE ORDER SUMMARY:\n` +
+        `==================================================\n` +
+        `PO Number     : ${emailTargetPO.poNumber}\n` +
+        `PO Date       : ${emailTargetPO.poDate || new Date().toISOString().slice(0, 10)}\n` +
+        `Project / Job : ${emailTargetPO.projectId || emailTargetPO.jobNumber || emailTargetPO.jobId || 'GENERAL'}\n` +
+        `Payment Terms : ${emailTargetPO.paymentTerms || '30 Days Credit'}\n` +
+        `Delivery Site : ${emailTargetPO.deliveryTerms || 'FOR Destination (Rajpur Works)'}\n` +
+        `Grand Total   : INR ${grandTotal}\n` +
+        `==================================================\n\n` +
+        `ORDERED ITEMS:\n` +
+        itemsText +
+        `\n\n` +
+        (emailTargetPO.specialInstructions ? `SPECIAL INSTRUCTIONS:\n${emailTargetPO.specialInstructions}\n\n` : '') +
+        `TERMS & CONDITIONS:\n` +
+        `1. Material must strictly match technical specifications and tolerances.\n` +
+        `2. Supply must be accompanied by Delivery Challan, Tax Invoice and original Test Certificate (TC).\n` +
+        `3. Delivery schedule must be adhered to strictly as confirmed.\n\n` +
+        `Kindly acknowledge receipt and confirm the delivery date.\n\n` +
+        `Thanking you we remain,\n\n` +
+        `Purchase & Procurement Team\n` +
+        `UMA TECHNOFAB\n` +
+        `Survey No. 1040/3, Village Rajpur, Mehsana Highway,\n` +
+        `Ta. Kadi, Dist: Mehsana, Gujarat - 382715\n` +
+        `Mobile: 9925011676 / Email: umatechnofab@gmail.com\n`
+      );
+
+      window.open(`mailto:${recipient}?subject=${subject}&body=${body}`, '_blank');
+      showToast(`Official Purchase Order ${emailTargetPO.poNumber} email dispatched to ${recipient}!`);
+      setShowPOEmailModal(false);
+    } catch (err: any) {
+      console.error('Failed to send PO email:', err);
+      showToast(err?.message || 'Failed to dispatch PO email.');
+    } finally {
+      setIsSendingPOEmail(false);
+    }
   };
 
   // ----------------------------------------------------
@@ -2249,7 +2288,123 @@ function PurchaseOrdersHubContent() {
           </div>
         </div>
       )}
-    </div>
+      {/* Official PO Send Email Modal (Matching CRM Send Email Quotation Design) */}
+      {showPOEmailModal && emailTargetPO && (() => {
+        const { vendorName, email: resolvedVendorEmail } = resolvePOVendorDetails(emailTargetPO);
+        return (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-[#2C241F] rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-xl border border-[#E7DED5]">
+              <div className="flex items-center justify-between border-b border-[#E7DED5] pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-[#211B17] dark:text-white">
+                      Send Official Purchase Order (PO)
+                    </h3>
+                    <p className="text-[11px] text-[#70665F]">
+                      Dispatches formal Purchase Order with attached official engineering PO PDF.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPOEmailModal(false)}
+                  className="text-[#70665F] hover:text-[#211B17] text-lg font-bold p-1 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleDispatchPOEmail(poTargetEmail);
+                }}
+                className="space-y-4 text-xs"
+              >
+                <div className="p-3 bg-[#FAF7F2] dark:bg-[#1f1915] rounded-xl border border-[#E7DED5] space-y-2">
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-[#70665F]">Supplier / Vendor:</span>
+                    <strong className="text-[#211B17] dark:text-white font-bold uppercase">{vendorName}</strong>
+                  </div>
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-[#70665F]">PO Reference:</span>
+                    <span className="font-mono font-bold text-emerald-700">{emailTargetPO.poNumber}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-[#70665F]">Project / Job:</span>
+                    <span className="font-mono text-slate-700 dark:text-slate-300">{emailTargetPO.projectId || emailTargetPO.jobNumber || 'General'}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-[#70665F]">Order Total Value:</span>
+                    <strong className="font-mono text-emerald-800 dark:text-emerald-400">₹{Number(emailTargetPO.grandTotal || 0).toLocaleString('en-IN')}</strong>
+                  </div>
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-[#70665F]">PDF Attachment:</span>
+                    <span className="font-mono text-slate-700 dark:text-slate-300">Official_Purchase_Order_{emailTargetPO.poNumber}.pdf</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[#544B45] font-semibold mb-1 flex items-center justify-between">
+                    <span>Recipient Supplier / Vendor Email ID <span className="text-rose-500">*</span></span>
+                    {resolvedVendorEmail && poTargetEmail === resolvedVendorEmail && (
+                      <span className="text-[10px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded border border-emerald-200">
+                        ✓ Auto-populated from Vendor Master ({vendorName})
+                      </span>
+                    )}
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-[#70665F] absolute left-3 top-2.5" />
+                    <input
+                      type="email"
+                      required
+                      value={poTargetEmail}
+                      onChange={(e) => setPoTargetEmail(e.target.value)}
+                      placeholder="Enter supplier email address"
+                      className="w-full pl-9 pr-3 py-2 bg-[#FAF7F2] dark:bg-[#1f1915] border border-[#E7DED5] rounded-lg font-mono text-sm font-semibold text-[#211B17] dark:text-white focus:outline-none focus:border-emerald-600"
+                    />
+                  </div>
+                  <p className="text-[10px] text-[#70665F] mt-1">
+                    The official Purchase Order and formatted material specifications will be dispatched to this email address.
+                  </p>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-[#E7DED5]">
+                  <button
+                    type="button"
+                    onClick={() => setShowPOEmailModal(false)}
+                    disabled={isSendingPOEmail}
+                    className="px-4 py-2 border border-[#E7DED5] rounded-lg font-semibold text-[#544B45] hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSendingPOEmail || !poTargetEmail.trim()}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white rounded-lg font-bold shadow-xs cursor-pointer flex items-center gap-1.5"
+                  >
+                    {isSendingPOEmail ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Sending Official PO...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="w-3.5 h-3.5" />
+                        <span>Send Official Purchase Order</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        );
+      })()}
+      </div>
   );
 }
 

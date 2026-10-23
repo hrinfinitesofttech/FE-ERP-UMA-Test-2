@@ -1470,6 +1470,8 @@ export const api = {
       create: (data: any) => request<any>('/rfqs/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/rfqs/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: string) => request<any>(`/rfqs/${id}/`, { method: 'DELETE' }),
+      sendEmail: (id: string, recipientEmail?: string) =>
+        request<any>(`/rfqs/${id}/send-email/`, { method: 'POST', body: JSON.stringify({ recipientEmail }) }),
     },
     supplierQuotations: {
       list: () => request<any[]>('/supplier-quotations/'),

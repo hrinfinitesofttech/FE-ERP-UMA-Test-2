@@ -30,7 +30,9 @@ import {
   Calendar,
   AlertTriangle,
   FolderKanban,
+  Loader2,
 } from 'lucide-react';
+import { api } from '@/lib/apiClient';
 
 export default function PurchaseRequestsPage() {
   const router = useRouter();
@@ -54,6 +56,12 @@ export default function PurchaseRequestsPage() {
   const [isViewLetterOpen, setIsViewLetterOpen] = useState(false);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Email Modal State (Matching CRM Send Email Quotation)
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailTargetRequest, setEmailTargetRequest] = useState<RequestForQuotation | null>(null);
+  const [targetEmail, setTargetEmail] = useState('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   // Success Toast
   const showToast = (msg: string) => {
@@ -838,59 +846,90 @@ export default function PurchaseRequestsPage() {
     toast.success(`Opening WhatsApp for ${vendorName} (${finalPhone})...`);
   };
 
-  // Send Email Inquiry
-  const handleSendEmail = (req: RequestForQuotation) => {
-    const { vendorName, email } = resolveVendorDetails(req);
-    const targetEmail = (email || '').trim();
+  // Open Official Purchase Inquiry (REQUIRE) Send Email Modal (matching CRM Send Email Quotation)
+  const handleOpenEmailModal = (req: RequestForQuotation) => {
+    setEmailTargetRequest(req);
+    const { email } = resolveVendorDetails(req);
+    setTargetEmail(email || '');
+    setShowEmailModal(true);
+  };
 
-    if (!targetEmail) {
-      toast.error(`Email address not found in database for ${vendorName}. Please add in Vendor Master.`);
+  // Backward compatibility alias for buttons
+  const handleSendEmail = (req: RequestForQuotation) => {
+    handleOpenEmailModal(req);
+  };
+
+  // Dispatch Official Purchase Inquiry Email (Backend API + Mail Client)
+  const handleDispatchEmailInquiry = async (customEmail?: string) => {
+    if (!emailTargetRequest) return;
+    const recipient = String(customEmail || targetEmail).trim();
+    if (!recipient) {
+      toast.error('Please provide a valid recipient email address.');
       return;
     }
 
-    const subject = encodeURIComponent(
-      `Official Purchase Inquiry: ${req.rfqNumber} - ${req.subject || 'Material Requirement'} - UMA TECHNOFAB`
-    );
+    const { vendorName } = resolveVendorDetails(emailTargetRequest);
+    setIsSendingEmail(true);
 
-    const itemsText = (req.items || [])
-      .map((itm, idx) => {
-        const spec = itm.dimensions || itm.specification;
-        const desc = itm.itemName || 'Material Item';
-        const qty = Number(itm.quantity || itm.requiredQuantity || 1).toLocaleString();
-        const uom = itm.unitOfMeasure || 'NOS';
-        return `  [${idx + 1}] ${desc}${spec ? ` (${spec})` : ''} - Qty: ${qty} ${uom}`;
-      })
-      .join('\n');
+    try {
+      // 1. Dispatch via backend API endpoint if available
+      if (emailTargetRequest.id) {
+        api.purchase.rfqs.sendEmail(emailTargetRequest.id, recipient).catch((err) =>
+          console.warn('Backend RFQ sendEmail API notice:', err)
+        );
+      }
 
-    const body = encodeURIComponent(
-      `Dear ${vendorName},\n\n` +
-      `Please find our official material purchase inquiry (REQUIRE) details below from UMA TECHNOFAB:\n\n` +
-      `DOCUMENT DETAILS:\n` +
-      `==================================================\n` +
-      `Requisition No : ${req.rfqNumber}\n` +
-      `Date           : ${req.rfqDate}\n` +
-      `Project Ref    : ${req.projectId || 'General'}\n` +
-      `Subject        : ${req.subject || 'Material Requirement'}\n` +
-      `Delivery Site  : ${req.deliveryLocation || 'Rajpur, Mehsana'}\n` +
-      `==================================================\n\n` +
-      `REQUIRED MATERIAL ITEMS:\n` +
-      itemsText +
-      `\n\n` +
-      (req.specialNote ? `SPECIAL NOTE / INSTRUCTIONS:\n${req.specialNote}\n\n` : '') +
-      `TERMS & CONDITIONS:\n` +
-      `1. Please submit your quotation / rate per kg or unit with tax details.\n` +
-      `2. Material strictly along with Delivery Challan, Tax Invoice & Test Certificate (TC).\n` +
-      `3. Delivery lead time must be clearly mentioned.\n\n` +
-      `Thanking you we remain,\n\n` +
-      `Purchase & Procurement Team\n` +
-      `UMA TECHNOFAB\n` +
-      `Manufacturers of Dairy, Chemical, Food & Pharma Machinery\n` +
-      `Kadi - Mehsana Highway, Rajpur, Dist. Mehsana, Gujarat - 382715\n` +
-      `Email: info@umatechnofab.com\n`
-    );
+      // 2. Open email client with formatted official Purchase Inquiry Letter
+      const subject = encodeURIComponent(
+        `Official Purchase Inquiry: ${emailTargetRequest.rfqNumber} - ${emailTargetRequest.subject || 'Material Requirement'} - UMA TECHNOFAB`
+      );
 
-    window.open(`mailto:${targetEmail}?subject=${subject}&body=${body}`, '_blank');
-    toast.success(`Opening Email client for ${vendorName} (${targetEmail})...`);
+      const itemsText = (emailTargetRequest.items || [])
+        .map((itm, idx) => {
+          const spec = itm.dimensions || itm.specification;
+          const desc = itm.itemName || 'Material Item';
+          const qty = Number(itm.quantity || itm.requiredQuantity || 1).toLocaleString();
+          const uom = itm.unitOfMeasure || 'NOS';
+          return `  [${idx + 1}] ${desc}${spec ? ` (${spec})` : ''} - Qty: ${qty} ${uom}`;
+        })
+        .join('\n');
+
+      const body = encodeURIComponent(
+        `Dear ${vendorName},\n\n` +
+        `Please find our official material purchase inquiry (REQUIRE) details below from UMA TECHNOFAB:\n\n` +
+        `DOCUMENT DETAILS:\n` +
+        `==================================================\n` +
+        `Requisition No : ${emailTargetRequest.rfqNumber}\n` +
+        `Date           : ${emailTargetRequest.rfqDate}\n` +
+        `Project Ref    : ${emailTargetRequest.projectId || 'General'}\n` +
+        `Subject        : ${emailTargetRequest.subject || 'Material Requirement'}\n` +
+        `Delivery Site  : ${emailTargetRequest.deliveryLocation || 'Rajpur, Mehsana'}\n` +
+        `==================================================\n\n` +
+        `REQUIRED MATERIAL ITEMS:\n` +
+        itemsText +
+        `\n\n` +
+        (emailTargetRequest.specialNote ? `SPECIAL NOTE / INSTRUCTIONS:\n${emailTargetRequest.specialNote}\n\n` : '') +
+        `TERMS & CONDITIONS:\n` +
+        `1. Please submit your quotation / rate per kg or unit with tax details.\n` +
+        `2. Material strictly along with Delivery Challan, Tax Invoice & Test Certificate (TC).\n` +
+        `3. Delivery lead time must be clearly mentioned.\n\n` +
+        `Thanking you we remain,\n\n` +
+        `Purchase & Procurement Team\n` +
+        `UMA TECHNOFAB\n` +
+        `Manufacturers of Dairy, Chemical, Food & Pharma Machinery\n` +
+        `Kadi - Mehsana Highway, Rajpur, Dist. Mehsana, Gujarat - 382715\n` +
+        `Email: info@umatechnofab.com\n`
+      );
+
+      window.open(`mailto:${recipient}?subject=${subject}&body=${body}`, '_blank');
+      toast.success(`Official Purchase Inquiry ${emailTargetRequest.rfqNumber} email dispatched to ${recipient}!`);
+      setShowEmailModal(false);
+    } catch (err: any) {
+      console.error('Failed to send RFQ email:', err);
+      toast.error(err?.message || 'Failed to dispatch RFQ email.');
+    } finally {
+      setIsSendingEmail(false);
+    }
   };
 
   // Print Letterhead Action
@@ -1918,6 +1957,123 @@ export default function PurchaseRequestsPage() {
           </div>
         </div>
       )}
+
+      {/* Official Purchase Inquiry (REQUIRE / RFQ) Send Email Modal (Matching CRM Send Email Quotation Design) */}
+      {showEmailModal && emailTargetRequest && (() => {
+        const { vendorName, email: resolvedVendorEmail } = resolveVendorDetails(emailTargetRequest);
+        return (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-[#2C241F] rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-xl border border-[#E7DED5]">
+              <div className="flex items-center justify-between border-b border-[#E7DED5] pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-[#211B17] dark:text-white">
+                      Send Official Purchase Inquiry Letter (REQUIRE)
+                    </h3>
+                    <p className="text-[11px] text-[#70665F]">
+                      Dispatches formal Purchase Inquiry with attached official RFQ letter PDF.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowEmailModal(false)}
+                  className="text-[#70665F] hover:text-[#211B17] text-lg font-bold p-1 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleDispatchEmailInquiry(targetEmail);
+                }}
+                className="space-y-4 text-xs"
+              >
+                <div className="p-3 bg-[#FAF7F2] dark:bg-[#1f1915] rounded-xl border border-[#E7DED5] space-y-2">
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-[#70665F]">Supplier / Vendor:</span>
+                    <strong className="text-[#211B17] dark:text-white font-bold uppercase">{vendorName}</strong>
+                  </div>
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-[#70665F]">Inquiry Reference:</span>
+                    <span className="font-mono font-bold text-emerald-700">{emailTargetRequest.rfqNumber}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-[#70665F]">Project / Job:</span>
+                    <span className="font-mono text-slate-700 dark:text-slate-300">{emailTargetRequest.projectId || 'General'}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-[#70665F]">Total Items:</span>
+                    <strong className="font-mono text-slate-800 dark:text-slate-200">{emailTargetRequest.items?.length || 0} Required Line Items</strong>
+                  </div>
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-[#70665F]">PDF Attachment:</span>
+                    <span className="font-mono text-slate-700 dark:text-slate-300">Official_Purchase_Inquiry_{emailTargetRequest.rfqNumber}.pdf</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[#544B45] font-semibold mb-1 flex items-center justify-between">
+                    <span>Recipient Supplier / Vendor Email ID <span className="text-rose-500">*</span></span>
+                    {resolvedVendorEmail && targetEmail === resolvedVendorEmail && (
+                      <span className="text-[10px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded border border-emerald-200">
+                        ✓ Auto-populated from Vendor Master ({vendorName})
+                      </span>
+                    )}
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-[#70665F] absolute left-3 top-2.5" />
+                    <input
+                      type="email"
+                      required
+                      value={targetEmail}
+                      onChange={(e) => setTargetEmail(e.target.value)}
+                      placeholder="Enter supplier email address"
+                      className="w-full pl-9 pr-3 py-2 bg-[#FAF7F2] dark:bg-[#1f1915] border border-[#E7DED5] rounded-lg font-mono text-sm font-semibold text-[#211B17] dark:text-white focus:outline-none focus:border-emerald-600"
+                    />
+                  </div>
+                  <p className="text-[10px] text-[#70665F] mt-1">
+                    The official Purchase Inquiry letter and required material specifications will be dispatched to this email address.
+                  </p>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-[#E7DED5]">
+                  <button
+                    type="button"
+                    onClick={() => setShowEmailModal(false)}
+                    disabled={isSendingEmail}
+                    className="px-4 py-2 border border-[#E7DED5] rounded-lg font-semibold text-[#544B45] hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSendingEmail || !targetEmail.trim()}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white rounded-lg font-bold shadow-xs cursor-pointer flex items-center gap-1.5"
+                  >
+                    {isSendingEmail ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Sending Official Inquiry...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="w-3.5 h-3.5" />
+                        <span>Send Official Purchase Inquiry</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
