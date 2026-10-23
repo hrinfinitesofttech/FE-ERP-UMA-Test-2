@@ -354,10 +354,7 @@ export default function PurchaseRequestsPage() {
           id: `item-${Date.now()}-${idx + 1}`,
           selectedItemKey: pItm.key,
           groupTitle: pItm.category || 'Fabricated',
-          itemName:
-            pItm.specification && !pItm.itemName.toLowerCase().includes(pItm.specification.toLowerCase())
-              ? `${pItm.itemName}\n${pItm.specification}`
-              : pItm.itemName,
+          itemName: pItm.itemName,
           dimensions: pItm.specification || '',
           specification: pItm.specification || '',
           thk: '',
@@ -425,10 +422,7 @@ export default function PurchaseRequestsPage() {
           ...itm,
           selectedItemKey: selectedKey,
           groupTitle: picked.category || itm.groupTitle || 'Fabricated',
-          itemName:
-            picked.specification && !picked.itemName.toLowerCase().includes(picked.specification.toLowerCase())
-              ? `${picked.itemName}\n${picked.specification}`
-              : picked.itemName,
+          itemName: picked.itemName,
           dimensions: picked.specification || itm.dimensions || '',
           specification: picked.specification || itm.specification || '',
           quantity: picked.quantity || itm.quantity || 1,
@@ -453,10 +447,7 @@ export default function PurchaseRequestsPage() {
       id: `item-${Date.now()}-${idx + 1}`,
       selectedItemKey: pItm.key,
       groupTitle: pItm.category || 'Fabricated',
-      itemName:
-        pItm.specification && !pItm.itemName.toLowerCase().includes(pItm.specification.toLowerCase())
-          ? `${pItm.itemName}\n${pItm.specification}`
-          : pItm.itemName,
+      itemName: pItm.itemName,
       dimensions: pItm.specification || '',
       specification: pItm.specification || '',
       thk: '',
@@ -723,56 +714,162 @@ export default function PurchaseRequestsPage() {
     });
   };
 
-  // Send WhatsApp Inquiry
-  const handleSendWhatsApp = (req: RequestForQuotation) => {
-    const phone = req.supplierMobile?.replace(/[^0-9]/g, '') || '9099911191';
-    const text = encodeURIComponent(
-      `*PURCHASE INQUIRY LETTER (REQUIRE)*\n` +
-      `*UMA TECHNOFAB*\n` +
-      `Req No: ${req.rfqNumber} | Date: ${req.rfqDate}\n` +
-      `Project Ref: ${req.projectId || 'General'}\n` +
-      `To: ${req.supplierName}\n\n` +
-      `*Subject:* ${req.subject || 'Material Purchase Requirement'}\n\n` +
-      `*Material Items:*\n` +
-      (req.items || [])
-        .map(
-          (itm, idx) =>
-            `${idx + 1}. ${itm.itemName} - Qty: ${itm.quantity || itm.requiredQuantity} ${itm.unitOfMeasure || 'KG'}`
-        )
-        .join('\n') +
-      `\n\n*Note:* ${req.specialNote || 'Please send your best rate along with TC and delivery schedule.'}\n\n` +
-      `Thanking you,\nUMA TECHNOFAB (Purchase Dept)`
+  // Helper to resolve contact details (name, phone, email) for any request
+  const resolveVendorDetails = (req: RequestForQuotation) => {
+    const supp = suppliers.find(
+      (s) =>
+        (req.supplierId && (s.id === req.supplierId || s.vendorCode === req.supplierId)) ||
+        (req.supplierName &&
+          (s.supplierName?.toLowerCase().trim() === req.supplierName.toLowerCase().trim() ||
+            s.name?.toLowerCase().trim() === req.supplierName.toLowerCase().trim()))
     );
 
-    window.open(`https://wa.me/91${phone.slice(-10)}?text=${text}`, '_blank');
+    const vendorName = req.supplierName || supp?.supplierName || supp?.name || 'Vendor';
+    const rawPhone =
+      req.supplierMobile ||
+      supp?.mobile ||
+      supp?.phone ||
+      (supp?.contacts && supp.contacts[0]?.phone) ||
+      '';
+    const email =
+      req.supplierEmail ||
+      supp?.email ||
+      (supp?.contacts && supp.contacts[0]?.email) ||
+      '';
+
+    return { vendorName, phone: rawPhone, email, supp };
+  };
+
+  // Send WhatsApp Inquiry
+  const handleSendWhatsApp = (req: RequestForQuotation) => {
+    const { vendorName, phone } = resolveVendorDetails(req);
+    let cleanPhone = (phone || '').replace(/[^0-9]/g, '');
+
+    // If phone number is missing, prompt user to enter one
+    if (!cleanPhone || cleanPhone.length < 10) {
+      const enteredPhone = window.prompt(
+        `Enter WhatsApp mobile number for ${vendorName}:`,
+        cleanPhone || ''
+      );
+      if (!enteredPhone || !enteredPhone.trim()) {
+        toast.info('WhatsApp inquiry cancelled (no mobile number provided).');
+        return;
+      }
+      cleanPhone = enteredPhone.replace(/[^0-9]/g, '');
+    }
+
+    if (cleanPhone.length < 10) {
+      toast.warning('Invalid mobile number. Please enter a valid 10-digit number.');
+      return;
+    }
+
+    // Format phone with country code: 91 for India if 10 digits
+    let finalPhone = cleanPhone;
+    if (cleanPhone.length === 10) {
+      finalPhone = `91${cleanPhone}`;
+    } else if (cleanPhone.length === 11 && cleanPhone.startsWith('0')) {
+      finalPhone = `91${cleanPhone.slice(1)}`;
+    } else if (cleanPhone.startsWith('91')) {
+      finalPhone = cleanPhone;
+    }
+
+    // Build comprehensive, professional inquiry message
+    const itemsText = (req.items || [])
+      .map((itm, idx) => {
+        const spec = itm.dimensions || itm.specification;
+        const desc = itm.itemName || 'Material Item';
+        const qty = Number(itm.quantity || itm.requiredQuantity || 1).toLocaleString();
+        const uom = itm.unitOfMeasure || 'NOS';
+        return `*${idx + 1}.* ${desc}${spec ? ` [${spec}]` : ''} - *Qty:* ${qty} ${uom}`;
+      })
+      .join('\n');
+
+    const message =
+      `*OFFICIAL PURCHASE INQUIRY (REQUIRE)*\n` +
+      `*UMA TECHNOFAB*\n` +
+      `---------------------------------------\n` +
+      `*Req No:* ${req.rfqNumber}\n` +
+      `*Date:* ${req.rfqDate}\n` +
+      `*Project Ref:* ${req.projectId || 'General'}\n` +
+      `*To Vendor:* ${vendorName.toUpperCase()}\n` +
+      `*Subject:* ${req.subject || 'Material Purchase Requirement'}\n` +
+      `---------------------------------------\n` +
+      `*REQUIRED MATERIAL ITEMS:*\n` +
+      itemsText +
+      `\n---------------------------------------\n` +
+      (req.specialNote ? `*Instructions:* ${req.specialNote}\n\n` : '') +
+      `Please provide your best quotation, rate per kg/unit, delivery schedule and Test Certificate (TC) availability at the earliest.\n\n` +
+      `*Thanking you,*\n` +
+      `Purchase & Procurement Department\n` +
+      `*UMA TECHNOFAB*\n` +
+      `Kadi - Mehsana Highway, Rajpur, Gujarat\n` +
+      `Email: info@umatechnofab.com`;
+
+    const encodedMsg = encodeURIComponent(message);
+    window.open(`https://wa.me/${finalPhone}?text=${encodedMsg}`, '_blank');
+    toast.success(`Opening WhatsApp for ${vendorName} (${finalPhone})...`);
   };
 
   // Send Email Inquiry
   const handleSendEmail = (req: RequestForQuotation) => {
-    const subject = encodeURIComponent(`Purchase Inquiry: ${req.rfqNumber} - ${req.subject || 'Material Requirement'}`);
-    const body = encodeURIComponent(
-      `Dear ${req.supplierName},\n\n` +
-      `Please find our official material inquiry (REQUIRE) details below:\n\n` +
-      `Requisition No: ${req.rfqNumber}\n` +
-      `Date: ${req.rfqDate}\n` +
-      `Project Reference: ${req.projectId || 'General'}\n` +
-      `Subject: ${req.subject}\n\n` +
-      `Items Required:\n` +
-      (req.items || [])
-        .map(
-          (itm, idx) =>
-            `[${idx + 1}] ${itm.itemName} | Qty: ${itm.quantity || itm.requiredQuantity} ${itm.unitOfMeasure || 'KG'}`
-        )
-        .join('\n') +
-      `\n\nInstructions: ${req.specialNote || 'Require TC. Send best rate.'}\n\n` +
-      `Thanking you,\n` +
-      `Purchase Department\n` +
-      `UMA TECHNOFAB\n` +
-      `Mehsana Highway, Rajpur, Kadi\n` +
-      `Mobile: 9925011676 / Email: umatechnofab@gmail.com`
+    const { vendorName, email } = resolveVendorDetails(req);
+    let targetEmail = (email || '').trim();
+
+    if (!targetEmail) {
+      const enteredEmail = window.prompt(
+        `Enter Vendor Email Address for ${vendorName}:`,
+        ''
+      );
+      if (!enteredEmail || !enteredEmail.trim()) {
+        toast.info('Email inquiry cancelled (no email address provided).');
+        return;
+      }
+      targetEmail = enteredEmail.trim();
+    }
+
+    const subject = encodeURIComponent(
+      `Official Purchase Inquiry: ${req.rfqNumber} - ${req.subject || 'Material Requirement'} - UMA TECHNOFAB`
     );
 
-    window.open(`mailto:${req.supplierEmail || ''}?subject=${subject}&body=${body}`, '_blank');
+    const itemsText = (req.items || [])
+      .map((itm, idx) => {
+        const spec = itm.dimensions || itm.specification;
+        const desc = itm.itemName || 'Material Item';
+        const qty = Number(itm.quantity || itm.requiredQuantity || 1).toLocaleString();
+        const uom = itm.unitOfMeasure || 'NOS';
+        return `  [${idx + 1}] ${desc}${spec ? ` (${spec})` : ''} - Qty: ${qty} ${uom}`;
+      })
+      .join('\n');
+
+    const body = encodeURIComponent(
+      `Dear ${vendorName},\n\n` +
+      `Please find our official material purchase inquiry (REQUIRE) details below from UMA TECHNOFAB:\n\n` +
+      `DOCUMENT DETAILS:\n` +
+      `==================================================\n` +
+      `Requisition No : ${req.rfqNumber}\n` +
+      `Date           : ${req.rfqDate}\n` +
+      `Project Ref    : ${req.projectId || 'General'}\n` +
+      `Subject        : ${req.subject || 'Material Requirement'}\n` +
+      `Delivery Site  : ${req.deliveryLocation || 'Rajpur, Mehsana'}\n` +
+      `==================================================\n\n` +
+      `REQUIRED MATERIAL ITEMS:\n` +
+      itemsText +
+      `\n\n` +
+      (req.specialNote ? `SPECIAL NOTE / INSTRUCTIONS:\n${req.specialNote}\n\n` : '') +
+      `TERMS & CONDITIONS:\n` +
+      `1. Please submit your quotation / rate per kg or unit with tax details.\n` +
+      `2. Material strictly along with Delivery Challan, Tax Invoice & Test Certificate (TC).\n` +
+      `3. Delivery lead time must be clearly mentioned.\n\n` +
+      `Thanking you we remain,\n\n` +
+      `Purchase & Procurement Team\n` +
+      `UMA TECHNOFAB\n` +
+      `Manufacturers of Dairy, Chemical, Food & Pharma Machinery\n` +
+      `Kadi - Mehsana Highway, Rajpur, Dist. Mehsana, Gujarat - 382715\n` +
+      `Email: info@umatechnofab.com\n`
+    );
+
+    window.open(`mailto:${targetEmail}?subject=${subject}&body=${body}`, '_blank');
+    toast.success(`Opening Email client for ${vendorName} (${targetEmail})...`);
   };
 
   // Print Letterhead Action
@@ -820,15 +917,42 @@ export default function PurchaseRequestsPage() {
     {
       key: 'supplierName',
       header: 'SUPPLIER / VENDOR',
-      cell: (r) => (
-        <div>
-          <span className="font-bold text-xs text-[#211B17] block">{r.supplierName}</span>
-          <span className="text-[11px] text-[#70665F] font-mono flex items-center gap-1">
-            {r.supplierMobile && <Phone className="w-3 h-3 text-emerald-600 inline" />}
-            {r.supplierMobile || 'No contact phone'}
-          </span>
-        </div>
-      ),
+      cell: (r) => {
+        const { vendorName, phone, email } = resolveVendorDetails(r);
+        return (
+          <div className="space-y-0.5">
+            <span className="font-bold text-xs text-[#211B17] block uppercase">{vendorName}</span>
+            <div className="flex flex-col text-[11px] text-[#70665F]">
+              {phone ? (
+                <button
+                  type="button"
+                  onClick={() => handleSendWhatsApp(r)}
+                  title="Click to Send WhatsApp"
+                  className="font-mono text-emerald-700 hover:text-emerald-800 flex items-center gap-1 hover:underline cursor-pointer text-left"
+                >
+                  <Phone className="w-3 h-3 text-emerald-600 inline shrink-0" />
+                  <span>{phone}</span>
+                </button>
+              ) : (
+                <span className="font-mono text-slate-400">No contact phone</span>
+              )}
+              {email ? (
+                <button
+                  type="button"
+                  onClick={() => handleSendEmail(r)}
+                  title="Click to Send Email"
+                  className="text-blue-700 hover:text-blue-800 hover:underline flex items-center gap-1 truncate max-w-[180px] cursor-pointer text-left"
+                >
+                  <Mail className="w-3 h-3 text-blue-600 inline shrink-0" />
+                  <span>{email}</span>
+                </button>
+              ) : (
+                <span className="font-mono text-slate-400 text-[10px]">No email specified</span>
+              )}
+            </div>
+          </div>
+        );
+      },
     },
     {
       key: 'subject',
@@ -1484,10 +1608,10 @@ export default function PurchaseRequestsPage() {
       {/* MODAL 2: OFFICIAL REQUIRE LETTERHEAD PRINT & VIEW MODAL */}
       {/* ===================================================================== */}
       {isViewLetterOpen && selectedRequest && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-3 overflow-y-auto">
-          <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-2xl max-w-4xl w-full max-h-[95vh] flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-200">
-            {/* Modal Top Action Bar */}
-            <div className="px-5 py-3 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between shrink-0">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto print:static print:inset-auto print:p-0 print:bg-white print:overflow-visible print:block print:z-auto">
+          <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-2xl max-w-4xl w-full max-h-[95vh] flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-200 print:static print:max-h-none print:overflow-visible print:border-none print:shadow-none print:transform-none print:animate-none print:w-full print:m-0 print:block">
+            {/* Modal Top Action Bar (Hidden during print) */}
+            <div className="px-5 py-3 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between shrink-0 print:hidden">
               <div className="flex items-center gap-2">
                 <span className="font-mono font-bold text-xs px-2.5 py-1 rounded-md bg-amber-100 text-amber-900 border border-amber-300">
                   {selectedRequest.rfqNumber}
@@ -1529,7 +1653,7 @@ export default function PurchaseRequestsPage() {
                 <button
                   type="button"
                   onClick={() => setIsViewLetterOpen(false)}
-                  className="p-1.5 rounded-xl hover:bg-white text-[#70665F] transition"
+                  className="p-1.5 rounded-xl hover:bg-white text-[#70665F] transition cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1537,119 +1661,129 @@ export default function PurchaseRequestsPage() {
             </div>
 
             {/* Letter Content Container (Formatted strictly as Uma Technofab reference sheet) */}
-            <div className="p-6 overflow-y-auto bg-slate-100 flex justify-center">
-              <div id="printable-rfq-letter" className="bg-white text-black p-8 shadow-md border border-slate-300 max-w-3xl w-full min-h-[1000px] flex flex-col justify-between font-sans text-xs">
+            <div className="p-4 sm:p-6 overflow-y-auto bg-slate-100 flex justify-center print:p-0 print:overflow-visible print:bg-white print:block">
+              <div id="printable-rfq-letter" className="bg-white text-black p-6 sm:p-8 border-2 border-slate-900 max-w-3xl w-full mx-auto shadow-lg font-sans text-xs print:p-2 print:border-2 print:border-black print:shadow-none print:max-w-full print:w-full">
                 {/* 1. Official Header */}
-                <div>
-                  <div className="border-b-2 border-slate-900 pb-2 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-amber-900 text-white font-black text-xl flex items-center justify-center rounded">
-                        U
-                      </div>
-                      <div>
-                        <h1 className="text-xl font-black tracking-wider text-slate-900">
-                          UMA TECHNOFAB
-                        </h1>
-                        <p className="text-[10px] text-slate-700 font-semibold uppercase">
-                          Manufacturers of Dairy, Chemical, Food & Pharma Machinery
-                        </p>
-                      </div>
+                <div className="border-b-2 border-slate-900 pb-2 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-amber-900 text-white font-black text-xl flex items-center justify-center rounded print:border print:border-black">
+                      U
                     </div>
-                    <div className="text-right text-[10px] text-slate-700 font-mono">
-                      <div>Kadi - Mehsana Highway, Rajpur</div>
-                      <div>Dist. Mehsana, Gujarat - 382715</div>
-                      <div>Email: info@umatechnofab.com</div>
-                    </div>
-                  </div>
-
-                  {/* 2. Document Title: REQUIRE */}
-                  <div className="text-center py-1 border-b-2 border-slate-900 bg-slate-50 font-black tracking-wider text-sm uppercase">
-                    REQUIRE
-                  </div>
-
-                  {/* 3. Address & Document Details Grid */}
-                  <div className="grid grid-cols-2 border-b-2 border-slate-900 text-xs">
-                    {/* Left: TO Address */}
-                    <div className="p-2.5 border-r-2 border-slate-900 space-y-0.5">
-                      <span className="font-bold text-[11px] block">TO,</span>
-                      <span className="font-black text-xs block uppercase">{selectedRequest.supplierName}</span>
-                      <p className="text-[11px] whitespace-pre-line text-slate-800">
-                        {selectedRequest.supplierAddress || 'ADDRESS NOT SPECIFIED'}
+                    <div>
+                      <h1 className="text-xl font-black tracking-wider text-slate-900">
+                        UMA TECHNOFAB
+                      </h1>
+                      <p className="text-[10px] text-slate-700 font-semibold uppercase">
+                        Manufacturers of Dairy, Chemical, Food & Pharma Machinery
                       </p>
-                      {selectedRequest.supplierMobile && (
-                        <p className="font-bold text-[11px] pt-1">
-                          MOB:-{selectedRequest.supplierMobile}
-                        </p>
-                      )}
-                      {selectedRequest.supplierGstin && (
-                        <p className="font-mono text-[10px] text-slate-700">
-                          GSTIN: {selectedRequest.supplierGstin}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Right: Metadata Grid Table */}
-                    <div className="divide-y border-slate-900 text-[11px]">
-                      <div className="grid grid-cols-2 divide-x border-slate-900">
-                        <div className="p-1 font-bold">DATE: {selectedRequest.rfqDate}</div>
-                        <div className="p-1 font-bold text-right">{selectedRequest.pageNo || 'PAGE NO: 1 OF 1'}</div>
-                      </div>
-                      <div className="grid grid-cols-2 divide-x border-slate-900">
-                        <div className="p-1 font-bold">REQ.NO: {selectedRequest.rfqNumber}</div>
-                        <div className="p-1 font-bold">
-                          PROJECT: <span className="font-mono">{selectedRequest.projectId || 'General'}</span>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 divide-x border-slate-900">
-                        <div className="p-1 font-bold">BUYER: {selectedRequest.buyer || 'Uma Technofab.'}</div>
-                        <div className="p-1 font-bold">TAXES: {selectedRequest.taxes || 'AS APPLICABLE.'}</div>
-                      </div>
-                      <div className="grid grid-cols-2 divide-x border-slate-900">
-                        <div className="p-1 font-bold">SHIP TO: {selectedRequest.shipTo || 'LOCAL'}</div>
-                        <div className="p-1 font-bold">DELIVERY: {selectedRequest.deliveryLocation || 'RAJPUR'}</div>
-                      </div>
-                      <div className="p-1 font-bold col-span-2">
-                        G.S.T.NO: 24AAEFU9027H1Z3
-                      </div>
                     </div>
                   </div>
+                  <div className="text-right text-[10px] text-slate-700 font-mono">
+                    <div>Kadi - Mehsana Highway, Rajpur</div>
+                    <div>Dist. Mehsana, Gujarat - 382715</div>
+                    <div>Email: info@umatechnofab.com</div>
+                  </div>
+                </div>
 
-                  {/* 4. Subject Line */}
-                  <div className="p-2 border-b-2 border-slate-900 font-black text-xs uppercase bg-slate-50">
-                    {selectedRequest.subject || 'Sub:- REQUIRE FOR MATERIAL PURCHASE INQUIRY'}
+                {/* 2. Document Title: REQUIRE */}
+                <div className="text-center py-1 border-b-2 border-slate-900 bg-slate-50 font-black tracking-wider text-sm uppercase">
+                  REQUIRE
+                </div>
+
+                {/* 3. Address & Document Details Grid */}
+                <div className="grid grid-cols-2 border-b-2 border-slate-900 text-xs">
+                  {/* Left: TO Address */}
+                  <div className="p-2.5 border-r-2 border-slate-900 space-y-0.5">
+                    <span className="font-bold text-[11px] block text-slate-900">TO,</span>
+                    <span className="font-black text-xs block uppercase text-slate-900">{selectedRequest.supplierName}</span>
+                    <p className="text-[11px] whitespace-pre-line text-slate-800">
+                      {selectedRequest.supplierAddress || 'ADDRESS NOT SPECIFIED'}
+                    </p>
+                    {selectedRequest.supplierMobile && (
+                      <p className="font-bold text-[11px] pt-1 text-slate-900">
+                        MOB:-{selectedRequest.supplierMobile}
+                      </p>
+                    )}
+                    {selectedRequest.supplierGstin && (
+                      <p className="font-mono text-[10px] text-slate-700">
+                        GSTIN: {selectedRequest.supplierGstin}
+                      </p>
+                    )}
                   </div>
 
-                  {/* 5. Material Table */}
-                  <div className="border-b-2 border-slate-900">
-                    <table className="w-full text-left text-xs border-collapse">
-                      <thead>
-                        <tr className="border-b-2 border-slate-900 text-[11px] font-bold text-center">
-                          <th className="p-1.5 w-10 border-r-2 border-slate-900">Sr.<br />No.</th>
-                          <th className="p-1.5 border-r-2 border-slate-900 text-left">Description of item(s)</th>
-                          <th className="p-1.5 w-24 border-r-2 border-slate-900">QTY.</th>
-                          <th className="p-1.5 w-24 border-r-2 border-slate-900">Rate .Per<br />/Kg</th>
-                          <th className="p-1.5 w-24">Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-300 text-xs">
-                        {selectedRequest.items?.map((item, idx) => (
+                  {/* Right: Metadata Grid Table */}
+                  <div className="divide-y divide-slate-900 text-[11px]">
+                    <div className="grid grid-cols-2 divide-x divide-slate-900">
+                      <div className="p-1 font-bold">DATE: {selectedRequest.rfqDate}</div>
+                      <div className="p-1 font-bold text-right">{selectedRequest.pageNo || 'PAGE NO: 1 OF 1'}</div>
+                    </div>
+                    <div className="grid grid-cols-2 divide-x divide-slate-900">
+                      <div className="p-1 font-bold">REQ.NO: {selectedRequest.rfqNumber}</div>
+                      <div className="p-1 font-bold">
+                        PROJECT: <span className="font-mono">{selectedRequest.projectId || 'General'}</span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 divide-x divide-slate-900">
+                      <div className="p-1 font-bold">BUYER: {selectedRequest.buyer || 'Uma Technofab.'}</div>
+                      <div className="p-1 font-bold">TAXES: {selectedRequest.taxes || 'AS APPLICABLE.'}</div>
+                    </div>
+                    <div className="grid grid-cols-2 divide-x divide-slate-900">
+                      <div className="p-1 font-bold">SHIP TO: {selectedRequest.shipTo || 'LOCAL'}</div>
+                      <div className="p-1 font-bold">DELIVERY: {selectedRequest.deliveryLocation || 'RAJPUR'}</div>
+                    </div>
+                    <div className="p-1 font-bold col-span-2">
+                      G.S.T.NO: 24AAEFU9027H1Z3
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. Subject Line */}
+                <div className="p-2 border-b-2 border-slate-900 font-black text-xs uppercase bg-slate-50">
+                  {selectedRequest.subject || 'Sub:- REQUIRE FOR MATERIAL PURCHASE INQUIRY'}
+                </div>
+
+                {/* 5. Material Table */}
+                <div className="border-b-2 border-slate-900">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b-2 border-slate-900 text-[11px] font-bold text-center bg-slate-50">
+                        <th className="p-1.5 w-10 border-r-2 border-slate-900">Sr.<br />No.</th>
+                        <th className="p-1.5 border-r-2 border-slate-900 text-left">Description of item(s)</th>
+                        <th className="p-1.5 w-24 border-r-2 border-slate-900">QTY.</th>
+                        <th className="p-1.5 w-24 border-r-2 border-slate-900">Rate .Per<br />/Kg</th>
+                        <th className="p-1.5 w-24">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-300 text-xs">
+                      {selectedRequest.items?.map((item, idx) => {
+                        // Strip duplicate dimension / specification from itemName if already present
+                        const rawName = (item.itemName || '').trim();
+                        const spec = (item.dimensions || item.specification || '').trim();
+                        let cleanName = rawName;
+                        if (spec && rawName.toLowerCase().includes(spec.toLowerCase())) {
+                          cleanName = rawName
+                            .replace(new RegExp(`\\n?\\s*${spec.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}`, 'gi'), '')
+                            .trim();
+                        }
+
+                        return (
                           <tr key={item.id || idx} className="align-top">
                             <td className="p-2 text-center font-bold border-r-2 border-slate-900">
                               {idx + 1}
                             </td>
                             <td className="p-2 border-r-2 border-slate-900">
                               {item.groupTitle && (
-                                <div className="font-black text-xs mb-1 uppercase tracking-tight flex items-center gap-1">
-                                  <span>❖</span>
+                                <div className="font-black text-xs mb-1 uppercase tracking-tight flex items-center gap-1 text-slate-900">
+                                  <span>◆</span>
                                   <span>{item.groupTitle}</span>
                                 </div>
                               )}
-                              <div className="font-bold uppercase text-[11px] pl-2 whitespace-pre-line">
-                                [{idx + 1}] {item.itemName}
+                              <div className="font-bold uppercase text-[11px] pl-2 whitespace-pre-line text-slate-900">
+                                [{idx + 1}] {cleanName || rawName}
                               </div>
-                              {item.dimensions && (
-                                <div className="text-[11px] pl-6 text-slate-800 whitespace-pre-line font-medium">
-                                  {item.dimensions}
+                              {spec && (
+                                <div className="text-[11px] pl-6 text-slate-800 whitespace-pre-line font-medium mt-0.5">
+                                  {spec}
                                 </div>
                               )}
                             </td>
@@ -1663,79 +1797,79 @@ export default function PurchaseRequestsPage() {
                               {item.amount && Number(item.amount) > 0 ? `₹ ${item.amount}` : ''}
                             </td>
                           </tr>
-                        ))}
+                        );
+                      })}
 
-                        {/* Special Note Box inside Table */}
-                        {selectedRequest.specialNote && (
-                          <tr>
-                            <td className="p-2 border-r-2 border-slate-900"></td>
-                            <td className="p-3 border-r-2 border-slate-900 font-black text-xs uppercase tracking-tight whitespace-pre-line">
-                              {selectedRequest.specialNote}
-                            </td>
-                            <td className="p-2 border-r-2 border-slate-900"></td>
-                            <td className="p-2 border-r-2 border-slate-900"></td>
-                            <td className="p-2"></td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
+                      {/* Special Note Box inside Table */}
+                      {selectedRequest.specialNote && (
+                        <tr className="border-t-2 border-slate-900">
+                          <td className="p-2 border-r-2 border-slate-900"></td>
+                          <td className="p-2.5 border-r-2 border-slate-900 font-bold text-xs uppercase tracking-tight whitespace-pre-line text-slate-900">
+                            {selectedRequest.specialNote}
+                          </td>
+                          <td className="p-2 border-r-2 border-slate-900"></td>
+                          <td className="p-2 border-r-2 border-slate-900"></td>
+                          <td className="p-2"></td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* 6. Terms & Conditions and Signature Grid */}
+                <div className="grid grid-cols-12 text-[10px] leading-tight border-b-2 border-slate-900">
+                  {/* Left 8 columns: Terms with Headlines */}
+                  <div className="col-span-8 p-3 border-r-2 border-slate-900 space-y-1 bg-white">
+                    <span className="font-black text-[11px] underline block uppercase tracking-wider text-slate-900">
+                      TERMS & CONDITIONS
+                    </span>
+                    <ol className="list-decimal pl-4 space-y-1 text-slate-900 text-[10px]">
+                      {(selectedRequest.terms && selectedRequest.terms.length > 0
+                        ? selectedRequest.terms
+                        : defaultTerms
+                      ).map((term, tIdx) => {
+                        const colonIdx = term.indexOf(':');
+                        const hasHeadline = colonIdx !== -1 && colonIdx < 30;
+                        const headline = hasHeadline ? term.slice(0, colonIdx + 1) : '';
+                        const desc = hasHeadline ? term.slice(colonIdx + 1) : term;
+
+                        return (
+                          <li key={tIdx} className="leading-tight">
+                            {hasHeadline ? (
+                              <>
+                                <strong className="font-black text-slate-900">{headline}</strong>
+                                <span>{desc}</span>
+                              </>
+                            ) : (
+                              <span>{term}</span>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ol>
                   </div>
 
-                  {/* 6. Terms & Conditions and Signature Grid */}
-                  <div className="grid grid-cols-12 text-[10px] leading-tight">
-                    {/* Left 8 columns: Terms with Headlines */}
-                    <div className="col-span-8 p-2 border-r-2 border-slate-900 space-y-1">
-                      <span className="font-black text-[11px] underline block uppercase">
-                        TERMS & CONDITIONS
-                      </span>
-                      <ol className="list-decimal pl-3 space-y-1 text-slate-900">
-                        {(selectedRequest.terms && selectedRequest.terms.length > 0
-                          ? selectedRequest.terms
-                          : defaultTerms
-                        ).map((term, tIdx) => {
-                          const colonIdx = term.indexOf(':');
-                          const hasHeadline = colonIdx !== -1 && colonIdx < 30;
-                          const headline = hasHeadline ? term.slice(0, colonIdx + 1) : '';
-                          const desc = hasHeadline ? term.slice(colonIdx + 1) : term;
-
-                          return (
-                            <li key={tIdx} className="leading-tight">
-                              {hasHeadline ? (
-                                <>
-                                  <strong className="font-black">{headline}</strong>
-                                  <span>{desc}</span>
-                                </>
-                              ) : (
-                                <span>{term}</span>
-                              )}
-                            </li>
-                          );
-                        })}
-                      </ol>
+                  {/* Right 4 columns: Authorized Signature */}
+                  <div className="col-span-4 p-3 flex flex-col justify-between text-center bg-white min-h-[140px]">
+                    <div className="font-bold text-xs pt-1 text-slate-900">
+                      Thanking you we remain.
                     </div>
-
-                    {/* Right 4 columns: Authorized Signature */}
-                    <div className="col-span-4 p-3 flex flex-col justify-between text-center min-h-[140px]">
-                      <div className="font-bold text-xs pt-2">
-                        Thanking you we remain.
+                    <div className="pb-1">
+                      <div className="font-black text-xs uppercase tracking-wider text-slate-900">
+                        FOR,
                       </div>
-                      <div>
-                        <div className="font-black text-xs uppercase tracking-wider">
-                          For,
-                        </div>
-                        <div className="font-black text-sm uppercase tracking-wide mt-0.5">
-                          UMA TECHNOFAB.
-                        </div>
-                        <div className="text-[10px] text-slate-600 mt-4">
-                          Authorized Signatory
-                        </div>
+                      <div className="font-black text-sm uppercase tracking-wide mt-0.5 text-slate-900">
+                        UMA TECHNOFAB.
+                      </div>
+                      <div className="text-[10px] text-slate-600 mt-6">
+                        Authorized Signatory
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Footer Note */}
-                <div className="text-[9px] text-slate-400 text-center pt-2 border-t border-slate-200 font-mono">
+                <div className="text-[9px] text-slate-500 text-center pt-3 font-mono print:pt-2">
                   This is a computer generated purchase request letter from UMA TECHNOFAB Enterprise ERP.
                 </div>
               </div>

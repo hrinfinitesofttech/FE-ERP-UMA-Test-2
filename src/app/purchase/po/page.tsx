@@ -451,6 +451,181 @@ function PurchaseOrdersHubContent() {
     showToast(`PO ${poId} approved and released to supplier!`);
   };
 
+  // Helper to resolve vendor contact details (phone, email, name) for any PO
+  const resolvePOVendorDetails = (po: PurchaseOrder) => {
+    const supp = suppliers.find(
+      (s) =>
+        (po.supplierId && (s.id === po.supplierId || s.vendorCode === po.supplierId)) ||
+        (po.supplierName &&
+          ((s.supplierName && s.supplierName.toLowerCase().trim() === po.supplierName.toLowerCase().trim()) ||
+            (s.name && s.name.toLowerCase().trim() === po.supplierName.toLowerCase().trim())))
+    );
+
+    const vendorName = po.supplierName || supp?.supplierName || supp?.name || 'Vendor';
+    const rawPhone =
+      (po as any).supplierMobile ||
+      (po as any).mobile ||
+      supp?.mobile ||
+      supp?.phone ||
+      (supp?.contacts && supp.contacts[0]?.phone) ||
+      '';
+    const rawEmail =
+      (po as any).supplierEmail ||
+      (po as any).email ||
+      supp?.email ||
+      (supp?.contacts && supp.contacts[0]?.email) ||
+      '';
+
+    return { vendorName, phone: rawPhone, email: rawEmail, supp };
+  };
+
+  // Send Official PO via WhatsApp directly to Vendor's phone
+  const handleSendPOWhatsApp = (po: PurchaseOrder) => {
+    const { vendorName, phone } = resolvePOVendorDetails(po);
+    let cleanPhone = (phone || '').replace(/[^0-9]/g, '');
+
+    // Strip any leading zeroes (e.g. 08460005157 -> 8460005157)
+    while (cleanPhone.startsWith('0')) {
+      cleanPhone = cleanPhone.slice(1);
+    }
+
+    if (!cleanPhone || cleanPhone.length < 10) {
+      const entered = window.prompt(
+        `Enter WhatsApp mobile number for ${vendorName}:`,
+        cleanPhone || ''
+      );
+      if (!entered || !entered.trim()) {
+        showToast('WhatsApp cancelled (no mobile number provided).');
+        return;
+      }
+      cleanPhone = entered.replace(/[^0-9]/g, '');
+      while (cleanPhone.startsWith('0')) {
+        cleanPhone = cleanPhone.slice(1);
+      }
+    }
+
+    if (cleanPhone.length < 10) {
+      showToast('Invalid mobile number. Please enter a valid 10-digit number.');
+      return;
+    }
+
+    // Ensure country code 91 for Indian numbers
+    let finalPhone = cleanPhone;
+    if (cleanPhone.length === 10) {
+      finalPhone = `91${cleanPhone}`;
+    } else if (cleanPhone.startsWith('91')) {
+      finalPhone = cleanPhone;
+    }
+
+    const itemsText = (po.items || [])
+      .map((itm, idx) => {
+        const spec = itm.specification;
+        const name = itm.itemName || 'Material Item';
+        const qty = Number(itm.orderedQuantity || itm.quantity || 1).toLocaleString();
+        const uom = itm.unitOfMeasure || 'NOS';
+        const rate = itm.unitPrice ? ` @ ₹${itm.unitPrice}` : '';
+        return `*${idx + 1}.* ${name}${spec ? ` [${spec}]` : ''} - *Qty:* ${qty} ${uom}${rate}`;
+      })
+      .join('\n');
+
+    const grandTotal = Number(po.grandTotal || 0).toLocaleString('en-IN');
+
+    const message =
+      `*OFFICIAL PURCHASE ORDER (PO)*\n` +
+      `*UMA TECHNOFAB*\n` +
+      `---------------------------------------\n` +
+      `*PO Number:* ${po.poNumber}\n` +
+      `*PO Date:* ${po.poDate || new Date().toISOString().slice(0, 10)}\n` +
+      `*Project / Job:* ${po.projectId || po.jobNumber || po.jobId || 'GENERAL'}\n` +
+      `*To Vendor:* ${vendorName.toUpperCase()}\n` +
+      `*Total Order Value:* ₹${grandTotal}\n` +
+      `*Payment Terms:* ${po.paymentTerms || '30 Days Credit'}\n` +
+      `*Delivery Terms:* ${po.deliveryTerms || 'FOR Destination (Rajpur Works)'}\n` +
+      `---------------------------------------\n` +
+      `*ORDERED MATERIAL ITEMS:*\n` +
+      itemsText +
+      `\n---------------------------------------\n` +
+      (po.specialInstructions ? `*Special Note:* ${po.specialInstructions}\n\n` : '') +
+      `Please acknowledge receipt of this Purchase Order and confirm delivery schedule along with Test Certificate (TC).\n\n` +
+      `*Thank you,*\n` +
+      `Purchase & Procurement Department\n` +
+      `*UMA TECHNOFAB*\n` +
+      `Kadi - Mehsana Highway, Rajpur, Gujarat\n` +
+      `Ph: 9925011676 / Email: umatechnofab@gmail.com`;
+
+    const encoded = encodeURIComponent(message);
+    window.open(`https://wa.me/${finalPhone}?text=${encoded}`, '_blank');
+    showToast(`Opening WhatsApp for ${vendorName} (${finalPhone})...`);
+  };
+
+  // Send Official PO via Email directly to Vendor's email ID
+  const handleSendPOEmail = (po: PurchaseOrder) => {
+    const { vendorName, email } = resolvePOVendorDetails(po);
+    let targetEmail = (email || '').trim();
+
+    if (!targetEmail) {
+      const entered = window.prompt(
+        `Enter Vendor Email Address for ${vendorName}:`,
+        ''
+      );
+      if (!entered || !entered.trim()) {
+        showToast('Email cancelled (no email address provided).');
+        return;
+      }
+      targetEmail = entered.trim();
+    }
+
+    const subject = encodeURIComponent(
+      `Official Purchase Order: ${po.poNumber} - ${po.supplierName} - UMA TECHNOFAB`
+    );
+
+    const itemsText = (po.items || [])
+      .map((itm, idx) => {
+        const spec = itm.specification;
+        const name = itm.itemName || 'Material Item';
+        const qty = Number(itm.orderedQuantity || itm.quantity || 1).toLocaleString();
+        const uom = itm.unitOfMeasure || 'NOS';
+        const rate = itm.unitPrice ? ` @ ₹${itm.unitPrice}` : '';
+        const amt = itm.totalPrice ? ` = ₹${itm.totalPrice.toLocaleString('en-IN')}` : '';
+        return `  [${idx + 1}] ${name}${spec ? ` (${spec})` : ''} - Qty: ${qty} ${uom}${rate}${amt}`;
+      })
+      .join('\n');
+
+    const grandTotal = Number(po.grandTotal || 0).toLocaleString('en-IN');
+
+    const body = encodeURIComponent(
+      `Dear ${vendorName},\n\n` +
+      `Please find our official Purchase Order details below from UMA TECHNOFAB:\n\n` +
+      `PURCHASE ORDER SUMMARY:\n` +
+      `==================================================\n` +
+      `PO Number     : ${po.poNumber}\n` +
+      `PO Date       : ${po.poDate || new Date().toISOString().slice(0, 10)}\n` +
+      `Project / Job : ${po.projectId || po.jobNumber || po.jobId || 'GENERAL'}\n` +
+      `Payment Terms : ${po.paymentTerms || '30 Days Credit'}\n` +
+      `Delivery Site : ${po.deliveryTerms || 'FOR Destination (Rajpur Works)'}\n` +
+      `Grand Total   : INR ${grandTotal}\n` +
+      `==================================================\n\n` +
+      `ORDERED ITEMS:\n` +
+      itemsText +
+      `\n\n` +
+      (po.specialInstructions ? `SPECIAL INSTRUCTIONS:\n${po.specialInstructions}\n\n` : '') +
+      `TERMS & CONDITIONS:\n` +
+      `1. Material must strictly match technical specifications and tolerances.\n` +
+      `2. Supply must be accompanied by Delivery Challan, Tax Invoice and original Test Certificate (TC).\n` +
+      `3. Delivery schedule must be adhered to strictly as confirmed.\n\n` +
+      `Kindly acknowledge receipt and confirm the delivery date.\n\n` +
+      `Thanking you we remain,\n\n` +
+      `Purchase & Procurement Team\n` +
+      `UMA TECHNOFAB\n` +
+      `Survey No. 1040/3, Village Rajpur, Mehsana Highway,\n` +
+      `Ta. Kadi, Dist: Mehsana, Gujarat - 382715\n` +
+      `Mobile: 9925011676 / Email: umatechnofab@gmail.com\n`
+    );
+
+    window.open(`mailto:${targetEmail}?subject=${subject}&body=${body}`, '_blank');
+    showToast(`Opening Email client for ${vendorName} (${targetEmail})...`);
+  };
+
   // ----------------------------------------------------
   // TAB 3: DELIVERY EXPEDITING & FOLLOW-UP STATE
   // ----------------------------------------------------
@@ -710,11 +885,28 @@ function PurchaseOrdersHubContent() {
             cell: (po) => (
               <div className="flex items-center justify-end gap-1.5">
                 <button
+                  type="button"
                   onClick={() => setViewPO(po)}
                   className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer"
-                  title="View PO Details"
+                  title="View Official Purchase Order"
                 >
                   <Eye className="w-3.5 h-3.5 text-purple-600" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSendPOWhatsApp(po)}
+                  className="p-1.5 rounded-lg text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 transition cursor-pointer"
+                  title="Send PO to Vendor via WhatsApp"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSendPOEmail(po)}
+                  className="p-1.5 rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition cursor-pointer"
+                  title="Send PO to Vendor via Email"
+                >
+                  <Mail className="w-3.5 h-3.5" />
                 </button>
                 {po.status === 'Submitted' && (
                   <button
@@ -1552,8 +1744,8 @@ function PurchaseOrdersHubContent() {
       {/* MODAL: VIEW PURCHASE ORDER OFFICIAL LETTERHEAD            */}
       {/* ========================================================= */}
       {viewPO && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-4xl w-full max-h-[96vh] overflow-hidden shadow-2xl flex flex-col">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 animate-in fade-in duration-150 print:static print:p-0 print:bg-white print:overflow-visible print:block">
+          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-4xl w-full max-h-[96vh] overflow-hidden shadow-2xl flex flex-col print:static print:max-h-none print:overflow-visible print:border-none print:shadow-none print:w-full print:block">
             {/* Top Toolbar */}
             <div className="flex items-center justify-between px-6 py-3 border-b border-[#EBE3DB] bg-[#FAF7F2] print:hidden">
               <div className="flex items-center gap-3">
@@ -1567,73 +1759,41 @@ function PurchaseOrdersHubContent() {
               <div className="flex items-center gap-2">
                 {/* Print button */}
                 <button
+                  type="button"
                   onClick={() => printContent('printable-purchase-order', { title: `PO_${viewPO.poNumber}` })}
-                  className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#EFE8DF] text-[#211B17] font-bold text-xs rounded-xl border border-[#EBE3DB] flex items-center gap-1.5 transition"
+                  className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#EFE8DF] text-[#211B17] font-bold text-xs rounded-xl border border-[#EBE3DB] flex items-center gap-1.5 transition cursor-pointer"
                   title="Print to PDF / Paper"
                 >
                   <Printer className="w-3.5 h-3.5 text-crm-brand-700" />
                   <span>Print / PDF</span>
                 </button>
 
-                {/* WhatsApp Share */}
-                {(() => {
-                  const supp = suppliers.find(
-                    (s) =>
-                      s.id === viewPO.supplierId ||
-                      s.name?.toLowerCase() === viewPO.supplierName?.toLowerCase()
-                  );
-                  const phone = supp?.mobile || supp?.phone || '';
-                  const cleanPhone = phone.replace(/[^0-9]/g, '');
-                  const waText = encodeURIComponent(
-                    `*UMA TECHNOFAB - PURCHASE ORDER*\n\nDear ${viewPO.supplierName},\n\nPlease find Purchase Order Ref: *${viewPO.poNumber}* dated ${viewPO.poDate} for Job *${viewPO.jobNumber || viewPO.jobId}*.\nTotal Order Value: ₹${(viewPO.grandTotal || 0).toLocaleString('en-IN')}.\n\nPlease acknowledge receipt and confirm delivery schedule.\n\nThank you,\nUMA TECHNOFAB\nMo: 9925011676`
-                  );
-                  return (
-                    <a
-                      href={
-                        cleanPhone
-                          ? `https://wa.me/${cleanPhone}?text=${waText}`
-                          : `https://wa.me/?text=${waText}`
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-xs transition"
-                      title="Share directly to Vendor WhatsApp"
-                    >
-                      <MessageSquare className="w-3.5 h-3.5" />
-                      <span>WhatsApp PO</span>
-                    </a>
-                  );
-                })()}
+                {/* WhatsApp Share Button */}
+                <button
+                  type="button"
+                  onClick={() => handleSendPOWhatsApp(viewPO)}
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-xs transition cursor-pointer"
+                  title="Share directly to Vendor WhatsApp"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>WhatsApp PO</span>
+                </button>
 
-                {/* Email Share */}
-                {(() => {
-                  const supp = suppliers.find(
-                    (s) =>
-                      s.id === viewPO.supplierId ||
-                      s.name?.toLowerCase() === viewPO.supplierName?.toLowerCase()
-                  );
-                  const email = supp?.email || '';
-                  const subject = encodeURIComponent(
-                    `Purchase Order ${viewPO.poNumber} - Uma Technofab`
-                  );
-                  const body = encodeURIComponent(
-                    `Dear ${viewPO.supplierName},\n\nPlease find our official Purchase Order details below:\n\nPO Number: ${viewPO.poNumber}\nPO Date: ${viewPO.poDate}\nDelivery Terms: ${viewPO.deliveryTerms || 'FOR Rajpur'}\nPayment Terms: ${viewPO.paymentTerms || '30 Days'}\nGrand Total: INR ${(viewPO.grandTotal || 0).toLocaleString('en-IN')}\n\nKindly send acknowledgement and material test certificates (TC).\n\nBest Regards,\nUMA TECHNOFAB\nRajpur, Mehsana Highway, Ta. Kadi, Dist: Mehsana\nPh: 9925011676`
-                  );
-                  return (
-                    <a
-                      href={`mailto:${email}?subject=${subject}&body=${body}`}
-                      className="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-xs transition"
-                      title="Send via Email"
-                    >
-                      <Mail className="w-3.5 h-3.5" />
-                      <span>Email PO</span>
-                    </a>
-                  );
-                })()}
+                {/* Email Share Button */}
+                <button
+                  type="button"
+                  onClick={() => handleSendPOEmail(viewPO)}
+                  className="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-xs transition cursor-pointer"
+                  title="Send via Email to Vendor"
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  <span>Email PO</span>
+                </button>
 
                 <button
+                  type="button"
                   onClick={() => setViewPO(null)}
-                  className="p-1.5 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#EFE8DF] transition"
+                  className="p-1.5 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#EFE8DF] transition cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1641,8 +1801,8 @@ function PurchaseOrdersHubContent() {
             </div>
 
             {/* Letterhead Document Body */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-[#F4EFEA] print:p-0 print:bg-white">
-              <div id="printable-purchase-order" className="bg-white border-2 border-black max-w-3xl mx-auto p-6 sm:p-8 shadow-md text-black font-sans leading-tight">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-[#F4EFEA] print:p-0 print:bg-white print:overflow-visible print:block">
+              <div id="printable-purchase-order" className="bg-white border-2 border-black max-w-3xl mx-auto p-6 sm:p-8 shadow-md text-black font-sans leading-tight print:p-2 print:border-2 print:border-black print:shadow-none print:max-w-full print:w-full">
                 {/* 1. COMPANY HEADER */}
                 <div className="border-b-2 border-black pb-3 text-center">
                   <div className="flex items-center justify-between text-[11px] font-bold text-gray-700 mb-1">
