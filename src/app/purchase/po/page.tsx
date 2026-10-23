@@ -40,7 +40,7 @@ import {
   Mail,
   Loader2,
 } from 'lucide-react';
-import { PurchaseOrder, POItem, PORevision, PurchaseFollowUp } from '../../../types/purchase';
+import { PurchaseOrder, POItem, PORevision, PurchaseFollowUp, Supplier } from '../../../types/purchase';
 import { formatCurrency } from '../../../lib/utils';
 import { api } from '@/lib/apiClient';
 
@@ -461,44 +461,54 @@ function PurchaseOrdersHubContent() {
 
   // Helper to resolve vendor contact details (phone, email, name, address) for any PO
   const resolvePOVendorDetails = (po: PurchaseOrder) => {
-    let supp = suppliers.find(
-      (s) =>
-        (po.supplierId && (String(s.id).toLowerCase() === String(po.supplierId).toLowerCase() || String(s.vendorCode || '').toLowerCase() === String(po.supplierId).toLowerCase())) ||
-        (po.supplierName &&
-          ((s.supplierName && s.supplierName.toLowerCase().trim() === po.supplierName.toLowerCase().trim()) ||
-            (s.name && s.name.toLowerCase().trim() === po.supplierName.toLowerCase().trim())))
-    );
+    let supp: Supplier | undefined;
 
-    // Fallback: if supplier not found, check if supplier name contains key parts or fall back to first supplier
-    if (!supp && suppliers.length > 0) {
-      if (!po.supplierName || po.supplierName.toLowerCase().includes('supplier') || po.supplierName.toLowerCase().includes('vendor')) {
-        supp = suppliers[0];
-      } else {
-        const found = suppliers.find(s => 
-          (s.supplierName && po.supplierName && s.supplierName.toLowerCase().includes(po.supplierName.toLowerCase())) ||
-          (s.name && po.supplierName && s.name.toLowerCase().includes(po.supplierName.toLowerCase()))
+    // 1. Match by supplierId or vendorCode
+    if (po.supplierId) {
+      supp = suppliers.find(
+        (s) =>
+          String(s.id).toLowerCase() === String(po.supplierId).toLowerCase() ||
+          String(s.vendorCode || '').toLowerCase() === String(po.supplierId).toLowerCase()
+      );
+    }
+
+    // 2. Match by supplierName if not generic
+    if (!supp && po.supplierName && po.supplierName.trim().length > 1) {
+      const q = po.supplierName.toLowerCase().trim();
+      if (q !== 'supplier' && q !== 'vendor' && q !== 'undefined' && q !== 'null') {
+        supp = suppliers.find(
+          (s) =>
+            (s.supplierName && s.supplierName.toLowerCase().trim() === q) ||
+            (s.name && s.name.toLowerCase().trim() === q)
         );
-        supp = found || suppliers[0];
       }
     }
+
+    // NOTE: NEVER default to suppliers[0]! If no vendor is matched, leave supp undefined.
 
     const firstContact = supp?.contacts && supp.contacts.length > 0 ? supp.contacts[0] : null;
     const firstAddress = supp?.addresses && supp.addresses.length > 0 ? supp.addresses[0] : null;
 
-    const vendorName = (supp?.supplierName || supp?.name || (po.supplierName && po.supplierName.toLowerCase() !== 'supplier' ? po.supplierName : 'Vendor')).toUpperCase();
-    const contactPerson = firstContact?.contactPerson || supp?.contactPerson || '';
-    
-    // Auto-resolve phone number from database
-    let rawPhone =
+    const rawSuppName = (po.supplierName || (po as any).vendorName || '').trim();
+    const vendorName = rawSuppName && rawSuppName.toLowerCase() !== 'supplier' && rawSuppName.toLowerCase() !== 'vendor'
+      ? rawSuppName.toUpperCase()
+      : (supp?.supplierName || supp?.name || 'NO SUPPLIER ASSIGNED').toUpperCase();
+
+    const contactPerson =
+      (po as any).contactPerson ||
+      firstContact?.contactPerson ||
+      supp?.contactPerson ||
+      '';
+
+    const rawPhone =
       (po as any).supplierMobile ||
       (po as any).mobile ||
       firstContact?.phone ||
-      supp?.phone ||
       supp?.mobile ||
+      supp?.phone ||
       '';
 
-    // Auto-resolve email address from database
-    let rawEmail =
+    const rawEmail =
       (po as any).supplierEmail ||
       (po as any).email ||
       firstContact?.email ||
@@ -506,12 +516,14 @@ function PurchaseOrdersHubContent() {
       '';
 
     const address =
+      (po as any).supplierAddress ||
+      (po as any).address ||
       firstAddress?.addressLine ||
       supp?.address ||
       '';
     const city = firstAddress?.city || supp?.city || '';
     const state = firstAddress?.state || supp?.state || '';
-    const gstin = supp?.gstin || '';
+    const gstin = supp?.gstin || (po as any).supplierGstin || '';
 
     return { vendorName, contactPerson, phone: rawPhone, email: rawEmail, address, city, state, gstin, supp };
   };
@@ -2290,7 +2302,7 @@ function PurchaseOrdersHubContent() {
       )}
       {/* Official PO Send Email Modal (Matching CRM Send Email Quotation Design) */}
       {showPOEmailModal && emailTargetPO && (() => {
-        const { vendorName, email: resolvedVendorEmail } = resolvePOVendorDetails(emailTargetPO);
+        const { vendorName, email: resolvedVendorEmail, supp } = resolvePOVendorDetails(emailTargetPO);
         return (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div className="bg-white dark:bg-[#2C241F] rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-xl border border-[#E7DED5]">
@@ -2328,6 +2340,33 @@ function PurchaseOrdersHubContent() {
                   <div className="flex justify-between items-center text-[11px]">
                     <span className="text-[#70665F]">Supplier / Vendor:</span>
                     <strong className="text-[#211B17] dark:text-white font-bold uppercase">{vendorName}</strong>
+                  </div>
+                  {/* Select / Switch Supplier from Master */}
+                  <div className="flex justify-between items-center text-[11px] pt-1.5 border-t border-[#E7DED5]/60">
+                    <span className="text-[#70665F]">Select / Change Vendor:</span>
+                    <select
+                      value={supp?.id || emailTargetPO.supplierId || ''}
+                      onChange={(e) => {
+                        const newSupp = suppliers.find((s) => s.id === e.target.value);
+                        if (newSupp) {
+                          const newEmail = newSupp.email || (newSupp.contacts && newSupp.contacts[0]?.email) || '';
+                          setPoTargetEmail(newEmail);
+                          setEmailTargetPO({
+                            ...emailTargetPO,
+                            supplierId: newSupp.id,
+                            supplierName: newSupp.supplierName || newSupp.name,
+                          });
+                        }
+                      }}
+                      className="bg-white dark:bg-[#2C241F] border border-[#E7DED5] rounded px-2 py-1 text-xs text-[#211B17] dark:text-white font-semibold cursor-pointer max-w-[260px]"
+                    >
+                      <option value="">-- Choose Vendor from Master --</option>
+                      {suppliers.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.supplierName || s.name} ({s.email || 'No email'})
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="flex justify-between items-center text-[11px]">
                     <span className="text-[#70665F]">PO Reference:</span>

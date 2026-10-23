@@ -724,49 +724,60 @@ export default function PurchaseRequestsPage() {
 
   // Helper to resolve contact details (name, phone, email, address) for any request
   const resolveVendorDetails = (req: RequestForQuotation) => {
-    let supp = suppliers.find(
-      (s) =>
-        (req.supplierId && (String(s.id).toLowerCase() === String(req.supplierId).toLowerCase() || String(s.vendorCode || '').toLowerCase() === String(req.supplierId).toLowerCase())) ||
-        (req.supplierName &&
-          (s.supplierName?.toLowerCase().trim() === req.supplierName.toLowerCase().trim() ||
-            s.name?.toLowerCase().trim() === req.supplierName.toLowerCase().trim()))
-    );
+    let supp: Supplier | undefined;
 
-    // If still not matched, check if invitedSuppliers or suppliers array in req has an ID
+    // 1. Match by supplierId or vendorCode
+    if (req.supplierId) {
+      supp = suppliers.find(
+        (s) =>
+          String(s.id).toLowerCase() === String(req.supplierId).toLowerCase() ||
+          String(s.vendorCode || '').toLowerCase() === String(req.supplierId).toLowerCase()
+      );
+    }
+
+    // 2. Match by supplierName if not a generic placeholder
+    if (!supp && req.supplierName && req.supplierName.trim().length > 1) {
+      const q = req.supplierName.toLowerCase().trim();
+      if (q !== 'vendor' && q !== 'supplier' && q !== 'undefined' && q !== 'null') {
+        supp = suppliers.find(
+          (s) =>
+            s.supplierName?.toLowerCase().trim() === q ||
+            s.name?.toLowerCase().trim() === q
+        );
+      }
+    }
+
+    // 3. Match from invitedSuppliers array
     if (!supp && (req as any).invitedSuppliers && Array.isArray((req as any).invitedSuppliers) && (req as any).invitedSuppliers.length > 0) {
       const firstId = (req as any).invitedSuppliers[0];
       supp = suppliers.find((s) => s.id === firstId || s.vendorCode === firstId);
     }
 
-    // Fall back to first available supplier in master (e.g. Montech Engineering)
-    if (!supp && suppliers.length > 0) {
-      if (!req.supplierName || req.supplierName.toLowerCase().includes('supplier') || req.supplierName.toLowerCase().includes('vendor')) {
-        supp = suppliers[0];
-      } else {
-        const found = suppliers.find((s) =>
-          (s.supplierName && req.supplierName && s.supplierName.toLowerCase().includes(req.supplierName.toLowerCase())) ||
-          (s.name && req.supplierName && s.name.toLowerCase().includes(req.supplierName.toLowerCase()))
-        );
-        supp = found || suppliers[0];
-      }
-    }
+    // NOTE: NEVER default to suppliers[0]! If no vendor is matched, leave supp undefined.
 
     const firstContact = supp?.contacts && supp.contacts.length > 0 ? supp.contacts[0] : null;
     const firstAddr = supp?.addresses && supp.addresses.length > 0 ? supp.addresses[0] : null;
 
-    const vendorName = (supp?.supplierName || supp?.name || (req.supplierName && req.supplierName.toLowerCase() !== 'vendor' ? req.supplierName : 'Vendor')).toUpperCase();
-    const contactPerson = firstContact?.contactPerson || supp?.contactPerson || '';
-    
-    // Auto-resolve phone number from database
+    // Vendor Name: Priority to explicit supplierName on req, then matched master, then placeholder
+    const rawReqName = (req.supplierName || (req as any).vendorName || '').trim();
+    const vendorName = rawReqName && rawReqName.toLowerCase() !== 'vendor' && rawReqName.toLowerCase() !== 'supplier'
+      ? rawReqName.toUpperCase()
+      : (supp?.supplierName || supp?.name || 'NO SUPPLIER ASSIGNED').toUpperCase();
+
+    const contactPerson =
+      (req as any).contactPerson ||
+      firstContact?.contactPerson ||
+      supp?.contactPerson ||
+      '';
+
     const rawPhone =
       req.supplierMobile ||
       (req as any).vendorMobile ||
       firstContact?.phone ||
-      supp?.phone ||
       supp?.mobile ||
+      supp?.phone ||
       '';
 
-    // Auto-resolve email from database
     const email =
       req.supplierEmail ||
       (req as any).vendorEmail ||
@@ -775,11 +786,17 @@ export default function PurchaseRequestsPage() {
       '';
 
     const address =
+      req.supplierAddress ||
       (req as any).vendorAddress ||
       supp?.address ||
       (firstAddr ? firstAddr.addressLine : '') ||
       '';
-    const gstin = supp?.gstin || (req as any).vendorGstin || '';
+
+    const gstin =
+      req.supplierGstin ||
+      (req as any).vendorGstin ||
+      supp?.gstin ||
+      '';
 
     return { vendorName, contactPerson, phone: rawPhone, email, address, gstin, supp };
   };
@@ -1960,7 +1977,7 @@ export default function PurchaseRequestsPage() {
 
       {/* Official Purchase Inquiry (REQUIRE / RFQ) Send Email Modal (Matching CRM Send Email Quotation Design) */}
       {showEmailModal && emailTargetRequest && (() => {
-        const { vendorName, email: resolvedVendorEmail } = resolveVendorDetails(emailTargetRequest);
+        const { vendorName, email: resolvedVendorEmail, supp } = resolveVendorDetails(emailTargetRequest);
         return (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div className="bg-white dark:bg-[#2C241F] rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-xl border border-[#E7DED5]">
@@ -1998,6 +2015,37 @@ export default function PurchaseRequestsPage() {
                   <div className="flex justify-between items-center text-[11px]">
                     <span className="text-[#70665F]">Supplier / Vendor:</span>
                     <strong className="text-[#211B17] dark:text-white font-bold uppercase">{vendorName}</strong>
+                  </div>
+                  {/* Select / Switch Supplier from Master */}
+                  <div className="flex justify-between items-center text-[11px] pt-1.5 border-t border-[#E7DED5]/60">
+                    <span className="text-[#70665F]">Select / Change Vendor:</span>
+                    <select
+                      value={supp?.id || emailTargetRequest.supplierId || ''}
+                      onChange={(e) => {
+                        const newSupp = suppliers.find((s) => s.id === e.target.value);
+                        if (newSupp) {
+                          const newEmail = newSupp.email || (newSupp.contacts && newSupp.contacts[0]?.email) || '';
+                          setTargetEmail(newEmail);
+                          setEmailTargetRequest({
+                            ...emailTargetRequest,
+                            supplierId: newSupp.id,
+                            supplierName: newSupp.supplierName || newSupp.name,
+                            supplierEmail: newEmail,
+                            supplierMobile: newSupp.mobile || newSupp.phone || '',
+                            supplierAddress: newSupp.address || '',
+                            supplierGstin: newSupp.gstin || '',
+                          });
+                        }
+                      }}
+                      className="bg-white dark:bg-[#2C241F] border border-[#E7DED5] rounded px-2 py-1 text-xs text-[#211B17] dark:text-white font-semibold cursor-pointer max-w-[260px]"
+                    >
+                      <option value="">-- Choose Vendor from Master --</option>
+                      {suppliers.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.supplierName || s.name} ({s.email || 'No email'})
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="flex justify-between items-center text-[11px]">
                     <span className="text-[#70665F]">Inquiry Reference:</span>
