@@ -105,9 +105,17 @@ export default function PurchaseRequestsPage() {
     };
 
     const results: AvailableItemOption[] = [];
-    const seenKeys = new Set<string>();
+    const seenItemKeys = new Set<string>();
 
-    // 1. From purchaseRequisitions (Material Requisition / Bom shortage PRs)
+    const getDedupeKey = (code: string, name: string, spec: string) => {
+      const cleanCode = code ? code.toLowerCase().trim() : '';
+      if (cleanCode && cleanCode !== '-') return cleanCode;
+      const cleanName = name ? name.toLowerCase().trim() : '';
+      const cleanSpec = spec ? spec.toLowerCase().trim() : '';
+      return `${cleanName}___${cleanSpec}`;
+    };
+
+    // 1. From purchaseRequisitions (Material Requisition / Bom shortage PRs - Highest priority)
     (purchaseRequisitions || []).forEach((pr) => {
       const prMatches =
         isProjectMatch(pr.projectId) ||
@@ -120,11 +128,11 @@ export default function PurchaseRequestsPage() {
           const itemCode = it.itemCode || '';
           const itemName = it.itemName || it.materialName || 'Engineering Component';
           const spec = it.specification || '';
-          const key = `pr-${pr.id || pr.prNumber}-${it.id || idx}-${itemCode || itemName}`;
-          if (!seenKeys.has(key)) {
-            seenKeys.add(key);
+          const dKey = getDedupeKey(itemCode, itemName, spec);
+          if (dKey && !seenItemKeys.has(dKey)) {
+            seenItemKeys.add(dKey);
             results.push({
-              key,
+              key: `pr-${pr.id || pr.prNumber}-${it.id || idx}-${itemCode || itemName}`,
               source: 'requisition',
               itemCode,
               itemName,
@@ -141,7 +149,7 @@ export default function PurchaseRequestsPage() {
       }
     });
 
-    // 2. From materialRequirements (MRP shortages)
+    // 2. From materialRequirements (MRP shortages - only if not already in results)
     (materialRequirements || []).forEach((mr, idx) => {
       const mrMatches =
         isProjectMatch(mr.projectId) ||
@@ -152,11 +160,11 @@ export default function PurchaseRequestsPage() {
         const itemCode = mr.itemCode || mr.partNumber || '';
         const itemName = mr.itemName || mr.materialName || 'Engineering Component';
         const spec = mr.specification || '';
-        const key = `mr-${mr.id || idx}-${itemCode || itemName}`;
-        if (!seenKeys.has(key)) {
-          seenKeys.add(key);
+        const dKey = getDedupeKey(itemCode, itemName, spec);
+        if (dKey && !seenItemKeys.has(dKey)) {
+          seenItemKeys.add(dKey);
           results.push({
-            key,
+            key: `mr-${mr.id || idx}-${itemCode || itemName}`,
             source: 'requirement',
             itemCode,
             itemName,
@@ -171,7 +179,7 @@ export default function PurchaseRequestsPage() {
       }
     });
 
-    // 3. From boms (Approved Bill of Materials)
+    // 3. From boms (Approved Bill of Materials - only if not already in results)
     (boms || []).forEach((b) => {
       const bomMatches =
         isProjectMatch(b.projectId) ||
@@ -183,11 +191,11 @@ export default function PurchaseRequestsPage() {
           const itemCode = it.partNumber || it.itemCode || '';
           const itemName = it.itemName || 'Engineering Component';
           const spec = it.specification || it.description || '';
-          const key = `bom-${b.id}-${it.id || idx}-${itemCode || itemName}`;
-          if (!seenKeys.has(key)) {
-            seenKeys.add(key);
+          const dKey = getDedupeKey(itemCode, itemName, spec);
+          if (dKey && !seenItemKeys.has(dKey)) {
+            seenItemKeys.add(dKey);
             results.push({
-              key,
+              key: `bom-${b.id}-${it.id || idx}-${itemCode || itemName}`,
               source: 'bom',
               itemCode,
               itemName,
@@ -286,11 +294,12 @@ export default function PurchaseRequestsPage() {
       (pr.items || []).forEach((it, idx) => {
         const itemCode = it.itemCode || '';
         const itemName = it.itemName || 'Component';
-        const key = `all-pr-${pr.id}-${it.id || idx}`;
-        if (!seen.has(key)) {
-          seen.add(key);
+        const pRef = pr.projectId || pr.jobId || 'PR';
+        const dKey = `${pRef}___${itemCode ? itemCode.toLowerCase().trim() : itemName.toLowerCase().trim()}`;
+        if (!seen.has(dKey)) {
+          seen.add(dKey);
           list.push({
-            key,
+            key: `all-pr-${pr.id}-${it.id || idx}`,
             source: 'requisition',
             itemCode,
             itemName,
@@ -299,8 +308,8 @@ export default function PurchaseRequestsPage() {
             quantity: Number(it.requiredQuantity ?? it.quantity ?? 1),
             unitOfMeasure: (it.unitOfMeasure || it.unit || 'NOS').toUpperCase(),
             prNumber: pr.prNumber,
-            projectRef: pr.projectId || pr.jobId || 'PR',
-            label: `[${pr.projectId || pr.prNumber}] ${itemCode ? `${itemCode} - ` : ''}${itemName}`,
+            projectRef: pRef,
+            label: `[${pRef}] ${itemCode ? `${itemCode} - ` : ''}${itemName}`,
           });
         }
       });
