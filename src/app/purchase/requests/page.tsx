@@ -746,32 +746,32 @@ export default function PurchaseRequestsPage() {
     const firstContact = supp?.contacts && supp.contacts.length > 0 ? supp.contacts[0] : null;
     const firstAddr = supp?.addresses && supp.addresses.length > 0 ? supp.addresses[0] : null;
 
-    const vendorName = (supp?.supplierName || supp?.name || (req.supplierName && req.supplierName.toLowerCase() !== 'vendor' ? req.supplierName : 'Montech Engineering')).toUpperCase();
-    const contactPerson = firstContact?.contactPerson || supp?.contactPerson || 'Shakti Daki';
+    const vendorName = (supp?.supplierName || supp?.name || (req.supplierName && req.supplierName.toLowerCase() !== 'vendor' ? req.supplierName : 'Vendor')).toUpperCase();
+    const contactPerson = firstContact?.contactPerson || supp?.contactPerson || '';
     
-    // Auto-resolve phone number
+    // Auto-resolve phone number from database
     const rawPhone =
       req.supplierMobile ||
       (req as any).vendorMobile ||
       firstContact?.phone ||
       supp?.phone ||
       supp?.mobile ||
-      '08460005157';
+      '';
 
-    // Auto-resolve email
+    // Auto-resolve email from database
     const email =
       req.supplierEmail ||
       (req as any).vendorEmail ||
       firstContact?.email ||
       supp?.email ||
-      'dakishakti5157@gmail.com';
+      '';
 
     const address =
       (req as any).vendorAddress ||
       supp?.address ||
       (firstAddr ? firstAddr.addressLine : '') ||
-      'GIDC Industrial Area, Ahmedabad, Gujarat';
-    const gstin = supp?.gstin || (req as any).vendorGstin || '24AAEFU9027H1Z3';
+      '';
+    const gstin = supp?.gstin || (req as any).vendorGstin || '';
 
     return { vendorName, contactPerson, phone: rawPhone, email, address, gstin, supp };
   };
@@ -787,7 +787,8 @@ export default function PurchaseRequestsPage() {
     }
 
     if (!cleanPhone || cleanPhone.length < 10) {
-      cleanPhone = '8460005157';
+      toast.error(`Phone number not found in database for ${vendorName}. Please add in Vendor Master.`);
+      return;
     }
 
     // Format phone with country code: 91 for India if 10 digits
@@ -840,7 +841,12 @@ export default function PurchaseRequestsPage() {
   // Send Email Inquiry
   const handleSendEmail = (req: RequestForQuotation) => {
     const { vendorName, email } = resolveVendorDetails(req);
-    const targetEmail = (email || 'dakishakti5157@gmail.com').trim();
+    const targetEmail = (email || '').trim();
+
+    if (!targetEmail) {
+      toast.error(`Email address not found in database for ${vendorName}. Please add in Vendor Master.`);
+      return;
+    }
 
     const subject = encodeURIComponent(
       `Official Purchase Inquiry: ${req.rfqNumber} - ${req.subject || 'Material Requirement'} - UMA TECHNOFAB`
@@ -1712,7 +1718,7 @@ export default function PurchaseRequestsPage() {
                 {(() => {
                   const vendorInfo = resolveVendorDetails(selectedRequest);
                   const displayVendorName = vendorInfo.vendorName;
-                  const displayAddress = vendorInfo.address || selectedRequest.supplierAddress || 'GIDC Industrial Area, Ahmedabad, Gujarat';
+                  const displayAddress = vendorInfo.address || selectedRequest.supplierAddress || '';
                   const displayPhone = vendorInfo.phone || selectedRequest.supplierMobile;
                   const displayGstin = vendorInfo.gstin || selectedRequest.supplierGstin;
                   const displayContactPerson = vendorInfo.contactPerson;

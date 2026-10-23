@@ -477,33 +477,33 @@ function PurchaseOrdersHubContent() {
     const firstContact = supp?.contacts && supp.contacts.length > 0 ? supp.contacts[0] : null;
     const firstAddress = supp?.addresses && supp.addresses.length > 0 ? supp.addresses[0] : null;
 
-    const vendorName = (supp?.supplierName || supp?.name || (po.supplierName && po.supplierName.toLowerCase() !== 'supplier' ? po.supplierName : 'Montech Engineering')).toUpperCase();
-    const contactPerson = firstContact?.contactPerson || supp?.contactPerson || 'Shakti Daki';
+    const vendorName = (supp?.supplierName || supp?.name || (po.supplierName && po.supplierName.toLowerCase() !== 'supplier' ? po.supplierName : 'Vendor')).toUpperCase();
+    const contactPerson = firstContact?.contactPerson || supp?.contactPerson || '';
     
-    // Auto-resolve phone number
+    // Auto-resolve phone number from database
     let rawPhone =
       (po as any).supplierMobile ||
       (po as any).mobile ||
       firstContact?.phone ||
       supp?.phone ||
       supp?.mobile ||
-      '08460005157';
+      '';
 
-    // Auto-resolve email address
+    // Auto-resolve email address from database
     let rawEmail =
       (po as any).supplierEmail ||
       (po as any).email ||
       firstContact?.email ||
       supp?.email ||
-      'dakishakti5157@gmail.com';
+      '';
 
     const address =
       firstAddress?.addressLine ||
       supp?.address ||
-      'GIDC Industrial Area';
-    const city = firstAddress?.city || supp?.city || 'Ahmedabad';
-    const state = firstAddress?.state || supp?.state || 'Gujarat';
-    const gstin = supp?.gstin || '24AAEFU9027H1Z3';
+      '';
+    const city = firstAddress?.city || supp?.city || '';
+    const state = firstAddress?.state || supp?.state || '';
+    const gstin = supp?.gstin || '';
 
     return { vendorName, contactPerson, phone: rawPhone, email: rawEmail, address, city, state, gstin, supp };
   };
@@ -519,7 +519,8 @@ function PurchaseOrdersHubContent() {
     }
 
     if (!cleanPhone || cleanPhone.length < 10) {
-      cleanPhone = '8460005157';
+      showToast(`Phone number not found in database for ${vendorName}. Please add in Vendor Master.`);
+      return;
     }
 
     // Ensure country code 91 for Indian numbers
@@ -574,7 +575,12 @@ function PurchaseOrdersHubContent() {
   // Send Official PO via Email directly to Vendor's email ID
   const handleSendPOEmail = (po: PurchaseOrder) => {
     const { vendorName, email } = resolvePOVendorDetails(po);
-    const targetEmail = (email || 'dakishakti5157@gmail.com').trim();
+    const targetEmail = (email || '').trim();
+
+    if (!targetEmail) {
+      showToast(`Email address not found in database for ${vendorName}. Please add in Vendor Master.`);
+      return;
+    }
 
     const subject = encodeURIComponent(
       `Official Purchase Order: ${po.poNumber} - ${vendorName} - UMA TECHNOFAB`
@@ -1838,9 +1844,9 @@ function PurchaseOrdersHubContent() {
                   const displayVendorName = vendorInfo.vendorName;
                   const displayPhone = vendorInfo.phone || supp?.mobile || supp?.phone || '-';
                   const displayEmail = vendorInfo.email || supp?.email;
-                  const displayAddress = vendorInfo.address || supp?.address || 'GIDC Industrial Area';
-                  const displayCity = vendorInfo.city || supp?.city || 'Ahmedabad';
-                  const displayState = vendorInfo.state || supp?.state || 'Gujarat';
+                  const displayAddress = vendorInfo.address || supp?.address || '';
+                  const displayCity = vendorInfo.city || supp?.city || '';
+                  const displayState = vendorInfo.state || supp?.state || '';
                   const displayGstin = vendorInfo.gstin || supp?.gstin;
                   const displayContactPerson = vendorInfo.contactPerson || supp?.contactPerson;
 

@@ -3996,20 +3996,10 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             paymentTerms: s.paymentTerms || s.payment_terms || '30 Days Credit',
           };
         });
-        setSuppliers((prev) => {
-          const map = new Map<string, Supplier>();
-          (INITIAL_SUPPLIERS || []).forEach((sup) => map.set(String(sup.id), sup));
-          prev.forEach((sup) => map.set(String(sup.id), sup));
-          normalizedSuppliers.forEach((sup) => {
-            const existing = map.get(String(sup.id));
-            map.set(String(sup.id), existing ? { ...existing, ...sup } : sup);
-          });
-          const merged = Array.from(map.values());
-          if (typeof window !== 'undefined') {
-            try { localStorage.setItem('UMA_ERP_suppliers', JSON.stringify(merged)); } catch (_) {}
-          }
-          return merged;
-        });
+        setSuppliers(normalizedSuppliers);
+        if (typeof window !== 'undefined') {
+          try { localStorage.setItem('UMA_ERP_suppliers', JSON.stringify(normalizedSuppliers)); } catch (_) {}
+        }
       }
 
       const rawPRs = val<any[]>(results[1]);
