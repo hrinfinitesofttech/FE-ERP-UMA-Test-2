@@ -41,6 +41,9 @@ export default function PurchaseRequestsPage() {
     deleteRFQ,
     suppliers = [],
     purchaseRequisitions = [],
+    materialRequirements = [],
+    boms = [],
+    itemMasters = [],
     projectJobs: projects = [],
     currentUser,
     isInitialLoading,
@@ -55,6 +58,152 @@ export default function PurchaseRequestsPage() {
   // Success Toast
   const showToast = (msg: string) => {
     toast.success(msg);
+  };
+
+  // ---------------------------------------------------------------------------
+  // AVAILABLE ITEMS STRUCTURE & AUTO-DETECT HELPERS
+  // ---------------------------------------------------------------------------
+  interface AvailableItemOption {
+    key: string;
+    source: 'requisition' | 'requirement' | 'bom' | 'master';
+    itemCode: string;
+    itemName: string;
+    specification?: string;
+    category: string;
+    quantity: number;
+    unitOfMeasure: string;
+    prNumber?: string;
+    projectRef?: string;
+    label: string;
+  }
+
+  // Helper to extract all required items for a selected project from PRs, shortages, and BOMs
+  const getProjectRequiredItems = (projId: string): AvailableItemOption[] => {
+    if (!projId) return [];
+
+    const cleanProjId = projId.trim().toLowerCase();
+    const matchedProject = projects.find(
+      (p) =>
+        (p.projectNumber && p.projectNumber.toLowerCase() === cleanProjId) ||
+        (p.id && p.id.toLowerCase() === cleanProjId) ||
+        (p.jobNumber && p.jobNumber.toLowerCase() === cleanProjId) ||
+        (p.projectName && p.projectName.toLowerCase() === cleanProjId)
+    );
+
+    const targetTokens = [
+      cleanProjId,
+      matchedProject?.id?.toLowerCase(),
+      matchedProject?.projectNumber?.toLowerCase(),
+      matchedProject?.jobNumber?.toLowerCase(),
+      matchedProject?.projectName?.toLowerCase(),
+    ].filter(Boolean) as string[];
+
+    const isProjectMatch = (val?: string) => {
+      if (!val) return false;
+      const v = val.toLowerCase().trim();
+      return targetTokens.some((t) => v === t || v.includes(t) || t.includes(v));
+    };
+
+    const results: AvailableItemOption[] = [];
+    const seenKeys = new Set<string>();
+
+    // 1. From purchaseRequisitions (Material Requisition / Bom shortage PRs)
+    (purchaseRequisitions || []).forEach((pr) => {
+      const prMatches =
+        isProjectMatch(pr.projectId) ||
+        isProjectMatch(pr.jobId) ||
+        isProjectMatch(pr.jobNumber) ||
+        isProjectMatch(pr.bomId);
+
+      if (prMatches && Array.isArray(pr.items)) {
+        pr.items.forEach((it, idx) => {
+          const itemCode = it.itemCode || '';
+          const itemName = it.itemName || it.materialName || 'Engineering Component';
+          const spec = it.specification || '';
+          const key = `pr-${pr.id || pr.prNumber}-${it.id || idx}-${itemCode || itemName}`;
+          if (!seenKeys.has(key)) {
+            seenKeys.add(key);
+            results.push({
+              key,
+              source: 'requisition',
+              itemCode,
+              itemName,
+              specification: spec,
+              category: it.category || 'Fabricated',
+              quantity: Number(it.requiredQuantity ?? it.quantity ?? 1),
+              unitOfMeasure: (it.unitOfMeasure || it.unit || 'NOS').toUpperCase(),
+              prNumber: pr.prNumber,
+              projectRef: pr.projectId || pr.jobId || projId,
+              label: `[PR: ${pr.prNumber || 'REQ'}] ${itemCode ? `${itemCode} - ` : ''}${itemName} (${it.requiredQuantity ?? it.quantity ?? 1} ${it.unitOfMeasure || 'NOS'})`,
+            });
+          }
+        });
+      }
+    });
+
+    // 2. From materialRequirements (MRP shortages)
+    (materialRequirements || []).forEach((mr, idx) => {
+      const mrMatches =
+        isProjectMatch(mr.projectId) ||
+        isProjectMatch(mr.jobId) ||
+        isProjectMatch(mr.jobNumber);
+
+      if (mrMatches) {
+        const itemCode = mr.itemCode || mr.partNumber || '';
+        const itemName = mr.itemName || mr.materialName || 'Engineering Component';
+        const spec = mr.specification || '';
+        const key = `mr-${mr.id || idx}-${itemCode || itemName}`;
+        if (!seenKeys.has(key)) {
+          seenKeys.add(key);
+          results.push({
+            key,
+            source: 'requirement',
+            itemCode,
+            itemName,
+            specification: spec,
+            category: mr.category || 'Raw Material',
+            quantity: Number(mr.requiredQuantity ?? mr.shortageQuantity ?? 1),
+            unitOfMeasure: (mr.unitOfMeasure || mr.unit || 'NOS').toUpperCase(),
+            projectRef: mr.projectId || mr.jobId || projId,
+            label: `[Required] ${itemCode ? `${itemCode} - ` : ''}${itemName} (${mr.requiredQuantity ?? mr.shortageQuantity ?? 1} ${mr.unitOfMeasure || 'NOS'})`,
+          });
+        }
+      }
+    });
+
+    // 3. From boms (Approved Bill of Materials)
+    (boms || []).forEach((b) => {
+      const bomMatches =
+        isProjectMatch(b.projectId) ||
+        isProjectMatch(b.jobNumber) ||
+        isProjectMatch(b.bomNumber);
+
+      if (bomMatches && Array.isArray(b.items)) {
+        b.items.forEach((it: any, idx: number) => {
+          const itemCode = it.partNumber || it.itemCode || '';
+          const itemName = it.itemName || 'Engineering Component';
+          const spec = it.specification || it.description || '';
+          const key = `bom-${b.id}-${it.id || idx}-${itemCode || itemName}`;
+          if (!seenKeys.has(key)) {
+            seenKeys.add(key);
+            results.push({
+              key,
+              source: 'bom',
+              itemCode,
+              itemName,
+              specification: spec,
+              category: it.category || it.itemType || 'Fabricated',
+              quantity: Number(it.quantity ?? it.qty ?? 1),
+              unitOfMeasure: (it.unit || it.unitOfMeasure || 'NOS').toUpperCase(),
+              projectRef: b.projectId || b.jobNumber || projId,
+              label: `[BOM] ${itemCode ? `${itemCode} - ` : ''}${itemName} (${it.quantity ?? it.qty ?? 1} ${it.unit || 'NOS'})`,
+            });
+          }
+        });
+      }
+    });
+
+    return results;
   };
 
   // ---------------------------------------------------------------------------
@@ -106,13 +255,14 @@ export default function PurchaseRequestsPage() {
       items: [
         {
           id: `item-${Date.now()}-1`,
+          selectedItemKey: '',
           groupTitle: '',
           itemName: '',
           dimensions: '',
           specification: '',
           thk: '',
           quantity: '' as any,
-          unitOfMeasure: 'KG',
+          unitOfMeasure: 'NOS',
           rate: 0,
           amount: 0,
         },
@@ -121,6 +271,197 @@ export default function PurchaseRequestsPage() {
   };
 
   const [formData, setFormData] = useState<any>(getEmptyFormData);
+
+  // Available options for current selected project
+  const currentProjectItems = useMemo(
+    () => getProjectRequiredItems(formData.selectedProjectId),
+    [formData.selectedProjectId, purchaseRequisitions, materialRequirements, boms, projects]
+  );
+
+  // All requisitions items across projects
+  const allRequisitionItems = useMemo(() => {
+    const list: (AvailableItemOption & { projectRef: string })[] = [];
+    const seen = new Set<string>();
+    (purchaseRequisitions || []).forEach((pr) => {
+      (pr.items || []).forEach((it, idx) => {
+        const itemCode = it.itemCode || '';
+        const itemName = it.itemName || 'Component';
+        const key = `all-pr-${pr.id}-${it.id || idx}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          list.push({
+            key,
+            source: 'requisition',
+            itemCode,
+            itemName,
+            specification: it.specification || '',
+            category: it.category || 'Fabricated',
+            quantity: Number(it.requiredQuantity ?? it.quantity ?? 1),
+            unitOfMeasure: (it.unitOfMeasure || it.unit || 'NOS').toUpperCase(),
+            prNumber: pr.prNumber,
+            projectRef: pr.projectId || pr.jobId || 'PR',
+            label: `[${pr.projectId || pr.prNumber}] ${itemCode ? `${itemCode} - ` : ''}${itemName}`,
+          });
+        }
+      });
+    });
+    return list;
+  }, [purchaseRequisitions]);
+
+  // Master catalog options
+  const masterItemOptions = useMemo(() => {
+    return (itemMasters || []).map((m: any) => ({
+      key: `master-${m.id || m.itemCode}`,
+      source: 'master' as const,
+      itemCode: m.itemCode || '',
+      itemName: m.itemName || 'Master Item',
+      specification: m.specification || m.description || '',
+      category: m.category || 'Raw Material',
+      quantity: 1,
+      unitOfMeasure: (m.uom || m.unit || m.unitOfMeasure || 'NOS').toUpperCase(),
+      label: `${m.itemCode ? `${m.itemCode} - ` : ''}${m.itemName}${m.category ? ` (${m.category})` : ''}`,
+    }));
+  }, [itemMasters]);
+
+  // Handle Project Selection in Form (Auto-fill required items into lines)
+  const handleProjectSelect = (projId: string) => {
+    if (!projId) {
+      setFormData((prev: any) => ({
+        ...prev,
+        selectedProjectId: '',
+      }));
+      return;
+    }
+
+    const matchedProject = projects.find(
+      (p) => p.projectNumber === projId || p.id === projId || p.jobNumber === projId
+    );
+    const projLabel = matchedProject?.projectNumber || projId;
+    const projItems = getProjectRequiredItems(projId);
+
+    setFormData((prev: any) => {
+      if (projItems.length > 0) {
+        const newItems = projItems.map((pItm, idx) => ({
+          id: `item-${Date.now()}-${idx + 1}`,
+          selectedItemKey: pItm.key,
+          groupTitle: pItm.category || 'Fabricated',
+          itemName:
+            pItm.specification && !pItm.itemName.toLowerCase().includes(pItm.specification.toLowerCase())
+              ? `${pItm.itemName}\n${pItm.specification}`
+              : pItm.itemName,
+          dimensions: pItm.specification || '',
+          specification: pItm.specification || '',
+          thk: '',
+          quantity: pItm.quantity || 1,
+          unitOfMeasure: (pItm.unitOfMeasure || 'NOS').toUpperCase(),
+          rate: 0,
+          amount: 0,
+        }));
+
+        const itemSummary = projItems
+          .map((i) => i.itemName)
+          .slice(0, 3)
+          .join(', ');
+        const autoSubject =
+          !prev.subject || prev.subject.startsWith('REQUIRE FOR')
+            ? `REQUIRE FOR ${itemSummary.toUpperCase()} - ${projLabel}`
+            : prev.subject;
+
+        return {
+          ...prev,
+          selectedProjectId: projId,
+          subject: autoSubject,
+          items: newItems,
+        };
+      }
+
+      return {
+        ...prev,
+        selectedProjectId: projId,
+      };
+    });
+
+    if (projItems.length > 0) {
+      toast.success(`Loaded ${projItems.length} required item(s) for project ${projLabel}`);
+    } else {
+      toast.info(`Project ${projLabel} selected. You can select items from Master or add custom items.`);
+    }
+  };
+
+  // Handle Item Dropdown Selection in any Line
+  const handleSelectItemForLine = (lineId: string, selectedKey: string) => {
+    if (!selectedKey) {
+      setFormData((prev: any) => ({
+        ...prev,
+        items: prev.items.map((itm: any) =>
+          itm.id === lineId ? { ...itm, selectedItemKey: '' } : itm
+        ),
+      }));
+      return;
+    }
+
+    const allAvailable = [
+      ...currentProjectItems,
+      ...allRequisitionItems,
+      ...masterItemOptions,
+    ];
+    const picked = allAvailable.find((opt) => opt.key === selectedKey);
+    if (!picked) return;
+
+    setFormData((prev: any) => ({
+      ...prev,
+      items: prev.items.map((itm: any) => {
+        if (itm.id !== lineId) return itm;
+        return {
+          ...itm,
+          selectedItemKey: selectedKey,
+          groupTitle: picked.category || itm.groupTitle || 'Fabricated',
+          itemName:
+            picked.specification && !picked.itemName.toLowerCase().includes(picked.specification.toLowerCase())
+              ? `${picked.itemName}\n${picked.specification}`
+              : picked.itemName,
+          dimensions: picked.specification || itm.dimensions || '',
+          specification: picked.specification || itm.specification || '',
+          quantity: picked.quantity || itm.quantity || 1,
+          unitOfMeasure: (picked.unitOfMeasure || itm.unitOfMeasure || 'NOS').toUpperCase(),
+        };
+      }),
+    }));
+  };
+
+  // Reload all project required items into the lines
+  const handleReloadProjectItems = () => {
+    if (!formData.selectedProjectId) {
+      toast.warning('Please select a Linked Project Reference first.');
+      return;
+    }
+    const projItems = getProjectRequiredItems(formData.selectedProjectId);
+    if (projItems.length === 0) {
+      toast.info('No requisition items found for this project.');
+      return;
+    }
+    const newItems = projItems.map((pItm, idx) => ({
+      id: `item-${Date.now()}-${idx + 1}`,
+      selectedItemKey: pItm.key,
+      groupTitle: pItm.category || 'Fabricated',
+      itemName:
+        pItm.specification && !pItm.itemName.toLowerCase().includes(pItm.specification.toLowerCase())
+          ? `${pItm.itemName}\n${pItm.specification}`
+          : pItm.itemName,
+      dimensions: pItm.specification || '',
+      specification: pItm.specification || '',
+      thk: '',
+      quantity: pItm.quantity || 1,
+      unitOfMeasure: (pItm.unitOfMeasure || 'NOS').toUpperCase(),
+      rate: 0,
+      amount: 0,
+    }));
+    setFormData((prev: any) => ({
+      ...prev,
+      items: newItems,
+    }));
+    toast.success(`Reloaded ${projItems.length} item(s) from project requisition.`);
+  };
 
   // Handle Supplier Selection in Form (Auto-fill vendor details)
   const handleSupplierSelect = (suppId: string) => {
@@ -189,26 +530,28 @@ export default function PurchaseRequestsPage() {
         req.items && req.items.length > 0
           ? req.items.map((itm, idx) => ({
               id: itm.id || `item-${idx + 1}`,
+              selectedItemKey: (itm as any).selectedItemKey || '',
               groupTitle: itm.groupTitle || '',
               itemName: itm.itemName || itm.description || itm.materialName || '',
               dimensions: itm.dimensions || itm.size || itm.specification || '',
               specification: itm.specification || '',
               thk: itm.thk || '',
               quantity: itm.quantity !== undefined ? itm.quantity : (itm.requiredQuantity || ''),
-              unitOfMeasure: itm.unitOfMeasure || itm.unit || 'KG',
+              unitOfMeasure: itm.unitOfMeasure || itm.unit || 'NOS',
               rate: Number(itm.rate || 0),
               amount: Number(itm.amount || 0),
             }))
           : [
               {
                 id: `item-${Date.now()}-1`,
+                selectedItemKey: '',
                 groupTitle: '',
                 itemName: '',
                 dimensions: '',
                 specification: '',
                 thk: '',
                 quantity: '' as any,
-                unitOfMeasure: 'KG',
+                unitOfMeasure: 'NOS',
                 rate: 0,
                 amount: 0,
               },
@@ -226,13 +569,14 @@ export default function PurchaseRequestsPage() {
         ...prev.items,
         {
           id: `item-${Date.now()}-${nextIdx}`,
+          selectedItemKey: '',
           groupTitle: prev.items[prev.items.length - 1]?.groupTitle || '',
           itemName: '',
           dimensions: '',
           specification: '',
           thk: '',
           quantity: '',
-          unitOfMeasure: 'KG',
+          unitOfMeasure: 'NOS',
           rate: 0,
           amount: 0,
         },
@@ -676,7 +1020,7 @@ export default function PurchaseRequestsPage() {
                     </label>
                     <select
                       value={formData.selectedProjectId}
-                      onChange={(e) => setFormData({ ...formData, selectedProjectId: e.target.value })}
+                      onChange={(e) => handleProjectSelect(e.target.value)}
                       className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] font-semibold focus:outline-none focus:border-amber-600 font-mono"
                     >
                       <option value="">-- Select Project Reference --</option>
@@ -836,36 +1180,75 @@ export default function PurchaseRequestsPage() {
 
               {/* Row 3: Material Requirement Items Builder */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
                     <h4 className="font-bold text-[#211B17] text-xs flex items-center gap-1.5">
                       <Package className="w-3.5 h-3.5 text-amber-700" />
                       <span>Material Lines to Quote ({formData.items.length})</span>
                     </h4>
                     <p className="text-[11px] text-[#70665F]">
-                      Specify product description, dimensions, thickness, and required quantity
+                      Select items from project requirement dropdown or customize description, quantity, and UOM
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleAddItem}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs transition cursor-pointer shadow-2xs"
-                  >
-                    <Plus className="w-3.5 h-3.5 text-amber-700" />
-                    <span>Add Material Line</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {currentProjectItems.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleReloadProjectItems}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold text-xs transition cursor-pointer shadow-2xs active:scale-95"
+                        title="Reload all items from project requisition"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Auto-fill All ({currentProjectItems.length} items)</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleAddItem}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs transition cursor-pointer shadow-2xs active:scale-95"
+                    >
+                      <Plus className="w-3.5 h-3.5 text-amber-700" />
+                      <span>Add Material Line</span>
+                    </button>
+                  </div>
                 </div>
 
+                {/* Project requirement status banner if project is selected */}
+                {formData.selectedProjectId && (
+                  <div className="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/80 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                      <span className="font-semibold text-amber-950">
+                        {currentProjectItems.length > 0 ? (
+                          <>
+                            <strong className="font-bold font-mono text-amber-900">{currentProjectItems.length} required item(s)</strong> found for project <span className="font-mono font-bold text-amber-900">{formData.selectedProjectId}</span>.
+                          </>
+                        ) : (
+                          <>
+                            No requisition items recorded for project <span className="font-mono font-bold text-amber-900">{formData.selectedProjectId}</span>. You can select items from Master Catalog below.
+                          </>
+                        )}
+                      </span>
+                    </div>
+                    {currentProjectItems.length > 0 && (
+                      <span className="text-[11px] text-amber-800 font-medium">
+                        Items auto-populated in table below
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 <div className="border border-[#EBE3DB] rounded-xl overflow-x-auto">
-                  <table className="w-full text-left text-xs min-w-[700px]">
+                  <table className="w-full text-left text-xs min-w-[850px]">
                     <thead className="bg-[#FAF7F2] text-[10px] font-bold text-[#70665F] uppercase border-b border-[#EBE3DB]">
                       <tr>
-                        <th className="p-2 w-10 text-center">SR.</th>
-                        <th className="p-2 w-48">GROUP / CATEGORY TITLE</th>
+                        <th className="p-2 w-8 text-center">SR.</th>
+                        <th className="p-2 w-52">SELECT ITEM (DROPDOWN)</th>
+                        <th className="p-2 w-44">GROUP / CATEGORY TITLE</th>
                         <th className="p-2">DESCRIPTION OF ITEM(S)</th>
-                        <th className="p-2 w-28 text-center">QTY</th>
+                        <th className="p-2 w-24 text-center">QTY</th>
                         <th className="p-2 w-20 text-center">UOM</th>
-                        <th className="p-2 w-10 text-center"></th>
+                        <th className="p-2 w-8 text-center"></th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#EBE3DB] bg-white">
@@ -875,12 +1258,49 @@ export default function PurchaseRequestsPage() {
                             {idx + 1}
                           </td>
                           <td className="p-1.5">
+                            <select
+                              value={itm.selectedItemKey || ''}
+                              onChange={(e) => handleSelectItemForLine(itm.id, e.target.value)}
+                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-xs font-semibold text-[#211B17] focus:outline-none focus:border-amber-600 truncate"
+                              title="Select item from project requisition or master catalog"
+                            >
+                              <option value="">-- Choose Item / Requisition --</option>
+                              {currentProjectItems.length > 0 && (
+                                <optgroup label={`📋 Project Required Items (${currentProjectItems.length})`}>
+                                  {currentProjectItems.map((pItm) => (
+                                    <option key={pItm.key} value={pItm.key}>
+                                      {pItm.itemCode ? `${pItm.itemCode} - ` : ''}{pItm.itemName} (Req: {pItm.quantity} {pItm.unitOfMeasure})
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              )}
+                              {allRequisitionItems.length > 0 && (
+                                <optgroup label={`📑 Other Project Requisitions (${allRequisitionItems.length})`}>
+                                  {allRequisitionItems.map((aItm) => (
+                                    <option key={aItm.key} value={aItm.key}>
+                                      [{aItm.projectRef}] {aItm.itemCode ? `${aItm.itemCode} - ` : ''}{aItm.itemName} ({aItm.quantity} {aItm.unitOfMeasure})
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              )}
+                              {masterItemOptions.length > 0 && (
+                                <optgroup label={`📦 Master Catalog (${masterItemOptions.length})`}>
+                                  {masterItemOptions.map((m) => (
+                                    <option key={m.key} value={m.key}>
+                                      {m.label}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              )}
+                            </select>
+                          </td>
+                          <td className="p-1.5">
                             <input
                               type="text"
                               value={itm.groupTitle || ''}
                               onChange={(e) => handleItemFieldChange(itm.id, 'groupTitle', e.target.value)}
-                              placeholder="❖ SS 316 L HR PLATE"
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:border-amber-600"
+                              placeholder="❖ Fabricated / SS 316 L"
+                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-amber-600"
                             />
                           </td>
                           <td className="p-1.5">
@@ -889,8 +1309,8 @@ export default function PurchaseRequestsPage() {
                               required
                               value={itm.itemName}
                               onChange={(e) => handleItemFieldChange(itm.id, 'itemName', e.target.value)}
-                              placeholder="e.g. SS 316 L HR COIL 15000 MM WIDTH 5 MM THK"
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-bold text-[#211B17] focus:outline-none focus:border-amber-600"
+                              placeholder="e.g. tank box 7865X4548 SIZE"
+                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-xs font-bold text-[#211B17] focus:outline-none focus:border-amber-600"
                             />
                           </td>
                           <td className="p-1.5">
@@ -901,29 +1321,43 @@ export default function PurchaseRequestsPage() {
                               required
                               value={itm.quantity}
                               onChange={(e) => handleItemFieldChange(itm.id, 'quantity', e.target.value)}
-                              placeholder="e.g. 500"
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-mono font-bold text-center text-amber-900 focus:outline-none focus:border-amber-600"
+                              placeholder="e.g. 2"
+                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-xs font-mono font-bold text-center text-amber-900 focus:outline-none focus:border-amber-600"
                             />
                           </td>
                           <td className="p-1.5">
                             <select
-                              value={itm.unitOfMeasure || 'KG'}
+                              value={(itm.unitOfMeasure || 'NOS').toUpperCase()}
                               onChange={(e) => handleItemFieldChange(itm.id, 'unitOfMeasure', e.target.value)}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-1 py-1 text-xs font-bold text-center text-[#211B17]"
+                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-1 py-1.5 text-xs font-bold text-center text-[#211B17]"
                             >
-                              <option value="KG">KG</option>
                               <option value="NOS">NOS</option>
+                              <option value="KG">KG</option>
                               <option value="MTR">MTR</option>
                               <option value="SET">SET</option>
                               <option value="TON">TON</option>
                               <option value="PKT">PKT</option>
+                              <option value="PCS">PCS</option>
+                              <option value="LOT">LOT</option>
+                              <option value="PAIR">PAIR</option>
+                              <option value="BAG">BAG</option>
+                              <option value="LTR">LTR</option>
+                              {itm.unitOfMeasure &&
+                                !['NOS', 'KG', 'MTR', 'SET', 'TON', 'PKT', 'PCS', 'LOT', 'PAIR', 'BAG', 'LTR'].includes(
+                                  itm.unitOfMeasure.toUpperCase()
+                                ) && (
+                                  <option value={itm.unitOfMeasure.toUpperCase()}>
+                                    {itm.unitOfMeasure.toUpperCase()}
+                                  </option>
+                                )}
                             </select>
                           </td>
                           <td className="p-1.5 text-center">
                             <button
                               type="button"
                               onClick={() => handleRemoveItem(itm.id)}
-                              className="p-1 rounded text-rose-500 hover:text-rose-700 hover:bg-rose-50 cursor-pointer"
+                              className="p-1 rounded text-rose-500 hover:text-rose-700 hover:bg-rose-50 cursor-pointer transition"
+                              title="Remove item line"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
