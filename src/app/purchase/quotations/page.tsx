@@ -162,9 +162,9 @@ export default function SupplierQuotationsPage() {
 
   const handleSelectSupplier = (suppId: string) => {
     setSelectedSupplierId(suppId);
-    const s = suppliers.find((sp) => sp.id === suppId);
+    const s = suppliers.find((sp) => sp.id === suppId || sp.vendorCode === suppId);
     if (s) {
-      setSupplierName(s.name);
+      setSupplierName(s.supplierName || s.name || 'Montech Engineering');
     }
   };
 

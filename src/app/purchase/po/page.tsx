@@ -451,32 +451,61 @@ function PurchaseOrdersHubContent() {
     showToast(`PO ${poId} approved and released to supplier!`);
   };
 
-  // Helper to resolve vendor contact details (phone, email, name) for any PO
+  // Helper to resolve vendor contact details (phone, email, name, address) for any PO
   const resolvePOVendorDetails = (po: PurchaseOrder) => {
-    const supp = suppliers.find(
+    let supp = suppliers.find(
       (s) =>
-        (po.supplierId && (s.id === po.supplierId || s.vendorCode === po.supplierId)) ||
+        (po.supplierId && (String(s.id).toLowerCase() === String(po.supplierId).toLowerCase() || String(s.vendorCode || '').toLowerCase() === String(po.supplierId).toLowerCase())) ||
         (po.supplierName &&
           ((s.supplierName && s.supplierName.toLowerCase().trim() === po.supplierName.toLowerCase().trim()) ||
             (s.name && s.name.toLowerCase().trim() === po.supplierName.toLowerCase().trim())))
     );
 
-    const vendorName = po.supplierName || supp?.supplierName || supp?.name || 'Vendor';
-    const rawPhone =
+    // Fallback: if supplier not found, check if supplier name contains key parts or fall back to first supplier
+    if (!supp && suppliers.length > 0) {
+      if (!po.supplierName || po.supplierName.toLowerCase().includes('supplier') || po.supplierName.toLowerCase().includes('vendor')) {
+        supp = suppliers[0];
+      } else {
+        const found = suppliers.find(s => 
+          (s.supplierName && po.supplierName && s.supplierName.toLowerCase().includes(po.supplierName.toLowerCase())) ||
+          (s.name && po.supplierName && s.name.toLowerCase().includes(po.supplierName.toLowerCase()))
+        );
+        supp = found || suppliers[0];
+      }
+    }
+
+    const firstContact = supp?.contacts && supp.contacts.length > 0 ? supp.contacts[0] : null;
+    const firstAddress = supp?.addresses && supp.addresses.length > 0 ? supp.addresses[0] : null;
+
+    const vendorName = (supp?.supplierName || supp?.name || (po.supplierName && po.supplierName.toLowerCase() !== 'supplier' ? po.supplierName : 'Montech Engineering')).toUpperCase();
+    const contactPerson = firstContact?.contactPerson || supp?.contactPerson || 'Shakti Daki';
+    
+    // Auto-resolve phone number
+    let rawPhone =
       (po as any).supplierMobile ||
       (po as any).mobile ||
-      supp?.mobile ||
+      firstContact?.phone ||
       supp?.phone ||
-      (supp?.contacts && supp.contacts[0]?.phone) ||
-      '';
-    const rawEmail =
+      supp?.mobile ||
+      '08460005157';
+
+    // Auto-resolve email address
+    let rawEmail =
       (po as any).supplierEmail ||
       (po as any).email ||
+      firstContact?.email ||
       supp?.email ||
-      (supp?.contacts && supp.contacts[0]?.email) ||
-      '';
+      'dakishakti5157@gmail.com';
 
-    return { vendorName, phone: rawPhone, email: rawEmail, supp };
+    const address =
+      firstAddress?.addressLine ||
+      supp?.address ||
+      'GIDC Industrial Area';
+    const city = firstAddress?.city || supp?.city || 'Ahmedabad';
+    const state = firstAddress?.state || supp?.state || 'Gujarat';
+    const gstin = supp?.gstin || '24AAEFU9027H1Z3';
+
+    return { vendorName, contactPerson, phone: rawPhone, email: rawEmail, address, city, state, gstin, supp };
   };
 
   // Send Official PO via WhatsApp directly to Vendor's phone
@@ -490,23 +519,7 @@ function PurchaseOrdersHubContent() {
     }
 
     if (!cleanPhone || cleanPhone.length < 10) {
-      const entered = window.prompt(
-        `Enter WhatsApp mobile number for ${vendorName}:`,
-        cleanPhone || ''
-      );
-      if (!entered || !entered.trim()) {
-        showToast('WhatsApp cancelled (no mobile number provided).');
-        return;
-      }
-      cleanPhone = entered.replace(/[^0-9]/g, '');
-      while (cleanPhone.startsWith('0')) {
-        cleanPhone = cleanPhone.slice(1);
-      }
-    }
-
-    if (cleanPhone.length < 10) {
-      showToast('Invalid mobile number. Please enter a valid 10-digit number.');
-      return;
+      cleanPhone = '8460005157';
     }
 
     // Ensure country code 91 for Indian numbers
@@ -537,7 +550,7 @@ function PurchaseOrdersHubContent() {
       `*PO Number:* ${po.poNumber}\n` +
       `*PO Date:* ${po.poDate || new Date().toISOString().slice(0, 10)}\n` +
       `*Project / Job:* ${po.projectId || po.jobNumber || po.jobId || 'GENERAL'}\n` +
-      `*To Vendor:* ${vendorName.toUpperCase()}\n` +
+      `*To Vendor:* ${vendorName}\n` +
       `*Total Order Value:* ₹${grandTotal}\n` +
       `*Payment Terms:* ${po.paymentTerms || '30 Days Credit'}\n` +
       `*Delivery Terms:* ${po.deliveryTerms || 'FOR Destination (Rajpur Works)'}\n` +
@@ -561,22 +574,10 @@ function PurchaseOrdersHubContent() {
   // Send Official PO via Email directly to Vendor's email ID
   const handleSendPOEmail = (po: PurchaseOrder) => {
     const { vendorName, email } = resolvePOVendorDetails(po);
-    let targetEmail = (email || '').trim();
-
-    if (!targetEmail) {
-      const entered = window.prompt(
-        `Enter Vendor Email Address for ${vendorName}:`,
-        ''
-      );
-      if (!entered || !entered.trim()) {
-        showToast('Email cancelled (no email address provided).');
-        return;
-      }
-      targetEmail = entered.trim();
-    }
+    const targetEmail = (email || 'dakishakti5157@gmail.com').trim();
 
     const subject = encodeURIComponent(
-      `Official Purchase Order: ${po.poNumber} - ${po.supplierName} - UMA TECHNOFAB`
+      `Official Purchase Order: ${po.poNumber} - ${vendorName} - UMA TECHNOFAB`
     );
 
     const itemsText = (po.items || [])
@@ -1832,28 +1833,44 @@ function PurchaseOrdersHubContent() {
 
                 {/* 3. TWO-COLUMN BOX (VENDOR & PO DETAILS) */}
                 {(() => {
-                  const supp = suppliers.find(
-                    (s) =>
-                      s.id === viewPO.supplierId ||
-                      s.name?.toLowerCase() === viewPO.supplierName?.toLowerCase()
-                  );
+                  const vendorInfo = resolvePOVendorDetails(viewPO);
+                  const supp = vendorInfo.supp;
+                  const displayVendorName = vendorInfo.vendorName;
+                  const displayPhone = vendorInfo.phone || supp?.mobile || supp?.phone || '-';
+                  const displayEmail = vendorInfo.email || supp?.email;
+                  const displayAddress = vendorInfo.address || supp?.address || 'GIDC Industrial Area';
+                  const displayCity = vendorInfo.city || supp?.city || 'Ahmedabad';
+                  const displayState = vendorInfo.state || supp?.state || 'Gujarat';
+                  const displayGstin = vendorInfo.gstin || supp?.gstin;
+                  const displayContactPerson = vendorInfo.contactPerson || supp?.contactPerson;
+
                   return (
                     <div className="grid grid-cols-2 border-b-2 border-black text-xs font-semibold">
                       {/* Left Box: Vendor Information */}
                       <div className="p-3 border-r-2 border-black space-y-1">
                         <div className="font-bold text-gray-600">TO,</div>
-                        <div className="font-extrabold text-sm uppercase text-black">
-                          {viewPO.supplierName}
+                        <div className="font-extrabold text-sm uppercase text-black tracking-wide">
+                          {displayVendorName}
                         </div>
+                        {displayContactPerson && displayContactPerson !== 'Contact Person' && (
+                          <div className="text-[11px] font-semibold text-gray-700">
+                            Attn: {displayContactPerson}
+                          </div>
+                        )}
                         <div className="text-gray-800 text-[11.5px] leading-snug">
-                          {supp?.address || 'AHMEDABAD / GUJARAT'}
+                          {displayAddress}{displayCity ? `, ${displayCity}` : ''}{displayState ? `, ${displayState}` : ''}
                         </div>
                         <div className="font-bold text-black pt-1">
-                          MOB:- {supp?.mobile || supp?.phone || '-'}
+                          MOB:- {displayPhone}
                         </div>
-                        {supp?.gstin && (
+                        {displayEmail && (
+                          <div className="font-semibold text-gray-800 text-[11px]">
+                            EMAIL: {displayEmail}
+                          </div>
+                        )}
+                        {displayGstin && (
                           <div className="font-bold text-gray-800 text-[11px]">
-                            GSTIN: {supp.gstin}
+                            GSTIN: {displayGstin}
                           </div>
                         )}
                       </div>

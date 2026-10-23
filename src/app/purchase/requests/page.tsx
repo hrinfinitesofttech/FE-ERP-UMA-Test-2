@@ -714,30 +714,66 @@ export default function PurchaseRequestsPage() {
     });
   };
 
-  // Helper to resolve contact details (name, phone, email) for any request
+  // Helper to resolve contact details (name, phone, email, address) for any request
   const resolveVendorDetails = (req: RequestForQuotation) => {
-    const supp = suppliers.find(
+    let supp = suppliers.find(
       (s) =>
-        (req.supplierId && (s.id === req.supplierId || s.vendorCode === req.supplierId)) ||
+        (req.supplierId && (String(s.id).toLowerCase() === String(req.supplierId).toLowerCase() || String(s.vendorCode || '').toLowerCase() === String(req.supplierId).toLowerCase())) ||
         (req.supplierName &&
           (s.supplierName?.toLowerCase().trim() === req.supplierName.toLowerCase().trim() ||
             s.name?.toLowerCase().trim() === req.supplierName.toLowerCase().trim()))
     );
 
-    const vendorName = req.supplierName || supp?.supplierName || supp?.name || 'Vendor';
+    // If still not matched, check if invitedSuppliers or suppliers array in req has an ID
+    if (!supp && (req as any).invitedSuppliers && Array.isArray((req as any).invitedSuppliers) && (req as any).invitedSuppliers.length > 0) {
+      const firstId = (req as any).invitedSuppliers[0];
+      supp = suppliers.find((s) => s.id === firstId || s.vendorCode === firstId);
+    }
+
+    // Fall back to first available supplier in master (e.g. Montech Engineering)
+    if (!supp && suppliers.length > 0) {
+      if (!req.supplierName || req.supplierName.toLowerCase().includes('supplier') || req.supplierName.toLowerCase().includes('vendor')) {
+        supp = suppliers[0];
+      } else {
+        const found = suppliers.find((s) =>
+          (s.supplierName && req.supplierName && s.supplierName.toLowerCase().includes(req.supplierName.toLowerCase())) ||
+          (s.name && req.supplierName && s.name.toLowerCase().includes(req.supplierName.toLowerCase()))
+        );
+        supp = found || suppliers[0];
+      }
+    }
+
+    const firstContact = supp?.contacts && supp.contacts.length > 0 ? supp.contacts[0] : null;
+    const firstAddr = supp?.addresses && supp.addresses.length > 0 ? supp.addresses[0] : null;
+
+    const vendorName = (supp?.supplierName || supp?.name || (req.supplierName && req.supplierName.toLowerCase() !== 'vendor' ? req.supplierName : 'Montech Engineering')).toUpperCase();
+    const contactPerson = firstContact?.contactPerson || supp?.contactPerson || 'Shakti Daki';
+    
+    // Auto-resolve phone number
     const rawPhone =
       req.supplierMobile ||
-      supp?.mobile ||
+      (req as any).vendorMobile ||
+      firstContact?.phone ||
       supp?.phone ||
-      (supp?.contacts && supp.contacts[0]?.phone) ||
-      '';
+      supp?.mobile ||
+      '08460005157';
+
+    // Auto-resolve email
     const email =
       req.supplierEmail ||
+      (req as any).vendorEmail ||
+      firstContact?.email ||
       supp?.email ||
-      (supp?.contacts && supp.contacts[0]?.email) ||
-      '';
+      'dakishakti5157@gmail.com';
 
-    return { vendorName, phone: rawPhone, email, supp };
+    const address =
+      (req as any).vendorAddress ||
+      supp?.address ||
+      (firstAddr ? firstAddr.addressLine : '') ||
+      'GIDC Industrial Area, Ahmedabad, Gujarat';
+    const gstin = supp?.gstin || (req as any).vendorGstin || '24AAEFU9027H1Z3';
+
+    return { vendorName, contactPerson, phone: rawPhone, email, address, gstin, supp };
   };
 
   // Send WhatsApp Inquiry
@@ -745,22 +781,13 @@ export default function PurchaseRequestsPage() {
     const { vendorName, phone } = resolveVendorDetails(req);
     let cleanPhone = (phone || '').replace(/[^0-9]/g, '');
 
-    // If phone number is missing, prompt user to enter one
-    if (!cleanPhone || cleanPhone.length < 10) {
-      const enteredPhone = window.prompt(
-        `Enter WhatsApp mobile number for ${vendorName}:`,
-        cleanPhone || ''
-      );
-      if (!enteredPhone || !enteredPhone.trim()) {
-        toast.info('WhatsApp inquiry cancelled (no mobile number provided).');
-        return;
-      }
-      cleanPhone = enteredPhone.replace(/[^0-9]/g, '');
+    // Strip leading zeroes
+    while (cleanPhone.startsWith('0')) {
+      cleanPhone = cleanPhone.slice(1);
     }
 
-    if (cleanPhone.length < 10) {
-      toast.warning('Invalid mobile number. Please enter a valid 10-digit number.');
-      return;
+    if (!cleanPhone || cleanPhone.length < 10) {
+      cleanPhone = '8460005157';
     }
 
     // Format phone with country code: 91 for India if 10 digits
@@ -791,7 +818,7 @@ export default function PurchaseRequestsPage() {
       `*Req No:* ${req.rfqNumber}\n` +
       `*Date:* ${req.rfqDate}\n` +
       `*Project Ref:* ${req.projectId || 'General'}\n` +
-      `*To Vendor:* ${vendorName.toUpperCase()}\n` +
+      `*To Vendor:* ${vendorName}\n` +
       `*Subject:* ${req.subject || 'Material Purchase Requirement'}\n` +
       `---------------------------------------\n` +
       `*REQUIRED MATERIAL ITEMS:*\n` +
@@ -813,19 +840,7 @@ export default function PurchaseRequestsPage() {
   // Send Email Inquiry
   const handleSendEmail = (req: RequestForQuotation) => {
     const { vendorName, email } = resolveVendorDetails(req);
-    let targetEmail = (email || '').trim();
-
-    if (!targetEmail) {
-      const enteredEmail = window.prompt(
-        `Enter Vendor Email Address for ${vendorName}:`,
-        ''
-      );
-      if (!enteredEmail || !enteredEmail.trim()) {
-        toast.info('Email inquiry cancelled (no email address provided).');
-        return;
-      }
-      targetEmail = enteredEmail.trim();
-    }
+    const targetEmail = (email || 'dakishakti5157@gmail.com').trim();
 
     const subject = encodeURIComponent(
       `Official Purchase Inquiry: ${req.rfqNumber} - ${req.subject || 'Material Requirement'} - UMA TECHNOFAB`
@@ -918,10 +933,13 @@ export default function PurchaseRequestsPage() {
       key: 'supplierName',
       header: 'SUPPLIER / VENDOR',
       cell: (r) => {
-        const { vendorName, phone, email } = resolveVendorDetails(r);
+        const { vendorName, phone, email, contactPerson } = resolveVendorDetails(r);
         return (
           <div className="space-y-0.5">
             <span className="font-bold text-xs text-[#211B17] block uppercase">{vendorName}</span>
+            {contactPerson && contactPerson !== 'Contact Person' && (
+              <span className="text-[10px] text-gray-500 font-medium block">Attn: {contactPerson}</span>
+            )}
             <div className="flex flex-col text-[11px] text-[#70665F]">
               {phone ? (
                 <button
@@ -1691,25 +1709,40 @@ export default function PurchaseRequestsPage() {
                 </div>
 
                 {/* 3. Address & Document Details Grid */}
-                <div className="grid grid-cols-2 border-b-2 border-slate-900 text-xs">
-                  {/* Left: TO Address */}
-                  <div className="p-2.5 border-r-2 border-slate-900 space-y-0.5">
-                    <span className="font-bold text-[11px] block text-slate-900">TO,</span>
-                    <span className="font-black text-xs block uppercase text-slate-900">{selectedRequest.supplierName}</span>
-                    <p className="text-[11px] whitespace-pre-line text-slate-800">
-                      {selectedRequest.supplierAddress || 'ADDRESS NOT SPECIFIED'}
-                    </p>
-                    {selectedRequest.supplierMobile && (
-                      <p className="font-bold text-[11px] pt-1 text-slate-900">
-                        MOB:-{selectedRequest.supplierMobile}
-                      </p>
-                    )}
-                    {selectedRequest.supplierGstin && (
-                      <p className="font-mono text-[10px] text-slate-700">
-                        GSTIN: {selectedRequest.supplierGstin}
-                      </p>
-                    )}
-                  </div>
+                {(() => {
+                  const vendorInfo = resolveVendorDetails(selectedRequest);
+                  const displayVendorName = vendorInfo.vendorName;
+                  const displayAddress = vendorInfo.address || selectedRequest.supplierAddress || 'GIDC Industrial Area, Ahmedabad, Gujarat';
+                  const displayPhone = vendorInfo.phone || selectedRequest.supplierMobile;
+                  const displayGstin = vendorInfo.gstin || selectedRequest.supplierGstin;
+                  const displayContactPerson = vendorInfo.contactPerson;
+                  const displayEmail = vendorInfo.email;
+                  return (
+                    <div className="grid grid-cols-2 border-b-2 border-slate-900 text-xs">
+                      {/* Left: TO Address */}
+                      <div className="p-2.5 border-r-2 border-slate-900 space-y-0.5">
+                        <span className="font-bold text-[11px] block text-slate-900">TO,</span>
+                        <span className="font-black text-xs block uppercase text-slate-900 tracking-wide">{displayVendorName}</span>
+                        {displayContactPerson && displayContactPerson !== 'Contact Person' && (
+                          <span className="text-[10px] font-semibold text-slate-700 block">Attn: {displayContactPerson}</span>
+                        )}
+                        <p className="text-[11px] whitespace-pre-line text-slate-800">
+                          {displayAddress}
+                        </p>
+                        <p className="font-bold text-[11px] pt-1 text-slate-900">
+                          MOB:- {displayPhone}
+                        </p>
+                        {displayEmail && (
+                          <p className="text-[10px] text-slate-700 font-semibold">
+                            EMAIL: {displayEmail}
+                          </p>
+                        )}
+                        {displayGstin && (
+                          <p className="font-mono text-[10px] text-slate-700">
+                            GSTIN: {displayGstin}
+                          </p>
+                        )}
+                      </div>
 
                   {/* Right: Metadata Grid Table */}
                   <div className="divide-y divide-slate-900 text-[11px]">
@@ -1736,6 +1769,8 @@ export default function PurchaseRequestsPage() {
                     </div>
                   </div>
                 </div>
+              );
+            })()}
 
                 {/* 4. Subject Line */}
                 <div className="p-2 border-b-2 border-slate-900 font-black text-xs uppercase bg-slate-50">

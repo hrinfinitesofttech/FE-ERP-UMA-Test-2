@@ -2579,7 +2579,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   });
 
   // Module 4: Purchase Management States
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_suppliers');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return INITIAL_SUPPLIERS || [];
+  });
   const [supplierContacts, setSupplierContacts] = useState<SupplierContact[]>([]);
   const [materialRequirements, setMaterialRequirements] = useState<MaterialRequirement[]>([]);
   const [purchaseRequisitions, setPurchaseRequisitions] = useState<PurchaseRequisition[]>(() => {
@@ -3959,6 +3970,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         const normalizedSuppliers: Supplier[] = rawSuppliers.map((s: any) => {
           const sName = s.name || s.supplierName || s.supplier_name || (s as any).companyName || 'Supplier';
           const vCode = s.vendorCode || s.vendor_code || s.supplierCode || s.supplier_code || s.id;
+          const firstContact = Array.isArray(s.contacts) && s.contacts.length > 0 ? s.contacts[0] : null;
+          const contactPerson = s.contactPerson || s.contact_person || (firstContact ? (firstContact.contactPerson || firstContact.name) : '') || '';
+          const phone = s.phone || s.mobile || (firstContact ? (firstContact.phone || firstContact.mobile) : '') || '';
+          const email = s.email || (firstContact ? firstContact.email : '') || '';
+          const firstAddr = Array.isArray(s.addresses) && s.addresses.length > 0 ? s.addresses[0] : null;
+          const address = s.address || (firstAddr ? (firstAddr.addressLine || firstAddr.address) : '') || '';
+          const city = s.city || (firstAddr ? firstAddr.city : '') || '';
+          const state = s.state || (firstAddr ? firstAddr.state : '') || '';
           return {
             ...s,
             id: String(s.id),
@@ -3966,17 +3985,31 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
             supplierName: sName,
             vendorCode: vCode,
             supplierCode: vCode,
-            contactPerson: s.contactPerson || s.contact_person || '',
-            phone: s.phone || s.mobile || '',
-            email: s.email || '',
+            contactPerson,
+            phone,
+            mobile: phone,
+            email,
+            address,
+            city,
+            state,
             gstin: s.gstin || '',
             paymentTerms: s.paymentTerms || s.payment_terms || '30 Days Credit',
           };
         });
-        setSuppliers(normalizedSuppliers);
-        if (typeof window !== 'undefined') {
-          try { localStorage.setItem('UMA_ERP_suppliers', JSON.stringify(normalizedSuppliers)); } catch (_) {}
-        }
+        setSuppliers((prev) => {
+          const map = new Map<string, Supplier>();
+          (INITIAL_SUPPLIERS || []).forEach((sup) => map.set(String(sup.id), sup));
+          prev.forEach((sup) => map.set(String(sup.id), sup));
+          normalizedSuppliers.forEach((sup) => {
+            const existing = map.get(String(sup.id));
+            map.set(String(sup.id), existing ? { ...existing, ...sup } : sup);
+          });
+          const merged = Array.from(map.values());
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_suppliers', JSON.stringify(merged)); } catch (_) {}
+          }
+          return merged;
+        });
       }
 
       const rawPRs = val<any[]>(results[1]);
@@ -10185,24 +10218,48 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const addSupplier = (data: Omit<Supplier, 'id'>) => {
     const id = `SUP-${new Date().getFullYear()}-${String(suppliers.length + 1).padStart(3, '0')}`;
     const newSup: Supplier = { ...data, id };
-    setSuppliers((prev) => [newSup, ...prev]);
+    setSuppliers((prev) => {
+      const next = [newSup, ...prev];
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_suppliers', JSON.stringify(next)); } catch (_) {}
+      }
+      return next;
+    });
     logAction('CREATE', 'Purchase', 'Supplier Master', id, `Added supplier ${data.supplierName}`);
     // Sync to PythonAnywhere backend
     api.purchase.suppliers.create(newSup).then((res) => {
       if (res && res.id) {
-        setSuppliers((prev) => prev.map((s) => (s.id === id ? { ...s, ...res } : s)));
+        setSuppliers((prev) => {
+          const next = prev.map((s) => (s.id === id ? { ...s, ...res } : s));
+          if (typeof window !== 'undefined') {
+            try { localStorage.setItem('UMA_ERP_suppliers', JSON.stringify(next)); } catch (_) {}
+          }
+          return next;
+        });
       }
     }).catch((err) => console.warn('Failed to sync supplier to backend:', err));
   };
 
   const updateSupplier = (id: string, updates: Partial<Supplier>) => {
-    setSuppliers((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
+    setSuppliers((prev) => {
+      const next = prev.map((s) => (s.id === id ? { ...s, ...updates } : s));
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_suppliers', JSON.stringify(next)); } catch (_) {}
+      }
+      return next;
+    });
     // Sync to PythonAnywhere backend
     api.purchase.suppliers.update(id, updates).catch((err) => console.warn('Failed to update supplier on backend:', err));
   };
 
   const deleteSupplier = (id: string) => {
-    setSuppliers((prev) => prev.filter((s) => s.id !== id));
+    setSuppliers((prev) => {
+      const next = prev.filter((s) => s.id !== id);
+      if (typeof window !== 'undefined') {
+        try { localStorage.setItem('UMA_ERP_suppliers', JSON.stringify(next)); } catch (_) {}
+      }
+      return next;
+    });
     logAction('DELETE', 'Purchase', 'Supplier Master', id, `Deleted supplier ${id}`);
     api.purchase.suppliers.delete(id).catch((err) => console.warn('Failed to delete supplier on backend:', err));
   };
