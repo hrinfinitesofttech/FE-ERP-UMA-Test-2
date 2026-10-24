@@ -106,6 +106,7 @@ export function Sidebar() {
     workOrders,
     productionOrders,
     masterTasks = [],
+    purchaseInvoices = [],
   } = useERP();
 
   const roleStr = String(
@@ -619,6 +620,19 @@ export function Sidebar() {
                       {purchaseOrders.length}
                     </span>
                   )}
+                  </div>
+                )}
+              </Link>
+              <Link href="/purchase/bills" className={subNavItemClass('/purchase/bills')}>
+                <Receipt className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                {!sidebarCollapsed && (
+                  <div className="flex items-center justify-between w-full">
+                    <span>Purchase Bills (પરચેસ બિલ)</span>
+                    {purchaseInvoices && purchaseInvoices.length > 0 && (
+                      <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                        {purchaseInvoices.length}
+                      </span>
+                    )}
                   </div>
                 )}
               </Link>

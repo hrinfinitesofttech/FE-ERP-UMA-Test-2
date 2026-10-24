@@ -61,6 +61,7 @@ export default function PurchaseRequestsPage() {
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [emailTargetRequest, setEmailTargetRequest] = useState<RequestForQuotation | null>(null);
   const [targetEmail, setTargetEmail] = useState('');
+  const [additionalVendors, setAdditionalVendors] = useState<Array<{ id: string; name: string; email: string }>>([]);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   // Success Toast
@@ -242,6 +243,16 @@ export default function PurchaseRequestsPage() {
     return `${day}.${month}.${year}`;
   };
 
+  // Helper for due formatted date (e.g. 7 days from today)
+  const getDueFormattedDate = (daysAhead = 7) => {
+    const d = new Date();
+    d.setDate(d.getDate() + daysAhead);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}.${month}.${year}`;
+  };
+
   // Blank Form State Generator (No hardcoded values, everything blank until selected)
   const getEmptyFormData = (customRfqNo?: string) => {
     const yr = new Date().getFullYear();
@@ -252,6 +263,7 @@ export default function PurchaseRequestsPage() {
     return {
       rfqNumber: nextReqNo,
       rfqDate: getTodayFormattedDate(),
+      dueDate: getDueFormattedDate(7),
       selectedProjectId: '',
       selectedSupplierId: '',
       vendorName: '',
@@ -517,22 +529,23 @@ export default function PurchaseRequestsPage() {
     setEditingId(req.id);
     setFormData({
       rfqNumber: req.rfqNumber || '',
-      rfqDate: req.rfqDate || getTodayFormattedDate(),
-      selectedProjectId: req.projectId || '',
-      selectedSupplierId: req.supplierId || '',
-      vendorName: req.supplierName || '',
-      vendorAddress: req.supplierAddress || '',
-      vendorMobile: req.supplierMobile || '',
-      vendorEmail: req.supplierEmail || '',
-      vendorGstin: req.supplierGstin || '',
+      rfqDate: req.rfqDate || (req as any).rfq_date || getTodayFormattedDate(),
+      dueDate: req.dueDate || (req as any).due_date || getDueFormattedDate(7),
+      selectedProjectId: req.projectId || (req as any).project_id || '',
+      selectedSupplierId: req.supplierId || (req as any).supplier_id || '',
+      vendorName: req.supplierName || (req as any).supplier_name || '',
+      vendorAddress: req.supplierAddress || (req as any).supplier_address || '',
+      vendorMobile: req.supplierMobile || (req as any).supplier_mobile || '',
+      vendorEmail: req.supplierEmail || (req as any).supplier_email || '',
+      vendorGstin: req.supplierGstin || (req as any).supplier_gstin || '',
       buyer: req.buyer || 'Uma Technofab.',
       surcharges: req.surcharges || 'NIL',
       taxes: req.taxes || 'AS APPLICABLE.',
       shipTo: req.shipTo || 'LOCAL',
-      deliveryLocation: req.deliveryLocation || 'RAJPUR',
+      deliveryLocation: req.deliveryLocation || (req as any).delivery_location || 'RAJPUR',
       pageNo: req.pageNo || 'PAGE NO: 1 OF 1',
       subject: req.subject || '',
-      specialNote: req.specialNote || '',
+      specialNote: req.specialNote || (req as any).special_note || '',
       terms: req.terms && req.terms.length > 0 ? [...req.terms] : [...defaultTerms],
       items:
         req.items && req.items.length > 0
@@ -648,10 +661,29 @@ export default function PurchaseRequestsPage() {
       return;
     }
 
+    const vendorMeta = {
+      supplierId: formData.selectedSupplierId || '',
+      supplierName: formData.vendorName.trim(),
+      supplierAddress: formData.vendorAddress.trim(),
+      supplierMobile: formData.vendorMobile.trim(),
+      supplierEmail: formData.vendorEmail.trim(),
+      supplierGstin: formData.vendorGstin.trim(),
+      projectId: formData.selectedProjectId || '',
+      subject: formData.subject.trim(),
+      specialNote: formData.specialNote.trim(),
+      buyer: formData.buyer,
+      taxes: formData.taxes,
+      shipTo: formData.shipTo,
+      deliveryLocation: formData.deliveryLocation,
+      pageNo: formData.pageNo,
+      terms: formData.terms.filter((t: string) => t && t.trim()),
+    };
+
     const payload: RequestForQuotation = {
       id: editingId || `REQ-${Date.now()}`,
       rfqNumber: formData.rfqNumber.trim() || `REQ-${Date.now().toString().slice(-4)}`,
       rfqDate: formData.rfqDate,
+      dueDate: formData.dueDate || formData.rfqDate,
       projectId: formData.selectedProjectId || '',
       supplierId: formData.selectedSupplierId || '',
       supplierName: formData.vendorName.trim(),
@@ -671,6 +703,7 @@ export default function PurchaseRequestsPage() {
       termsAndConditions: formData.terms.filter((t: string) => t && t.trim()).join('\n'),
       signatory: 'For, UMA TECHNOFAB.',
       status: 'Sent to Suppliers',
+      suppliers: [vendorMeta],
       items: validItems.map((itm: any, idx: number) => ({
         id: itm.id || `item-${idx + 1}`,
         rfqId: editingId || `REQ-${Date.now()}`,
@@ -726,19 +759,36 @@ export default function PurchaseRequestsPage() {
   const resolveVendorDetails = (req: RequestForQuotation) => {
     let supp: Supplier | undefined;
 
+    // 0. Check direct suppliers[0] object if available
+    const rawSupps = (req as any).suppliers;
+    const firstSuppObj = Array.isArray(rawSupps) && rawSupps.length > 0 && typeof rawSupps[0] === 'object'
+      ? rawSupps[0]
+      : null;
+
     // 1. Match by supplierId or vendorCode
-    if (req.supplierId) {
+    const rawSuppId = req.supplierId || (req as any).supplier_id || firstSuppObj?.supplierId || '';
+    if (rawSuppId) {
       supp = suppliers.find(
         (s) =>
-          String(s.id).toLowerCase() === String(req.supplierId).toLowerCase() ||
-          String(s.vendorCode || '').toLowerCase() === String(req.supplierId).toLowerCase()
+          String(s.id).toLowerCase() === String(rawSuppId).toLowerCase() ||
+          String(s.vendorCode || '').toLowerCase() === String(rawSuppId).toLowerCase()
       );
     }
 
     // 2. Match by supplierName if not a generic placeholder
-    if (!supp && req.supplierName && req.supplierName.trim().length > 1) {
-      const q = req.supplierName.toLowerCase().trim();
-      if (q !== 'vendor' && q !== 'supplier' && q !== 'undefined' && q !== 'null') {
+    const rawReqName = (
+      req.supplierName ||
+      (req as any).supplier_name ||
+      (req as any).vendorName ||
+      (req as any).vendor_name ||
+      firstSuppObj?.supplierName ||
+      firstSuppObj?.name ||
+      ''
+    ).trim();
+
+    if (!supp && rawReqName && rawReqName.length > 1) {
+      const q = rawReqName.toLowerCase().trim();
+      if (q !== 'vendor' && q !== 'supplier' && q !== 'undefined' && q !== 'null' && q !== 'no supplier assigned') {
         supp = suppliers.find(
           (s) =>
             s.supplierName?.toLowerCase().trim() === q ||
@@ -753,26 +803,30 @@ export default function PurchaseRequestsPage() {
       supp = suppliers.find((s) => s.id === firstId || s.vendorCode === firstId);
     }
 
-    // NOTE: NEVER default to suppliers[0]! If no vendor is matched, leave supp undefined.
-
     const firstContact = supp?.contacts && supp.contacts.length > 0 ? supp.contacts[0] : null;
     const firstAddr = supp?.addresses && supp.addresses.length > 0 ? supp.addresses[0] : null;
 
-    // Vendor Name: Priority to explicit supplierName on req, then matched master, then placeholder
-    const rawReqName = (req.supplierName || (req as any).vendorName || '').trim();
-    const vendorName = rawReqName && rawReqName.toLowerCase() !== 'vendor' && rawReqName.toLowerCase() !== 'supplier'
+    const vendorName = rawReqName && rawReqName.toLowerCase() !== 'vendor' && rawReqName.toLowerCase() !== 'supplier' && rawReqName.toLowerCase() !== 'no supplier assigned'
       ? rawReqName.toUpperCase()
       : (supp?.supplierName || supp?.name || 'NO SUPPLIER ASSIGNED').toUpperCase();
 
     const contactPerson =
       (req as any).contactPerson ||
+      (req as any).contact_person ||
+      firstSuppObj?.contactPerson ||
       firstContact?.contactPerson ||
       supp?.contactPerson ||
       '';
 
     const rawPhone =
       req.supplierMobile ||
+      (req as any).supplier_mobile ||
       (req as any).vendorMobile ||
+      (req as any).mobile ||
+      (req as any).phone ||
+      firstSuppObj?.supplierMobile ||
+      firstSuppObj?.mobile ||
+      firstSuppObj?.phone ||
       firstContact?.phone ||
       supp?.mobile ||
       supp?.phone ||
@@ -780,21 +834,33 @@ export default function PurchaseRequestsPage() {
 
     const email =
       req.supplierEmail ||
+      (req as any).supplier_email ||
       (req as any).vendorEmail ||
+      (req as any).email ||
+      firstSuppObj?.supplierEmail ||
+      firstSuppObj?.email ||
       firstContact?.email ||
       supp?.email ||
       '';
 
     const address =
       req.supplierAddress ||
+      (req as any).supplier_address ||
       (req as any).vendorAddress ||
+      (req as any).address ||
+      firstSuppObj?.supplierAddress ||
+      firstSuppObj?.address ||
       supp?.address ||
       (firstAddr ? firstAddr.addressLine : '') ||
       '';
 
     const gstin =
       req.supplierGstin ||
+      (req as any).supplier_gstin ||
       (req as any).vendorGstin ||
+      (req as any).gstin ||
+      firstSuppObj?.supplierGstin ||
+      firstSuppObj?.gstin ||
       supp?.gstin ||
       '';
 
@@ -868,6 +934,7 @@ export default function PurchaseRequestsPage() {
     setEmailTargetRequest(req);
     const { email } = resolveVendorDetails(req);
     setTargetEmail(email || '');
+    setAdditionalVendors([]);
     setShowEmailModal(true);
   };
 
@@ -876,74 +943,42 @@ export default function PurchaseRequestsPage() {
     handleOpenEmailModal(req);
   };
 
-  // Dispatch Official Purchase Inquiry Email (Backend API + Mail Client)
-  const handleDispatchEmailInquiry = async (customEmail?: string) => {
+  // Dispatch Official Purchase Inquiry Email via Backend SMTP (Real Email with PDF attachment)
+  const handleDispatchEmailInquiry = async () => {
     if (!emailTargetRequest) return;
-    const recipient = String(customEmail || targetEmail).trim();
-    if (!recipient) {
-      toast.error('Please provide a valid recipient email address.');
+    const primary = targetEmail.trim();
+    const additional = additionalVendors.map((v) => v.email.trim()).filter(Boolean);
+    const allEmails = Array.from(new Set([primary, ...additional].filter((e) => e && e.includes('@'))));
+
+    if (allEmails.length === 0) {
+      toast.error('Please enter or select at least one valid recipient email address.');
       return;
     }
 
-    const { vendorName } = resolveVendorDetails(emailTargetRequest);
     setIsSendingEmail(true);
 
     try {
-      // 1. Dispatch via backend API endpoint if available
-      if (emailTargetRequest.id) {
-        api.purchase.rfqs.sendEmail(emailTargetRequest.id, recipient).catch((err) =>
-          console.warn('Backend RFQ sendEmail API notice:', err)
-        );
+      const res = await api.purchase.rfqs.sendEmail(emailTargetRequest.id, {
+        recipientEmail: primary || allEmails[0],
+        recipients: allEmails,
+        additionalEmails: additional,
+        rfq: emailTargetRequest,
+      });
+
+      if (res && res.success === false) {
+        throw new Error(res.error || 'Failed to dispatch RFQ email via SMTP.');
       }
 
-      // 2. Open email client with formatted official Purchase Inquiry Letter
-      const subject = encodeURIComponent(
-        `Official Purchase Inquiry: ${emailTargetRequest.rfqNumber} - ${emailTargetRequest.subject || 'Material Requirement'} - UMA TECHNOFAB`
+      // Update RFQ status to 'Sent to Suppliers' locally
+      updateRFQ(emailTargetRequest.id, { status: 'Sent to Suppliers' });
+
+      toast.success(
+        `Official Purchase Inquiry ${emailTargetRequest.rfqNumber} sent successfully via SMTP to ${allEmails.length} recipient(s) with PDF attachment!`
       );
-
-      const itemsText = (emailTargetRequest.items || [])
-        .map((itm, idx) => {
-          const spec = itm.dimensions || itm.specification;
-          const desc = itm.itemName || 'Material Item';
-          const qty = Number(itm.quantity || itm.requiredQuantity || 1).toLocaleString();
-          const uom = itm.unitOfMeasure || 'NOS';
-          return `  [${idx + 1}] ${desc}${spec ? ` (${spec})` : ''} - Qty: ${qty} ${uom}`;
-        })
-        .join('\n');
-
-      const body = encodeURIComponent(
-        `Dear ${vendorName},\n\n` +
-        `Please find our official material purchase inquiry (REQUIRE) details below from UMA TECHNOFAB:\n\n` +
-        `DOCUMENT DETAILS:\n` +
-        `==================================================\n` +
-        `Requisition No : ${emailTargetRequest.rfqNumber}\n` +
-        `Date           : ${emailTargetRequest.rfqDate}\n` +
-        `Project Ref    : ${emailTargetRequest.projectId || 'General'}\n` +
-        `Subject        : ${emailTargetRequest.subject || 'Material Requirement'}\n` +
-        `Delivery Site  : ${emailTargetRequest.deliveryLocation || 'Rajpur, Mehsana'}\n` +
-        `==================================================\n\n` +
-        `REQUIRED MATERIAL ITEMS:\n` +
-        itemsText +
-        `\n\n` +
-        (emailTargetRequest.specialNote ? `SPECIAL NOTE / INSTRUCTIONS:\n${emailTargetRequest.specialNote}\n\n` : '') +
-        `TERMS & CONDITIONS:\n` +
-        `1. Please submit your quotation / rate per kg or unit with tax details.\n` +
-        `2. Material strictly along with Delivery Challan, Tax Invoice & Test Certificate (TC).\n` +
-        `3. Delivery lead time must be clearly mentioned.\n\n` +
-        `Thanking you we remain,\n\n` +
-        `Purchase & Procurement Team\n` +
-        `UMA TECHNOFAB\n` +
-        `Manufacturers of Dairy, Chemical, Food & Pharma Machinery\n` +
-        `Kadi - Mehsana Highway, Rajpur, Dist. Mehsana, Gujarat - 382715\n` +
-        `Email: info@umatechnofab.com\n`
-      );
-
-      window.open(`mailto:${recipient}?subject=${subject}&body=${body}`, '_blank');
-      toast.success(`Official Purchase Inquiry ${emailTargetRequest.rfqNumber} email dispatched to ${recipient}!`);
       setShowEmailModal(false);
     } catch (err: any) {
       console.error('Failed to send RFQ email:', err);
-      toast.error(err?.message || 'Failed to dispatch RFQ email.');
+      toast.error(err?.message || 'Failed to dispatch RFQ email via SMTP. Please verify mail settings.');
     } finally {
       setIsSendingEmail(false);
     }
@@ -967,29 +1002,57 @@ export default function PurchaseRequestsPage() {
         <button
           type="button"
           onClick={() => handleOpenLetterView(r)}
-          className="text-amber-800 hover:text-amber-950 font-mono font-bold text-xs underline cursor-pointer text-left"
+          className="text-amber-800 hover:text-amber-950 font-mono font-bold text-xs underline cursor-pointer text-left flex items-center gap-1"
         >
-          {r.rfqNumber}
+          <FileText className="w-3 h-3 text-amber-700 shrink-0" />
+          <span>{r.rfqNumber}</span>
         </button>
       ),
     },
     {
       key: 'rfqDate',
-      header: 'DATE',
-      cell: (r) => (
-        <span className="font-mono text-xs text-[#211B17] font-semibold">
-          {r.rfqDate}
-        </span>
-      ),
+      header: 'DATES',
+      cell: (r) => {
+        const reqDate = r.rfqDate || (r as any).rfq_date || '—';
+        const dueDate = r.dueDate || (r as any).due_date || '';
+        return (
+          <div className="space-y-0.5 text-xs font-mono">
+            <div className="flex items-center gap-1 text-[#211B17] font-semibold">
+              <Calendar className="w-3 h-3 text-slate-500 shrink-0" />
+              <span>Created: {reqDate}</span>
+            </div>
+            {dueDate ? (
+              <div className="flex items-center gap-1 text-amber-900 font-bold text-[11px] bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                <span>Req: {dueDate}</span>
+              </div>
+            ) : (
+              <div className="text-[10px] text-slate-400">Req: Immediate</div>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: 'project',
-      header: 'PROJECT REFERENCE',
-      cell: (r) => (
-        <span className="font-mono font-bold text-xs text-crm-brand-700">
-          {r.projectId || 'General'}
-        </span>
-      ),
+      header: 'PROJECT REF',
+      cell: (r) => {
+        const pRef = r.projectId || (r as any).project_id || 'General';
+        const matchedProj = projects.find(
+          (p) => p.projectNumber === pRef || p.id === pRef || p.jobNumber === pRef
+        );
+        return (
+          <div className="space-y-0.5">
+            <span className="font-mono font-bold text-xs text-crm-brand-700 block">
+              {pRef}
+            </span>
+            {matchedProj?.projectName && (
+              <span className="text-[10px] text-gray-500 font-medium block truncate max-w-[140px]">
+                {matchedProj.projectName}
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: 'supplierName',
@@ -997,12 +1060,12 @@ export default function PurchaseRequestsPage() {
       cell: (r) => {
         const { vendorName, phone, email, contactPerson } = resolveVendorDetails(r);
         return (
-          <div className="space-y-0.5">
+          <div className="space-y-0.5 min-w-[180px]">
             <span className="font-bold text-xs text-[#211B17] block uppercase">{vendorName}</span>
             {contactPerson && contactPerson !== 'Contact Person' && (
               <span className="text-[10px] text-gray-500 font-medium block">Attn: {contactPerson}</span>
             )}
-            <div className="flex flex-col text-[11px] text-[#70665F]">
+            <div className="flex flex-col text-[11px] text-[#70665F] pt-0.5">
               {phone ? (
                 <button
                   type="button"
@@ -1014,14 +1077,14 @@ export default function PurchaseRequestsPage() {
                   <span>{phone}</span>
                 </button>
               ) : (
-                <span className="font-mono text-slate-400">No contact phone</span>
+                <span className="font-mono text-slate-400 text-[10px]">No contact phone</span>
               )}
               {email ? (
                 <button
                   type="button"
                   onClick={() => handleSendEmail(r)}
-                  title="Click to Send Email"
-                  className="text-blue-700 hover:text-blue-800 hover:underline flex items-center gap-1 truncate max-w-[180px] cursor-pointer text-left"
+                  title="Click to Send Email via SMTP"
+                  className="text-blue-700 hover:text-blue-800 hover:underline flex items-center gap-1 truncate max-w-[200px] cursor-pointer text-left"
                 >
                   <Mail className="w-3 h-3 text-blue-600 inline shrink-0" />
                   <span>{email}</span>
@@ -1036,28 +1099,58 @@ export default function PurchaseRequestsPage() {
     },
     {
       key: 'subject',
-      header: 'SUBJECT / REQUIREMENT',
-      cell: (r) => (
-        <div className="max-w-xs">
-          <span className="font-semibold text-xs text-[#211B17] block truncate">
-            {r.subject || 'Material Purchase Requirement'}
-          </span>
-          <span className="text-[11px] text-amber-700 font-medium block">
-            {r.items?.length || 0} item lines requested
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: 'totalWeight',
-      header: 'TOTAL QTY',
+      header: 'REQUESTED MATERIALS & ITEMS',
       cell: (r) => {
-        const total = (r.items || []).reduce((acc, itm) => acc + Number(itm.quantity || itm.requiredQuantity || 0), 0);
-        const uom = r.items?.[0]?.unitOfMeasure || 'KG';
+        const items = r.items || [];
+        const total = items.reduce((acc, itm) => acc + Number(itm.quantity || itm.requiredQuantity || 0), 0);
+        const firstUom = items[0]?.unitOfMeasure || 'NOS';
+
         return (
-          <span className="font-mono font-bold text-xs text-[#211B17]">
-            {total.toLocaleString()} {uom}
-          </span>
+          <div className="space-y-1.5 max-w-sm">
+            <span className="font-bold text-xs text-[#211B17] block truncate">
+              {r.subject || 'Material Purchase Requirement'}
+            </span>
+
+            {/* Itemized lines breakdown */}
+            <div className="space-y-1">
+              {items.slice(0, 3).map((itm: any, idx: number) => {
+                const iName = itm.itemName || itm.description || itm.materialName || `Item ${idx + 1}`;
+                const iQty = Number(itm.quantity || itm.requiredQuantity || 1);
+                const iUom = itm.unitOfMeasure || 'NOS';
+                const spec = itm.dimensions || itm.specification || '';
+
+                return (
+                  <div
+                    key={itm.id || idx}
+                    className="flex items-center justify-between text-[11px] bg-slate-50 border border-slate-200 rounded px-2 py-0.5 gap-2"
+                  >
+                    <div className="truncate text-slate-800 font-medium">
+                      <span className="font-bold text-amber-900 mr-1">#{idx + 1}</span>
+                      <span>{iName}</span>
+                      {spec && <span className="text-gray-400 ml-1 text-[10px]">({spec})</span>}
+                    </div>
+                    <span className="font-mono font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded shrink-0 border border-emerald-200">
+                      {iQty} {iUom}
+                    </span>
+                  </div>
+                );
+              })}
+              {items.length > 3 && (
+                <span className="text-[10px] text-amber-700 font-bold block">
+                  + {items.length - 3} more items requested...
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-1.5 text-[11px] pt-0.5">
+              <span className="font-mono font-bold text-amber-950 bg-amber-100/70 border border-amber-300 rounded px-1.5 py-0.5">
+                Total: {total.toLocaleString()} {firstUom}
+              </span>
+              <span className="text-gray-500 font-medium">
+                ({items.length} line item{items.length !== 1 ? 's' : ''})
+              </span>
+            </div>
+          </div>
         );
       },
     },
@@ -1065,7 +1158,7 @@ export default function PurchaseRequestsPage() {
       key: 'status',
       header: 'STATUS',
       cell: (r) => (
-        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 whitespace-nowrap">
           {r.status || 'Sent to Suppliers'}
         </span>
       ),
@@ -1336,7 +1429,7 @@ export default function PurchaseRequestsPage() {
                 </div>
 
                 {/* Document Metadata Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2 border-t border-[#EBE3DB]">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-2 border-t border-[#EBE3DB]">
                   <div>
                     <label className="text-[10px] font-bold text-[#70665F] block mb-1">REQ. NO:</label>
                     <input
@@ -1353,6 +1446,16 @@ export default function PurchaseRequestsPage() {
                       value={formData.rfqDate}
                       onChange={(e) => setFormData({ ...formData, rfqDate: e.target.value })}
                       className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-mono font-bold text-[#211B17]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-amber-800 block mb-1">REQUIRED BY (DUE):</label>
+                    <input
+                      type="text"
+                      value={formData.dueDate || ''}
+                      onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                      placeholder="e.g. 30.10.2026"
+                      className="w-full bg-white border border-amber-300 rounded-lg px-2 py-1 text-xs font-mono font-bold text-amber-900 focus:outline-none focus:border-amber-600"
                     />
                   </div>
                   <div>
@@ -2007,18 +2110,18 @@ export default function PurchaseRequestsPage() {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  handleDispatchEmailInquiry(targetEmail);
+                  handleDispatchEmailInquiry();
                 }}
                 className="space-y-4 text-xs"
               >
                 <div className="p-3 bg-[#FAF7F2] dark:bg-[#1f1915] rounded-xl border border-[#E7DED5] space-y-2">
                   <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-[#70665F]">Supplier / Vendor:</span>
+                    <span className="text-[#70665F]">Primary Vendor:</span>
                     <strong className="text-[#211B17] dark:text-white font-bold uppercase">{vendorName}</strong>
                   </div>
-                  {/* Select / Switch Supplier from Master */}
+                  {/* Select / Switch Primary Supplier from Master */}
                   <div className="flex justify-between items-center text-[11px] pt-1.5 border-t border-[#E7DED5]/60">
-                    <span className="text-[#70665F]">Select / Change Vendor:</span>
+                    <span className="text-[#70665F]">Change Primary Vendor:</span>
                     <select
                       value={supp?.id || emailTargetRequest.supplierId || ''}
                       onChange={(e) => {
@@ -2061,16 +2164,19 @@ export default function PurchaseRequestsPage() {
                   </div>
                   <div className="flex justify-between items-center text-[11px]">
                     <span className="text-[#70665F]">PDF Attachment:</span>
-                    <span className="font-mono text-slate-700 dark:text-slate-300">Official_Purchase_Inquiry_{emailTargetRequest.rfqNumber}.pdf</span>
+                    <span className="font-mono text-emerald-800 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                      Official_Purchase_Inquiry_{emailTargetRequest.rfqNumber}.pdf
+                    </span>
                   </div>
                 </div>
 
+                {/* Primary Recipient Email Input */}
                 <div>
                   <label className="block text-[#544B45] font-semibold mb-1 flex items-center justify-between">
-                    <span>Recipient Supplier / Vendor Email ID <span className="text-rose-500">*</span></span>
+                    <span>Primary Vendor Email ID <span className="text-rose-500">*</span></span>
                     {resolvedVendorEmail && targetEmail === resolvedVendorEmail && (
                       <span className="text-[10px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded border border-emerald-200">
-                        ✓ Auto-populated from Vendor Master ({vendorName})
+                        ✓ Auto-populated from Vendor Master
                       </span>
                     )}
                   </label>
@@ -2085,37 +2191,117 @@ export default function PurchaseRequestsPage() {
                       className="w-full pl-9 pr-3 py-2 bg-[#FAF7F2] dark:bg-[#1f1915] border border-[#E7DED5] rounded-lg font-mono text-sm font-semibold text-[#211B17] dark:text-white focus:outline-none focus:border-emerald-600"
                     />
                   </div>
-                  <p className="text-[10px] text-[#70665F] mt-1">
-                    The official Purchase Inquiry letter and required material specifications will be dispatched to this email address.
+                </div>
+
+                {/* Multi-Vendor Option: Add Additional Vendors from Master */}
+                <div className="p-3 bg-amber-50/60 dark:bg-amber-950/20 rounded-xl border border-amber-200/80 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-bold text-amber-950 dark:text-amber-200 flex items-center gap-1.5">
+                      <Building className="w-3.5 h-3.5 text-amber-800" />
+                      <span>Send to Additional Vendors (Multi-Vendor Dispatch):</span>
+                    </label>
+                    <span className="text-[10px] text-amber-800 font-semibold">
+                      {additionalVendors.length} additional added
+                    </span>
+                  </div>
+
+                  <select
+                    value=""
+                    onChange={(e) => {
+                      const suppId = e.target.value;
+                      if (!suppId) return;
+                      const s = suppliers.find((sp) => sp.id === suppId);
+                      if (s) {
+                        const sEmail = s.email || (s.contacts && s.contacts[0]?.email) || '';
+                        if (!sEmail) {
+                          toast.warning(`Vendor "${s.supplierName || s.name}" has no email configured in master.`);
+                          return;
+                        }
+                        if (
+                          targetEmail.toLowerCase().trim() === sEmail.toLowerCase().trim() ||
+                          additionalVendors.some((v) => v.email.toLowerCase().trim() === sEmail.toLowerCase().trim())
+                        ) {
+                          toast.info('This vendor email is already included in recipients.');
+                          return;
+                        }
+                        setAdditionalVendors((prev) => [
+                          ...prev,
+                          { id: s.id, name: s.supplierName || s.name, email: sEmail },
+                        ]);
+                        toast.success(`Added ${s.supplierName || s.name} (${sEmail}) to email dispatch!`);
+                      }
+                    }}
+                    className="w-full bg-white dark:bg-[#2C241F] border border-amber-300 rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] dark:text-white font-medium focus:outline-none focus:border-amber-600 cursor-pointer"
+                  >
+                    <option value="">+ Select another vendor from Vendor Master to add...</option>
+                    {suppliers
+                      .filter((s) => s.id !== emailTargetRequest.supplierId)
+                      .map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.supplierName || s.name} ({s.email || 'No email'})
+                        </option>
+                      ))}
+                  </select>
+
+                  {/* Badges of selected additional vendors */}
+                  {additionalVendors.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {additionalVendors.map((v, vIdx) => (
+                        <span
+                          key={vIdx}
+                          className="inline-flex items-center gap-1.5 bg-white dark:bg-[#2C241F] border border-amber-300 text-amber-950 dark:text-amber-200 px-2 py-1 rounded-md text-[11px] font-medium shadow-2xs"
+                        >
+                          <span className="font-bold">{v.name}:</span>
+                          <span className="font-mono text-[10px] text-slate-600 dark:text-slate-300">{v.email}</span>
+                          <button
+                            type="button"
+                            onClick={() => setAdditionalVendors((prev) => prev.filter((_, idx) => idx !== vIdx))}
+                            className="text-rose-500 hover:text-rose-700 ml-0.5 font-bold cursor-pointer"
+                            title="Remove vendor"
+                          >
+                            ✕
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <p className="text-[10px] text-amber-900/80 dark:text-amber-300/80 leading-relaxed">
+                    All selected vendors will receive the official inquiry and attached PDF simultaneously via SMTP.
                   </p>
                 </div>
 
-                <div className="flex justify-end gap-2 pt-2 border-t border-[#E7DED5]">
-                  <button
-                    type="button"
-                    onClick={() => setShowEmailModal(false)}
-                    disabled={isSendingEmail}
-                    className="px-4 py-2 border border-[#E7DED5] rounded-lg font-semibold text-[#544B45] hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSendingEmail || !targetEmail.trim()}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white rounded-lg font-bold shadow-xs cursor-pointer flex items-center gap-1.5"
-                  >
-                    {isSendingEmail ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        <span>Sending Official Inquiry...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Mail className="w-3.5 h-3.5" />
-                        <span>Send Official Purchase Inquiry</span>
-                      </>
-                    )}
-                  </button>
+                <div className="flex justify-between items-center pt-2 border-t border-[#E7DED5]">
+                  <div className="text-[11px] text-[#70665F]">
+                    Total Recipients: <strong className="text-emerald-700 font-bold">{1 + additionalVendors.length} Email(s)</strong>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowEmailModal(false)}
+                      disabled={isSendingEmail}
+                      className="px-4 py-2 border border-[#E7DED5] rounded-lg font-semibold text-[#544B45] hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSendingEmail || !targetEmail.trim()}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white rounded-lg font-bold shadow-xs cursor-pointer flex items-center gap-1.5"
+                    >
+                      {isSendingEmail ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Dispatching via SMTP...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-3.5 h-3.5" />
+                          <span>Send Inquiry & PDF ({1 + additionalVendors.length} Recipient{additionalVendors.length > 0 ? 's' : ''})</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>

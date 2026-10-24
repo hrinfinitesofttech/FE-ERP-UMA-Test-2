@@ -1470,8 +1470,10 @@ export const api = {
       create: (data: any) => request<any>('/rfqs/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/rfqs/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: string) => request<any>(`/rfqs/${id}/`, { method: 'DELETE' }),
-      sendEmail: (id: string, recipientEmail?: string) =>
-        request<any>(`/rfqs/${id}/send-email/`, { method: 'POST', body: JSON.stringify({ recipientEmail }) }),
+      sendEmail: (id: string, payload?: string | { recipientEmail?: string; recipients?: string[]; additionalEmails?: string[]; rfq?: any }) => {
+        const bodyData = typeof payload === 'string' ? { recipientEmail: payload } : (payload || {});
+        return request<any>(`/rfqs/${id}/send-email/`, { method: 'POST', body: JSON.stringify(bodyData) });
+      },
     },
     supplierQuotations: {
       list: () => request<any[]>('/supplier-quotations/'),
@@ -1495,8 +1497,19 @@ export const api = {
         request<any>(`/purchase-orders/${id}/approve/`, { method: 'POST', body: JSON.stringify({ comment }) }),
       reject: (id: string, reason?: string) =>
         request<any>(`/purchase-orders/${id}/reject/`, { method: 'POST', body: JSON.stringify({ reason }) }),
-      sendEmail: (id: string, recipientEmail?: string) =>
-        request<any>(`/purchase-orders/${id}/send-email/`, { method: 'POST', body: JSON.stringify({ recipientEmail }) }),
+      sendEmail: (id: string, payload?: string | { recipientEmail?: string; recipients?: string[]; additionalEmails?: string[]; po?: any }) => {
+        const bodyData = typeof payload === 'string' ? { recipientEmail: payload } : (payload || {});
+        return request<any>(`/purchase-orders/${id}/send-email/`, { method: 'POST', body: JSON.stringify(bodyData) });
+      },
+    },
+    bills: {
+      list: () => request<any[]>('/purchase-invoices/'),
+      get: (id: string) => request<any>(`/purchase-invoices/${id}/`),
+      create: (data: any) => request<any>('/purchase-invoices/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/purchase-invoices/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/purchase-invoices/${id}/`, { method: 'DELETE' }),
+      recordPayment: (id: string, data: { amount: number; paymentMode?: string; referenceNumber?: string; bankName?: string; remarks?: string }) =>
+        request<any>(`/purchase-invoices/${id}/record-payment/`, { method: 'POST', body: JSON.stringify(data) }),
     },
     returns: () => request<any[]>('/purchase-returns/'),
   },
@@ -1884,8 +1897,9 @@ export const api = {
       list: () => request<any[]>('/purchase-invoices/'),
       create: (data: any) => request<any>('/purchase-invoices/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/purchase-invoices/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/purchase-invoices/${id}/`, { method: 'DELETE' }),
       post: (id: string) => request<any>(`/purchase-invoices/${id}/`, { method: 'PATCH', body: JSON.stringify({ status: 'Posted' }) }),
-      recordPayment: (id: string, data: { amount: number; paymentMode?: string; referenceNumber?: string }) =>
+      recordPayment: (id: string, data: { amount: number; paymentMode?: string; referenceNumber?: string; bankName?: string; remarks?: string }) =>
         request<any>(`/purchase-invoices/${id}/record-payment/`, { method: 'POST', body: JSON.stringify(data) }),
     },
     customerReceipts: {

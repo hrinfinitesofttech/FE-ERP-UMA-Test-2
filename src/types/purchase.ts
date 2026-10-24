@@ -62,6 +62,7 @@ export type POStatus =
   | 'Pending Approval'
   | 'Approved'
   | 'Ordered'
+  | 'Sent to Supplier'
   | 'Partially Received'
   | 'Completed'
   | 'Cancelled';
@@ -319,6 +320,7 @@ export interface RequestForQuotation {
   signatory?: string;
   supplierIds?: string[];
   supplierNames?: string[];
+  suppliers?: any[];
   invitedSuppliers?: {
     supplierId: string;
     supplierName: string;

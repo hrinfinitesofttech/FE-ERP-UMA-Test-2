@@ -826,9 +826,10 @@ interface ERPContextType {
   approveSalesInvoice: (id: string) => void;
   updateSalesInvoicePayment: (id: string, paymentData: { paymentStatus: 'Paid' | 'Partially Paid' | 'Unpaid'; paidAmount?: number; paymentMode?: string; referenceNumber?: string; paymentDate?: string }) => void;
   purchaseInvoices: PurchaseInvoice[];
-  addPurchaseInvoice: (inv: Omit<PurchaseInvoice, 'id' | 'invoiceNumber' | 'createdAt'>) => void;
+  addPurchaseInvoice: (inv: Omit<PurchaseInvoice, 'id' | 'invoiceNumber' | 'createdAt'> | PurchaseInvoice) => void;
   postPurchaseInvoice: (id: string) => void;
-  updatePurchaseInvoicePayment?: (id: string, paymentData: { paymentStatus: 'Paid' | 'Partially Paid' | 'Unpaid'; paidAmount?: number; paymentMode?: string; referenceNumber?: string; paymentDate?: string }) => void;
+  deletePurchaseInvoice?: (id: string) => void;
+  updatePurchaseInvoicePayment?: (id: string, paymentData: { paymentStatus?: 'Paid' | 'Partially Paid' | 'Unpaid'; paidAmount?: number; paymentMode?: string; referenceNumber?: string; paymentDate?: string; bankName?: string }) => void;
   creditNotes: CreditNote[];
   addCreditNote: (cn: Omit<CreditNote, 'id' | 'creditNoteNumber'>) => void;
   updateCreditNote: (id: string, cn: Partial<CreditNote>) => void;
@@ -2647,7 +2648,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         const stored = localStorage.getItem('UMA_ERP_purchaseOrders');
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed.map((p: any, idx: number) => {
+              const poNum = (p.poNumber && p.poNumber !== '-')
+                ? p.poNumber
+                : (p.po_number || (p.id && String(p.id).startsWith('PO-') ? String(p.id) : `PO-${p.id || `2026-${String(idx + 1).padStart(4, '0')}`}`));
+              return {
+                ...p,
+                id: String(p.id || poNum),
+                poNumber: poNum,
+              };
+            });
+          }
         }
       } catch (_) {}
     }
@@ -2835,7 +2847,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const [tdsMasters, setTdsMasters] = useState<TDSMaster[]>([]);
   const [costCenters, setCostCenters] = useState<CostCenter[]>([]);
   const [salesInvoices, setSalesInvoices] = useState<SalesInvoice[]>([]);
-  const [purchaseInvoices, setPurchaseInvoices] = useState<PurchaseInvoice[]>([]);
+  const [purchaseInvoices, setPurchaseInvoices] = useState<PurchaseInvoice[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_purchaseInvoices');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return [];
+  });
   const [creditNotes, setCreditNotes] = useState<CreditNote[]>([]);
   const [debitNotes, setDebitNotes] = useState<DebitNote[]>([]);
   const [customerReceipts, setCustomerReceipts] = useState<CustomerReceipt[]>([]);
@@ -4033,10 +4056,16 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
       const rawPOs = val<any[]>(results[2]);
       if (rawPOs && Array.isArray(rawPOs)) {
-        const normalizedPOs: PurchaseOrder[] = rawPOs.map((po: any) => ({
-          ...po,
-          id: String(po.id || po.poNumber || po.po_number),
-          poNumber: po.poNumber || po.po_number || po.id,
+        const normalizedPOs: PurchaseOrder[] = rawPOs.map((po: any, idx: number) => {
+          const poNum = (po.poNumber && po.poNumber !== '-')
+            ? po.poNumber
+            : (po.po_number || (po.id && String(po.id).startsWith('PO-') ? String(po.id) : `PO-${po.id || `2026-${String(idx + 1).padStart(4, '0')}`}`));
+          const poId = String(po.id || poNum);
+          return {
+            ...po,
+            id: poId,
+            poNumber: poNum,
+            po_number: poNum,
           revisionNumber: po.revisionNumber ?? (typeof po.revision_number === 'number' ? `Rev-${String(po.revision_number).padStart(2, '0')}` : (po.revision_number || 'Rev-00')),
           poDate: po.poDate || po.date || new Date().toISOString().split('T')[0],
           date: po.poDate || po.date || new Date().toISOString().split('T')[0],
@@ -4067,7 +4096,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           approvedBy: po.approvedBy || po.approved_by,
           createdAt: po.createdAt || po.created_at || new Date().toISOString(),
           updatedAt: po.updatedAt || po.updated_at || new Date().toISOString(),
-        }));
+        };
+      });
         setPurchaseOrders(normalizedPOs);
         if (typeof window !== 'undefined') {
           try { localStorage.setItem('UMA_ERP_purchaseOrders', JSON.stringify(normalizedPOs)); } catch (_) {}
@@ -10641,7 +10671,9 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addPurchaseOrder = (data: Omit<PurchaseOrder, 'id' | 'poDate'> | PurchaseOrder) => {
-    const poNumber = (data as any).poNumber || `PO-${new Date().getFullYear()}-${String(purchaseOrders.length + 1).padStart(3, '0')}`;
+    const poNumber = ((data as any).poNumber && (data as any).poNumber !== '-')
+      ? (data as any).poNumber
+      : ((data as any).po_number || `PO-${new Date().getFullYear()}-${String(purchaseOrders.length + 1).padStart(4, '0')}`);
     const poId = (data as any).id || poNumber;
     const newPo: PurchaseOrder = {
       ...data,
@@ -12607,17 +12639,61 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const addPurchaseInvoice = (inv: Omit<PurchaseInvoice, 'id' | 'invoiceNumber' | 'createdAt'>) => {
-    const invoiceNumber = `PINV-2026-${String(purchaseInvoices.length + 1).padStart(4, '0')}`;
+  const addPurchaseInvoice = (inv: Omit<PurchaseInvoice, 'id' | 'invoiceNumber' | 'createdAt'> | PurchaseInvoice) => {
+    const nextNum = String(purchaseInvoices.length + 1).padStart(4, '0');
+    const invoiceNumber = (inv as any).invoiceNumber || `PBILL-2026-${nextNum}`;
+    const paid = Number(inv.paidAmount || 0);
+    const grand = Number(inv.grandTotal || 0);
+    const outstanding = (inv as any).outstandingAmount !== undefined ? Number((inv as any).outstandingAmount) : Math.max(0, grand - paid);
+    const paymentStatus: 'Paid' | 'Partially Paid' | 'Unpaid' = inv.paymentStatus || (paid >= grand && grand > 0 ? 'Paid' : paid > 0 ? 'Partially Paid' : 'Unpaid');
+
     const newInv: PurchaseInvoice = {
       ...inv,
-      id: invoiceNumber,
+      id: (inv as any).id || invoiceNumber,
       invoiceNumber,
-      createdAt: new Date().toISOString().split('T')[0],
+      paidAmount: paid,
+      outstandingAmount: outstanding,
+      paymentStatus,
+      createdAt: (inv as any).createdAt || new Date().toISOString().split('T')[0],
     };
-    setPurchaseInvoices((prev) => [newInv, ...prev]);
-    logAction('CREATE', 'Accounting', 'Purchase Invoices', newInv.id, `Created Purchase Invoice ${newInv.invoiceNumber} for ₹${newInv.grandTotal?.toLocaleString()}`);
-    api.accounting.purchaseInvoices.create(newInv).catch((err) => console.warn('Failed to add purchase invoice:', err));
+
+    setPurchaseInvoices((prev) => {
+      const updated = [newInv, ...prev.filter(x => x.id !== newInv.id && x.invoiceNumber !== newInv.invoiceNumber)];
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('UMA_ERP_purchaseInvoices', JSON.stringify(updated));
+        } catch (_) {}
+      }
+      return updated;
+    });
+
+    logAction('CREATE', 'Purchase', 'Purchase Bills', newInv.id, `Created Purchase Bill ${newInv.invoiceNumber} for ₹${newInv.grandTotal?.toLocaleString()}`);
+    api.purchase.bills.create(newInv).catch(() => {
+      api.accounting.purchaseInvoices.create(newInv).catch((err) => console.warn('Failed to add purchase invoice:', err));
+    });
+  };
+
+  const deletePurchaseInvoice = (id: string) => {
+    setPurchaseInvoices((prev) => {
+      const updated = prev.filter(
+        (inv) =>
+          inv.id !== id &&
+          inv.invoiceNumber !== id &&
+          (inv as any).invoice_number !== id &&
+          String(inv.id).toLowerCase() !== String(id).toLowerCase() &&
+          String(inv.invoiceNumber).toLowerCase() !== String(id).toLowerCase()
+      );
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('UMA_ERP_purchaseInvoices', JSON.stringify(updated));
+        } catch (_) {}
+      }
+      return updated;
+    });
+    logAction('DELETE', 'Purchase', 'Purchase Bills', id, `Deleted Purchase Bill ${id}`);
+    api.purchase.bills.delete(id).catch(() => {
+      (api.accounting.purchaseInvoices as any).delete?.(id)?.catch((err: any) => console.warn('Failed to delete purchase invoice on backend:', err));
+    });
   };
 
   const postPurchaseInvoice = (id: string) => {
@@ -12650,30 +12726,42 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updatePurchaseInvoicePayment = (id: string, paymentData: {
-    paymentStatus: 'Paid' | 'Partially Paid' | 'Unpaid';
+    paymentStatus?: 'Paid' | 'Partially Paid' | 'Unpaid';
     paidAmount?: number;
     paymentMode?: string;
     referenceNumber?: string;
     paymentDate?: string;
+    bankName?: string;
+    notes?: string;
   }) => {
     setPurchaseInvoices((prev) => {
-      const updated: PurchaseInvoice[] = prev.map((inv) =>
-        inv.id === id ||
-        inv.invoiceNumber === id ||
-        (inv as any).invoice_number === id ||
-        String(inv.id).toLowerCase() === String(id).toLowerCase() ||
-        String(inv.invoiceNumber).toLowerCase() === String(id).toLowerCase()
-          ? {
-              ...inv,
-              paymentStatus: paymentData.paymentStatus,
-              paidAmount: paymentData.paidAmount !== undefined ? paymentData.paidAmount : (paymentData.paymentStatus === 'Paid' ? inv.grandTotal : inv.paidAmount || 0),
-              outstandingAmount: paymentData.paymentStatus === 'Paid' ? 0 : Math.max(0, inv.grandTotal - (paymentData.paidAmount !== undefined ? paymentData.paidAmount : inv.paidAmount || 0)),
-              paymentMode: paymentData.paymentMode || (inv as any).paymentMode,
-              paymentReference: paymentData.referenceNumber || (inv as any).paymentReference,
-              paymentDate: paymentData.paymentDate || new Date().toISOString().split('T')[0],
-            }
-          : inv
-      );
+      const updated: PurchaseInvoice[] = prev.map((inv) => {
+        if (
+          inv.id === id ||
+          inv.invoiceNumber === id ||
+          (inv as any).invoice_number === id ||
+          String(inv.id).toLowerCase() === String(id).toLowerCase() ||
+          String(inv.invoiceNumber).toLowerCase() === String(id).toLowerCase()
+        ) {
+          const newPaid = paymentData.paidAmount !== undefined ? paymentData.paidAmount : (paymentData.paymentStatus === 'Paid' ? inv.grandTotal : inv.paidAmount || 0);
+          const grand = Number(inv.grandTotal || 0);
+          const newOutstanding = Math.max(0, grand - newPaid);
+          const computedStatus: 'Paid' | 'Partially Paid' | 'Unpaid' = paymentData.paymentStatus || (newOutstanding <= 0 ? 'Paid' : newPaid > 0 ? 'Partially Paid' : 'Unpaid');
+
+          return {
+            ...inv,
+            paymentStatus: computedStatus,
+            paidAmount: newPaid,
+            outstandingAmount: newOutstanding,
+            paymentMode: paymentData.paymentMode || (inv as any).paymentMode,
+            paymentReference: paymentData.referenceNumber || (inv as any).paymentReference,
+            paymentDate: paymentData.paymentDate || new Date().toISOString().split('T')[0],
+            bankName: paymentData.bankName || (inv as any).bankName,
+            paymentNotes: paymentData.notes || (inv as any).paymentNotes,
+          };
+        }
+        return inv;
+      });
       if (typeof window !== 'undefined') {
         try {
           localStorage.setItem('UMA_ERP_purchaseInvoices', JSON.stringify(updated));
@@ -12681,10 +12769,26 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       }
       return updated;
     });
-    logAction('UPDATE', 'Accounting', 'Purchase Invoices', id, `Updated payment status to ${paymentData.paymentStatus} for Purchase Invoice ${id}`);
-    api.accounting.purchaseInvoices.update(id, paymentData).catch((err) => {
-      console.warn('Backend update purchase invoice payment failed:', err);
-    });
+    logAction('UPDATE', 'Purchase', 'Purchase Bills', id, `Recorded payment for Purchase Bill ${id} - Paid: ₹${paymentData.paidAmount || 0}, Status: ${paymentData.paymentStatus}`);
+    
+    // Attempt backend sync
+    if (paymentData.paidAmount !== undefined) {
+      api.purchase.bills.recordPayment(id, {
+        amount: paymentData.paidAmount,
+        paymentMode: paymentData.paymentMode,
+        referenceNumber: paymentData.referenceNumber,
+        bankName: paymentData.bankName,
+        remarks: paymentData.notes,
+      }).catch(() => {
+        api.accounting.purchaseInvoices.update(id, paymentData).catch((err: any) => {
+          console.warn('Backend update purchase invoice payment failed:', err);
+        });
+      });
+    } else {
+      api.accounting.purchaseInvoices.update(id, paymentData).catch((err: any) => {
+        console.warn('Backend update purchase invoice payment failed:', err);
+      });
+    }
   };
 
   const addCreditNote = (cn: Omit<CreditNote, 'id' | 'creditNoteNumber'>) => {
@@ -15378,6 +15482,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         purchaseInvoices: sortByLatestDesc(purchaseInvoices),
         addPurchaseInvoice,
         postPurchaseInvoice,
+        deletePurchaseInvoice,
         updatePurchaseInvoicePayment,
         creditNotes: sortByLatestDesc(creditNotes),
         addCreditNote,

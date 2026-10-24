@@ -605,7 +605,7 @@ function PurchaseOrdersHubContent() {
     handleOpenPOEmailModal(po);
   };
 
-  // Dispatch Official PO Email (Backend API + Mail Client)
+  // Dispatch Official PO Email (Real Backend SMTP with ReportLab PDF Attachment)
   const handleDispatchPOEmail = async (customEmail?: string) => {
     if (!emailTargetPO) return;
     const recipient = String(customEmail || poTargetEmail).trim();
@@ -618,67 +618,29 @@ function PurchaseOrdersHubContent() {
     setIsSendingPOEmail(true);
 
     try {
-      // 1. Dispatch via backend API endpoint
-      if (emailTargetPO.id) {
-        api.purchase.orders.sendEmail(emailTargetPO.id, recipient).catch((err) =>
-          console.warn('Backend PO sendEmail API notice:', err)
-        );
+      // 1. Dispatch via backend SMTP with ReportLab PDF attachment
+      const poIdentifier = emailTargetPO.id || emailTargetPO.poNumber;
+      const res = await api.purchase.orders.sendEmail(poIdentifier, {
+        recipientEmail: recipient,
+        recipients: [recipient],
+        po: emailTargetPO,
+      });
+
+      if (res && res.error) {
+        throw new Error(res.error);
       }
 
-      // 2. Open email client with formatted official Purchase Order
-      const subject = encodeURIComponent(
-        `OFFICIAL PURCHASE ORDER: ${emailTargetPO.poNumber} - ${vendorName} - UMA TECHNOFAB`
-      );
+      // 2. Update local PO status to 'Sent to Supplier'
+      updatePurchaseOrder(emailTargetPO.id, {
+        ...emailTargetPO,
+        status: 'Sent to Supplier',
+      });
 
-      const itemsText = (emailTargetPO.items || [])
-        .map((itm, idx) => {
-          const spec = itm.specification;
-          const name = itm.itemName || 'Material Item';
-          const qty = Number(itm.orderedQuantity || itm.quantity || 1).toLocaleString();
-          const uom = itm.unitOfMeasure || 'NOS';
-          const rate = itm.unitPrice ? ` @ ₹${itm.unitPrice}` : '';
-          const amt = itm.totalPrice ? ` = ₹${itm.totalPrice.toLocaleString('en-IN')}` : '';
-          return `  [${idx + 1}] ${name}${spec ? ` (${spec})` : ''} - Qty: ${qty} ${uom}${rate}${amt}`;
-        })
-        .join('\n');
-
-      const grandTotal = Number(emailTargetPO.grandTotal || 0).toLocaleString('en-IN');
-
-      const body = encodeURIComponent(
-        `Dear ${vendorName},\n\n` +
-        `Please find our official Purchase Order details below from UMA TECHNOFAB:\n\n` +
-        `PURCHASE ORDER SUMMARY:\n` +
-        `==================================================\n` +
-        `PO Number     : ${emailTargetPO.poNumber}\n` +
-        `PO Date       : ${emailTargetPO.poDate || new Date().toISOString().slice(0, 10)}\n` +
-        `Project / Job : ${emailTargetPO.projectId || emailTargetPO.jobNumber || emailTargetPO.jobId || 'GENERAL'}\n` +
-        `Payment Terms : ${emailTargetPO.paymentTerms || '30 Days Credit'}\n` +
-        `Delivery Site : ${emailTargetPO.deliveryTerms || 'FOR Destination (Rajpur Works)'}\n` +
-        `Grand Total   : INR ${grandTotal}\n` +
-        `==================================================\n\n` +
-        `ORDERED ITEMS:\n` +
-        itemsText +
-        `\n\n` +
-        (emailTargetPO.specialInstructions ? `SPECIAL INSTRUCTIONS:\n${emailTargetPO.specialInstructions}\n\n` : '') +
-        `TERMS & CONDITIONS:\n` +
-        `1. Material must strictly match technical specifications and tolerances.\n` +
-        `2. Supply must be accompanied by Delivery Challan, Tax Invoice and original Test Certificate (TC).\n` +
-        `3. Delivery schedule must be adhered to strictly as confirmed.\n\n` +
-        `Kindly acknowledge receipt and confirm the delivery date.\n\n` +
-        `Thanking you we remain,\n\n` +
-        `Purchase & Procurement Team\n` +
-        `UMA TECHNOFAB\n` +
-        `Survey No. 1040/3, Village Rajpur, Mehsana Highway,\n` +
-        `Ta. Kadi, Dist: Mehsana, Gujarat - 382715\n` +
-        `Mobile: 9925011676 / Email: umatechnofab@gmail.com\n`
-      );
-
-      window.open(`mailto:${recipient}?subject=${subject}&body=${body}`, '_blank');
-      showToast(`Official Purchase Order ${emailTargetPO.poNumber} email dispatched to ${recipient}!`);
+      showToast(`Official Purchase Order ${emailTargetPO.poNumber} successfully dispatched via SMTP to ${recipient} with PDF attached!`);
       setShowPOEmailModal(false);
     } catch (err: any) {
-      console.error('Failed to send PO email:', err);
-      showToast(err?.message || 'Failed to dispatch PO email.');
+      console.error('Failed to send PO email via SMTP:', err);
+      showToast(err?.message || 'Failed to dispatch PO email via backend SMTP.');
     } finally {
       setIsSendingPOEmail(false);
     }
@@ -863,9 +825,24 @@ function PurchaseOrdersHubContent() {
         const poColumns: ERPColumn<PurchaseOrder>[] = [
           {
             key: 'poNumber',
+            accessorKey: 'poNumber',
             header: 'PO NUMBER',
-            isCodeLink: true,
-            onCodeClick: (po) => setViewPO(po),
+            cell: (po) => {
+              const displayPoNum =
+                (po.poNumber && po.poNumber !== '-')
+                  ? po.poNumber
+                  : ((po as any).po_number || (po.id && String(po.id).startsWith('PO-') ? String(po.id) : `PO-${po.id || '2026-0001'}`));
+              return (
+                <button
+                  type="button"
+                  onClick={() => setViewPO(po)}
+                  className="font-mono font-bold text-sky-700 hover:text-sky-900 underline text-xs text-left cursor-pointer"
+                  title="Click to view Official Purchase Order"
+                >
+                  {displayPoNum}
+                </button>
+              );
+            },
           },
           {
             key: 'poDate',
@@ -2303,6 +2280,9 @@ function PurchaseOrdersHubContent() {
       {/* Official PO Send Email Modal (Matching CRM Send Email Quotation Design) */}
       {showPOEmailModal && emailTargetPO && (() => {
         const { vendorName, email: resolvedVendorEmail, supp } = resolvePOVendorDetails(emailTargetPO);
+        const modalPoNumber = (emailTargetPO.poNumber && emailTargetPO.poNumber !== '-')
+          ? emailTargetPO.poNumber
+          : ((emailTargetPO as any).po_number || (emailTargetPO.id && String(emailTargetPO.id).startsWith('PO-') ? String(emailTargetPO.id) : `PO-${emailTargetPO.id || '2026-0001'}`));
         return (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div className="bg-white dark:bg-[#2C241F] rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-xl border border-[#E7DED5]">
@@ -2370,7 +2350,7 @@ function PurchaseOrdersHubContent() {
                   </div>
                   <div className="flex justify-between items-center text-[11px]">
                     <span className="text-[#70665F]">PO Reference:</span>
-                    <span className="font-mono font-bold text-emerald-700">{emailTargetPO.poNumber}</span>
+                    <span className="font-mono font-bold text-emerald-700">{modalPoNumber}</span>
                   </div>
                   <div className="flex justify-between items-center text-[11px]">
                     <span className="text-[#70665F]">Project / Job:</span>
@@ -2382,7 +2362,7 @@ function PurchaseOrdersHubContent() {
                   </div>
                   <div className="flex justify-between items-center text-[11px]">
                     <span className="text-[#70665F]">PDF Attachment:</span>
-                    <span className="font-mono text-slate-700 dark:text-slate-300">Official_Purchase_Order_{emailTargetPO.poNumber}.pdf</span>
+                    <span className="font-mono text-slate-700 dark:text-slate-300">Official_Purchase_Order_{modalPoNumber}.pdf</span>
                   </div>
                 </div>
 

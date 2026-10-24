@@ -133,7 +133,7 @@ export function ERPListPageLayout<T extends Record<string, any>>({
     const rows = filteredData.map((row) =>
       activeCols
         .map((c) => {
-          const val = c.accessorKey ? row[c.accessorKey] : '';
+          const val = c.accessorKey ? row[c.accessorKey] : (row as any)[c.key];
           return `"${String(val ?? '').replace(/"/g, '""')}"`;
         })
         .join(',')
@@ -423,7 +423,9 @@ export function ERPListPageLayout<T extends Record<string, any>>({
                       {initialColumns
                         .filter((col) => visibleColumnKeys[col.key] !== false)
                         .map((col) => {
-                          const value = col.accessorKey ? row[col.accessorKey] : undefined;
+                          const value = col.accessorKey
+                            ? row[col.accessorKey]
+                            : (row as any)[col.key];
                           return (
                             <td
                               key={col.key}
