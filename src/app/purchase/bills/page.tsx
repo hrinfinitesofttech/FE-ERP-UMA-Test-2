@@ -1312,9 +1312,9 @@ function PurchaseBillsContent() {
       {/* RECORD PAYMENT / FINAL SETTLEMENT MODAL */}
       {showPaymentModal && selectedBill && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col border border-gray-200 dark:border-gray-700 overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-gray-800 dark:to-gray-800">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-gray-800 dark:to-gray-800 shrink-0">
               <div className="flex items-center gap-3">
                 <div
                   className={`p-2 rounded-xl text-white ${
@@ -1336,14 +1336,14 @@ function PurchaseBillsContent() {
               </div>
               <button
                 onClick={() => setShowPaymentModal(false)}
-                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg"
+                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Content */}
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-4 overflow-y-auto flex-1">
               {/* Summary Card */}
               <div className="bg-gray-50 dark:bg-gray-900/60 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 space-y-1.5 text-xs">
                 <div className="flex justify-between">
@@ -1530,18 +1530,18 @@ function PurchaseBillsContent() {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3 bg-gray-50 dark:bg-gray-900">
+            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3 bg-gray-50 dark:bg-gray-900 shrink-0">
               <button
                 type="button"
                 onClick={() => setShowPaymentModal(false)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleRecordPaymentSubmit}
-                className={`px-5 py-2 text-white rounded-xl text-xs font-semibold shadow-md transition-all flex items-center gap-1.5 ${
+                className={`px-5 py-2 text-white rounded-xl text-xs font-semibold shadow-md transition-all flex items-center gap-1.5 cursor-pointer ${
                   isFinalSettlement ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700'
                 }`}
               >
