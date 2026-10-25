@@ -1234,101 +1234,126 @@ function GoodsReceiptContent() {
                   </button>
                 </div>
 
-                <div className="overflow-x-auto border border-slate-300 rounded-xl shadow-xs">
-                  <table className="w-full text-left border-collapse text-[11px]">
+                <div className="overflow-x-auto border border-slate-300 rounded-xl shadow-xs bg-white">
+                  <table className="w-full min-w-[1550px] text-left border-collapse text-[11px]">
                     <thead>
                       <tr className="bg-slate-100 text-slate-800 font-bold border-b border-slate-300 text-center divide-x divide-slate-300">
-                        <th className="p-2 w-8">Sl. No.</th>
-                        <th className="p-2 w-32">PO No. / Date & Indent No/Date</th>
-                        <th className="p-2 w-24">Item Code</th>
-                        <th className="p-2 min-w-[150px]">Item Description & Make</th>
-                        <th className="p-2 w-14">Dept.</th>
-                        <th className="p-2 w-14">UOM</th>
-                        <th className="p-2 w-20">Challan Qty</th>
-                        <th className="p-2 w-20">Received Qty</th>
-                        <th className="p-2 w-16 bg-slate-200/50">Short Qty</th>
-                        <th className="p-2 w-16 bg-slate-200/50">Excess Qty</th>
-                        <th className="p-2 w-20">Rejected Qty</th>
-                        <th className="p-2 w-20 bg-emerald-50">Accepted Qty</th>
-                        <th className="p-2 w-20">Rate (₹)</th>
-                        <th className="p-2 w-16">Discount</th>
-                        <th className="p-2 w-24 bg-purple-50">Total Value (₹)</th>
-                        <th className="p-2 w-10">Act</th>
+                        <th className="p-2.5 w-12 min-w-[48px]">Sl. No.</th>
+                        <th className="p-2.5 w-48 min-w-[190px]">PO No. / Date & Indent No/Date</th>
+                        <th className="p-2.5 w-36 min-w-[140px]">Item Code</th>
+                        <th className="p-2.5 min-w-[260px]">Item Description & Make</th>
+                        <th className="p-2.5 w-24 min-w-[85px]">Dept.</th>
+                        <th className="p-2.5 w-24 min-w-[85px]">UOM</th>
+                        <th className="p-2.5 w-24 min-w-[95px]">Challan Qty</th>
+                        <th className="p-2.5 w-24 min-w-[95px]">Received Qty</th>
+                        <th className="p-2.5 w-20 min-w-[85px] bg-slate-200/50">Short Qty</th>
+                        <th className="p-2.5 w-20 min-w-[85px] bg-slate-200/50">Excess Qty</th>
+                        <th className="p-2.5 w-24 min-w-[95px]">Rejected Qty</th>
+                        <th className="p-2.5 w-24 min-w-[95px] bg-emerald-50 text-emerald-900">Accepted Qty</th>
+                        <th className="p-2.5 w-28 min-w-[105px]">Rate (₹)</th>
+                        <th className="p-2.5 w-24 min-w-[90px]">Discount (₹)</th>
+                        <th className="p-2.5 w-32 min-w-[125px] bg-purple-50 text-purple-900">Total Value (₹)</th>
+                        <th className="p-2.5 w-14 min-w-[55px]">Act</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200 bg-white">
                       {inwardItems.map((itm, idx) => (
-                        <tr key={itm.id} className="divide-x divide-slate-200 hover:bg-slate-50/80">
+                        <tr key={itm.id} className="divide-x divide-slate-200 hover:bg-slate-50/80 align-top">
                           {/* Sl. No. */}
-                          <td className="p-2 text-center font-bold text-slate-700">{idx + 1}</td>
+                          <td className="p-2.5 text-center font-bold text-slate-700 pt-5">
+                            {idx + 1}
+                          </td>
 
                           {/* PO No. / Date & Indent No/Date */}
-                          <td className="p-1.5 space-y-1">
-                            <input
-                              type="text"
-                              value={itm.poNumber}
-                              onChange={(e) => updateItemLine(idx, 'poNumber', e.target.value)}
-                              placeholder="PO No / Date"
-                              className="w-full bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-mono"
-                            />
-                            <input
-                              type="text"
-                              value={itm.indentNumber}
-                              onChange={(e) => updateItemLine(idx, 'indentNumber', e.target.value)}
-                              placeholder="Indent No / Date"
-                              className="w-full bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] text-slate-500 font-mono"
-                            />
+                          <td className="p-2">
+                            <div className="flex flex-col gap-1.5 w-full">
+                              <div>
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">PO Ref</span>
+                                <input
+                                  type="text"
+                                  value={itm.poNumber}
+                                  onChange={(e) => updateItemLine(idx, 'poNumber', e.target.value)}
+                                  placeholder="PO No / Date"
+                                  className="w-full bg-white border border-slate-300 rounded-md px-2 py-1 text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600"
+                                />
+                              </div>
+                              <div>
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Indent Ref</span>
+                                <input
+                                  type="text"
+                                  value={itm.indentNumber}
+                                  onChange={(e) => updateItemLine(idx, 'indentNumber', e.target.value)}
+                                  placeholder="Indent No / Date"
+                                  className="w-full bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-slate-600 font-mono focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600"
+                                />
+                              </div>
+                            </div>
                           </td>
 
                           {/* Item Code */}
-                          <td className="p-1.5">
-                            <input
-                              type="text"
-                              required
-                              value={itm.itemCode}
-                              onChange={(e) => updateItemLine(idx, 'itemCode', e.target.value)}
-                              placeholder="e.g. 0501040165"
-                              className="w-full bg-white border border-slate-200 rounded px-1.5 py-1 text-xs font-mono font-semibold"
-                            />
-                          </td>
-
-                          {/* Item Description, Make, Serial/Heat */}
-                          <td className="p-1.5 space-y-1">
-                            <input
-                              type="text"
-                              required
-                              value={itm.description}
-                              onChange={(e) => {
-                                updateItemLine(idx, 'description', e.target.value);
-                                if (!itm.itemName) updateItemLine(idx, 'itemName', e.target.value);
-                              }}
-                              placeholder="Item description (e.g. BEARING 2025)"
-                              className="w-full bg-white border border-slate-200 rounded px-1.5 py-1 text-xs font-medium"
-                            />
-                            <div className="flex gap-1">
+                          <td className="p-2">
+                            <div className="flex flex-col gap-1.5 w-full">
+                              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Item Code *</span>
                               <input
                                 type="text"
-                                value={itm.makeBrand}
-                                onChange={(e) => updateItemLine(idx, 'makeBrand', e.target.value)}
-                                placeholder="Make: AIRMAX"
-                                className="w-1/2 bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px]"
-                              />
-                              <input
-                                type="text"
-                                value={itm.heatSerialNo}
-                                onChange={(e) => updateItemLine(idx, 'heatSerialNo', e.target.value)}
-                                placeholder="Serial / Heat Nos"
-                                className="w-1/2 bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] font-mono"
+                                required
+                                value={itm.itemCode}
+                                onChange={(e) => updateItemLine(idx, 'itemCode', e.target.value)}
+                                placeholder="e.g. 0501040165"
+                                className="w-full bg-white border border-slate-300 rounded-md px-2 py-1 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600"
                               />
                             </div>
                           </td>
 
+                          {/* Item Description, Make, Serial/Heat */}
+                          <td className="p-2">
+                            <div className="flex flex-col gap-1.5 w-full">
+                              <div>
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Item Description *</span>
+                                <input
+                                  type="text"
+                                  required
+                                  value={itm.description}
+                                  onChange={(e) => {
+                                    updateItemLine(idx, 'description', e.target.value);
+                                    if (!itm.itemName) updateItemLine(idx, 'itemName', e.target.value);
+                                  }}
+                                  placeholder="Item description (e.g. BEARING 2025)"
+                                  className="w-full bg-white border border-slate-300 rounded-md px-2.5 py-1 text-xs font-semibold text-slate-900 focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600"
+                                />
+                              </div>
+                              <div className="grid grid-cols-2 gap-1.5">
+                                <div>
+                                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Make / Brand</span>
+                                  <input
+                                    type="text"
+                                    value={itm.makeBrand}
+                                    onChange={(e) => updateItemLine(idx, 'makeBrand', e.target.value)}
+                                    placeholder="e.g. AIRMAX"
+                                    className="w-full bg-white border border-slate-300 rounded-md px-2 py-1 text-[11px] text-slate-700 focus:outline-none focus:border-purple-600"
+                                  />
+                                </div>
+                                <div>
+                                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Serial / Heat No</span>
+                                  <input
+                                    type="text"
+                                    value={itm.heatSerialNo}
+                                    onChange={(e) => updateItemLine(idx, 'heatSerialNo', e.target.value)}
+                                    placeholder="Serial / Heat Nos"
+                                    className="w-full bg-white border border-slate-300 rounded-md px-2 py-1 text-[11px] font-mono text-slate-700 focus:outline-none focus:border-purple-600"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+
                           {/* Dept */}
-                          <td className="p-1.5">
+                          <td className="p-2">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5 text-center">Dept</span>
                             <select
                               value={itm.dept}
                               onChange={(e) => updateItemLine(idx, 'dept', e.target.value)}
-                              className="w-full bg-white border border-slate-200 rounded px-1 py-1 text-[11px] font-semibold text-center"
+                              className="w-full bg-white border border-slate-300 rounded-md px-2 py-1 text-xs font-bold text-slate-800 text-center cursor-pointer focus:outline-none focus:border-purple-600"
                             >
                               <option value="MEC">MEC</option>
                               <option value="FAB">FAB</option>
@@ -1340,11 +1365,12 @@ function GoodsReceiptContent() {
                           </td>
 
                           {/* UOM */}
-                          <td className="p-1.5">
+                          <td className="p-2">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5 text-center">UOM</span>
                             <select
                               value={itm.uom}
                               onChange={(e) => updateItemLine(idx, 'uom', e.target.value)}
-                              className="w-full bg-white border border-slate-200 rounded px-1 py-1 text-[11px] font-semibold text-center"
+                              className="w-full bg-white border border-slate-300 rounded-md px-2 py-1 text-xs font-bold text-purple-700 text-center cursor-pointer focus:outline-none focus:border-purple-600"
                             >
                               <option value="KG">KG</option>
                               <option value="NOS">NOS</option>
@@ -1353,98 +1379,117 @@ function GoodsReceiptContent() {
                               <option value="SET">SET</option>
                               <option value="TON">TON</option>
                               <option value="PKT">PKT</option>
+                              <option value="LTR">LTR</option>
+                              <option value="BAG">BAG</option>
                             </select>
                           </td>
 
                           {/* Challan Qty */}
-                          <td className="p-1.5">
+                          <td className="p-2">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5 text-right">Challan</span>
                             <input
                               type="number"
                               step="any"
                               value={itm.challanQuantity || ''}
                               onChange={(e) => updateItemLine(idx, 'challanQuantity', parseFloat(e.target.value) || 0)}
                               placeholder="0"
-                              className="w-full bg-white border border-slate-200 rounded px-1.5 py-1 text-xs text-right font-mono"
+                              className="w-full bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-right font-mono font-semibold focus:outline-none focus:border-purple-600"
                             />
                           </td>
 
                           {/* Received Qty */}
-                          <td className="p-1.5">
+                          <td className="p-2">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5 text-right">Received</span>
                             <input
                               type="number"
                               step="any"
                               value={itm.receivedQuantity || ''}
                               onChange={(e) => updateItemLine(idx, 'receivedQuantity', parseFloat(e.target.value) || 0)}
                               placeholder="0"
-                              className="w-full bg-white border border-slate-200 rounded px-1.5 py-1 text-xs text-right font-mono font-semibold"
+                              className="w-full bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-right font-mono font-bold text-slate-900 focus:outline-none focus:border-purple-600"
                             />
                           </td>
 
                           {/* Short Qty (Calculated) */}
-                          <td className="p-2 text-right font-mono text-slate-700 bg-slate-50">
-                            {itm.shortQuantity.toFixed(3)}
+                          <td className="p-2 text-right font-mono text-slate-700 bg-slate-50/80">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5 text-right">Short</span>
+                            <div className="pt-1 text-xs font-semibold">
+                              {itm.shortQuantity.toFixed(3)}
+                            </div>
                           </td>
 
                           {/* Excess Qty (Calculated) */}
-                          <td className="p-2 text-right font-mono text-slate-700 bg-slate-50">
-                            {itm.excessQuantity.toFixed(3)}
+                          <td className="p-2 text-right font-mono text-slate-700 bg-slate-50/80">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5 text-right">Excess</span>
+                            <div className="pt-1 text-xs font-semibold">
+                              {itm.excessQuantity.toFixed(3)}
+                            </div>
                           </td>
 
                           {/* Rejected Qty */}
-                          <td className="p-1.5">
+                          <td className="p-2">
+                            <span className="text-[9px] font-bold text-rose-500 uppercase tracking-wider block mb-0.5 text-right">Rejected</span>
                             <input
                               type="number"
                               step="any"
                               value={itm.rejectedQuantity || ''}
                               onChange={(e) => updateItemLine(idx, 'rejectedQuantity', parseFloat(e.target.value) || 0)}
                               placeholder="0"
-                              className="w-full bg-white border border-slate-200 rounded px-1.5 py-1 text-xs text-right font-mono text-rose-600"
+                              className="w-full bg-white border border-rose-300 rounded-md px-2 py-1 text-xs text-right font-mono text-rose-600 font-bold focus:outline-none focus:border-rose-500"
                             />
                           </td>
 
                           {/* Accepted Qty (Calculated) */}
-                          <td className="p-2 text-right font-mono font-bold text-emerald-800 bg-emerald-50/50">
-                            {itm.acceptedQuantity.toFixed(3)}
+                          <td className="p-2 text-right font-mono font-bold text-emerald-800 bg-emerald-50/60">
+                            <span className="text-[9px] font-bold text-emerald-700 uppercase tracking-wider block mb-0.5 text-right">Accepted</span>
+                            <div className="pt-1 text-xs font-black text-emerald-700">
+                              {itm.acceptedQuantity.toFixed(3)}
+                            </div>
                           </td>
 
                           {/* Rate */}
-                          <td className="p-1.5">
+                          <td className="p-2">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5 text-right">Rate (₹)</span>
                             <input
                               type="number"
                               step="any"
                               value={itm.rate || ''}
                               onChange={(e) => updateItemLine(idx, 'rate', parseFloat(e.target.value) || 0)}
                               placeholder="0.00"
-                              className="w-full bg-white border border-slate-200 rounded px-1.5 py-1 text-xs text-right font-mono"
+                              className="w-full bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-right font-mono font-semibold focus:outline-none focus:border-purple-600"
                             />
                           </td>
 
                           {/* Discount */}
-                          <td className="p-1.5">
+                          <td className="p-2">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5 text-right">Disc (₹)</span>
                             <input
                               type="number"
                               step="any"
                               value={itm.discount || ''}
                               onChange={(e) => updateItemLine(idx, 'discount', parseFloat(e.target.value) || 0)}
                               placeholder="0"
-                              className="w-full bg-white border border-slate-200 rounded px-1.5 py-1 text-xs text-right font-mono"
+                              className="w-full bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-right font-mono focus:outline-none focus:border-purple-600"
                             />
                           </td>
 
                           {/* Total Value (Calculated) */}
-                          <td className="p-2 text-right font-mono font-bold text-purple-900 bg-purple-50/50">
-                            {itm.totalValue.toFixed(2)}
+                          <td className="p-2 text-right font-mono font-bold text-purple-950 bg-purple-50/60">
+                            <span className="text-[9px] font-bold text-purple-700 uppercase tracking-wider block mb-0.5 text-right">Total (₹)</span>
+                            <div className="pt-1 text-xs font-black text-purple-900">
+                              {itm.totalValue.toFixed(2)}
+                            </div>
                           </td>
 
                           {/* Delete Action */}
-                          <td className="p-1.5 text-center">
+                          <td className="p-2 text-center pt-5">
                             <button
                               type="button"
                               onClick={() => removeItemLine(idx)}
-                              className="text-slate-400 hover:text-rose-600 p-1"
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
                               title="Delete Row"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </td>
                         </tr>
@@ -1454,15 +1499,15 @@ function GoodsReceiptContent() {
                 </div>
 
                 {/* Table Footer: Total Value Summary */}
-                <div className="flex justify-between items-center p-3 bg-slate-100 rounded-xl border border-slate-200">
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3.5 bg-slate-100 rounded-xl border border-slate-200">
                   <span className="text-xs text-slate-600 font-medium">
-                    Total Inward Lines: <strong>{inwardItems.length}</strong>
+                    Total Inward Lines: <strong className="text-slate-900 font-bold">{inwardItems.length}</strong>
                   </span>
                   <div className="flex items-center gap-4">
                     <span className="text-xs font-bold text-slate-800 uppercase tracking-wide">
                       Grand Total Value :
                     </span>
-                    <span className="text-base font-mono font-extrabold text-[#7C3AED] bg-white px-3 py-1 rounded-lg border border-purple-200 shadow-xs">
+                    <span className="text-base font-mono font-extrabold text-[#7C3AED] bg-white px-3.5 py-1.5 rounded-lg border border-purple-200 shadow-xs">
                       {formatCurrency(grandTotal)}
                     </span>
                   </div>
