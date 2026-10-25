@@ -424,7 +424,7 @@ export default function GeneralLedgerPage() {
           </div>
           <div>
             <div className="text-[11px] font-semibold tracking-wider uppercase text-slate-400 mb-0.5">
-              ACCOUNTING &amp; FINANCE / GENERAL LEDGER (ખાતાવહી)
+              ACCOUNTING &amp; FINANCE / GENERAL LEDGER
             </div>
             <h1 className="text-xl font-black text-[#211B17] tracking-tight flex items-center gap-2">
               <span>Account Ledger Book</span>

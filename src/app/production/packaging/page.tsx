@@ -742,7 +742,7 @@ function PackagingPageContent() {
     }
   };
 
-  // 1-Click Action: "Generate Delivery Challan" (ડિલિવરી ચલણ બનાવો)
+  // 1-Click Action: "Generate Delivery Challan"
   const handleProceedToChallan = (slip: PackagingSlipDoc) => {
     // Encode items into JSON so Delivery Challan page loads all items (main equipment + nuts & bolts + spares)
     const challanItems = slip.items.map((itm, idx) => ({
@@ -836,7 +836,7 @@ function PackagingPageContent() {
                   MODULE 6.6
                 </span>
                 <h1 className="text-xl sm:text-2xl font-bold text-[#3E2723]">
-                  Dispatch & Packaging (પેકેજિંગ અને ડિસ્પેચ)
+                  Dispatch & Packaging
                 </h1>
               </div>
               <p className="text-xs sm:text-sm text-[#7D6B5E] mt-0.5">
@@ -1022,7 +1022,7 @@ function PackagingPageContent() {
 
                           <button
                             onClick={() => handleProceedToChallan(slip)}
-                            title="Generate Delivery Challan (ડિલિવરી ચલણ બનાવો)"
+                            title="Generate Delivery Challan"
                             className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs transition-colors shadow-sm"
                           >
                             <Truck className="w-3.5 h-3.5" />
@@ -1296,7 +1296,7 @@ function PackagingPageContent() {
                       <span>Items Packed (Main Equipment + Extra Nuts, Bolts &amp; Spares)</span>
                     </h3>
                     <p className="text-[11px] text-[#7D6B5E]">
-                      નટ-બોલ્ટ, ગાસ્કેટ, ફાઉન્ડેશન બોલ્ટ્સ અને સ્પેર પાર્ટ્સ પેકેજિંગમાં ઉમેરો.
+                      Add nuts, bolts, gaskets, foundation bolts, and spare parts into packages.
                     </p>
                   </div>
                   <button

@@ -9,7 +9,7 @@
 ## 1. Executive Summary & Problem Statement
 
 The user reported a critical multi-device data inconsistency across laptops:
-> *"મારા જે friend એ મને પાસે બીજા લેપટોપ માં URL ખોલી: https://fe-erp-uma-test-2.vercel.app/login ... મેં 3 user રજીસ્ટર કર્યા હતા પણ એને 2 user દેખાતા હતા ... હવે મારો એક જ user છે Durgesh jadav અને મારા 4 friends એ login કર્યું ... હવે મારો friend જે પણ data add કરે એ મને નથી દેખાતો અને હું add કરું એ એમને નથી દેખાતો. એક જ database હોવા છતાં આવું કેમ થાય છે?"*
+> *"When my friend opened the URL on another laptop: https://fe-erp-uma-test-2.vercel.app/login ... I had registered 3 users but he saw 2 users ... Now I have user Durgesh Jadav and 4 friends logged in ... Whatever data my friend adds, I cannot see, and what I add, they cannot see. Why is this happening if it is the same database?"*
 
 User screenshots provided concrete visual evidence of the discrepancy across machines:
 - **Laptop 1 (Hardik Daki):** Saw **4 employees** (`EMP-000 Hardik Daki`, `EMP-001 Durgesh Jadav`, `002 Deepbhai Manvar`, `003 hemant bhai`).
