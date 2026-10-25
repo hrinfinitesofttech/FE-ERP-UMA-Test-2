@@ -284,7 +284,7 @@ function PurchaseBillsContent() {
   const handleRecordPaymentSubmit = () => {
     if (!selectedBill) return;
     if (paymentAmount <= 0) {
-      showToast('⚠️ કૃપા કરીને માન્ય રકમ દાખલ કરો (Please enter a valid amount).');
+      showToast('⚠️ Please enter a valid payment amount.');
       return;
     }
 
@@ -308,8 +308,8 @@ function PurchaseBillsContent() {
 
     showToast(
       isFinalSettlement || outstanding <= 0
-        ? `✅ બિલ ${selectedBill.invoiceNumber} નું સંપૂર્ણ પેમેન્ટ સફળતાપૂર્વક પૂરું થયું! (100% Settled)`
-        : `✅ બિલ ${selectedBill.invoiceNumber} માં ₹${paymentAmount.toLocaleString()} એડવાન્સ/પાર્ટ પેમેન્ટ નોંધાઈ ગયું!`
+        ? `✅ Payment for bill ${selectedBill.invoiceNumber} is fully settled! (100% Settled)`
+        : `✅ Payment of ₹${paymentAmount.toLocaleString()} recorded for bill ${selectedBill.invoiceNumber}!`
     );
 
     setShowPaymentModal(false);
@@ -319,11 +319,11 @@ function PurchaseBillsContent() {
   // Submit Create New Purchase Bill
   const handleCreateBillSubmit = () => {
     if (!vendorInvoiceNumber.trim()) {
-      showToast('⚠️ કૃપા કરીને વેન્ડર બિલ નંબર (Vendor Invoice Number) દાખલ કરો.');
+      showToast('⚠️ Please enter Vendor Invoice Number.');
       return;
     }
     if (!supplierName.trim()) {
-      showToast('⚠️ કૃપા કરીને સપ્લાયર / વેન્ડર પસંદ કરો.');
+      showToast('⚠️ Please select a Supplier / Vendor.');
       return;
     }
 
@@ -366,7 +366,7 @@ function PurchaseBillsContent() {
     };
 
     addPurchaseInvoice(newBill);
-    showToast(`✅ નવું પરચેસ બિલ ${newBill.invoiceNumber} સફળતાપૂર્વક બનાવાયું!`);
+    showToast(`✅ Purchase bill ${newBill.invoiceNumber} created successfully!`);
     setShowCreateModal(false);
 
     // Reset Form
@@ -489,7 +489,7 @@ function PurchaseBillsContent() {
             <div className="flex flex-col gap-1">
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 w-fit">
                 <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                સહી સલામત માલ (GRN Verified)
+                Material Verified (GRN)
               </span>
               <span className="text-[11px] text-gray-600 dark:text-gray-300 font-mono flex items-center gap-1">
                 <PackageCheck className="w-3 h-3 text-emerald-500" />
@@ -504,7 +504,7 @@ function PurchaseBillsContent() {
               <Clock className="w-3 h-3 text-amber-500 animate-pulse" />
               Awaiting Safe Delivery
             </span>
-            <span className="text-[10px] text-gray-400 italic">માલ સ્ટોર પર આવવાનો બાકી</span>
+            <span className="text-[10px] text-gray-400 italic">Material delivery pending</span>
           </div>
         );
       },
@@ -600,7 +600,7 @@ function PurchaseBillsContent() {
                 {paid === 0 ? (
                   <button
                     onClick={() => handleOpenPaymentModal(row, false)}
-                    title="Pay Advance before dispatch (એડવાન્સ પેમેન્ટ કરો)"
+                    title="Pay Advance before dispatch"
                     className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded bg-amber-500 hover:bg-amber-600 text-white shadow-sm transition-all"
                   >
                     <Banknote className="w-3.5 h-3.5" />
@@ -611,7 +611,7 @@ function PurchaseBillsContent() {
                     onClick={() => handleOpenPaymentModal(row, true)}
                     title={
                       grn
-                        ? 'Settle Final Balance (સહી સલામત માલ આવી ગયો - બેલેન્સ ચૂકવો)'
+                        ? 'Settle Final Balance (Material Received & Verified)'
                         : 'Settle Final Balance'
                     }
                     className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded text-white shadow-sm transition-all ${
@@ -641,9 +641,9 @@ function PurchaseBillsContent() {
             {deletePurchaseInvoice && (
               <button
                 onClick={() => {
-                  if (confirm(`શું તમે ખરેખર બિલ ${row.invoiceNumber} ડીલીટ કરવા માંગો છો?`)) {
+                  if (confirm(`Are you sure you want to delete Bill ${row.invoiceNumber}?`)) {
                     deletePurchaseInvoice(row.id);
-                    showToast(`બિલ ${row.invoiceNumber} ડીલીટ કરવામાં આવ્યું.`);
+                    showToast(`Bill ${row.invoiceNumber} deleted successfully.`);
                   }
                 }}
                 title="Delete Bill"
@@ -697,7 +697,7 @@ function PurchaseBillsContent() {
             </span>
           </div>
           <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
-            કુલ પરચેસ બિલનું મૂલ્ય
+            Total purchase invoice value
           </p>
         </div>
 
@@ -717,7 +717,7 @@ function PurchaseBillsContent() {
             </span>
           </div>
           <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
-            ડિસ્પેચ પહેલાં ચૂકવેલ એડવાન્સ
+            Advance paid prior to dispatch
           </p>
         </div>
 
@@ -736,11 +736,11 @@ function PurchaseBillsContent() {
               {metrics.grnVerifiedCount}
             </span>
             <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
-              સહી સલામત માલ
+              Verified Stock
             </span>
           </div>
           <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
-            સ્ટોર/QC ચકાસાયેલ માલ
+            Store & QC verified inwards
           </p>
         </div>
 
@@ -763,7 +763,7 @@ function PurchaseBillsContent() {
             </span>
           </div>
           <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
-            માલ આવી ગયો - આખરી પેમેન્ટ બાકી
+            Goods received — balance due
           </p>
         </div>
 
@@ -786,7 +786,7 @@ function PurchaseBillsContent() {
             </span>
           </div>
           <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
-            ૧૦૦% પૂરું ચૂકવણું & બંધ બિલ
+            100% Paid & Bill Closed
           </p>
         </div>
       </div>
@@ -794,12 +794,12 @@ function PurchaseBillsContent() {
       {/* Main List Layout */}
       <ERPListPageLayout<PurchaseInvoice>
         breadcrumbs={['DASHBOARD', 'PROCUREMENT', 'PURCHASE BILLS']}
-        title="Purchase Bills & Vendor Invoices (પરચેસ બિલ)"
+        title="Purchase Bills & Vendor Invoices"
         data={filteredBills}
         columns={columns}
         searchPlaceholder="Search by Bill No, Vendor Invoice, PO, Supplier..."
         onAddNew={() => setShowCreateModal(true)}
-        addNewLabel="Create Purchase Bill (નવું બિલ ઉમેરો)"
+        addNewLabel="Create Purchase Bill"
         extraHeaderActions={
           <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg border border-gray-200 dark:border-gray-700 text-xs">
             <button
@@ -859,7 +859,7 @@ function PurchaseBillsContent() {
       {/* CREATE PURCHASE BILL MODAL */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700">
             {/* Header */}
             <div className="sticky top-0 bg-white dark:bg-gray-800 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between z-10">
               <div className="flex items-center gap-3">
@@ -868,7 +868,7 @@ function PurchaseBillsContent() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                    Create New Purchase Bill (નવું પરચેસ બિલ ઉમેરો)
+                    Create New Purchase Bill
                   </h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     Import from confirmed PO or enter vendor invoice details directly
@@ -888,7 +888,7 @@ function PurchaseBillsContent() {
               {/* Mode Toggle */}
               <div className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-900/60 rounded-xl border border-gray-200 dark:border-gray-700">
                 <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  Bill Source (સોર્સ):
+                  Bill Source:
                 </label>
                 <div className="flex gap-2">
                   <button
@@ -900,7 +900,7 @@ function PurchaseBillsContent() {
                         : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700'
                     }`}
                   >
-                    Import from Confirmed PO (કન્ફર્મ પીવોમાંથી લાવો)
+                    Import from Confirmed PO
                   </button>
                   <button
                     type="button"
@@ -920,7 +920,7 @@ function PurchaseBillsContent() {
               {createMode === 'from_po' && (
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 flex items-center justify-between">
-                    <span>Select Confirmed Purchase Order (પીવો પસંદ કરો) *</span>
+                    <span>Select Confirmed Purchase Order *</span>
                     <span className="text-[11px] text-gray-400">
                       Auto-populates items, rates, taxes & supplier
                     </span>
@@ -944,7 +944,7 @@ function PurchaseBillsContent() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                    Vendor Invoice Number (વેન્ડર બિલ નં) *
+                    Vendor Invoice Number *
                   </label>
                   <input
                     type="text"
@@ -1048,7 +1048,7 @@ function PurchaseBillsContent() {
               {/* Payment Terms */}
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Agreed Payment Terms (ચુકવણીની શરતો)
+                  Agreed Payment Terms
                 </label>
                 <input
                   type="text"
@@ -1082,24 +1082,24 @@ function PurchaseBillsContent() {
                         },
                       ]);
                     }}
-                    className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 font-semibold hover:underline"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold text-xs border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition cursor-pointer"
                   >
                     <PlusCircle className="w-3.5 h-3.5" />
-                    Add Item Line
+                    <span>Add Item Line</span>
                   </button>
                 </div>
 
-                <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-gray-50 dark:bg-gray-900/60 text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700 font-semibold">
-                      <tr>
-                        <th className="p-2.5">Item & Description</th>
-                        <th className="p-2.5 w-24">HSN/SAC</th>
-                        <th className="p-2.5 w-20">Qty</th>
-                        <th className="p-2.5 w-28">Rate (₹)</th>
-                        <th className="p-2.5 w-20">GST %</th>
-                        <th className="p-2.5 w-28 text-right">Total (₹)</th>
-                        <th className="p-2.5 w-10"></th>
+                <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-x-auto shadow-xs bg-white dark:bg-gray-900">
+                  <table className="w-full min-w-[780px] text-left text-xs border-collapse">
+                    <thead className="bg-gray-50 dark:bg-gray-900/80 text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700 font-bold uppercase tracking-wider text-[11px]">
+                      <tr className="divide-x divide-gray-200 dark:divide-gray-700">
+                        <th className="p-2.5 min-w-[260px]">Item & Description</th>
+                        <th className="p-2.5 w-28 min-w-[100px] text-center">HSN/SAC</th>
+                        <th className="p-2.5 w-24 min-w-[85px] text-right">Qty</th>
+                        <th className="p-2.5 w-32 min-w-[110px] text-right">Rate (₹)</th>
+                        <th className="p-2.5 w-28 min-w-[95px] text-center">GST %</th>
+                        <th className="p-2.5 w-32 min-w-[110px] text-right">Total (₹)</th>
+                        <th className="p-2.5 w-12 text-center"></th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -1109,30 +1109,32 @@ function PurchaseBillsContent() {
                         const lineTotal = lineTaxable + lineTax;
 
                         return (
-                          <tr key={it.id || idx}>
-                            <td className="p-2.5 space-y-1">
-                              <input
-                                type="text"
-                                placeholder="Item Name (e.g. MS Flange 250NB)"
-                                value={it.itemName || ''}
-                                onChange={(e) => {
-                                  const updated = [...billItems];
-                                  updated[idx].itemName = e.target.value;
-                                  setBillItems(updated);
-                                }}
-                                className="w-full px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs"
-                              />
-                              <input
-                                type="text"
-                                placeholder="Specification / Grade"
-                                value={it.description || ''}
-                                onChange={(e) => {
-                                  const updated = [...billItems];
-                                  updated[idx].description = e.target.value;
-                                  setBillItems(updated);
-                                }}
-                                className="w-full px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-[11px] text-gray-500"
-                              />
+                          <tr key={it.id || idx} className="divide-x divide-gray-200 dark:divide-gray-700 hover:bg-gray-50/50 dark:hover:bg-gray-800/30 align-top">
+                            <td className="p-2.5">
+                              <div className="flex flex-col gap-1.5 w-full">
+                                <input
+                                  type="text"
+                                  placeholder="Item Name (e.g. MS Flange 250NB)"
+                                  value={it.itemName || ''}
+                                  onChange={(e) => {
+                                    const updated = [...billItems];
+                                    updated[idx].itemName = e.target.value;
+                                    setBillItems(updated);
+                                  }}
+                                  className="w-full px-2.5 py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-xs font-semibold text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="Specification / Grade"
+                                  value={it.description || ''}
+                                  onChange={(e) => {
+                                    const updated = [...billItems];
+                                    updated[idx].description = e.target.value;
+                                    setBillItems(updated);
+                                  }}
+                                  className="w-full px-2.5 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-[11px] text-gray-600 dark:text-gray-400 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none"
+                                />
+                              </div>
                             </td>
                             <td className="p-2.5">
                               <input
@@ -1143,7 +1145,7 @@ function PurchaseBillsContent() {
                                   updated[idx].hsnSac = e.target.value;
                                   setBillItems(updated);
                                 }}
-                                className="w-full px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono"
+                                className="w-full px-2 py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-xs font-mono text-center font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none"
                               />
                             </td>
                             <td className="p-2.5">
@@ -1156,7 +1158,7 @@ function PurchaseBillsContent() {
                                   updated[idx].quantity = Number(e.target.value);
                                   setBillItems(updated);
                                 }}
-                                className="w-full px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs text-right"
+                                className="w-full px-2 py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-xs font-mono font-semibold text-right focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none"
                               />
                             </td>
                             <td className="p-2.5">
@@ -1169,7 +1171,7 @@ function PurchaseBillsContent() {
                                   updated[idx].unitPrice = Number(e.target.value);
                                   setBillItems(updated);
                                 }}
-                                className="w-full px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs text-right font-semibold"
+                                className="w-full px-2 py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-xs font-mono font-bold text-right text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none"
                               />
                             </td>
                             <td className="p-2.5">
@@ -1180,7 +1182,7 @@ function PurchaseBillsContent() {
                                   updated[idx].gstRatePercent = Number(e.target.value);
                                   setBillItems(updated);
                                 }}
-                                className="w-full px-1.5 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs"
+                                className="w-full px-2 py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-xs font-bold text-center cursor-pointer focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none"
                               >
                                 <option value={0}>0%</option>
                                 <option value={5}>5%</option>
@@ -1189,19 +1191,20 @@ function PurchaseBillsContent() {
                                 <option value={28}>28%</option>
                               </select>
                             </td>
-                            <td className="p-2.5 text-right font-bold text-gray-900 dark:text-white">
+                            <td className="p-2.5 text-right font-mono font-bold text-sm text-gray-900 dark:text-white pt-3">
                               ₹{Math.round(lineTotal).toLocaleString()}
                             </td>
-                            <td className="p-2.5 text-center">
+                            <td className="p-2.5 text-center pt-3">
                               {billItems.length > 1 && (
                                 <button
                                   type="button"
                                   onClick={() => {
                                     setBillItems(billItems.filter((_, i) => i !== idx));
                                   }}
-                                  className="text-gray-400 hover:text-rose-500"
+                                  className="p-1 rounded-lg text-gray-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer"
+                                  title="Remove Line"
                                 >
-                                  <X className="w-3.5 h-3.5" />
+                                  <X className="w-4 h-4" />
                                 </button>
                               )}
                             </td>
@@ -1218,10 +1221,10 @@ function PurchaseBillsContent() {
                 <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl space-y-3">
                   <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-bold text-xs uppercase">
                     <Banknote className="w-4 h-4" />
-                    Record Initial Advance Payment (જો આપેલો હોય)
+                    Record Initial Advance Payment (If Paid)
                   </div>
                   <p className="text-xs text-amber-700 dark:text-amber-400">
-                    જો પીવો સેન્ડ કરતી વખતે વેન્ડરને ફોન પર નક્કી કર્યા મુજબ એડવાન્સ ચુકવાઈ ગયો હોય, તો અહીં રકમ લખો.
+                    If an advance payment was released to the vendor upon PO confirmation, record the amount here to track the remaining balance.
                   </p>
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
@@ -1323,8 +1326,8 @@ function PurchaseBillsContent() {
                 <div>
                   <h3 className="text-base font-bold text-gray-900 dark:text-white">
                     {isFinalSettlement
-                      ? 'Final Payment Settlement (આખરી ચુકવણી)'
-                      : 'Record Advance / Part Payment (એડવાન્સ પેમેન્ટ)'}
+                      ? 'Final Payment Settlement'
+                      : 'Record Advance / Part Payment'}
                   </h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     Bill: <span className="font-mono font-bold text-blue-600">{selectedBill.invoiceNumber}</span>
@@ -1379,8 +1382,8 @@ function PurchaseBillsContent() {
                     <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-center gap-2 text-xs text-emerald-800 dark:text-emerald-300">
                       <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                       <div>
-                        <span className="font-bold">સહી સલામત માલ પ્રાપ્ત & ચકાસાયેલ! </span>
-                        (GRN: {grn.grnNumber} - Verified by Store/QC). હવે આખરી પેમેન્ટ ચૂકવી શકાય છે.
+                        <span className="font-bold">Material safely received & verified! </span>
+                        (GRN: {grn.grnNumber} - Verified by Store/QC). Ready for final settlement.
                       </div>
                     </div>
                   );
@@ -1389,8 +1392,8 @@ function PurchaseBillsContent() {
                     <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl flex items-center gap-2 text-xs text-amber-800 dark:text-amber-300">
                       <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
                       <div>
-                        <span className="font-bold">માલ હજુ ડિસ્પેચ/ટ્રાન્ઝીટમાં છે. </span>
-                        સામાન્ય રીતે માત્ર એડવાન્સ ચૂકવાય છે. આખરી બેલેન્સ માલ આવ્યા પછી GRN ચકાસીને ચૂકવવું.
+                        <span className="font-bold">Material in transit / pending delivery. </span>
+                        Standard practice is advance/part payment. Final balance is settled upon GRN verification.
                       </div>
                     </div>
                   );
@@ -1659,7 +1662,7 @@ function PurchaseBillsContent() {
                         <ShieldCheck className="w-5 h-5 text-emerald-600" />
                         <div>
                           <div className="font-bold text-emerald-900 dark:text-emerald-200">
-                            સહી સલામત માલ પ્રાપ્ત & ચકાસાયેલ (Material Safely Received & GRN Verified)
+                            Material Safely Received & GRN Verified
                           </div>
                           <div className="text-[11px] text-emerald-700 dark:text-emerald-300">
                             GRN No: {grn.grnNumber} | Received By: {grn.receivedBy || 'Store Incharge'} | Date: {grn.grnDate}
@@ -1677,7 +1680,7 @@ function PurchaseBillsContent() {
                       <Clock className="w-4 h-4 text-amber-600 shrink-0" />
                       <div className="text-amber-800 dark:text-amber-300">
                         <span className="font-bold">Awaiting Safe Delivery & Store Verification: </span>
-                        માલ હજુ રાજપુર વર્ક્સ સ્ટોર પર આવવાનો બાકી છે.
+                        Material delivery pending at works store.
                       </div>
                     </div>
                   );
