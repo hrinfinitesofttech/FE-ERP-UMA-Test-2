@@ -651,10 +651,6 @@ export default function PurchaseRequestsPage() {
   // Submit Save Create / Edit
   const handleSubmitForm = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.vendorName.trim()) {
-      toast.warning('Please enter Vendor / Supplier Name or select from Supplier Master.');
-      return;
-    }
     const validItems = formData.items.filter((itm: any) => itm.itemName?.trim() || itm.groupTitle?.trim());
     if (validItems.length === 0) {
       toast.warning('Please enter at least one material description.');
@@ -663,11 +659,11 @@ export default function PurchaseRequestsPage() {
 
     const vendorMeta = {
       supplierId: formData.selectedSupplierId || '',
-      supplierName: formData.vendorName.trim(),
-      supplierAddress: formData.vendorAddress.trim(),
-      supplierMobile: formData.vendorMobile.trim(),
-      supplierEmail: formData.vendorEmail.trim(),
-      supplierGstin: formData.vendorGstin.trim(),
+      supplierName: (formData.vendorName || '').trim(),
+      supplierAddress: (formData.vendorAddress || '').trim(),
+      supplierMobile: (formData.vendorMobile || '').trim(),
+      supplierEmail: (formData.vendorEmail || '').trim(),
+      supplierGstin: (formData.vendorGstin || '').trim(),
       projectId: formData.selectedProjectId || '',
       subject: formData.subject.trim(),
       specialNote: formData.specialNote.trim(),
@@ -686,11 +682,11 @@ export default function PurchaseRequestsPage() {
       dueDate: formData.dueDate || formData.rfqDate,
       projectId: formData.selectedProjectId || '',
       supplierId: formData.selectedSupplierId || '',
-      supplierName: formData.vendorName.trim(),
-      supplierAddress: formData.vendorAddress.trim(),
-      supplierMobile: formData.vendorMobile.trim(),
-      supplierEmail: formData.vendorEmail.trim(),
-      supplierGstin: formData.vendorGstin.trim(),
+      supplierName: (formData.vendorName || '').trim(),
+      supplierAddress: (formData.vendorAddress || '').trim(),
+      supplierMobile: (formData.vendorMobile || '').trim(),
+      supplierEmail: (formData.vendorEmail || '').trim(),
+      supplierGstin: (formData.vendorGstin || '').trim(),
       buyer: formData.buyer,
       surcharges: formData.surcharges,
       taxes: formData.taxes,
@@ -1033,71 +1029,6 @@ export default function PurchaseRequestsPage() {
       },
     },
     {
-      key: 'project',
-      header: 'PROJECT REF',
-      cell: (r) => {
-        const pRef = r.projectId || (r as any).project_id || 'General';
-        const matchedProj = projects.find(
-          (p) => p.projectNumber === pRef || p.id === pRef || p.jobNumber === pRef
-        );
-        return (
-          <div className="space-y-0.5">
-            <span className="font-mono font-bold text-xs text-crm-brand-700 block">
-              {pRef}
-            </span>
-            {matchedProj?.projectName && (
-              <span className="text-[10px] text-gray-500 font-medium block truncate max-w-[140px]">
-                {matchedProj.projectName}
-              </span>
-            )}
-          </div>
-        );
-      },
-    },
-    {
-      key: 'supplierName',
-      header: 'SUPPLIER / VENDOR',
-      cell: (r) => {
-        const { vendorName, phone, email, contactPerson } = resolveVendorDetails(r);
-        return (
-          <div className="space-y-0.5 min-w-[180px]">
-            <span className="font-bold text-xs text-[#211B17] block uppercase">{vendorName}</span>
-            {contactPerson && contactPerson !== 'Contact Person' && (
-              <span className="text-[10px] text-gray-500 font-medium block">Attn: {contactPerson}</span>
-            )}
-            <div className="flex flex-col text-[11px] text-[#70665F] pt-0.5">
-              {phone ? (
-                <button
-                  type="button"
-                  onClick={() => handleSendWhatsApp(r)}
-                  title="Click to Send WhatsApp"
-                  className="font-mono text-emerald-700 hover:text-emerald-800 flex items-center gap-1 hover:underline cursor-pointer text-left"
-                >
-                  <Phone className="w-3 h-3 text-emerald-600 inline shrink-0" />
-                  <span>{phone}</span>
-                </button>
-              ) : (
-                <span className="font-mono text-slate-400 text-[10px]">No contact phone</span>
-              )}
-              {email ? (
-                <button
-                  type="button"
-                  onClick={() => handleSendEmail(r)}
-                  title="Click to Send Email via SMTP"
-                  className="text-blue-700 hover:text-blue-800 hover:underline flex items-center gap-1 truncate max-w-[200px] cursor-pointer text-left"
-                >
-                  <Mail className="w-3 h-3 text-blue-600 inline shrink-0" />
-                  <span>{email}</span>
-                </button>
-              ) : (
-                <span className="font-mono text-slate-400 text-[10px]">No email specified</span>
-              )}
-            </div>
-          </div>
-        );
-      },
-    },
-    {
       key: 'subject',
       header: 'REQUESTED MATERIALS & ITEMS',
       cell: (r) => {
@@ -1273,7 +1204,7 @@ export default function PurchaseRequestsPage() {
         breadcrumbs={['DASHBOARD', 'PURCHASE', 'PURCHASE REQUESTS (REQUIRE / RFQ)']}
         data={rfqs}
         columns={columns}
-        searchPlaceholder="Search requisition no, supplier, project or subject..."
+        searchPlaceholder="Search requisition no, subject or items..."
         addNewLabel="+ Create Purchase Request"
         onAddNew={handleOpenCreateModal}
         isLoading={isInitialLoading}
@@ -1311,122 +1242,32 @@ export default function PurchaseRequestsPage() {
 
             {/* Modal Form Body */}
             <form onSubmit={handleSubmitForm} className="p-5 space-y-4 overflow-y-auto flex-1 text-xs">
-              {/* Row 1: Project & Quick Select Supplier */}
+              {/* Row 1: Project & Document Details */}
               <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] space-y-3">
                 <h4 className="font-bold text-[#211B17] text-xs flex items-center gap-1.5">
-                  <Building className="w-3.5 h-3.5 text-amber-700" />
-                  <span>Project & Supplier / Vendor Details</span>
+                  <FolderKanban className="w-3.5 h-3.5 text-amber-700" />
+                  <span>Project & Document Details</span>
                 </h4>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
                   {/* Linked Project Reference */}
-                  <div>
-                    <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                      Linked Project Reference:
-                    </label>
-                    <select
-                      value={formData.selectedProjectId}
-                      onChange={(e) => handleProjectSelect(e.target.value)}
-                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] font-semibold focus:outline-none focus:border-amber-600 font-mono"
-                    >
-                      <option value="">-- Select Project Reference --</option>
-                      {projects.map((p) => (
-                        <option key={p.id} value={p.projectNumber || p.id}>
-                          {p.projectNumber || p.id} - {p.projectName} {p.customerName ? `(${p.customerName})` : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Select Supplier from Master */}
-                  <div>
-                    <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                      Select Supplier from Master:
-                    </label>
-                    <select
-                      value={formData.selectedSupplierId}
-                      onChange={(e) => handleSupplierSelect(e.target.value)}
-                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] font-semibold focus:outline-none focus:border-amber-600"
-                    >
-                      <option value="">-- Select Supplier (Custom / Manually) --</option>
-                      {suppliers.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.supplierName || s.name} ({s.vendorCode || s.id})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                    Linked Project Reference:
+                  </label>
+                  <select
+                    value={formData.selectedProjectId}
+                    onChange={(e) => handleProjectSelect(e.target.value)}
+                    className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] font-semibold focus:outline-none focus:border-amber-600 font-mono"
+                  >
+                    <option value="">-- Select Project Reference --</option>
+                    {projects.map((p) => (
+                      <option key={p.id} value={p.projectNumber || p.id}>
+                        {p.projectNumber || p.id} - {p.projectName} {p.customerName ? `(${p.customerName})` : ''}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                {/* Auto-filled / Editable Vendor Information */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-[#EBE3DB]">
-                  <div>
-                    <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                      Vendor / Company Name *:
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.vendorName}
-                      onChange={(e) => setFormData({ ...formData, vendorName: e.target.value })}
-                      placeholder="e.g. CALICO METAL."
-                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#211B17] focus:outline-none focus:border-amber-600 uppercase"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                      Vendor Mobile No (WhatsApp) *:
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.vendorMobile}
-                      onChange={(e) => setFormData({ ...formData, vendorMobile: e.target.value })}
-                      placeholder="e.g. 9099911191"
-                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-amber-600"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                      Vendor GSTIN:
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.vendorGstin}
-                      onChange={(e) => setFormData({ ...formData, vendorGstin: e.target.value })}
-                      placeholder="e.g. 24AABCC1234F1Z5"
-                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-xs font-mono text-[#211B17] focus:outline-none focus:border-amber-600 uppercase"
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                      Vendor Full Address:
-                    </label>
-                    <textarea
-                      rows={2}
-                      value={formData.vendorAddress}
-                      onChange={(e) => setFormData({ ...formData, vendorAddress: e.target.value })}
-                      placeholder="Street, Estate, City, State"
-                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-amber-600"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-bold text-[#70665F] block mb-1">
-                      Vendor Email (Optional):
-                    </label>
-                    <input
-                      type="email"
-                      value={formData.vendorEmail}
-                      onChange={(e) => setFormData({ ...formData, vendorEmail: e.target.value })}
-                      placeholder="sales@vendor.com"
-                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-amber-600"
-                    />
-                  </div>
-                </div>
 
                 {/* Document Metadata Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-2 border-t border-[#EBE3DB]">
@@ -2080,7 +1921,7 @@ export default function PurchaseRequestsPage() {
 
       {/* Official Purchase Inquiry (REQUIRE / RFQ) Send Email Modal (Matching CRM Send Email Quotation Design) */}
       {showEmailModal && emailTargetRequest && (() => {
-        const { vendorName, email: resolvedVendorEmail, supp } = resolveVendorDetails(emailTargetRequest);
+        const { email: resolvedVendorEmail } = resolveVendorDetails(emailTargetRequest);
         return (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div className="bg-white dark:bg-[#2C241F] rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-xl border border-[#E7DED5]">
@@ -2116,41 +1957,6 @@ export default function PurchaseRequestsPage() {
               >
                 <div className="p-3 bg-[#FAF7F2] dark:bg-[#1f1915] rounded-xl border border-[#E7DED5] space-y-2">
                   <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-[#70665F]">Primary Vendor:</span>
-                    <strong className="text-[#211B17] dark:text-white font-bold uppercase">{vendorName}</strong>
-                  </div>
-                  {/* Select / Switch Primary Supplier from Master */}
-                  <div className="flex justify-between items-center text-[11px] pt-1.5 border-t border-[#E7DED5]/60">
-                    <span className="text-[#70665F]">Change Primary Vendor:</span>
-                    <select
-                      value={supp?.id || emailTargetRequest.supplierId || ''}
-                      onChange={(e) => {
-                        const newSupp = suppliers.find((s) => s.id === e.target.value);
-                        if (newSupp) {
-                          const newEmail = newSupp.email || (newSupp.contacts && newSupp.contacts[0]?.email) || '';
-                          setTargetEmail(newEmail);
-                          setEmailTargetRequest({
-                            ...emailTargetRequest,
-                            supplierId: newSupp.id,
-                            supplierName: newSupp.supplierName || newSupp.name,
-                            supplierEmail: newEmail,
-                            supplierMobile: newSupp.mobile || newSupp.phone || '',
-                            supplierAddress: newSupp.address || '',
-                            supplierGstin: newSupp.gstin || '',
-                          });
-                        }
-                      }}
-                      className="bg-white dark:bg-[#2C241F] border border-[#E7DED5] rounded px-2 py-1 text-xs text-[#211B17] dark:text-white font-semibold cursor-pointer max-w-[260px]"
-                    >
-                      <option value="">-- Choose Vendor from Master --</option>
-                      {suppliers.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.supplierName || s.name} ({s.email || 'No email'})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="flex justify-between items-center text-[11px]">
                     <span className="text-[#70665F]">Inquiry Reference:</span>
                     <span className="font-mono font-bold text-emerald-700">{emailTargetRequest.rfqNumber}</span>
                   </div>
@@ -2173,10 +1979,10 @@ export default function PurchaseRequestsPage() {
                 {/* Primary Recipient Email Input */}
                 <div>
                   <label className="block text-[#544B45] font-semibold mb-1 flex items-center justify-between">
-                    <span>Primary Vendor Email ID <span className="text-rose-500">*</span></span>
+                    <span>Recipient Email ID <span className="text-rose-500">*</span></span>
                     {resolvedVendorEmail && targetEmail === resolvedVendorEmail && (
                       <span className="text-[10px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded border border-emerald-200">
-                        ✓ Auto-populated from Vendor Master
+                        ✓ Auto-populated
                       </span>
                     )}
                   </label>
@@ -2187,7 +1993,7 @@ export default function PurchaseRequestsPage() {
                       required
                       value={targetEmail}
                       onChange={(e) => setTargetEmail(e.target.value)}
-                      placeholder="Enter supplier email address"
+                      placeholder="Enter recipient email address"
                       className="w-full pl-9 pr-3 py-2 bg-[#FAF7F2] dark:bg-[#1f1915] border border-[#E7DED5] rounded-lg font-mono text-sm font-semibold text-[#211B17] dark:text-white focus:outline-none focus:border-emerald-600"
                     />
                   </div>
