@@ -61,9 +61,7 @@ export default function FollowUpsPage() {
   const [outcome, setOutcome] = useState('connected');
   const todayStr = new Date().toISOString().split('T')[0];
   const [scheduleNext, setScheduleNext] = useState(true);
-  const [nextFollowUpDate, setNextFollowUpDate] = useState(
-    new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-  );
+  const [nextFollowUpDate, setNextFollowUpDate] = useState('');
   const [completeError, setCompleteError] = useState('');
 
   // Counts
@@ -121,6 +119,15 @@ export default function FollowUpsPage() {
     const d = new Date();
     d.setDate(d.getDate() + days);
     setNextFollowUpDate(d.toISOString().split('T')[0]);
+    if (completeError) setCompleteError('');
+  };
+
+  const openCompleteModal = (id: string) => {
+    setCompleteModalId(id);
+    setCompletionNotes('');
+    setOutcome('connected');
+    setNextFollowUpDate('');
+    setCompleteError('');
   };
 
   // Helper to resolve entity mobile for WhatsApp click-to-chat
@@ -237,9 +244,15 @@ export default function FollowUpsPage() {
       setCompleteError('Discussion outcome / summary is required.');
       return;
     }
-    if (scheduleNext && nextFollowUpDate && nextFollowUpDate < todayStr) {
-      setCompleteError('Next follow-up date cannot be in the past.');
-      return;
+    if (scheduleNext) {
+      if (!nextFollowUpDate) {
+        setCompleteError('Please select the next follow-up date.');
+        return;
+      }
+      if (nextFollowUpDate < todayStr) {
+        setCompleteError('Next follow-up date cannot be in the past.');
+        return;
+      }
     }
 
     const currentF = followUps.find((f) => f.id === id);
@@ -386,10 +399,7 @@ export default function FollowUpsPage() {
       isCodeLink: true,
       onCodeClick: (f) => {
         if (f.status === 'pending') {
-          setCompleteModalId(f.id);
-          setCompletionNotes('');
-          setOutcome('connected');
-          setCompleteError('');
+          openCompleteModal(f.id);
         }
       },
       cell: (f) => (
@@ -564,12 +574,7 @@ export default function FollowUpsPage() {
 
             {f.status === 'pending' ? (
               <button
-                onClick={() => {
-                  setCompleteModalId(f.id);
-                  setCompletionNotes('');
-                  setOutcome('connected');
-                  setCompleteError('');
-                }}
+                onClick={() => openCompleteModal(f.id)}
                 className="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-bold flex items-center gap-1 cursor-pointer shadow-2xs"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
@@ -704,11 +709,8 @@ export default function FollowUpsPage() {
           subtitle="Interactive schedule of customer calls, site meetings, WhatsApp follow-ups, and quotation reviews."
           onAddEvent={() => router.push('/crm/follow-ups/new')}
           onSelectEvent={(ev) => {
-            if (ev.raw) {
-              setCompleteModalId(ev.raw.id);
-              setCompletionNotes('');
-              setOutcome('connected');
-              setCompleteError('');
+            if (ev.raw && ev.raw.status === 'pending') {
+              openCompleteModal(ev.raw.id);
             }
           }}
           addEventLabel="+ Schedule Follow-up"
@@ -846,10 +848,13 @@ export default function FollowUpsPage() {
 
                 {scheduleNext && (
                   <div>
-                    <label className="block text-[#70665F] text-[11px] mb-1">Next Follow-up Due Date</label>
+                    <label className="block text-[#70665F] text-[11px] mb-1">
+                      Next Follow-up Due Date <span className="text-rose-500 font-bold">*</span>
+                    </label>
                     <ERPDatePicker
                       minDate={todayStr}
                       value={nextFollowUpDate}
+                      placeholder="Select Date"
                       onChange={(val) => {
                         setNextFollowUpDate(val);
                         if (completeError) setCompleteError('');
