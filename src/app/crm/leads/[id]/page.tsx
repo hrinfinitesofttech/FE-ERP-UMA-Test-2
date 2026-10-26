@@ -34,7 +34,7 @@ import {
 export default function LeadDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { leads, updateLead, deleteLead, convertLeadToCustomer, convertLeadToEnquiry, enquiries, addEnquiry, followUps, addFollowUp, siteVisits, addSiteVisit, quotations, employees, availableEmployees } = useERP();
+  const { customers, leads, updateLead, deleteLead, convertLeadToCustomer, convertLeadToEnquiry, enquiries, addEnquiry, followUps, addFollowUp, siteVisits, addSiteVisit, quotations, employees, availableEmployees } = useERP();
 
   const allEmployees =
     availableEmployees && availableEmployees.length > 0
@@ -137,21 +137,70 @@ export default function LeadDetailPage() {
       (lead.mobile && (q as any).mobile && lead.mobile === (q as any).mobile)
   );
 
+  const linkedCustomer = (customers || []).find(
+    (c) =>
+      c.id === lead.convertedCustomerId ||
+      (c as any).linkedLeadId === lead.id ||
+      (c as any).linkedLeadId === lead.leadNo ||
+      (c.companyName && lead.companyName && lead.companyName !== 'Valued Customer' && c.companyName.toLowerCase() === lead.companyName.toLowerCase())
+  );
+
   // Auto-resolve real company name & contact person from linked Quotations / Enquiries if lead has placeholder
   const resolvedCompanyName =
     lead.companyName && lead.companyName !== 'Valued Customer'
       ? lead.companyName
-      : relatedQuotations[0]?.customerName || relatedEnquiries[0]?.customerName || lead.companyName || 'Valued Customer';
+      : relatedQuotations[0]?.customerName || relatedEnquiries[0]?.customerName || linkedCustomer?.companyName || lead.companyName || 'Valued Customer';
 
   const resolvedContactPerson =
     lead.contactPerson && lead.contactPerson !== 'Contact Person' && lead.contactPerson !== 'Contact'
       ? lead.contactPerson
-      : (relatedQuotations[0] as any)?.contactPerson || (relatedEnquiries[0] as any)?.contactPerson || lead.contactPerson || '';
+      : (relatedQuotations[0] as any)?.contactPerson || (relatedEnquiries[0] as any)?.contactPerson || linkedCustomer?.contactPerson || lead.contactPerson || '';
+
+  const resolvedMobile =
+    lead.mobile && lead.mobile !== '9999999999'
+      ? lead.mobile
+      : (lead as any).phone ||
+        (lead as any).contactMobile ||
+        (lead as any).contact_mobile ||
+        (lead as any).contactNumber ||
+        (lead as any).mobileNo ||
+        (lead as any).altMobile ||
+        (relatedQuotations[0] as any)?.contactMobile ||
+        (relatedQuotations[0] as any)?.mobile ||
+        (relatedEnquiries[0] as any)?.contactMobile ||
+        (relatedEnquiries[0] as any)?.mobile ||
+        linkedCustomer?.mobile ||
+        '';
+
+  const resolvedAddress =
+    lead.address && lead.address.trim()
+      ? lead.address
+      : (lead as any).billingAddress ||
+        (lead as any).billing_address ||
+        (lead as any).shippingAddress ||
+        (lead as any).shipping_address ||
+        (relatedEnquiries[0] as any)?.address ||
+        (relatedEnquiries[0] as any)?.billingAddress ||
+        (relatedQuotations[0] as any)?.deliveryAddress ||
+        (relatedQuotations[0] as any)?.billingAddress ||
+        linkedCustomer?.billingAddress ||
+        linkedCustomer?.shippingAddress ||
+        [lead.city, lead.state, lead.pincode].filter(Boolean).join(', ') ||
+        '';
+
+  const resolvedEmail =
+    lead.email && lead.email.trim()
+      ? lead.email
+      : (relatedQuotations[0] as any)?.contactEmail ||
+        (relatedEnquiries[0] as any)?.customerEmail ||
+        (relatedEnquiries[0] as any)?.email ||
+        linkedCustomer?.email ||
+        '';
 
   const resolvedProductName =
     lead.productName && lead.productName !== 'Process Equipment' && lead.productName !== 'Industrial Process Equipment'
       ? lead.productName
-      : (relatedQuotations[0] as any)?.machineProduct || (relatedEnquiries[0] as any)?.machineProduct || (relatedQuotations[0] as any)?.items?.[0]?.description || lead.productName || 'Process Equipment';
+      : (relatedQuotations[0] as any)?.machineProduct || (relatedEnquiries[0] as any)?.machineProduct || (relatedQuotations[0] as any)?.items?.[0]?.description || lead.productName || '';
 
   const resolvedQuantity =
     lead.quantity && lead.quantity > 0
@@ -162,9 +211,23 @@ export default function LeadDetailPage() {
     setEditFormData({
       companyName: lead.companyName && lead.companyName !== 'Valued Customer' ? lead.companyName : (resolvedCompanyName || ''),
       contactPerson: lead.contactPerson && lead.contactPerson !== 'Contact Person' && lead.contactPerson !== 'Contact' ? lead.contactPerson : (resolvedContactPerson || ''),
-      mobile: lead.mobile || '',
-      email: lead.email || '',
-      address: lead.address || '',
+      mobile: resolvedMobile || lead.mobile || '',
+      email: resolvedEmail || lead.email || '',
+      address: resolvedAddress || lead.address || '',
+      city: lead.city || '',
+      state: lead.state || '',
+      pincode: lead.pincode || '',
+      productName: lead.productName && lead.productName !== 'Process Equipment' && lead.productName !== 'Industrial Process Equipment' ? lead.productName : (resolvedProductName || ''),
+      machineType: lead.machineType || '',
+      quantity: lead.quantity || resolvedQuantity || 1,
+      budget: lead.budget || 0,
+      expectedDelivery: lead.expectedDelivery || '',
+      status: lead.status || 'new',
+      priority: lead.priority || 'medium',
+      source: lead.source || 'website',
+      assignedSalesPersonId: lead.assignedSalesPersonId || allEmployees[0]?.id || '',
+      assignedSalesPersonName: lead.assignedSalesPersonName || allEmployees[0]?.name || '',
+      requirementDescription: lead.requirementDescription || '',
     });
     setEditErrors({});
     setIsEditDirty(false);
@@ -205,12 +268,27 @@ export default function LeadDetailPage() {
       return;
     }
 
+    const assignedEmp = allEmployees.find((emp) => emp.id === editFormData.assignedSalesPersonId);
     const updatePayload: Partial<Lead> = {
       companyName: editFormData.companyName?.trim(),
       contactPerson: editFormData.contactPerson?.trim(),
       mobile: editFormData.mobile?.trim(),
       email: editFormData.email?.trim(),
       address: editFormData.address?.trim(),
+      city: editFormData.city?.trim() || '',
+      state: editFormData.state?.trim() || '',
+      pincode: editFormData.pincode?.trim() || '',
+      productName: editFormData.productName?.trim() || '',
+      machineType: editFormData.machineType?.trim() || '',
+      quantity: Number(editFormData.quantity) || 1,
+      budget: Number(editFormData.budget) || 0,
+      expectedDelivery: editFormData.expectedDelivery || '',
+      status: (editFormData.status as any) || 'new',
+      priority: (editFormData.priority as any) || 'medium',
+      source: (editFormData.source as any) || 'website',
+      assignedSalesPersonId: editFormData.assignedSalesPersonId || '',
+      assignedSalesPersonName: assignedEmp?.name || (assignedEmp as any)?.employeeName || editFormData.assignedSalesPersonName || lead.assignedSalesPersonName || '',
+      requirementDescription: editFormData.requirementDescription?.trim() || '',
     };
 
     const targetId = lead.id || lead.leadNo;
@@ -385,8 +463,8 @@ export default function LeadDetailPage() {
           </div>
           <div>
             <span className="text-[#70665F] block">Phone & WhatsApp</span>
-            <span className="font-bold text-slate-800 dark:text-[#544B45]">{lead.mobile}</span>
-            <span className="text-[#70665F] block">{lead.email}</span>
+            <span className="font-bold text-slate-800 dark:text-[#544B45]">{resolvedMobile || lead.mobile || '-'}</span>
+            <span className="text-[#70665F] block">{resolvedEmail || lead.email || '-'}</span>
           </div>
           <div>
             <span className="text-[#70665F] block">Budget & Target Delivery</span>
@@ -400,11 +478,11 @@ export default function LeadDetailPage() {
           </div>
         </div>
 
-        {lead.address && (
+        {(resolvedAddress || lead.address) && (
           <div className="pt-2.5 border-t border-slate-100 dark:border-[#EBE3DB] text-[11px] flex items-center gap-1.5 text-[#544B45]">
             <MapPin className="w-3.5 h-3.5 text-[#8C5229] shrink-0" />
             <span className="font-semibold text-[#70665F]">Address:</span>
-            <span>{lead.address}</span>
+            <span>{resolvedAddress || lead.address}</span>
           </div>
         )}
       </div>
@@ -792,13 +870,165 @@ export default function LeadDetailPage() {
                     Address <span className="text-rose-500">*</span>
                   </label>
                   <textarea
-                    rows={3}
+                    rows={2}
                     required
                     value={editFormData.address || ''}
                     onChange={(e) => handleEditChange('address', e.target.value)}
                     placeholder="e.g. Plot No. 42, GIDC Industrial Estate..."
-                    className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:ring-2 focus:ring-[#75401F]/20 focus:border-[#75401F]"
+                    className="w-full px-3.5 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:ring-2 focus:ring-[#75401F]/20 focus:border-[#75401F]"
                   />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-[#4A3B32] mb-1">City</label>
+                    <input
+                      type="text"
+                      value={editFormData.city || ''}
+                      onChange={(e) => handleEditChange('city', e.target.value)}
+                      placeholder="e.g. Vadodara"
+                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:border-[#75401F]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[#4A3B32] mb-1">State</label>
+                    <input
+                      type="text"
+                      value={editFormData.state || ''}
+                      onChange={(e) => handleEditChange('state', e.target.value)}
+                      placeholder="e.g. Gujarat"
+                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:border-[#75401F]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[#4A3B32] mb-1">Pincode</label>
+                    <input
+                      type="text"
+                      value={editFormData.pincode || ''}
+                      onChange={(e) => handleEditChange('pincode', e.target.value)}
+                      placeholder="e.g. 390010"
+                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:border-[#75401F]"
+                    />
+                  </div>
+                </div>
+
+                <div className="border-t border-[#EBE3DB] pt-3">
+                  <h4 className="text-xs font-bold text-[#8C5229] mb-2 uppercase tracking-wide">Product & Requirement Details</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                    <div>
+                      <label className="block text-xs font-bold text-[#4A3B32] mb-1">Product Name</label>
+                      <input
+                        type="text"
+                        value={editFormData.productName || ''}
+                        onChange={(e) => handleEditChange('productName', e.target.value)}
+                        placeholder="e.g. Rotary Vacuum Paddle Dryer"
+                        className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:border-[#75401F]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#4A3B32] mb-1">Machine Type</label>
+                      <input
+                        type="text"
+                        value={editFormData.machineType || ''}
+                        onChange={(e) => handleEditChange('machineType', e.target.value)}
+                        placeholder="e.g. Chemical Process Equipment"
+                        className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:border-[#75401F]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                    <div>
+                      <label className="block text-xs font-bold text-[#4A3B32] mb-1">Quantity</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={editFormData.quantity !== undefined ? editFormData.quantity : 1}
+                        onChange={(e) => handleEditChange('quantity', e.target.value)}
+                        className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:border-[#75401F]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#4A3B32] mb-1">Budget (₹)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={editFormData.budget !== undefined ? editFormData.budget : 0}
+                        onChange={(e) => handleEditChange('budget', e.target.value)}
+                        className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:border-[#75401F]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#4A3B32] mb-1">Expected Delivery</label>
+                      <input
+                        type="date"
+                        value={editFormData.expectedDelivery || ''}
+                        onChange={(e) => handleEditChange('expectedDelivery', e.target.value)}
+                        className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:border-[#75401F]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                    <div>
+                      <label className="block text-xs font-bold text-[#4A3B32] mb-1">Status</label>
+                      <select
+                        value={editFormData.status || 'new'}
+                        onChange={(e) => handleEditChange('status', e.target.value)}
+                        className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-[#75401F]"
+                      >
+                        <option value="new">New</option>
+                        <option value="contacted">Contacted</option>
+                        <option value="qualified">Qualified</option>
+                        <option value="requirement_received">Requirement Received</option>
+                        <option value="quotation_pending">Quotation Pending</option>
+                        <option value="quotation_sent">Quotation Sent</option>
+                        <option value="negotiation">Negotiation</option>
+                        <option value="won">Won</option>
+                        <option value="lost">Lost</option>
+                        <option value="on_hold">On Hold</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#4A3B32] mb-1">Priority</label>
+                      <select
+                        value={editFormData.priority || 'medium'}
+                        onChange={(e) => handleEditChange('priority', e.target.value)}
+                        className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-[#75401F]"
+                      >
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#4A3B32] mb-1">Assigned Sales Engineer</label>
+                      <select
+                        value={editFormData.assignedSalesPersonId || ''}
+                        onChange={(e) => handleEditChange('assignedSalesPersonId', e.target.value)}
+                        className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:border-[#75401F]"
+                      >
+                        <option value="">Select Sales Engineer</option>
+                        {allEmployees.map((emp) => (
+                          <option key={emp.id} value={emp.id}>
+                            {emp.name || (emp as any).employeeName || emp.id}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#4A3B32] mb-1">Requirement Description / Notes</label>
+                    <textarea
+                      rows={2}
+                      value={editFormData.requirementDescription || ''}
+                      onChange={(e) => handleEditChange('requirementDescription', e.target.value)}
+                      placeholder="Specifications, client requirements or notes..."
+                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:border-[#75401F]"
+                    />
+                  </div>
                 </div>
               </div>
 

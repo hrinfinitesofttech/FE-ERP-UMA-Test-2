@@ -61,6 +61,14 @@ const parseDescriptionPoints = (item: any): string[] => {
     .filter(Boolean);
 };
 
+const DEFAULT_TERMS = [
+  'Prices Ex-Works Makarpura, Vadodara. Freight extra at actuals.',
+  'GST: 18% extra as applicable at the time of final invoicing / dispatch.',
+  'Payment Terms: 30% advance along with order confirmation, balance 70% against proforma invoice before dispatch.',
+  'Delivery Schedule: 6 to 8 weeks from date of technically and commercially clear purchase order and approved engineering drawings.',
+  'Warranty: 12 months from the date of commissioning or 18 months from delivery against manufacturing defects.',
+];
+
 export default function QuotationDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -589,7 +597,30 @@ export default function QuotationDetailPage() {
           </table>
         </div>
 
-        {/* Commercial Terms & Scope removed per user request */}
+        {/* Terms & Conditions (Only Terms & Conditions) */}
+        {(() => {
+          const termsText = currentRev.termsAndConditions || DEFAULT_TERMS.join('\n');
+          const termsArray = termsText
+            .split('\n')
+            .map((t: string) => t.trim().replace(/^[•\s\-\*\d+\.]+/g, '').trim())
+            .filter(Boolean);
+          if (termsArray.length === 0) return null;
+
+          return (
+            <div className="space-y-2 pt-4 border-t border-slate-200 dark:border-[#EBE3DB] text-[11px]">
+              <h3 className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Terms & Conditions</h3>
+              <div className="p-3.5 bg-slate-50 dark:bg-[#FAF7F2]/60 rounded-xl border border-slate-200 dark:border-[#EBE3DB]">
+                <ol className="list-decimal list-inside space-y-1.5 text-slate-700 dark:text-[#544B45]">
+                  {termsArray.map((t: string, idx: number) => (
+                    <li key={idx} className="leading-relaxed">
+                      {t}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Customer PO Inward Modal */}

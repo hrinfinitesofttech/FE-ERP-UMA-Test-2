@@ -45,6 +45,7 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
   const searchParams = useSearchParams();
 
   const {
+    customers,
     leads,
     updateLead,
     deleteLead,
@@ -124,12 +125,92 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
   const handleOpenEdit = (lead: Lead, e: React.MouseEvent) => {
     e.stopPropagation();
     setEditingLead(lead);
+
+    const relatedEnq = (enquiries || []).find(
+      (enq) =>
+        (enq.leadId && (enq.leadId === lead.id || enq.leadId === lead.leadNo)) ||
+        (lead.companyName && enq.customerName && enq.customerName.toLowerCase() === lead.companyName.toLowerCase())
+    );
+    const relatedQuo = (quotations || []).find(
+      (q) =>
+        (q.leadId && (q.leadId === lead.id || q.leadId === lead.leadNo)) ||
+        (lead.companyName && q.customerName && q.customerName.toLowerCase() === lead.companyName.toLowerCase())
+    );
+    const relatedCust = (customers || []).find(
+      (c) =>
+        c.id === lead.convertedCustomerId ||
+        (c as any).linkedLeadId === lead.id ||
+        (c as any).linkedLeadId === lead.leadNo ||
+        (lead.companyName && c.companyName && c.companyName.toLowerCase() === lead.companyName.toLowerCase())
+    );
+
+    const resolvedMobile =
+      lead.mobile && lead.mobile !== '9999999999'
+        ? lead.mobile
+        : (lead as any).phone ||
+          (lead as any).contactMobile ||
+          (lead as any).contact_mobile ||
+          (lead as any).contactNumber ||
+          (lead as any).mobileNo ||
+          (lead as any).altMobile ||
+          (relatedEnq as any)?.contactMobile ||
+          (relatedEnq as any)?.mobile ||
+          (relatedQuo as any)?.contactMobile ||
+          (relatedQuo as any)?.mobile ||
+          relatedCust?.mobile ||
+          '';
+
+    const resolvedAddress =
+      lead.address && lead.address.trim()
+        ? lead.address
+        : (lead as any).billingAddress ||
+          (lead as any).billing_address ||
+          (lead as any).shippingAddress ||
+          (lead as any).shipping_address ||
+          (relatedEnq as any)?.address ||
+          (relatedEnq as any)?.billingAddress ||
+          (relatedQuo as any)?.deliveryAddress ||
+          (relatedQuo as any)?.billingAddress ||
+          relatedCust?.billingAddress ||
+          relatedCust?.shippingAddress ||
+          [lead.city, lead.state, lead.pincode].filter(Boolean).join(', ') ||
+          '';
+
+    const resolvedEmail =
+      lead.email && lead.email.trim()
+        ? lead.email
+        : (relatedQuo as any)?.contactEmail ||
+          (relatedEnq as any)?.customerEmail ||
+          (relatedEnq as any)?.email ||
+          relatedCust?.email ||
+          '';
+
+    const resolvedProductName =
+      lead.productName && lead.productName !== 'Process Equipment' && lead.productName !== 'Industrial Process Equipment'
+        ? lead.productName
+        : (relatedQuo as any)?.machineProduct || (relatedEnq as any)?.machineProduct || '';
+
+    const resolvedQuantity =
+      lead.quantity && lead.quantity > 0
+        ? lead.quantity
+        : (relatedQuo as any)?.quantity || (relatedEnq as any)?.quantity || 1;
+
     setEditLeadData({
       companyName: lead.companyName || '',
-      contactPerson: lead.contactPerson || '',
-      mobile: lead.mobile || '',
-      email: lead.email || '',
-      address: lead.address || '',
+      contactPerson: lead.contactPerson && lead.contactPerson !== 'Contact Person' && lead.contactPerson !== 'Contact' ? lead.contactPerson : '',
+      mobile: resolvedMobile,
+      email: resolvedEmail,
+      address: resolvedAddress,
+      city: lead.city || '',
+      state: lead.state || '',
+      pincode: lead.pincode || '',
+      productName: resolvedProductName,
+      quantity: resolvedQuantity,
+      budget: Number(lead.budget) || 0,
+      status: lead.status || 'new',
+      priority: lead.priority || 'medium',
+      source: lead.source || 'website',
+      notes: lead.notes || (lead as any).requirementDescription || '',
     });
   };
 
@@ -145,6 +226,19 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
         mobile: editLeadData.mobile?.trim(),
         email: editLeadData.email?.trim(),
         address: editLeadData.address?.trim(),
+        city: editLeadData.city?.trim(),
+        state: editLeadData.state?.trim(),
+        pincode: editLeadData.pincode?.trim(),
+        productName: editLeadData.productName?.trim(),
+        machineType: editLeadData.productName?.trim(),
+        quantity: Number(editLeadData.quantity) || 1,
+        budget: Number(editLeadData.budget) || 0,
+        status: editLeadData.status || 'new',
+        priority: editLeadData.priority || 'medium',
+        source: editLeadData.source || 'website',
+        notes: editLeadData.notes?.trim(),
+        requirementDescription: editLeadData.notes?.trim(),
+        remarks: editLeadData.notes?.trim(),
       };
 
       const targetId = editingLead.id || editingLead.leadNo;
@@ -612,12 +706,120 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
                   Address <span className="text-rose-500">*</span>
                 </label>
                 <textarea
-                  rows={3}
+                  rows={2}
                   required
                   value={editLeadData.address || ''}
                   onChange={(e) => setEditLeadData((prev) => ({ ...prev, address: e.target.value }))}
                   className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
                   placeholder="e.g. Plot No. 42, GIDC Industrial Estate..."
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[#544B45] font-semibold mb-1">City</label>
+                  <input
+                    type="text"
+                    value={editLeadData.city || ''}
+                    onChange={(e) => setEditLeadData((prev) => ({ ...prev, city: e.target.value }))}
+                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                    placeholder="City"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#544B45] font-semibold mb-1">State</label>
+                  <input
+                    type="text"
+                    value={editLeadData.state || ''}
+                    onChange={(e) => setEditLeadData((prev) => ({ ...prev, state: e.target.value }))}
+                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                    placeholder="State"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#544B45] font-semibold mb-1">Pincode</label>
+                  <input
+                    type="text"
+                    value={editLeadData.pincode || ''}
+                    onChange={(e) => setEditLeadData((prev) => ({ ...prev, pincode: e.target.value }))}
+                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                    placeholder="Pincode"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[#544B45] font-semibold mb-1">Product / Machine</label>
+                  <input
+                    type="text"
+                    value={editLeadData.productName || ''}
+                    onChange={(e) => setEditLeadData((prev) => ({ ...prev, productName: e.target.value }))}
+                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                    placeholder="e.g. Storage Tank"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#544B45] font-semibold mb-1">Quantity</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={editLeadData.quantity ?? 1}
+                    onChange={(e) => setEditLeadData((prev) => ({ ...prev, quantity: Number(e.target.value) || 1 }))}
+                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#544B45] font-semibold mb-1">Budget (₹)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={editLeadData.budget ?? 0}
+                    onChange={(e) => setEditLeadData((prev) => ({ ...prev, budget: Number(e.target.value) || 0 }))}
+                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[#544B45] font-semibold mb-1">Status</label>
+                  <select
+                    value={editLeadData.status || 'new'}
+                    onChange={(e) => setEditLeadData((prev) => ({ ...prev, status: e.target.value as any }))}
+                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                  >
+                    <option value="new">New</option>
+                    <option value="contacted">Contacted</option>
+                    <option value="qualified">Qualified</option>
+                    <option value="proposal">Proposal</option>
+                    <option value="negotiation">Negotiation</option>
+                    <option value="won">Won</option>
+                    <option value="lost">Lost</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[#544B45] font-semibold mb-1">Priority</label>
+                  <select
+                    value={editLeadData.priority || 'medium'}
+                    onChange={(e) => setEditLeadData((prev) => ({ ...prev, priority: e.target.value as any }))}
+                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[#544B45] font-semibold mb-1">Notes / Requirement</label>
+                <textarea
+                  rows={2}
+                  value={editLeadData.notes || ''}
+                  onChange={(e) => setEditLeadData((prev) => ({ ...prev, notes: e.target.value }))}
+                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                  placeholder="Notes or special requirements..."
                 />
               </div>
 

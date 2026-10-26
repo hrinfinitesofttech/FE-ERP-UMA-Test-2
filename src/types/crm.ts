@@ -197,6 +197,7 @@ export interface Lead {
   status: LeadStatus;
   nextFollowUpDate?: string;
   remarks?: string;
+  notes?: string;
   createdDate: string;
   createdAt?: string;
   created_at?: string;

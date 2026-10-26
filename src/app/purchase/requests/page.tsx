@@ -538,15 +538,15 @@ export default function PurchaseRequestsPage() {
       vendorMobile: req.supplierMobile || (req as any).supplier_mobile || '',
       vendorEmail: req.supplierEmail || (req as any).supplier_email || '',
       vendorGstin: req.supplierGstin || (req as any).supplier_gstin || '',
-      buyer: req.buyer || 'Uma Technofab.',
-      surcharges: req.surcharges || 'NIL',
-      taxes: req.taxes || 'AS APPLICABLE.',
-      shipTo: req.shipTo || 'LOCAL',
-      deliveryLocation: req.deliveryLocation || (req as any).delivery_location || 'RAJPUR',
-      pageNo: req.pageNo || 'PAGE NO: 1 OF 1',
+      buyer: req.buyer || (req as any).buyer_name || '',
+      surcharges: req.surcharges || '',
+      taxes: req.taxes || '',
+      shipTo: req.shipTo || (req as any).ship_to || '',
+      deliveryLocation: req.deliveryLocation || (req as any).delivery_location || '',
+      pageNo: req.pageNo || '',
       subject: req.subject || '',
       specialNote: req.specialNote || (req as any).special_note || '',
-      terms: req.terms && req.terms.length > 0 ? [...req.terms] : [...defaultTerms],
+      terms: req.terms && req.terms.length > 0 ? [...req.terms] : [],
       items:
         req.items && req.items.length > 0
           ? req.items.map((itm, idx) => ({

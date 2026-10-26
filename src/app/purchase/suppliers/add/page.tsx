@@ -44,7 +44,7 @@ export default function CreateVendorMasterPage() {
 
   // Form State
   const [formData, setFormData] = useState({
-    activity: 'Purchase',
+    activity: '',
     vendorTaxType: 'Registered Regular',
     currency: '₹ Indian rupee',
     vendorStatus: 'Under Review',
@@ -55,7 +55,7 @@ export default function CreateVendorMasterPage() {
     pan: '',
     aadhar: '',
     cin: '',
-    creditDays: 30,
+    creditDays: 0,
     isMsme: false,
     msmeNumber: '',
     isGstRetention: false,
@@ -69,17 +69,17 @@ export default function CreateVendorMasterPage() {
   // Modals for sub-records
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [newAddr, setNewAddr] = useState({
-    addressType: 'Registered Office',
+    addressType: '',
     addressLine: '',
-    city: 'Ahmedabad',
-    state: 'Gujarat',
+    city: '',
+    state: '',
     pinCode: '',
   });
 
   const [showContactModal, setShowContactModal] = useState(false);
   const [newContact, setNewContact] = useState({
     contactPerson: '',
-    designation: 'Sales Representative',
+    designation: '',
     phone: '',
     email: '',
   });

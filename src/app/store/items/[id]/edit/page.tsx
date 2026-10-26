@@ -20,69 +20,75 @@ export default function EditItemMasterPage() {
 
   const { itemMasters, updateItemMaster, itemCategories, uoms, warehouses } = useERP();
 
+  const decodedId = decodeURIComponent(String(itemId || '')).trim();
   const currentItem = itemMasters.find(
-    (item) => item.id === itemId || item.itemCode === itemId
+    (item) =>
+      item.id === decodedId ||
+      item.itemCode === decodedId ||
+      item.id?.toLowerCase() === decodedId.toLowerCase() ||
+      item.itemCode?.toLowerCase() === decodedId.toLowerCase()
   );
 
   const [formData, setFormData] = useState({
     itemCode: '',
     itemName: '',
-    itemType: 'Plate',
-    category: 'Stainless Steel Plates & Sheets',
+    itemType: '',
+    category: '',
     description: '',
-    currentStock: 1,
+    currentStock: 0,
     specification: '',
     brandMake: '',
-    hsnSac: '72193200',
+    hsnSac: '',
     gstRate: 18,
-    uom: 'Kg',
+    uom: '',
     currency: '₹ Indian rupee',
     status: 'Active' as const,
-    minimumStock: 500,
-    maximumStock: 10000,
-    reorderLevel: 2000,
-    safetyStock: 400,
-    leadTimeDays: 10,
-    defaultWarehouseId: 'WH-001',
-    defaultLocationBin: 'W1-ZA-R1-S1-B01',
-    batchTracking: true,
+    minimumStock: 0,
+    maximumStock: 0,
+    reorderLevel: 0,
+    safetyStock: 0,
+    leadTimeDays: 0,
+    defaultWarehouseId: '',
+    defaultLocationBin: '',
+    batchTracking: false,
     serialTracking: false,
-    lotTracking: true,
-    defaultPurchaseRate: 350,
-    standardCost: 350,
+    lotTracking: false,
+    defaultPurchaseRate: 0,
+    standardCost: 0,
   });
 
   useEffect(() => {
     if (currentItem) {
+      const anyItem = currentItem as any;
       setFormData({
-        itemCode: currentItem.itemCode || currentItem.id,
-        itemName: currentItem.itemName || '',
-        itemType: (currentItem.itemType as any) || 'Plate',
-        category: currentItem.category || 'Stainless Steel Plates & Sheets',
+        itemCode: currentItem.itemCode || currentItem.id || '',
+        itemName: currentItem.itemName || anyItem.item_name || '',
+        itemType: (currentItem.itemType || anyItem.item_type || '') as any,
+        category: currentItem.category || '',
         description: currentItem.description || '',
-        currentStock: currentItem.currentStock ?? 1,
+        currentStock: currentItem.currentStock ?? (anyItem.current_stock ?? 0),
         specification: currentItem.specification || '',
-        brandMake: currentItem.brandMake || '',
-        hsnSac: currentItem.hsnSac || '72193200',
-        gstRate: currentItem.gstRate || 18,
-        uom: currentItem.uom || 'Kg',
-        currency: '₹ Indian rupee',
+        brandMake: currentItem.brandMake || anyItem.brand_make || '',
+        hsnSac: currentItem.hsnSac || anyItem.hsn_sac || '',
+        gstRate: currentItem.gstRate !== undefined ? Number(currentItem.gstRate) : (anyItem.gst_rate !== undefined ? Number(anyItem.gst_rate) : 18),
+        uom: currentItem.uom || '',
+        currency: anyItem.currency || '₹ Indian rupee',
         status: (currentItem.status as any) || 'Active',
-        minimumStock: currentItem.minimumStock || 0,
-        maximumStock: currentItem.maximumStock || 0,
-        reorderLevel: currentItem.reorderLevel || 0,
-        safetyStock: currentItem.safetyStock || 0,
-        leadTimeDays: currentItem.leadTimeDays || 10,
-        defaultWarehouseId: currentItem.defaultWarehouseId || 'WH-001',
-        defaultLocationBin: currentItem.defaultLocationBin || '',
-        batchTracking: currentItem.batchTracking ?? true,
-        serialTracking: currentItem.serialTracking ?? false,
-        lotTracking: currentItem.lotTracking ?? true,
-        defaultPurchaseRate: currentItem.defaultPurchaseRate || 0,
-        standardCost: currentItem.standardCost || 0,
+        minimumStock: currentItem.minimumStock !== undefined ? Number(currentItem.minimumStock) : (anyItem.minimum_stock !== undefined ? Number(anyItem.minimum_stock) : 0),
+        maximumStock: currentItem.maximumStock !== undefined ? Number(currentItem.maximumStock) : (anyItem.maximum_stock !== undefined ? Number(anyItem.maximum_stock) : 0),
+        reorderLevel: currentItem.reorderLevel !== undefined ? Number(currentItem.reorderLevel) : (anyItem.reorder_level !== undefined ? Number(anyItem.reorder_level) : 0),
+        safetyStock: currentItem.safetyStock !== undefined ? Number(currentItem.safetyStock) : (anyItem.safety_stock !== undefined ? Number(anyItem.safety_stock) : 0),
+        leadTimeDays: currentItem.leadTimeDays !== undefined ? Number(currentItem.leadTimeDays) : (anyItem.lead_time_days !== undefined ? Number(anyItem.lead_time_days) : 0),
+        defaultWarehouseId: currentItem.defaultWarehouseId || anyItem.warehouse_id || anyItem.default_warehouse_id || (warehouses[0]?.id || ''),
+        defaultLocationBin: currentItem.defaultLocationBin || anyItem.location_bin || anyItem.default_location_bin || '',
+        batchTracking: currentItem.batchTracking ?? (anyItem.batch_tracking ?? false),
+        serialTracking: currentItem.serialTracking ?? (anyItem.serial_tracking ?? false),
+        lotTracking: currentItem.lotTracking ?? (anyItem.lot_tracking ?? false),
+        defaultPurchaseRate: currentItem.defaultPurchaseRate !== undefined ? Number(currentItem.defaultPurchaseRate) : (anyItem.purchase_rate !== undefined ? Number(anyItem.purchase_rate) : (anyItem.unit_cost !== undefined ? Number(anyItem.unit_cost) : 0)),
+        standardCost: currentItem.standardCost !== undefined ? Number(currentItem.standardCost) : (anyItem.standard_cost !== undefined ? Number(anyItem.standard_cost) : (anyItem.unit_cost !== undefined ? Number(anyItem.unit_cost) : 0)),
       });
     }
-  }, [currentItem]);
+  }, [currentItem, warehouses]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);

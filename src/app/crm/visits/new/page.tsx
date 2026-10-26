@@ -103,40 +103,63 @@ function VisitFormContent() {
     if (type === 'enquiry') {
       const enq = enquiries.find((e) => e.id === id || e.enquiryNo === id);
       if (enq) {
+        const enqAddr = (enq as any).billingAddress || (enq as any).address || (enq as any).shippingAddress || '';
         setSelectedEntityInfo({
           type: 'enquiry',
           id: enq.id,
           name: enq.customerName,
           contactPerson: enq.contactPerson || '',
           mobile: enq.contactMobile || '',
-          address: 'Client Manufacturing Plant',
+          address: enqAddr,
           product: enq.machineProduct,
         });
-        setLocation('Client Manufacturing Plant');
-        setPurpose(`Technical site survey for ${enq.machineProduct}`);
+        setLocation(enqAddr);
+        setPurpose(enq.machineProduct ? `Technical site survey for ${enq.machineProduct}` : '');
       }
     } else if (type === 'lead') {
       const lead = leads.find((l) => l.id === id || l.leadNo === id);
       if (lead) {
         const enq = enquiries.find((e) => e.leadId === id || e.customerName === lead.companyName);
         const prod = enq?.machineProduct || lead.productName || lead.machineType || '';
-        const addr = lead.address ? `${lead.address}, ${lead.city || ''}` : lead.city || 'Client Site';
+        const mobile =
+          lead.mobile && lead.mobile !== '9999999999'
+            ? lead.mobile
+            : (lead as any).phone ||
+              (lead as any).contactMobile ||
+              (lead as any).contact_mobile ||
+              (lead as any).contactNumber ||
+              (lead as any).mobileNo ||
+              (lead as any).altMobile ||
+              (enq as any)?.contactMobile ||
+              (enq as any)?.mobile ||
+              '';
+
+        const addr =
+          lead.address && lead.address.trim()
+            ? (lead.city ? `${lead.address}, ${lead.city}` : lead.address)
+            : (lead as any).billingAddress ||
+              (lead as any).billing_address ||
+              (lead as any).shippingAddress ||
+              (enq as any)?.address ||
+              (enq as any)?.billingAddress ||
+              (lead.city ? `${lead.city}${lead.state ? `, ${lead.state}` : ''}` : '');
+
         setSelectedEntityInfo({
           type: 'lead',
           id: lead.id,
           name: lead.companyName,
-          contactPerson: lead.contactPerson || '',
-          mobile: lead.mobile || '',
+          contactPerson: lead.contactPerson && lead.contactPerson !== 'Contact Person' && lead.contactPerson !== 'Contact' ? lead.contactPerson : (enq?.contactPerson || ''),
+          mobile: mobile,
           address: addr,
           product: prod,
         });
         setLocation(addr);
-        setPurpose(prod ? `Site inspection & measurement for ${prod}` : `Site inspection at ${lead.companyName}`);
+        setPurpose(prod ? `Site inspection & measurement for ${prod}` : '');
       }
     } else if (type === 'customer') {
       const cust = customers.find((c) => c.id === id || c.customerCode === id);
       if (cust) {
-        const addr = cust.billingAddress ? `${cust.billingAddress}, ${cust.city || ''}` : cust.city || 'Customer Plant';
+        const addr = cust.billingAddress ? `${cust.billingAddress}, ${cust.city || ''}` : cust.city || '';
         setSelectedEntityInfo({
           type: 'customer',
           id: cust.id,
@@ -146,7 +169,7 @@ function VisitFormContent() {
           address: addr,
         });
         setLocation(addr);
-        setPurpose(`Plant visit & equipment layout verification at ${cust.companyName}`);
+        setPurpose('');
       }
     }
   };

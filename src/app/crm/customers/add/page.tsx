@@ -67,7 +67,7 @@ function CreateCustomerMasterContent() {
     customerCode: initialCode,
     companyName: '',
     customerType: 'company' as 'company' | 'individual',
-    industry: 'Heavy Engineering & Fabrication',
+    industry: '',
     category: 'standard' as 'platinum' | 'gold' | 'silver' | 'standard',
     currency: '₹ Indian rupee',
     website: '',
@@ -75,7 +75,7 @@ function CreateCustomerMasterContent() {
 
     // Primary Contact Person
     contactPerson: '',
-    designation: 'Managing Director',
+    designation: '',
     mobile: '',
     whatsapp: '',
     email: '',
@@ -95,15 +95,15 @@ function CreateCustomerMasterContent() {
     bankBranch: '',
 
     // Commercial & Credit Terms
-    paymentTerms: '30 Days Credit',
-    creditPeriodDays: 30,
-    creditLimit: 500000,
+    paymentTerms: '',
+    creditPeriodDays: 0,
+    creditLimit: 0,
 
     // Primary Billing & Shipping
     billingAddress: '',
     shippingAddress: '',
     city: '',
-    state: 'Gujarat',
+    state: '',
     country: 'India',
     pincode: '',
 
@@ -120,10 +120,10 @@ function CreateCustomerMasterContent() {
   // Sub-record Modals
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [newAddr, setNewAddr] = useState({
-    addressType: 'Plant / Site Delivery Address',
+    addressType: '',
     addressLine: '',
     city: '',
-    state: 'Gujarat',
+    state: '',
     pincode: '',
   });
 
@@ -157,7 +157,7 @@ function CreateCustomerMasterContent() {
     const mobileNo = lead.mobile && lead.mobile !== '9999999999' ? lead.mobile : '';
     const addr = lead.address || '';
     const leadCity = lead.city || '';
-    const leadState = lead.state || 'Gujarat';
+    const leadState = lead.state || '';
     const leadPin = lead.pincode || '';
 
     setFormData((prev) => ({

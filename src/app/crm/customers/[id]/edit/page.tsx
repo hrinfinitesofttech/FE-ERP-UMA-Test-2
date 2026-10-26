@@ -53,15 +53,20 @@ export default function EditCustomerMasterPage() {
       ? employees
       : [];
 
+  const decodedId = decodeURIComponent(String(customerId || '')).trim();
   const currentCustomer = customers.find(
-    (c) => c.id === customerId || c.customerCode === customerId
+    (c) =>
+      c.id === decodedId ||
+      c.customerCode === decodedId ||
+      c.id?.toLowerCase() === decodedId.toLowerCase() ||
+      c.customerCode?.toLowerCase() === decodedId.toLowerCase()
   );
 
   const [formData, setFormData] = useState({
     customerCode: '',
     companyName: '',
     customerType: 'company' as 'company' | 'individual',
-    industry: 'Heavy Engineering & Fabrication',
+    industry: '',
     category: 'standard' as 'platinum' | 'gold' | 'silver' | 'standard',
     currency: '₹ Indian rupee',
     website: '',
@@ -69,7 +74,7 @@ export default function EditCustomerMasterPage() {
 
     // Primary Contact Person
     contactPerson: '',
-    designation: 'Managing Director',
+    designation: '',
     mobile: '',
     whatsapp: '',
     email: '',
@@ -89,15 +94,15 @@ export default function EditCustomerMasterPage() {
     bankBranch: '',
 
     // Commercial & Credit Terms
-    paymentTerms: '30 Days Credit',
-    creditPeriodDays: 30,
-    creditLimit: 500000,
+    paymentTerms: '',
+    creditPeriodDays: 0,
+    creditLimit: 0,
 
     // Primary Billing & Shipping
     billingAddress: '',
     shippingAddress: '',
     city: '',
-    state: 'Gujarat',
+    state: '',
     country: 'India',
     pincode: '',
 
@@ -115,33 +120,34 @@ export default function EditCustomerMasterPage() {
   const [newAddr, setNewAddr] = useState({
     addressType: 'Plant / Site Delivery Address',
     addressLine: '',
-    city: 'Vadodara',
-    state: 'Gujarat',
+    city: '',
+    state: '',
     pincode: '',
   });
 
   const [showContactModal, setShowContactModal] = useState(false);
   const [newContact, setNewContact] = useState({
     name: '',
-    designation: 'Accounts / Purchase Lead',
+    designation: '',
     mobile: '',
     email: '',
   });
 
   useEffect(() => {
     if (currentCustomer) {
+      const anyCust = currentCustomer as any;
       setFormData({
-        customerCode: currentCustomer.customerCode || currentCustomer.id || '',
-        companyName: currentCustomer.companyName || '',
-        customerType: currentCustomer.customerType || 'company',
-        industry: currentCustomer.industry || 'Heavy Engineering & Fabrication',
+        customerCode: currentCustomer.customerCode || anyCust.customer_code || currentCustomer.id || '',
+        companyName: currentCustomer.companyName || anyCust.company_name || '',
+        customerType: currentCustomer.customerType || anyCust.customer_type || 'company',
+        industry: currentCustomer.industry || '',
         category: (currentCustomer.category as any) || 'standard',
         currency: currentCustomer.currency || '₹ Indian rupee',
         website: currentCustomer.website || '',
-        assignedSalesPerson: currentCustomer.assignedSalesPerson || allStaff[0]?.name || 'Sales Team',
+        assignedSalesPerson: currentCustomer.assignedSalesPerson || anyCust.assigned_sales_person || '',
 
-        contactPerson: currentCustomer.contactPerson || '',
-        designation: currentCustomer.designation || 'Managing Director',
+        contactPerson: currentCustomer.contactPerson || anyCust.contact_person || '',
+        designation: currentCustomer.designation || '',
         mobile: currentCustomer.mobile || '',
         whatsapp: currentCustomer.whatsapp || '',
         email: currentCustomer.email || '',
@@ -149,30 +155,30 @@ export default function EditCustomerMasterPage() {
         gstin: currentCustomer.gstin || '',
         pan: currentCustomer.pan || '',
         tan: currentCustomer.tan || '',
-        msmeNumber: currentCustomer.msmeNumber || '',
-        taxCategory: currentCustomer.taxCategory || 'regular',
+        msmeNumber: currentCustomer.msmeNumber || anyCust.msme_number || '',
+        taxCategory: currentCustomer.taxCategory || anyCust.tax_category || 'regular',
 
-        bankName: currentCustomer.bankName || '',
-        bankAccountNo: currentCustomer.bankAccountNo || '',
-        bankAccountName: currentCustomer.bankAccountName || '',
-        bankIfsc: currentCustomer.bankIfsc || '',
-        bankBranch: currentCustomer.bankBranch || '',
+        bankName: currentCustomer.bankName || anyCust.bank_name || '',
+        bankAccountNo: currentCustomer.bankAccountNo || anyCust.bank_account_no || '',
+        bankAccountName: currentCustomer.bankAccountName || anyCust.bank_account_name || '',
+        bankIfsc: currentCustomer.bankIfsc || anyCust.bank_ifsc || '',
+        bankBranch: currentCustomer.bankBranch || anyCust.bank_branch || '',
 
-        paymentTerms: currentCustomer.paymentTerms || '30 Days Credit',
-        creditPeriodDays: currentCustomer.creditPeriodDays || 30,
-        creditLimit: currentCustomer.creditLimit || 500000,
+        paymentTerms: currentCustomer.paymentTerms || anyCust.payment_terms || '',
+        creditPeriodDays: currentCustomer.creditPeriodDays !== undefined ? Number(currentCustomer.creditPeriodDays) : (anyCust.credit_period_days !== undefined ? Number(anyCust.credit_period_days) : 0),
+        creditLimit: currentCustomer.creditLimit !== undefined ? Number(currentCustomer.creditLimit) : (anyCust.credit_limit !== undefined ? Number(anyCust.credit_limit) : 0),
 
-        billingAddress: currentCustomer.billingAddress || '',
-        shippingAddress: currentCustomer.shippingAddress || '',
-        city: currentCustomer.city || 'Vadodara',
-        state: currentCustomer.state || 'Gujarat',
+        billingAddress: currentCustomer.billingAddress || anyCust.billing_address || anyCust.address || '',
+        shippingAddress: currentCustomer.shippingAddress || anyCust.shipping_address || '',
+        city: currentCustomer.city || '',
+        state: currentCustomer.state || '',
         country: currentCustomer.country || 'India',
         pincode: currentCustomer.pincode || '',
 
-        nearestPortRailway: currentCustomer.nearestPortRailway || '',
-        inspectionRequirements: currentCustomer.inspectionRequirements || '',
-        specialInstructions: currentCustomer.specialInstructions || '',
-        linkedLeadId: currentCustomer.linkedLeadId || '',
+        nearestPortRailway: currentCustomer.nearestPortRailway || anyCust.nearest_port_railway || '',
+        inspectionRequirements: currentCustomer.inspectionRequirements || anyCust.inspection_requirements || '',
+        specialInstructions: currentCustomer.specialInstructions || anyCust.special_instructions || '',
+        linkedLeadId: currentCustomer.linkedLeadId || anyCust.linked_lead_id || '',
       });
 
       if (currentCustomer.billingAddress) {

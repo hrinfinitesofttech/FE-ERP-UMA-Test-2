@@ -191,7 +191,8 @@ function FollowUpFormContent() {
   // Load existing follow-up if editing
   useEffect(() => {
     if (paramEditId && followUps.length > 0) {
-      const flw = followUps.find((f) => f.id === paramEditId || f.followUpNo === paramEditId);
+      const decodedEditId = decodeURIComponent(paramEditId);
+      const flw = followUps.find((f) => f.id === paramEditId || f.id === decodedEditId || f.followUpNo === paramEditId || f.followUpNo === decodedEditId);
       if (flw) {
         setEditingFollowUp(flw);
         if (flw.entityType === 'enquiry' || flw.enquiryId) {

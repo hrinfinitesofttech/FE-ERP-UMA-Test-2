@@ -39,13 +39,20 @@ export default function EditVendorMasterPage() {
 
   const { suppliers, updateSupplier } = useERP();
 
+  const decodedId = decodeURIComponent(vendorId || '');
   const currentSupplier = suppliers.find(
-    (s) => s.id === vendorId || s.vendorCode === vendorId || s.supplierCode === vendorId
+    (s) =>
+      s.id === vendorId ||
+      s.id === decodedId ||
+      s.vendorCode === vendorId ||
+      s.vendorCode === decodedId ||
+      s.supplierCode === vendorId ||
+      s.supplierCode === decodedId
   );
 
   // Form State
   const [formData, setFormData] = useState({
-    activity: 'Purchase',
+    activity: '',
     vendorTaxType: 'Registered Regular',
     currency: '₹ Indian rupee',
     vendorStatus: 'Under Review',
@@ -56,7 +63,7 @@ export default function EditVendorMasterPage() {
     pan: '',
     aadhar: '',
     cin: '',
-    creditDays: 30,
+    creditDays: 0,
     isMsme: false,
     msmeNumber: '',
     isGstRetention: false,
@@ -69,17 +76,17 @@ export default function EditVendorMasterPage() {
   // Sub-records modal
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [newAddr, setNewAddr] = useState({
-    addressType: 'Branch Office',
+    addressType: '',
     addressLine: '',
-    city: 'Ahmedabad',
-    state: 'Gujarat',
+    city: '',
+    state: '',
     pinCode: '',
   });
 
   const [showContactModal, setShowContactModal] = useState(false);
   const [newContact, setNewContact] = useState({
     contactPerson: '',
-    designation: 'Sales Representative',
+    designation: '',
     phone: '',
     email: '',
   });
@@ -88,18 +95,18 @@ export default function EditVendorMasterPage() {
   useEffect(() => {
     if (currentSupplier) {
       setFormData({
-        activity: currentSupplier.activity || currentSupplier.category || 'Purchase',
+        activity: currentSupplier.activity || currentSupplier.category || '',
         vendorTaxType: currentSupplier.vendorTaxType || 'Registered Regular',
         currency: currentSupplier.currency || '₹ Indian rupee',
         vendorStatus: currentSupplier.vendorStatus || (currentSupplier.status === 'Approved' ? 'Running' : 'Under Review'),
-        vendorCode: currentSupplier.vendorCode || currentSupplier.supplierCode || currentSupplier.id,
+        vendorCode: currentSupplier.vendorCode || currentSupplier.supplierCode || currentSupplier.id || '',
         vendorName: currentSupplier.supplierName || currentSupplier.name || '',
         chequeName: currentSupplier.chequeName || currentSupplier.supplierName || currentSupplier.name || '',
         alias: currentSupplier.alias || '',
         pan: currentSupplier.panNumber || currentSupplier.pan || '',
         aadhar: currentSupplier.aadhar || '',
         cin: currentSupplier.cin || '',
-        creditDays: currentSupplier.creditDays || currentSupplier.creditPeriodDays || 30,
+        creditDays: currentSupplier.creditDays ?? currentSupplier.creditPeriodDays ?? 0,
         isMsme: currentSupplier.msmeRegistered ?? currentSupplier.msmeStatus ?? false,
         msmeNumber: currentSupplier.msmeNumber || '',
         isGstRetention: currentSupplier.gstRetentionApplicable ?? false,
@@ -110,21 +117,21 @@ export default function EditVendorMasterPage() {
         setAddresses(
           currentSupplier.addresses.map((a, i) => ({
             id: a.id || `ADDR-${i}`,
-            addressType: a.addressType || 'Registered Office',
-            addressLine: a.addressLine || currentSupplier.address,
-            city: a.city || currentSupplier.city,
-            state: a.state || currentSupplier.state,
+            addressType: a.addressType || '',
+            addressLine: a.addressLine || currentSupplier.address || '',
+            city: a.city || currentSupplier.city || '',
+            state: a.state || currentSupplier.state || '',
             pinCode: a.pinCode || currentSupplier.pinCode || '',
           }))
         );
-      } else if (currentSupplier.address) {
+      } else if (currentSupplier.address || currentSupplier.city || currentSupplier.state) {
         setAddresses([
           {
             id: 'ADDR-1',
             addressType: 'Registered Office',
-            addressLine: currentSupplier.address,
-            city: currentSupplier.city || 'Ahmedabad',
-            state: currentSupplier.state || 'Gujarat',
+            addressLine: currentSupplier.address || '',
+            city: currentSupplier.city || '',
+            state: currentSupplier.state || '',
             pinCode: currentSupplier.pinCode || '',
           },
         ]);
@@ -134,18 +141,18 @@ export default function EditVendorMasterPage() {
         setContacts(
           currentSupplier.contacts.map((c, i) => ({
             id: c.id || `CONT-${i}`,
-            contactPerson: c.contactPerson,
-            designation: c.designation || 'Contact Person',
-            phone: c.phone,
+            contactPerson: c.contactPerson || '',
+            designation: c.designation || '',
+            phone: c.phone || '',
             email: c.email || '',
           }))
         );
-      } else if (currentSupplier.contactPerson) {
+      } else if (currentSupplier.contactPerson || currentSupplier.phone || currentSupplier.mobile) {
         setContacts([
           {
             id: 'CONT-1',
-            contactPerson: currentSupplier.contactPerson,
-            designation: 'Contact Person',
+            contactPerson: currentSupplier.contactPerson || '',
+            designation: (currentSupplier as any).designation || '',
             phone: currentSupplier.phone || currentSupplier.mobile || '',
             email: currentSupplier.email || '',
           },
