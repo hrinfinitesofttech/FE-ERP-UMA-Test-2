@@ -32,6 +32,35 @@ import {
 } from 'lucide-react';
 import { QuotationRevision } from '../../../../types/crm';
 
+// Helper to cleanly parse specification & description points into separate lines
+const parseDescriptionPoints = (item: any): string[] => {
+  if (Array.isArray(item?.descriptionLines) && item.descriptionLines.length > 0) {
+    const valid = item.descriptionLines.map((s: any) => String(s || '').trim()).filter(Boolean);
+    if (valid.length > 0) return valid;
+  }
+  const raw = String(item?.description || '').trim();
+  if (!raw) return [];
+
+  let parts: string[] = [];
+  if (raw.includes('\n')) {
+    parts = raw.split('\n');
+  } else if (raw.includes('• •')) {
+    parts = raw.split('• •');
+  } else if (raw.includes(' • ')) {
+    parts = raw.split(' • ');
+  } else if (raw.includes('•')) {
+    parts = raw.split('•');
+  } else if (raw.includes('; ')) {
+    parts = raw.split('; ');
+  } else {
+    parts = [raw];
+  }
+
+  return parts
+    .map((p) => p.replace(/^[•\s\-\*\d+\.]+/g, '').trim())
+    .filter(Boolean);
+};
+
 export default function QuotationDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -436,7 +465,7 @@ export default function QuotationDetailPage() {
       </div>
 
       {/* Quotation Document Sheet Preview (Formal Letterhead) */}
-      <div id="printable-quotation-sheet" className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl p-6 shadow-sm space-y-6 print:border-none print:shadow-none print:p-0 print:m-0">
+      <div id="printable-quotation-sheet" className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl p-6 shadow-sm space-y-6 print:border-none print:shadow-none print:p-0 print:m-0 max-w-full overflow-hidden">
         {/* Letterhead Header */}
         <div className="flex justify-between items-start border-b-2 border-[#EBE3DB] dark:border-slate-100 pb-4">
           <div>
@@ -481,31 +510,61 @@ export default function QuotationDetailPage() {
         </div>
 
         {/* Items Table */}
-        <div className="space-y-2">
+        <div className="space-y-2 overflow-x-auto">
           <h3 className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Bill of Quantities & Pricing</h3>
-          <table className="w-full text-left border-collapse border border-slate-200 dark:border-[#EBE3DB]">
+          <table className="w-full table-fixed text-left border-collapse border border-slate-200 dark:border-[#EBE3DB]">
             <thead className="bg-slate-100 dark:bg-[#FAF7F2] text-slate-700 dark:text-[#544B45] font-bold text-[11px]">
               <tr>
-                <th className="p-2 border">#</th>
-                <th className="p-2 border">Equipment Description</th>
-                <th className="p-2 border text-center">Qty</th>
-                <th className="p-2 border text-right">Unit Rate (₹)</th>
-                <th className="p-2 border text-right">GST %</th>
-                <th className="p-2 border text-right">Total Amount (₹)</th>
+                <th className="p-2 border w-10 text-center">#</th>
+                <th className="p-2 border">Equipment Description & Specifications</th>
+                <th className="p-2 border w-24 text-center">Qty</th>
+                <th className="p-2 border w-28 text-right">Unit Rate (₹)</th>
+                <th className="p-2 border w-20 text-right">GST %</th>
+                <th className="p-2 border w-32 text-right">Total Amount (₹)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-[#EBE3DB] text-[11px]">
               {currentRev.items.map((item, idx) => (
-                <tr key={idx}>
-                  <td className="p-2 border text-center font-mono">{idx + 1}</td>
-                  <td className="p-2 border">
-                    <strong className="block text-slate-900 dark:text-[#211B17]">{item.productName}</strong>
-                    <span className="text-[#70665F] text-[10px]">{item.description}</span>
+                <tr key={idx} className="align-top">
+                  <td className="p-2.5 border text-center font-mono">{idx + 1}</td>
+                  <td className="p-2.5 border break-words">
+                    <strong className="block text-slate-900 dark:text-[#211B17] text-xs font-bold">{item.productName}</strong>
+                    {/* Render each specification point on a new line */}
+                    {(() => {
+                      const points = parseDescriptionPoints(item);
+                      if (points.length === 0) return null;
+                      return (
+                        <div className="mt-2 space-y-1.5">
+                          {points.map((pt, pIdx) => {
+                            const colonIdx = pt.indexOf(':');
+                            const hasLabel = colonIdx > 0 && colonIdx < 40;
+                            const label = hasLabel ? pt.slice(0, colonIdx).trim() : null;
+                            const val = hasLabel ? pt.slice(colonIdx + 1).trim() : pt;
+
+                            return (
+                              <div key={pIdx} className="flex items-start gap-1.5 text-[11px] leading-snug">
+                                <span className="text-[#C07039] font-bold select-none text-[12px] leading-tight shrink-0">•</span>
+                                <div className="text-slate-700 dark:text-[#544B45] break-words">
+                                  {label ? (
+                                    <>
+                                      <strong className="text-slate-900 dark:text-[#211B17] font-semibold">{label}:</strong>{' '}
+                                      <span>{val}</span>
+                                    </>
+                                  ) : (
+                                    <span>{pt}</span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
                   </td>
-                  <td className="p-2 border text-center font-mono font-bold">{item.quantity} {item.unit}</td>
-                  <td className="p-2 border text-right font-mono">{formatCurrency(item.rate)}</td>
-                  <td className="p-2 border text-right font-mono">{item.taxPercent}%</td>
-                  <td className="p-2 border text-right font-mono font-bold text-slate-900 dark:text-[#211B17]">
+                  <td className="p-2.5 border text-center font-mono font-bold whitespace-nowrap">{item.quantity} {item.unit}</td>
+                  <td className="p-2.5 border text-right font-mono whitespace-nowrap">{formatCurrency(item.rate)}</td>
+                  <td className="p-2.5 border text-right font-mono whitespace-nowrap">{item.taxPercent}%</td>
+                  <td className="p-2.5 border text-right font-mono font-bold text-slate-900 dark:text-[#211B17] whitespace-nowrap">
                     {formatCurrency(item.amount)}
                   </td>
                 </tr>
@@ -514,15 +573,15 @@ export default function QuotationDetailPage() {
             <tfoot className="bg-slate-50 dark:bg-[#FAF7F2]/60 font-bold text-[11px]">
               <tr>
                 <td colSpan={5} className="p-2 border text-right">Taxable Subtotal:</td>
-                <td className="p-2 border text-right font-mono">{formatCurrency(currentRev.subTotal)}</td>
+                <td className="p-2 border text-right font-mono whitespace-nowrap">{formatCurrency(currentRev.subTotal)}</td>
               </tr>
               <tr>
                 <td colSpan={5} className="p-2 border text-right">Applicable GST Taxes:</td>
-                <td className="p-2 border text-right font-mono">{formatCurrency(currentRev.taxAmount)}</td>
+                <td className="p-2 border text-right font-mono whitespace-nowrap">{formatCurrency(currentRev.taxAmount)}</td>
               </tr>
               <tr className="bg-slate-100 dark:bg-[#FAF7F2] text-xs">
                 <td colSpan={5} className="p-2 border text-right font-black">Grand Total (INR):</td>
-                <td className="p-2 border text-right font-mono font-black text-emerald-600">
+                <td className="p-2 border text-right font-mono font-black text-emerald-600 whitespace-nowrap">
                   {formatCurrency(currentRev.grandTotal)}
                 </td>
               </tr>
