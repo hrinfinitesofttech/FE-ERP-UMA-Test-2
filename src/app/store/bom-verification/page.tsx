@@ -134,10 +134,11 @@ function BOMMaterialVerificationContent() {
     if (!currentBOM || !currentBOM.items) return [];
 
     return currentBOM.items.map((bomItem: BOMItem, index: number) => {
-      const pNum = (bomItem.partNumber || '').trim().toLowerCase();
-      const iName = (bomItem.itemName || '').trim().toLowerCase();
+      const pNum = (bomItem.partNumber || (bomItem as any).part_number || '').trim().toLowerCase();
+      const iName = (bomItem.itemName || (bomItem as any).partName || (bomItem as any).part_name || '').trim().toLowerCase();
+      const iDesc = (bomItem.description || bomItem.specification || '').trim().toLowerCase();
 
-      // Find stock balance matching partNumber or itemCode or itemName
+      // Find stock balance matching partNumber or itemCode or itemName or description
       const matchedStock = stockBalances.find((s) => {
         const sCode = (s.itemCode || (s as any).item_code || '').trim().toLowerCase();
         const sName = (s.itemName || (s as any).item_name || '').split(' (')[0].trim().toLowerCase();
@@ -145,50 +146,63 @@ function BOMMaterialVerificationContent() {
           (pNum && sCode === pNum) ||
           (pNum && (sCode.includes(pNum) || pNum.includes(sCode))) ||
           (iName && sName === iName) ||
-          (iName && (sName.includes(iName) || iName.includes(sName)))
+          (iName && (sName.includes(iName) || iName.includes(sName))) ||
+          (iDesc && (sName.includes(iDesc) || iDesc.includes(sName)))
         );
       });
 
       // Match item master for specs / defaults / current stock
-      const matchedMaster = itemMasters.find(
-        (m) =>
-          (m.itemCode && (m.itemCode.toLowerCase() === pNum || pNum.includes(m.itemCode.toLowerCase()))) ||
-          (m.itemName && (m.itemName.toLowerCase() === iName || iName.includes(m.itemName.toLowerCase())))
-      );
+      const matchedMaster = itemMasters.find((m) => {
+        const mCode = (m.itemCode || m.id || '').trim().toLowerCase();
+        const mName = (m.itemName || '').trim().toLowerCase();
+        const mDesc = (m.description || m.specification || '').trim().toLowerCase();
+        return (
+          (pNum && (mCode === pNum || pNum.includes(mCode) || mCode.includes(pNum))) ||
+          (iName && (mName === iName || mName.includes(iName) || iName.includes(mName))) ||
+          (iName && mDesc && (mDesc.includes(iName) || iName.includes(mDesc))) ||
+          (iDesc && (mName.includes(iDesc) || iDesc.includes(mName)))
+        );
+      });
 
       // Usable / available stock from stock balances
       const baseStock = matchedStock
         ? Number(matchedStock.usableQty ?? (matchedStock.availableQty - (matchedStock.reservedQty || 0)))
         : 0;
 
-      // Inwarded quantity from accepted GRNs matching partNumber or itemName
+      // Inwarded quantity from accepted or received GRNs matching partNumber, itemCode or itemName
+      const matchedMasterCode = matchedMaster?.itemCode?.toLowerCase();
+      const matchedStockCode = matchedStock?.itemCode?.toLowerCase();
       const grnInwardQty = (goodsReceipts || [])
-        .filter((g) => g.status === 'Accepted' || (g as any).directInward)
+        .filter((g) => g.status === 'Accepted' || g.status === 'Received' || (g as any).directInward)
         .flatMap((g) => g.items || [])
         .filter((gitm: any) => {
           const gCode = (gitm.itemCode || gitm.partNumber || '').trim().toLowerCase();
           const gName = (gitm.itemName || gitm.description || '').split(' (')[0].trim().toLowerCase();
           return (
             (pNum && (gCode === pNum || gCode.includes(pNum) || pNum.includes(gCode))) ||
-            (iName && (gName === iName || gName.includes(iName) || iName.includes(gName)))
+            (matchedMasterCode && gCode === matchedMasterCode) ||
+            (matchedStockCode && gCode === matchedStockCode) ||
+            (iName && (gName === iName || gName.includes(iName) || iName.includes(gName))) ||
+            (iDesc && (gName.includes(iDesc) || iDesc.includes(gName)))
           );
         })
         .reduce((sum: number, gitm: any) => sum + Number(gitm.acceptedQuantity || gitm.acceptedQty || gitm.receivedQuantity || gitm.receivedQty || gitm.quantity || gitm.poQuantity || 0), 0);
 
-      // Effective available stock
-      const availableStock = Math.max(baseStock, grnInwardQty, matchedMaster?.currentStock || 0);
+      // Effective available stock: check baseStock, inwarded GRNs, and item master stock
+      const masterStock = Number(matchedMaster?.currentStock ?? 0);
+      const availableStock = Math.max(baseStock, grnInwardQty, masterStock);
       const usableStock = Math.max(0, availableStock);
       const requiredQty = Number(bomItem.quantity || 1);
 
       // Status check: Is fully in stock?
       const isAvailable = usableStock >= requiredQty;
-      const shortageQty = isAvailable ? 0 : requiredQty - usableStock;
+      const shortageQty = isAvailable ? 0 : Math.max(0, requiredQty - usableStock);
       const estimatedRate = Number(
         bomItem.estimatedRate || matchedMaster?.defaultPurchaseRate || matchedStock?.averageRate || 150
       );
       const shortageValue = shortageQty * estimatedRate;
 
-      // Check if a PR is already raised for this job/bom & item
+      // Check if a PR is already raised for this job/bom & item (only relevant if item is NOT available)
       const existingPr = (purchaseRequisitions || []).find((pr) => {
         const matchesJob =
           pr.jobId === currentBOM.jobNumber ||
@@ -222,7 +236,7 @@ function BOMMaterialVerificationContent() {
         status: isAvailable ? 'IN_STOCK' : 'SHORTAGE',
         warehouseName: matchedStock?.warehouseName || 'Main Store (Makarpura)',
         locationBin: matchedStock?.locationCode || (matchedMaster?.defaultLocationBin || 'BIN-01'),
-        existingPrNumber: existingPr?.prNumber,
+        existingPrNumber: isAvailable ? undefined : existingPr?.prNumber,
       };
     });
   }, [currentBOM, stockBalances, goodsReceipts, itemMasters, purchaseRequisitions]);
@@ -701,7 +715,7 @@ function BOMMaterialVerificationContent() {
                   <div className="grid grid-cols-3 gap-3 text-center min-w-[240px]">
                     <div className="bg-white p-2 rounded-xl border border-[#EBE3DB]">
                       <span className="text-[10px] text-[#70665F] block font-bold uppercase">Required Qty</span>
-                      <span className="font-mono font-black text-sm text-[#211B17]">
+                      <span className="font-extrabold font-sans text-sm text-[#211B17]">
                         {item.requiredQty} {item.unit}
                       </span>
                     </div>
@@ -714,7 +728,7 @@ function BOMMaterialVerificationContent() {
                       }`}
                     >
                       <span className="text-[10px] block font-bold uppercase">Store Stock</span>
-                      <span className="font-mono font-black text-sm">
+                      <span className="font-extrabold font-sans text-sm">
                         {item.usableStock} {item.unit}
                       </span>
                     </div>
@@ -723,11 +737,11 @@ function BOMMaterialVerificationContent() {
                       className={`p-2 rounded-xl border ${
                         isRedBorder
                           ? 'bg-rose-100/80 border-rose-300 text-rose-900'
-                          : 'bg-white border-[#EBE3DB] text-slate-400'
+                          : 'bg-white border-[#EBE3DB] text-slate-500'
                       }`}
                     >
                       <span className="text-[10px] block font-bold uppercase">Shortage</span>
-                      <span className="font-mono font-black text-sm">
+                      <span className="font-extrabold font-sans text-sm">
                         {item.shortageQty > 0 ? `-${item.shortageQty} ${item.unit}` : '0'}
                       </span>
                     </div>

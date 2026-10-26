@@ -25,805 +25,7 @@ import {
   Check,
 } from 'lucide-react';
 
-// Scanned physical register lookup dataset (from Uma Technofab Inward Entry Register)
-const REGISTER_INWARD_LOOKUP: Record<string, {
-  supplierName: string;
-  challanNumber: string;
-  invoiceNumber: string;
-  invoiceDate: string;
-  vehicleNumber: string;
-  jobNumber: string;
-  projectNumber: string;
-  weight: string;
-  receivedBy: string;
-  description: string;
-  quantity: number;
-  unit: string;
-}> = {
-  'chemical gun': {
-    supplierName: 'UMA FOOD',
-    challanNumber: 'CH-405',
-    invoiceNumber: '405',
-    invoiceDate: '01/08/2026',
-    vehicleNumber: 'BY HARSH',
-    jobNumber: 'UMA FOOD',
-    projectNumber: 'PRJ-UMA-FOOD',
-    weight: '3.200 KG',
-    receivedBy: 'Harsh',
-    description: 'Chemical spray application gun',
-    quantity: 1,
-    unit: 'NOS',
-  },
-  'ss pipe': {
-    supplierName: 'UMA FABRICATION & ENG',
-    challanNumber: 'CH-402',
-    invoiceNumber: '402',
-    invoiceDate: '01/08/2026',
-    vehicleNumber: 'GJ-02-AT-3826',
-    jobNumber: '26-130.131',
-    projectNumber: 'PRJ-26-130',
-    weight: '24.500 KG',
-    receivedBy: 'Store Inward Team',
-    description: 'OD-145/ID-50/32MM THK',
-    quantity: 1,
-    unit: 'NOS',
-  },
-  'ms circle': {
-    supplierName: 'UMA FABRICATION & ENG',
-    challanNumber: 'CH-402',
-    invoiceNumber: '402',
-    invoiceDate: '01/08/2026',
-    vehicleNumber: 'GJ-02-AT-3826',
-    jobNumber: '26-130.131',
-    projectNumber: 'PRJ-26-130',
-    weight: '48.000 KG',
-    receivedBy: 'Store Inward Team',
-    description: 'OD-145/ID-50/32MM THK',
-    quantity: 6,
-    unit: 'NOS',
-  },
-  'ms squre flange': {
-    supplierName: 'UMA FABRICATION & ENG',
-    challanNumber: 'CH-402',
-    invoiceNumber: '402',
-    invoiceDate: '01/08/2026',
-    vehicleNumber: 'GJ-02-AT-3826',
-    jobNumber: '26-130.131',
-    projectNumber: 'PRJ-26-130',
-    weight: '72.000 KG',
-    receivedBy: 'Store Inward Team',
-    description: '500 X 500 X 20 MM',
-    quantity: 6,
-    unit: 'NOS',
-  },
-  'ms flange': {
-    supplierName: 'UMA FABRICATION & ENG',
-    challanNumber: 'CH-407',
-    invoiceNumber: '407',
-    invoiceDate: '01/08/2026',
-    vehicleNumber: 'GJ-02-AT-3826',
-    jobNumber: '26-126',
-    projectNumber: 'PRJ-26-126',
-    weight: '25.000 KG',
-    receivedBy: 'Store Inward Team',
-    description: '20 MM THK',
-    quantity: 2,
-    unit: 'NOS',
-  },
-  '4" cutting diss': {
-    supplierName: 'UMA FOOD',
-    challanNumber: 'CH-406',
-    invoiceNumber: '406',
-    invoiceDate: '01/08/2026',
-    vehicleNumber: 'GJ-02-AT-3826',
-    jobNumber: 'UMA FOOD',
-    projectNumber: 'PRJ-UMA-FOOD',
-    weight: '2.500 KG',
-    receivedBy: 'Store Inward Team',
-    description: '4" Cutting Disc Abrasive',
-    quantity: 10,
-    unit: 'NOS',
-  },
-  'ss muffel': {
-    supplierName: 'PROCYON TECHNOLOGY',
-    challanNumber: 'CH-306',
-    invoiceNumber: '306',
-    invoiceDate: '01/08/2026',
-    vehicleNumber: 'GJ-23-Y-5968',
-    jobNumber: 'JOB WORK',
-    projectNumber: 'PRJ-JW-26',
-    weight: '18.000 KG',
-    receivedBy: 'Store Inward Team',
-    description: 'CONE CELL SIDE 5 MTR EWLDING',
-    quantity: 1,
-    unit: 'NOS',
-  },
-  'ss 304 oil tank': {
-    supplierName: 'SERVESWAR FOOD',
-    challanNumber: 'CH-307',
-    invoiceNumber: '307',
-    invoiceDate: '01/08/2026',
-    vehicleNumber: 'GJ-18-BP-1676',
-    jobNumber: '26-35',
-    projectNumber: 'PRJ-26-35',
-    weight: '14.750 KG',
-    receivedBy: 'Store Inward Team',
-    description: '700 X 350 X 240 X 1.5 MM THK',
-    quantity: 1,
-    unit: 'NOS',
-  },
-  'ms plate laser cutting': {
-    supplierName: 'UMA FOOD',
-    challanNumber: 'CH-308',
-    invoiceNumber: '308',
-    invoiceDate: '01/08/2026',
-    vehicleNumber: 'GJ-02-AT-3826',
-    jobNumber: 'UMA FOOD',
-    projectNumber: 'PRJ-UMA-FOOD',
-    weight: '300 KG',
-    receivedBy: 'Store Inward Team',
-    description: '313 X 1260 X 1.6 MM',
-    quantity: 40,
-    unit: 'NOS',
-  },
-  'bearing': {
-    supplierName: 'UMA FABRICATION & ENG',
-    challanNumber: 'CH-409',
-    invoiceNumber: '409',
-    invoiceDate: '01/08/2026',
-    vehicleNumber: 'GJ-02-AT-3826',
-    jobNumber: '26-119',
-    projectNumber: 'PRJ-26-119',
-    weight: '1.200 KG',
-    receivedBy: 'Store Inward Team',
-    description: 'Deep Groove Bearing 6215',
-    quantity: 1,
-    unit: 'NOS',
-  },
-  'ancher fastner': {
-    supplierName: 'UMA FOOD',
-    challanNumber: 'CH-408',
-    invoiceNumber: '408',
-    invoiceDate: '01/08/2026',
-    vehicleNumber: 'GJ-02-AT-3826',
-    jobNumber: 'UMA FOOD',
-    projectNumber: 'PRJ-UMA-FOOD',
-    weight: '1.800 KG',
-    receivedBy: 'Store Inward Team',
-    description: 'Anchor Fastener Chemical M16',
-    quantity: 2,
-    unit: 'NOS',
-  },
-  'drill machine': {
-    supplierName: 'UMA FOOD',
-    challanNumber: 'CH-410',
-    invoiceNumber: '410',
-    invoiceDate: '02/08/2026',
-    vehicleNumber: 'BY HAND - GAURAV',
-    jobNumber: 'RETURNABLE',
-    projectNumber: 'PRJ-RET-01',
-    weight: '4.500 KG',
-    receivedBy: 'Gaurav (By Hand)',
-    description: 'Heavy Rotary Site Drill',
-    quantity: 1,
-    unit: 'NOS',
-  },
-  'ss-304 pipe': {
-    supplierName: 'UMA IDUSTRIES - 307',
-    challanNumber: 'CH-411',
-    invoiceNumber: '411',
-    invoiceDate: '02/08/2026',
-    vehicleNumber: 'GJ-02-AT-3826',
-    jobNumber: '26-307',
-    projectNumber: 'PRJ-26-307',
-    weight: '12.000 KG',
-    receivedBy: 'Store Inward Team',
-    description: '25 X 25 X 6 MTR.',
-    quantity: 2,
-    unit: 'NOS',
-  },
-  'ms pipe': {
-    supplierName: 'PARTH SCRAP TRADERS',
-    challanNumber: 'CH-422',
-    invoiceNumber: '422',
-    invoiceDate: '02/08/2026',
-    vehicleNumber: 'GJ-02-AT-3826',
-    jobNumber: 'RETURN',
-    projectNumber: 'PRJ-RET-02',
-    weight: '88.500 KG',
-    receivedBy: 'Store Inward Team',
-    description: '6" X 3215 MM LONG',
-    quantity: 1,
-    unit: 'NOS',
-  },
-  'rasso': {
-    supplierName: 'UAM FOOD',
-    challanNumber: 'CH-423',
-    invoiceNumber: '423',
-    invoiceDate: '02/08/2026',
-    vehicleNumber: 'BY VISHAL',
-    jobNumber: 'UMA FOOD',
-    projectNumber: 'PRJ-UMA-FOOD',
-    weight: '8.000 KG',
-    receivedBy: 'Vishal',
-    description: 'Industrial Polypropylene Lifting Rope',
-    quantity: 1,
-    unit: 'NOS',
-  },
-  'ss 316 coil': {
-    supplierName: 'SCHUTZ CARBON KALOL',
-    challanNumber: 'CH-309',
-    invoiceNumber: '309',
-    invoiceDate: '02/08/2026',
-    vehicleNumber: 'GJ-18-BT-9250',
-    jobNumber: '26-111',
-    projectNumber: 'PRJ-26-111',
-    weight: '14.400 KG',
-    receivedBy: 'Store Inward Team',
-    description: 'SS 316 Slit Coil 1.5mm',
-    quantity: 1,
-    unit: 'NOS',
-  },
-  'berger luxol': {
-    supplierName: 'UMA FOOD',
-    challanNumber: 'CH-425',
-    invoiceNumber: '425',
-    invoiceDate: '02/08/2026',
-    vehicleNumber: 'GJ-02-AT-3826',
-    jobNumber: 'UMA FOOD',
-    projectNumber: 'PRJ-UMA-FOOD',
-    weight: '16.000 KG',
-    receivedBy: 'Store Inward Team',
-    description: 'Berger Luxol PU Enamel W3 BS Paint',
-    quantity: 8,
-    unit: 'NOS',
-  },
-  'patta cell bending': {
-    supplierName: 'AKSHAR EXTURUSION',
-    challanNumber: 'CH-310',
-    invoiceNumber: '310',
-    invoiceDate: '02/08/2026',
-    vehicleNumber: 'GJ-02-AT-3826',
-    jobNumber: 'JOB WORK',
-    projectNumber: 'PRJ-JW-26',
-    weight: '12.800 KG',
-    receivedBy: 'Store Inward Team',
-    description: '65 X 12 X 2095 MM LONG',
-    quantity: 1,
-    unit: 'NOS',
-  },
-  'ss look wisher': {
-    supplierName: 'UMA FABRICATION & ENG',
-    challanNumber: 'CH-424',
-    invoiceNumber: '424',
-    invoiceDate: '02/08/2026',
-    vehicleNumber: 'GJ-02-AT-3826',
-    jobNumber: '26-118',
-    projectNumber: 'PRJ-26-118',
-    weight: '0.400 KG',
-    receivedBy: 'Store Inward Team',
-    description: 'SS Look Wisher 1.5 MM',
-    quantity: 3,
-    unit: 'NOS',
-  },
-};
-
-// Default seed register items from the uploaded physical register
-const INITIAL_PHYSICAL_REGISTER_ITEMS: ItemMaster[] = [
-  {
-    id: 'ITM-REG-01',
-    itemCode: 'ITM-2026-405',
-    itemName: 'CHEMICAL GUN',
-    category: 'Consumables & Tools',
-    itemType: 'Consumable',
-    description: 'Chemical spray application gun',
-    specification: 'Standard Gun Assembly',
-    hsnSac: '84242000',
-    gstRate: 18,
-    uom: 'NOS',
-    status: 'Active',
-    minimumStock: 1,
-    maximumStock: 10,
-    reorderLevel: 2,
-    safetyStock: 1,
-    leadTimeDays: 5,
-    defaultWarehouseId: 'WH-001',
-    defaultLocationBin: 'W1-BIN-01',
-    batchTracking: false,
-    serialTracking: false,
-    lotTracking: false,
-    defaultPurchaseRate: 1200,
-    lastPurchaseRate: 1200,
-    standardCost: 1200,
-    currentStock: 1,
-  },
-  {
-    id: 'ITM-REG-02',
-    itemCode: 'ITM-2026-402',
-    itemName: 'SS PIPE',
-    category: 'Stainless Steel Pipes',
-    itemType: 'Pipe',
-    description: 'OD-145 / ID-50 / 32MM THK',
-    specification: 'OD-145/ID-50/32MM THK Heavy Seamless',
-    hsnSac: '73044100',
-    gstRate: 18,
-    uom: 'NOS',
-    status: 'Active',
-    minimumStock: 1,
-    maximumStock: 20,
-    reorderLevel: 2,
-    safetyStock: 1,
-    leadTimeDays: 7,
-    defaultWarehouseId: 'WH-001',
-    defaultLocationBin: 'W1-BIN-02',
-    batchTracking: true,
-    serialTracking: false,
-    lotTracking: true,
-    defaultPurchaseRate: 8500,
-    lastPurchaseRate: 8500,
-    standardCost: 8500,
-    currentStock: 1,
-  },
-  {
-    id: 'ITM-REG-03',
-    itemCode: 'ITM-2026-403',
-    itemName: 'MS CIRCLE',
-    category: 'Carbon Steel Plates',
-    itemType: 'Plate',
-    description: 'OD-145 / ID-50 / 32MM THK',
-    specification: 'OD-145/ID-50/32MM THK CNC Profile Cut',
-    hsnSac: '72085110',
-    gstRate: 18,
-    uom: 'NOS',
-    status: 'Active',
-    minimumStock: 2,
-    maximumStock: 50,
-    reorderLevel: 5,
-    safetyStock: 2,
-    leadTimeDays: 5,
-    defaultWarehouseId: 'WH-001',
-    defaultLocationBin: 'W1-BIN-03',
-    batchTracking: true,
-    serialTracking: false,
-    lotTracking: true,
-    defaultPurchaseRate: 1800,
-    lastPurchaseRate: 1800,
-    standardCost: 1800,
-    currentStock: 6,
-  },
-  {
-    id: 'ITM-REG-04',
-    itemCode: 'ITM-2026-404',
-    itemName: 'MS SQURE FLANGE',
-    category: 'Fabricated Components',
-    itemType: 'Component',
-    description: '500 X 500 X 20 MM',
-    specification: '500 X 500 X 20 MM Machined & Drilled',
-    hsnSac: '73079100',
-    gstRate: 18,
-    uom: 'NOS',
-    status: 'Active',
-    minimumStock: 2,
-    maximumStock: 30,
-    reorderLevel: 4,
-    safetyStock: 2,
-    leadTimeDays: 5,
-    defaultWarehouseId: 'WH-001',
-    defaultLocationBin: 'W1-BIN-04',
-    batchTracking: true,
-    serialTracking: false,
-    lotTracking: true,
-    defaultPurchaseRate: 2400,
-    lastPurchaseRate: 2400,
-    standardCost: 2400,
-    currentStock: 6,
-  },
-  {
-    id: 'ITM-REG-05',
-    itemCode: 'ITM-2026-407',
-    itemName: 'MS FLANGE',
-    category: 'Flanges & Fittings',
-    itemType: 'Component',
-    description: '20 MM THK',
-    specification: '20 MM THK Facing & Drilling',
-    hsnSac: '73079100',
-    gstRate: 18,
-    uom: 'NOS',
-    status: 'Active',
-    minimumStock: 2,
-    maximumStock: 40,
-    reorderLevel: 4,
-    safetyStock: 2,
-    leadTimeDays: 5,
-    defaultWarehouseId: 'WH-001',
-    defaultLocationBin: 'W1-BIN-05',
-    batchTracking: true,
-    serialTracking: false,
-    lotTracking: true,
-    defaultPurchaseRate: 1650,
-    lastPurchaseRate: 1650,
-    standardCost: 1650,
-    currentStock: 2,
-  },
-  {
-    id: 'ITM-REG-06',
-    itemCode: 'ITM-2026-406',
-    itemName: '4" CUTTING DISS',
-    category: 'Consumables & Hardware',
-    itemType: 'Consumable',
-    description: '4" Cutting Disc Abrasive',
-    specification: '100 x 1.6 x 16mm Cutting Disc',
-    hsnSac: '68042210',
-    gstRate: 18,
-    uom: 'NOS',
-    status: 'Active',
-    minimumStock: 10,
-    maximumStock: 200,
-    reorderLevel: 25,
-    safetyStock: 10,
-    leadTimeDays: 3,
-    defaultWarehouseId: 'WH-001',
-    defaultLocationBin: 'W1-BIN-06',
-    batchTracking: false,
-    serialTracking: false,
-    lotTracking: false,
-    defaultPurchaseRate: 45,
-    lastPurchaseRate: 45,
-    standardCost: 45,
-    currentStock: 10,
-  },
-  {
-    id: 'ITM-REG-07',
-    itemCode: 'ITM-2026-306',
-    itemName: 'SS MUFFEL',
-    category: 'Fabricated Components',
-    itemType: 'Component',
-    description: 'CONE CELL SIDE 5 MTR EWLDING',
-    specification: 'Cone Cell Side 5 Mtr Welding Jobwork',
-    hsnSac: '73269099',
-    gstRate: 18,
-    uom: 'NOS',
-    status: 'Active',
-    minimumStock: 1,
-    maximumStock: 10,
-    reorderLevel: 2,
-    safetyStock: 1,
-    leadTimeDays: 7,
-    defaultWarehouseId: 'WH-001',
-    defaultLocationBin: 'W1-BIN-07',
-    batchTracking: true,
-    serialTracking: false,
-    lotTracking: true,
-    defaultPurchaseRate: 14500,
-    lastPurchaseRate: 14500,
-    standardCost: 14500,
-    currentStock: 1,
-  },
-  {
-    id: 'ITM-REG-08',
-    itemCode: 'ITM-2026-307',
-    itemName: 'SS 304 OIL TANK',
-    category: 'Vessels & Tanks',
-    itemType: 'Finished Good',
-    description: '700 X 350 X 240 X 1.5 MM THK',
-    specification: '700 X 350 X 240 X 1.5 MM THK with fittings',
-    hsnSac: '73090000',
-    gstRate: 18,
-    uom: 'NOS',
-    status: 'Active',
-    minimumStock: 1,
-    maximumStock: 5,
-    reorderLevel: 1,
-    safetyStock: 1,
-    leadTimeDays: 10,
-    defaultWarehouseId: 'WH-001',
-    defaultLocationBin: 'W1-BIN-08',
-    batchTracking: true,
-    serialTracking: true,
-    lotTracking: true,
-    defaultPurchaseRate: 22000,
-    lastPurchaseRate: 22000,
-    standardCost: 22000,
-    currentStock: 1,
-  },
-  {
-    id: 'ITM-REG-09',
-    itemCode: 'ITM-2026-308',
-    itemName: 'MS PLATE LASER CUTTING AS PER DRAW',
-    category: 'Laser Profile Cutting',
-    itemType: 'Plate',
-    description: '313 X 1260 X 1.6 MM',
-    specification: '313 X 1260 X 1.6 MM CNC Laser Profile',
-    hsnSac: '72085110',
-    gstRate: 18,
-    uom: 'NOS',
-    status: 'Active',
-    minimumStock: 10,
-    maximumStock: 100,
-    reorderLevel: 20,
-    safetyStock: 10,
-    leadTimeDays: 4,
-    defaultWarehouseId: 'WH-001',
-    defaultLocationBin: 'W1-BIN-09',
-    batchTracking: true,
-    serialTracking: false,
-    lotTracking: true,
-    defaultPurchaseRate: 750,
-    lastPurchaseRate: 750,
-    standardCost: 750,
-    currentStock: 40,
-  },
-  {
-    id: 'ITM-REG-10',
-    itemCode: 'ITM-2026-409',
-    itemName: 'BEARING 6215',
-    category: 'Bought-Out Components',
-    itemType: 'Bought-Out Item',
-    description: 'Deep Groove Bearing 6215',
-    specification: 'Deep Groove Ball Bearing 6215 C3',
-    hsnSac: '84821011',
-    gstRate: 18,
-    uom: 'NOS',
-    status: 'Active',
-    minimumStock: 2,
-    maximumStock: 20,
-    reorderLevel: 4,
-    safetyStock: 2,
-    leadTimeDays: 3,
-    defaultWarehouseId: 'WH-001',
-    defaultLocationBin: 'W1-BIN-10',
-    batchTracking: true,
-    serialTracking: false,
-    lotTracking: false,
-    defaultPurchaseRate: 1150,
-    lastPurchaseRate: 1150,
-    standardCost: 1150,
-    currentStock: 1,
-  },
-  {
-    id: 'ITM-REG-11',
-    itemCode: 'ITM-2026-408',
-    itemName: 'ANCHER FASTNER CHEMICAL',
-    category: 'Fasteners & Hardware',
-    itemType: 'Hardware',
-    description: 'Anchor Fastener Chemical M16',
-    specification: 'Chemical Anchor Fastener M16 x 190',
-    hsnSac: '73181500',
-    gstRate: 18,
-    uom: 'NOS',
-    status: 'Active',
-    minimumStock: 4,
-    maximumStock: 50,
-    reorderLevel: 10,
-    safetyStock: 4,
-    leadTimeDays: 3,
-    defaultWarehouseId: 'WH-001',
-    defaultLocationBin: 'W1-BIN-11',
-    batchTracking: false,
-    serialTracking: false,
-    lotTracking: false,
-    defaultPurchaseRate: 180,
-    lastPurchaseRate: 180,
-    standardCost: 180,
-    currentStock: 2,
-  },
-  {
-    id: 'ITM-REG-12',
-    itemCode: 'ITM-2026-410',
-    itemName: 'DRILL MACHINE',
-    category: 'Tools & Machinery',
-    itemType: 'Finished Good',
-    description: 'Heavy Rotary Site Drill',
-    specification: 'Heavy Rotary Hammer Drill 20mm Returnable',
-    hsnSac: '84672100',
-    gstRate: 18,
-    uom: 'NOS',
-    status: 'Active',
-    minimumStock: 1,
-    maximumStock: 5,
-    reorderLevel: 1,
-    safetyStock: 1,
-    leadTimeDays: 2,
-    defaultWarehouseId: 'WH-001',
-    defaultLocationBin: 'W1-BIN-12',
-    batchTracking: true,
-    serialTracking: true,
-    lotTracking: false,
-    defaultPurchaseRate: 4800,
-    lastPurchaseRate: 4800,
-    standardCost: 4800,
-    currentStock: 1,
-  },
-  {
-    id: 'ITM-REG-13',
-    itemCode: 'ITM-2026-411',
-    itemName: 'SS-304 PIPE',
-    category: 'Stainless Steel Pipes',
-    itemType: 'Pipe',
-    description: '25 X 25 X 6 MTR.',
-    specification: '25 x 25 x 1.5mm Square Hollow Section',
-    hsnSac: '73064000',
-    gstRate: 18,
-    uom: 'NOS',
-    status: 'Active',
-    minimumStock: 2,
-    maximumStock: 30,
-    reorderLevel: 5,
-    safetyStock: 2,
-    leadTimeDays: 6,
-    defaultWarehouseId: 'WH-001',
-    defaultLocationBin: 'W1-BIN-13',
-    batchTracking: true,
-    serialTracking: false,
-    lotTracking: true,
-    defaultPurchaseRate: 2800,
-    lastPurchaseRate: 2800,
-    standardCost: 2800,
-    currentStock: 2,
-  },
-  {
-    id: 'ITM-REG-14',
-    itemCode: 'ITM-2026-422',
-    itemName: 'MS PIPE',
-    category: 'Carbon Steel Pipes',
-    itemType: 'Pipe',
-    description: '6" X 3215 MM LONG',
-    specification: '6" NB Sch 40 Seamless 3215mm Long',
-    hsnSac: '73043100',
-    gstRate: 18,
-    uom: 'NOS',
-    status: 'Active',
-    minimumStock: 1,
-    maximumStock: 20,
-    reorderLevel: 2,
-    safetyStock: 1,
-    leadTimeDays: 7,
-    defaultWarehouseId: 'WH-001',
-    defaultLocationBin: 'W1-BIN-14',
-    batchTracking: true,
-    serialTracking: false,
-    lotTracking: true,
-    defaultPurchaseRate: 6400,
-    lastPurchaseRate: 6400,
-    standardCost: 6400,
-    currentStock: 1,
-  },
-  {
-    id: 'ITM-REG-15',
-    itemCode: 'ITM-2026-423',
-    itemName: 'RASSO',
-    category: 'Safety & Rigging',
-    itemType: 'Consumable',
-    description: 'Industrial Polypropylene Lifting Rope',
-    specification: '24mm 3-Strand Braided Manila / PP',
-    hsnSac: '56074900',
-    gstRate: 18,
-    uom: 'NOS',
-    status: 'Active',
-    minimumStock: 1,
-    maximumStock: 10,
-    reorderLevel: 2,
-    safetyStock: 1,
-    leadTimeDays: 2,
-    defaultWarehouseId: 'WH-001',
-    defaultLocationBin: 'W1-BIN-15',
-    batchTracking: false,
-    serialTracking: false,
-    lotTracking: false,
-    defaultPurchaseRate: 1250,
-    lastPurchaseRate: 1250,
-    standardCost: 1250,
-    currentStock: 1,
-  },
-  {
-    id: 'ITM-REG-16',
-    itemCode: 'ITM-2026-309',
-    itemName: 'SS 316 COIL',
-    category: 'Raw Material Coils',
-    itemType: 'Sheet',
-    description: 'SS 316 Slit Coil 1.5mm',
-    specification: 'ASTM A240 SS 316 2B Finish Cold Rolled',
-    hsnSac: '72193200',
-    gstRate: 18,
-    uom: 'NOS',
-    status: 'Active',
-    minimumStock: 1,
-    maximumStock: 10,
-    reorderLevel: 2,
-    safetyStock: 1,
-    leadTimeDays: 8,
-    defaultWarehouseId: 'WH-001',
-    defaultLocationBin: 'W1-BIN-16',
-    batchTracking: true,
-    serialTracking: false,
-    lotTracking: true,
-    defaultPurchaseRate: 18500,
-    lastPurchaseRate: 18500,
-    standardCost: 18500,
-    currentStock: 1,
-  },
-  {
-    id: 'ITM-REG-17',
-    itemCode: 'ITM-2026-425',
-    itemName: 'BERGER LUXOL PU ENAMEL W3 BS',
-    category: 'Paints & Finishing',
-    itemType: 'Consumable',
-    description: 'Berger Luxol PU Enamel W3 BS Paint',
-    specification: 'Polyurethane Enamel Industrial Topcoat',
-    hsnSac: '32089090',
-    gstRate: 18,
-    uom: 'NOS',
-    status: 'Active',
-    minimumStock: 4,
-    maximumStock: 50,
-    reorderLevel: 10,
-    safetyStock: 4,
-    leadTimeDays: 3,
-    defaultWarehouseId: 'WH-001',
-    defaultLocationBin: 'W1-BIN-17',
-    batchTracking: false,
-    serialTracking: false,
-    lotTracking: false,
-    defaultPurchaseRate: 650,
-    lastPurchaseRate: 650,
-    standardCost: 650,
-    currentStock: 8,
-  },
-  {
-    id: 'ITM-REG-18',
-    itemCode: 'ITM-2026-310',
-    itemName: 'MS PATTA CELL BENDING',
-    category: 'Fabricated Components',
-    itemType: 'Component',
-    description: '65 X 12 X 2095 MM LONG',
-    specification: '65 x 12mm Flat Bar Hydraulic Bending',
-    hsnSac: '72085110',
-    gstRate: 18,
-    uom: 'NOS',
-    status: 'Active',
-    minimumStock: 1,
-    maximumStock: 20,
-    reorderLevel: 2,
-    safetyStock: 1,
-    leadTimeDays: 5,
-    defaultWarehouseId: 'WH-001',
-    defaultLocationBin: 'W1-BIN-18',
-    batchTracking: true,
-    serialTracking: false,
-    lotTracking: true,
-    defaultPurchaseRate: 1950,
-    lastPurchaseRate: 1950,
-    standardCost: 1950,
-    currentStock: 1,
-  },
-  {
-    id: 'ITM-REG-19',
-    itemCode: 'ITM-2026-424',
-    itemName: 'SS LOOK WISHER 1.5 MM',
-    category: 'Fasteners & Hardware',
-    itemType: 'Hardware',
-    description: 'SS Look Wisher 1.5 MM',
-    specification: 'DIN 127B Spring Lock Washer 1.5mm',
-    hsnSac: '73182100',
-    gstRate: 18,
-    uom: 'NOS',
-    status: 'Active',
-    minimumStock: 10,
-    maximumStock: 200,
-    reorderLevel: 20,
-    safetyStock: 10,
-    leadTimeDays: 2,
-    defaultWarehouseId: 'WH-001',
-    defaultLocationBin: 'W1-BIN-19',
-    batchTracking: false,
-    serialTracking: false,
-    lotTracking: false,
-    defaultPurchaseRate: 25,
-    lastPurchaseRate: 25,
-    standardCost: 25,
-    currentStock: 3,
-  },
-];
+// No mock data: purely API-driven Item Master
 
 export default function ItemMasterListPage() {
   const router = useRouter();
@@ -858,17 +60,9 @@ export default function ItemMasterListPage() {
 
   const [inwardSuccessToast, setInwardSuccessToast] = useState('');
 
-  // Merge items so that if database/context has items, they are shown, and if empty or missing, physical register items are available
+  // Purely API-driven items from backend ERP context
   const displayItems: ItemMaster[] = useMemo(() => {
-    if (!itemMasters || itemMasters.length === 0) {
-      return INITIAL_PHYSICAL_REGISTER_ITEMS;
-    }
-    // Check if register items already exist
-    const existingCodes = new Set(itemMasters.map((i) => (i.itemCode || '').toUpperCase()));
-    const missingSeed = INITIAL_PHYSICAL_REGISTER_ITEMS.filter(
-      (si) => !existingCodes.has(si.itemCode.toUpperCase())
-    );
-    return [...itemMasters, ...missingSeed];
+    return itemMasters || [];
   }, [itemMasters]);
 
   // Open Inward Details Modal
@@ -877,7 +71,7 @@ export default function ItemMasterListPage() {
     setIsEditingInward(false);
     setInwardSuccessToast('');
 
-    // 1. Check if matching GRN exists
+    // Check if matching GRN exists
     const matchedGrn = (goodsReceipts || []).find((grn) =>
       grn.items?.some(
         (it) =>
@@ -887,65 +81,50 @@ export default function ItemMasterListPage() {
       )
     );
 
-    // 2. Check register lookup dataset by item name key
-    const cleanKey = item.itemName.toLowerCase().trim();
-    const matchedKey = Object.keys(REGISTER_INWARD_LOOKUP).find((k) => cleanKey.includes(k));
-    const registerEntry = matchedKey ? REGISTER_INWARD_LOOKUP[matchedKey] : null;
-
-    // Resolve details hierarchy: item's saved props -> matched GRN -> physical register lookup
+    // Resolve details hierarchy: item's saved props -> matched GRN -> empty defaults
     const anyItem = item as any;
     setInwardForm({
       supplierName:
         anyItem.supplierName ||
         item.preferredSupplierName ||
         matchedGrn?.supplierName ||
-        registerEntry?.supplierName ||
-        'UMA FABRICATION & ENG',
+        '',
       invoiceNumber:
         anyItem.invoiceNumber ||
         matchedGrn?.invoiceNumber ||
-        registerEntry?.invoiceNumber ||
-        '402',
+        '',
       challanNumber:
         anyItem.challanNumber ||
         matchedGrn?.deliveryChallanNumber ||
-        registerEntry?.challanNumber ||
-        'CH-402',
+        '',
       invoiceDate:
         anyItem.invoiceDate ||
         anyItem.inwardDate ||
         matchedGrn?.grnDate ||
-        registerEntry?.invoiceDate ||
-        '01/08/2026',
+        '',
       vehicleNumber:
         anyItem.vehicleNumber ||
         matchedGrn?.vehicleNumber ||
-        registerEntry?.vehicleNumber ||
-        'GJ-02-AT-3826',
+        '',
       jobNumber:
         anyItem.jobNumber ||
         matchedGrn?.jobId ||
-        registerEntry?.jobNumber ||
-        '26-130.131',
+        '',
       projectNumber:
         anyItem.projectNumber ||
         matchedGrn?.projectId ||
-        registerEntry?.projectNumber ||
-        'PRJ-26-130',
+        '',
       weight:
         anyItem.weight ||
-        registerEntry?.weight ||
-        '14.750 KG',
+        '',
       receivedBy:
         anyItem.receivedBy ||
         matchedGrn?.receivedBy ||
-        registerEntry?.receivedBy ||
-        'Store Inward Team',
+        '',
       remarks:
         anyItem.inwardRemarks ||
-        (registerEntry as any)?.remarks ||
-        registerEntry?.description ||
         item.specification ||
+        item.description ||
         '',
     });
   };
@@ -1004,21 +183,45 @@ export default function ItemMasterListPage() {
 
   // Helper to extract stock/quantity
   const getItemQuantity = (item: ItemMaster) => {
+    const cleanName = (item.itemName || '').trim().toLowerCase();
+    const cleanCode = (item.itemCode || item.id || '').trim().toLowerCase();
+
+    // 1. Check matching stock balances for live available quantity
+    const matchedStock = (stockBalances || []).find((s) => {
+      const sCode = (s.itemCode || (s as any).item_code || '').trim().toLowerCase();
+      const sName = (s.itemName || (s as any).item_name || '').split(' (')[0].trim().toLowerCase();
+      return (
+        (cleanCode && sCode === cleanCode) ||
+        (cleanName && (sName === cleanName || sName.includes(cleanName) || cleanName.includes(sName)))
+      );
+    });
+    if (matchedStock && typeof matchedStock.availableQty === 'number' && matchedStock.availableQty > 0) {
+      return matchedStock.availableQty;
+    }
+
+    // 2. Check received or accepted GRNs for actual inwarded quantity
+    const grnInwardQty = (goodsReceipts || [])
+      .filter((g) => g.status === 'Accepted' || g.status === 'Received' || (g as any).directInward)
+      .flatMap((g) => g.items || [])
+      .filter((gitm: any) => {
+        const gCode = (gitm.itemCode || gitm.partNumber || '').trim().toLowerCase();
+        const gName = (gitm.itemName || gitm.description || '').split(' (')[0].trim().toLowerCase();
+        return (
+          (cleanCode && (gCode === cleanCode || gCode.includes(cleanCode) || cleanCode.includes(gCode))) ||
+          (cleanName && (gName === cleanName || gName.includes(cleanName) || cleanName.includes(gName)))
+        );
+      })
+      .reduce((sum: number, gitm: any) => sum + Number(gitm.acceptedQuantity || gitm.acceptedQty || gitm.receivedQuantity || gitm.receivedQty || gitm.quantity || gitm.poQuantity || 0), 0);
+    if (grnInwardQty > 0) {
+      return grnInwardQty;
+    }
+
+    // 3. Fallback to item.currentStock if defined
     if (item.currentStock !== undefined && item.currentStock !== null) {
       return item.currentStock;
     }
-    const matchedStock = (stockBalances || []).find(
-      (s) => s.itemId === item.id || s.itemCode === item.itemCode
-    );
-    if (matchedStock) {
-      return matchedStock.availableQty;
-    }
-    const cleanKey = item.itemName.toLowerCase().trim();
-    const matchedKey = Object.keys(REGISTER_INWARD_LOOKUP).find((k) => cleanKey.includes(k));
-    if (matchedKey && REGISTER_INWARD_LOOKUP[matchedKey]) {
-      return REGISTER_INWARD_LOOKUP[matchedKey].quantity;
-    }
-    return (item as any).quantity ?? 1;
+
+    return (item as any).quantity ?? 0;
   };
 
   // Helper to extract description
@@ -1028,11 +231,6 @@ export default function ItemMasterListPage() {
     }
     if (item.specification && item.specification.trim()) {
       return item.specification;
-    }
-    const cleanKey = item.itemName.toLowerCase().trim();
-    const matchedKey = Object.keys(REGISTER_INWARD_LOOKUP).find((k) => cleanKey.includes(k));
-    if (matchedKey && REGISTER_INWARD_LOOKUP[matchedKey]?.description) {
-      return REGISTER_INWARD_LOOKUP[matchedKey].description;
     }
     return (item as any).size || (item as any).thk || '-';
   };

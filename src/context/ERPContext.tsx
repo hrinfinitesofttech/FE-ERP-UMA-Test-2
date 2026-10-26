@@ -2670,7 +2670,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   const [purchaseReturns, setPurchaseReturns] = useState<PurchaseReturn[]>([]);
 
   // Module 5: Store & Warehouse Management States
-  const [itemMasters, setItemMasters] = useState<ItemMaster[]>([]);
+  const [itemMasters, setItemMasters] = useState<ItemMaster[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_itemMasters');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch (_) {}
+    }
+    return [];
+  });
   const [itemCategories, setItemCategories] = useState<ItemCategory[]>([]);
   const [uoms, setUoms] = useState<UOMMaster[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
@@ -2700,7 +2711,18 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     }
     return [];
   });
-  const [stockBalances, setStockBalances] = useState<StockBalance[]>([]);
+  const [stockBalances, setStockBalances] = useState<StockBalance[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('UMA_ERP_stockBalances');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch (_) {}
+    }
+    return [];
+  });
   const [stockReservations, setStockReservations] = useState<StockReservation[]>([]);
   const [materialIssues, setMaterialIssues] = useState<MaterialIssue[]>(() => {
     if (typeof window !== 'undefined') {
@@ -4298,6 +4320,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           maximumStock: Number(i.maximumStock ?? i.maximum_stock ?? 0),
           reorderLevel: Number(i.reorderLevel ?? i.reorder_level ?? 0),
           standardCost: Number(i.standardCost ?? i.unit_cost ?? i.standard_cost ?? 0),
+          currentStock: Number(i.currentStock ?? i.current_stock ?? i.stock ?? i.quantity ?? 0),
           status: i.status || 'Active',
           batchTracking: Boolean(i.batchTracking ?? i.batch_tracking ?? true),
           serialTracking: Boolean(i.serialTracking ?? i.serial_tracking ?? false),
