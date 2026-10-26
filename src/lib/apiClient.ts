@@ -1472,7 +1472,12 @@ export const api = {
       delete: (id: string) => request<any>(`/rfqs/${id}/`, { method: 'DELETE' }),
       sendEmail: (id: string, payload?: string | { recipientEmail?: string; recipients?: string[]; additionalEmails?: string[]; rfq?: any }) => {
         const bodyData = typeof payload === 'string' ? { recipientEmail: payload } : (payload || {});
-        return request<any>(`/rfqs/${id}/send-email/`, { method: 'POST', body: JSON.stringify(bodyData) });
+        const fullPayload = { ...bodyData, id, rfqId: id, rfqNumber: (bodyData as any)?.rfq?.rfqNumber || id };
+        // Use direct collection endpoint /rfqs/send-email/ to avoid slash issues in custom RFQ numbers (e.g. 216-26/27)
+        return request<any>('/rfqs/send-email/', { method: 'POST', body: JSON.stringify(fullPayload) }).catch(() => {
+          const safeId = encodeURIComponent(id);
+          return request<any>(`/rfqs/${safeId}/send-email/`, { method: 'POST', body: JSON.stringify(fullPayload) });
+        });
       },
     },
     supplierQuotations: {
@@ -1499,7 +1504,11 @@ export const api = {
         request<any>(`/purchase-orders/${id}/reject/`, { method: 'POST', body: JSON.stringify({ reason }) }),
       sendEmail: (id: string, payload?: string | { recipientEmail?: string; recipients?: string[]; additionalEmails?: string[]; po?: any }) => {
         const bodyData = typeof payload === 'string' ? { recipientEmail: payload } : (payload || {});
-        return request<any>(`/purchase-orders/${id}/send-email/`, { method: 'POST', body: JSON.stringify(bodyData) });
+        const fullPayload = { ...bodyData, id, poId: id, poNumber: (bodyData as any)?.po?.poNumber || id };
+        return request<any>('/purchase-orders/send-email/', { method: 'POST', body: JSON.stringify(fullPayload) }).catch(() => {
+          const safeId = encodeURIComponent(id);
+          return request<any>(`/purchase-orders/${safeId}/send-email/`, { method: 'POST', body: JSON.stringify(fullPayload) });
+        });
       },
     },
     bills: {
