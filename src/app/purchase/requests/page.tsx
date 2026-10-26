@@ -944,10 +944,13 @@ export default function PurchaseRequestsPage() {
     if (!emailTargetRequest) return;
     const primary = targetEmail.trim();
     const additional = additionalVendors.map((v) => v.email.trim()).filter(Boolean);
-    const allEmails = Array.from(new Set([primary, ...additional].filter((e) => e && e.includes('@'))));
+    const allEmails = Array.from(new Set([
+      ...(primary && primary.includes('@') ? [primary] : []),
+      ...additional.filter((e) => e && e.includes('@')),
+    ]));
 
     if (allEmails.length === 0) {
-      toast.error('Please enter or select at least one valid recipient email address.');
+      toast.error('Please enter a recipient email address or select a vendor from the master.');
       return;
     }
 
@@ -955,7 +958,7 @@ export default function PurchaseRequestsPage() {
 
     try {
       const res = await api.purchase.rfqs.sendEmail(emailTargetRequest.id, {
-        recipientEmail: primary || allEmails[0],
+        recipientEmail: (primary && primary.includes('@')) ? primary : allEmails[0],
         recipients: allEmails,
         additionalEmails: additional,
         rfq: emailTargetRequest,
@@ -1922,6 +1925,21 @@ export default function PurchaseRequestsPage() {
       {/* Official Purchase Inquiry (REQUIRE / RFQ) Send Email Modal (Matching CRM Send Email Quotation Design) */}
       {showEmailModal && emailTargetRequest && (() => {
         const { email: resolvedVendorEmail } = resolveVendorDetails(emailTargetRequest);
+        const primaryClean = targetEmail.trim();
+        const hasPrimaryEmail = primaryClean.length > 0 && primaryClean.includes('@');
+        const validAdditional = additionalVendors.filter(
+          (v) => v.email && v.email.trim() && v.email.includes('@')
+        );
+
+        // Combined unique list of recipient emails
+        const allRecipientEmails = Array.from(
+          new Set([
+            ...(hasPrimaryEmail ? [primaryClean] : []),
+            ...validAdditional.map((v) => v.email.trim()),
+          ])
+        );
+        const totalRecipientCount = allRecipientEmails.length;
+
         return (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div className="bg-white dark:bg-[#2C241F] rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-xl border border-[#E7DED5]">
@@ -1979,7 +1997,9 @@ export default function PurchaseRequestsPage() {
                 {/* Primary Recipient Email Input */}
                 <div>
                   <label className="block text-[#544B45] font-semibold mb-1 flex items-center justify-between">
-                    <span>Recipient Email ID <span className="text-rose-500">*</span></span>
+                    <span>
+                      Recipient Email ID {validAdditional.length === 0 && <span className="text-rose-500">*</span>}
+                    </span>
                     {resolvedVendorEmail && targetEmail === resolvedVendorEmail && (
                       <span className="text-[10px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded border border-emerald-200">
                         ✓ Auto-populated
@@ -1990,10 +2010,10 @@ export default function PurchaseRequestsPage() {
                     <Mail className="w-4 h-4 text-[#70665F] absolute left-3 top-2.5" />
                     <input
                       type="email"
-                      required
+                      required={validAdditional.length === 0}
                       value={targetEmail}
                       onChange={(e) => setTargetEmail(e.target.value)}
-                      placeholder="Enter recipient email address"
+                      placeholder={validAdditional.length > 0 ? 'Enter additional recipient email (optional)' : 'Enter recipient email address'}
                       className="w-full pl-9 pr-3 py-2 bg-[#FAF7F2] dark:bg-[#1f1915] border border-[#E7DED5] rounded-lg font-mono text-sm font-semibold text-[#211B17] dark:text-white focus:outline-none focus:border-emerald-600"
                     />
                   </div>
@@ -2030,11 +2050,16 @@ export default function PurchaseRequestsPage() {
                           toast.info('This vendor email is already included in recipients.');
                           return;
                         }
-                        setAdditionalVendors((prev) => [
-                          ...prev,
-                          { id: s.id, name: s.supplierName || s.name, email: sEmail },
-                        ]);
-                        toast.success(`Added ${s.supplierName || s.name} (${sEmail}) to email dispatch!`);
+                        if (!targetEmail.trim()) {
+                          setTargetEmail(sEmail);
+                          toast.success(`Recipient set: ${s.supplierName || s.name} (${sEmail})`);
+                        } else {
+                          setAdditionalVendors((prev) => [
+                            ...prev,
+                            { id: s.id, name: s.supplierName || s.name, email: sEmail },
+                          ]);
+                          toast.success(`Added ${s.supplierName || s.name} (${sEmail}) to email dispatch!`);
+                        }
                       }
                     }}
                     className="w-full bg-white dark:bg-[#2C241F] border border-amber-300 rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] dark:text-white font-medium focus:outline-none focus:border-amber-600 cursor-pointer"
@@ -2079,7 +2104,7 @@ export default function PurchaseRequestsPage() {
 
                 <div className="flex justify-between items-center pt-2 border-t border-[#E7DED5]">
                   <div className="text-[11px] text-[#70665F]">
-                    Total Recipients: <strong className="text-emerald-700 font-bold">{1 + additionalVendors.length} Email(s)</strong>
+                    Total Recipients: <strong className="text-emerald-700 font-bold">{totalRecipientCount} Email(s)</strong>
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -2092,8 +2117,8 @@ export default function PurchaseRequestsPage() {
                     </button>
                     <button
                       type="submit"
-                      disabled={isSendingEmail || !targetEmail.trim()}
-                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white rounded-lg font-bold shadow-xs cursor-pointer flex items-center gap-1.5"
+                      disabled={isSendingEmail || totalRecipientCount === 0}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-bold shadow-xs cursor-pointer flex items-center gap-1.5 transition-all"
                     >
                       {isSendingEmail ? (
                         <>
@@ -2103,7 +2128,9 @@ export default function PurchaseRequestsPage() {
                       ) : (
                         <>
                           <Send className="w-3.5 h-3.5" />
-                          <span>Send Inquiry & PDF ({1 + additionalVendors.length} Recipient{additionalVendors.length > 0 ? 's' : ''})</span>
+                          <span>
+                            Send Inquiry & PDF ({totalRecipientCount} Recipient{totalRecipientCount === 1 ? '' : 's'})
+                          </span>
                         </>
                       )}
                     </button>
