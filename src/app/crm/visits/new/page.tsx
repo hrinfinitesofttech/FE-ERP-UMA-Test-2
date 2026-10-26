@@ -29,10 +29,13 @@ function VisitFormContent() {
   const paramLeadId = searchParams.get('leadId');
   const paramCustomerId = searchParams.get('customerId');
   const paramEnquiryId = searchParams.get('enquiryId');
+  const paramEditId = searchParams.get('id');
+  const paramStep = searchParams.get('step');
 
   const {
     siteVisits,
     addSiteVisit,
+    updateSiteVisit,
     addFollowUp,
     updateLead,
     leads,
@@ -148,8 +151,78 @@ function VisitFormContent() {
     }
   };
 
-  // Pre-fill from query params
+  // Pre-fill from query params or edit existing visit
   useEffect(() => {
+    if (paramEditId && siteVisits.length > 0) {
+      const existing = siteVisits.find((v) => v.id === paramEditId || v.visitNo === paramEditId);
+      if (existing) {
+        if (existing.visitDate) setVisitDate(existing.visitDate);
+        if (existing.location) setLocation(existing.location);
+        if (existing.employeeId) setEmployeeId(existing.employeeId);
+        if (existing.purpose) setPurpose(existing.purpose);
+        if (existing.discussionNotes) setDiscussionNotes(existing.discussionNotes);
+        if (existing.requirementDetails) setRequirementDetails(existing.requirementDetails);
+        if (existing.outcome) setOutcome(existing.outcome);
+        if (existing.nextFollowUpDate) {
+          setHasScheduleNext(true);
+          setNextFollowUpDate(existing.nextFollowUpDate);
+        }
+
+        // Resolve entity info
+        if (existing.leadId) {
+          setSelectedRecordKey(`lead:${existing.leadId}`);
+          const lead = leads.find((l) => l.id === existing.leadId || l.leadNo === existing.leadId);
+          setSelectedEntityInfo({
+            type: 'lead',
+            id: existing.leadId,
+            name: existing.customerName,
+            contactPerson: existing.contactPerson || lead?.contactPerson || '',
+            mobile: existing.contactMobile || lead?.mobile || '',
+            address: existing.location,
+            product: lead?.productName || lead?.machineType || '',
+          });
+        } else if (existing.enquiryId) {
+          setSelectedRecordKey(`enquiry:${existing.enquiryId}`);
+          const enq = enquiries.find((e) => e.id === existing.enquiryId || e.enquiryNo === existing.enquiryId);
+          setSelectedEntityInfo({
+            type: 'enquiry',
+            id: existing.enquiryId,
+            name: existing.customerName,
+            contactPerson: existing.contactPerson || enq?.contactPerson || '',
+            mobile: existing.contactMobile || enq?.contactMobile || '',
+            address: existing.location,
+            product: enq?.machineProduct || '',
+          });
+        } else if (existing.customerId) {
+          setSelectedRecordKey(`customer:${existing.customerId}`);
+          const cust = customers.find((c) => c.id === existing.customerId || c.customerCode === existing.customerId);
+          setSelectedEntityInfo({
+            type: 'customer',
+            id: existing.customerId,
+            name: existing.customerName,
+            contactPerson: existing.contactPerson || cust?.contactPerson || '',
+            mobile: existing.contactMobile || cust?.mobile || '',
+            address: existing.location,
+          });
+        } else {
+          setSelectedRecordKey(`cust:${existing.customerName}`);
+          setSelectedEntityInfo({
+            type: 'customer',
+            id: existing.customerId || 'CUST',
+            name: existing.customerName,
+            contactPerson: existing.contactPerson || '',
+            mobile: existing.contactMobile || '',
+            address: existing.location,
+          });
+        }
+
+        if (paramStep === '2') {
+          setCurrentStep(2);
+        }
+        return;
+      }
+    }
+
     if (paramEnquiryId) {
       const enq = enquiries.find((e) => e.id === paramEnquiryId || e.enquiryNo === paramEnquiryId);
       if (enq) {
@@ -171,7 +244,7 @@ function VisitFormContent() {
         return;
       }
     }
-  }, [paramEnquiryId, paramLeadId, paramCustomerId, enquiries, leads]);
+  }, [paramEditId, paramStep, paramEnquiryId, paramLeadId, paramCustomerId, siteVisits, enquiries, leads, customers]);
 
   // Validation before proceeding to Step 2
   const handleProceedToStep2 = () => {
@@ -189,6 +262,82 @@ function VisitFormContent() {
       return;
     }
     setCurrentStep(2);
+  };
+
+  // Save Slide 1 only: Save Scheduled Site Visit
+  const handleSaveScheduledVisit = async () => {
+    setFormError('');
+    if (!selectedRecordKey || !selectedEntityInfo) {
+      setFormError('Please select a Customer or Lead.');
+      return;
+    }
+    if (!visitDate) {
+      setFormError('Please select the site visit date.');
+      return;
+    }
+    if (!location.trim()) {
+      setFormError('Please enter the site location / address.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const emp = allStaff.find((s) => s.id === employeeId) || allStaff[0];
+      const empName = emp ? (emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim()) : 'Sales Engineer';
+      const entityType = selectedEntityInfo.type;
+      const targetName = `${selectedEntityInfo.name}${selectedEntityInfo.contactPerson ? ` (${selectedEntityInfo.contactPerson})` : ''}`;
+      const enquiryId = entityType === 'enquiry' ? selectedEntityInfo.id : undefined;
+
+      const scheduledPayload = {
+        leadId: entityType === 'lead' ? selectedEntityInfo.id : undefined,
+        customerId: selectedEntityInfo.id,
+        customerName: selectedEntityInfo.name,
+        enquiryId,
+        contactPerson: selectedEntityInfo.contactPerson || 'N/A',
+        contactMobile: selectedEntityInfo.mobile || '',
+        visitDate,
+        location: location.trim() || 'Client Site',
+        employeeId: emp?.id || '',
+        employeeName: empName,
+        purpose: purpose.trim() || `Scheduled site inspection at ${selectedEntityInfo.name}`,
+        discussionNotes: discussionNotes.trim(),
+        requirementDetails: requirementDetails.trim(),
+        outcome: 'follow_up_required' as const,
+        status: 'scheduled',
+        nextAction: `Scheduled Site Visit on ${visitDate} at ${visitTime || '11:00 AM'}`,
+      };
+
+      if (paramEditId) {
+        updateSiteVisit(paramEditId, scheduledPayload);
+      } else {
+        addSiteVisit(scheduledPayload);
+
+        // Schedule follow up so it appears on CRM calendar / reminders
+        addFollowUp({
+          leadOrCustomerId: selectedEntityInfo.id,
+          leadOrCustomerName: targetName,
+          entityType,
+          enquiryId,
+          type: 'visit',
+          assignedToId: emp?.id || 'EMP-001',
+          assignedToName: empName,
+          date: visitDate,
+          time: visitTime ? (visitTime.includes(':') ? `${visitTime}` : '11:00 AM') : '11:00 AM',
+          priority: 'high',
+          purpose: purpose.trim() || `Scheduled Site Visit: ${selectedEntityInfo.name}`,
+          notes: `Site location: ${location.trim()}. Contact: ${selectedEntityInfo.contactPerson} (${selectedEntityInfo.mobile})`,
+          interestStatus: 'in_discussion',
+          productItem: selectedEntityInfo.product,
+          status: 'pending',
+        });
+      }
+
+      router.push('/crm/visits');
+    } catch (err: any) {
+      setFormError(err.message || 'Failed to save scheduled site visit.');
+      setIsSubmitting(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -221,8 +370,7 @@ function VisitFormContent() {
       const targetName = `${selectedEntityInfo.name}${selectedEntityInfo.contactPerson ? ` (${selectedEntityInfo.contactPerson})` : ''}`;
       const enquiryId = entityType === 'enquiry' ? selectedEntityInfo.id : undefined;
 
-      // 1. Add Site Visit
-      addSiteVisit({
+      const visitPayload = {
         leadId: entityType === 'lead' ? selectedEntityInfo.id : undefined,
         customerId: selectedEntityInfo.id,
         customerName: selectedEntityInfo.name,
@@ -237,11 +385,18 @@ function VisitFormContent() {
         discussionNotes: discussionNotes.trim(),
         requirementDetails: requirementDetails.trim(),
         outcome,
+        status: 'completed',
         nextAction: hasScheduleNext && nextFollowUpDate ? `Next Follow-up on ${nextFollowUpDate}` : '',
         nextFollowUpDate: hasScheduleNext && nextFollowUpDate ? nextFollowUpDate : undefined,
-      });
+      };
 
-      // 2. If Next Follow-up is scheduled from site visit, automatically create follow-up entry
+      if (paramEditId) {
+        updateSiteVisit(paramEditId, visitPayload);
+      } else {
+        addSiteVisit(visitPayload);
+      }
+
+      // If Next Follow-up is scheduled from site visit, automatically create follow-up entry
       if (hasScheduleNext && nextFollowUpDate) {
         let nextTimeDisplay = '11:00 AM';
         if (nextFollowUpTime && nextFollowUpTime.includes(':')) {
@@ -310,10 +465,10 @@ function VisitFormContent() {
               </div>
               <div>
                 <h1 className="text-xl sm:text-2xl font-extrabold text-[#211B17] tracking-tight">
-                  Log Site Visit Report
+                  {paramEditId ? 'Complete Site Visit Report' : 'Schedule & Log Site Visit'}
                 </h1>
                 <p className="text-xs text-[#70665F] mt-1 leading-relaxed">
-                  2-Slide Form: Slide 1 for Visit Schedule & Site Details, Slide 2 for Visit Report & Next Follow-up.
+                  2-Slide Form: Save in Slide 1 to schedule the visit before leaving. Then fill Slide 2 after visiting the client site.
                 </p>
               </div>
             </div>
@@ -523,21 +678,32 @@ function VisitFormContent() {
               </div>
 
               {/* Step 1 Actions */}
-              <div className="flex items-center justify-between pt-6 border-t border-[#EBE3DB]">
+              <div className="flex items-center justify-between pt-6 border-t border-[#EBE3DB] flex-wrap gap-3">
                 <Link
                   href="/crm/visits"
                   className="px-5 py-2.5 border border-[#EBE3DB] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs"
                 >
                   Cancel
                 </Link>
-                <button
-                  type="button"
-                  onClick={handleProceedToStep2}
-                  className="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold transition text-xs shadow-xs active:scale-95 flex items-center gap-2 cursor-pointer"
-                >
-                  <span>Slide 2: Visit Report & Follow-up</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-2.5">
+                  <button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={handleSaveScheduledVisit}
+                    className="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold transition text-xs shadow-xs active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>{isSubmitting ? 'Saving...' : 'Save Scheduled Visit'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleProceedToStep2}
+                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-[#4A3B32] border border-[#EBE3DB] rounded-xl font-bold transition text-xs flex items-center gap-2 cursor-pointer"
+                  >
+                    <span>Proceed to Slide 2 (Report)</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -790,7 +956,7 @@ function VisitFormContent() {
                     className="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold transition text-xs shadow-xs active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     <Save className="w-4 h-4" />
-                    <span>{isSubmitting ? 'Saving...' : 'Save Site Visit Record'}</span>
+                    <span>{isSubmitting ? 'Saving...' : paramEditId ? 'Save & Complete Visit Report' : 'Save Full Visit Report'}</span>
                   </button>
                 </div>
               </div>

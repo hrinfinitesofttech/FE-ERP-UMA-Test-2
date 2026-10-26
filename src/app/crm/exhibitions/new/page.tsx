@@ -16,8 +16,8 @@ import {
   Layers,
   FileText,
   DollarSign,
-  Phone,
 } from 'lucide-react';
+import { ERPDatePicker } from '../../../../components/ui/ERPDatePicker';
 
 function ExhibitionFormContent() {
   const router = useRouter();
@@ -32,15 +32,11 @@ function ExhibitionFormContent() {
 
   const [expoName, setExpoName] = useState('');
   const [location, setLocation] = useState('');
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState(
-    new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0]
-  );
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [stallNumber, setStallNumber] = useState('');
-  const [budget, setBudget] = useState<number | ''>(150000);
-  const [assignedTeam, setAssignedTeam] = useState<string[]>(
-    allStaff[0]?.id ? [allStaff[0].id] : []
-  );
+  const [budget, setBudget] = useState<number | ''>(0);
+  const [assignedTeam, setAssignedTeam] = useState<string[]>([]);
   const [productsDisplayed, setProductsDisplayed] = useState('');
   const [notes, setNotes] = useState('');
 
@@ -57,6 +53,18 @@ function ExhibitionFormContent() {
     }
     if (!location.trim()) {
       setFormError('Venue & City location is required.');
+      return;
+    }
+    if (!startDate) {
+      setFormError('Please select the Start Date.');
+      return;
+    }
+    if (!endDate) {
+      setFormError('Please select the End Date.');
+      return;
+    }
+    if (endDate < startDate) {
+      setFormError('End Date cannot be before Start Date.');
       return;
     }
 
@@ -189,28 +197,33 @@ function ExhibitionFormContent() {
               <div>
                 <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>Start Date *</span>
+                  <span>Start Date <span className="text-rose-500">*</span></span>
                 </label>
-                <input
-                  type="date"
-                  required
+                <ERPDatePicker
                   value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-mono text-[#211B17] focus:outline-none focus:border-indigo-600"
+                  placeholder="Select Date"
+                  onChange={(val) => {
+                    setStartDate(val);
+                    if (formError) setFormError('');
+                  }}
+                  className="w-full"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>End Date *</span>
+                  <span>End Date <span className="text-rose-500">*</span></span>
                 </label>
-                <input
-                  type="date"
-                  required
+                <ERPDatePicker
+                  minDate={startDate || undefined}
                   value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-mono text-[#211B17] focus:outline-none focus:border-indigo-600"
+                  placeholder="Select Date"
+                  onChange={(val) => {
+                    setEndDate(val);
+                    if (formError) setFormError('');
+                  }}
+                  className="w-full"
                 />
               </div>
 
@@ -231,7 +244,7 @@ function ExhibitionFormContent() {
             <div>
               <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1.5">
                 <DollarSign className="w-3.5 h-3.5 text-indigo-600" />
-                <span>Allocated Budget (₹) *</span>
+                <span>Allocated Budget (₹) <span className="text-rose-500">*</span></span>
               </label>
               <input
                 type="number"
@@ -239,7 +252,7 @@ function ExhibitionFormContent() {
                 min={0}
                 value={budget}
                 onChange={(e) => setBudget(e.target.value === '' ? '' : Number(e.target.value))}
-                placeholder="150000"
+                placeholder="0"
                 className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-indigo-600"
               />
             </div>

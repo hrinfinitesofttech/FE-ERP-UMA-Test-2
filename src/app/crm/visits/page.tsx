@@ -66,7 +66,15 @@ export default function VisitsPage() {
     setEditingVisit(null);
   };
 
-  const getOutcomeBadge = (out: SiteVisit['outcome']) => {
+  const getOutcomeBadge = (out: SiteVisit['outcome'], status?: string) => {
+    if (status === 'scheduled') {
+      return (
+        <span className="text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-300 px-2.5 py-0.5 rounded-full whitespace-nowrap inline-flex items-center gap-1.5 select-none shadow-2xs">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+          Scheduled Visit
+        </span>
+      );
+    }
     switch (out) {
       case 'positive':
         return (
@@ -161,8 +169,21 @@ export default function VisitsPage() {
     },
     {
       key: 'outcome',
-      header: 'OUTCOME',
-      cell: (v) => getOutcomeBadge(v.outcome),
+      header: 'STATUS / OUTCOME',
+      cell: (v) => (
+        <div className="flex items-center gap-2 flex-wrap">
+          {getOutcomeBadge(v.outcome, v.status)}
+          {v.status === 'scheduled' && (
+            <button
+              onClick={() => router.push(`/crm/visits/new?id=${encodeURIComponent(v.id)}&step=2`)}
+              className="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10.5px] font-bold inline-flex items-center gap-1 shadow-2xs cursor-pointer"
+              title="Fill Slide 2 Visit Report"
+            >
+              <span>Fill Report (Slide 2) →</span>
+            </button>
+          )}
+        </div>
+      ),
     },
     {
       key: 'nextAction',
@@ -188,9 +209,9 @@ export default function VisitsPage() {
         columns={columns}
         searchPlaceholder="Search visits by customer, location, engineer or notes..."
         onAddNew={() => router.push('/crm/visits/new')}
-        addNewLabel="Log Site Visit"
+        addNewLabel="+ Schedule Site Visit"
         onView={(v) => setViewingVisit(v)}
-        onEdit={(v) => setEditingVisit(v)}
+        onEdit={(v) => router.push(`/crm/visits/new?id=${encodeURIComponent(v.id)}${v.status === 'scheduled' ? '&step=2' : ''}`)}
         onDelete={(v) => {
           toast.confirm({
             title: 'Delete Site Visit Report',
@@ -278,7 +299,21 @@ export default function VisitsPage() {
               )}
             </div>
 
-            <div className="pt-3 border-t border-[#F1F5F9] flex justify-end">
+            <div className="pt-3 border-t border-[#F1F5F9] flex justify-between items-center gap-2">
+              {viewingVisit.status === 'scheduled' ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const id = viewingVisit.id;
+                    setViewingVisit(null);
+                    router.push(`/crm/visits/new?id=${encodeURIComponent(id)}&step=2`);
+                  }}
+                  className="px-4 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-xs flex items-center gap-1.5 cursor-pointer"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Fill Slide 2 Visit Report</span>
+                </button>
+              ) : <div />}
               <button
                 type="button"
                 onClick={() => setViewingVisit(null)}

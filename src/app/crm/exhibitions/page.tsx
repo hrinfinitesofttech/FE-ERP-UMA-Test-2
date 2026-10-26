@@ -27,6 +27,9 @@ import {
   ExternalLink,
   UserPlus,
   X,
+  Save,
+  AlertCircle,
+  CheckCircle2,
 } from 'lucide-react';
 
 function ExhibitionsContent() {
@@ -34,7 +37,7 @@ function ExhibitionsContent() {
   const searchParams = useSearchParams();
   const viewId = searchParams.get('view');
 
-  const { exhibitions, addExhibition, updateExhibition, deleteExhibition, employees, leads } = useERP();
+  const { exhibitions, addExhibition, updateExhibition, deleteExhibition, employees, leads, addLead } = useERP();
   
   // Modals
   const [showModal, setShowModal] = useState(false);
@@ -56,8 +59,8 @@ function ExhibitionsContent() {
   const [expoName, setExpoName] = useState('');
   const [organizer, setOrganizer] = useState('');
   const [location, setLocation] = useState('');
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [stallNumber, setStallNumber] = useState('');
   const [contactPerson, setContactPerson] = useState('');
   const [budget, setBudget] = useState(0);
@@ -86,8 +89,8 @@ function ExhibitionsContent() {
     setExpoName('');
     setOrganizer('');
     setLocation('');
-    setStartDate(new Date().toISOString().split('T')[0]);
-    setEndDate(new Date().toISOString().split('T')[0]);
+    setStartDate('');
+    setEndDate('');
     setStallNumber('');
     setContactPerson('');
     setBudget(0);
@@ -119,8 +122,131 @@ function ExhibitionsContent() {
     resetCreateForm();
   };
 
+  // Quick Lead Entry State inside Expo Details Modal
+  interface QuickExpoLeadRow {
+    tempId: string;
+    companyName: string;
+    contactPerson: string;
+    mobile: string;
+    productName: string;
+  }
+
+  const [quickLeadRows, setQuickLeadRows] = useState<QuickExpoLeadRow[]>([]);
+  const [isSavingQuickLeads, setIsSavingQuickLeads] = useState(false);
+  const [quickLeadError, setQuickLeadError] = useState('');
+  const [quickLeadSuccess, setQuickLeadSuccess] = useState('');
+
+  const handleAddQuickLeadRow = () => {
+    setQuickLeadRows((prev) => [
+      ...prev,
+      {
+        tempId: `row-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+        companyName: '',
+        contactPerson: '',
+        mobile: '',
+        productName: '',
+      },
+    ]);
+    setQuickLeadError('');
+    setQuickLeadSuccess('');
+  };
+
+  const updateQuickLeadRow = (tempId: string, field: keyof QuickExpoLeadRow, value: string) => {
+    setQuickLeadRows((prev) =>
+      prev.map((r) => (r.tempId === tempId ? { ...r, [field]: value } : r))
+    );
+    if (quickLeadError) setQuickLeadError('');
+  };
+
+  const removeQuickLeadRow = (tempId: string) => {
+    setQuickLeadRows((prev) => prev.filter((r) => r.tempId !== tempId));
+  };
+
+  const handleSaveQuickLeads = async () => {
+    if (!selectedExpo || quickLeadRows.length === 0) return;
+    setQuickLeadError('');
+    setQuickLeadSuccess('');
+
+    for (let i = 0; i < quickLeadRows.length; i++) {
+      const row = quickLeadRows[i];
+      if (!row.companyName.trim()) {
+        setQuickLeadError(`Row #${i + 1}: Company Name is required.`);
+        return;
+      }
+      if (!row.contactPerson.trim()) {
+        setQuickLeadError(`Row #${i + 1}: Contact Person is required.`);
+        return;
+      }
+      if (!row.mobile.trim()) {
+        setQuickLeadError(`Row #${i + 1}: Mobile Number is required.`);
+        return;
+      }
+    }
+
+    setIsSavingQuickLeads(true);
+
+    try {
+      const defaultEmp = employees[0];
+      const defaultSalesId = defaultEmp?.id || 'EMP-001';
+      const defaultSalesName = defaultEmp
+        ? (defaultEmp.name || `${defaultEmp.firstName || ''} ${defaultEmp.lastName || ''}`.trim())
+        : 'Sales Executive';
+
+      let savedCount = 0;
+      for (const row of quickLeadRows) {
+        await addLead({
+          companyName: row.companyName.trim(),
+          contactPerson: row.contactPerson.trim(),
+          mobile: row.mobile.trim(),
+          whatsapp: row.mobile.trim(),
+          productName: row.productName.trim(),
+          source: 'exhibition',
+          exhibitionId: selectedExpo.id,
+          exhibitionName: selectedExpo.expoName,
+          priority: 'medium',
+          assignedSalesPersonId: defaultSalesId,
+          assignedSalesPersonName: defaultSalesName,
+          status: 'new',
+          email: '',
+          address: '',
+          city: '',
+          state: '',
+          country: '',
+          pincode: '',
+          altMobile: '',
+          industry: '',
+          designation: '',
+          machineType: '',
+          quantity: 0,
+          capacity: '',
+          application: '',
+          requirementDescription: `Lead captured at ${selectedExpo.expoName}. Product: ${row.productName.trim()}`,
+          expectedDelivery: '',
+          budget: 0,
+        });
+        savedCount++;
+      }
+
+      const updatedTotal = (selectedExpo.totalContacts || 0) + savedCount;
+      updateExhibition(selectedExpo.id, {
+        totalContacts: updatedTotal,
+      });
+
+      setSelectedExpo((prev) => (prev ? { ...prev, totalContacts: updatedTotal } : prev));
+      setQuickLeadRows([]);
+      setQuickLeadSuccess(`Successfully added ${savedCount} lead${savedCount > 1 ? 's' : ''} to ${selectedExpo.expoName}!`);
+    } catch (err: any) {
+      setQuickLeadError(err.message || 'Failed to save leads.');
+    } finally {
+      setIsSavingQuickLeads(false);
+    }
+  };
+
   const openViewModal = (expo: Exhibition) => {
     setSelectedExpo(expo);
+    setQuickLeadRows([]);
+    setQuickLeadError('');
+    setQuickLeadSuccess('');
     setShowViewModal(true);
   };
 
@@ -555,7 +681,7 @@ function ExhibitionsContent() {
       {/* View Details Modal */}
       {showViewModal && selectedExpo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="bg-white border rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-4">
+          <div className="bg-white border rounded-2xl shadow-2xl w-full max-w-3xl sm:max-w-4xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
                 <span className="px-2 py-0.5 bg-[#FAF7F2] text-[#5C3A21] border border-[#EBE3DB] rounded-md font-mono text-[10px] font-bold uppercase">
@@ -639,19 +765,177 @@ function ExhibitionsContent() {
 
               {/* Linked Leads Section */}
               <div className="pt-3 border-t border-slate-100 space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <h4 className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
                     <Users className="w-4 h-4 text-crm-brand-700" />
                     Linked Leads from this Trade Show ({leads.filter((l) => l.exhibitionId === selectedExpo.id || l.exhibitionName === selectedExpo.expoName).length})
                   </h4>
-                  <Link
-                    href={`/crm/leads/new?source=exhibition&expoId=${selectedExpo.id}&expoName=${encodeURIComponent(selectedExpo.expoName)}`}
-                    className="px-2.5 py-1 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-lg font-bold text-[11px] flex items-center gap-1 transition"
-                  >
-                    <Plus className="w-3 h-3" />
-                    <span>+ Add Lead from Expo</span>
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleAddQuickLeadRow}
+                      className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-2xs transition active:scale-95 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>+ Add Lead from Expo</span>
+                    </button>
+                    <Link
+                      href={`/crm/leads/new?source=exhibition&expoId=${selectedExpo.id}&expoName=${encodeURIComponent(selectedExpo.expoName)}`}
+                      className="text-[11px] text-[#70665F] hover:text-[#211B17] font-semibold underline ml-1"
+                    >
+                      Full Form ↗
+                    </Link>
+                  </div>
                 </div>
+
+                {/* Inline Quick Multi-Lead Rows */}
+                {quickLeadRows.length > 0 && (
+                  <div className="p-3.5 bg-emerald-50/60 border border-emerald-200 rounded-xl space-y-3 animate-in fade-in">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+                        <span className="text-xs font-bold text-emerald-950">
+                          Booth Lead Entry ({quickLeadRows.length} Line{quickLeadRows.length > 1 ? 's' : ''})
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={handleAddQuickLeadRow}
+                          className="px-2.5 py-1 bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-md text-[11px] font-bold flex items-center gap-1 shadow-2xs cursor-pointer"
+                        >
+                          <Plus className="w-3 h-3" />
+                          <span>+ Add Another Line</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setQuickLeadRows([])}
+                          className="text-[11px] text-slate-500 hover:text-rose-600 font-semibold cursor-pointer px-1"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    </div>
+
+                    {quickLeadError && (
+                      <div className="p-2 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-[11px] font-semibold flex items-center gap-1.5">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-600" />
+                        <span>{quickLeadError}</span>
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <div className="hidden sm:grid grid-cols-12 gap-2 text-[10.5px] font-bold text-emerald-900 uppercase tracking-wider px-1">
+                        <span className="col-span-1 text-center">#</span>
+                        <span className="col-span-3">Company Name *</span>
+                        <span className="col-span-3">Contact Person *</span>
+                        <span className="col-span-2">Mobile / Phone *</span>
+                        <span className="col-span-2">Product / Requirement</span>
+                        <span className="col-span-1 text-center">Action</span>
+                      </div>
+
+                      <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                        {quickLeadRows.map((row, idx) => (
+                          <div
+                            key={row.tempId}
+                            className="grid grid-cols-1 sm:grid-cols-12 gap-2 p-2 bg-white border border-emerald-200 rounded-lg items-center shadow-2xs"
+                          >
+                            <div className="sm:col-span-1 flex items-center justify-center">
+                              <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 font-mono font-bold text-[10px] flex items-center justify-center">
+                                {idx + 1}
+                              </span>
+                            </div>
+
+                            <div className="sm:col-span-3">
+                              <input
+                                type="text"
+                                required
+                                value={row.companyName}
+                                onChange={(e) => updateQuickLeadRow(row.tempId, 'companyName', e.target.value)}
+                                placeholder="Company / Firm Name *"
+                                className="w-full px-2.5 py-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-md text-xs font-semibold text-[#211B17] focus:outline-none focus:border-emerald-600"
+                              />
+                            </div>
+
+                            <div className="sm:col-span-3">
+                              <input
+                                type="text"
+                                required
+                                value={row.contactPerson}
+                                onChange={(e) => updateQuickLeadRow(row.tempId, 'contactPerson', e.target.value)}
+                                placeholder="Visitor / Contact Person *"
+                                className="w-full px-2.5 py-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-md text-xs text-[#211B17] focus:outline-none focus:border-emerald-600"
+                              />
+                            </div>
+
+                            <div className="sm:col-span-2">
+                              <input
+                                type="text"
+                                required
+                                value={row.mobile}
+                                onChange={(e) => updateQuickLeadRow(row.tempId, 'mobile', e.target.value)}
+                                placeholder="Mobile / Phone *"
+                                className="w-full px-2.5 py-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-md text-xs font-mono text-[#211B17] focus:outline-none focus:border-emerald-600"
+                              />
+                            </div>
+
+                            <div className="sm:col-span-2">
+                              <input
+                                type="text"
+                                value={row.productName}
+                                onChange={(e) => updateQuickLeadRow(row.tempId, 'productName', e.target.value)}
+                                placeholder="Product Requirement..."
+                                className="w-full px-2.5 py-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-md text-xs text-[#211B17] focus:outline-none focus:border-emerald-600"
+                              />
+                            </div>
+
+                            <div className="sm:col-span-1 flex items-center justify-center">
+                              <button
+                                type="button"
+                                onClick={() => removeQuickLeadRow(row.tempId)}
+                                title="Remove this line"
+                                className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-emerald-200 flex-wrap gap-2">
+                      <span className="text-[11px] text-emerald-800 font-medium">
+                        All rows will be linked to <strong>{selectedExpo.expoName}</strong>.
+                      </span>
+                      <button
+                        type="button"
+                        disabled={isSavingQuickLeads}
+                        onClick={handleSaveQuickLeads}
+                        className="px-4 py-1.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-2xs active:scale-95 transition cursor-pointer"
+                      >
+                        <Save className="w-3.5 h-3.5" />
+                        <span>{isSavingQuickLeads ? 'Saving Leads...' : `Save ${quickLeadRows.length} Lead${quickLeadRows.length > 1 ? 's' : ''}`}</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {quickLeadSuccess && (
+                  <div className="p-2.5 bg-emerald-100/70 border border-emerald-300 text-emerald-900 rounded-lg text-xs font-bold flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+                      <span>{quickLeadSuccess}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setQuickLeadSuccess('')}
+                      className="text-emerald-700 hover:text-emerald-900 text-[11px] font-bold"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
 
                 {(() => {
                   const linkedLeads = leads.filter(
