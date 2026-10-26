@@ -6544,7 +6544,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
 
   const updateEnquiry = (id: string, enqData: Partial<Enquiry>) => {
     setEnquiries((prev) => {
-      const updated = prev.map((e) => (e.id === id ? { ...e, ...enqData } : e));
+      const updated = prev.map((e) => (e.id === id || e.enquiryNo === id ? { ...e, ...enqData } : e));
       if (typeof window !== 'undefined') {
         try { localStorage.setItem('UMA_ERP_enquiries', JSON.stringify(updated)); } catch (_) {}
       }
@@ -6595,8 +6595,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
       contactPerson: lead.contactPerson || '',
       contactMobile: lead.mobile || '',
       enquiryDate: new Date().toISOString().split('T')[0],
-      requirement: lead.requirementDescription || `Enquiry for ${lead.productName}`,
-      machineProduct: lead.productName || 'Process Equipment',
+      requirement: lead.requirementDescription || (lead.productName ? `Enquiry for ${lead.productName}` : ''),
+      machineProduct: lead.productName || '',
       quantity: Number(lead.quantity) || 1,
       specification: lead.capacity || lead.machineType || '',
       expectedDelivery: lead.expectedDelivery || '',

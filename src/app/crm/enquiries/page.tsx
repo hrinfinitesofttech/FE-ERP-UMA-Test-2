@@ -57,6 +57,7 @@ export default function EnquiriesRegisterPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEnquiry, setEditingEnquiry] = useState<Enquiry | null>(null);
+  const [viewingEnquiry, setViewingEnquiry] = useState<Enquiry | null>(null);
   const [deletingEnquiry, setDeletingEnletingEnquiry] = useState<Enquiry | null>(null);
 
   // Follow-up modal states
@@ -309,30 +310,96 @@ export default function EnquiriesRegisterPage() {
     (e) => e.status === 'converted'
   ).length;
 
-  // Filtered List
+  // Helper to cross-resolve real customer, contact, product, and spec from linked Quotations/Leads/Customers
+  const resolveEnquiry = (e: Enquiry) => {
+    // 1. Linked Quotation lookup
+    const q = (quotations || []).find(
+      (item) => item.enquiryId === e.id || item.enquiryId === e.enquiryNo || (e.quotationId && item.id === e.quotationId)
+    );
+    // 2. Linked Lead lookup
+    const leadId = e.leadId || q?.leadId;
+    const l = (leads || []).find((item) => item.id === leadId || item.leadNo === leadId);
+    // 3. Linked Customer lookup
+    const c = (customers || []).find((item) => item.id === e.customerId || item.customerCode === e.customerId);
+
+    let customerName = e.customerName;
+    if (!customerName || customerName === 'Valued Customer') {
+      customerName = q?.customerName || l?.companyName || c?.companyName || 'Valued Customer';
+    }
+
+    let contactPerson = e.contactPerson;
+    if (!contactPerson || contactPerson === 'N/A' || contactPerson === 'Contact Person' || contactPerson === 'Contact') {
+      contactPerson = q?.contactPerson || l?.contactPerson || c?.contactPerson || '';
+    }
+
+    let contactMobile = e.contactMobile;
+    if (!contactMobile || contactMobile === '9999999999') {
+      contactMobile = q?.contactMobile || l?.mobile || c?.mobile || '';
+    }
+
+    let customerEmail = e.customerEmail;
+    if (!customerEmail) {
+      customerEmail = q?.contactEmail || l?.email || c?.email || '';
+    }
+
+    let machineProduct = e.machineProduct;
+    if (!machineProduct || machineProduct === 'Process Equipment') {
+      machineProduct = (q as any)?.machineProduct || q?.latestSummary?.machineProduct || l?.productName || '';
+      if (!machineProduct || machineProduct === 'Process Equipment') {
+        machineProduct = 'Process Equipment';
+      }
+    }
+
+    let specification = e.specification || '';
+    let requirement = e.requirement || '';
+    if ((!specification || specification === 'Customer Requirement') && requirement && requirement !== 'Customer Requirement') {
+      specification = requirement;
+    } else if ((!requirement || requirement === 'Customer Requirement') && specification && specification !== 'Customer Requirement') {
+      requirement = specification;
+    }
+
+    return {
+      customerName,
+      contactPerson,
+      contactMobile,
+      customerEmail,
+      machineProduct,
+      specification,
+      requirement,
+      leadId: leadId || '',
+      linkedQuotation: q,
+      linkedLead: l,
+      linkedCustomer: c,
+    };
+  };
+
+  // Filtered List with resolved data
   const filteredEnquiries = useMemo(() => {
     return enquiries.filter((e) => {
       if (statusFilter !== 'all' && e.status !== statusFilter) return false;
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
+        const res = resolveEnquiry(e);
         const matchesNo = (e.enquiryNo || e.id || '').toLowerCase().includes(q);
-        const matchesCust = (e.customerName || '').toLowerCase().includes(q);
-        const matchesEmail = (e.customerEmail || '').toLowerCase().includes(q);
-        const matchesPerson = (e.contactPerson || '').toLowerCase().includes(q);
-        const matchesProd = (e.machineProduct || '').toLowerCase().includes(q);
-        if (!matchesNo && !matchesCust && !matchesEmail && !matchesPerson && !matchesProd) {
+        const matchesCust = (res.customerName || '').toLowerCase().includes(q);
+        const matchesEmail = (res.customerEmail || '').toLowerCase().includes(q);
+        const matchesPerson = (res.contactPerson || '').toLowerCase().includes(q);
+        const matchesProd = (res.machineProduct || '').toLowerCase().includes(q);
+        const matchesSpec = (res.specification || '').toLowerCase().includes(q);
+        if (!matchesNo && !matchesCust && !matchesEmail && !matchesPerson && !matchesProd && !matchesSpec) {
           return false;
         }
       }
       return true;
     });
-  }, [enquiries, statusFilter, searchQuery]);
+  }, [enquiries, statusFilter, searchQuery, quotations, leads, customers]);
 
   const handleExportCSV = () => {
     const csv = [
       'Enquiry No,Customer,Contact Person,Email,Equipment,Qty,Date,Target Date,Assigned Engineer,Status',
       ...filteredEnquiries.map((e) => {
-        return `"${e.enquiryNo || e.id}","${e.customerName || ''}","${e.contactPerson || ''}","${e.customerEmail || ''}","${e.machineProduct || ''}","${e.quantity || 1}","${e.enquiryDate || ''}","${e.expectedDelivery || ''}","${e.assignedPersonName || ''}","${e.status || ''}"`;
+        const res = resolveEnquiry(e);
+        return `"${e.enquiryNo || e.id}","${res.customerName}","${res.contactPerson}","${res.customerEmail}","${res.machineProduct}","${e.quantity || 1}","${e.enquiryDate || ''}","${e.expectedDelivery || ''}","${e.assignedPersonName || ''}","${e.status || ''}"`;
       }),
     ].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -343,67 +410,85 @@ export default function EnquiriesRegisterPage() {
     a.click();
   };
 
-  // Columns definition
+  // Columns definition with strictly bounded cells to prevent table deformation
   const columns: ERPColumn<Enquiry>[] = [
     {
       key: 'enquiryNo',
       header: 'ENQUIRY NO',
       isCodeLink: true,
-      onCodeClick: (e) => router.push(`/crm/enquiries/new?id=${encodeURIComponent(e.id || e.enquiryNo)}`),
-      cell: (e) => (
-        <div className="space-y-0.5 whitespace-nowrap">
-          <span className="font-mono font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200 text-xs inline-block">
-            {e.enquiryNo || e.id}
-          </span>
-          {e.leadId ? (
-            <div className="text-[10px] text-slate-500 font-mono mt-0.5">
-              Lead: <strong className="text-slate-700">{e.leadId}</strong>
-            </div>
-          ) : (
-            <span className="text-[10px] text-slate-400 block">Direct</span>
-          )}
-        </div>
-      ),
+      onCodeClick: (e) => setViewingEnquiry(e),
+      cell: (e) => {
+        const res = resolveEnquiry(e);
+        return (
+          <div className="space-y-0.5 whitespace-nowrap">
+            <button
+              onClick={() => setViewingEnquiry(e)}
+              className="font-mono font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 px-2 py-0.5 rounded border border-purple-200 text-xs inline-block transition cursor-pointer text-left"
+              title="Click to view full enquiry details"
+            >
+              {e.enquiryNo || e.id}
+            </button>
+            {res.leadId ? (
+              <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                Lead: <strong className="text-slate-700">{res.leadId}</strong>
+              </div>
+            ) : (
+              <span className="text-[10px] text-slate-400 block">Direct</span>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: 'customerName',
       header: 'CUSTOMER & CONTACT',
-      cell: (e) => (
-        <div className="space-y-0.5 min-w-[180px]">
-          <div className="font-bold text-slate-800 text-xs truncate" title={e.customerName}>
-            {e.customerName}
-          </div>
-          <div className="text-[11px] text-slate-500 truncate flex items-center gap-1">
-            <User className="w-3 h-3 text-slate-400 shrink-0" />
-            <span>{e.contactPerson || 'N/A'}</span>
-          </div>
-          {e.customerEmail && (
-            <div className="text-[10px] text-slate-500 truncate flex items-center gap-1">
-              <Mail className="w-3 h-3 text-slate-400 shrink-0" />
-              <span className="font-mono">{e.customerEmail}</span>
+      cell: (e) => {
+        const res = resolveEnquiry(e);
+        return (
+          <div className="space-y-0.5 max-w-[220px] min-w-[170px]">
+            <div className="font-bold text-slate-800 text-xs truncate block" title={res.customerName}>
+              {res.customerName}
             </div>
-          )}
-        </div>
-      ),
+            <div className="text-[11px] text-slate-500 truncate flex items-center gap-1">
+              <User className="w-3 h-3 text-slate-400 shrink-0" />
+              <span>{res.contactPerson || 'N/A'}</span>
+            </div>
+            {res.customerEmail ? (
+              <div className="text-[10px] text-slate-500 truncate flex items-center gap-1">
+                <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+                <span className="font-mono">{res.customerEmail}</span>
+              </div>
+            ) : res.contactMobile ? (
+              <div className="text-[10px] text-slate-500 truncate flex items-center gap-1">
+                <Phone className="w-3 h-3 text-slate-400 shrink-0" />
+                <span className="font-mono">{res.contactMobile}</span>
+              </div>
+            ) : null}
+          </div>
+        );
+      },
     },
     {
       key: 'machineProduct',
       header: 'EQUIPMENT / PRODUCT',
-      cell: (e) => (
-        <div className="space-y-0.5 min-w-[200px]">
-          <div className="font-bold text-slate-800 flex items-center gap-1.5 flex-wrap text-xs">
-            <span className="truncate max-w-xs" title={e.machineProduct}>{e.machineProduct}</span>
-            <span className="px-1.5 py-0.2 bg-slate-100 text-slate-700 border border-slate-200 rounded text-[10px] font-bold shrink-0">
-              Qty: {e.quantity || 1}
-            </span>
-          </div>
-          {e.specification && (
-            <div className="text-[10px] text-slate-500 line-clamp-1" title={e.specification}>
-              {e.specification}
+      cell: (e) => {
+        const res = resolveEnquiry(e);
+        return (
+          <div className="space-y-0.5 max-w-[260px] min-w-[200px]">
+            <div className="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
+              <span className="truncate max-w-[190px] block" title={res.machineProduct}>{res.machineProduct}</span>
+              <span className="px-1.5 py-0.2 bg-slate-100 text-slate-700 border border-slate-200 rounded text-[10px] font-bold shrink-0">
+                Qty: {e.quantity || 1}
+              </span>
             </div>
-          )}
-        </div>
-      ),
+            {res.specification && (
+              <div className="text-[10px] text-slate-500 truncate max-w-[260px] block" title={res.specification}>
+                {res.specification}
+              </div>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: 'enquiryDate',
@@ -445,12 +530,13 @@ export default function EnquiriesRegisterPage() {
       key: 'actions',
       header: 'ACTIONS',
       cell: (e) => {
+        const res = resolveEnquiry(e);
         const existingFollowUp = (followUps || []).find(
           (f) =>
             (f.enquiryId && (f.enquiryId === e.id || f.enquiryId === e.enquiryNo)) ||
             (f.leadOrCustomerId && (f.leadOrCustomerId === e.id || f.leadOrCustomerId === e.leadId))
         );
-        const existingQtn = (quotations || []).find(
+        const existingQtn = res.linkedQuotation || (quotations || []).find(
           (q) =>
             (q.enquiryId && (q.enquiryId === e.id || q.enquiryId === e.enquiryNo)) ||
             ((q as any).enquiryNumber && (q as any).enquiryNumber === e.enquiryNo)
@@ -458,14 +544,22 @@ export default function EnquiriesRegisterPage() {
 
         return (
           <div className="flex items-center gap-1.5 whitespace-nowrap" onClick={(ev) => ev.stopPropagation()}>
+            {/* View Details Action */}
+            <button
+              onClick={() => setViewingEnquiry(e)}
+              className="p-1.5 text-purple-700 hover:text-purple-900 hover:bg-purple-50 rounded transition cursor-pointer"
+              title="View Technical Enquiry Details"
+            >
+              <Eye className="w-3.5 h-3.5" />
+            </button>
+
             {/* Follow-up Action: View if existing, else Create */}
             {existingFollowUp ? (
               <button
-                onClick={() => router.push(`/crm/follow-ups?search=${encodeURIComponent(e.enquiryNo || e.customerName)}`)}
+                onClick={() => router.push(`/crm/follow-ups?search=${encodeURIComponent(e.enquiryNo || res.customerName)}`)}
                 className="px-2 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded text-xs font-bold inline-flex items-center gap-1 transition shadow-xs cursor-pointer active:scale-95"
                 title={`View Follow-up (${existingFollowUp.followUpNo || existingFollowUp.id})`}
               >
-                <Eye className="w-3.5 h-3.5" />
                 <span>View Follow-up</span>
               </button>
             ) : (
@@ -486,7 +580,6 @@ export default function EnquiriesRegisterPage() {
                 className="px-2 py-1 bg-blue-700 hover:bg-blue-800 text-white rounded text-xs font-bold inline-flex items-center gap-1 transition shadow-xs cursor-pointer active:scale-95"
                 title={`View Quotation (${existingQtn.quotationNumber || existingQtn.id})`}
               >
-                <Eye className="w-3.5 h-3.5" />
                 <span>View Quotation</span>
               </button>
             ) : (
@@ -619,6 +712,194 @@ export default function EnquiriesRegisterPage() {
         onAddNew={() => router.push('/crm/enquiries/new')}
         onExport={handleExportCSV}
       />
+
+      {/* View Technical Enquiry Details Modal */}
+      {viewingEnquiry && (() => {
+        const res = resolveEnquiry(viewingEnquiry);
+        const existingQtn = res.linkedQuotation || (quotations || []).find(
+          (q) =>
+            (q.enquiryId && (q.enquiryId === viewingEnquiry.id || q.enquiryId === viewingEnquiry.enquiryNo)) ||
+            ((q as any).enquiryNumber && (q as any).enquiryNumber === viewingEnquiry.enquiryNo)
+        );
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in">
+            <div className="bg-white rounded-2xl max-w-2xl w-full border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-purple-900 to-indigo-900 text-white p-5 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center font-bold text-white border border-white/20">
+                    <FileText className="w-5 h-5 text-purple-200" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="font-mono font-bold text-base tracking-wide text-white">
+                        {viewingEnquiry.enquiryNo || viewingEnquiry.id}
+                      </h2>
+                      <StatusBadge status={viewingEnquiry.status as any} />
+                    </div>
+                    <p className="text-[11px] text-purple-200 mt-0.5">
+                      Enquiry Date: {viewingEnquiry.enquiryDate ? formatDate(viewingEnquiry.enquiryDate) : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setViewingEnquiry(null)}
+                  className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 overflow-y-auto space-y-5 text-xs">
+                {/* Customer Information Card */}
+                <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                    <Building2 className="w-3.5 h-3.5 text-purple-600" />
+                    <span>Customer & Contact Details</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <div>
+                      <div className="text-[10px] text-slate-400">Company / Account Name</div>
+                      <div className="font-bold text-slate-900 text-sm">{res.customerName}</div>
+                      {res.leadId && (
+                        <div className="text-[10px] text-purple-700 font-mono mt-0.5">
+                          Linked Lead: <strong>{res.leadId}</strong>
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-[10px] text-slate-400">Contact Person</div>
+                      <div className="font-semibold text-slate-800 flex items-center gap-1.5 mt-0.5">
+                        <User className="w-3.5 h-3.5 text-slate-400" />
+                        <span>{res.contactPerson || 'N/A'}</span>
+                      </div>
+                    </div>
+                    {res.contactMobile && (
+                      <div>
+                        <div className="text-[10px] text-slate-400">Phone / Mobile</div>
+                        <div className="font-mono text-slate-800 flex items-center gap-1.5 mt-0.5">
+                          <Phone className="w-3.5 h-3.5 text-slate-400" />
+                          <span>{res.contactMobile}</span>
+                        </div>
+                      </div>
+                    )}
+                    {res.customerEmail && (
+                      <div>
+                        <div className="text-[10px] text-slate-400">Email Address</div>
+                        <div className="font-mono text-slate-800 flex items-center gap-1.5 mt-0.5">
+                          <Mail className="w-3.5 h-3.5 text-slate-400" />
+                          <span>{res.customerEmail}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Product & Scope Details */}
+                <div className="p-4 bg-purple-50/50 border border-purple-100 rounded-xl space-y-3">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-purple-900 flex items-center gap-1">
+                    <Layers className="w-3.5 h-3.5 text-purple-600" />
+                    <span>Equipment & Requirement Scope</span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div>
+                      <div className="text-[10px] text-slate-500">Equipment / Product</div>
+                      <div className="font-bold text-slate-900 mt-0.5">{res.machineProduct}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] text-slate-500">Quantity</div>
+                      <div className="font-mono font-bold text-purple-800 mt-0.5">
+                        {viewingEnquiry.quantity || 1} {viewingEnquiry.unitOfMeasure || 'Unit'}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] text-slate-500">Target Delivery</div>
+                      <div className="font-mono text-amber-800 font-semibold mt-0.5">
+                        {viewingEnquiry.expectedDelivery ? formatDate(viewingEnquiry.expectedDelivery) : 'Not Specified'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Full Specifications / Requirement Description */}
+                  {(res.specification || res.requirement) && (
+                    <div className="pt-2 border-t border-purple-100/80">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                        Technical Specifications & Scope
+                      </div>
+                      <div className="p-3.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 font-mono whitespace-pre-line leading-relaxed shadow-xs max-h-56 overflow-y-auto">
+                        {res.specification || res.requirement}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Assigned Engineer & Status */}
+                <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                  <div>
+                    <span className="text-slate-500">Assigned Engineer: </span>
+                    <strong className="text-slate-800">{viewingEnquiry.assignedPersonName || 'Pravin Patel'}</strong>
+                  </div>
+                  {existingQtn && (
+                    <div className="font-mono text-[11px] text-blue-700 font-bold flex items-center gap-1">
+                      <span>Quotation: {existingQtn.quotationNumber || existingQtn.id}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="bg-slate-50 px-6 py-4 border-t border-slate-200 flex items-center justify-between gap-3">
+                <button
+                  onClick={() => setViewingEnquiry(null)}
+                  className="px-4 py-2 border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-xl font-bold transition text-xs cursor-pointer"
+                >
+                  Close
+                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      const target = viewingEnquiry;
+                      setViewingEnquiry(null);
+                      router.push(`/crm/enquiries/new?id=${encodeURIComponent(target.id || target.enquiryNo)}`);
+                    }}
+                    className="px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-xl font-bold transition text-xs shadow-xs flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    <span>Edit Enquiry</span>
+                  </button>
+
+                  {existingQtn ? (
+                    <button
+                      onClick={() => {
+                        setViewingEnquiry(null);
+                        router.push(`/crm/quotations/${encodeURIComponent(existingQtn.id)}`);
+                      }}
+                      className="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-xl font-bold transition text-xs shadow-xs flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>View Quotation</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        const target = viewingEnquiry;
+                        setViewingEnquiry(null);
+                        router.push(`/crm/quotations/new?enquiryId=${encodeURIComponent(target.id || target.enquiryNo)}`);
+                      }}
+                      className="px-4 py-2 bg-[#3E2723] hover:bg-[#2A1810] text-white rounded-xl font-bold transition text-xs shadow-xs flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <FileCheck2 className="w-3.5 h-3.5" />
+                      <span>Create Quotation</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Delete Confirmation Modal */}
       {deletingEnquiry && (

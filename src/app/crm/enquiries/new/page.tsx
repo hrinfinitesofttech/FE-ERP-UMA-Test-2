@@ -34,6 +34,7 @@ function EnquiryFormContent() {
     updateEnquiry,
     leads,
     customers,
+    quotations,
     currentUser,
     employees,
     availableEmployees,
@@ -63,55 +64,88 @@ function EnquiryFormContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingEnquiry, setExistingEnquiry] = useState<Enquiry | null>(null);
 
-  // Load enquiry if editing
+  // Load enquiry if editing with complete data healing from linked quotations/leads/customers
   useEffect(() => {
     if (editId) {
       const enq = enquiries.find((e) => e.id === editId || e.enquiryNo === editId);
       if (enq) {
         setExistingEnquiry(enq);
-        setCustomerName(enq.customerName || '');
-        setCustomerEmail(enq.customerEmail || '');
-        setContactPerson(enq.contactPerson || '');
-        setContactMobile(enq.contactMobile || '');
-        setMachineProduct(enq.machineProduct || '');
+
+        // Cross-resolve from linked Quotation, Lead, or Customer if dummy or empty
+        const q = (quotations || []).find(
+          (item) => item.enquiryId === enq.id || item.enquiryId === enq.enquiryNo || (enq.quotationId && item.id === enq.quotationId)
+        );
+        const targetLeadId = enq.leadId || q?.leadId;
+        const l = (leads || []).find((item) => item.id === targetLeadId || item.leadNo === targetLeadId);
+        const c = (customers || []).find((item) => item.id === enq.customerId || item.customerCode === enq.customerId);
+
+        let cName = enq.customerName;
+        if (!cName || cName === 'Valued Customer') {
+          cName = q?.customerName || l?.companyName || c?.companyName || '';
+        }
+        setCustomerName(cName);
+
+        let cPerson = enq.contactPerson;
+        if (!cPerson || cPerson === 'N/A' || cPerson === 'Contact Person' || cPerson === 'Contact') {
+          cPerson = q?.contactPerson || l?.contactPerson || c?.contactPerson || '';
+        }
+        setContactPerson(cPerson);
+
+        let cMobile = enq.contactMobile;
+        if (!cMobile || cMobile === '9999999999') {
+          cMobile = q?.contactMobile || l?.mobile || c?.mobile || '';
+        }
+        setContactMobile(cMobile);
+
+        let cEmail = enq.customerEmail;
+        if (!cEmail) {
+          cEmail = q?.contactEmail || l?.email || c?.email || '';
+        }
+        setCustomerEmail(cEmail);
+
+        let mProd = enq.machineProduct;
+        if (!mProd || mProd === 'Process Equipment') {
+          mProd = (q as any)?.machineProduct || q?.latestSummary?.machineProduct || l?.productName || '';
+        }
+        setMachineProduct(mProd);
+
         setQuantity(enq.quantity || 1);
-        setRequirement(enq.requirement || enq.specification || '');
-        setExpectedDelivery(enq.expectedDelivery || '');
+
+        // Technical requirement / specification
+        let req = enq.requirement || '';
+        let spec = enq.specification || '';
+        if ((req === 'Customer Requirement' || !req) && spec && spec !== 'Customer Requirement') {
+          req = spec;
+        } else if ((!spec || spec === 'Customer Requirement') && req && req !== 'Customer Requirement') {
+          spec = req;
+        }
+        setRequirement(req || spec || '');
+
+        // Expected delivery date formatted YYYY-MM-DD
+        if (enq.expectedDelivery) {
+          const dStr = String(enq.expectedDelivery).slice(0, 10);
+          setExpectedDelivery(dStr);
+        } else {
+          setExpectedDelivery('');
+        }
+
         setAssignedPersonId(enq.assignedPersonId || allStaff[0]?.id || 'EMP-001');
         setStatus(enq.status || 'new');
-        if (enq.leadId) {
-          setSelectedLeadId(enq.leadId);
-          setSelectedEntityVal(`lead:${enq.leadId}`);
+
+        if (targetLeadId) {
+          setSelectedLeadId(targetLeadId);
+          setSelectedEntityVal(`lead:${targetLeadId}`);
+        } else if (enq.customerId) {
+          setSelectedEntityVal(`cust:${enq.customerId}`);
         }
       }
     }
-  }, [editId, enquiries]);
+  }, [editId, enquiries, quotations, leads, customers]);
 
-  // Filter leads: ONLY show leads whose Enquiry has NOT been created yet (or is currently being edited)
+  // Filter leads: show all relevant leads
   const availableLeads = useMemo(() => {
-    const leadsWithEnquiry = new Set<string>();
-    (enquiries || []).forEach((e) => {
-      if (e.leadId) {
-        // If editing this existing enquiry, keep its linked lead available
-        if (existingEnquiry && (e.id === existingEnquiry.id || e.enquiryNo === existingEnquiry.enquiryNo)) {
-          return;
-        }
-        leadsWithEnquiry.add(String(e.leadId).trim());
-      }
-    });
-
-    return (leads || []).filter((l) => {
-      const id = String(l.id || '').trim();
-      const no = String(l.leadNo || '').trim();
-      const hasEnquiry = (id && leadsWithEnquiry.has(id)) || (no && leadsWithEnquiry.has(no)) || Boolean(l.convertedEnquiryId);
-
-      // Keep currently selected lead visible in dropdown
-      if (selectedLeadId && (id === selectedLeadId || no === selectedLeadId)) {
-        return true;
-      }
-      return !hasEnquiry;
-    });
-  }, [leads, enquiries, existingEnquiry, selectedLeadId]);
+    return leads || [];
+  }, [leads]);
 
   // Pre-select lead if passed in URL query param
   useEffect(() => {
@@ -124,15 +158,6 @@ function EnquiryFormContent() {
   const handleEntitySelect = (val: string) => {
     setSelectedEntityVal(val);
     if (!val) {
-      setSelectedLeadId('');
-      setCustomerName('');
-      setCustomerEmail('');
-      setContactPerson('');
-      setContactMobile('');
-      if (!existingEnquiry) {
-        setMachineProduct('');
-        setQuantity('');
-      }
       return;
     }
 
@@ -142,16 +167,19 @@ function EnquiryFormContent() {
       if (lead) {
         setSelectedLeadId(lead.id);
         setSelectedEntityVal(`lead:${lead.id}`);
-        setCustomerName(lead.companyName || '');
-        setCustomerEmail(lead.email || '');
-        setContactPerson(
-          lead.contactPerson && lead.contactPerson !== 'Contact Person' && lead.contactPerson !== 'Contact'
-            ? lead.contactPerson
-            : ''
-        );
-        setContactMobile(lead.mobile && lead.mobile !== '9999999999' ? lead.mobile : '');
+        if (lead.companyName && lead.companyName !== 'Valued Customer') {
+          setCustomerName(lead.companyName);
+        }
+        if (lead.email) {
+          setCustomerEmail(lead.email);
+        }
+        if (lead.contactPerson && lead.contactPerson !== 'Contact Person' && lead.contactPerson !== 'Contact') {
+          setContactPerson(lead.contactPerson);
+        }
+        if (lead.mobile && lead.mobile !== '9999999999') {
+          setContactMobile(lead.mobile);
+        }
 
-        // Only pre-fill product if user genuinely entered a real custom product
         const rawProd = (lead.productName || lead.machineType || '').trim();
         const isDummy =
           !rawProd ||
@@ -161,15 +189,14 @@ function EnquiryFormContent() {
 
         if (!isDummy) {
           setMachineProduct(rawProd);
-        } else if (!existingEnquiry) {
-          setMachineProduct('');
         }
 
-        // Only pre-fill quantity if specified (> 0)
         if (lead.quantity && Number(lead.quantity) > 0) {
           setQuantity(Number(lead.quantity));
-        } else if (!existingEnquiry) {
-          setQuantity('');
+        }
+
+        if (lead.requirementDescription) {
+          setRequirement(lead.requirementDescription);
         }
       } else {
         setSelectedLeadId(id);
@@ -179,14 +206,14 @@ function EnquiryFormContent() {
       setSelectedLeadId('');
       const cust = customers.find((c) => c.id === id || c.customerCode === id);
       if (cust) {
-        setCustomerName(cust.companyName || '');
-        setCustomerEmail(cust.email || '');
-        setContactPerson(
-          cust.contactPerson && cust.contactPerson !== 'Contact Person' && cust.contactPerson !== 'Contact'
-            ? cust.contactPerson
-            : ''
-        );
-        setContactMobile(cust.mobile && cust.mobile !== '9999999999' ? cust.mobile : '');
+        if (cust.companyName) setCustomerName(cust.companyName);
+        if (cust.email) setCustomerEmail(cust.email);
+        if (cust.contactPerson && cust.contactPerson !== 'Contact Person' && cust.contactPerson !== 'Contact') {
+          setContactPerson(cust.contactPerson);
+        }
+        if (cust.mobile && cust.mobile !== '9999999999') {
+          setContactMobile(cust.mobile);
+        }
       }
     }
   };
@@ -196,7 +223,7 @@ function EnquiryFormContent() {
     setFormError('');
 
     if (!customerName.trim()) {
-      setFormError('Please select or specify a Customer / Lead.');
+      setFormError('Customer / Account Name is required.');
       return;
     }
     if (!machineProduct.trim()) {
@@ -221,9 +248,9 @@ function EnquiryFormContent() {
         updateEnquiry(existingEnquiry.id, {
           leadId: selectedLeadId || existingEnquiry.leadId || undefined,
           customerName: customerName.trim(),
-          customerEmail: customerEmail.trim() || existingEnquiry.customerEmail,
-          contactPerson: contactPerson.trim() || existingEnquiry.contactPerson,
-          contactMobile: contactMobile.trim() || existingEnquiry.contactMobile,
+          customerEmail: customerEmail.trim(),
+          contactPerson: contactPerson.trim(),
+          contactMobile: contactMobile.trim(),
           machineProduct: machineProduct.trim(),
           quantity: numQty,
           requirement: requirement.trim() || `Enquiry for ${machineProduct.trim()}`,
@@ -237,9 +264,9 @@ function EnquiryFormContent() {
         addEnquiry({
           leadId: selectedLeadId || undefined,
           customerName: customerName.trim(),
-          customerEmail: customerEmail.trim() || '',
-          contactPerson: contactPerson.trim() || '',
-          contactMobile: contactMobile.trim() || '',
+          customerEmail: customerEmail.trim(),
+          contactPerson: contactPerson.trim(),
+          contactMobile: contactMobile.trim(),
           machineProduct: machineProduct.trim(),
           quantity: numQty,
           requirement: requirement.trim() || `Enquiry for ${machineProduct.trim()}`,
@@ -296,123 +323,216 @@ function EnquiryFormContent() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* 1. Lead / Customer Selection Dropdown */}
-          <div>
-            <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
-              <Building2 className="w-3.5 h-3.5 text-[#8C5229]" />
-              <span>Select Customer Account or Sales Lead <span className="text-rose-500">*</span></span>
-            </label>
-            <select
-              required
-              value={selectedEntityVal}
-              onChange={(e) => handleEntitySelect(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-[#75401F] focus:ring-2 focus:ring-[#75401F]/15 transition"
-            >
-              <option value="">-- Choose from Leads or Registered Customers --</option>
-              <optgroup label="Active Sales Leads (Pending Technical Enquiry)">
-                {availableLeads.length === 0 ? (
-                  <option disabled value="">(No pending leads - all leads have enquiries)</option>
-                ) : (
-                  availableLeads.map((l) => (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Section 1: Customer & Contact Information */}
+          <div className="p-4 bg-slate-50/70 border border-slate-200 rounded-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
+              <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <Building2 className="w-4 h-4 text-purple-700" />
+                <span>Customer & Contact Information</span>
+              </span>
+              <span className="text-[10px] text-slate-400">All fields fully editable</span>
+            </div>
+
+            {/* Quick Auto-fill from Leads or Registered Customers */}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                Auto-fill from Sales Lead or Customer (Optional)
+              </label>
+              <select
+                value={selectedEntityVal}
+                onChange={(e) => handleEntitySelect(e.target.value)}
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/15 transition"
+              >
+                <option value="">-- Select from Leads or Customers to Auto-fill --</option>
+                <optgroup label="Sales Leads">
+                  {availableLeads.map((l) => (
                     <option key={`lead:${l.id}`} value={`lead:${l.id}`}>
                       [Lead] {l.leadNo ? `${l.leadNo} - ` : ''}{l.companyName} ({l.contactPerson || 'Contact'})
                     </option>
-                  ))
-                )}
-              </optgroup>
-              <optgroup label="Existing Customers">
-                {customers.map((c) => (
-                  <option key={`cust:${c.id}`} value={`cust:${c.id}`}>
-                    [Customer] {c.customerCode ? `${c.customerCode} - ` : ''}{c.companyName} ({c.contactPerson || 'Account'})
-                  </option>
-                ))}
-              </optgroup>
-            </select>
+                  ))}
+                </optgroup>
+                <optgroup label="Registered Customers">
+                  {customers.map((c) => (
+                    <option key={`cust:${c.id}`} value={`cust:${c.id}`}>
+                      [Customer] {c.customerCode ? `${c.customerCode} - ` : ''}{c.companyName} ({c.contactPerson || 'Account'})
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
+            </div>
 
-            {/* Selected Lead / Customer Summary Chip */}
-            {customerName && (
-              <div className="mt-2 p-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-[#211B17]">{customerName}</span>
-                  {contactPerson && (
-                    <span className="text-[11px] text-[#70665F]">({contactPerson})</span>
-                  )}
-                </div>
-                {contactMobile && (
-                  <span className="text-[11px] font-mono text-[#8C5229] font-semibold">{contactMobile}</span>
-                )}
+            {/* Explicit Editable Fields */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Customer / Company Name <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="e.g. Nirghos Chemicals Pvt Ltd"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600"
+                />
               </div>
-            )}
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Contact Person
+                </label>
+                <input
+                  type="text"
+                  value={contactPerson}
+                  onChange={(e) => setContactPerson(e.target.value)}
+                  placeholder="e.g. Ramesh Shah"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Mobile / Phone Number
+                </label>
+                <input
+                  type="text"
+                  value={contactMobile}
+                  onChange={(e) => setContactMobile(e.target.value)}
+                  placeholder="e.g. +91 98765 43210"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-mono text-slate-800 focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={customerEmail}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
+                  placeholder="e.g. ramesh@nirghos.com"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-mono text-slate-800 focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600"
+                />
+              </div>
+            </div>
           </div>
 
-          {/* 2. Equipment / Product Name & Quantity */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-2">
-              <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
-                <Layers className="w-3.5 h-3.5 text-[#8C5229]" />
-                <span>Equipment / Product Name <span className="text-rose-500">*</span></span>
-              </label>
-              <input
-                type="text"
-                required
-                value={machineProduct}
-                onChange={(e) => setMachineProduct(e.target.value)}
-                placeholder="e.g. Stainless Steel SS316 Reaction Vessel"
-                className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-[#75401F]"
-              />
+          {/* Section 2: Product & Scope Details */}
+          <div className="p-4 bg-purple-50/40 border border-purple-200/70 rounded-xl space-y-4">
+            <div className="border-b border-purple-200/60 pb-2.5">
+              <span className="text-xs font-bold text-purple-900 uppercase tracking-wider flex items-center gap-1.5">
+                <Layers className="w-4 h-4 text-purple-700" />
+                <span>Equipment & Technical Scope</span>
+              </span>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3.5">
+              <div className="md:col-span-2">
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Equipment / Product Name <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={machineProduct}
+                  onChange={(e) => setMachineProduct(e.target.value)}
+                  placeholder="e.g. Belt Conveyor System / Storage Tank"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-purple-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Quantity <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  required
+                  value={quantity}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '') setQuantity('');
+                    else {
+                      const n = parseInt(val, 10);
+                      setQuantity(isNaN(n) ? '' : n);
+                    }
+                  }}
+                  placeholder="e.g. 1"
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-purple-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Status
+                </label>
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value as any)}
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-purple-600"
+                >
+                  <option value="new">New / Fresh</option>
+                  <option value="under_review">Under Review</option>
+                  <option value="technical_review">Technical Review</option>
+                  <option value="quotation_ready">Quotation Ready</option>
+                  <option value="quotation_sent">Quotation Sent</option>
+                  <option value="converted">Converted</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Technical Specifications & Scope Description */}
             <div>
-              <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-                Quantity <span className="text-rose-500">*</span>
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                Technical Specifications & Scope Description <span className="text-rose-500">*</span>
               </label>
-              <input
-                type="number"
-                min={1}
+              <textarea
+                rows={6}
                 required
-                value={quantity}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === '') setQuantity('');
-                  else {
-                    const n = parseInt(val, 10);
-                    setQuantity(isNaN(n) ? '' : n);
-                  }
-                }}
-                placeholder="Enter quantity"
-                className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-[#75401F]"
+                value={requirement}
+                onChange={(e) => setRequirement(e.target.value)}
+                placeholder="Enter comprehensive technical specifications, belt width, thickness, capacity, operating speed, material grade, design standards, testing criteria..."
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-purple-600 leading-relaxed"
               />
             </div>
-          </div>
 
-          {/* 3. Technical Specifications & Scope Description */}
-          <div>
-            <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
-              Technical Specifications & Scope Description <span className="text-rose-500">*</span>
-            </label>
-            <textarea
-              rows={4}
-              required
-              value={requirement}
-              onChange={(e) => setRequirement(e.target.value)}
-              placeholder="Enter detailed technical specs: capacity, pressure rating, material grade, design standards, test requirements..."
-              className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-[#75401F] leading-relaxed"
-            />
-          </div>
+            {/* Target Delivery Date & Assigned Engineer */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-purple-700" />
+                  <span>Target Delivery Date</span>
+                </label>
+                <input
+                  type="date"
+                  value={expectedDelivery}
+                  onChange={(e) => setExpectedDelivery(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-mono text-slate-900 focus:outline-none focus:border-purple-600"
+                />
+              </div>
 
-          {/* 4. Target Delivery Date */}
-          <div>
-            <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5 text-[#8C5229]" />
-              <span>Target Delivery Date</span>
-            </label>
-            <input
-              type="date"
-              value={expectedDelivery}
-              onChange={(e) => setExpectedDelivery(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-mono text-[#211B17] focus:outline-none focus:border-[#75401F]"
-            />
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
+                  <User className="w-3.5 h-3.5 text-purple-700" />
+                  <span>Assigned Sales / Technical Engineer</span>
+                </label>
+                <select
+                  value={assignedPersonId}
+                  onChange={(e) => setAssignedPersonId(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-purple-600"
+                >
+                  {allStaff.map((staff) => (
+                    <option key={staff.id} value={staff.id}>
+                      {staff.name || `${staff.firstName || ''} ${staff.lastName || ''}`.trim() || staff.id} ({staff.designation || staff.role || 'Sales'})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
 
           {/* Form Actions */}
