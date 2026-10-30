@@ -37,6 +37,8 @@ import {
   X,
   CheckSquare,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Layers,
   CheckCheck,
   RefreshCw,
@@ -709,6 +711,28 @@ export default function WorkerDailyRoutinePage() {
     return selectedDate;
   }, [selectedDate]);
 
+  // Format Date for UI 2 Header (e.g. "Fri, 30 Oct, 2026")
+  const formattedFriendlyDate = useMemo(() => {
+    if (!selectedDate) return '';
+    try {
+      const [y, m, d] = selectedDate.split('-').map(Number);
+      const dateObj = new Date(y, m - 1, d);
+      return dateObj.toLocaleDateString('en-GB', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+    } catch {
+      return selectedDate;
+    }
+  }, [selectedDate]);
+
+  // Clean supervisor display name (e.g. "Mahesh Parmar")
+  const supervisorDisplayName = useMemo(() => {
+    return supervisorName.replace(/\s*\([^)]*\)/, '');
+  }, [supervisorName]);
+
   // Days in selected month for Monthly Grid
   const daysInMonthList = useMemo(() => {
     const [year, month] = selectedMonth.split('-').map(Number);
@@ -748,390 +772,339 @@ export default function WorkerDailyRoutinePage() {
         </div>
       )}
 
-      {/* TOP HEADER & NAVIGATION */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-0.5">
-        <div>
-          <div className="text-[10px] font-bold tracking-wider uppercase text-slate-400">
-            DASHBOARD / PRODUCTION &amp; SHOPFLOOR / DAILY WORK ROUTING
-          </div>
-          <h1 className="text-xl sm:text-2xl font-black text-[#211B17] tracking-tight flex items-center gap-2">
-            <ClipboardList className="w-6 h-6 text-amber-600" />
-            <span>Daily Work Routine &amp; Attendance</span>
-            <span className="text-[11px] px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 font-bold border border-emerald-300 font-mono flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
-              <span>LIVE DATABASE: {workers.length} Workers</span>
-            </span>
-          </h1>
-          <p className="text-xs text-slate-500">
-            Directly synced to backend database API. Complete Create, Read, Update, and Delete capabilities for shopfloor operations.
-          </p>
+      {/* ========================================================================= */}
+      {/* UI 2 HEADER: CLEAN BREADCRUMB, TITLE, TABS & ADD WORKER                   */}
+      {/* ========================================================================= */}
+      <div className="space-y-1">
+        {/* Breadcrumb */}
+        <div className="text-xs text-slate-500 font-medium">
+          Dashboard / Production and shopfloor / Daily work routine
         </div>
 
-        {/* Action Buttons & Tabs */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Refresh Button */}
-          <button
-            type="button"
-            onClick={() => {
-              fetchWorkers();
-              if (activeTab === 'daily') fetchRoutinesForDate(selectedDate);
-              else fetchRoutinesForMonth(selectedMonth);
-              showToast('Data refreshed from database.');
-            }}
-            disabled={isRefreshing}
-            className="p-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl text-xs transition cursor-pointer disabled:opacity-50"
-            title="Refresh from Database"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-amber-600' : ''}`} />
-          </button>
-
-          {/* View Mode Tabs */}
-          <div className="flex items-center p-1 bg-slate-200/70 rounded-xl border border-slate-300/60">
-            <button
-              type="button"
-              onClick={() => setActiveTab('daily')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-                activeTab === 'daily'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <ClipboardList className="w-3.5 h-3.5 text-amber-600" />
-              <span>Daily Log</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('monthly')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-                activeTab === 'monthly'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <CalendarRange className="w-3.5 h-3.5 text-blue-600" />
-              <span>Monthly Attendance Grid</span>
-            </button>
+        {/* Title Row + Actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-0.5">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+              Daily work routine
+            </h1>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-slate-200 text-xs font-medium text-slate-600 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span>Synced · {workers.length} workers</span>
+            </div>
           </div>
 
-          <button
-            onClick={() => printContent('printable-worker-routine-sheet', { title: `Worker_Daily_Routine_${formattedDisplayDate}` })}
-            className="px-3 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer"
-            title="Print Physical Daily Sheet"
-          >
-            <Printer className="w-3.5 h-3.5 text-slate-600" />
-            <span className="hidden md:inline">Print Sheet</span>
-          </button>
+          {/* Action Buttons & View Tabs */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* View Mode Segmented Control */}
+            <div className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200/80">
+              <button
+                type="button"
+                onClick={() => setActiveTab('daily')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  activeTab === 'daily'
+                    ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/60'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Daily log
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('monthly')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  activeTab === 'monthly'
+                    ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/60'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Monthly grid
+              </button>
+            </div>
 
-          <button
-            onClick={handleExportCSV}
-            className="px-3 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer"
-            title="Export CSV"
-          >
-            <Download className="w-3.5 h-3.5 text-slate-600" />
-            <span className="hidden md:inline">Export</span>
-          </button>
+            {/* Print Sheet */}
+            <button
+              type="button"
+              onClick={() => printContent('printable-worker-routine-sheet', { title: `Worker_Daily_Routine_${formattedDisplayDate}` })}
+              className="px-3.5 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-xs transition shadow-2xs cursor-pointer"
+            >
+              Print
+            </button>
 
-          <button
-            onClick={() => setShowAddWorkerModal(true)}
-            className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>+ Add Worker</span>
-          </button>
+            {/* Export CSV */}
+            <button
+              type="button"
+              onClick={handleExportCSV}
+              className="px-3.5 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-xs transition shadow-2xs cursor-pointer"
+            >
+              Export
+            </button>
+
+            {/* Add Worker Solid Primary Button */}
+            <button
+              type="button"
+              onClick={() => setShowAddWorkerModal(true)}
+              className="px-4 py-1.5 bg-[#204354] hover:bg-[#183442] active:bg-[#122733] text-white font-semibold rounded-xl text-xs transition shadow-2xs flex items-center gap-1 cursor-pointer"
+            >
+              Add worker
+            </button>
+          </div>
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* 1. DATE CONTROLLER & SHEET HEADER STRIP                                  */}
+      {/* UI 2: DATE CONTROLLER & SUPERVISOR NAVIGATION STRIP                       */}
       {/* ========================================================================= */}
-      <div className="bg-[#211B17] text-white px-4 py-2.5 rounded-2xl shadow-md border border-[#EBE3DB]/20 flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-amber-500/20 border border-amber-400/30 rounded-xl">
-            <Factory className="w-5 h-5 text-amber-400" />
-          </div>
-          <div>
-            <div className="text-[10px] uppercase tracking-widest text-amber-400 font-mono font-bold">
-              SHOPFLOOR DAILY OPERATIONS RECORD (API / DB)
-            </div>
-            <div className="text-sm font-black tracking-wider uppercase text-white font-mono">
-              WORK PROFILE DAILY ROUTINE
-            </div>
-            <div className="text-[11px] text-slate-300 flex items-center gap-1.5">
-              <span>Supervisor:</span>
-              <strong className="text-amber-300">{supervisorName}</strong>
-            </div>
-          </div>
-        </div>
-
-        {/* Date Selector Navigation Bar */}
+      <div className="bg-[#EAF1F6] px-4 py-2.5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-[#D5E3EE]">
         {activeTab === 'daily' ? (
-          <div className="flex flex-wrap items-center gap-1.5 bg-white/10 p-1.5 rounded-xl border border-white/15">
+          <div className="flex items-center gap-2">
+            {/* Prev Day */}
             <button
+              type="button"
               onClick={handlePrevDay}
-              className="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+              className="w-8 h-8 flex items-center justify-center bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg shadow-2xs transition cursor-pointer"
               title="Previous Day"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ChevronLeft className="w-4 h-4" />
             </button>
 
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white text-slate-900 rounded-lg font-mono font-black text-xs shadow-inner">
-              <Calendar className="w-3.5 h-3.5 text-amber-600" />
-              <span>DATE: {formattedDisplayDate}</span>
-            </div>
-
-            <div className="w-32">
-              <ERPDatePicker
+            {/* Formatted Date with integrated Date Picker */}
+            <div className="relative px-3 py-1 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg text-slate-900 font-bold text-xs sm:text-sm shadow-2xs transition cursor-pointer flex items-center gap-1.5">
+              <span>{formattedFriendlyDate}</span>
+              <input
+                type="date"
                 value={selectedDate}
-                onChange={(val) => val && setSelectedDate(val)}
-                size="sm"
-                buttonClassName="bg-white/20 text-white border-white/20 hover:bg-white/30 text-xs py-1"
+                onChange={(e) => e.target.value && setSelectedDate(e.target.value)}
+                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                title="Click to select date"
               />
             </div>
 
+            {/* Next Day */}
             <button
+              type="button"
               onClick={handleNextDay}
-              className="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+              className="w-8 h-8 flex items-center justify-center bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg shadow-2xs transition cursor-pointer"
               title="Next Day"
             >
-              <ArrowRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4" />
             </button>
 
+            {/* Today */}
             <button
+              type="button"
               onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
-              className="px-2 py-1 text-[11px] font-bold bg-amber-500 hover:bg-amber-600 text-[#211B17] rounded-lg transition cursor-pointer"
+              className="px-3.5 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg text-xs shadow-2xs transition cursor-pointer"
             >
               Today
             </button>
           </div>
         ) : (
-          /* Monthly Selector */
-          <div className="flex items-center gap-2 bg-white/10 p-1.5 rounded-xl border border-white/15">
-            <CalendarRange className="w-4 h-4 text-amber-400 ml-1" />
-            <span className="text-xs font-semibold text-slate-200">Month:</span>
+          <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs">
+            <CalendarRange className="w-4 h-4 text-blue-600" />
+            <span className="text-xs font-semibold text-slate-600">Month:</span>
             <input
               type="month"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="bg-white text-slate-900 text-xs font-bold px-2 py-1 rounded-lg font-mono"
+              className="bg-transparent text-slate-900 text-xs font-bold font-mono focus:outline-none"
             />
           </div>
         )}
+
+        <div className="text-xs text-slate-600 font-medium">
+          Supervisor: <strong className="font-bold text-slate-900">{supervisorDisplayName}</strong>
+        </div>
       </div>
 
       {activeTab === 'daily' ? (
         <>
           {/* ========================================================================= */}
-          {/* 2. REPLACED 5 BULKY CARDS WITH 1 SLEEK UNIFIED SUMMARY & FILTER STRIP     */}
+          {/* UI 2: SUMMARY & METRICS CARD (STATS, FILTERS, & BULK ACTIONS)             */}
           {/* ========================================================================= */}
-          <div className="bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs">
-            {/* Left: Overall Attendance Summary & Mini Progress */}
-            <div className="flex items-center gap-4 flex-wrap sm:flex-nowrap">
-              <div>
-                <div className="text-slate-800 font-extrabold text-sm flex items-center gap-1.5">
-                  <span className="text-emerald-700 font-black">{dayMetrics.activeWorking} of {dayMetrics.total}</span>
-                  <span className="text-slate-500 font-medium">Present today</span>
-                </div>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <div className="w-28 h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
-                    <div
-                      className="h-full bg-emerald-500 transition-all duration-300"
-                      style={{ width: `${dayMetrics.progressPercent}%` }}
-                    />
-                  </div>
-                  <span className="text-[10px] text-slate-500 font-semibold font-mono">
-                    {dayMetrics.verified}/{dayMetrics.activeWorking} Verified ({dayMetrics.progressPercent}%)
-                  </span>
-                </div>
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs p-4 sm:p-5 space-y-4">
+            {/* Top Metric & Progress Bar */}
+            <div className="space-y-1.5">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                  {dayMetrics.activeWorking} of {dayMetrics.total}
+                </span>
+                <span className="text-sm font-semibold text-slate-600">present</span>
               </div>
-
-              <div className="h-7 w-px bg-slate-200 hidden sm:block" />
-
-              {/* Middle: Interactive Filter Buttons with Count Badges */}
-              <div className="flex flex-wrap items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setStatusFilter('all')}
-                  className={`px-2.5 py-1 rounded-lg font-bold text-xs transition cursor-pointer flex items-center gap-1 ${
-                    statusFilter === 'all'
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
-                >
-                  <span>All</span>
-                  <span className="px-1.5 py-0.2 bg-white/20 rounded-full text-[10px] font-mono">
-                    {dayMetrics.total}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setStatusFilter(statusFilter === 'Absent' ? 'all' : 'Absent')}
-                  className={`px-2.5 py-1 rounded-lg font-bold text-xs transition cursor-pointer flex items-center gap-1 border ${
-                    statusFilter === 'Absent'
-                      ? 'bg-rose-600 text-white border-rose-700'
-                      : 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100'
-                  }`}
-                  title="Click to filter Absent workers"
-                >
-                  <UserX className="w-3 h-3" />
-                  <span>Absent</span>
-                  <span className="px-1.5 py-0.2 bg-rose-200 text-rose-900 rounded-full text-[10px] font-mono font-black">
-                    {dayMetrics.absent}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setStatusFilter(statusFilter === 'unlogged' ? 'all' : 'unlogged')}
-                  className={`px-2.5 py-1 rounded-lg font-bold text-xs transition cursor-pointer flex items-center gap-1 border ${
-                    statusFilter === 'unlogged'
-                      ? 'bg-amber-600 text-white border-amber-700'
-                      : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
-                  }`}
-                  title="Click to filter Present workers with no work details logged"
-                >
-                  <AlertCircle className="w-3 h-3" />
-                  <span>Work Not Logged</span>
-                  <span className="px-1.5 py-0.2 bg-amber-200 text-amber-900 rounded-full text-[10px] font-mono font-black">
-                    {dayMetrics.workNotLogged}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setStatusFilter(statusFilter === 'unverified' ? 'all' : 'unverified')}
-                  className={`px-2.5 py-1 rounded-lg font-bold text-xs transition cursor-pointer flex items-center gap-1 border ${
-                    statusFilter === 'unverified'
-                      ? 'bg-blue-600 text-white border-blue-700'
-                      : 'bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100'
-                  }`}
-                  title="Click to filter rows needing supervisor verification"
-                >
-                  <Clock className="w-3 h-3" />
-                  <span>Needs Verification</span>
-                  <span className="px-1.5 py-0.2 bg-blue-200 text-blue-900 rounded-full text-[10px] font-mono font-black">
-                    {dayMetrics.notVerified}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setStatusFilter(statusFilter === 'verified' ? 'all' : 'verified')}
-                  className={`px-2.5 py-1 rounded-lg font-bold text-xs transition cursor-pointer flex items-center gap-1 border ${
-                    statusFilter === 'verified'
-                      ? 'bg-emerald-700 text-white border-emerald-800'
-                      : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
-                  }`}
-                  title="Click to filter verified rows"
-                >
-                  <CheckCheck className="w-3 h-3" />
-                  <span>Verified</span>
-                  <span className="px-1.5 py-0.2 bg-emerald-200 text-emerald-900 rounded-full text-[10px] font-mono font-black">
-                    {dayMetrics.verified}
-                  </span>
-                </button>
+              <div className="w-full max-w-xl h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
+                <div
+                  className="h-full bg-emerald-600 rounded-full transition-all duration-300"
+                  style={{ width: `${dayMetrics.progressPercent}%` }}
+                />
+              </div>
+              <div className="text-xs text-slate-500 font-medium">
+                {dayMetrics.verified} of {dayMetrics.activeWorking} verified
               </div>
             </div>
 
-            {/* Right: Cloud Auto-Save Status & Quick Smart Bulk Actions */}
-            <div className="flex items-center gap-2.5 ml-auto">
-              {/* Saving Indicator */}
-              <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-500">
-                {saveStatus === 'saving' ? (
-                  <>
-                    <Loader2 className="w-3 h-3 text-amber-600 animate-spin" />
-                    <span className="text-amber-600 font-mono">Syncing to DB...</span>
-                  </>
-                ) : saveStatus === 'error' ? (
-                  <>
-                    <XCircle className="w-3.5 h-3.5 text-rose-500" />
-                    <span className="text-rose-600 font-mono">Save error</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="text-emerald-700 font-mono">Database Synced</span>
-                  </>
-                )}
+            {/* Filter Pills Row */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* All */}
+              <button
+                type="button"
+                onClick={() => setStatusFilter('all')}
+                className={`px-3.5 py-1.5 rounded-full text-xs transition cursor-pointer flex items-center gap-1.5 ${
+                  statusFilter === 'all'
+                    ? 'bg-white border-2 border-slate-800 text-slate-900 font-bold shadow-2xs'
+                    : 'bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-medium'
+                }`}
+              >
+                <span>All</span>
+                <span className="font-bold text-xs">{dayMetrics.total}</span>
+              </button>
+
+              {/* Work not logged */}
+              <button
+                type="button"
+                onClick={() => setStatusFilter(statusFilter === 'unlogged' ? 'all' : 'unlogged')}
+                className={`px-3.5 py-1.5 rounded-full text-xs transition cursor-pointer flex items-center gap-1.5 ${
+                  statusFilter === 'unlogged'
+                    ? 'bg-amber-100 border-2 border-amber-600 text-amber-950 font-bold shadow-2xs'
+                    : 'bg-amber-50/80 hover:bg-amber-100 border border-amber-200 text-amber-900 font-medium'
+                }`}
+              >
+                <span>Work not logged</span>
+                <span className="px-1.5 py-0.2 bg-amber-200/80 text-amber-950 rounded-full text-xs font-bold">
+                  {dayMetrics.workNotLogged}
+                </span>
+              </button>
+
+              {/* Needs verification */}
+              <button
+                type="button"
+                onClick={() => setStatusFilter(statusFilter === 'unverified' ? 'all' : 'unverified')}
+                className={`px-3.5 py-1.5 rounded-full text-xs transition cursor-pointer flex items-center gap-1.5 ${
+                  statusFilter === 'unverified'
+                    ? 'bg-blue-100 border-2 border-blue-600 text-blue-950 font-bold shadow-2xs'
+                    : 'bg-blue-50/80 hover:bg-blue-100 border border-blue-200 text-blue-900 font-medium'
+                }`}
+              >
+                <span>Needs verification</span>
+                <span className="px-1.5 py-0.2 bg-blue-200/80 text-blue-950 rounded-full text-xs font-bold">
+                  {dayMetrics.notVerified}
+                </span>
+              </button>
+
+              {/* Verified */}
+              <button
+                type="button"
+                onClick={() => setStatusFilter(statusFilter === 'verified' ? 'all' : 'verified')}
+                className={`px-3.5 py-1.5 rounded-full text-xs transition cursor-pointer flex items-center gap-1.5 ${
+                  statusFilter === 'verified'
+                    ? 'bg-emerald-100 border-2 border-emerald-600 text-emerald-950 font-bold shadow-2xs'
+                    : 'bg-emerald-50/80 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 font-medium'
+                }`}
+              >
+                <span>Verified</span>
+                <span className="px-1.5 py-0.2 bg-emerald-200/80 text-emerald-950 rounded-full text-xs font-bold">
+                  {dayMetrics.verified}
+                </span>
+              </button>
+
+              {/* Absent */}
+              <button
+                type="button"
+                onClick={() => setStatusFilter(statusFilter === 'Absent' ? 'all' : 'Absent')}
+                className={`px-3.5 py-1.5 rounded-full text-xs transition cursor-pointer flex items-center gap-1.5 ${
+                  statusFilter === 'Absent'
+                    ? 'bg-rose-100 border-2 border-rose-600 text-rose-950 font-bold shadow-2xs'
+                    : 'bg-rose-50/80 hover:bg-rose-100 border border-rose-200 text-rose-900 font-medium'
+                }`}
+              >
+                <span>Absent</span>
+                <span className="px-1.5 py-0.2 bg-rose-200/80 text-rose-950 rounded-full text-xs font-bold">
+                  {dayMetrics.absent}
+                </span>
+              </button>
+            </div>
+
+            {/* Bottom Actions Row */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleMarkAllPresent}
+                  className="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-xs border border-slate-300 shadow-2xs transition cursor-pointer"
+                >
+                  Mark all present
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleVerifyCompletedRows}
+                  className="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-xs border border-slate-300 shadow-2xs transition cursor-pointer"
+                >
+                  Verify completed rows
+                </button>
               </div>
 
-              <div className="h-5 w-px bg-slate-200" />
+              <div className="flex items-center gap-3">
+                {/* Sync Status Badge */}
+                <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+                  {saveStatus === 'saving' ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 text-amber-600 animate-spin" />
+                      <span className="text-amber-600">Syncing...</span>
+                    </>
+                  ) : saveStatus === 'error' ? (
+                    <>
+                      <XCircle className="w-3.5 h-3.5 text-rose-500" />
+                      <span className="text-rose-600">Save error</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <span className="text-slate-600">Synced</span>
+                    </>
+                  )}
+                </div>
 
-              <button
-                type="button"
-                onClick={handleMarkAllPresent}
-                className="px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-300 font-bold rounded-lg text-xs transition cursor-pointer flex items-center gap-1"
-                title="Mark all workers Present in database"
-              >
-                <UserCheck className="w-3 h-3 text-emerald-600" />
-                <span>Mark All Present</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleVerifyCompletedRows}
-                className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-300 font-bold rounded-lg text-xs transition cursor-pointer flex items-center gap-1 shadow-xs"
-                title="Verify completed rows in database (skips rows with no work details)"
-              >
-                <Check className="w-3 h-3" />
-                <span>Verify Completed Rows</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleSaveAll}
-                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold rounded-lg text-xs transition cursor-pointer flex items-center gap-1 shadow-xs"
-                title="Save all worker rows to database"
-              >
-                <Save className="w-3 h-3" />
-                <span>Save All</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowAddWorkerModal(true)}
-                className="px-3 py-1 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white font-bold rounded-lg text-xs transition cursor-pointer flex items-center gap-1 shadow-xs"
-                title="Add New Worker to Database"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>+ Add Worker</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={handleSaveAll}
+                  className="px-6 py-2 bg-[#204354] hover:bg-[#183442] active:bg-[#132a35] text-white font-bold rounded-xl text-xs shadow-2xs transition cursor-pointer"
+                >
+                  Save all
+                </button>
+              </div>
             </div>
           </div>
 
           {/* ========================================================================= */}
-          {/* 3. SEARCH BAR + SINGLE GLOBAL QUICK PRESETS BAR                           */}
+          {/* UI 2: SEARCH ROW & QUICK PRESET CHIPS STRIP                               */}
           {/* ========================================================================= */}
-          <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex flex-col md:flex-row items-center gap-3 text-xs">
-            {/* Search Input */}
-            <div className="relative w-full md:w-72 shrink-0">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search worker, trade, or Job No..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-8 pr-3 py-1 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-amber-500 text-slate-900"
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              )}
-            </div>
+          <div className="space-y-2">
+            {/* Search Input + Integrated Trade Selector */}
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search worker, trade or job no."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-8 py-2 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#204354]"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
 
-            {/* Trade Selector */}
-            <div className="flex items-center gap-1 shrink-0">
-              <span className="text-slate-500 font-bold text-[11px]">Trade:</span>
               <select
                 value={tradeFilter}
                 onChange={(e) => setTradeFilter(e.target.value)}
-                className="px-2 py-1 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-amber-500"
+                className="px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#204354] shrink-0 cursor-pointer"
               >
-                <option value="all">All Trades</option>
+                <option value="all">All trades</option>
                 <option value="Fitter">Fitter / Fabricator</option>
                 <option value="Welder">Welder (Argon/MIG/Arc)</option>
                 <option value="Plasma">Plasma / Laser / Cutting</option>
@@ -1141,24 +1114,20 @@ export default function WorkerDailyRoutinePage() {
               </select>
             </div>
 
-            {/* Single Horizontal Presets Toolbar (Replaces repeated chips in every row!) */}
-            <div className="flex items-center gap-1.5 overflow-x-auto w-full py-0.5 border-t md:border-t-0 md:border-l border-slate-200 pl-0 md:pl-3">
-              <div className="flex items-center gap-1 text-[10px] text-amber-900 font-bold whitespace-nowrap bg-amber-100/80 px-2 py-0.5 rounded border border-amber-300/80">
-                <Sparkles className="w-3 h-3 text-amber-600" />
-                <span>Preset for:</span>
-                <span className="font-mono text-slate-900 max-w-[90px] truncate" title={activeWorkerName}>
-                  {activeWorkerName}
-                </span>
-              </div>
+            {/* Presets Horizontal Strip */}
+            <div className="flex items-center gap-1.5 overflow-x-auto py-1 text-xs">
+              <span className="text-slate-500 text-xs shrink-0 font-medium">
+                Adding to <strong className="text-slate-900 font-bold">{activeWorkerName}:</strong>
+              </span>
               {WORK_QUICK_PRESETS.map((preset, pIdx) => (
                 <button
                   key={pIdx}
                   type="button"
                   onClick={() => handleApplyPreset(preset)}
-                  className="px-2 py-0.5 bg-white hover:bg-amber-50 text-slate-700 hover:text-amber-900 border border-slate-300 hover:border-amber-300 rounded text-[11px] font-medium whitespace-nowrap transition cursor-pointer shrink-0 shadow-2xs"
-                  title={`Click to append to ${activeWorkerName}`}
+                  className="px-3 py-1 bg-amber-50/80 hover:bg-amber-100 text-amber-900 border border-amber-200/80 rounded-full text-xs font-medium whitespace-nowrap transition cursor-pointer shrink-0 shadow-2xs"
+                  title={`Click to add "${preset}" to ${activeWorkerName}`}
                 >
-                  + {preset}
+                  {preset}
                 </button>
               ))}
             </div>
