@@ -101,6 +101,8 @@ export default function WorkerDailyRoutinePage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
+  const [savingWorkerId, setSavingWorkerId] = useState<string | null>(null);
+  const [savedWorkerId, setSavedWorkerId] = useState<string | null>(null);
 
   // Master Workers List (100% from API / Database)
   const [workers, setWorkers] = useState<WorkerMaster[]>([]);
@@ -408,6 +410,56 @@ export default function WorkerDailyRoutinePage() {
     } catch (err: any) {
       setSaveStatus('error');
       showToast('Failed to verify rows in database', 'error');
+    }
+  };
+
+  // Save specific worker's row immediately to database API
+  const handleSaveRow = async (workerId: string) => {
+    const worker = workers.find((w) => w.id === workerId);
+    if (!worker) return;
+
+    const entry = getOrCreateEntry(worker);
+    setSavingWorkerId(workerId);
+    setSaveStatus('saving');
+
+    try {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      delete pendingUpdatesRef.current[workerId];
+
+      await api.production.workerRoutines.bulkUpsert([entry]);
+      setSaveStatus('saved');
+      setSavedWorkerId(workerId);
+      showToast(`Data saved successfully for ${worker.workerName}`, 'success');
+
+      setTimeout(() => {
+        setSavedWorkerId((prev) => (prev === workerId ? null : prev));
+      }, 2000);
+    } catch (err: any) {
+      console.error('Failed to save worker routine row:', err);
+      setSaveStatus('error');
+      showToast(`Failed to save data for ${worker.workerName}`, 'error');
+    } finally {
+      setSavingWorkerId(null);
+    }
+  };
+
+  // Save all worker rows immediately to database API
+  const handleSaveAll = async () => {
+    const entriesToSave = workers.map((w) => getOrCreateEntry(w));
+    if (entriesToSave.length === 0) return;
+
+    setSaveStatus('saving');
+    try {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      pendingUpdatesRef.current = {};
+
+      await api.production.workerRoutines.bulkUpsert(entriesToSave);
+      setSaveStatus('saved');
+      showToast(`All ${entriesToSave.length} worker routine records saved to database!`, 'success');
+    } catch (err: any) {
+      console.error('Failed to save all routines to database:', err);
+      setSaveStatus('error');
+      showToast('Failed to save all records to database', 'error');
     }
   };
 
@@ -1005,6 +1057,16 @@ export default function WorkerDailyRoutinePage() {
                 <Check className="w-3 h-3" />
                 <span>Verify Completed Rows</span>
               </button>
+
+              <button
+                type="button"
+                onClick={handleSaveAll}
+                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold rounded-lg text-xs transition cursor-pointer flex items-center gap-1 shadow-xs"
+                title="Save all worker rows to database"
+              >
+                <Save className="w-3 h-3" />
+                <span>Save All Data</span>
+              </button>
             </div>
           </div>
 
@@ -1113,7 +1175,7 @@ export default function WorkerDailyRoutinePage() {
                     <th className="py-2 px-2 w-24 text-center print:hidden border-r border-slate-200">
                       STATUS
                     </th>
-                    <th className="py-2 px-1.5 w-16 text-center print:hidden">
+                    <th className="py-2 px-2 min-w-[155px] w-44 text-center print:hidden">
                       ACTIONS
                     </th>
                   </tr>
@@ -1394,9 +1456,44 @@ export default function WorkerDailyRoutinePage() {
                             )}
                           </td>
 
-                          {/* 8. ROW ACTIONS (Edit / Clear / Delete Worker) */}
-                          <td className="py-1 px-1 text-center print:hidden">
-                            <div className="flex items-center justify-center gap-1">
+                          {/* 8. ROW ACTIONS (Save Data / Edit / Reset / Delete Worker) */}
+                          <td className="py-1 px-2 text-center print:hidden">
+                            <div className="flex items-center justify-center gap-1.5">
+                              {/* Prominent Save Data button */}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSaveRow(worker.id);
+                                }}
+                                disabled={savingWorkerId === worker.id}
+                                className={`px-2.5 py-1 rounded font-bold text-[11px] transition cursor-pointer flex items-center justify-center gap-1 shadow-2xs whitespace-nowrap border ${
+                                  savedWorkerId === worker.id
+                                    ? 'bg-emerald-700 text-white border-emerald-800'
+                                    : savingWorkerId === worker.id
+                                    ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-wait'
+                                    : 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white border-emerald-700'
+                                }`}
+                                title={`Save ${worker.workerName}'s routine data to database`}
+                              >
+                                {savingWorkerId === worker.id ? (
+                                  <>
+                                    <Loader2 className="w-3 h-3 animate-spin shrink-0" />
+                                    <span>Saving...</span>
+                                  </>
+                                ) : savedWorkerId === worker.id ? (
+                                  <>
+                                    <Check className="w-3 h-3 stroke-[2.5] shrink-0 text-white" />
+                                    <span>Saved!</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Save className="w-3 h-3 shrink-0" />
+                                    <span>Save Data</span>
+                                  </>
+                                )}
+                              </button>
+
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -1406,7 +1503,7 @@ export default function WorkerDailyRoutinePage() {
                                 className="p-1 text-slate-400 hover:text-amber-700 hover:bg-amber-50 rounded transition"
                                 title="Edit Worker Details in Database"
                               >
-                                <Edit2 className="w-3 h-3" />
+                                <Edit2 className="w-3.5 h-3.5" />
                               </button>
 
                               <button
@@ -1418,7 +1515,7 @@ export default function WorkerDailyRoutinePage() {
                                 className="p-1 text-slate-400 hover:text-rose-700 hover:bg-rose-50 rounded transition"
                                 title="Reset / Clear today's routine for this worker"
                               >
-                                <RotateCcw className="w-3 h-3" />
+                                <RotateCcw className="w-3.5 h-3.5" />
                               </button>
 
                               <button
@@ -1430,7 +1527,7 @@ export default function WorkerDailyRoutinePage() {
                                 className="p-1 text-slate-400 hover:text-rose-700 hover:bg-rose-50 rounded transition"
                                 title="Delete Worker from Master"
                               >
-                                <Trash2 className="w-3 h-3" />
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
                           </td>
