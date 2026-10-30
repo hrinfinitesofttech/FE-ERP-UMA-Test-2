@@ -549,7 +549,7 @@ export interface WorkerDailyRoutineEntry {
   slNo: number;
   workerName: string;
   trade: string; // T
-  shiftStatus: 'Present' | 'Absent' | 'Half Day'; // S
+  shiftStatus: 'Present' | 'Absent' | 'Half Day' | 'Weekly Off'; // S
   shiftType?: 'General' | 'Shift 1' | 'Shift 2' | 'Night';
   jobOrProjectNo?: string; // e.g. 'UTF-26-138'
   workDetails: string; // WORKER column in physical sheet

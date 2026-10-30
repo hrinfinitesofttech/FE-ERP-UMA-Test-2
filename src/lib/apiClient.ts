@@ -1677,6 +1677,36 @@ export const api = {
       delete: (id: string) => request<any>(`/packing-orders/${id}/`, { method: 'DELETE' }),
       markInspected: (id: string) => request<any>(`/packing-orders/${id}/mark-inspected/`, { method: 'POST' }),
     },
+    workers: {
+      list: (params?: { isActive?: boolean; trade?: string; search?: string }) => {
+        const q = new URLSearchParams();
+        if (params?.isActive !== undefined) q.append('is_active', String(params.isActive));
+        if (params?.trade) q.append('trade', params.trade);
+        if (params?.search) q.append('search', params.search);
+        const qs = q.toString();
+        return request<any[]>(`/workers/${qs ? `?${qs}` : ''}`);
+      },
+      create: (data: any) => request<any>('/workers/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/workers/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/workers/${id}/`, { method: 'DELETE' }),
+    },
+    workerRoutines: {
+      list: (params?: { date?: string; month?: string; workerId?: string; startDate?: string; endDate?: string }) => {
+        const q = new URLSearchParams();
+        if (params?.date) q.append('date', params.date);
+        if (params?.month) q.append('month', params.month);
+        if (params?.workerId) q.append('worker_id', params.workerId);
+        if (params?.startDate) q.append('start_date', params.startDate);
+        if (params?.endDate) q.append('end_date', params.endDate);
+        const qs = q.toString();
+        return request<any[]>(`/worker-routines/${qs ? `?${qs}` : ''}`);
+      },
+      create: (data: any) => request<any>('/worker-routines/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/worker-routines/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/worker-routines/${id}/`, { method: 'DELETE' }),
+      bulkUpsert: (entries: any[]) => request<any>('/worker-routines/bulk-upsert/', { method: 'POST', body: JSON.stringify(entries) }),
+      markAllPresent: (date: string) => request<any>('/worker-routines/mark-all-present/', { method: 'POST', body: JSON.stringify({ date }) }),
+    },
   },
 
   // Plant Maintenance & Field Service
