@@ -102,7 +102,7 @@ export default function WorkerDailyRoutinePage() {
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
   const [savingWorkerId, setSavingWorkerId] = useState<string | null>(null);
-  const [savedWorkerId, setSavedWorkerId] = useState<string | null>(null);
+  const [savedWorkerIds, setSavedWorkerIds] = useState<Record<string, boolean>>({});
 
   // Master Workers List (100% from API / Database)
   const [workers, setWorkers] = useState<WorkerMaster[]>([]);
@@ -157,9 +157,20 @@ export default function WorkerDailyRoutinePage() {
       const data = await api.production.workerRoutines.list({ date: dateToFetch });
       if (Array.isArray(data)) {
         const dateMap: Record<string, WorkerDailyRoutineEntry> = {};
+        const savedMap: Record<string, boolean> = {};
         data.forEach((item: any) => {
-          const wId = item.workerId || item.worker_id_code || item.worker;
+          let wId = item.workerId || item.worker_id_code || item.worker || '';
+          if (wId && wId.includes('WRK-')) {
+            const m = wId.match(/WRK-\d+/);
+            if (m) wId = m[0];
+          } else if (item.id && item.id.includes('WRK-')) {
+            const m = item.id.match(/WRK-\d+/);
+            if (m) wId = m[0];
+          }
+
           if (wId) {
+            const hasDetails = (item.workDetails && item.workDetails.trim() !== '') || (item.work_details && item.work_details.trim() !== '');
+            const hasJob = Boolean(item.jobNo || item.job_no || item.jobOrProjectNo);
             dateMap[wId] = {
               id: item.id || `RUT-${dateToFetch}-${wId}`,
               date: item.date || dateToFetch,
@@ -178,6 +189,9 @@ export default function WorkerDailyRoutinePage() {
               supervisorName: item.supervisorName || item.supervisor_name || 'Mahesh Parmar',
               updatedAt: item.updatedAt || item.updated_at || '',
             };
+            if (hasDetails || hasJob || Boolean(item.isVerified || item.is_verified)) {
+              savedMap[wId] = true;
+            }
           }
         });
 
@@ -185,6 +199,7 @@ export default function WorkerDailyRoutinePage() {
           ...prev,
           [dateToFetch]: dateMap,
         }));
+        setSavedWorkerIds((prev) => ({ ...prev, ...savedMap }));
       }
     } catch (err: any) {
       console.error('Failed to load daily routines from API:', err);
@@ -351,6 +366,9 @@ export default function WorkerDailyRoutinePage() {
       },
     }));
 
+    // Mark as unsaved for this worker so the button shows "Save"
+    setSavedWorkerIds((prev) => ({ ...prev, [workerId]: false }));
+
     // 2. Queue for database save
     pendingUpdatesRef.current[workerId] = updated;
     setSaveStatus('saving');
@@ -428,12 +446,8 @@ export default function WorkerDailyRoutinePage() {
 
       await api.production.workerRoutines.bulkUpsert([entry]);
       setSaveStatus('saved');
-      setSavedWorkerId(workerId);
-      showToast(`Data saved successfully for ${worker.workerName}`, 'success');
-
-      setTimeout(() => {
-        setSavedWorkerId((prev) => (prev === workerId ? null : prev));
-      }, 2000);
+      setSavedWorkerIds((prev) => ({ ...prev, [workerId]: true }));
+      showToast(`Saved successfully for ${worker.workerName}`, 'success');
     } catch (err: any) {
       console.error('Failed to save worker routine row:', err);
       setSaveStatus('error');
@@ -455,6 +469,11 @@ export default function WorkerDailyRoutinePage() {
 
       await api.production.workerRoutines.bulkUpsert(entriesToSave);
       setSaveStatus('saved');
+      const allSaved: Record<string, boolean> = {};
+      workers.forEach((w) => {
+        allSaved[w.id] = true;
+      });
+      setSavedWorkerIds((prev) => ({ ...prev, ...allSaved }));
       showToast(`All ${entriesToSave.length} worker routine records saved to database!`, 'success');
     } catch (err: any) {
       console.error('Failed to save all routines to database:', err);
@@ -1065,7 +1084,17 @@ export default function WorkerDailyRoutinePage() {
                 title="Save all worker rows to database"
               >
                 <Save className="w-3 h-3" />
-                <span>Save All Data</span>
+                <span>Save All</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowAddWorkerModal(true)}
+                className="px-3 py-1 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white font-bold rounded-lg text-xs transition cursor-pointer flex items-center gap-1 shadow-xs"
+                title="Add New Worker to Database"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Add Worker</span>
               </button>
             </div>
           </div>
@@ -1190,10 +1219,44 @@ export default function WorkerDailyRoutinePage() {
                     </tr>
                   ) : filteredWorkers.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="py-12 text-center text-slate-400">
-                        <ClipboardList className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-                        <p className="font-semibold text-slate-600 text-sm">No worker records found</p>
-                        <p className="text-xs text-slate-400 mt-0.5">Try clearing your search query or filters.</p>
+                      <td colSpan={8} className="py-16 text-center">
+                        <div className="max-w-md mx-auto space-y-3">
+                          <div className="w-12 h-12 mx-auto rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+                            <Users className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <p className="font-extrabold text-slate-800 text-sm">
+                              {workers.length === 0 ? 'No Workers in Database Yet' : 'No Matching Worker Records'}
+                            </p>
+                            <p className="text-xs text-slate-500 mt-1">
+                              {workers.length === 0
+                                ? 'All mock data has been removed. Click below to add your real shopfloor workers.'
+                                : 'Try clearing your search query or trade filters.'}
+                            </p>
+                          </div>
+                          {workers.length === 0 ? (
+                            <button
+                              type="button"
+                              onClick={() => setShowAddWorkerModal(true)}
+                              className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition inline-flex items-center gap-1.5 shadow-xs cursor-pointer"
+                            >
+                              <Plus className="w-4 h-4" />
+                              <span>+ Add Your First Worker</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSearchTerm('');
+                                setStatusFilter('all');
+                                setTradeFilter('all');
+                              }}
+                              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs transition inline-flex items-center gap-1"
+                            >
+                              Clear Filters
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ) : (
@@ -1456,10 +1519,10 @@ export default function WorkerDailyRoutinePage() {
                             )}
                           </td>
 
-                          {/* 8. ROW ACTIONS (Save Data / Edit / Reset / Delete Worker) */}
+                          {/* 8. ROW ACTIONS (Save / Saved / Edit / Reset / Delete Worker) */}
                           <td className="py-1 px-2 text-center print:hidden">
                             <div className="flex items-center justify-center gap-1.5">
-                              {/* Prominent Save Data button */}
+                              {/* Save / Saved button requested by user */}
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -1467,29 +1530,29 @@ export default function WorkerDailyRoutinePage() {
                                   handleSaveRow(worker.id);
                                 }}
                                 disabled={savingWorkerId === worker.id}
-                                className={`px-2.5 py-1 rounded font-bold text-[11px] transition cursor-pointer flex items-center justify-center gap-1 shadow-2xs whitespace-nowrap border ${
-                                  savedWorkerId === worker.id
-                                    ? 'bg-emerald-700 text-white border-emerald-800'
+                                className={`px-3 py-1 rounded font-bold text-[11px] transition cursor-pointer flex items-center justify-center gap-1 shadow-2xs whitespace-nowrap border ${
+                                  savedWorkerIds[worker.id]
+                                    ? 'bg-emerald-600 text-white border-emerald-700 shadow-emerald-100 hover:bg-emerald-700'
                                     : savingWorkerId === worker.id
                                     ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-wait'
                                     : 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white border-emerald-700'
                                 }`}
-                                title={`Save ${worker.workerName}'s routine data to database`}
+                                title={savedWorkerIds[worker.id] ? `Data saved for ${worker.workerName}` : `Save ${worker.workerName}'s routine to database`}
                               >
                                 {savingWorkerId === worker.id ? (
                                   <>
-                                    <Loader2 className="w-3 h-3 animate-spin shrink-0" />
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
                                     <span>Saving...</span>
                                   </>
-                                ) : savedWorkerId === worker.id ? (
+                                ) : savedWorkerIds[worker.id] ? (
                                   <>
-                                    <Check className="w-3 h-3 stroke-[2.5] shrink-0 text-white" />
-                                    <span>Saved!</span>
+                                    <Check className="w-3.5 h-3.5 stroke-[2.5] shrink-0 text-white" />
+                                    <span>Saved</span>
                                   </>
                                 ) : (
                                   <>
-                                    <Save className="w-3 h-3 shrink-0" />
-                                    <span>Save Data</span>
+                                    <Save className="w-3.5 h-3.5 shrink-0" />
+                                    <span>Save</span>
                                   </>
                                 )}
                               </button>
