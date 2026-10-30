@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
+import { KCard } from '../../../components/ui/KCard';
 import { StatusBadge } from '../../../components/workflow/StatusBadge';
 import { ProjectJobMaster } from '../../../types/crm';
 import { formatCurrency, formatDate } from '../../../lib/utils';
@@ -369,99 +370,86 @@ export default function ProjectListPage() {
         </div>
       )}
 
-      {/* KPI Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-xs space-y-1">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-semibold uppercase tracking-wider">Total Projects</span>
-            <Layers className="w-4 h-4 text-[#7C3AED]" />
-          </div>
-          {isProjectsLoading && projectJobs.length === 0 ? (
-            <div className="h-8 w-16 bg-slate-100 rounded animate-pulse" />
-          ) : (
-            <div className="text-2xl font-black text-slate-900">{totalCount}</div>
-          )}
-          <div className="text-xs text-slate-500">All registered MTO jobs</div>
-        </div>
+      {/* Small Reusable KPI Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+        <KCard
+          title="Total Projects"
+          value={totalCount}
+          subtext="All registered MTO jobs"
+          icon={<Briefcase className="w-3.5 h-3.5" />}
+          color="teal"
+          active={statusFilter === 'all'}
+          onClick={() => setStatusFilter('all')}
+        />
 
-        <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-xs space-y-1">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-semibold uppercase tracking-wider">In Planning</span>
-            <Clock className="w-4 h-4 text-amber-500" />
-          </div>
-          {isProjectsLoading && projectJobs.length === 0 ? (
-            <div className="h-8 w-16 bg-slate-100 rounded animate-pulse" />
-          ) : (
-            <div className="text-2xl font-black text-amber-600">{planningCount}</div>
-          )}
-          <div className="text-xs text-slate-500">Pre-production & scope stages</div>
-        </div>
+        <KCard
+          title="In Planning"
+          value={planningCount}
+          subtext="Pre-production & scope"
+          icon={<Clock className="w-3.5 h-3.5" />}
+          color="amber"
+          active={statusFilter === 'planning'}
+          onClick={() => setStatusFilter(statusFilter === 'planning' ? 'all' : 'planning')}
+        />
 
-        <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-xs space-y-1">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-semibold uppercase tracking-wider">In Execution</span>
-            <Activity className="w-4 h-4 text-blue-600" />
-          </div>
-          {isProjectsLoading && projectJobs.length === 0 ? (
-            <div className="h-8 w-16 bg-slate-100 rounded animate-pulse" />
-          ) : (
-            <div className="text-2xl font-black text-blue-600">{inProgressCount}</div>
-          )}
-          <div className="text-xs text-slate-500">Design, purchase & shop floor</div>
-        </div>
+        <KCard
+          title="In Execution"
+          value={inProgressCount}
+          subtext="Design, purchase & shopfloor"
+          icon={<Activity className="w-3.5 h-3.5" />}
+          color="blue"
+          active={['design', 'material_planning', 'purchase', 'production'].includes(statusFilter)}
+          onClick={() => setStatusFilter(statusFilter === 'production' ? 'all' : 'production')}
+        />
 
-        <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-xs space-y-1">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-semibold uppercase tracking-wider">Completed</span>
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          </div>
-          {isProjectsLoading && projectJobs.length === 0 ? (
-            <div className="h-8 w-16 bg-slate-100 rounded animate-pulse" />
-          ) : (
-            <div className="text-2xl font-black text-emerald-600">{completedCount}</div>
-          )}
-          <div className="text-xs text-slate-500">Delivered / QC passed</div>
-        </div>
+        <KCard
+          title="Completed"
+          value={completedCount}
+          subtext="Delivered / QC passed"
+          icon={<ShieldCheck className="w-3.5 h-3.5" />}
+          color="emerald"
+          active={statusFilter === 'completed'}
+          onClick={() => setStatusFilter(statusFilter === 'completed' ? 'all' : 'completed')}
+        />
       </div>
 
-      {/* Filter Bar with Live Sync */}
-      <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-xs">
-        <div className="flex flex-wrap items-center gap-2">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none"
-          >
-            <option value="all">All Statuses ({totalCount})</option>
-            <option value="planning">Planning</option>
-            <option value="design">Design</option>
-            <option value="material_planning">Material Planning</option>
-            <option value="purchase">Purchase</option>
-            <option value="production">Production</option>
-            <option value="qc">QC Inspection</option>
-            <option value="completed">Completed</option>
-          </select>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          title="Refresh projects from live API"
-          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg flex items-center gap-1.5 border border-slate-200 transition cursor-pointer text-xs disabled:opacity-50"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 text-[#7C3AED] ${isRefreshing ? 'animate-spin' : ''}`} />
-          <span>{isRefreshing ? 'Syncing...' : 'Sync Live'}</span>
-        </button>
-      </div>
-
-      {/* Main Shasvatm ERP Standard List View */}
+      {/* Main Shasvatm ERP Standard List View with integrated header filter */}
       <ERPListPageLayout<ProjectJobMaster>
-        breadcrumbs={['DASHBOARD', 'PROJECTS', 'PROJECT DIRECTORY']}
+        breadcrumbs={['Dashboard', 'Projects', 'Project Directory']}
         columns={columns}
         data={filteredProjects}
-        addNewLabel={can('project', 'projects', 'create') ? "+ Create Project" : undefined}
+        addNewLabel={can('project', 'projects', 'create') ? 'Create Project' : undefined}
         onAddNew={can('project', 'projects', 'create') ? () => setIsCreateModalOpen(true) : undefined}
+        extraHeaderActions={
+          <div className="flex items-center gap-2">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#204354] shadow-2xs cursor-pointer"
+              title="Filter by Status"
+            >
+              <option value="all">All Statuses ({totalCount})</option>
+              <option value="planning">Planning</option>
+              <option value="design">Design</option>
+              <option value="material_planning">Material Planning</option>
+              <option value="purchase">Purchase</option>
+              <option value="production">Production</option>
+              <option value="qc">QC Inspection</option>
+              <option value="completed">Completed</option>
+            </select>
+
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              title="Refresh projects from live API"
+              className="p-1.5 sm:px-3 sm:py-1.5 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-xl flex items-center gap-1.5 border border-slate-300 transition cursor-pointer text-xs shadow-2xs disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-slate-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">{isRefreshing ? 'Syncing...' : 'Sync Live'}</span>
+            </button>
+          </div>
+        }
         onExport={() => {
           const csv = [
             ['Project Number', 'Customer', 'Product', 'Target Delivery', 'Progress %', 'Status'].join(','),

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
+import { KCard } from '../../../components/ui/KCard';
 import { StatusBadge } from '../../../components/workflow/StatusBadge';
 import { ProjectPlanningRecord, PlannedTaskItem, ProjectJobMaster, MasterTask } from '../../../types/crm';
 import { formatDate } from '../../../lib/utils';
@@ -560,70 +561,69 @@ export default function ProjectPlanningPage() {
       {/* MODE 1: LIST VIEW                                                        */}
       {/* ========================================================================= */}
       {mode === 'list' && (
-        <div className="space-y-4">
-          {/* KPI Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-1">
-              <div className="flex items-center justify-between text-slate-500">
-                <span className="text-xs font-semibold uppercase tracking-wider">Planned Projects</span>
-                <Workflow className="w-4 h-4 text-crm-brand-700" />
-              </div>
-              <div className="text-2xl font-black text-slate-900">{totalPlannedProjects}</div>
-              <div className="text-xs text-slate-500">Active project schedules</div>
-            </div>
+        <div className="space-y-3">
+          {/* Small Reusable KPI Summary Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+            <KCard
+              title="Planned Projects"
+              value={totalPlannedProjects}
+              subtext="Active project schedules"
+              icon={<Workflow className="w-3.5 h-3.5" />}
+              color="teal"
+              active={statusFilter === 'all'}
+              onClick={() => setStatusFilter('all')}
+            />
 
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-1">
-              <div className="flex items-center justify-between text-slate-500">
-                <span className="text-xs font-semibold uppercase tracking-wider">In Progress</span>
-                <Clock className="w-4 h-4 text-amber-600" />
-              </div>
-              <div className="text-2xl font-black text-amber-600">{inProgressPlanning}</div>
-              <div className="text-xs text-slate-500">Shopfloor operations active</div>
-            </div>
+            <KCard
+              title="In Progress"
+              value={inProgressPlanning}
+              subtext="Shopfloor operations active"
+              icon={<Clock className="w-3.5 h-3.5" />}
+              color="amber"
+              active={statusFilter === 'in_progress'}
+              onClick={() => setStatusFilter(statusFilter === 'in_progress' ? 'all' : 'in_progress')}
+            />
 
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-1">
-              <div className="flex items-center justify-between text-slate-500">
-                <span className="text-xs font-semibold uppercase tracking-wider">Completed</span>
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              </div>
-              <div className="text-2xl font-black text-emerald-600">{completedPlanning}</div>
-              <div className="text-xs text-slate-500">Delivered / fully executed</div>
-            </div>
+            <KCard
+              title="Completed"
+              value={completedPlanning}
+              subtext="Delivered / fully executed"
+              icon={<CheckCircle2 className="w-3.5 h-3.5" />}
+              color="emerald"
+              active={statusFilter === 'completed'}
+              onClick={() => setStatusFilter(statusFilter === 'completed' ? 'all' : 'completed')}
+            />
 
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-1">
-              <div className="flex items-center justify-between text-slate-500">
-                <span className="text-xs font-semibold uppercase tracking-wider">Scheduled Tasks</span>
-                <CheckSquare className="w-4 h-4 text-purple-600" />
-              </div>
-              <div className="text-2xl font-black text-purple-600">{totalScheduledTasks}</div>
-              <div className="text-xs text-slate-500">Across all planned projects</div>
-            </div>
+            <KCard
+              title="Scheduled Tasks"
+              value={totalScheduledTasks}
+              subtext="Across all planned projects"
+              icon={<CheckSquare className="w-3.5 h-3.5" />}
+              color="purple"
+            />
           </div>
 
-          {/* Filter Bar */}
-          <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-xs">
-            <div className="flex flex-wrap items-center gap-2">
+          {/* Standard ERP List View with integrated compact status dropdown */}
+          <ERPListPageLayout<ProjectPlanningRecord>
+            breadcrumbs={['Dashboard', 'Projects', 'Project Planning']}
+            columns={columns}
+            data={filteredRecords}
+            addNewLabel={can('project', 'projects', 'create') ? 'New Planning' : undefined}
+            onAddNew={can('project', 'projects', 'create') ? handleOpenCreateForm : undefined}
+            searchPlaceholder="Search by Project #, Plan #, Customer, Scope..."
+            extraHeaderActions={
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none"
+                className="px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#204354] shadow-2xs cursor-pointer"
+                title="Filter by Status"
               >
                 <option value="all">All Statuses ({totalPlannedProjects})</option>
                 <option value="planned">Planned</option>
                 <option value="in_progress">In Progress</option>
                 <option value="completed">Completed</option>
               </select>
-            </div>
-          </div>
-
-          {/* Standard ERP List View */}
-          <ERPListPageLayout<ProjectPlanningRecord>
-            breadcrumbs={['DASHBOARD', 'PROJECTS', 'PROJECT PLANNING']}
-            columns={columns}
-            data={filteredRecords}
-            addNewLabel={can('project', 'projects', 'create') ? '+ New Project Planning' : undefined}
-            onAddNew={can('project', 'projects', 'create') ? handleOpenCreateForm : undefined}
-            searchPlaceholder="Search by Project #, Plan #, Customer, Scope..."
+            }
           />
         </div>
       )}
