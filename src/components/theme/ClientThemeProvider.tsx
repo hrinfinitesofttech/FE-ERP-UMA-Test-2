@@ -9,9 +9,11 @@ import {
   AVAILABLE_FONTS,
   DEFAULT_DESIGN_CONFIG,
   getRecommendedDesignForTheme,
+  SIGNATURE_DESIGN_PRESETS,
   type ThemeDefinition,
   type FontOption,
   type DesignStudioConfig,
+  type DesignPreset,
 } from '../../lib/theme-tokens';
 
 interface ThemeContextType {
@@ -21,9 +23,11 @@ interface ThemeContextType {
   designConfig: DesignStudioConfig;
   updateDesignConfig: (config: Partial<DesignStudioConfig>) => void;
   applyRecommendedDesign: () => void;
+  applyDesignPreset: (presetId: string) => void;
   resetToDefaults: () => void;
   availableThemes: ThemeDefinition[];
   availableFonts: FontOption[];
+  signaturePresets: DesignPreset[];
   isDark: boolean;
   mounted: boolean;
 }
@@ -98,9 +102,10 @@ export function ClientThemeProvider({
         root.style.setProperty(key, value);
       });
 
-      // 2. Data Attributes for Cascading Engine
+      // 2. Data Attributes & Font for Cascading Engine
       root.setAttribute('data-theme', tokens.id);
       root.setAttribute('data-font', config.fontFamily || 'Outfit');
+      root.style.setProperty('--crm-font-sans', `'${config.fontFamily || 'Outfit'}', sans-serif`);
       root.setAttribute('data-card-radius', config.cardRadius || 'smooth');
       root.setAttribute('data-card-border', config.cardBorderWidth || '1');
       root.setAttribute('data-card-shadow', config.cardShadow || 'soft');
@@ -126,7 +131,32 @@ export function ClientThemeProvider({
         root.removeAttribute('data-has-custom-text');
       }
 
-      // 5. Dark Mode Class
+      // 5. Custom Card Background
+      if (config.customCardBg) {
+        root.style.setProperty('--erp-card-bg', config.customCardBg);
+        root.setAttribute('data-has-custom-card-bg', 'true');
+      } else {
+        root.style.removeProperty('--erp-card-bg');
+        root.removeAttribute('data-has-custom-card-bg');
+      }
+
+      // 6. Custom Card Border
+      if (config.customCardBorder) {
+        root.style.setProperty('--erp-card-border', config.customCardBorder);
+        root.setAttribute('data-has-custom-card-border', 'true');
+      } else {
+        root.style.removeProperty('--erp-card-border');
+        root.removeAttribute('data-has-custom-card-border');
+      }
+
+      // 7. Header Gradient
+      if (config.headerGradient) {
+        root.setAttribute('data-header-gradient', 'true');
+      } else {
+        root.removeAttribute('data-header-gradient');
+      }
+
+      // 8. Dark Mode Class
       if (tokens.isDark) {
         root.classList.add('dark');
       } else {
@@ -220,6 +250,33 @@ export function ClientThemeProvider({
     applyDesignToDOM(activeTheme, recommended);
   }, [themeId, activeTheme, applyDesignToDOM]);
 
+  // 1-Click Signature Design Preset Applicator
+  const applyDesignPreset = useCallback(
+    (presetId: string) => {
+      const preset = SIGNATURE_DESIGN_PRESETS.find((p) => p.id === presetId);
+      if (!preset) return;
+      const targetThemeId = (preset.config.themeId as string) || themeId;
+      const updatedConfig: DesignStudioConfig = {
+        ...designConfig,
+        ...preset.config,
+        themeId: targetThemeId,
+      };
+
+      if (themes[targetThemeId]) {
+        setThemeId(targetThemeId);
+      }
+      setDesignState(updatedConfig);
+      try {
+        localStorage.setItem(THEME_STORAGE_KEY, targetThemeId);
+        localStorage.setItem(DESIGN_STUDIO_STORAGE_KEY, JSON.stringify(updatedConfig));
+      } catch {
+        // Ignore storage errors
+      }
+      applyDesignToDOM(getTheme(targetThemeId), updatedConfig);
+    },
+    [designConfig, themeId, applyDesignToDOM]
+  );
+
   // Reset to Factory Defaults
   const resetToDefaults = useCallback(() => {
     const defaultConfig: DesignStudioConfig = {
@@ -246,9 +303,11 @@ export function ClientThemeProvider({
         designConfig,
         updateDesignConfig,
         applyRecommendedDesign,
+        applyDesignPreset,
         resetToDefaults,
         availableThemes: availableThemesList,
         availableFonts: AVAILABLE_FONTS,
+        signaturePresets: SIGNATURE_DESIGN_PRESETS,
         isDark: activeTheme.isDark,
         mounted,
       }}
@@ -268,9 +327,11 @@ export function useTheme() {
       designConfig: DEFAULT_DESIGN_CONFIG,
       updateDesignConfig: () => {},
       applyRecommendedDesign: () => {},
+      applyDesignPreset: () => {},
       resetToDefaults: () => {},
       availableThemes: availableThemesList,
       availableFonts: AVAILABLE_FONTS,
+      signaturePresets: SIGNATURE_DESIGN_PRESETS,
       isDark: false,
       mounted: false,
     };

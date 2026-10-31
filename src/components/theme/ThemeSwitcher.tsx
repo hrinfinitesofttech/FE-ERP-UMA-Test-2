@@ -46,9 +46,11 @@ export function ThemeSwitcher() {
     designConfig,
     updateDesignConfig,
     applyRecommendedDesign,
+    applyDesignPreset,
     resetToDefaults,
     availableThemes,
     availableFonts,
+    signaturePresets,
     isDark,
     mounted,
   } = useTheme();
@@ -174,6 +176,37 @@ export function ThemeSwitcher() {
                 >
                   <X className="w-5 h-5" />
                 </button>
+              </div>
+            </div>
+
+            {/* 1-CLICK SIGNATURE DESIGN PRESETS QUICK-SELECT */}
+            <div className="bg-gradient-to-r from-amber-500/10 via-amber-600/10 to-orange-500/10 dark:from-amber-950/40 dark:to-orange-950/40 border-b border-amber-200/80 dark:border-amber-900/50 p-2.5 sm:px-4 flex items-center justify-between gap-3 overflow-x-auto">
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Sparkles className="w-4 h-4 text-amber-600 animate-pulse" />
+                <span className="text-[11px] font-black uppercase tracking-wider text-amber-950 dark:text-amber-200">
+                  1-Click Signature Presets:
+                </span>
+              </div>
+              <div className="flex items-center gap-2 overflow-x-auto py-0.5">
+                {signaturePresets.map((preset) => {
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => {
+                        applyDesignPreset(preset.id);
+                        toast.success(`Applied ${preset.name} Preset!`);
+                      }}
+                      className="px-2.5 py-1 rounded-xl border border-amber-300 dark:border-amber-800 bg-white/90 dark:bg-slate-800 text-[11px] font-black text-slate-800 dark:text-slate-100 hover:bg-amber-600 hover:text-white hover:border-amber-600 transition shadow-2xs whitespace-nowrap flex items-center gap-1.5 cursor-pointer group"
+                      title={preset.subtitle}
+                    >
+                      <span>{preset.name}</span>
+                      <span className="text-[9px] px-1 py-0.2 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 group-hover:bg-white group-hover:text-amber-700 font-bold">
+                        {preset.badge}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -570,6 +603,143 @@ export function ThemeSwitcher() {
                         ))}
                       </div>
                     </div>
+
+                    {/* Custom Card Background & Border Color Controls */}
+                    <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xs flex items-center gap-1.5">
+                          <SlidersHorizontal className="w-3.5 h-3.5 text-amber-600" />
+                          <span>Custom Card Background &amp; Border Color</span>
+                        </span>
+                        {(designConfig.customCardBg || designConfig.customCardBorder) && (
+                          <button
+                            type="button"
+                            onClick={() => updateDesignConfig({ customCardBg: '', customCardBorder: '' })}
+                            className="text-[10px] text-amber-700 dark:text-amber-400 font-bold hover:underline cursor-pointer"
+                          >
+                            Reset Colors
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Card Background Color */}
+                      <div className="space-y-1.5">
+                        <label className="block text-slate-600 dark:text-slate-300 font-semibold text-[11px]">
+                          Card Background Color (કાર્ડ બેકગ્રાઉન્ડ કલર):
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={designConfig.customCardBg || '#FFFFFF'}
+                            onChange={(e) => updateDesignConfig({ customCardBg: e.target.value })}
+                            className="w-8 h-8 rounded-lg cursor-pointer border border-slate-300 p-0 flex-shrink-0"
+                            title="Choose Custom Card Background"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Default White (#FFFFFF)"
+                            value={designConfig.customCardBg || ''}
+                            onChange={(e) => updateDesignConfig({ customCardBg: e.target.value })}
+                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-xs font-mono"
+                          />
+                        </div>
+                        {/* Quick Swatches */}
+                        <div className="flex items-center gap-1.5 pt-1">
+                          {[
+                            { name: 'Pure White', color: '#FFFFFF' },
+                            { name: 'Warm Cream', color: '#FAF7F2' },
+                            { name: 'Slate Mist', color: '#F8FAFC' },
+                            { name: 'Ice Cyan', color: '#F0F9FF' },
+                            { name: 'Midnight Dark', color: '#0F172A' },
+                          ].map((sw) => (
+                            <button
+                              key={sw.color}
+                              type="button"
+                              onClick={() => updateDesignConfig({ customCardBg: sw.color })}
+                              className="px-2 py-0.5 rounded-md border text-[10px] font-bold transition flex items-center gap-1 cursor-pointer"
+                              style={{
+                                backgroundColor: sw.color,
+                                color: sw.color === '#0F172A' ? '#FFF' : '#334155',
+                                borderColor: designConfig.customCardBg === sw.color ? '#D97706' : '#CBD5E1',
+                              }}
+                            >
+                              <span className="w-2 h-2 rounded-full border border-black/20" style={{ backgroundColor: sw.color }} />
+                              <span>{sw.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Card Border Color */}
+                      <div className="space-y-1.5 pt-2 border-t border-slate-200 dark:border-slate-700">
+                        <label className="block text-slate-600 dark:text-slate-300 font-semibold text-[11px]">
+                          Card Border Outline Color (કાર્ડ બોર્ડર કલર):
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={designConfig.customCardBorder || '#E7DED5'}
+                            onChange={(e) => updateDesignConfig({ customCardBorder: e.target.value })}
+                            className="w-8 h-8 rounded-lg cursor-pointer border border-slate-300 p-0 flex-shrink-0"
+                            title="Choose Custom Border Color"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Default Border (#E7DED5)"
+                            value={designConfig.customCardBorder || ''}
+                            onChange={(e) => updateDesignConfig({ customCardBorder: e.target.value })}
+                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-xs font-mono"
+                          />
+                        </div>
+                        {/* Quick Swatches */}
+                        <div className="flex items-center gap-1.5 pt-1">
+                          {[
+                            { name: 'Warm Terracotta', color: '#E7DED5' },
+                            { name: 'Slate Gray', color: '#CBD5E1' },
+                            { name: 'Steel Blue', color: '#94A3B8' },
+                            { name: 'Cyan Neon', color: '#38BDF8' },
+                            { name: 'Dark Border', color: '#334155' },
+                          ].map((sw) => (
+                            <button
+                              key={sw.color}
+                              type="button"
+                              onClick={() => updateDesignConfig({ customCardBorder: sw.color })}
+                              className="px-2 py-0.5 rounded-md border text-[10px] font-bold transition flex items-center gap-1 cursor-pointer bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200"
+                              style={{
+                                borderColor: designConfig.customCardBorder === sw.color ? '#D97706' : '#CBD5E1',
+                              }}
+                            >
+                              <span className="w-2.5 h-2.5 rounded-full border border-black/20" style={{ backgroundColor: sw.color }} />
+                              <span>{sw.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Header Gradient Switch */}
+                      <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                        <div>
+                          <div className="font-bold text-slate-800 dark:text-slate-200 text-xs">
+                            Topbar Header Gradient
+                          </div>
+                          <div className="text-[10.5px] text-slate-400">
+                            Apply vibrant two-tone dynamic theme gradient to top headers
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => updateDesignConfig({ headerGradient: !designConfig.headerGradient })}
+                          className={`px-3 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer flex items-center gap-1.5 ${
+                            designConfig.headerGradient
+                              ? 'bg-amber-600 text-white shadow-xs'
+                              : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                          }`}
+                        >
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>{designConfig.headerGradient ? 'Active Gradient' : 'Standard Clean'}</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -673,7 +843,9 @@ export function ThemeSwitcher() {
 
                   {/* PREVIEW CONTAINER CARD */}
                   <div
-                    className={`p-4 sm:p-5 transition-all bg-white dark:bg-slate-850 space-y-4 border ${
+                    className={`p-4 sm:p-5 transition-all space-y-4 border ${
+                      !designConfig.customCardBg ? 'bg-white dark:bg-slate-850' : ''
+                    } ${
                       designConfig.cardRadius === 'sharp'
                         ? 'rounded-md'
                         : designConfig.cardRadius === 'rounded'
@@ -685,10 +857,18 @@ export function ThemeSwitcher() {
                       designConfig.cardBorderWidth === '0'
                         ? 'border-transparent'
                         : designConfig.cardBorderWidth === '2'
-                        ? 'border-2 border-slate-300 dark:border-slate-700'
+                        ? 'border-2'
                         : designConfig.cardBorderWidth === '3'
-                        ? 'border-3 border-slate-400 dark:border-slate-600'
-                        : 'border border-slate-200 dark:border-slate-800'
+                        ? 'border-3'
+                        : 'border'
+                    } ${
+                      !designConfig.customCardBorder
+                        ? designConfig.cardBorderWidth === '2'
+                          ? 'border-slate-300 dark:border-slate-700'
+                          : designConfig.cardBorderWidth === '3'
+                          ? 'border-slate-400 dark:border-slate-600'
+                          : 'border-slate-200 dark:border-slate-800'
+                        : ''
                     } ${
                       designConfig.cardShadow === 'flat'
                         ? 'shadow-none'
@@ -698,27 +878,60 @@ export function ThemeSwitcher() {
                         ? 'shadow-[0_0_20px_rgba(217,119,6,0.25)]'
                         : 'shadow-md'
                     }`}
+                    style={{
+                      backgroundColor: designConfig.customCardBg || undefined,
+                      borderColor: designConfig.customCardBorder || undefined,
+                    }}
                   >
-                    {/* Card Header */}
-                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                    {/* Card Header (Dynamic Header Gradient) */}
+                    <div
+                      className={`flex items-center justify-between transition-all ${
+                        designConfig.headerGradient
+                          ? 'p-3.5 -mx-4 -mt-4 sm:-mx-5 sm:-mt-5 rounded-t-xl text-white shadow-xs'
+                          : 'border-b border-slate-100 dark:border-slate-800 pb-3'
+                      }`}
+                      style={
+                        designConfig.headerGradient
+                          ? {
+                              background: `linear-gradient(135deg, ${currentTheme.palette.primary}, ${currentTheme.palette.accent})`,
+                            }
+                          : undefined
+                      }
+                    >
                       <div className="flex items-center gap-2.5">
                         <div
-                          className="w-8 h-8 rounded-xl flex items-center justify-center text-white shadow-xs"
-                          style={{ backgroundColor: currentTheme.palette.primary }}
+                          className={`w-8 h-8 rounded-xl flex items-center justify-center text-white shadow-xs ${
+                            designConfig.headerGradient ? 'bg-white/20 backdrop-blur-xs' : ''
+                          }`}
+                          style={
+                            !designConfig.headerGradient
+                              ? { backgroundColor: currentTheme.palette.primary }
+                              : undefined
+                          }
                         >
                           <Truck className="w-4 h-4" />
                         </div>
                         <div>
                           <div
-                            className="font-black text-sm text-slate-900 dark:text-white"
+                            className={`font-black text-sm ${
+                              designConfig.headerGradient
+                                ? 'text-white'
+                                : 'text-slate-900 dark:text-white'
+                            }`}
                             style={{
                               fontFamily: designConfig.fontFamily,
-                              color: designConfig.headingColor || undefined,
+                              color: !designConfig.headerGradient
+                                ? designConfig.headingColor || undefined
+                                : '#FFFFFF',
                             }}
                           >
                             Delivery Challan #547
                           </div>
-                          <div className="text-[10.5px] text-slate-400">
+                          <div
+                            className={`text-[10.5px] ${
+                              designConfig.headerGradient ? 'text-white/80' : 'text-slate-400'
+                            }`}
+                          >
                             UMA Food • Vehicle GJ-02.AT.3826
                           </div>
                         </div>
@@ -726,10 +939,17 @@ export function ThemeSwitcher() {
 
                       <span
                         className="px-2 py-0.5 rounded-full text-[10px] font-bold"
-                        style={{
-                          backgroundColor: `${currentTheme.palette.primary}20`,
-                          color: currentTheme.palette.primary,
-                        }}
+                        style={
+                          designConfig.headerGradient
+                            ? {
+                                backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                                color: '#FFFFFF',
+                              }
+                            : {
+                                backgroundColor: `${currentTheme.palette.primary}20`,
+                                color: currentTheme.palette.primary,
+                              }
+                        }
                       >
                         In Transit
                       </span>

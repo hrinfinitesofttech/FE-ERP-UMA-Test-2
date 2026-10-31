@@ -793,6 +793,20 @@ export const AVAILABLE_FONTS: FontOption[] = [
     fontFamily: "'Inter', sans-serif",
     description: 'The global benchmark for data-rich enterprise software UI',
   },
+  {
+    id: 'Manrope',
+    name: 'Manrope',
+    category: 'Executive Balance',
+    fontFamily: "'Manrope', sans-serif",
+    description: 'Modern open-source grotesque with ultra-clean rounded terminals',
+  },
+  {
+    id: 'JetBrains Mono',
+    name: 'JetBrains Mono',
+    category: 'Precision Technical',
+    fontFamily: "'JetBrains Mono', monospace",
+    description: 'High-density engineering monospace for blueprints, BOMs, and serials',
+  },
 ];
 
 export type CardRadiusOption = 'sharp' | 'rounded' | 'smooth' | 'pill';
@@ -813,6 +827,9 @@ export interface DesignStudioConfig {
   cardSurface: CardSurfaceOption;
   inputStyle: InputStyleOption;
   buttonVariant: ButtonVariantOption;
+  customCardBg?: string;
+  customCardBorder?: string;
+  headerGradient?: boolean;
 }
 
 export const DEFAULT_DESIGN_CONFIG: DesignStudioConfig = {
@@ -826,7 +843,105 @@ export const DEFAULT_DESIGN_CONFIG: DesignStudioConfig = {
   cardSurface: 'solid',
   inputStyle: 'rounded',
   buttonVariant: 'gradient',
+  customCardBg: '',
+  customCardBorder: '',
+  headerGradient: false,
 };
+
+export interface DesignPreset {
+  id: string;
+  name: string;
+  subtitle: string;
+  badge: string;
+  config: Partial<DesignStudioConfig>;
+}
+
+export const SIGNATURE_DESIGN_PRESETS: DesignPreset[] = [
+  {
+    id: 'luxury-industrial',
+    name: 'Luxury Industrial',
+    subtitle: 'Warm Terracotta, Smooth 18px Cards, Deep Soft Shadows',
+    badge: 'UMA Default',
+    config: {
+      themeId: 'warmIndustrial',
+      fontFamily: 'Outfit',
+      headingColor: '#3E2723',
+      textColor: '#211B17',
+      cardRadius: 'smooth',
+      cardBorderWidth: '1',
+      cardShadow: 'soft',
+      cardSurface: 'solid',
+      inputStyle: 'rounded',
+      buttonVariant: 'gradient',
+      customCardBg: '#FFFFFF',
+      customCardBorder: '#E7DED5',
+      headerGradient: true,
+    },
+  },
+  {
+    id: 'cyber-glassmorphic',
+    name: 'Cyber Glassmorphic',
+    subtitle: 'Frosted Translucent Blur, Neon Accents, Pill 26px Cards',
+    badge: 'Futuristic',
+    config: {
+      themeId: 'obsidianDark',
+      fontFamily: 'Space Grotesk',
+      headingColor: '#38BDF8',
+      textColor: '#E2E8F0',
+      cardRadius: 'pill',
+      cardBorderWidth: '1',
+      cardShadow: 'glow',
+      cardSurface: 'glass',
+      inputStyle: 'pill',
+      buttonVariant: 'glass',
+      customCardBg: 'rgba(15, 23, 42, 0.85)',
+      customCardBorder: '#38BDF8',
+      headerGradient: true,
+    },
+  },
+  {
+    id: 'engineering-blueprint',
+    name: 'Precision Engineering',
+    subtitle: 'JetBrains Mono, Sharp 0px Cards, Crisp 2px Borders',
+    badge: 'Technical',
+    config: {
+      themeId: 'titaniumGraphite',
+      fontFamily: 'JetBrains Mono',
+      headingColor: '#0F172A',
+      textColor: '#334155',
+      cardRadius: 'sharp',
+      cardBorderWidth: '2',
+      cardShadow: 'flat',
+      cardSurface: 'solid',
+      inputStyle: 'box',
+      buttonVariant: 'solid',
+      customCardBg: '#FFFFFF',
+      customCardBorder: '#475569',
+      headerGradient: false,
+    },
+  },
+  {
+    id: 'executive-minimalist',
+    name: 'Executive Minimalist',
+    subtitle: 'Plus Jakarta Sans, Borderless 0px, Soft Floats & Underlines',
+    badge: 'Modern Clean',
+    config: {
+      themeId: 'corporateBlue',
+      fontFamily: 'Plus Jakarta Sans',
+      headingColor: '#0F172A',
+      textColor: '#334155',
+      cardRadius: 'rounded',
+      cardBorderWidth: '0',
+      cardShadow: 'depth',
+      cardSurface: 'solid',
+      inputStyle: 'underline',
+      buttonVariant: 'gradient',
+      customCardBg: '#FFFFFF',
+      customCardBorder: '#E2E8F0',
+      headerGradient: false,
+    },
+  },
+];
 
 /**
  * Intelligent Theme-Font Recommendation Engine

@@ -975,6 +975,12 @@ body.erp-print-landscape {
 [data-font="Inter"] *:not(code):not(pre):not(kbd):not([class*="lucide"]):not(.font-mono) {
   font-family: 'Inter', sans-serif !important;
 }
+[data-font="JetBrains Mono"] *:not(code):not(pre):not(kbd):not([class*="lucide"]):not(.font-mono) {
+  font-family: 'JetBrains Mono', monospace !important;
+}
+[data-font="Manrope"] *:not(code):not(pre):not(kbd):not([class*="lucide"]):not(.font-mono) {
+  font-family: 'Manrope', sans-serif !important;
+}
 
 /* Custom Heading & Text Colors */
 [data-has-custom-heading="true"] h1,
@@ -987,6 +993,31 @@ body.erp-print-landscape {
 [data-has-custom-text="true"] body,
 [data-has-custom-text="true"] .crm-app {
   color: var(--erp-text-color) !important;
+}
+
+/* Custom Card Background & Border Override Engine */
+[data-has-custom-card-bg="true"] .crm-card,
+[data-has-custom-card-bg="true"] .bg-white:not(button):not(input):not(select):not(span):not(.badge):not(.tag),
+[data-has-custom-card-bg="true"] .bg-\[\#ffffff\]:not(button):not(input):not(select) {
+  background-color: var(--erp-card-bg) !important;
+}
+
+[data-has-custom-card-border="true"] .crm-card,
+[data-has-custom-card-border="true"] .border:not(table *):not(button *):not([class*="border-b-"]):not([class*="border-t-"]):not([class*="border-l-"]):not([class*="border-r-"]) {
+  border-color: var(--erp-card-border) !important;
+}
+
+/* Header Gradient Engine */
+[data-header-gradient="true"] header.bg-white,
+[data-header-gradient="true"] header.bg-\[\#ffffff\],
+[data-header-gradient="true"] header[class*="bg-crm-surface-card"] {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent)) !important;
+}
+[data-header-gradient="true"] header h1,
+[data-header-gradient="true"] header h2,
+[data-header-gradient="true"] header h3,
+[data-header-gradient="true"] header p {
+  color: #ffffff !important;
 }
 
 /* 2. Global Card Radius Cascading Engine */
