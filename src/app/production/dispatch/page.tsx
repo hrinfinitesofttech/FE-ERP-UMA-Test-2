@@ -803,10 +803,10 @@ function DispatchPageContent() {
       {/* MODAL 1: GENERATE / EDIT DELIVERY CHALLAN (FORM)                           */}
       {/* ========================================================================= */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 overflow-y-auto animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl shadow-2xl border-2 border-slate-800 w-full max-w-4xl overflow-hidden my-4">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl shadow-2xl border-2 border-slate-800 w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden my-auto">
             {/* Modal Header */}
-            <div className="bg-[#211B17] text-white p-4 flex items-center justify-between">
+            <div className="bg-[#211B17] text-white p-4 flex items-center justify-between flex-shrink-0 z-10 border-b border-slate-800">
               <div>
                 <div className="text-[10px] text-amber-400 font-mono tracking-widest uppercase font-bold">
                   UMA TECHNOFAB — DISPATCH &amp; LOGISTICS
@@ -824,15 +824,17 @@ function DispatchPageContent() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-white"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
-            {/* Form */}
-            <form onSubmit={handleSaveChallan} className="p-5 space-y-4 text-xs">
+            {/* Form with Flex Layout */}
+            <form onSubmit={handleSaveChallan} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+              {/* Scrollable Form Body */}
+              <div className="p-4 sm:p-5 space-y-4 text-xs overflow-y-auto flex-1 overscroll-contain">
               {/* Quick Fill Bar: From QC Reports or Finished Goods */}
               <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
@@ -1206,22 +1208,31 @@ function DispatchPageContent() {
                 </div>
               </div>
 
-              {/* ACTION BUTTONS */}
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-md transition cursor-pointer flex items-center gap-1.5 active:scale-95"
-                >
-                  <Save className="w-4 h-4" />
-                  <span>{editingChallanId ? 'Update Delivery Challan' : 'Save & Issue Delivery Challan'}</span>
-                </button>
+              </div>
+
+              {/* STICKY ACTION FOOTER (ALWAYS VISIBLE AT BOTTOM) */}
+              <div className="flex-shrink-0 flex items-center justify-between gap-2 p-3.5 sm:p-4 bg-slate-50 border-t-2 border-slate-200 z-10">
+                <div className="text-xs text-slate-600 font-semibold flex items-center gap-2">
+                  <span>GSTIN: <span className="font-mono text-slate-800">24AAEFU9027H1Z3</span></span>
+                  <span className="text-slate-300 hidden sm:inline">|</span>
+                  <span className="hidden sm:inline">Total Qty: <strong className="font-mono text-amber-900">{calculatedTotalQuantity || '0'}</strong></span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="px-4 py-2 bg-white border border-slate-300 text-slate-700 font-bold rounded-xl hover:bg-slate-100 transition cursor-pointer text-xs"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-md transition cursor-pointer flex items-center gap-1.5 active:scale-95 text-xs"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>{editingChallanId ? 'Update Delivery Challan' : 'Save & Issue Delivery Challan'}</span>
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -1232,10 +1243,10 @@ function DispatchPageContent() {
       {/* MODAL 2: VIEW & PRINT OFFICIAL DELIVERY CHALLAN (EXACT REPLICA OF USER PHOTO) */}
       {/* ========================================================================= */}
       {viewChallan && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 overflow-y-auto animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl shadow-2xl border-2 border-black w-full max-w-3xl overflow-hidden my-4 print:m-0 print:border-none print:shadow-none print:w-full">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl shadow-2xl border-2 border-black w-full max-w-3xl max-h-[94vh] flex flex-col overflow-hidden my-auto print:m-0 print:border-none print:shadow-none print:w-full print:max-h-none print:overflow-visible">
             {/* Control Bar (Hidden during Print) */}
-            <div className="bg-[#211B17] text-white p-3.5 flex items-center justify-between print:hidden">
+            <div className="bg-[#211B17] text-white p-3.5 flex items-center justify-between flex-shrink-0 z-10 print:hidden border-b border-slate-700">
               <div className="flex items-center gap-2">
                 <Truck className="w-4 h-4 text-amber-400" />
                 <span className="font-bold text-xs">Official Delivery Challan Slip Preview</span>
@@ -1285,17 +1296,19 @@ function DispatchPageContent() {
                   onClick={() => setViewChallan(null)}
                   className="p-1.5 rounded-lg text-slate-400 hover:text-white"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
-            {/* =================================================================== */}
-            {/* AUTHENTIC DELIVERY CHALLAN SLIP (REPRODUCING THE USER'S PHOTO SLIP) */}
-            {/* =================================================================== */}
-            <div
-              id="printable-delivery-challan"
-              className={`p-6 sm:p-8 font-sans transition-colors ${
+            {/* Scrollable Container for Official Slip */}
+            <div className="flex-1 overflow-y-auto overscroll-contain print:overflow-visible">
+              {/* =================================================================== */}
+              {/* AUTHENTIC DELIVERY CHALLAN SLIP (REPRODUCING THE USER'S PHOTO SLIP) */}
+              {/* =================================================================== */}
+              <div
+                id="printable-delivery-challan"
+                className={`p-6 sm:p-8 font-sans transition-colors ${
                 slipTheme === 'yellow'
                   ? 'bg-[#FEF08A] text-slate-950 border-8 border-[#FDE047]'
                   : 'bg-white text-slate-950'
@@ -1306,17 +1319,17 @@ function DispatchPageContent() {
                 <div className="flex items-start justify-between border-b-2 border-black pb-2">
                   {/* Left: Brand Logo & Title */}
                   <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      {/* Logo Box */}
-                      <div className="border-2 border-black px-2 py-0.5 font-black text-lg tracking-wider font-mono">
-                        UMA
+                    <div className="flex items-center gap-2.5">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/uma-mark.png" alt="Uma Techno Fab" className="w-10 h-10 object-contain shrink-0" />
+                      <div>
+                        <div className="text-xl sm:text-2xl font-black tracking-tight uppercase leading-none">
+                          UMA TECHNOFAB
+                        </div>
+                        <div className="text-[10px] font-bold text-slate-800 tracking-wider uppercase pt-0.5">
+                          All Industrial Equipments • Turnkey Projects
+                        </div>
                       </div>
-                      <div className="text-xl sm:text-2xl font-black tracking-tight uppercase">
-                        UMA TECHNOFAB
-                      </div>
-                    </div>
-                    <div className="text-[11px] font-bold tracking-tight text-slate-800">
-                      All Industrial Equipments. Tranki Projects...
                     </div>
                   </div>
 
@@ -1507,9 +1520,10 @@ function DispatchPageContent() {
                 </div>
               </div>
             </div>
+            </div>
 
             {/* Bottom Actions */}
-            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between print:hidden">
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between flex-shrink-0 z-10 print:hidden">
               <div className="text-xs text-slate-500 font-medium">
                 Certified copy of delivery challan for vehicle gate pass and customer receipt.
               </div>

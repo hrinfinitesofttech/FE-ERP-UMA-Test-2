@@ -1087,9 +1087,8 @@ function ProductionCompletionContent() {
                 <div className="grid grid-cols-4 border-b-2 border-black text-center items-center py-2">
                   {/* Logo Column */}
                   <div className="p-2 border-r-2 border-black flex items-center justify-center">
-                    <div className="text-xl font-black tracking-tighter text-slate-900 font-serif">
-                      UMA
-                    </div>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/uma-mark.png" alt="Uma Techno Fab" className="w-12 h-12 object-contain select-none" />
                   </div>
 
                   {/* Company & Document Title Column */}

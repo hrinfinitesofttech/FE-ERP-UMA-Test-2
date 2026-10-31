@@ -189,13 +189,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   if (!isMounted || !isAuthReady || !isAuthenticated) {
     return (
       <div className="min-h-screen w-screen bg-[#FAF7F2] flex flex-col items-center justify-center font-sans antialiased">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-white border border-[#E7DED5] shadow-lg flex items-center justify-center">
-            <div className="w-6 h-6 border-2 border-[#75401F] border-t-transparent rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-3">
+          <div className="relative flex items-center justify-center">
+            <div className="w-20 h-20 rounded-3xl bg-white border border-[#E7DED5] shadow-xl p-3 flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/uma-mark.png" alt="Uma Techno Fab" className="w-full h-full object-contain animate-pulse" />
+            </div>
+            <div className="absolute -inset-1.5 rounded-[26px] border-2 border-[#18417D]/30 border-t-[#F37A20] animate-spin" />
           </div>
-          <p className="text-xs font-semibold text-[#75401F] tracking-wide">
-            {!isAuthReady ? 'Verifying session...' : !isAuthenticated ? 'Redirecting to Login...' : 'Initializing UmaERP...'}
-          </p>
+          <div className="text-center space-y-0.5">
+            <h3 className="font-extrabold text-[#18417D] tracking-wide text-xs">UMA TECHNO FAB</h3>
+            <p className="text-[11px] font-semibold text-[#75401F] tracking-wide">
+              {!isAuthReady ? 'Verifying secure session...' : !isAuthenticated ? 'Redirecting to Login...' : 'Initializing Enterprise Workspace...'}
+            </p>
+          </div>
         </div>
       </div>
     );

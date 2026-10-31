@@ -1525,7 +1525,11 @@ function PackagingPageContent() {
               >
                 {/* Letterhead */}
                 <div className="border-b-2 border-stone-800 pb-4 text-center space-y-1">
-                  <div className="text-2xl font-black tracking-wider text-stone-900">UMA TECHNO FAB</div>
+                  <div className="flex items-center justify-center gap-3 mb-1">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/uma-mark.png" alt="Uma Techno Fab" className="w-10 h-10 object-contain shrink-0" />
+                    <div className="text-2xl font-black tracking-wider text-[#18417D]">UMA TECHNO FAB</div>
+                  </div>
                   <div className="text-xs font-medium text-stone-600">
                     Manufacturers of Heavy Industrial Equipment, Pressure Vessels, Reaction Tanks &amp; Turnkey Projects
                   </div>

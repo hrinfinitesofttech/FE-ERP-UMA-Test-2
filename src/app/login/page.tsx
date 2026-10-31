@@ -21,6 +21,7 @@ import {
   KeyRound,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { CompanyLogo } from '@/components/common/CompanyLogo';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -107,18 +108,16 @@ export default function LoginPage() {
 
           {/* Top Brand Lockup */}
           <div className="relative z-10 space-y-6">
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-white border border-[#E7DED5] flex items-center justify-center text-[#211B17] font-black text-2xl shadow-sm">
-                U
-              </div>
+            <div className="flex items-center gap-4">
+              <CompanyLogo size="lg" variant="badge" className="p-2 bg-white shadow-md border border-[#E7DED5] rounded-2xl" />
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-lg font-black tracking-wider text-[#211B17]">UMA TECHNO FAB</span>
-                  <span className="px-2 py-0.5 rounded-full bg-[#FAF0E6] text-[#9C6538] border border-[#E7DED5] text-[10px] font-mono font-bold uppercase">
+                  <span className="text-lg font-black tracking-wider text-[#18417D]">UMA TECHNO FAB</span>
+                  <span className="px-2 py-0.5 rounded-full bg-[#FAF0E6] text-[#F37A20] border border-[#E7DED5] text-[10px] font-mono font-bold uppercase">
                     MTO ERP
                   </span>
                 </div>
-                <p className="text-xs text-[#70665F] font-medium">Make-to-Order Manufacturing ERP</p>
+                <p className="text-xs text-[#70665F] font-medium">Precision Make-to-Order Manufacturing</p>
               </div>
             </div>
 
@@ -178,6 +177,15 @@ export default function LoginPage() {
         {/* RIGHT COLUMN: Enterprise Authentication Portal */}
         <div className="lg:col-span-6 p-6 sm:p-8 lg:p-12 flex flex-col justify-between bg-white">
           <div>
+            {/* Mobile Brand Header */}
+            <div className="lg:hidden flex items-center gap-3 mb-6 pb-4 border-b border-[#E7DED5]">
+              <CompanyLogo size="md" variant="badge" className="p-1.5 bg-[#FAF7F2]" />
+              <div className="leading-tight">
+                <h3 className="font-extrabold text-[#18417D] text-xs">UMA TECHNO FAB</h3>
+                <p className="text-[10px] text-[#F37A20] font-semibold">Manufacturing ERP</p>
+              </div>
+            </div>
+
             {/* Header */}
             <div className="space-y-1 mb-6">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#9C6538] font-mono flex items-center gap-1.5">

@@ -258,22 +258,24 @@ export function Sidebar() {
       {/* Brand Header */}
       <div className="h-16 flex items-center justify-between px-3.5 border-b border-[var(--crm-border-default,#EBE3DB)] bg-[var(--crm-bg-sidebar,#FAF7F2)] flex-shrink-0">
         {!sidebarCollapsed ? (
-          <Link href="/" className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-8 h-8 rounded-xl bg-crm-brand-700 flex items-center justify-center text-white font-black text-sm shadow-xs flex-shrink-0">
-              <Settings className="w-4 h-4 animate-spin-slow" />
+          <Link href="/" className="flex items-center gap-2.5 overflow-hidden group">
+            <div className="w-9 h-9 rounded-xl bg-white border border-[#E7DED5] p-1 flex items-center justify-center shadow-xs flex-shrink-0 group-hover:scale-105 transition-transform">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/uma-mark.png" alt="Uma Techno Fab" className="w-full h-full object-contain select-none" />
             </div>
             <div className="leading-tight truncate">
               <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-[#3E2723] tracking-wide text-xs">UMA TECHNO FAB</span>
+                <span className="font-extrabold text-[#18417D] tracking-wide text-xs">UMA TECHNO FAB</span>
               </div>
-              <span className="text-[10px] text-[#8D7B70] font-medium tracking-tight block">
+              <span className="text-[10px] text-[#F37A20] font-semibold tracking-tight block">
                 Manufacturing ERP
               </span>
             </div>
           </Link>
         ) : (
-          <Link href="/" className="mx-auto w-8 h-8 rounded-xl bg-crm-brand-700 flex items-center justify-center text-white font-black text-sm shadow-xs">
-            <Settings className="w-4 h-4" />
+          <Link href="/" title="UMA Techno Fab" className="mx-auto w-10 h-10 rounded-xl bg-white border border-[#E7DED5] p-1.5 flex items-center justify-center shadow-xs hover:scale-105 transition-transform">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/uma-mark.png" alt="Uma Techno Fab" className="w-full h-full object-contain select-none" />
           </Link>
         )}
 

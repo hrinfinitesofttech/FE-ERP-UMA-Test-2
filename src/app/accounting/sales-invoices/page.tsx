@@ -699,13 +699,17 @@ function SalesInvoicesContent() {
             <div id="printable-sales-invoice" className="space-y-6 font-sans">
               {/* Header Letterhead */}
               <div className="flex justify-between items-start border-b-2 border-emerald-800 pb-4">
-                <div>
-                  <h1 className="text-xl font-black text-emerald-950 uppercase tracking-tight">UMA TECHNO FAB PVT. LTD.</h1>
-                  <p className="text-[11px] text-[#544B45] font-medium leading-relaxed">
-                    Plot No. 42-45, GIDC Industrial Estate, Manjusar, Savli, Vadodara - 391775, Gujarat, India<br />
-                    GSTIN: <span className="font-mono font-bold text-[#211B17]">24AAACU1234F1Z5</span> • PAN: <span className="font-mono font-bold text-[#211B17]">AAACU1234F</span> • State Code: 24<br />
-                    Email: accounts@umatechnofab.com • Phone: +91 265 2984110
-                  </p>
+                <div className="flex items-start gap-3.5">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/uma-mark.png" alt="Uma Techno Fab" className="w-12 h-12 object-contain shrink-0 mt-0.5" />
+                  <div>
+                    <h1 className="text-xl font-black text-[#18417D] uppercase tracking-tight">UMA TECHNO FAB PVT. LTD.</h1>
+                    <p className="text-[11px] text-[#544B45] font-medium leading-relaxed">
+                      Plot No. 42-45, GIDC Industrial Estate, Manjusar, Savli, Vadodara - 391775, Gujarat, India<br />
+                      GSTIN: <span className="font-mono font-bold text-[#211B17]">24AAACU1234F1Z5</span> • PAN: <span className="font-mono font-bold text-[#211B17]">AAACU1234F</span> • State Code: 24<br />
+                      Email: accounts@umatechnofab.com • Phone: +91 265 2984110
+                    </p>
+                  </div>
                 </div>
                 <div className="text-right">
                   <span className="inline-block px-3 py-1 bg-emerald-800 text-white text-xs font-black uppercase rounded tracking-wider">

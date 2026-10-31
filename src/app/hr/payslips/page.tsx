@@ -56,10 +56,14 @@ export default function PayslipsPage() {
         <div id="printable-salary-payslip" className="bg-white text-slate-900 rounded-2xl p-8 max-w-4xl mx-auto shadow-2xl space-y-6 print:p-0 print:shadow-none">
           {/* Company Letterhead */}
           <div className="flex justify-between items-start border-b-2 border-[#EBE3DB] pb-4">
-            <div>
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight">{company.companyName || 'UMA TECHNO FAB MFG ERP'}</h2>
-              <p className="text-xs text-slate-600 font-medium">GIDC Vatva Industrial Estate, Phase 3, Ahmedabad, Gujarat - 382445</p>
-              <p className="text-xs text-slate-600 font-medium">GSTIN: 24AAACU1234F1Z9 | Corporate CIN: U28910GJ2020PTC112233</p>
+            <div className="flex items-start gap-3.5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/uma-mark.png" alt="Uma Techno Fab" className="w-12 h-12 object-contain shrink-0 mt-0.5" />
+              <div>
+                <h2 className="text-2xl font-black text-[#18417D] tracking-tight">{company.companyName || 'UMA TECHNO FAB PVT. LTD.'}</h2>
+                <p className="text-xs text-slate-600 font-medium">GIDC Vatva Industrial Estate, Phase 3, Ahmedabad, Gujarat - 382445</p>
+                <p className="text-xs text-slate-600 font-medium">GSTIN: 24AAACU1234F1Z9 | Corporate CIN: U28910GJ2020PTC112233</p>
+              </div>
             </div>
             <div className="text-right">
               <span className="text-xs font-bold uppercase tracking-wider text-crm-brand-800 bg-crm-brand- px-3 py-1 rounded-full">

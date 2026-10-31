@@ -757,11 +757,15 @@ function EWayBillPageContent() {
                   PART - A: GOODS CONSIGNMENT DETAILS
                 </div>
                 <div className="grid grid-cols-2 gap-3 p-2 text-[11px]">
-                  <div>
-                    <span className="text-slate-400 block font-semibold">FROM (SUPPLIER):</span>
-                    <strong className="text-slate-900">UMA TECHNO FAB PRIVATE LIMITED</strong>
-                    <div className="text-slate-600 font-mono">GSTIN: 24AAACU1234F1Z9</div>
-                    <div className="text-slate-500">Dispatch From: 382415 (Odhav GIDC)</div>
+                  <div className="flex items-start gap-2.5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/uma-mark.png" alt="Uma Techno Fab" className="w-8 h-8 object-contain shrink-0 mt-0.5" />
+                    <div>
+                      <span className="text-slate-400 block font-semibold">FROM (SUPPLIER):</span>
+                      <strong className="text-slate-900">UMA TECHNO FAB PRIVATE LIMITED</strong>
+                      <div className="text-slate-600 font-mono">GSTIN: 24AAACU1234F1Z9</div>
+                      <div className="text-slate-500">Dispatch From: 382415 (Odhav GIDC)</div>
+                    </div>
                   </div>
                   <div>
                     <span className="text-slate-400 block font-semibold">TO (RECIPIENT):</span>
