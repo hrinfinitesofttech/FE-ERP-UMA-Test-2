@@ -1593,7 +1593,20 @@ export const api = {
       delete: (id: string) => request<any>(`/routing-operations/${id}/`, { method: 'DELETE' }),
     },
     workOrders: {
-      list: () => request<any[]>('/work-orders/'),
+      list: async () => {
+        try {
+          return await request<any[]>('/work-orders/');
+        } catch (err: any) {
+          if (err?.status === 404 || String(err?.message || '').includes('404')) {
+            console.warn(
+              '[UMA ERP Backend Note] GET /api/work-orders/ returned 404 Not Found. ' +
+              'The backend WorkOrderViewSet is implemented in apps/production/views.py but needs router registration in erp_backend/urls.py.'
+            );
+            return [];
+          }
+          throw err;
+        }
+      },
       create: (data: any) => request<any>('/work-orders/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/work-orders/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       release: (id: string, data?: any) => request<any>(`/work-orders/${id}/release/`, { method: 'POST', body: data ? JSON.stringify(data) : undefined }),

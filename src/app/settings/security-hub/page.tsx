@@ -157,7 +157,18 @@ export default function SecurityHubPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB] text-[#544B45]">
-              {securityChecks.map((sec) => (
+              {securityChecks.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-xs text-[#70665F]">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <ShieldCheck className="w-8 h-8 text-[#A8988C] opacity-50" />
+                      <p className="font-semibold text-[#544B45]">No security compliance records</p>
+                      <p className="text-[11px] text-[#8C7A6F]">Security checks matrix loading or zero audit checks logged.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                securityChecks.map((sec) => (
                 <tr key={sec.id} className="hover:bg-[#FAF7F2]/40 transition">
                   <td className="py-3 px-4 font-mono font-bold text-crm-brand-500">{sec.id}</td>
                   <td className="py-3 px-4">
@@ -189,7 +200,7 @@ export default function SecurityHubPage() {
                     </span>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>

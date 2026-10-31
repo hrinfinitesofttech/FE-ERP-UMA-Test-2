@@ -50,7 +50,16 @@ export default function PayrollApprovalPage() {
 
       {/* Approval List */}
       <div className="grid grid-cols-1 gap-6">
-        {payrollRecords.map((pay) => (
+        {payrollRecords.length === 0 ? (
+          <div className="bg-white border border-[#E7DED5] rounded-2xl p-12 text-center shadow-xs">
+            <FileCheck2 className="w-10 h-10 text-[#A8988C] opacity-50 mx-auto mb-2" />
+            <h3 className="text-sm font-bold text-[#211B17]">No Payroll Runs Pending Approval</h3>
+            <p className="text-xs text-[#70665F] mt-1">
+              All processed monthly payroll batches have been approved and locked, or no runs exist.
+            </p>
+          </div>
+        ) : (
+          payrollRecords.map((pay) => (
           <div key={pay.id} className="bg-white border border-[#E7DED5] rounded-2xl p-5 sm:p-6 space-y-4 shadow-xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EBE3DB] pb-4">
               <div>
@@ -116,8 +125,8 @@ export default function PayrollApprovalPage() {
                 <span className="text-crm-brand-700 font-bold text-sm">₹{(pay.employerPF + pay.employerESI)?.toLocaleString()}</span>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

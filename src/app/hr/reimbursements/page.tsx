@@ -71,52 +71,64 @@ export default function ReimbursementsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB] text-[#3E2723]">
-              {reimbursementExpenses.map((exp) => (
-                <tr key={exp.id} className="hover:bg-[#FAF7F2]/40 transition">
-                  <td className="p-4 font-mono text-xs text-rose-400 font-bold">{exp.reimbursementNo}</td>
-                  <td className="p-4">
-                    <div className="font-bold text-[#211B17]">{exp.employeeName}</div>
-                    <div className="text-xs text-[#70665F]">{exp.department}</div>
-                  </td>
-                  <td className="p-4 text-xs font-semibold text-[#544B45]">
-                    <div className="text-rose-400 font-bold">{exp.category}</div>
-                    <div className="text-[#70665F]">{exp.expenseDate}</div>
-                  </td>
-                  <td className="p-4 font-mono font-extrabold text-emerald-400 text-sm">
-                    ₹{exp.amount?.toLocaleString()}
-                  </td>
-                  <td className="p-4 text-xs text-[#544B45] max-w-xs truncate">&quot;{exp.description}&quot;</td>
-                  <td className="p-4">
-                    <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                        exp.status === 'Approved' || exp.status === 'Paid via Accounts'
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                          : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                      }`}
-                    >
-                      {exp.status}
-                    </span>
-                  </td>
-                  <td className="p-4 text-right">
-                    {exp.status === 'Pending Manager' && (
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => updateReimbursementStatus(exp.id, 'Approved', 'Sanjay Shah (HOD)')}
-                          className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded shadow transition"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => updateReimbursementStatus(exp.id, 'Rejected' as any, 'Sanjay Shah (HOD)')}
-                          className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded shadow transition"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    )}
+              {reimbursementExpenses.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-xs text-[#70665F]">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Receipt className="w-8 h-8 text-[#A8988C] opacity-50" />
+                      <p className="font-semibold text-[#544B45]">No reimbursement claims</p>
+                      <p className="text-[11px] text-[#8C7A6F]">No employee expense bills or conveyance claims submitted for approval.</p>
+                    </div>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                reimbursementExpenses.map((exp) => (
+                  <tr key={exp.id} className="hover:bg-[#FAF7F2]/40 transition">
+                    <td className="p-4 font-mono text-xs text-rose-600 font-bold">{exp.reimbursementNo}</td>
+                    <td className="p-4">
+                      <div className="font-bold text-[#211B17]">{exp.employeeName}</div>
+                      <div className="text-xs text-[#70665F]">{exp.department}</div>
+                    </td>
+                    <td className="p-4 text-xs font-semibold text-[#544B45]">
+                      <div className="text-rose-600 font-bold">{exp.category}</div>
+                      <div className="text-[#70665F]">{exp.expenseDate}</div>
+                    </td>
+                    <td className="p-4 font-mono font-extrabold text-emerald-600 text-sm">
+                      ₹{exp.amount?.toLocaleString()}
+                    </td>
+                    <td className="p-4 text-xs text-[#544B45] max-w-xs truncate">&quot;{exp.description}&quot;</td>
+                    <td className="p-4">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                          exp.status === 'Approved' || exp.status === 'Paid via Accounts'
+                            ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                            : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                        }`}
+                      >
+                        {exp.status}
+                      </span>
+                    </td>
+                    <td className="p-4 text-right">
+                      {exp.status === 'Pending Manager' && (
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => updateReimbursementStatus(exp.id, 'Approved', 'Sanjay Shah (HOD)')}
+                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded shadow transition min-h-[36px]"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => updateReimbursementStatus(exp.id, 'Rejected' as any, 'Sanjay Shah (HOD)')}
+                            className="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded shadow transition min-h-[36px]"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

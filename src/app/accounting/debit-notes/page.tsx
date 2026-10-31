@@ -82,39 +82,53 @@ export default function DebitNotesPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden">
-        <table className="w-full text-left text-xs text-[#544B45]">
-          <thead className="bg-[#FAF7F2]/80 text-[#70665F] uppercase font-semibold text-[10px] tracking-wider border-b border-[#EBE3DB]">
-            <tr>
-              <th className="py-3.5 px-4">DN Number</th>
-              <th className="py-3.5 px-4">Date</th>
-              <th className="py-3.5 px-4">Supplier</th>
-              <th className="py-3.5 px-4">Original Purchase Invoice</th>
-              <th className="py-3.5 px-4">Reason</th>
-              <th className="py-3.5 px-4 text-right">Taxable Amount</th>
-              <th className="py-3.5 px-4 text-right">ITC Reversal</th>
-              <th className="py-3.5 px-4 text-right">Total Debit</th>
-              <th className="py-3.5 px-4 text-center">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#EBE3DB] font-mono">
-            {filtered.map((dn) => (
-              <tr key={dn.id} className="hover:bg-white/40 transition">
-                <td className="py-3 px-4 font-bold text-rose-400">{dn.debitNoteNumber}</td>
-                <td className="py-3 px-4 text-[#70665F] font-sans">{dn.debitNoteDate}</td>
-                <td className="py-3 px-4 font-sans font-semibold text-[#3E2723]">{dn.supplierName}</td>
-                <td className="py-3 px-4 text-[#544B45]">{dn.originalInvoiceNumber}</td>
-                <td className="py-3 px-4 font-sans text-[#70665F]">{dn.reason}</td>
-                <td className="py-3 px-4 text-right text-[#544B45]">₹{(dn.taxableAmount || 0)?.toLocaleString()}</td>
-                <td className="py-3 px-4 text-right text-crm-brand-500">₹{(dn.taxAmount || 0)?.toLocaleString()}</td>
-                <td className="py-3 px-4 text-right font-bold text-[#211B17]">₹{dn.totalAmount?.toLocaleString()}</td>
-                <td className="py-3 px-4 text-center font-sans">
-                  <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-400 font-semibold">{dn.status}</span>
-                </td>
+      <div className="bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden shadow-xl">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs text-[#544B45]">
+            <thead className="bg-[#FAF7F2]/80 text-[#70665F] uppercase font-semibold text-[10px] tracking-wider border-b border-[#EBE3DB]">
+              <tr>
+                <th className="py-3.5 px-4">DN Number</th>
+                <th className="py-3.5 px-4">Date</th>
+                <th className="py-3.5 px-4">Supplier</th>
+                <th className="py-3.5 px-4">Original Purchase Invoice</th>
+                <th className="py-3.5 px-4">Reason</th>
+                <th className="py-3.5 px-4 text-right">Taxable Amount</th>
+                <th className="py-3.5 px-4 text-right">ITC Reversal</th>
+                <th className="py-3.5 px-4 text-right">Total Debit</th>
+                <th className="py-3.5 px-4 text-center">Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-[#EBE3DB] font-mono">
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="py-12 text-center text-xs text-[#70665F]">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <FileText className="w-8 h-8 text-[#A8988C] opacity-50" />
+                      <p className="font-semibold text-[#544B45]">No debit notes recorded</p>
+                      <p className="text-[11px] text-[#8C7A6F]">No debit note transactions match your search criteria or none have been issued yet.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((dn) => (
+                  <tr key={dn.id} className="hover:bg-white/40 transition">
+                    <td className="py-3 px-4 font-bold text-rose-400">{dn.debitNoteNumber}</td>
+                    <td className="py-3 px-4 text-[#70665F] font-sans">{dn.debitNoteDate}</td>
+                    <td className="py-3 px-4 font-sans font-semibold text-[#3E2723]">{dn.supplierName}</td>
+                    <td className="py-3 px-4 text-[#544B45]">{dn.originalInvoiceNumber}</td>
+                    <td className="py-3 px-4 font-sans text-[#70665F]">{dn.reason}</td>
+                    <td className="py-3 px-4 text-right text-[#544B45]">₹{(dn.taxableAmount || 0)?.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-right text-crm-brand-500">₹{(dn.taxAmount || 0)?.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-right font-bold text-[#211B17]">₹{dn.totalAmount?.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-center font-sans">
+                      <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-400 font-semibold">{dn.status}</span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {isModalOpen && (

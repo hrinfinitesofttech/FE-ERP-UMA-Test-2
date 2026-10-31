@@ -340,60 +340,72 @@ export default function UATHubPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB] text-xs text-[#544B45]">
-              {filteredCases.map((tc) => (
-                <tr key={tc.id} className="hover:bg-[#FAF7F2]/40 transition">
-                  <td className="py-3 px-4 font-mono text-crm-brand-500 font-bold">{tc.id}</td>
-                  <td className="py-3 px-4">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FAF7F2] text-[#544B45] border border-[#EBE3DB]">
-                      {tc.module}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-[#70665F] font-medium">{tc.category}</td>
-                  <td className="py-3 px-4 space-y-0.5">
-                    <div className="font-semibold text-[#211B17]">{tc.title}</div>
-                    <div className="text-[11px] text-[#70665F] leading-tight">{tc.description}</div>
-                  </td>
-                  <td className="py-3 px-4 text-[#544B45] text-[11px] max-w-xs">{tc.expectedResult}</td>
-                  <td className="py-3 px-4 text-[#70665F]">
-                    <div>{tc.executedBy || '—'}</div>
-                    <div className="text-[10px] text-[#70665F] font-mono">{tc.executedDate || ''}</div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <span
-                      onClick={() => {
-                        setEditingTestCase(tc);
-                        setEditStatus(tc.status);
-                        setEditRemarks(tc.remarks || '');
-                      }}
-                      className={cn(
-                        'px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition flex items-center gap-1 w-fit',
-                        tc.status === 'Pass' && 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20',
-                        tc.status === 'Fail' && 'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20',
-                        tc.status === 'Blocked' && 'bg-amber-500/10 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20',
-                        tc.status === 'Pending' && 'bg-[#FAF7F2] text-[#70665F] border border-[#EBE3DB] hover:bg-[#FAF7F2]'
-                      )}
-                    >
-                      {tc.status === 'Pass' && <CheckCircle2 className="w-3 h-3" />}
-                      {tc.status === 'Fail' && <XCircle className="w-3 h-3" />}
-                      {tc.status === 'Blocked' && <AlertTriangle className="w-3 h-3" />}
-                      {tc.status === 'Pending' && <Clock className="w-3 h-3" />}
-                      {tc.status}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <button
-                      onClick={() => {
-                        setEditingTestCase(tc);
-                        setEditStatus(tc.status);
-                        setEditRemarks(tc.remarks || '');
-                      }}
-                      className="px-2.5 py-1 bg-[#FAF7F2] hover:bg-[#FAF7F2] text-[#544B45] rounded-lg text-[11px] font-semibold transition border border-[#EBE3DB]"
-                    >
-                      Update
-                    </button>
+              {filteredCases.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-xs text-[#70665F]">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Layers className="w-8 h-8 text-[#A8988C] opacity-50" />
+                      <p className="font-semibold text-[#544B45]">No test scenarios found</p>
+                      <p className="text-[11px] text-[#8C7A6F]">No UAT execution scenarios match the selected module or status filter.</p>
+                    </div>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredCases.map((tc) => (
+                  <tr key={tc.id} className="hover:bg-[#FAF7F2]/40 transition">
+                    <td className="py-3 px-4 font-mono text-crm-brand-700 font-bold">{tc.id}</td>
+                    <td className="py-3 px-4">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FAF7F2] text-[#544B45] border border-[#EBE3DB]">
+                        {tc.module}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-[#70665F] font-medium">{tc.category}</td>
+                    <td className="py-3 px-4 space-y-0.5">
+                      <div className="font-semibold text-[#211B17]">{tc.title}</div>
+                      <div className="text-[11px] text-[#70665F] leading-tight">{tc.description}</div>
+                    </td>
+                    <td className="py-3 px-4 text-[#544B45] text-[11px] max-w-xs">{tc.expectedResult}</td>
+                    <td className="py-3 px-4 text-[#70665F]">
+                      <div>{tc.executedBy || '—'}</div>
+                      <div className="text-[10px] text-[#70665F] font-mono">{tc.executedDate || ''}</div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span
+                        onClick={() => {
+                          setEditingTestCase(tc);
+                          setEditStatus(tc.status);
+                          setEditRemarks(tc.remarks || '');
+                        }}
+                        className={cn(
+                          'px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition flex items-center gap-1 w-fit min-h-[36px]',
+                          tc.status === 'Pass' && 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/30 hover:bg-emerald-500/20',
+                          tc.status === 'Fail' && 'bg-red-500/10 text-red-600 border border-red-500/30 hover:bg-red-500/20',
+                          tc.status === 'Blocked' && 'bg-amber-500/10 text-amber-600 border border-amber-500/30 hover:bg-amber-500/20',
+                          tc.status === 'Pending' && 'bg-[#FAF7F2] text-[#70665F] border border-[#EBE3DB] hover:bg-[#FAF7F2]'
+                        )}
+                      >
+                        {tc.status === 'Pass' && <CheckCircle2 className="w-3 h-3" />}
+                        {tc.status === 'Fail' && <XCircle className="w-3 h-3" />}
+                        {tc.status === 'Blocked' && <AlertTriangle className="w-3 h-3" />}
+                        {tc.status === 'Pending' && <Clock className="w-3 h-3" />}
+                        {tc.status}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <button
+                        onClick={() => {
+                          setEditingTestCase(tc);
+                          setEditStatus(tc.status);
+                          setEditRemarks(tc.remarks || '');
+                        }}
+                        className="px-2.5 py-1 bg-[#FAF7F2] hover:bg-white text-[#544B45] rounded-lg text-[11px] font-semibold transition border border-[#EBE3DB] min-h-[36px]"
+                      >
+                        Update
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

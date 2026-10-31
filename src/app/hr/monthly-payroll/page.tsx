@@ -70,50 +70,62 @@ export default function MonthlyPayrollPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB] text-[#3E2723]">
-              {payrollRecords.map((pay) => (
-                <tr key={pay.id} className="hover:bg-[#FAF7F2]/40 transition">
-                  <td className="p-4 font-mono text-xs text-green-400 font-bold">{pay.payrollNumber}</td>
-                  <td className="p-4">
-                    <div className="font-bold text-[#211B17]">{pay.employeeName}</div>
-                    <div className="text-xs text-[#70665F]">{pay.department} | {pay.designation}</div>
-                  </td>
-                  <td className="p-4 text-xs font-mono">
-                    <div className="text-emerald-400 font-semibold">Present: {pay.presentDays}/{pay.workingDays}</div>
-                    {pay.lossOfPayDays > 0 && <div className="text-rose-400">LOP: {pay.lossOfPayDays} Days</div>}
-                    {pay.overtimeHours > 0 && <div className="text-amber-400">OT: +{pay.overtimeHours} Hrs</div>}
-                  </td>
-                  <td className="p-4 font-mono text-xs text-[#3E2723]">
-                    <div className="font-bold text-[#211B17]">₹{pay.grossEarnings?.toLocaleString()}</div>
-                    <div className="text-[11px] text-[#70665F]">Basic: ₹{pay.basicSalary?.toLocaleString()}</div>
-                  </td>
-                  <td className="p-4 font-mono text-xs text-rose-400">
-                    <div className="font-bold">-₹{pay.totalDeductions?.toLocaleString()}</div>
-                    <div className="text-[11px] text-[#70665F]">PF: ₹{pay.pfDeduction} | PT: ₹{pay.ptDeduction}</div>
-                  </td>
-                  <td className="p-4 font-mono text-sm font-extrabold text-emerald-400">
-                    ₹{pay.netSalary?.toLocaleString()}
-                  </td>
-                  <td className="p-4">
-                    <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                        pay.status === 'Approved' || pay.status === 'Posted to Accounting'
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                          : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                      }`}
-                    >
-                      {pay.status}
-                    </span>
-                  </td>
-                  <td className="p-4 text-right">
-                    <Link
-                      href="/hr/payslips"
-                      className="px-3 py-1 bg-[#FAF7F2] hover:bg-slate-600 text-[#211B17] text-xs font-semibold rounded border border-[#EBE3DB] transition inline-block"
-                    >
-                      Payslip PDF
-                    </Link>
+              {payrollRecords.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-xs text-[#70665F]">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Banknote className="w-8 h-8 text-[#A8988C] opacity-50" />
+                      <p className="font-semibold text-[#544B45]">No payroll records processed</p>
+                      <p className="text-[11px] text-[#8C7A6F]">Click &quot;Calculate Monthly Payroll&quot; to compute biometric attendance, earnings, PF &amp; net payouts.</p>
+                    </div>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                payrollRecords.map((pay) => (
+                  <tr key={pay.id} className="hover:bg-[#FAF7F2]/40 transition">
+                    <td className="p-4 font-mono text-xs text-emerald-600 font-bold">{pay.payrollNumber}</td>
+                    <td className="p-4">
+                      <div className="font-bold text-[#211B17]">{pay.employeeName}</div>
+                      <div className="text-xs text-[#70665F]">{pay.department} | {pay.designation}</div>
+                    </td>
+                    <td className="p-4 text-xs font-mono">
+                      <div className="text-emerald-600 font-semibold">Present: {pay.presentDays}/{pay.workingDays}</div>
+                      {pay.lossOfPayDays > 0 && <div className="text-rose-600">LOP: {pay.lossOfPayDays} Days</div>}
+                      {pay.overtimeHours > 0 && <div className="text-amber-600">OT: +{pay.overtimeHours} Hrs</div>}
+                    </td>
+                    <td className="p-4 font-mono text-xs text-[#3E2723]">
+                      <div className="font-bold text-[#211B17]">₹{pay.grossEarnings?.toLocaleString()}</div>
+                      <div className="text-[11px] text-[#70665F]">Basic: ₹{pay.basicSalary?.toLocaleString()}</div>
+                    </td>
+                    <td className="p-4 font-mono text-xs text-rose-600">
+                      <div className="font-bold">-₹{pay.totalDeductions?.toLocaleString()}</div>
+                      <div className="text-[11px] text-[#70665F]">PF: ₹{pay.pfDeduction} | PT: ₹{pay.ptDeduction}</div>
+                    </td>
+                    <td className="p-4 font-mono text-sm font-extrabold text-emerald-600">
+                      ₹{pay.netSalary?.toLocaleString()}
+                    </td>
+                    <td className="p-4">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                          pay.status === 'Approved' || pay.status === 'Posted to Accounting'
+                            ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                            : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                        }`}
+                      >
+                        {pay.status}
+                      </span>
+                    </td>
+                    <td className="p-4 text-right">
+                      <Link
+                        href="/hr/payslips"
+                        className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-white text-[#211B17] text-xs font-semibold rounded border border-[#EBE3DB] transition inline-flex items-center min-h-[36px]"
+                      >
+                        Payslip PDF
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

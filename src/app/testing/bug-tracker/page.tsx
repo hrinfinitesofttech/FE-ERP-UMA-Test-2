@@ -171,70 +171,82 @@ export default function BugTrackerPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB] text-[#544B45]">
-              {filteredBugs.map((bug) => (
-                <tr key={bug.id} className="hover:bg-[#FAF7F2]/40 transition">
-                  <td className="py-3 px-4 font-mono font-bold text-red-400">
-                    <div>{bug.bugNo}</div>
-                    <div className="text-[10px] text-[#70665F] font-normal">{bug.createdDate}</div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className="px-2 py-0.5 rounded bg-[#FAF7F2] text-[#544B45] border border-[#EBE3DB] text-[10px] font-semibold">
-                      {bug.module}
-                    </span>
-                    <div className="text-[10px] text-[#70665F] mt-0.5">{bug.page}</div>
-                  </td>
-                  <td className="py-3 px-4 space-y-0.5 max-w-sm">
-                    <div className="font-semibold text-[#211B17]">{bug.title}</div>
-                    <div className="text-[11px] text-[#70665F] leading-tight line-clamp-2">{bug.description}</div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <span
-                      className={cn(
-                        'px-2 py-0.5 rounded text-[10px] font-bold',
-                        bug.severity === 'Critical' && 'bg-red-500/20 text-red-400 border border-red-500/40',
-                        bug.severity === 'High' && 'bg-orange-500/20 text-orange-400 border border-orange-500/40',
-                        bug.severity === 'Medium' && 'bg-amber-500/20 text-amber-400 border border-amber-500/40',
-                        bug.severity === 'Low' && 'bg-[#FAF7F2] text-[#70665F]'
-                      )}
-                    >
-                      {bug.severity}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-[#544B45] font-medium">{bug.priority}</td>
-                  <td className="py-3 px-4 text-[#70665F]">
-                    <div className="flex items-center gap-1.5">
-                      <User className="w-3 h-3 text-[#70665F]" />
-                      <span>{bug.assignedDeveloper}</span>
+              {filteredBugs.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-xs text-[#70665F]">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Bug className="w-8 h-8 text-[#A8988C] opacity-50" />
+                      <p className="font-semibold text-[#544B45]">No bug tickets recorded</p>
+                      <p className="text-[11px] text-[#8C7A6F]">No defects match the selected filter or no technical bugs reported.</p>
                     </div>
                   </td>
-                  <td className="py-3 px-4">
-                    <span
-                      className={cn(
-                        'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider',
-                        bug.status === 'Closed' && 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30',
-                        bug.status === 'Fixed' && 'bg-crm-brand-600/10 text-crm-brand-500 border border-crm-brand-600/30',
-                        bug.status === 'In_Progress' && 'bg-amber-500/10 text-amber-400 border border-amber-500/30',
-                        bug.status === 'Open' && 'bg-red-500/10 text-red-400 border border-red-500/30'
-                      )}
-                    >
-                      {bug.status?.replace('_', ' ')}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right space-x-1">
-                    <select
-                      value={bug.status}
-                      onChange={(e) => updateBugTicketStatus(bug.id, e.target.value as any)}
-                      className="bg-[#FAF7F2] text-[11px] text-[#544B45] px-2 py-1 rounded-lg border border-[#EBE3DB] focus:outline-none cursor-pointer"
-                    >
-                      <option value="Open">Open</option>
-                      <option value="In_Progress">In Progress</option>
-                      <option value="Fixed">Fixed</option>
-                      <option value="Retest">Retest</option>
-                      <option value="Closed">Closed</option>
-                    </select>
-                  </td>
                 </tr>
-              ))}
+              ) : (
+                filteredBugs.map((bug) => (
+                  <tr key={bug.id} className="hover:bg-[#FAF7F2]/40 transition">
+                    <td className="py-3 px-4 font-mono font-bold text-red-600">
+                      <div>{bug.bugNo}</div>
+                      <div className="text-[10px] text-[#70665F] font-normal">{bug.createdDate}</div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="px-2 py-0.5 rounded bg-[#FAF7F2] text-[#544B45] border border-[#EBE3DB] text-[10px] font-semibold">
+                        {bug.module}
+                      </span>
+                      <div className="text-[10px] text-[#70665F] mt-0.5">{bug.page}</div>
+                    </td>
+                    <td className="py-3 px-4 space-y-0.5 max-w-sm">
+                      <div className="font-semibold text-[#211B17]">{bug.title}</div>
+                      <div className="text-[11px] text-[#70665F] leading-tight line-clamp-2">{bug.description}</div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span
+                        className={cn(
+                          'px-2 py-0.5 rounded text-[10px] font-bold',
+                          bug.severity === 'Critical' && 'bg-red-500/20 text-red-700 border border-red-500/40',
+                          bug.severity === 'High' && 'bg-orange-500/20 text-orange-700 border border-orange-500/40',
+                          bug.severity === 'Medium' && 'bg-amber-500/20 text-amber-700 border border-amber-500/40',
+                          bug.severity === 'Low' && 'bg-[#FAF7F2] text-[#70665F]'
+                        )}
+                      >
+                        {bug.severity}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-[#544B45] font-medium">{bug.priority}</td>
+                    <td className="py-3 px-4 text-[#70665F]">
+                      <div className="flex items-center gap-1.5">
+                        <User className="w-3 h-3 text-[#70665F]" />
+                        <span>{bug.assignedDeveloper}</span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span
+                        className={cn(
+                          'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider',
+                          bug.status === 'Closed' && 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/30',
+                          bug.status === 'Fixed' && 'bg-[#FAF7F2] text-[#75401F] border border-[#D5CAC0]',
+                          bug.status === 'In_Progress' && 'bg-amber-500/10 text-amber-700 border border-amber-500/30',
+                          bug.status === 'Open' && 'bg-red-500/10 text-red-700 border border-red-500/30'
+                        )}
+                      >
+                        {bug.status?.replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right space-x-1">
+                      <select
+                        value={bug.status}
+                        onChange={(e) => updateBugTicketStatus(bug.id, e.target.value as any)}
+                        className="bg-[#FAF7F2] text-[11px] text-[#544B45] px-2 py-1 rounded-lg border border-[#EBE3DB] focus:outline-none cursor-pointer min-h-[36px]"
+                      >
+                        <option value="Open">Open</option>
+                        <option value="In_Progress">In Progress</option>
+                        <option value="Fixed">Fixed</option>
+                        <option value="Retest">Retest</option>
+                        <option value="Closed">Closed</option>
+                      </select>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

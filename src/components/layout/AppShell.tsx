@@ -161,12 +161,17 @@ function getPrimaryHref(currentUser: any): string {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { currentUser, isAuthenticated, isAuthReady } = useERP();
+  const { currentUser, isAuthenticated, isAuthReady, sidebarMobileOpen, setSidebarMobileOpen } = useERP();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Close mobile sidebar drawer automatically on route navigation
+  useEffect(() => {
+    setSidebarMobileOpen(false);
+  }, [pathname, setSidebarMobileOpen]);
 
   const isAuthPage = pathname === '/login' || pathname === '/forgot-password';
 
@@ -212,14 +217,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const primaryHref = getPrimaryHref(currentUser);
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-[var(--crm-bg-app,#F4EFEA)] text-[var(--crm-text-primary,#211B17)] font-sans antialiased p-1.5 sm:p-2.5 md:p-3 flex flex-col">
+    <div className="h-screen w-screen overflow-hidden bg-[var(--crm-bg-app,#F4EFEA)] text-[var(--crm-text-primary,#211B17)] font-sans antialiased p-0 sm:p-2 md:p-3 flex flex-col">
       {/* Outer Luxury Floating Canvas Frame */}
-      <div className="flex-1 flex overflow-hidden h-full bg-[var(--crm-surface-card,#FFFFFF)] rounded-2xl md:rounded-3xl border border-[var(--crm-border-default,#E6DDD2)] shadow-[0_10px_35px_rgba(62,39,35,0.06)] relative">
+      <div className="flex-1 flex overflow-hidden h-full bg-[var(--crm-surface-card,#FFFFFF)] rounded-none sm:rounded-2xl md:rounded-3xl border-0 sm:border border-[var(--crm-border-default,#E6DDD2)] shadow-[0_10px_35px_rgba(62,39,35,0.06)] relative w-full">
+        {/* Mobile Backdrop Overlay (< 1024px) */}
+        {sidebarMobileOpen && (
+          <div
+            onClick={() => setSidebarMobileOpen(false)}
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 lg:hidden cursor-pointer transition-opacity"
+            aria-label="Close navigation backdrop"
+          />
+        )}
+
         {/* Sidebar Navigation */}
         <Sidebar />
 
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[var(--crm-bg-app,#FCFAF7)]">
+        {/* Main Content Area: Takes 100% width on mobile */}
+        <div className="flex-1 flex flex-col min-w-0 w-full h-full overflow-hidden bg-[var(--crm-bg-app,#FCFAF7)]">
           <Topbar />
 
           <main className="flex-1 overflow-y-auto p-3 sm:p-5 md:p-6 scrollbar-thin bg-[var(--crm-bg-app,#FCFAF7)]">

@@ -86,57 +86,70 @@ export default function BankReconciliationPage() {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden">
-        <table className="w-full text-left text-xs text-[#544B45]">
-          <thead className="bg-[#FAF7F2]/80 text-[#70665F] uppercase font-semibold text-[10px] tracking-wider border-b border-[#EBE3DB]">
-            <tr>
-              <th className="py-3.5 px-4">Statement Date</th>
-              <th className="py-3.5 px-4">Bank Ref / UTR</th>
-              <th className="py-3.5 px-4">Description</th>
-              <th className="py-3.5 px-4 text-right">Deposit (Dr)</th>
-              <th className="py-3.5 px-4 text-right">Withdrawal (Cr)</th>
-              <th className="py-3.5 px-4">ERP Matched Document</th>
-              <th className="py-3.5 px-4 text-center">Status</th>
-              <th className="py-3.5 px-4 text-center">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#EBE3DB] font-mono">
-            {filtered.map((tx) => {
-              const amt = tx.amount ?? (tx.depositAmount ? tx.depositAmount : tx.withdrawalAmount ? -tx.withdrawalAmount : 0);
-              const refNo = tx.transactionRef || tx.referenceNumber || '';
-              const isMatched = tx.isReconciled || tx.reconciliationStatus === 'Matched' || tx.reconciliationStatus === 'Reconciled';
-
-              return (
-                <tr key={tx.id} className="hover:bg-white/40 transition">
-                  <td className="py-3 px-4 text-[#70665F] font-sans">{tx.transactionDate}</td>
-                  <td className="py-3 px-4 font-bold text-[#211B17]">{refNo}</td>
-                  <td className="py-3 px-4 font-sans text-[#544B45]">{tx.description}</td>
-                  <td className="py-3 px-4 text-right text-emerald-400">{amt > 0 ? `₹${amt?.toLocaleString()}` : '-'}</td>
-                  <td className="py-3 px-4 text-right text-rose-400">{amt < 0 ? `₹${Math.abs(amt)?.toLocaleString()}` : '-'}</td>
-                  <td className="py-3 px-4 font-sans text-crm-brand-500">{tx.matchedErpDocNumber || 'Not Matched'}</td>
-                  <td className="py-3 px-4 text-center font-sans">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${isMatched ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
-                      {tx.reconciliationStatus || (isMatched ? 'Reconciled' : 'Unmatched')}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-center font-sans">
-                    {!isMatched ? (
-                        <button
-                          onClick={() => reconcileBankTransaction(tx.id, amt > 0 ? 'RCT-2026-0001' : 'PAY-2026-0001')}
-                          className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-semibold rounded-lg transition shadow-xs cursor-pointer"
-                        >
-                          Match Voucher
-                        </button>
-                    ) : (
-                      <span className="text-[#70665F] text-[10px]">Reconciled</span>
-                    )}
+      <div className="bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden shadow-xl">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs text-[#544B45]">
+            <thead className="bg-[#FAF7F2]/80 text-[#70665F] uppercase font-semibold text-[10px] tracking-wider border-b border-[#EBE3DB]">
+              <tr>
+                <th className="py-3.5 px-4">Statement Date</th>
+                <th className="py-3.5 px-4">Bank Ref / UTR</th>
+                <th className="py-3.5 px-4">Description</th>
+                <th className="py-3.5 px-4 text-right">Deposit (Dr)</th>
+                <th className="py-3.5 px-4 text-right">Withdrawal (Cr)</th>
+                <th className="py-3.5 px-4">ERP Matched Document</th>
+                <th className="py-3.5 px-4 text-center">Status</th>
+                <th className="py-3.5 px-4 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#EBE3DB] font-mono">
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-xs text-[#70665F]">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Landmark className="w-8 h-8 text-[#A8988C] opacity-50" />
+                      <p className="font-semibold text-[#544B45]">No bank transactions found</p>
+                      <p className="text-[11px] text-[#8C7A6F]">No ledger transactions match your query or bank statement is fully cleared.</p>
+                    </div>
                   </td>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
+              ) : (
+                filtered.map((tx) => {
+                  const amt = tx.amount ?? (tx.depositAmount ? tx.depositAmount : tx.withdrawalAmount ? -tx.withdrawalAmount : 0);
+                  const refNo = tx.transactionRef || tx.referenceNumber || '';
+                  const isMatched = tx.isReconciled || tx.reconciliationStatus === 'Matched' || tx.reconciliationStatus === 'Reconciled';
+
+                  return (
+                    <tr key={tx.id} className="hover:bg-white/40 transition">
+                      <td className="py-3 px-4 text-[#70665F] font-sans">{tx.transactionDate}</td>
+                      <td className="py-3 px-4 font-bold text-[#211B17]">{refNo}</td>
+                      <td className="py-3 px-4 font-sans text-[#544B45]">{tx.description}</td>
+                      <td className="py-3 px-4 text-right text-emerald-400">{amt > 0 ? `₹${amt?.toLocaleString()}` : '-'}</td>
+                      <td className="py-3 px-4 text-right text-rose-400">{amt < 0 ? `₹${Math.abs(amt)?.toLocaleString()}` : '-'}</td>
+                      <td className="py-3 px-4 font-sans text-crm-brand-500">{tx.matchedErpDocNumber || 'Not Matched'}</td>
+                      <td className="py-3 px-4 text-center font-sans">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${isMatched ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                          {tx.reconciliationStatus || (isMatched ? 'Reconciled' : 'Unmatched')}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-center font-sans">
+                        {!isMatched ? (
+                            <button
+                              onClick={() => reconcileBankTransaction(tx.id, amt > 0 ? 'RCT-2026-0001' : 'PAY-2026-0001')}
+                              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-semibold rounded-lg transition shadow-xs cursor-pointer min-h-[36px]"
+                            >
+                              Match Voucher
+                            </button>
+                        ) : (
+                          <span className="text-[#70665F] text-[10px]">Reconciled</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

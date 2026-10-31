@@ -149,27 +149,27 @@ export function DataTable<T extends Record<string, any>>({
                 setCurrentPage(1);
               }}
               placeholder={searchPlaceholder}
-              className="w-full pl-8 pr-3 py-1 text-xs bg-white border border-[#E7DED5] rounded-lg text-[#211B17] placeholder:text-[#8D827A] focus:outline-none focus:border-[#75401F] transition shadow-2xs"
+              className="w-full pl-8 pr-3 py-2 min-h-[40px] text-xs bg-white border border-[#E7DED5] rounded-xl text-[#211B17] placeholder:text-[#8D827A] focus:outline-none focus:border-[#75401F] transition shadow-2xs"
             />
           </div>
 
           {filterComponent}
 
           {/* Quick Toolbar buttons */}
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={exportCSV}
               title="Export to CSV"
-              className="p-1.5 text-[#70665F] hover:text-[#211B17] hover:bg-white rounded-lg border border-[#E7DED5] transition cursor-pointer shadow-2xs"
+              className="min-w-[40px] min-h-[40px] flex items-center justify-center p-2 text-[#70665F] hover:text-[#211B17] hover:bg-white rounded-xl border border-[#E7DED5] transition cursor-pointer shadow-2xs"
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download className="w-4 h-4" />
             </button>
             <button
               onClick={handlePrint}
               title="Print Table"
-              className="p-1.5 text-[#70665F] hover:text-[#211B17] hover:bg-white rounded-lg border border-[#E7DED5] transition cursor-pointer shadow-2xs"
+              className="min-w-[40px] min-h-[40px] flex items-center justify-center p-2 text-[#70665F] hover:text-[#211B17] hover:bg-white rounded-xl border border-[#E7DED5] transition cursor-pointer shadow-2xs"
             >
-              <Printer className="w-3.5 h-3.5" />
+              <Printer className="w-4 h-4" />
             </button>
           </div>
 
@@ -259,7 +259,7 @@ export function DataTable<T extends Record<string, any>>({
                 setPageSize(Number(e.target.value));
                 setCurrentPage(1);
               }}
-              className="bg-white border border-[#E7DED5] rounded px-2 py-0.5 text-xs font-semibold text-[#211B17] focus:outline-none focus:border-[#75401F]"
+              className="bg-white border border-[#E7DED5] rounded-lg px-2.5 py-1.5 min-h-[38px] text-xs font-semibold text-[#211B17] focus:outline-none focus:border-[#75401F]"
             >
               {pageSizeOptions.map((opt) => (
                 <option key={opt} value={opt}>
@@ -274,7 +274,7 @@ export function DataTable<T extends Record<string, any>>({
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="p-1.5 rounded-lg border border-[#E7DED5] disabled:opacity-30 hover:bg-white text-[#70665F] transition cursor-pointer"
+            className="min-w-[40px] min-h-[40px] flex items-center justify-center p-2 rounded-lg border border-[#E7DED5] disabled:opacity-30 hover:bg-white text-[#70665F] transition cursor-pointer"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -284,7 +284,7 @@ export function DataTable<T extends Record<string, any>>({
           <button
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="p-1.5 rounded-lg border border-[#E7DED5] disabled:opacity-30 hover:bg-white text-[#70665F] transition cursor-pointer"
+            className="min-w-[40px] min-h-[40px] flex items-center justify-center p-2 rounded-lg border border-[#E7DED5] disabled:opacity-30 hover:bg-white text-[#70665F] transition cursor-pointer"
           >
             <ChevronRight className="w-4 h-4" />
           </button>

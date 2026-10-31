@@ -640,41 +640,53 @@ export default function ProductionDashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB]">
-              {workOrders.map((wo) => (
-                <tr key={wo.id} className="hover:bg-white/40 transition">
-                  <td className="p-3 font-mono font-bold text-orange-400">{wo.workOrderNumber}</td>
-                  <td className="p-3 font-mono text-sky-300">{wo.jobNumber}</td>
-                  <td className="p-3 font-medium text-[#211B17] max-w-xs truncate">{wo.productName}</td>
-                  <td className="p-3 text-[#70665F]">
-                    {wo.designRevision} / {wo.bomRevision}
-                  </td>
-                  <td className="p-3 text-[#544B45]">{wo.plannedEndDate}</td>
-                  <td className="p-3">
-                    <span
-                      className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                        wo.priority === 'High' || wo.priority === 'Urgent'
-                          ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                          : 'bg-[#FAF7F2] text-[#544B45]'
-                      }`}
-                    >
-                      {wo.priority}
-                    </span>
-                  </td>
-                  <td className="p-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      {wo.status}
-                    </span>
-                  </td>
-                  <td className="p-3 text-right">
-                    <button
-                      onClick={() => openJobModal(wo.jobNumber)}
-                      className="px-2.5 py-1 rounded bg-crm-brand-700/20 text-crm-brand- hover:bg-crm-brand-700/30 border border-crm-brand-600/30 transition text-[11px]"
-                    >
-                      360° Trace
-                    </button>
+              {workOrders.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-xs text-[#70665F]">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <ClipboardList className="w-8 h-8 text-[#A8988C] opacity-50" />
+                      <p className="font-semibold text-[#544B45]">No active work orders</p>
+                      <p className="text-[11px] text-[#8C7A6F]">No production work orders currently running on shopfloor.</p>
+                    </div>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                workOrders.map((wo) => (
+                  <tr key={wo.id} className="hover:bg-white/40 transition">
+                    <td className="p-3 font-mono font-bold text-orange-600">{wo.workOrderNumber}</td>
+                    <td className="p-3 font-mono text-sky-700">{wo.jobNumber}</td>
+                    <td className="p-3 font-medium text-[#211B17] max-w-xs truncate">{wo.productName}</td>
+                    <td className="p-3 text-[#70665F]">
+                      {wo.designRevision} / {wo.bomRevision}
+                    </td>
+                    <td className="p-3 text-[#544B45]">{wo.plannedEndDate}</td>
+                    <td className="p-3">
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          wo.priority === 'High' || wo.priority === 'Urgent'
+                            ? 'bg-rose-500/20 text-rose-700 border border-rose-500/30'
+                            : 'bg-[#FAF7F2] text-[#544B45]'
+                        }`}
+                      >
+                        {wo.priority}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-700 border border-emerald-500/30">
+                        {wo.status}
+                      </span>
+                    </td>
+                    <td className="p-3 text-right">
+                      <button
+                        onClick={() => openJobModal(wo.jobNumber)}
+                        className="px-2.5 py-1 rounded bg-[#FAF7F2] hover:bg-white text-[#75401F] border border-[#D5CAC0] transition text-[11px] font-semibold min-h-[36px]"
+                      >
+                        360° Trace
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

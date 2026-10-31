@@ -74,52 +74,64 @@ export default function AttendanceRegularizationPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB] text-[#3E2723]">
-              {attendanceRegularizations.map((reg) => (
-                <tr key={reg.id} className="hover:bg-[#FAF7F2]/40 transition">
-                  <td className="p-4 font-mono text-xs text-yellow-400 font-bold">{reg.regularizationNo}</td>
-                  <td className="p-4 font-bold text-[#211B17]">{reg.employeeName}</td>
-                  <td className="p-4 font-mono text-xs text-[#544B45]">{reg.date}</td>
-                  <td className="p-4 text-xs">
-                    <div className="text-rose-400 line-through">Orig: {reg.originalStatus}</div>
-                    <div className="text-emerald-400 font-bold">New: {reg.requestedStatus}</div>
-                  </td>
-                  <td className="p-4 text-xs font-mono text-[#544B45]">
-                    <div>In: {reg.correctedCheckIn}</div>
-                    <div>Out: {reg.correctedCheckOut}</div>
-                  </td>
-                  <td className="p-4">
-                    <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                        reg.status === 'Approved'
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                          : reg.status === 'Pending'
-                          ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                          : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                      }`}
-                    >
-                      {reg.status}
-                    </span>
-                  </td>
-                  <td className="p-4 text-right">
-                    {reg.status === 'Pending' && (
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => updateAttendanceRegularizationStatus(reg.id, 'Approved')}
-                          className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded shadow transition"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => updateAttendanceRegularizationStatus(reg.id, 'Rejected')}
-                          className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded shadow transition"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    )}
+              {attendanceRegularizations.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-xs text-[#70665F]">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Clock className="w-8 h-8 text-[#A8988C] opacity-50" />
+                      <p className="font-semibold text-[#544B45]">No attendance regularizations</p>
+                      <p className="text-[11px] text-[#8C7A6F]">Zero pending shift adjustments or biometric punch corrections.</p>
+                    </div>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                attendanceRegularizations.map((reg) => (
+                  <tr key={reg.id} className="hover:bg-[#FAF7F2]/40 transition">
+                    <td className="p-4 font-mono text-xs text-amber-600 font-bold">{reg.regularizationNo}</td>
+                    <td className="p-4 font-bold text-[#211B17]">{reg.employeeName}</td>
+                    <td className="p-4 font-mono text-xs text-[#544B45]">{reg.date}</td>
+                    <td className="p-4 text-xs">
+                      <div className="text-rose-500 line-through">Orig: {reg.originalStatus}</div>
+                      <div className="text-emerald-600 font-bold">New: {reg.requestedStatus}</div>
+                    </td>
+                    <td className="p-4 text-xs font-mono text-[#544B45]">
+                      <div>In: {reg.correctedCheckIn}</div>
+                      <div>Out: {reg.correctedCheckOut}</div>
+                    </td>
+                    <td className="p-4">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                          reg.status === 'Approved'
+                            ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                            : reg.status === 'Pending'
+                            ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                            : 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
+                        }`}
+                      >
+                        {reg.status}
+                      </span>
+                    </td>
+                    <td className="p-4 text-right">
+                      {reg.status === 'Pending' && (
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => updateAttendanceRegularizationStatus(reg.id, 'Approved')}
+                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded shadow transition min-h-[36px]"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => updateAttendanceRegularizationStatus(reg.id, 'Rejected')}
+                            className="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded shadow transition min-h-[36px]"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

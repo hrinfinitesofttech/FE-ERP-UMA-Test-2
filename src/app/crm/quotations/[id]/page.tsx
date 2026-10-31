@@ -137,6 +137,9 @@ export default function QuotationDetailPage() {
     setFlwDate(d.toISOString().split('T')[0]);
   };
 
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
   if (!quotation) {
     return (
       <div className="p-8 text-center text-[#70665F] text-xs">
@@ -154,8 +157,6 @@ export default function QuotationDetailPage() {
     updateQuotationStatus(quotation.id, currentRev.revisionNumber, 'approved');
     showFeedback('success', `Quotation revision ${currentRev.revisionNumber} officially APPROVED.`);
   };
-
-  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   const handleSendEmailQuotation = async (customEmail?: string) => {
     const recipient = String(customEmail || targetEmail || resolvedEmail || quotation?.contactEmail || '').trim();
@@ -212,8 +213,6 @@ export default function QuotationDetailPage() {
       setIsSendingEmail(false);
     }
   };
-
-  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   const handleDownloadPdf = async () => {
     setIsDownloadingPdf(true);

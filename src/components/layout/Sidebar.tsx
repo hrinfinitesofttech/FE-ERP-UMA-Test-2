@@ -80,6 +80,7 @@ import {
   ShieldAlert,
   BookOpen,
   Send,
+  X,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -89,6 +90,8 @@ export function Sidebar() {
     hasDepartmentAccess,
     sidebarCollapsed,
     setSidebarCollapsed,
+    sidebarMobileOpen,
+    setSidebarMobileOpen,
     leads,
     enquiries,
     customers,
@@ -251,14 +254,20 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'bg-[var(--crm-bg-sidebar,#FAF7F2)] text-[var(--crm-text-primary,#3E2723)] border-r border-[var(--crm-border-default,#EBE3DB)] flex flex-col h-full transition-all duration-300 select-none z-30 shadow-xs relative',
-        sidebarCollapsed ? 'w-20' : 'w-64'
+        'bg-[var(--crm-bg-sidebar,#FAF7F2)] text-[var(--crm-text-primary,#3E2723)] border-r border-[var(--crm-border-default,#EBE3DB)] flex flex-col h-full transition-transform lg:transition-all duration-300 select-none shadow-xl lg:shadow-xs',
+        'fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] lg:static lg:h-full lg:max-w-none lg:z-30',
+        sidebarMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+        sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'
       )}
     >
       {/* Brand Header */}
       <div className="h-16 flex items-center justify-between px-3.5 border-b border-[var(--crm-border-default,#EBE3DB)] bg-[var(--crm-bg-sidebar,#FAF7F2)] flex-shrink-0">
         {!sidebarCollapsed ? (
-          <Link href="/" className="flex items-center gap-2.5 overflow-hidden group">
+          <Link
+            href="/"
+            onClick={() => setSidebarMobileOpen(false)}
+            className="flex items-center gap-2.5 overflow-hidden group"
+          >
             <div className="w-9 h-9 rounded-xl bg-white border border-[#E7DED5] p-1 flex items-center justify-center shadow-xs flex-shrink-0 group-hover:scale-105 transition-transform">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/uma-mark.png" alt="Uma Techno Fab" className="w-full h-full object-contain select-none" />
@@ -273,22 +282,44 @@ export function Sidebar() {
             </div>
           </Link>
         ) : (
-          <Link href="/" title="UMA Techno Fab" className="mx-auto w-10 h-10 rounded-xl bg-white border border-[#E7DED5] p-1.5 flex items-center justify-center shadow-xs hover:scale-105 transition-transform">
+          <Link
+            href="/"
+            onClick={() => setSidebarMobileOpen(false)}
+            title="UMA Techno Fab"
+            className="mx-auto w-10 h-10 rounded-xl bg-white border border-[#E7DED5] p-1.5 flex items-center justify-center shadow-xs hover:scale-105 transition-transform"
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/uma-mark.png" alt="Uma Techno Fab" className="w-full h-full object-contain select-none" />
           </Link>
         )}
 
+        {/* Mobile Close Button (< 1024px) */}
+        <button
+          onClick={() => setSidebarMobileOpen(false)}
+          className="p-2 rounded-lg text-[#8D7B70] hover:text-[#3E2723] hover:bg-[#F3ECE4] lg:hidden flex transition min-w-[40px] min-h-[40px] items-center justify-center cursor-pointer"
+          aria-label="Close navigation drawer"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* Desktop Collapse Toggle (>= 1024px) */}
         <button
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="p-1.5 rounded-lg text-[#8D7B70] hover:text-[#3E2723] hover:bg-[#F3ECE4] hidden sm:flex transition"
+          className="p-1.5 rounded-lg text-[#8D7B70] hover:text-[#3E2723] hover:bg-[#F3ECE4] hidden lg:flex transition cursor-pointer"
         >
           {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
       </div>
 
       {/* Navigation Links Scrollable */}
-      <div className="flex-1 overflow-y-auto py-2 px-2.5 space-y-0.5 scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest('a')) {
+            setSidebarMobileOpen(false);
+          }
+        }}
+        className="flex-1 overflow-y-auto py-2 px-2.5 space-y-0.5 scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+      >
         {/* Executive Dashboard */}
         <Link
           href="/"

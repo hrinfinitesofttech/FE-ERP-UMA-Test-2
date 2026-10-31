@@ -219,26 +219,38 @@ export default function DataImportWizardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB] text-[#544B45]">
-              {dataImportLogs.map((log) => (
-                <tr key={log.id} className="hover:bg-[#FAF7F2]/40 transition">
-                  <td className="py-3 px-4 font-mono font-bold text-amber-400">{log.importNo}</td>
-                  <td className="py-3 px-4 font-semibold text-[#211B17]">{log.entityType}</td>
-                  <td className="py-3 px-4 font-mono text-[#544B45]">{log.fileName}</td>
-                  <td className="py-3 px-4 font-mono text-[#544B45]">{log.totalRecords}</td>
-                  <td className="py-3 px-4 font-mono text-emerald-400 font-bold">{log.importedRecords}</td>
-                  <td className="py-3 px-4 font-mono text-red-400">{log.failedRecords}</td>
-                  <td className="py-3 px-4 text-[#70665F]">
-                    <div>{log.importedDate}</div>
-                    <div className="text-[10px] text-[#70665F]">{log.importedBy}</div>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 inline-flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" />
-                      {log.status}
-                    </span>
+              {dataImportLogs.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-xs text-[#70665F]">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Database className="w-8 h-8 text-[#A8988C] opacity-50" />
+                      <p className="font-semibold text-[#544B45]">No import logs recorded</p>
+                      <p className="text-[11px] text-[#8C7A6F]">Use the file upload form above to import master entity CSV/Excel spreadsheets.</p>
+                    </div>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                dataImportLogs.map((log) => (
+                  <tr key={log.id} className="hover:bg-[#FAF7F2]/40 transition">
+                    <td className="py-3 px-4 font-mono font-bold text-amber-600">{log.importNo}</td>
+                    <td className="py-3 px-4 font-semibold text-[#211B17]">{log.entityType}</td>
+                    <td className="py-3 px-4 font-mono text-[#544B45]">{log.fileName}</td>
+                    <td className="py-3 px-4 font-mono text-[#544B45]">{log.totalRecords}</td>
+                    <td className="py-3 px-4 font-mono text-emerald-600 font-bold">{log.importedRecords}</td>
+                    <td className="py-3 px-4 font-mono text-red-600">{log.failedRecords}</td>
+                    <td className="py-3 px-4 text-[#70665F]">
+                      <div>{log.importedDate}</div>
+                      <div className="text-[10px] text-[#70665F]">{log.importedBy}</div>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/30 inline-flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" />
+                        {log.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

@@ -71,34 +71,46 @@ export default function SalaryComponentsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB] text-[#3E2723]">
-              {salaryComponents.map((comp) => (
-                <tr key={comp.id} className="hover:bg-[#FAF7F2]/40 transition">
-                  <td className="p-4 font-mono text-xs text-crm-brand-500 font-bold">{comp.componentCode}</td>
-                  <td className="p-4 font-bold text-[#211B17]">{comp.componentName}</td>
-                  <td className="p-4">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                        comp.componentType === 'Earning'
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                          : comp.componentType === 'Deduction'
-                          ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                          : 'bg-crm-brand-600/10 text-crm-brand-500 border border-crm-brand-600/20'
-                      }`}
-                    >
-                      {comp.componentType}
-                    </span>
+              {salaryComponents.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-xs text-[#70665F]">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Calculator className="w-8 h-8 text-[#A8988C] opacity-50" />
+                      <p className="font-semibold text-[#544B45]">No salary components defined</p>
+                      <p className="text-[11px] text-[#8C7A6F]">Click Define Component to configure earnings, deductions or statutory heads.</p>
+                    </div>
                   </td>
-                  <td className="p-4 font-mono text-xs text-[#544B45]">
-                    <div className="font-semibold text-[#3E2723]">{comp.calculationType}</div>
-                    {comp.percentageOrFormula && <div className="text-amber-400">{comp.percentageOrFormula}</div>}
-                  </td>
-                  <td className="p-4 text-xs">
-                    <div>Taxable: {comp.isTaxable ? <span className="text-amber-400 font-semibold">Yes</span> : 'No'}</div>
-                    <div>Statutory: {comp.isStatutory ? <span className="text-crm-brand-500 font-semibold">Statutory Rule</span> : 'Standard'}</div>
-                  </td>
-                  <td className="p-4 text-xs font-semibold text-emerald-400">{comp.status}</td>
                 </tr>
-              ))}
+              ) : (
+                salaryComponents.map((comp) => (
+                  <tr key={comp.id} className="hover:bg-[#FAF7F2]/40 transition">
+                    <td className="p-4 font-mono text-xs text-crm-brand-700 font-bold">{comp.componentCode}</td>
+                    <td className="p-4 font-bold text-[#211B17]">{comp.componentName}</td>
+                    <td className="p-4">
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                          comp.componentType === 'Earning'
+                            ? 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/20'
+                            : comp.componentType === 'Deduction'
+                            ? 'bg-rose-500/10 text-rose-700 border border-rose-500/20'
+                            : 'bg-[#FAF7F2] text-[#75401F] border border-[#D5CAC0]'
+                        }`}
+                      >
+                        {comp.componentType}
+                      </span>
+                    </td>
+                    <td className="p-4 font-mono text-xs text-[#544B45]">
+                      <div className="font-semibold text-[#3E2723]">{comp.calculationType}</div>
+                      {comp.percentageOrFormula && <div className="text-amber-700">{comp.percentageOrFormula}</div>}
+                    </td>
+                    <td className="p-4 text-xs">
+                      <div>Taxable: {comp.isTaxable ? <span className="text-amber-700 font-semibold">Yes</span> : 'No'}</div>
+                      <div>Statutory: {comp.isStatutory ? <span className="text-[#75401F] font-semibold">Statutory Rule</span> : 'Standard'}</div>
+                    </td>
+                    <td className="p-4 text-xs font-semibold text-emerald-700">{comp.status}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

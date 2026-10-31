@@ -303,7 +303,7 @@ export default function PermissionsPage() {
           <button
             onClick={() => setActiveTab('employee')}
             className={cn(
-              'px-4 py-2 rounded-lg font-bold text-xs transition flex items-center gap-2 cursor-pointer',
+              'px-4 py-2 min-h-[40px] rounded-lg font-bold text-xs transition flex items-center gap-2 cursor-pointer',
               activeTab === 'employee'
                 ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-sm'
                 : 'text-[#70665F] hover:text-[#211B17] hover:bg-[#F3ECE4]'
@@ -315,7 +315,7 @@ export default function PermissionsPage() {
           <button
             onClick={() => setActiveTab('roles')}
             className={cn(
-              'px-4 py-2 rounded-lg font-bold text-xs transition flex items-center gap-2 cursor-pointer',
+              'px-4 py-2 min-h-[40px] rounded-lg font-bold text-xs transition flex items-center gap-2 cursor-pointer',
               activeTab === 'roles'
                 ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-sm'
                 : 'text-[#70665F] hover:text-[#211B17] hover:bg-[#F3ECE4]'
@@ -355,7 +355,7 @@ export default function PermissionsPage() {
                 placeholder="Search by name, ID or department..."
                 value={empSearch}
                 onChange={(e) => setEmpSearch(e.target.value)}
-                className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] placeholder:text-[#A89F91] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 min-h-[40px] text-xs text-[#211B17] placeholder:text-[#A89F91] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
               />
 
               <div className="space-y-1.5 max-h-[520px] overflow-y-auto pr-1">
@@ -505,7 +505,7 @@ export default function PermissionsPage() {
                       3. Operational Authorities & Action Privileges:
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                      <label className="flex items-center gap-2 p-2.5 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] cursor-pointer select-none">
+                      <label className="flex items-center gap-2 p-2.5 min-h-[40px] rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] cursor-pointer select-none">
                         <input
                           type="checkbox"
                           checked={empCanAssignTasks}
@@ -514,7 +514,7 @@ export default function PermissionsPage() {
                         />
                         <span className="font-bold text-[#211B17]">Can Assign Tasks</span>
                       </label>
-                      <label className="flex items-center gap-2 p-2.5 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] cursor-pointer select-none">
+                      <label className="flex items-center gap-2 p-2.5 min-h-[40px] rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] cursor-pointer select-none">
                         <input
                           type="checkbox"
                           checked={empCanApproveLeaves}
@@ -523,7 +523,7 @@ export default function PermissionsPage() {
                         />
                         <span className="font-bold text-[#211B17]">Can Approve Leaves</span>
                       </label>
-                      <label className="flex items-center gap-2 p-2.5 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] cursor-pointer select-none">
+                      <label className="flex items-center gap-2 p-2.5 min-h-[40px] rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] cursor-pointer select-none">
                         <input
                           type="checkbox"
                           checked={empCanManageAttendance}
@@ -532,7 +532,7 @@ export default function PermissionsPage() {
                         />
                         <span className="font-bold text-[#211B17]">Can Manage Attendance</span>
                       </label>
-                      <label className="flex items-center gap-2 p-2.5 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] cursor-pointer select-none">
+                      <label className="flex items-center gap-2 p-2.5 min-h-[40px] rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] cursor-pointer select-none">
                         <input
                           type="checkbox"
                           checked={empCanExportData}
@@ -561,14 +561,14 @@ export default function PermissionsPage() {
                       <button
                         type="button"
                         onClick={handleSelectDeptDefaults}
-                        className="px-2.5 py-1 rounded-lg bg-[#FAF7F2] border border-[#EBE3DB] hover:bg-[#EBE3DB] text-crm-brand-700 font-bold text-[11px] transition cursor-pointer"
+                        className="px-3 py-2 min-h-[40px] rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] hover:bg-[#EBE3DB] text-crm-brand-700 font-bold text-xs transition cursor-pointer flex items-center"
                       >
                         Reset to Dept Defaults
                       </button>
                       <button
                         type="button"
                         onClick={handleSelectAllModules}
-                        className="px-2.5 py-1 rounded-lg bg-[#FAF7F2] border border-[#EBE3DB] hover:bg-[#EBE3DB] text-crm-brand-700 font-bold text-[11px] transition cursor-pointer"
+                        className="px-3 py-2 min-h-[40px] rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] hover:bg-[#EBE3DB] text-crm-brand-700 font-bold text-xs transition cursor-pointer flex items-center"
                       >
                         Select All Modules
                       </button>
@@ -621,7 +621,7 @@ export default function PermissionsPage() {
                     <button
                       onClick={handleSaveEmployeePermissions}
                       disabled={isSaving}
-                      className="px-4 py-1.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold rounded-lg shadow-sm transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                      className="px-4 py-2 min-h-[40px] bg-crm-brand-700 hover:bg-crm-brand-800 text-white font-bold rounded-xl shadow-sm transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 text-xs"
                     >
                       <Save className="w-3.5 h-3.5" />
                       <span>{isSaving ? 'Saving...' : 'Save Matrix'}</span>
@@ -684,14 +684,16 @@ export default function PermissionsPage() {
                                     : isModuleAssigned && (act.id === 'view' || act.id === 'print' || (empRoleType !== 'employee' && act.id === 'create')));
 
                                 return (
-                                  <td key={act.id} className="py-2 px-3 text-center">
-                                    <input
-                                      type="checkbox"
-                                      checked={Boolean(hasAccess)}
-                                      disabled={isSuper}
-                                      onChange={() => handleEmpPermissionToggle(pageKey, act.id)}
-                                      className="w-4 h-4 rounded text-crm-brand-700 focus:ring-crm-brand-600 border-[#EBE3DB] cursor-pointer disabled:opacity-40"
-                                    />
+                                  <td key={act.id} className="p-0 text-center">
+                                    <label className="min-w-[40px] min-h-[40px] inline-flex items-center justify-center cursor-pointer mx-auto">
+                                      <input
+                                        type="checkbox"
+                                        checked={Boolean(hasAccess)}
+                                        disabled={isSuper}
+                                        onChange={() => handleEmpPermissionToggle(pageKey, act.id)}
+                                        className="w-4 h-4 rounded text-crm-brand-700 focus:ring-crm-brand-600 border-[#EBE3DB] cursor-pointer disabled:opacity-40"
+                                      />
+                                    </label>
                                   </td>
                                 );
                               })}
@@ -740,7 +742,7 @@ export default function PermissionsPage() {
 
               <button
                 onClick={handleSaveRole}
-                className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-xl font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                className="px-4 py-2 min-h-[40px] bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-xl font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
               >
                 <Save className="w-4 h-4" />
                 <span>Save Role Matrix</span>
@@ -783,14 +785,16 @@ export default function PermissionsPage() {
                           const checked = roleMatrix[key]?.[act.id] ?? defaultChecked;
 
                           return (
-                            <td key={act.id} className="py-2.5 px-3 text-center">
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                disabled={isSuper}
-                                onChange={() => handleRoleToggle(key, act.id)}
-                                className="w-4 h-4 rounded text-crm-brand-700 focus:ring-crm-brand-600 border-[#EBE3DB] cursor-pointer disabled:opacity-50"
-                              />
+                            <td key={act.id} className="p-0 text-center">
+                              <label className="min-w-[40px] min-h-[40px] inline-flex items-center justify-center cursor-pointer mx-auto">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  disabled={isSuper}
+                                  onChange={() => handleRoleToggle(key, act.id)}
+                                  className="w-4 h-4 rounded text-crm-brand-700 focus:ring-crm-brand-600 border-[#EBE3DB] cursor-pointer disabled:opacity-50"
+                                />
+                              </label>
                             </td>
                           );
                         })}

@@ -434,6 +434,8 @@ interface ERPContextType {
   setActiveDepartment: (dept: DepartmentType | 'all') => void;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
+  sidebarMobileOpen: boolean;
+  setSidebarMobileOpen: (open: boolean) => void;
   isSearchOpen: boolean;
   setIsSearchOpen: (open: boolean) => void;
 
@@ -2052,6 +2054,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   // Layout State
   const [activeDepartment, setActiveDepartment] = useState<DepartmentType | 'all'>('all');
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  const [sidebarMobileOpen, setSidebarMobileOpen] = useState<boolean>(false);
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
 
   // CRM States
@@ -5055,11 +5058,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     syncBootstrap().catch(() => {});
   }, [syncBootstrap]);
 
-  // Live Notifications Background Polling (Every 20s)
+  // Live Notifications Background Polling (Throttled to 45s, paused when tab is inactive)
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const interval = setInterval(async () => {
+      // Pause polling if document is hidden to keep network idle
+      if (typeof document !== 'undefined' && document.hidden) return;
+
       try {
         const liveNotifs: any = await api.get('/notifications/');
         if (Array.isArray(liveNotifs) && liveNotifs.length > 0) {
@@ -5081,34 +5087,34 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch (_) {}
-    }, 20000);
+    }, 45000);
 
     return () => clearInterval(interval);
   }, []);
 
-  // Route-Aware On-Demand Module Fetching (Triggered ONLY when user visits a module's routes)
+  // Route-Aware On-Demand Module Fetching (Uses 60s cache window to avoid refetching on every tab switch)
   useEffect(() => {
     if (!pathname) return;
     if (pathname.startsWith('/users') || pathname.startsWith('/hr') || pathname.startsWith('/payroll')) {
-      syncHR(true).catch(() => {});
+      syncHR(false).catch(() => {});
     } else if (pathname.startsWith('/crm') || pathname === '/sales') {
-      syncCRM(true).catch(() => {});
+      syncCRM(false).catch(() => {});
     } else if (pathname.startsWith('/projects') || pathname.startsWith('/project')) {
-      syncProjects(true).catch(() => {});
+      syncProjects(false).catch(() => {});
     } else if (pathname.startsWith('/designer') || pathname.startsWith('/engineering') || pathname.startsWith('/design')) {
-      syncDesigner(true).catch(() => {});
+      syncDesigner(false).catch(() => {});
     } else if (pathname.startsWith('/purchase') || pathname.startsWith('/procurement')) {
-      syncPurchase(true).catch(() => {});
+      syncPurchase(false).catch(() => {});
     } else if (pathname.startsWith('/store') || pathname.startsWith('/inventory') || pathname.startsWith('/warehouse')) {
-      syncStore(true).catch(() => {});
+      syncStore(false).catch(() => {});
     } else if (pathname.startsWith('/production') || pathname.startsWith('/manufacturing')) {
-      syncProduction(true).catch(() => {});
+      syncProduction(false).catch(() => {});
     } else if (pathname.startsWith('/maintenance') || pathname.startsWith('/service')) {
-      syncMaintenance(true).catch(() => {});
+      syncMaintenance(false).catch(() => {});
     } else if (pathname.startsWith('/accounting') || pathname.startsWith('/accounts') || pathname.startsWith('/finance')) {
-      syncAccounting(true).catch(() => {});
+      syncAccounting(false).catch(() => {});
     } else if (pathname.startsWith('/integration') || pathname.startsWith('/admin') || pathname === '/' || pathname === '/dashboard') {
-      syncIntegration(true).catch(() => {});
+      syncIntegration(false).catch(() => {});
     }
   }, [pathname, syncCRM, syncProjects, syncDesigner, syncPurchase, syncStore, syncProduction, syncMaintenance, syncHR, syncAccounting, syncIntegration]);
 
@@ -15199,6 +15205,8 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         setActiveDepartment,
         sidebarCollapsed,
         setSidebarCollapsed,
+        sidebarMobileOpen,
+        setSidebarMobileOpen,
         isSearchOpen,
         setIsSearchOpen,
         can,

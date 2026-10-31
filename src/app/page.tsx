@@ -6,6 +6,7 @@ import { useERP } from '../context/ERPContext';
 import { api } from '../lib/apiClient';
 import {
   FileText,
+  FileCheck,
   Users,
   AlertTriangle,
   ShieldCheck,
@@ -86,6 +87,11 @@ export default function DashboardPage() {
     checkOutAttendance,
     jobs = [],
     openJobModal,
+    customerPOs = [],
+    quotations = [],
+    workOrders = [],
+    qcInspections = [],
+    workCenters = [],
   } = useERP();
 
   const isSuperAdmin =
@@ -289,13 +295,51 @@ export default function DashboardPage() {
   };
 
   // Dynamic KPIs derived 100% from live backend API state
-  const activeBacklog =
-    salesOrders.length > 0
-      ? salesOrders.reduce((sum, so) => sum + (Number(so.orderValue) || 0), 0)
-      : projectJobs.reduce((sum, pj) => sum + (Number(pj.orderValue) || 0), 0);
+  const openCustomerPOs = useMemo(() => {
+    return (customerPOs || []).filter((po) => {
+      const st = String(po.status || '').toLowerCase();
+      return st !== 'cancelled' && st !== 'completed';
+    });
+  }, [customerPOs]);
+
+  const openCustomerPOValue = useMemo(() => {
+    return openCustomerPOs.reduce((sum, po) => sum + (Number(po.poAmount) || 0), 0);
+  }, [openCustomerPOs]);
+
+  const openQuotations = useMemo(() => {
+    return (quotations || []).filter((q) => {
+      const st = String(q.latestSummary?.status || (q as any).status || '').toLowerCase();
+      return st !== 'rejected' && st !== 'lost';
+    });
+  }, [quotations]);
+
+  const openQuotationValue = useMemo(() => {
+    return openQuotations.reduce((sum, q) => {
+      const val = Number(
+        q.latestSummary?.grandTotal ||
+        (q.revisions && q.revisions[q.revisions.length - 1]?.grandTotal) ||
+        (q as any).grand_total ||
+        (q as any).totalAmount ||
+        0
+      );
+      return sum + val;
+    }, 0);
+  }, [openQuotations]);
+
+  const openOrdersCount = openCustomerPOs.length + openQuotations.length;
+
+  const activeBacklog = useMemo(() => {
+    const sum = openCustomerPOValue + openQuotationValue;
+    if (sum > 0) return sum;
+    const soSum = salesOrders.reduce((acc, so) => acc + (Number(so.orderValue) || 0), 0);
+    if (soSum > 0) return soSum;
+    return projectJobs.reduce((acc, pj) => acc + (Number(pj.orderValue) || 0), 0);
+  }, [openCustomerPOValue, openQuotationValue, salesOrders, projectJobs]);
 
   const activeFloorCount =
-    manufacturingJobs.length > 0 ? manufacturingJobs.length : projectJobs.length;
+    manufacturingJobs.length > 0
+      ? manufacturingJobs.length
+      : (workOrders.length > 0 ? workOrders.length : projectJobs.length);
 
   const inFabCount = projectJobs.filter((p) => {
     const stg = ((p.currentStage || (p as any).stage || p.status || '') as string)?.toLowerCase();
@@ -322,13 +366,39 @@ export default function DashboardPage() {
   );
   const delayedJobs = projectJobs.filter((p) => (p.status as string) === 'delayed');
 
-  const qualityRate = useMemo(() => {
-    if (projectJobs.length === 0) return 100;
-    const avg = Math.round(
-      projectJobs.reduce((acc, p) => acc + (p.progressPercent || 0), 0) / projectJobs.length
-    );
-    return avg > 0 ? Math.min(100, Math.max(92, avg)) : 100;
-  }, [projectJobs]);
+  // Real QC metrics computed from live database records
+  const qualityMetrics = useMemo(() => {
+    if (!qcInspections || qcInspections.length === 0) return null;
+    const passed = qcInspections.filter((qc) => {
+      const st = String(qc.status || (qc as any).inspectionStatus || '').toLowerCase();
+      return st === 'passed' || st === 'approved' || st === 'accepted';
+    }).length;
+    const rate = Math.round((passed / qcInspections.length) * 100);
+    return { rate, passed, total: qcInspections.length };
+  }, [qcInspections]);
+
+  // Production Health based on live delayed jobs and floor state
+  const productionHealth = useMemo(() => {
+    if (activeFloorCount === 0 && projectJobs.length === 0) return '—';
+    if (delayedJobs.length > 0) return `${delayedJobs.length} Delayed`;
+    return 'Optimal';
+  }, [activeFloorCount, projectJobs.length, delayedJobs.length]);
+
+  // SLA On-time Compliance
+  const slaComplianceRate = useMemo(() => {
+    if (projectJobs.length === 0) return null;
+    const onTime = projectJobs.length - delayedJobs.length;
+    return Math.round((onTime / projectJobs.length) * 100);
+  }, [projectJobs.length, delayedJobs.length]);
+
+  // Bay Capacity utilization
+  const bayCapacityPercent = useMemo(() => {
+    if (workCenters.length > 0 && activeFloorCount > 0) {
+      return Math.min(100, Math.round((activeFloorCount / workCenters.length) * 100));
+    }
+    if (activeFloorCount > 0) return Math.min(100, activeFloorCount * 25);
+    return null;
+  }, [workCenters.length, activeFloorCount]);
 
   // Dynamic Jobs mapped directly from API
   const jobsData = useMemo(() => {
@@ -562,31 +632,43 @@ export default function DashboardPage() {
                 </p>
 
                 {/* Telemetry Strip */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-[#EBE3DB] text-xs">
+                {/* Telemetry Strip */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-4 border-t border-[#EBE3DB] text-xs">
                   <div>
                     <span className="text-[10px] uppercase font-mono text-[#70665F] block font-semibold">Live Backlog</span>
                     <strong className="text-base font-bold font-mono text-[#211B17] tracking-tight" suppressHydrationWarning>
-                      ₹ {activeBacklog?.toLocaleString('en-IN')}
+                      {activeBacklog > 0 ? `₹ ${activeBacklog.toLocaleString('en-IN')}` : '₹ —'}
                     </strong>
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-mono text-[#70665F] block font-semibold">Active Bay WIP</span>
                     <strong className="text-base font-bold font-mono text-[#211B17] tracking-tight">
-                      {activeFloorCount} Equipment
+                      {activeFloorCount > 0 ? `${activeFloorCount} ${activeFloorCount === 1 ? 'Job' : 'Equipment'}` : '—'}
                     </strong>
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-mono text-[#70665F] block font-semibold">QA Pass Rate</span>
                     <strong className="text-base font-bold font-mono text-emerald-700 tracking-tight">
-                      {qualityRate}% Pass
+                      {qualityMetrics ? `${qualityMetrics.rate}% Pass` : '—'}
                     </strong>
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-mono text-[#70665F] block font-semibold">Production Health</span>
-                    <strong className="text-base font-bold text-amber-800 flex items-center gap-1.5 tracking-tight">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                      Nominal
-                    </strong>
+                    {productionHealth === 'Optimal' ? (
+                      <strong className="text-base font-bold text-emerald-700 flex items-center gap-1.5 tracking-tight">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                        Optimal
+                      </strong>
+                    ) : productionHealth.includes('Delayed') ? (
+                      <strong className="text-base font-bold text-amber-700 flex items-center gap-1.5 tracking-tight">
+                        <span className="w-2 h-2 rounded-full bg-amber-500" />
+                        {productionHealth}
+                      </strong>
+                    ) : (
+                      <strong className="text-base font-bold text-[#70665F] tracking-tight">
+                        —
+                      </strong>
+                    )}
                   </div>
                 </div>
               </div>
@@ -634,6 +716,7 @@ export default function DashboardPage() {
 
                 <Link
                   href="/integration/traceability"
+                  prefetch={false}
                   className="w-full py-2.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer active:scale-95"
                 >
                   <span>Open 360° Traceability Suite</span>
@@ -653,7 +736,7 @@ export default function DashboardPage() {
                     Active Order Backlog
                   </span>
                   <div className="text-2xl font-black text-[#211B17] font-mono tracking-tight" suppressHydrationWarning>
-                    ₹ {activeBacklog?.toLocaleString('en-IN')}
+                    {activeBacklog > 0 ? `₹ ${activeBacklog.toLocaleString('en-IN')}` : '₹ —'}
                   </div>
                 </div>
                 <div className="w-11 h-11 rounded-2xl bg-amber-50 text-amber-700 border border-amber-200/60 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
@@ -663,21 +746,21 @@ export default function DashboardPage() {
 
               <div className="mt-4 pt-3 border-t border-[#F2ECE4] space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-[#169B62] font-bold flex items-center gap-1">
-                    <ArrowUpRight className="w-3.5 h-3.5" />
-                    +14.2% MoM
+                  <span className="text-emerald-700 font-bold flex items-center gap-1">
+                    <FileCheck className="w-3.5 h-3.5" />
+                    <span>{openOrdersCount > 0 ? `${openOrdersCount} Active Orders` : '—'}</span>
                   </span>
                   <span className="text-[#70665F] font-semibold text-[11px]">
-                    {salesOrders.length} Sales Orders
+                    {salesOrders.length > 0 ? `${salesOrders.length} Sales Orders` : '—'}
                   </span>
                 </div>
-                {/* Target Attainment Meter */}
+                {/* Pipeline Attainment Meter */}
                 <div className="w-full bg-[#EAE2D8] rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-gradient-to-r from-amber-500 to-amber-700 h-1.5 rounded-full" style={{ width: '78%' }} />
+                  <div className="bg-gradient-to-r from-amber-500 to-amber-700 h-1.5 rounded-full" style={{ width: activeBacklog > 0 ? '100%' : '0%' }} />
                 </div>
                 <div className="text-[10px] text-[#8C7A6F] flex items-center justify-between font-mono">
-                  <span>Target Attainment</span>
-                  <span>78% of Q3 Target</span>
+                  <span>Open Pipeline</span>
+                  <span>{openOrdersCount > 0 ? `${openQuotations.length} Quotes • ${openCustomerPOs.length} POs` : '—'}</span>
                 </div>
               </div>
             </div>
@@ -690,7 +773,7 @@ export default function DashboardPage() {
                     Shop Floor WIP
                   </span>
                   <div className="text-2xl font-black text-[#211B17] font-mono tracking-tight">
-                    {activeFloorCount} {activeFloorCount === 1 ? 'Job' : 'Equipment'}
+                    {activeFloorCount > 0 ? `${activeFloorCount} ${activeFloorCount === 1 ? 'Job' : 'Equipment'}` : '—'}
                   </div>
                 </div>
                 <div className="w-11 h-11 rounded-2xl bg-sky-50 text-sky-700 border border-sky-200/60 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
@@ -702,18 +785,18 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-sky-700 font-bold flex items-center gap-1">
                     <Activity className="w-3.5 h-3.5" />
-                    {inFabCount} in Fabrication
+                    <span>{inFabCount > 0 ? `${inFabCount} in Fabrication` : '—'}</span>
                   </span>
                   <span className="text-[#70665F] font-semibold text-[11px]">
-                    {inPlanningCount} in Engineering
+                    {inPlanningCount > 0 ? `${inPlanningCount} in Engineering` : '—'}
                   </span>
                 </div>
                 <div className="w-full bg-[#EAE2D8] rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-gradient-to-r from-sky-500 to-blue-600 h-1.5 rounded-full" style={{ width: `${activeFloorCount > 0 ? 85 : 15}%` }} />
+                  <div className="bg-gradient-to-r from-sky-500 to-blue-600 h-1.5 rounded-full" style={{ width: `${bayCapacityPercent ?? 0}%` }} />
                 </div>
                 <div className="text-[10px] text-[#8C7A6F] flex items-center justify-between font-mono">
                   <span>Bay Capacity Utilization</span>
-                  <span>{activeFloorCount > 0 ? '85% Capacity' : 'Available'}</span>
+                  <span>{bayCapacityPercent !== null ? `${bayCapacityPercent}% Capacity` : 'Available'}</span>
                 </div>
               </div>
             </div>
@@ -726,7 +809,7 @@ export default function DashboardPage() {
                     Expedite Watchlist
                   </span>
                   <div className="text-2xl font-black text-[#D9383A] font-mono tracking-tight">
-                    {highPriorityJobs.length} Urgent Jobs
+                    {highPriorityJobs.length > 0 ? `${highPriorityJobs.length} Urgent Jobs` : '—'}
                   </div>
                 </div>
                 <div className="w-11 h-11 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
@@ -738,19 +821,19 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-rose-700 font-bold flex items-center gap-1">
                     <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
-                    <span>{highPriorityJobs.length} Priority</span>
+                    <span>{highPriorityJobs.length > 0 ? `${highPriorityJobs.length} Priority` : '—'}</span>
                   </span>
                   <span className="text-amber-700 font-semibold text-[11px] flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5 text-amber-600" />
-                    <span>{delayedJobs.length} Delayed</span>
+                    <span>{delayedJobs.length > 0 ? `${delayedJobs.length} Delayed` : '0 Delayed'}</span>
                   </span>
                 </div>
                 <div className="w-full bg-[#EAE2D8] rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 h-1.5 rounded-full" style={{ width: '100%' }} />
+                  <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 h-1.5 rounded-full" style={{ width: `${slaComplianceRate ?? 0}%` }} />
                 </div>
                 <div className="text-[10px] text-emerald-700 font-bold flex items-center justify-between font-mono">
                   <span>On-Time SLA Track</span>
-                  <span>98.4% Compliance</span>
+                  <span>{slaComplianceRate !== null ? `${slaComplianceRate}% Compliance` : '—'}</span>
                 </div>
               </div>
             </div>
@@ -763,7 +846,7 @@ export default function DashboardPage() {
                     Quality & Compliance
                   </span>
                   <div className="text-2xl font-black text-[#169B62] font-mono tracking-tight">
-                    {qualityRate}% Pass
+                    {qualityMetrics ? `${qualityMetrics.rate}% Pass` : '—'}
                   </div>
                 </div>
                 <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200/60 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
@@ -775,18 +858,18 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-emerald-700 font-bold flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>QA Inspection Passed</span>
+                    <span>{qualityMetrics ? `${qualityMetrics.passed} Passed` : '—'}</span>
                   </span>
                   <span className="text-[#70665F] font-semibold text-[11px]">
-                    0 Rework Holds
+                    {qualityMetrics ? `${qualityMetrics.total - qualityMetrics.passed} Holds` : 'No QC records'}
                   </span>
                 </div>
                 <div className="w-full bg-[#EAE2D8] rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-gradient-to-r from-emerald-500 to-teal-600 h-1.5 rounded-full" style={{ width: `${qualityRate}%` }} />
+                  <div className="bg-gradient-to-r from-emerald-500 to-teal-600 h-1.5 rounded-full" style={{ width: `${qualityMetrics ? qualityMetrics.rate : 0}%` }} />
                 </div>
                 <div className="text-[10px] text-[#8C7A6F] flex items-center justify-between font-mono">
                   <span>ASME Sec VIII / ISO</span>
-                  <span>Certified Standard</span>
+                  <span>{qualityMetrics ? 'Inspected Standard' : '—'}</span>
                 </div>
               </div>
             </div>
@@ -998,7 +1081,7 @@ export default function DashboardPage() {
                   </div>
                   <ChevronRight className="w-3.5 h-3.5 text-[#8D827A]" />
                 </Link>
-                <Link href="/store/stock" className="bg-white/80 hover:bg-white p-2 rounded-xl border border-[#E7DED5] transition flex items-center justify-between">
+                <Link href="/store/stock" prefetch={false} className="bg-white/80 hover:bg-white p-2 rounded-xl border border-[#E7DED5] transition flex items-center justify-between">
                   <div>
                     <span className="text-[10px] text-[#70665F] block">3. Materials</span>
                     <strong className="text-[11px] text-[#211B17]">Stock Matrix</strong>
@@ -1012,7 +1095,7 @@ export default function DashboardPage() {
                   </div>
                   <ChevronRight className="w-3.5 h-3.5 text-[#8D827A]" />
                 </Link>
-                <Link href="/dispatch/gate-pass" className="bg-white/80 hover:bg-white p-2 rounded-xl border border-[#E7DED5] transition flex items-center justify-between col-span-2 sm:col-span-1">
+                <Link href="/dispatch/gate-pass" prefetch={false} className="bg-white/80 hover:bg-white p-2 rounded-xl border border-[#E7DED5] transition flex items-center justify-between col-span-2 sm:col-span-1">
                   <div>
                     <span className="text-[10px] text-[#70665F] block">5. Logistics</span>
                     <strong className="text-[11px] text-[#211B17]">Gate Passes</strong>

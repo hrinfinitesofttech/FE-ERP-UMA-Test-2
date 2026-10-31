@@ -229,7 +229,18 @@ export default function CreditNotesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB] font-mono">
-              {filtered.map((cn) => (
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={10} className="py-12 text-center text-xs text-[#70665F]">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <CreditCard className="w-8 h-8 text-[#A8988C] opacity-50" />
+                      <p className="font-semibold text-[#544B45]">No credit notes found</p>
+                      <p className="text-[11px] text-[#8C7A6F]">No records match your search or no credit notes have been issued yet.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((cn) => (
                 <tr key={cn.id} className="hover:bg-[#FAF7F2]/40 transition">
                   <td className="py-3 px-4 font-bold text-amber-600">{cn.creditNoteNumber}</td>
                   <td className="py-3 px-4 text-[#70665F] font-sans">{cn.creditNoteDate || cn.date || '2026-09-28'}</td>
@@ -273,7 +284,7 @@ export default function CreditNotesPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>

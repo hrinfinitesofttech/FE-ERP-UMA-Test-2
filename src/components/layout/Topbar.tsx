@@ -57,6 +57,8 @@ export function Topbar() {
     markAllNotificationsRead,
     sidebarCollapsed,
     setSidebarCollapsed,
+    sidebarMobileOpen,
+    setSidebarMobileOpen,
     logout,
   } = useERP();
 
@@ -94,12 +96,13 @@ export function Topbar() {
   };
 
   return (
-    <header className="h-16 bg-[var(--crm-bg-app,#FCFAF7)] border-b border-[var(--crm-border-default,#EDE5DC)] px-4 sm:px-6 flex items-center justify-between gap-4 z-20 sticky top-0 flex-shrink-0 transition-all">
+    <header className="h-16 bg-[var(--crm-bg-app,#FCFAF7)] border-b border-[var(--crm-border-default,#EDE5DC)] px-3 sm:px-6 flex items-center justify-between gap-2 sm:gap-4 z-20 sticky top-0 flex-shrink-0 transition-all">
       {/* Left: Mobile Toggle & Global Search Bar */}
-      <div className="flex items-center gap-3 flex-1 max-w-xl">
+      <div className="flex items-center gap-2 sm:gap-3 flex-1 max-w-xl min-w-0">
         <button
-          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="p-2 rounded-xl text-[#6E5D53] hover:bg-[#F3EDE4] sm:hidden transition"
+          onClick={() => setSidebarMobileOpen(!sidebarMobileOpen)}
+          className="min-w-[40px] min-h-[40px] flex items-center justify-center p-2 rounded-xl text-[#6E5D53] hover:bg-[#F3EDE4] lg:hidden transition cursor-pointer flex-shrink-0"
+          aria-label="Toggle navigation drawer"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -107,10 +110,13 @@ export function Topbar() {
         {/* Global Search Button Trigger (Ctrl+K) */}
         <button
           onClick={() => setIsSearchOpen(true)}
-          className="flex items-center gap-2.5 px-4 py-2 w-full bg-[#FAF7F2] hover:bg-white border border-[#E5DDD0] rounded-full text-xs text-[#8C7D72] transition-all text-left group shadow-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-crm-brand-700/20"
+          className="flex items-center gap-2 px-3 sm:px-4 py-2 min-h-[40px] w-full bg-[#FAF7F2] hover:bg-white border border-[#E5DDD0] rounded-full text-xs text-[#8C7D72] transition-all text-left group shadow-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-crm-brand-700/20 truncate"
         >
-          <Search className="w-3.5 h-3.5 text-[#8C7D72] group-hover:text-crm-brand-700 transition-colors" />
-          <span className="flex-1 truncate text-xs font-medium">Search all pages, modules, jobs, leads, stock, PO...</span>
+          <Search className="w-4 h-4 flex-shrink-0 text-[#8C7D72] group-hover:text-crm-brand-700 transition-colors" />
+          <span className="flex-1 truncate text-xs font-medium">
+            <span className="hidden sm:inline">Search all pages, modules, jobs, leads, stock, PO...</span>
+            <span className="sm:hidden">Search ERP...</span>
+          </span>
           <kbd className="hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-mono font-bold text-[#75401F] bg-[#FAF0E6] border border-[#E5DDD0] rounded-md shadow-2xs">
             Ctrl K
           </kbd>
@@ -118,17 +124,18 @@ export function Topbar() {
       </div>
 
       {/* Right Controls: + New Lead + Notifications + User Avatar */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
         {/* Theme & Color Switcher */}
         <ThemeSwitcher />
 
         {/* Quick Action: + New Lead */}
         <Link
           href="/crm/leads/new"
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-600 text-white text-xs font-bold transition shadow-xs"
+          className="inline-flex items-center justify-center min-w-[40px] min-h-[40px] gap-1.5 px-2.5 sm:px-4 py-2 rounded-xl bg-crm-brand-700 hover:bg-crm-brand-600 text-white text-xs font-bold transition shadow-xs cursor-pointer"
+          title="Create New Lead"
         >
-          <Plus className="w-3.5 h-3.5" />
-          <span>New Lead</span>
+          <Plus className="w-4 h-4 flex-shrink-0" />
+          <span className="hidden sm:inline">New Lead</span>
         </Link>
 
         {/* Notifications Popover */}
@@ -139,7 +146,7 @@ export function Topbar() {
               setShowRoleMenu(false);
               setShowUserMenu(false);
             }}
-            className="p-2 rounded-xl text-[#6E5D53] hover:bg-[#F3EDE4] relative border border-[#E5DDD0] transition cursor-pointer"
+            className="min-w-[40px] min-h-[40px] flex items-center justify-center p-2 rounded-xl text-[#6E5D53] hover:bg-[#F3EDE4] relative border border-[#E5DDD0] transition cursor-pointer"
             title="System Notifications"
           >
             <Bell className="w-4 h-4 text-[#6E5D53]" />
@@ -314,7 +321,7 @@ export function Topbar() {
               setShowRoleMenu(false);
               setShowNotificationMenu(false);
             }}
-            className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-[#F3EDE4] transition cursor-pointer"
+            className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-[#F3EDE4] transition cursor-pointer min-h-[40px]"
           >
             <div
               suppressHydrationWarning

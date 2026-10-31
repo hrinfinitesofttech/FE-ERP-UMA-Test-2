@@ -272,18 +272,62 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
   };
 
   // --------------------------------------------------------------------------
-  // KPI CALCULATIONS
+  // KPI CALCULATIONS (Calculated from real API leads and quotations data)
   // --------------------------------------------------------------------------
   const validLeads = leads.filter((l) => l && (l.id || l.leadNo));
   const totalLeads = validLeads.length;
-  const activeLeads = validLeads.filter((l) => l.status !== 'won' && l.status !== 'lost').length;
-  const wonLeads = validLeads.filter((l) => l.status === 'won').length;
-  const totalPipelineBudget = validLeads.reduce((sum, l) => sum + (Number(l.budget) || 0), 0);
-  const activePipelineBudget = validLeads
-    .filter((l) => l.status !== 'won' && l.status !== 'lost')
+  const activeLeads = validLeads.filter((l) => {
+    const st = String(l.status || '').toLowerCase();
+    return st !== 'won' && st !== 'lost' && st !== 'converted';
+  }).length;
+  const wonLeads = validLeads.filter((l) => {
+    const st = String(l.status || '').toLowerCase();
+    return st === 'won' || st === 'converted';
+  }).length;
+
+  // Quotation pipeline calculations from real quotation values
+  const quotationPipeline = (quotations || []).reduce((sum, q) => {
+    const st = String(q.latestSummary?.status || (q as any).status || '').toLowerCase();
+    if (st === 'rejected' || st === 'lost') return sum;
+    const val = Number(
+      q.latestSummary?.grandTotal ||
+      (q.revisions && q.revisions[q.revisions.length - 1]?.grandTotal) ||
+      (q as any).grand_total ||
+      (q as any).totalAmount ||
+      0
+    );
+    return sum + val;
+  }, 0);
+
+  const activeQuotationPipeline = (quotations || []).reduce((sum, q) => {
+    const st = String(q.latestSummary?.status || (q as any).status || '').toLowerCase();
+    if (st === 'rejected' || st === 'lost' || st === 'accepted') return sum;
+    const val = Number(
+      q.latestSummary?.grandTotal ||
+      (q.revisions && q.revisions[q.revisions.length - 1]?.grandTotal) ||
+      (q as any).grand_total ||
+      (q as any).totalAmount ||
+      0
+    );
+    return sum + val;
+  }, 0);
+
+  const leadsBudgetSum = validLeads.reduce((sum, l) => sum + (Number(l.budget) || 0), 0);
+  const activeLeadsBudgetSum = validLeads
+    .filter((l) => {
+      const st = String(l.status || '').toLowerCase();
+      return st !== 'won' && st !== 'lost' && st !== 'converted';
+    })
     .reduce((sum, l) => sum + (Number(l.budget) || 0), 0);
+
+  const totalPipelineBudget = quotationPipeline > 0 ? quotationPipeline + leadsBudgetSum : leadsBudgetSum;
+  const activePipelineBudget = activeQuotationPipeline > 0 ? activeQuotationPipeline + activeLeadsBudgetSum : activeLeadsBudgetSum;
+
   const totalQuotations = quotations.length;
-  const activeQuotations = quotations.filter((q) => q.latestSummary?.status !== 'rejected').length;
+  const activeQuotations = quotations.filter((q) => {
+    const st = String(q.latestSummary?.status || (q as any).status || '').toLowerCase();
+    return st !== 'rejected' && st !== 'lost';
+  }).length;
 
   // --------------------------------------------------------------------------
   // TABLE COLUMNS CONFIGURATIONS (Client-Grade, Compact, Resilient Layout)
@@ -495,7 +539,7 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
       )}
 
       {/* 2. OVERVIEW KPI CARDS - COMPACT & PROPORTIONAL */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
         <div className="bg-white px-3.5 py-2.5 rounded-xl border border-[#EBE3DB] shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-[#70665F] uppercase tracking-wider">Prospective Leads</span>
@@ -506,7 +550,7 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
           <div className="mt-1 flex items-baseline justify-between gap-1">
             <span suppressHydrationWarning className="text-lg font-extrabold text-[#211B17] font-mono">{totalLeads}</span>
             <span suppressHydrationWarning className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-              Pipe {formatCurrency(totalPipelineBudget)}
+              Pipe {totalPipelineBudget > 0 ? formatCurrency(totalPipelineBudget) : '—'}
             </span>
           </div>
         </div>
@@ -521,7 +565,7 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
           <div className="mt-1 flex items-baseline justify-between gap-1">
             <span suppressHydrationWarning className="text-lg font-extrabold text-blue-700 font-mono">{activeLeads}</span>
             <span suppressHydrationWarning className="text-[10px] text-blue-700 font-bold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
-              Active {formatCurrency(activePipelineBudget)}
+              Active {activePipelineBudget > 0 ? formatCurrency(activePipelineBudget) : '—'}
             </span>
           </div>
         </div>
@@ -536,7 +580,7 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
           <div className="mt-1 flex items-baseline justify-between gap-1">
             <span suppressHydrationWarning className="text-lg font-extrabold text-emerald-700 font-mono">{wonLeads}</span>
             <span suppressHydrationWarning className="text-[10px] text-emerald-700 font-bold">
-              {totalLeads > 0 ? `${Math.round((wonLeads / totalLeads) * 100)}%` : '0%'} Win
+              {totalLeads > 0 ? `${Math.round((wonLeads / totalLeads) * 100)}% Win` : '—'}
             </span>
           </div>
         </div>

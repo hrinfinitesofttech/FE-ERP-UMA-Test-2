@@ -554,46 +554,58 @@ export default function MaintenanceDashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-[#EBE3DB]">
-              {serviceRequests.map((sr) => (
-                <tr key={sr.id} className="hover:bg-slate-50 dark:hover:bg-[#FAF7F2]/40 transition">
-                  <td className="py-3 px-4 font-mono font-bold text-crm-brand-700 dark:text-crm-brand-500">{sr.requestNumber}</td>
-                  <td className="py-3 px-4 font-medium text-slate-900 dark:text-[#544B45]">{sr.customerName}</td>
-                  <td className="py-3 px-4">
-                    <div className="font-semibold text-slate-800 dark:text-[#544B45]">{sr.machineName}</div>
-                    <div className="text-[10px] text-[#70665F] font-mono">SN: {sr.serialNumber}</div>
-                  </td>
-                  <td className="py-3 px-4 max-w-xs text-slate-600 dark:text-[#544B45] truncate">{sr.complaintType} - {sr.description}</td>
-                  <td className="py-3 px-4">
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        sr.priority === 'Critical'
-                          ? 'bg-red-500/10 text-red-600 border border-red-500/20'
-                          : sr.priority === 'High'
-                          ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
-                          : 'bg-crm-brand-600/10 text-crm-brand-700 border border-crm-brand-600/20'
-                      }`}
-                    >
-                      {sr.priority}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-slate-700 dark:text-[#544B45] font-medium">
-                    {sr.assignedTechnicianName || <span className="text-[#70665F] italic">Unassigned</span>}
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-[#FAF7F2] text-slate-800 dark:text-[#544B45] border border-slate-200 dark:border-[#EBE3DB]">
-                      {sr.status}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right space-x-1">
-                    <Link
-                      href="/maintenance/service-requests"
-                      className="px-2.5 py-1 rounded bg-crm-brand- dark:bg-crm-brand-/40 text-crm-brand-700 dark:text-crm-brand-500 font-medium hover:underline text-[11px]"
-                    >
-                      View Requests
-                    </Link>
+              {serviceRequests.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-xs text-[#70665F]">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Activity className="w-8 h-8 text-[#A8988C] opacity-50" />
+                      <p className="font-semibold text-[#544B45]">No service requests logged</p>
+                      <p className="text-[11px] text-[#8C7A6F]">Shopfloor machinery operating normally with zero open breakdowns.</p>
+                    </div>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                serviceRequests.map((sr) => (
+                  <tr key={sr.id} className="hover:bg-slate-50 dark:hover:bg-[#FAF7F2]/40 transition">
+                    <td className="py-3 px-4 font-mono font-bold text-crm-brand-700 dark:text-crm-brand-500">{sr.requestNumber}</td>
+                    <td className="py-3 px-4 font-medium text-slate-900 dark:text-[#544B45]">{sr.customerName}</td>
+                    <td className="py-3 px-4">
+                      <div className="font-semibold text-slate-800 dark:text-[#544B45]">{sr.machineName}</div>
+                      <div className="text-[10px] text-[#70665F] font-mono">SN: {sr.serialNumber}</div>
+                    </td>
+                    <td className="py-3 px-4 max-w-xs text-slate-600 dark:text-[#544B45] truncate">{sr.complaintType} - {sr.description}</td>
+                    <td className="py-3 px-4">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          sr.priority === 'Critical'
+                            ? 'bg-red-500/10 text-red-600 border border-red-500/20'
+                            : sr.priority === 'High'
+                            ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                            : 'bg-crm-brand-600/10 text-crm-brand-700 border border-crm-brand-600/20'
+                        }`}
+                      >
+                        {sr.priority}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-slate-700 dark:text-[#544B45] font-medium">
+                      {sr.assignedTechnicianName || <span className="text-[#70665F] italic">Unassigned</span>}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-[#FAF7F2] text-slate-800 dark:text-[#544B45] border border-slate-200 dark:border-[#EBE3DB]">
+                        {sr.status}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right space-x-1">
+                      <Link
+                        href="/maintenance/service-requests"
+                        className="px-2.5 py-1 rounded bg-[#FAF7F2] text-crm-brand-700 dark:text-crm-brand-500 font-medium hover:underline text-[11px] inline-flex items-center min-h-[36px]"
+                      >
+                        View Requests
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

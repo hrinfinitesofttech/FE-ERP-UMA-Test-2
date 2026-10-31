@@ -83,30 +83,44 @@ export default function DepreciationSchedulePage() {
         </div>
 
         {/* History Table */}
-        <div className="md:col-span-2 bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden">
+        <div className="md:col-span-2 bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden shadow-xl">
           <div className="p-4 border-b border-[#EBE3DB] font-bold text-[#211B17] text-sm">Depreciation Audit Logs</div>
-          <table className="w-full text-left text-xs text-[#544B45]">
-            <thead className="bg-[#FAF7F2]/80 text-[#70665F] uppercase font-semibold text-[10px] tracking-wider border-b border-[#EBE3DB]">
-              <tr>
-                <th className="py-3.5 px-4">Dep Date</th>
-                <th className="py-3.5 px-4">Period</th>
-                <th className="py-3.5 px-4">Depreciation JV</th>
-                <th className="py-3.5 px-4 text-right">Amount (₹)</th>
-                <th className="py-3.5 px-4 text-right">Book Value After (₹)</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#EBE3DB] font-mono">
-              {depreciationEntries.map((d) => (
-                <tr key={d.id}>
-                  <td className="py-3 px-4 font-sans text-[#70665F]">{d.depreciationDate}</td>
-                  <td className="py-3 px-4 font-sans text-[#3E2723] font-semibold">{d.period}</td>
-                  <td className="py-3 px-4 text-amber-400 font-bold">{d.journalEntryNumber}</td>
-                  <td className="py-3 px-4 text-right text-rose-400 font-bold">₹{d.amount?.toLocaleString()}</td>
-                  <td className="py-3 px-4 text-right text-emerald-400 font-bold">₹{d.bookValueAfter?.toLocaleString()}</td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs text-[#544B45]">
+              <thead className="bg-[#FAF7F2]/80 text-[#70665F] uppercase font-semibold text-[10px] tracking-wider border-b border-[#EBE3DB]">
+                <tr>
+                  <th className="py-3.5 px-4">Dep Date</th>
+                  <th className="py-3.5 px-4">Period</th>
+                  <th className="py-3.5 px-4">Depreciation JV</th>
+                  <th className="py-3.5 px-4 text-right">Amount (₹)</th>
+                  <th className="py-3.5 px-4 text-right">Book Value After (₹)</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-[#EBE3DB] font-mono">
+                {depreciationEntries.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-12 text-center text-xs text-[#70665F]">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <History className="w-8 h-8 text-[#A8988C] opacity-50" />
+                        <p className="font-semibold text-[#544B45]">No depreciation logs recorded</p>
+                        <p className="text-[11px] text-[#8C7A6F]">Run depreciation on fixed assets using the schedule calculator on the left.</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  depreciationEntries.map((d) => (
+                    <tr key={d.id}>
+                      <td className="py-3 px-4 font-sans text-[#70665F]">{d.depreciationDate}</td>
+                      <td className="py-3 px-4 font-sans text-[#3E2723] font-semibold">{d.period}</td>
+                      <td className="py-3 px-4 text-amber-600 font-bold">{d.journalEntryNumber}</td>
+                      <td className="py-3 px-4 text-right text-rose-500 font-bold">₹{d.amount?.toLocaleString()}</td>
+                      <td className="py-3 px-4 text-right text-emerald-600 font-bold">₹{d.bookValueAfter?.toLocaleString()}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

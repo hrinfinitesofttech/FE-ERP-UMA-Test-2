@@ -164,49 +164,61 @@ export default function BackupRestorePage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EBE3DB] text-[#544B45]">
-              {backupRecords.map((bk) => (
-                <tr key={bk.id} className="hover:bg-[#FAF7F2]/40 transition">
-                  <td className="py-3 px-4 font-mono font-bold text-crm-brand-500">{bk.backupNo}</td>
-                  <td className="py-3 px-4">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#FAF7F2] text-[#544B45] border border-[#EBE3DB]">
-                      {bk.type?.replace('_', ' ')}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 space-y-0.5">
-                    <div className="font-mono text-[#211B17] text-[11px]">{bk.fileName}</div>
-                    <div className="text-[10px] text-[#70665F]">{bk.location}</div>
-                  </td>
-                  <td className="py-3 px-4 font-mono text-[#544B45]">{bk.fileSize}</td>
-                  <td className="py-3 px-4 font-mono text-[#544B45]">{bk.recordCount?.toLocaleString()}</td>
-                  <td className="py-3 px-4 text-[#70665F]">
-                    <div>{bk.createdDate}</div>
-                    <div className="text-[10px] text-[#70665F]">{bk.createdBy}</div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1 w-fit">
-                      <CheckCircle2 className="w-3 h-3" />
-                      {bk.status?.replace('_', ' ')}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right space-x-2">
-                    <button
-                      onClick={() => toast.info(`Downloading snapshot ${bk.fileName} to local system...`)}
-                      className="px-2.5 py-1 bg-[#FAF7F2] hover:bg-[#FAF7F2] text-[#544B45] rounded-lg text-[11px] font-semibold transition border border-[#EBE3DB] inline-flex items-center gap-1"
-                    >
-                      <Download className="w-3 h-3" />
-                      Download
-                    </button>
-                    <button
-                      onClick={() => handleRestore(bk.id, bk.backupNo)}
-                      disabled={restoringId === bk.id}
-                      className="px-2.5 py-1 bg-crm-brand-700/20 hover:bg-crm-brand-700/30 text-crm-brand- rounded-lg text-[11px] font-semibold transition border border-crm-brand-600/30 inline-flex items-center gap-1"
-                    >
-                      <RotateCcw className={cn('w-3 h-3', restoringId === bk.id && 'animate-spin')} />
-                      {restoringId === bk.id ? 'Restoring...' : 'Restore'}
-                    </button>
+              {backupRecords.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-xs text-[#70665F]">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <HardDrive className="w-8 h-8 text-[#A8988C] opacity-50" />
+                      <p className="font-semibold text-[#544B45]">No backup snapshots found</p>
+                      <p className="text-[11px] text-[#8C7A6F]">Click &quot;Create Manual Snapshot&quot; to archive database state.</p>
+                    </div>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                backupRecords.map((bk) => (
+                  <tr key={bk.id} className="hover:bg-[#FAF7F2]/40 transition">
+                    <td className="py-3 px-4 font-mono font-bold text-crm-brand-700">{bk.backupNo}</td>
+                    <td className="py-3 px-4">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#FAF7F2] text-[#544B45] border border-[#EBE3DB]">
+                        {bk.type?.replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 space-y-0.5">
+                      <div className="font-mono text-[#211B17] text-[11px]">{bk.fileName}</div>
+                      <div className="text-[10px] text-[#70665F]">{bk.location}</div>
+                    </td>
+                    <td className="py-3 px-4 font-mono text-[#544B45]">{bk.fileSize}</td>
+                    <td className="py-3 px-4 font-mono text-[#544B45]">{bk.recordCount?.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-[#70665F]">
+                      <div>{bk.createdDate}</div>
+                      <div className="text-[10px] text-[#70665F]">{bk.createdBy}</div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/30 flex items-center gap-1 w-fit">
+                        <CheckCircle2 className="w-3 h-3" />
+                        {bk.status?.replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right space-x-2">
+                      <button
+                        onClick={() => toast.info(`Downloading snapshot ${bk.fileName} to local system...`)}
+                        className="px-2.5 py-1.5 bg-[#FAF7F2] hover:bg-white text-[#544B45] rounded-lg text-[11px] font-semibold transition border border-[#EBE3DB] inline-flex items-center gap-1 min-h-[36px]"
+                      >
+                        <Download className="w-3 h-3" />
+                        Download
+                      </button>
+                      <button
+                        onClick={() => handleRestore(bk.id, bk.backupNo)}
+                        disabled={restoringId === bk.id}
+                        className="px-2.5 py-1.5 bg-[#FAF7F2] hover:bg-white text-[#75401F] rounded-lg text-[11px] font-semibold transition border border-[#D5CAC0] inline-flex items-center gap-1 min-h-[36px]"
+                      >
+                        <RotateCcw className={cn('w-3 h-3', restoringId === bk.id && 'animate-spin')} />
+                        {restoringId === bk.id ? 'Restoring...' : 'Restore'}
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
