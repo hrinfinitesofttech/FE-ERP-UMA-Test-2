@@ -623,19 +623,6 @@ export function Sidebar() {
                   </div>
                 )}
               </Link>
-              <Link href="/purchase/bills" className={subNavItemClass('/purchase/bills')}>
-                <Receipt className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
-                {!sidebarCollapsed && (
-                  <div className="flex items-center justify-between w-full">
-                    <span>Purchase Bills</span>
-                    {purchaseInvoices && purchaseInvoices.length > 0 && (
-                      <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
-                        {purchaseInvoices.length}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </Link>
               <Link href="/purchase/suppliers" className={subNavItemClass('/purchase/suppliers')}>
                 <Building className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Supplier Master</span>}
@@ -816,6 +803,10 @@ export function Sidebar() {
                 <Truck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Delivery Challan</span>}
               </Link>
+              <Link href="/accounting/e-waybill" className={subNavItemClass('/accounting/e-waybill')}>
+                <Truck className="w-3.5 h-3.5 flex-shrink-0 text-sky-600 group-hover:text-sky-800 transition-colors" />
+                {!sidebarCollapsed && <span>GST E-Way Bill (Logistics)</span>}
+              </Link>
 
             </div>
           )}
@@ -873,6 +864,17 @@ export function Sidebar() {
               <Link href="/accounting/sales-invoices" className={subNavItemClass('/accounting/sales-invoices')}>
                 <Receipt className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
                 {!sidebarCollapsed && <span>Sales Invoices</span>}
+              </Link>
+              <Link href="/accounting/e-waybill" className={subNavItemClass('/accounting/e-waybill')}>
+                <Truck className="w-3.5 h-3.5 flex-shrink-0 text-sky-600 group-hover:text-sky-800 transition-colors" />
+                {!sidebarCollapsed && (
+                  <div className="flex items-center justify-between w-full">
+                    <span>GST E-Way Bill</span>
+                    <span className="px-1.5 py-0.2 rounded-full bg-sky-100 text-sky-800 font-mono text-[9px] font-bold border border-sky-300">
+                      Rule 138
+                    </span>
+                  </div>
+                )}
               </Link>
               <Link href="/accounting/purchase-invoices" className={subNavItemClass('/accounting/purchase-invoices')}>
                 <FileText className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />

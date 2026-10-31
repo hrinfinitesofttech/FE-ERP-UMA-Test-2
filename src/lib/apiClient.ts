@@ -1663,6 +1663,7 @@ export const api = {
     },
     dispatch: {
       list: () => request<any[]>('/dispatch-orders/'),
+      get: (id: string) => request<any>(`/dispatch-orders/${id}/`),
       create: (data: any) => request<any>('/dispatch-orders/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/dispatch-orders/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: string) => request<any>(`/dispatch-orders/${id}/`, { method: 'DELETE' }),
@@ -1938,10 +1939,19 @@ export const api = {
     chartOfAccounts: () => request<any[]>('/chart-of-accounts/'),
     taxes: () => request<any[]>('/taxes/'),
     costCenters: () => request<any[]>('/cost-centers/'),
+    ewayBills: {
+      list: () => request<any[]>('/eway-bills/'),
+      get: (id: string) => request<any>(`/eway-bills/${id}/`),
+      create: (data: any) => request<any>('/eway-bills/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/eway-bills/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/eway-bills/${id}/`, { method: 'DELETE' }),
+    },
     salesInvoices: {
       list: () => request<any[]>('/sales-invoices/'),
+      get: (id: string) => request<any>(`/sales-invoices/${id}/`),
       create: (data: any) => request<any>('/sales-invoices/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/sales-invoices/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/sales-invoices/${id}/`, { method: 'DELETE' }),
       approve: (id: string) => request<any>(`/sales-invoices/${id}/`, { method: 'PATCH', body: JSON.stringify({ status: 'Approved' }) }),
       recordPayment: (id: string, data: { amount: number; paymentMode?: string; referenceNumber?: string }) =>
         request<any>(`/sales-invoices/${id}/record-payment/`, { method: 'POST', body: JSON.stringify(data) }),

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
@@ -13,6 +13,7 @@ import {
 import { formatDate } from '../../../lib/utils';
 import { toast } from '@/context/ToastContext';
 import { printContent } from '@/lib/printUtils';
+import { api } from '@/lib/apiClient';
 import {
   Truck,
   Plus,
@@ -42,124 +43,88 @@ import {
   Share2,
   Palette,
   Clock,
+  Loader2,
 } from 'lucide-react';
 
-// Default sample challans (including exact replica of user photo Ch. No. 547)
-const INITIAL_DELIVERY_CHALLANS: DeliveryChallanDoc[] = [
-  {
-    id: 'CHALLAN-547',
-    challanNo: '547',
-    date: '2026-06-26',
-    copyNumber: '1',
-    companyName: 'UMA TECHNOFAB',
-    companyLogoText: 'UMA TECHNO FAB',
-    companyTagline: 'All Industrial Equipments. Tranki Projects...',
-    companyPhones: 'Mo. : 98250 98367 / 99250 11676',
-    companyAddress:
-      'S.No. 1040/3, Village : Rajpur, Nr. Sandvik Tube, Ta-Kadi, Dist-Mehsana. Pin Code - 382721',
-    gstin: '24AAEFU9027H1Z3',
-    jurisdiction: 'Subject to KALOL (N.G) Jurisdiction',
-    customerName: 'UMA Food',
-    customerAddress: 'GIDC Industrial Estate, Rajpur Road, Kadi - 382715',
-    destinationCity: 'Kadi',
-    vehicleNumber: 'GJ-02.AT.3826',
-    transporterName: 'Local Transport (Kadi)',
-    items: [
-      {
-        srNo: 1,
-        particulars: 'Berger Luxol PU Enamel. W-305\n05 Drum.',
-        quantity: '20',
-        unitOrAmount: '4 Ltr',
-        notes: '05 Drums of 4 Ltr each (Total 20 Ltr)',
-      },
-    ],
-    totalQuantity: '20 Ltr',
-    totalAmount: '20 Ltr',
-    department: 'Paint & Surface Coating Store',
-    receiverSign: '',
-    authorizedSignatory: 'UMA Technofab Dispatch Officer',
-    status: 'Delivered',
-    remarks: 'Dispatched in Vehicle GJ-02.AT.3826. Received in good condition.',
-    createdAt: '2026-06-26T10:30:00Z',
-  },
-  {
-    id: 'CHALLAN-548',
-    challanNo: '548',
-    date: '2026-05-09',
-    copyNumber: '1',
-    companyName: 'UMA TECHNOFAB',
-    companyLogoText: 'UMA TECHNO FAB',
-    companyTagline: 'All Industrial Equipments. Tranki Projects...',
-    companyPhones: 'Mo. : 98250 98367 / 99250 11676',
-    companyAddress:
-      'S.No. 1040/3, Village : Rajpur, Nr. Sandvik Tube, Ta-Kadi, Dist-Mehsana. Pin Code - 382721',
-    gstin: '24AAEFU9027H1Z3',
-    jurisdiction: 'Subject to KALOL (N.G) Jurisdiction',
-    customerName: 'Ananth Chem',
-    customerAddress: 'Plot 102/B, GIDC Chemical Zone, Jhagadia, Dist. Bharuch, Gujarat - 393110',
-    destinationCity: 'Jhagadia',
-    projectId: 'PRJ-2026-001',
-    jobNumber: 'UTF-26-46 B',
-    workOrderNumber: 'UTF-26-46 B',
-    qcReportNo: 'QC-2026-001 (F - QAS - 02)',
-    vehicleNumber: 'GJ-01-CZ-4521',
-    transporterName: 'Mahavir Heavy Logistics',
-    lrNumber: 'LR-2026-9182',
-    driverName: 'Ramesh Patel',
-    driverMobile: '98254 77812',
-    eWayBillNumber: 'EWB-24-99812401',
-    items: [
-      {
-        srNo: 1,
-        particulars:
-          '25 KL Vertical Tank (SS304 / MS)\nInspection Cleared as per Doc no.: F - QAS - 02\nHydro Tested & Primer Painted.',
-        quantity: '1',
-        unitOrAmount: '1 Nos',
-        notes: 'Loaded on Low-bed Trailer with wooden saddles and tarpaulin cover.',
-      },
-    ],
-    totalQuantity: '1 Nos',
-    totalAmount: '1 Nos Equipment',
-    department: 'Heavy Fabrication Dispatch',
-    receiverSign: '',
-    authorizedSignatory: 'UMA Technofab Dispatch Officer',
-    status: 'In Transit',
-    remarks: 'Dispatched with Gate Out Pass & E-Way Bill after QC Clearance.',
-    createdAt: '2026-05-09T14:15:00Z',
-  },
-];
-
-export default function DispatchPage() {
+function DispatchPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const {
-    dispatchOrders,
     finishedGoods,
     customers,
     projectJobs,
     projectPlanningRecords,
     productionCompletions,
-    addDispatchOrder,
   } = useERP();
 
-  // Delivery Challan List (Persisted in localStorage)
-  const [challans, setChallans] = useState<DeliveryChallanDoc[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('UMA_ERP_deliveryChallans');
-        if (saved) return JSON.parse(saved);
-      } catch (_) {}
+  // Delivery Challan List (Fetched from Django database)
+  const [challans, setChallans] = useState<DeliveryChallanDoc[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch from database API
+  const fetchDispatchOrders = async () => {
+    setIsLoading(true);
+    try {
+      const res = await api.production.dispatch.list();
+      const data = Array.isArray(res) ? res : (res as any)?.data || [];
+      const mapped: DeliveryChallanDoc[] = data.map((d: any) => ({
+        id: String(d.id || d.dispatchNumber || d.dispatch_number),
+        challanNo: String(d.challanNumber || d.challan_number || d.challanNo || d.dispatchNumber || d.dispatch_number || d.id),
+        date: d.dispatchDate || d.dispatch_date || d.date || new Date().toISOString().split('T')[0],
+        copyNumber: String(d.copyNumber || d.copy_number || '1'),
+        companyName: 'UMA TECHNOFAB',
+        companyLogoText: 'UMA TECHNO FAB',
+        companyTagline: 'All Industrial Equipments. Tranki Projects...',
+        companyPhones: 'Mo. : 98250 98367 / 99250 11676',
+        companyAddress:
+          'S.No. 1040/3, Village : Rajpur, Nr. Sandvik Tube, Ta-Kadi, Dist-Mehsana. Pin Code - 382721',
+        gstin: '24AAEFU9027H1Z3',
+        jurisdiction: 'Subject to KALOL (N.G) Jurisdiction',
+        customerName: d.customerName || d.customer_name || 'Customer',
+        customerAddress: d.customerAddress || d.customer_address || '',
+        destinationCity: d.destinationCity || d.destination_city || '',
+        projectId: d.jobId || d.job_id || d.jobNumber || d.job_number || '',
+        jobNumber: d.jobNumber || d.job_number || '',
+        workOrderNumber: d.workOrderNumber || d.work_order_number || '',
+        qcReportNo: d.qcReportNo || d.qc_report_no || '',
+        vehicleNumber: d.vehicleNumber || d.vehicle_number || '',
+        transporterName: d.transporterName || d.transporter_name || '',
+        lrNumber: d.lrNumber || d.lr_number || '',
+        driverName: d.driverName || d.driver_name || '',
+        driverMobile: d.driverMobile || d.driver_mobile || '',
+        eWayBillNumber: d.eWayBillNumber || d.e_way_bill_number || '',
+        items: Array.isArray(d.items) && d.items.length > 0
+          ? d.items
+          : [
+              {
+                srNo: 1,
+                particulars: d.productName || d.product_name || 'Industrial Equipment Fabrication',
+                quantity: String(d.quantity || 1),
+                unitOrAmount: d.uom || 'Nos',
+                notes: d.specification || '',
+              },
+            ],
+        totalQuantity: d.totalQuantityText || d.total_quantity_text || (d.quantity ? `${d.quantity} ${d.uom || 'Nos'}` : '1 Nos'),
+        totalAmount: d.totalAmountText || d.total_amount_text || d.totalQuantityText || d.total_quantity_text || '1 Nos',
+        department: d.department || 'Dispatch / Logistics',
+        receiverSign: d.receiverSign || d.receiver_sign || '',
+        authorizedSignatory: d.authorizedSignatory || d.authorized_signatory || 'UMA Technofab Dispatch Officer',
+        status: d.status || 'Issued',
+        remarks: d.remarks || '',
+        createdAt: d.createdAt || d.created_at || new Date().toISOString(),
+      }));
+      setChallans(mapped);
+    } catch (err) {
+      console.error('Failed to load dispatch orders:', err);
+      toast.error('Failed to load delivery challans from database.');
+    } finally {
+      setIsLoading(false);
     }
-    return INITIAL_DELIVERY_CHALLANS;
-  });
+  };
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('UMA_ERP_deliveryChallans', JSON.stringify(challans));
-      } catch (_) {}
-    }
-  }, [challans]);
+    fetchDispatchOrders();
+  }, []);
 
   // Inspection Reports from localStorage (for 1-click QC link)
   const [inspectionReports, setInspectionReports] = useState<ProductionCompletion[]>(() => {
@@ -425,102 +390,79 @@ export default function DispatchPage() {
     return numericTotal > 0 ? `${numericTotal} ${firstUnit.includes('Ltr') ? 'Ltr' : firstUnit}`.trim() : '0';
   }, [formItems]);
 
-  // Submit / Save Challan
-  const handleSaveChallan = (e: React.FormEvent) => {
+  // Submit / Save Challan to Database
+  const handleSaveChallan = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const newChallanDoc: DeliveryChallanDoc = {
-      id: editingChallanId || `CHALLAN-${Date.now()}`,
-      challanNo: formChallanNo || generateNextChallanNo(),
-      date: formDate,
-      copyNumber: formCopyNo || '1',
-      companyName: 'UMA TECHNOFAB',
-      companyLogoText: 'UMA TECHNO FAB',
-      companyTagline: 'All Industrial Equipments. Tranki Projects...',
-      companyPhones: 'Mo. : 98250 98367 / 99250 11676',
-      companyAddress:
-        'S.No. 1040/3, Village : Rajpur, Nr. Sandvik Tube, Ta-Kadi, Dist-Mehsana. Pin Code - 382721',
-      gstin: '24AAEFU9027H1Z3',
-      jurisdiction: 'Subject to KALOL (N.G) Jurisdiction',
-      customerName: formCustomerName || 'M/s Customer',
-      customerAddress: formCustomerAddress || 'Customer Site Address',
-      destinationCity: formDestinationCity,
-      projectId: formJobNumber,
-      jobNumber: formJobNumber,
-      workOrderNumber: formJobNumber,
-      qcReportNo: formQcReportNo,
-      vehicleNumber: formVehicleNumber,
-      transporterName: formTransporterName,
-      lrNumber: formLrNumber,
-      driverName: formDriverName,
-      driverMobile: formDriverMobile,
-      eWayBillNumber: formEWayBillNumber,
+    const payload = {
+      dispatch_number: formChallanNo || generateNextChallanNo(),
+      challan_number: formChallanNo || generateNextChallanNo(),
+      copy_number: formCopyNo || '1',
+      dispatch_date: formDate,
+      customer_name: formCustomerName || 'M/s Customer',
+      customer_address: formCustomerAddress || 'Customer Site Address',
+      destination_city: formDestinationCity,
+      job_id: formJobNumber,
+      job_number: formJobNumber,
+      work_order_number: formJobNumber,
+      qc_report_no: formQcReportNo,
+      product_name: formItems[0]?.particulars || 'Fabrication Equipment',
+      specification: `Challan #${formChallanNo} - Vehicle: ${formVehicleNumber}`,
+      quantity: parseFloat(calculatedTotalQuantity) || 1,
+      uom: formItems[0]?.unitOrAmount || 'NOS',
+      transporter_name: formTransporterName,
+      vehicle_number: formVehicleNumber,
+      lr_number: formLrNumber,
+      driver_name: formDriverName,
+      driver_mobile: formDriverMobile,
+      e_way_bill_number: formEWayBillNumber,
       items: formItems,
-      totalQuantity: calculatedTotalQuantity,
-      totalAmount: calculatedTotalQuantity,
+      total_quantity_text: calculatedTotalQuantity,
+      total_amount_text: calculatedTotalQuantity,
       department: formDepartment || 'Dispatch / Logistics',
-      receiverSign: '',
-      authorizedSignatory: 'UMA Technofab Dispatch Officer',
       status: formStatus,
       remarks: formRemarks,
-      createdAt: new Date().toISOString(),
     };
 
-    if (editingChallanId) {
-      setChallans((prev) =>
-        prev.map((c) => (c.id === editingChallanId ? newChallanDoc : c))
-      );
-      showToast(`Delivery Challan #${formChallanNo} updated successfully!`);
-    } else {
-      setChallans((prev) => [newChallanDoc, ...prev]);
-
-      // Also sync with dispatch orders for compatibility
-      addDispatchOrder({
-        dispatchDate: formDate,
-        jobId: formJobNumber || 'JOB-DISP',
-        jobNumber: formJobNumber || 'JOB-DISP',
-        workOrderNumber: formJobNumber || 'WO-DISP',
-        customerId: formCustomerName,
-        customerName: formCustomerName,
-        customerAddress: formCustomerAddress,
-        destinationCity: formDestinationCity,
-        productName: formItems[0]?.particulars || 'Fabrication Equipment',
-        specification: `Challan #${formChallanNo} - Vehicle: ${formVehicleNumber}`,
-        quantity: parseFloat(calculatedTotalQuantity) || 1,
-        uom: 'NOS',
-        transporterName: formTransporterName || 'Direct Logistics',
-        vehicleNumber: formVehicleNumber,
-        lrNumber: formLrNumber,
-        driverName: formDriverName,
-        driverMobile: formDriverMobile,
-        eWayBillNumber: formEWayBillNumber,
-        status: formStatus === 'Delivered' ? 'Delivered to Site' : 'In Transit',
-        remarks: formRemarks,
-      });
-
-      showToast(`Delivery Challan #${formChallanNo} created & issued!`);
+    try {
+      if (editingChallanId) {
+        await api.production.dispatch.update(editingChallanId, payload);
+        toast.success(`Delivery Challan #${formChallanNo} updated successfully!`);
+      } else {
+        await api.production.dispatch.create(payload);
+        toast.success(`Delivery Challan #${formChallanNo} created & saved to database!`);
+      }
+      await fetchDispatchOrders();
+      setShowModal(false);
+    } catch (err) {
+      console.error('Failed to save dispatch order:', err);
+      toast.error('Failed to save delivery challan to database.');
     }
-
-    setShowModal(false);
   };
 
-  // Delete Challan
+  // Delete Challan from Database
   const handleDeleteChallan = (id: string, chNo: string) => {
     toast.confirm({
       title: 'Delete Delivery Challan',
-      message: `Are you sure you want to delete Delivery Challan #${chNo}?`,
+      message: `Are you sure you want to delete Delivery Challan #${chNo}? This will remove it permanently from the database.`,
       confirmText: 'Yes, Delete',
       cancelText: 'Cancel',
       variant: 'danger',
-      onConfirm: () => {
-        setChallans((prev) => prev.filter((c) => c.id !== id));
-        toast.success(`Delivery Challan #${chNo} deleted`);
+      onConfirm: async () => {
+        try {
+          await api.production.dispatch.delete(id);
+          toast.success(`Delivery Challan #${chNo} deleted`);
+          await fetchDispatchOrders();
+        } catch (err) {
+          console.error('Failed to delete dispatch order:', err);
+          toast.error('Failed to delete delivery challan from database.');
+        }
       },
     });
   };
 
-  // Quick Status Advance
-  const handleAdvanceStatus = (ch: DeliveryChallanDoc) => {
+  // Quick Status Advance with Database Sync
+  const handleAdvanceStatus = async (ch: DeliveryChallanDoc) => {
     const nextStatus =
       ch.status === 'Draft'
         ? 'Issued'
@@ -530,10 +472,20 @@ export default function DispatchPage() {
         ? 'Delivered'
         : 'Acknowledged';
 
-    setChallans((prev) =>
-      prev.map((c) => (c.id === ch.id ? { ...c, status: nextStatus as any } : c))
-    );
-    showToast(`Challan #${ch.challanNo} status updated to "${nextStatus}"`);
+    try {
+      if (nextStatus === 'In Transit') {
+        await api.production.dispatch.markDispatched(ch.id);
+      } else if (nextStatus === 'Delivered') {
+        await api.production.dispatch.markDelivered(ch.id);
+      } else {
+        await api.production.dispatch.update(ch.id, { status: nextStatus });
+      }
+      toast.success(`Challan #${ch.challanNo} status updated to "${nextStatus}"`);
+      await fetchDispatchOrders();
+    } catch (err) {
+      console.error('Failed to update status:', err);
+      toast.error('Failed to update status in database.');
+    }
   };
 
   // Filtered Challans
@@ -689,7 +641,15 @@ export default function DispatchPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredChallans.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                    <Loader2 className="w-8 h-8 mx-auto mb-2 text-amber-500 animate-spin" />
+                    <p className="font-semibold text-slate-700 text-sm">Loading delivery challans from database...</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Please wait while we retrieve active shipments.</p>
+                  </td>
+                </tr>
+              ) : filteredChallans.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
                     <Truck className="w-8 h-8 mx-auto mb-2 text-slate-300" />
@@ -806,6 +766,14 @@ export default function DispatchPage() {
                         >
                           <FileText className="w-3.5 h-3.5 text-emerald-700" />
                           <span>Invoice</span>
+                        </Link>
+                        <Link
+                          href={`/accounting/e-waybill?challanNo=${encodeURIComponent(ch.challanNo)}&customerName=${encodeURIComponent(ch.customerName)}&vehicle=${encodeURIComponent(ch.vehicleNumber || '')}&destination=${encodeURIComponent(ch.destinationCity || '')}&transporter=${encodeURIComponent(ch.transporterName || '')}`}
+                          className="px-2 py-1 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-300 font-bold rounded-lg text-xs transition flex items-center gap-1 active:scale-95 cursor-pointer shadow-xs"
+                          title="Generate GST E-Way Bill"
+                        >
+                          <Truck className="w-3.5 h-3.5 text-sky-700" />
+                          <span>E-Way Bill</span>
                         </Link>
                         <button
                           onClick={() => handleOpenEdit(ch)}
@@ -1297,6 +1265,15 @@ export default function DispatchPage() {
                   <span>Create Tax Invoice</span>
                 </Link>
 
+                <Link
+                  href={`/accounting/e-waybill?challanNo=${encodeURIComponent(viewChallan.challanNo)}&customerName=${encodeURIComponent(viewChallan.customerName)}&vehicle=${encodeURIComponent(viewChallan.vehicleNumber || '')}&destination=${encodeURIComponent(viewChallan.destinationCity || '')}&transporter=${encodeURIComponent(viewChallan.transporterName || '')}`}
+                  className="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+                  title="Generate GST E-Way Bill for this delivery challan"
+                >
+                  <Truck className="w-3.5 h-3.5" />
+                  <span>Generate E-Way Bill</span>
+                </Link>
+
                 <button
                   onClick={() => printContent('printable-delivery-challan', { title: viewChallan ? `Challan_${viewChallan.challanNo}` : 'Delivery_Challan' })}
                   className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
@@ -1558,5 +1535,20 @@ export default function DispatchPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function DispatchPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 text-center text-slate-500 font-semibold flex items-center justify-center gap-2">
+          <Loader2 className="w-5 h-5 text-amber-600 animate-spin" />
+          <span>Loading Dispatch &amp; Delivery Challans...</span>
+        </div>
+      }
+    >
+      <DispatchPageContent />
+    </Suspense>
   );
 }

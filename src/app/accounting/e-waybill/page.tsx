@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import {
   Truck,
@@ -18,15 +19,20 @@ import {
   Calendar,
   X,
   ShieldCheck,
-  Building
+  Building,
+  Trash2,
+  Loader2,
 } from 'lucide-react';
 import { printContent } from '@/lib/printUtils';
+import { api } from '@/lib/apiClient';
+import { toast } from '@/context/ToastContext';
 
 interface EWayBillRecord {
   id: string;
   ewayBillNo: string;
   invoiceNumber: string;
   invoiceDate: string;
+  deliveryChallanNumber?: string;
   customerName: string;
   customerGstin: string;
   deliveryPincode: string;
@@ -40,8 +46,12 @@ interface EWayBillRecord {
   generatedDate: string;
 }
 
-export default function EWayBillPage() {
+function EWayBillPageContent() {
+  const searchParams = useSearchParams();
   const { salesInvoices, customers } = useERP();
+
+  const [ewayBills, setEwayBills] = useState<EWayBillRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -49,60 +59,89 @@ export default function EWayBillPage() {
   const [selectedBillForPrint, setSelectedBillForPrint] = useState<EWayBillRecord | null>(null);
 
   // Form State
+  const [docType, setDocType] = useState<'Invoice' | 'Challan'>('Invoice');
   const [selectedInvoiceNo, setSelectedInvoiceNo] = useState('');
+  const [deliveryChallanNo, setDeliveryChallanNo] = useState('');
+  const [customerNameInput, setCustomerNameInput] = useState('');
+  const [customerGstinInput, setCustomerGstinInput] = useState('24AAACX0000X1Z1');
+  const [consignmentValueInput, setConsignmentValueInput] = useState<number | string>(150000);
   const [transporterName, setTransporterName] = useState('V-Trans India Ltd');
   const [transporterId, setTransporterId] = useState('24AAACV1234F1Z0');
   const [vehicleNumber, setVehicleNumber] = useState('GJ-01-BX-4455');
   const [distanceKm, setDistanceKm] = useState<number | string>(180);
   const [destinationPincode, setDestinationPincode] = useState('382415');
 
-  // Stored E-Way Bills (Persisted in localStorage with initial defaults)
-  const [ewayBills, setEwayBills] = useState<EWayBillRecord[]>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('UMA_ERP_ewayBills');
-      if (saved) {
-        try {
-          return JSON.parse(saved);
-        } catch (_) {}
-      }
+  // Fetch real E-Way Bills from database
+  const fetchEWayBills = async () => {
+    setIsLoading(true);
+    try {
+      const res = await api.accounting.ewayBills.list();
+      const data = Array.isArray(res) ? res : (res as any)?.data || [];
+      const mapped: EWayBillRecord[] = data.map((b: any) => ({
+        id: String(b.id || b.ewayBillNo || b.eway_bill_no),
+        ewayBillNo: String(b.ewayBillNo || b.eway_bill_no || b.id),
+        invoiceNumber: b.invoiceNumber || b.invoice_number || b.deliveryChallanNumber || b.delivery_challan_number || 'INV-001',
+        invoiceDate: b.invoiceDate || b.invoice_date || (b.validFrom ? String(b.validFrom).split('T')[0] : new Date().toISOString().split('T')[0]),
+        deliveryChallanNumber: b.deliveryChallanNumber || b.delivery_challan_number || '',
+        customerName: b.customerName || b.customer_name || 'Customer Ltd',
+        customerGstin: b.customerGstin || b.customer_gstin || '24AAACX0000X1Z1',
+        deliveryPincode: b.deliveryPincode || b.delivery_pincode || '382415',
+        transporterName: b.transporterName || b.transporter_name || 'V-Trans Logistics',
+        transporterId: b.transporterId || b.transporter_id || '24AAACV1234F1Z0',
+        vehicleNumber: b.vehicleNumber || b.vehicle_number || 'GJ-01-AX-9999',
+        distanceKm: Number(b.distanceKm || b.distance_km || 150),
+        consignmentValue: Number(b.consignmentValue || b.consignment_value || 0),
+        validUpto: b.validUpto || b.valid_upto ? String(b.validUpto || b.valid_upto).split('T')[0] : new Date().toISOString().split('T')[0],
+        status: b.status || 'Active',
+        generatedDate: b.validFrom || b.created_at ? String(b.validFrom || b.created_at).split('T')[0] : new Date().toISOString().split('T')[0],
+      }));
+      setEwayBills(mapped);
+    } catch (err) {
+      console.error('Failed to load E-Way Bills:', err);
+      toast.error('Failed to load E-Way Bills from database.');
+    } finally {
+      setIsLoading(false);
     }
-    return [
-      {
-        id: 'EWB-001',
-        ewayBillNo: '241098765432',
-        invoiceNumber: 'INV-2026-0001',
-        invoiceDate: '2026-08-20',
-        customerName: 'Tata Steel Processing Ltd',
-        customerGstin: '24AAACT1234A1Z5',
-        deliveryPincode: '382445',
-        transporterName: 'V-Trans India Ltd',
-        transporterId: '24AAACV1234F1Z0',
-        vehicleNumber: 'GJ-01-BX-7890',
-        distanceKm: 240,
-        consignmentValue: 4484000,
-        validUpto: '2026-08-22',
-        status: 'Active',
-        generatedDate: '2026-08-20',
-      },
-      {
-        id: 'EWB-002',
-        ewayBillNo: '241087654321',
-        invoiceNumber: 'INV-2026-0002',
-        invoiceDate: '2026-08-18',
-        customerName: 'Jindal Steel & Power Ltd',
-        customerGstin: '24AAACJ9876B1Z2',
-        deliveryPincode: '394101',
-        transporterName: 'Gati KWE Logistics',
-        transporterId: '24AAACG5678C1Z8',
-        vehicleNumber: 'GJ-06-ZZ-1234',
-        distanceKm: 310,
-        consignmentValue: 2850000,
-        validUpto: '2026-08-21',
-        status: 'Delivered',
-        generatedDate: '2026-08-18',
-      },
-    ];
-  });
+  };
+
+  useEffect(() => {
+    fetchEWayBills();
+  }, []);
+
+  // Pre-fill from URL query parameters (e.g. from /production/dispatch or /accounting/sales-invoices)
+  useEffect(() => {
+    const challanNo = searchParams?.get('challanNo');
+    const customer = searchParams?.get('customerName');
+    const vehicle = searchParams?.get('vehicle');
+    const destination = searchParams?.get('destination');
+    const transporter = searchParams?.get('transporter');
+    const invoiceNo = searchParams?.get('invoiceNo');
+    const value = searchParams?.get('value');
+
+    if (challanNo || invoiceNo || customer) {
+      if (challanNo) {
+        setDocType('Challan');
+        setDeliveryChallanNo(challanNo);
+        setSelectedInvoiceNo(challanNo);
+      }
+      if (invoiceNo) {
+        setDocType('Invoice');
+        setSelectedInvoiceNo(invoiceNo);
+      }
+      if (customer) setCustomerNameInput(customer);
+      if (vehicle) setVehicleNumber(vehicle);
+      if (transporter) setTransporterName(transporter);
+      if (value) setConsignmentValueInput(Number(value));
+      if (destination) {
+        // Find pincode if available
+        const cust = customers.find((c) => c.companyName?.toLowerCase().includes(customer?.toLowerCase() || ''));
+        if (cust && (cust as any).pincode) {
+          setDestinationPincode((cust as any).pincode);
+        }
+      }
+      setIsModalOpen(true);
+    }
+  }, [searchParams, customers]);
 
   // Eligible Invoices (> ₹50,000 threshold for Indian E-Way Bill rules)
   const eligibleInvoices = useMemo(() => {
@@ -113,8 +152,10 @@ export default function EWayBillPage() {
   }, [salesInvoices]);
 
   const handleOpenModal = () => {
-    if (eligibleInvoices.length > 0) {
+    if (eligibleInvoices.length > 0 && docType === 'Invoice') {
       setSelectedInvoiceNo(eligibleInvoices[0].invoiceNumber || eligibleInvoices[0].id);
+      setCustomerNameInput(eligibleInvoices[0].customerName || '');
+      setConsignmentValueInput(Number(eligibleInvoices[0].grandTotal || 150000));
       const cust = customers.find((c) => c.id === eligibleInvoices[0].customerId);
       if (cust && (cust as any).pincode) {
         setDestinationPincode((cust as any).pincode);
@@ -123,47 +164,94 @@ export default function EWayBillPage() {
     setIsModalOpen(true);
   };
 
-  const handleGenerateEWayBill = (e: React.FormEvent) => {
+  const handleGenerateEWayBill = async (e: React.FormEvent) => {
     e.preventDefault();
-    const matchedInv = salesInvoices.find(
+
+    let matchedInv = salesInvoices.find(
       (inv) => inv.invoiceNumber === selectedInvoiceNo || inv.id === selectedInvoiceNo
     );
 
-    const val = Number(matchedInv?.grandTotal ?? (matchedInv as any)?.grand_total ?? 150000);
+    const val = Number(
+      consignmentValueInput ||
+      matchedInv?.grandTotal ||
+      (matchedInv as any)?.grand_total ||
+      150000
+    );
     const dist = Number(distanceKm) || 150;
     const daysValid = Math.max(1, Math.ceil(dist / 200));
     const validDate = new Date();
     validDate.setDate(validDate.getDate() + daysValid);
 
     const random12Digit = `24${Math.floor(1000000000 + Math.random() * 9000000000)}`;
-    const newEwb: EWayBillRecord = {
-      id: `EWB-${Date.now().toString().slice(-4)}`,
-      ewayBillNo: random12Digit,
-      invoiceNumber: selectedInvoiceNo || 'INV-2026-0001',
-      invoiceDate: matchedInv?.invoiceDate || new Date().toISOString().split('T')[0],
-      customerName: matchedInv?.customerName || 'Customer Ltd',
-      customerGstin: (matchedInv as any)?.customerGstin || '24AAACX0000X1Z1',
-      deliveryPincode: destinationPincode || '382415',
-      transporterName: transporterName || 'V-Trans Logistics',
-      transporterId: transporterId || '24AAACV1234F1Z0',
-      vehicleNumber: vehicleNumber || 'GJ-01-AX-9999',
-      distanceKm: dist,
-      consignmentValue: val,
-      validUpto: validDate.toISOString().split('T')[0],
+    const finalDocNo = docType === 'Challan' ? (deliveryChallanNo || 'CH-547') : (selectedInvoiceNo || 'INV-2026-0001');
+    const finalCustName = customerNameInput || matchedInv?.customerName || 'Customer Ltd';
+
+    const payload = {
+      eway_bill_no: random12Digit,
+      invoice_number: docType === 'Invoice' ? finalDocNo : '',
+      delivery_challan_number: docType === 'Challan' ? finalDocNo : '',
+      invoice_date: matchedInv?.invoiceDate || new Date().toISOString().split('T')[0],
+      customer_name: finalCustName,
+      customer_gstin: customerGstinInput || (matchedInv as any)?.customerGstin || '24AAACX0000X1Z1',
+      delivery_pincode: destinationPincode || '382415',
+      transporter_name: transporterName || 'V-Trans Logistics',
+      transporter_id: transporterId || '24AAACV1234F1Z0',
+      vehicle_number: vehicleNumber || 'GJ-01-AX-9999',
+      distance_km: dist,
+      consignment_value: val,
+      valid_upto: validDate.toISOString(),
       status: 'Active',
-      generatedDate: new Date().toISOString().split('T')[0],
     };
 
-    const updated = [newEwb, ...ewayBills];
-    setEwayBills(updated);
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('UMA_ERP_ewayBills', JSON.stringify(updated));
-      } catch (_) {}
-    }
+    try {
+      const created = await api.accounting.ewayBills.create(payload);
+      toast.success(`E-Way Bill #${random12Digit} generated and saved to database!`);
+      await fetchEWayBills();
+      setIsModalOpen(false);
 
-    setIsModalOpen(false);
-    setSelectedBillForPrint(newEwb);
+      const printRecord: EWayBillRecord = {
+        id: created.id || random12Digit,
+        ewayBillNo: random12Digit,
+        invoiceNumber: finalDocNo,
+        invoiceDate: new Date().toISOString().split('T')[0],
+        deliveryChallanNumber: docType === 'Challan' ? finalDocNo : '',
+        customerName: finalCustName,
+        customerGstin: payload.customer_gstin,
+        deliveryPincode: payload.delivery_pincode,
+        transporterName: payload.transporter_name,
+        transporterId: payload.transporter_id,
+        vehicleNumber: payload.vehicle_number,
+        distanceKm: dist,
+        consignmentValue: val,
+        validUpto: validDate.toISOString().split('T')[0],
+        status: 'Active',
+        generatedDate: new Date().toISOString().split('T')[0],
+      };
+      setSelectedBillForPrint(printRecord);
+    } catch (err) {
+      console.error('Failed to create E-Way Bill:', err);
+      toast.error('Failed to generate E-Way Bill in database.');
+    }
+  };
+
+  const handleDeleteEWayBill = (id: string, ewbNo: string) => {
+    toast.confirm({
+      title: 'Delete E-Way Bill',
+      message: `Are you sure you want to delete E-Way Bill #${ewbNo}? This will remove it from the database.`,
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          await api.accounting.ewayBills.delete(id);
+          toast.success(`E-Way Bill #${ewbNo} deleted`);
+          await fetchEWayBills();
+        } catch (err) {
+          console.error('Failed to delete E-Way Bill:', err);
+          toast.error('Failed to delete E-Way Bill from database.');
+        }
+      },
+    });
   };
 
   const filtered = useMemo(() => {
@@ -295,7 +383,7 @@ export default function EWayBillPage() {
             <thead className="bg-slate-50 text-slate-500 uppercase font-black text-[10px] tracking-wider border-b border-[#EBE3DB]">
               <tr>
                 <th className="py-3 px-4">E-WAY BILL NO</th>
-                <th className="py-3 px-4">INVOICE NO</th>
+                <th className="py-3 px-4">DOC (INVOICE / CHALLAN)</th>
                 <th className="py-3 px-4">CUSTOMER &amp; DESTINATION</th>
                 <th className="py-3 px-4">TRANSPORTER &amp; VEHICLE</th>
                 <th className="py-3 px-4 text-right">DISTANCE</th>
@@ -306,7 +394,15 @@ export default function EWayBillPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-mono">
-              {filtered.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={9} className="py-12 text-center text-slate-400 font-sans">
+                    <Loader2 className="w-8 h-8 mx-auto mb-2 text-sky-500 animate-spin" />
+                    <p className="font-semibold text-slate-700 text-sm">Loading E-Way Bills from database...</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Please wait while active consignments are retrieved.</p>
+                  </td>
+                </tr>
+              ) : filtered.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="py-12 text-center text-slate-400 font-sans">
                     <Truck className="w-8 h-8 mx-auto mb-2 text-slate-300" />
@@ -322,7 +418,10 @@ export default function EWayBillPage() {
                       <span>{b.ewayBillNo}</span>
                     </td>
                     <td className="py-3 px-4 font-sans font-bold text-slate-900">
-                      {b.invoiceNumber}
+                      <div>{b.invoiceNumber}</div>
+                      {b.deliveryChallanNumber && (
+                        <div className="text-[10px] text-amber-700 font-mono">Challan: {b.deliveryChallanNumber}</div>
+                      )}
                     </td>
                     <td className="py-3 px-4 font-sans">
                       <div className="font-bold text-slate-900">{b.customerName}</div>
@@ -357,14 +456,25 @@ export default function EWayBillPage() {
                       </span>
                     </td>
                     <td className="py-3 px-4 text-center font-sans">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedBillForPrint(b)}
-                        className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold transition flex items-center gap-1 mx-auto cursor-pointer shadow-2xs"
-                      >
-                        <Printer className="w-3.5 h-3.5 text-slate-500" />
-                        <span>Print</span>
-                      </button>
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedBillForPrint(b)}
+                          className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold transition flex items-center gap-1 cursor-pointer shadow-2xs"
+                          title="Print Official Slip"
+                        >
+                          <Printer className="w-3.5 h-3.5 text-slate-500" />
+                          <span>Print</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteEWayBill(b.id, b.ewayBillNo)}
+                          className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                          title="Delete from database"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -393,22 +503,116 @@ export default function EWayBillPage() {
             </div>
 
             <form onSubmit={handleGenerateEWayBill} className="p-5 space-y-4 text-xs">
+              {/* Document Type Selector */}
               <div>
                 <label className="block font-bold text-slate-800 mb-1">
-                  Select Qualifying Sales Invoice (&gt; ₹50,000) <span className="text-rose-500">*</span>
+                  Document Type for E-Way Bill
                 </label>
-                <select
-                  value={selectedInvoiceNo}
-                  onChange={(e) => setSelectedInvoiceNo(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-bold focus:ring-2 focus:ring-sky-500"
-                  required
-                >
-                  {eligibleInvoices.map((inv) => (
-                    <option key={inv.id} value={inv.invoiceNumber || inv.id}>
-                      {inv.invoiceNumber || inv.id} — {inv.customerName} (₹{Number(inv.grandTotal || 0).toLocaleString('en-IN')})
-                    </option>
-                  ))}
-                </select>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setDocType('Invoice')}
+                    className={`py-2 px-3 rounded-xl font-bold border transition text-center cursor-pointer ${
+                      docType === 'Invoice'
+                        ? 'bg-sky-50 text-sky-800 border-sky-400'
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    Tax Invoice (&gt; ₹50,000)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDocType('Challan')}
+                    className={`py-2 px-3 rounded-xl font-bold border transition text-center cursor-pointer ${
+                      docType === 'Challan'
+                        ? 'bg-amber-50 text-amber-800 border-amber-400'
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    Delivery Challan (Dispatch)
+                  </button>
+                </div>
+              </div>
+
+              {docType === 'Invoice' ? (
+                <div>
+                  <label className="block font-bold text-slate-800 mb-1">
+                    Select Qualifying Sales Invoice (&gt; ₹50,000) <span className="text-rose-500">*</span>
+                  </label>
+                  {eligibleInvoices.length > 0 ? (
+                    <select
+                      value={selectedInvoiceNo}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setSelectedInvoiceNo(val);
+                        const inv = salesInvoices.find((i) => (i.invoiceNumber || i.id) === val);
+                        if (inv) {
+                          setCustomerNameInput(inv.customerName || '');
+                          setConsignmentValueInput(Number(inv.grandTotal || 150000));
+                        }
+                      }}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-bold focus:ring-2 focus:ring-sky-500"
+                      required
+                    >
+                      {eligibleInvoices.map((inv) => (
+                        <option key={inv.id} value={inv.invoiceNumber || inv.id}>
+                          {inv.invoiceNumber || inv.id} — {inv.customerName} (₹{Number(inv.grandTotal || 0).toLocaleString('en-IN')})
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      placeholder="e.g. INV-2026-0001"
+                      value={selectedInvoiceNo}
+                      onChange={(e) => setSelectedInvoiceNo(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-bold focus:ring-2 focus:ring-sky-500"
+                      required
+                    />
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <label className="block font-bold text-slate-800 mb-1">
+                    Delivery Challan Number <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 547 or CHALLAN-547"
+                    value={deliveryChallanNo}
+                    onChange={(e) => setDeliveryChallanNo(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-mono font-bold focus:ring-2 focus:ring-amber-500"
+                    required
+                  />
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-800 mb-1">
+                    Customer Name <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. UMA Food / Tata Steel"
+                    value={customerNameInput}
+                    onChange={(e) => setCustomerNameInput(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-semibold focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-800 mb-1">
+                    Consignment Value (₹) <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    value={consignmentValueInput}
+                    onChange={(e) => setConsignmentValueInput(Number(e.target.value))}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-mono font-bold focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -458,11 +662,11 @@ export default function EWayBillPage() {
                   </label>
                   <input
                     type="number"
-                    min="1"
                     required
+                    min={1}
                     value={distanceKm}
                     onChange={(e) => setDistanceKm(e.target.value)}
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-mono font-bold focus:ring-2 focus:ring-sky-500"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-mono focus:ring-2 focus:ring-sky-500"
                   />
                 </div>
                 <div>
@@ -471,22 +675,23 @@ export default function EWayBillPage() {
                   </label>
                   <input
                     type="text"
-                    maxLength={6}
                     required
+                    maxLength={6}
                     value={destinationPincode}
                     onChange={(e) => setDestinationPincode(e.target.value)}
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-mono font-bold focus:ring-2 focus:ring-sky-500"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-900 font-mono focus:ring-2 focus:ring-sky-500"
                   />
                 </div>
               </div>
 
-              <div className="p-3 bg-sky-50 border border-sky-200 rounded-xl text-sky-900 text-[11px] space-y-1">
-                <div className="font-bold">E-Way Bill Validity Calculation:</div>
-                <div>Dispatched from: 382415 (Odhav GIDC, Ahmedabad) ➔ Distance: {distanceKm} KM</div>
-                <div className="text-slate-500">Validity: Valid for 2 Days under standard road transport rules.</div>
+              <div className="bg-sky-50 border border-sky-200 p-3 rounded-xl flex items-start gap-2 text-sky-800">
+                <ShieldCheck className="w-4 h-4 mt-0.5 text-sky-600 flex-shrink-0" />
+                <p className="text-[11px]">
+                  Under GST Rule 138, Part-A contains supplier &amp; recipient GSTINs and values. Part-B authenticates the conveyance vehicle. Validity is calculated automatically (1 day per 200 km).
+                </p>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
@@ -496,7 +701,7 @@ export default function EWayBillPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold shadow-xs active:scale-95 transition"
+                  className="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold shadow-xs active:scale-95 transition cursor-pointer"
                 >
                   Generate E-Way Bill
                 </button>
@@ -605,5 +810,20 @@ export default function EWayBillPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function EWayBillPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 text-center text-slate-500 font-semibold flex items-center justify-center gap-2">
+          <Loader2 className="w-5 h-5 text-sky-600 animate-spin" />
+          <span>Loading E-Way Bill System...</span>
+        </div>
+      }
+    >
+      <EWayBillPageContent />
+    </Suspense>
   );
 }

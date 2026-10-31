@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { SalesInvoice } from '../../../types/accounting';
 import { ERPListPageLayout, ERPColumn } from '../../../components/ui/ERPListPageLayout';
 import { printContent } from '@/lib/printUtils';
-import { Receipt, Search, Plus, Filter, CheckCircle2, Clock, Eye, Download, FileSpreadsheet, Building, Users, Printer, X, Coins, Sparkles } from 'lucide-react';
+import { Receipt, Search, Plus, Filter, CheckCircle2, Clock, Eye, Download, FileSpreadsheet, Building, Users, Printer, X, Coins, Sparkles, Truck } from 'lucide-react';
 
 function SalesInvoicesContent() {
   const router = useRouter();
@@ -334,6 +335,14 @@ function SalesInvoicesContent() {
             <Coins className="w-3 h-3 text-emerald-700" />
             Receipt
           </button>
+          <Link
+            href={`/accounting/e-waybill?invoiceNo=${encodeURIComponent(inv.invoiceNumber || inv.id)}&customerName=${encodeURIComponent(inv.customerName)}&value=${encodeURIComponent(inv.grandTotal || 0)}`}
+            className="px-2 py-1 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 text-[10px] font-bold rounded-lg transition shadow-xs flex items-center gap-1 cursor-pointer"
+            title="Generate GST E-Way Bill"
+          >
+            <Truck className="w-3 h-3 text-sky-700" />
+            E-Way Bill
+          </Link>
           <button
             type="button"
             onClick={() => setSelectedInvoiceForPrint(inv)}
@@ -668,6 +677,14 @@ function SalesInvoicesContent() {
                   <Printer className="w-4 h-4" />
                   <span>Print Tax Invoice</span>
                 </button>
+                <Link
+                  href={`/accounting/e-waybill?invoiceNo=${encodeURIComponent(selectedInvoiceForPrint.invoiceNumber || selectedInvoiceForPrint.id)}&customerName=${encodeURIComponent(selectedInvoiceForPrint.customerName)}&value=${encodeURIComponent(selectedInvoiceForPrint.grandTotal || 0)}`}
+                  className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+                  title="Generate GST E-Way Bill for this Tax Invoice"
+                >
+                  <Truck className="w-4 h-4" />
+                  <span>Generate E-Way Bill</span>
+                </Link>
                 <button
                   type="button"
                   onClick={() => setSelectedInvoiceForPrint(null)}

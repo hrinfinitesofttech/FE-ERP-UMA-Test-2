@@ -54,187 +54,59 @@ const CATEGORY_COLORS: Record<PackagingItemCategory, { bg: string; text: string;
   'Other Accessories': { bg: 'bg-stone-50', text: 'text-stone-800', border: 'border-stone-200' },
 };
 
-// Initial sample packaging slips
-const INITIAL_PACKAGING_SLIPS: PackagingSlipDoc[] = [
-  {
-    id: 'PKG-2026-001',
-    packingSlipNo: 'PKG-2026-001',
-    date: '2026-06-25',
-    projectId: 'PRJ-2026-0001',
-    projectNumber: 'PRJ-2026-0001',
-    projectName: '50KL Chemical Storage Tank',
-    jobId: 'JOB-2026-001',
-    jobNumber: 'UTF-26-101',
-    qcInspectionNumber: 'QC-2026-001 (F - QAS - 02)',
-    customerId: 'CUST-001',
-    customerName: 'Ananth Chem',
-    customerAddress: 'Plot 102/B, GIDC Chemical Zone, Jhagadia, Dist. Bharuch, Gujarat - 393110',
-    destinationCity: 'Jhagadia',
-    productName: 'SS304 Chemical Storage Tank 50KL',
-    packageType: 'Heavy Duty Wooden Crate & Hardware Box',
-    packageDimensions: '4800 x 2400 x 2600 mm',
-    totalPackages: 2,
-    totalGrossWeightKg: 1845,
-    totalNetWeightKg: 1680,
-    packedBy: 'Ramesh Patel (Packing Supervisor)',
-    verifiedBy: 'Hardik Vaghela (QC Lead)',
-    status: 'Ready for Dispatch',
-    deliveryChallanNo: '548',
-    remarks: 'Main tank bolted onto wooden skid. Loose nuts, bolts & gaskets packed in Box 2.',
-    boxes: [
-      {
-        id: 'BOX-1',
-        boxNumber: 'Package 1 of 2',
-        packageType: 'Heavy Wooden Skid / Crate',
-        dimensions: '4800 x 2400 x 2600 mm',
-        grossWeightKg: 1780,
-        netWeightKg: 1650,
-        handlingInstructions: 'Handle with Crane Only. Center of Gravity marked.',
-      },
-      {
-        id: 'BOX-2',
-        boxNumber: 'Package 2 of 2',
-        packageType: 'Reinforced Corrugated Box',
-        dimensions: '600 x 450 x 350 mm',
-        grossWeightKg: 65,
-        netWeightKg: 30,
-        handlingInstructions: 'Hardware & Accessories. Keep Dry.',
-      },
-    ],
-    items: [
-      {
-        id: 'ITEM-1',
-        srNo: 1,
-        category: 'Main Equipment',
-        particulars: 'SS304 Chemical Storage Tank 50KL (Main Body with Top/Bottom Dished Ends)',
-        quantity: 1,
-        unit: 'Nos',
-        boxNo: 'Package 1 of 2',
-        itemWeightKg: 1650,
-        notes: 'Hydro tested at 1.5 Bar (0 Leakage)',
-        isVerified: true,
-      },
-      {
-        id: 'ITEM-2',
-        srNo: 2,
-        category: 'Fasteners & Hardware',
-        particulars: 'M16 x 65mm Hex Head Bolts with Hex Nuts & Double Washers (SS304)',
-        quantity: 48,
-        unit: 'Nos',
-        boxNo: 'Package 2 of 2',
-        itemWeightKg: 14.5,
-        notes: 'For manhole and nozzle flange fitment',
-        isVerified: true,
-      },
-      {
-        id: 'ITEM-3',
-        srNo: 3,
-        category: 'Foundation Hardware',
-        particulars: 'M24 Foundation J-Bolts with Double Nuts (Length 450mm, MS Galvanized)',
-        quantity: 8,
-        unit: 'Nos',
-        boxNo: 'Package 2 of 2',
-        itemWeightKg: 18.0,
-        notes: 'Civil foundation anchor kit',
-        isVerified: true,
-      },
-      {
-        id: 'ITEM-4',
-        srNo: 4,
-        category: 'Gaskets & Seals',
-        particulars: '100 NB Neoprene Full-Face Flange Gaskets (3mm Thick, 150#)',
-        quantity: 6,
-        unit: 'Nos',
-        boxNo: 'Package 2 of 2',
-        itemWeightKg: 1.2,
-        notes: 'Acid resistant grade',
-        isVerified: true,
-      },
-      {
-        id: 'ITEM-5',
-        srNo: 5,
-        category: 'Documentation & Manuals',
-        particulars: 'Operation & Maintenance Manual, Hydro Test Certificate & Material TC',
-        quantity: 1,
-        unit: 'Sets',
-        boxNo: 'Package 2 of 2',
-        itemWeightKg: 0.8,
-        notes: 'Sealed in waterproof plastic pouch',
-        isVerified: true,
-      },
-    ],
-    createdAt: '2026-06-25T11:00:00Z',
-  },
-];
-
 function PackagingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { projectJobs, productionCompletions, customers } = useERP();
 
-  // Packaging list stored in state & synced to localStorage / API
-  const [packagingSlips, setPackagingSlips] = useState<PackagingSlipDoc[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('UMA_ERP_packagingSlips');
-        if (saved) return JSON.parse(saved);
-      } catch (_) {}
+  const [packagingSlips, setPackagingSlips] = useState<PackagingSlipDoc[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch from database API
+  const fetchPackingOrders = async () => {
+    setIsLoading(true);
+    try {
+      const res = await api.production.packingOrders.list();
+      const data = Array.isArray(res) ? res : (res as any)?.data || [];
+      const mapped: PackagingSlipDoc[] = data.map((po: any) => ({
+        id: po.id || po.packingNumber || po.packing_number,
+        packingSlipNo: po.packingSlipNo || po.packingNumber || po.packing_number || po.id,
+        date: po.date || po.packingDate || po.packing_date || new Date().toISOString().split('T')[0],
+        projectId: po.projectId || po.project_id || '',
+        projectNumber: po.projectNumber || po.project_number || '',
+        jobNumber: po.jobNumber || po.job_number || '',
+        qcInspectionNumber: po.qcInspectionNumber || po.qc_inspection_number || '',
+        customerId: po.customerId || po.customer_id || '',
+        customerName: po.customerName || po.customer_name || 'Customer',
+        customerAddress: po.customerAddress || po.customer_address || '',
+        destinationCity: po.destinationCity || po.destination_city || '',
+        productName: po.productName || po.product_name || 'Industrial Equipment',
+        specification: po.specification || '',
+        packageType: po.packageType || po.package_type || 'Wooden Crate',
+        packageDimensions: po.packageDimensions || po.package_dimensions || '',
+        totalPackages: (po.boxes && po.boxes.length) || 1,
+        totalGrossWeightKg: parseFloat(po.grossWeightKg || po.gross_weight_kg) || 0,
+        totalNetWeightKg: parseFloat(po.netWeightKg || po.net_weight_kg) || 0,
+        packedBy: po.packedBy || po.packed_by || 'Supervisor',
+        verifiedBy: po.verifiedBy || po.verified_by || '',
+        status: po.status || 'Packed',
+        deliveryChallanNo: po.deliveryChallanNo || po.delivery_challan_no || '',
+        remarks: po.remarks || '',
+        boxes: (po.boxes && po.boxes.length > 0) ? po.boxes : [{ id: 'BOX-1', boxNumber: 'Package 1 of 1', packageType: po.packageType || po.package_type || 'Wooden Crate', dimensions: '', grossWeightKg: 0, netWeightKg: 0, handlingInstructions: 'Handle with Care' }],
+        items: po.items || [],
+        createdAt: po.createdAt || po.created_at || new Date().toISOString(),
+      }));
+      setPackagingSlips(mapped);
+    } catch (err) {
+      console.error('Failed to load packaging orders:', err);
+      toast.error('Failed to load packaging slips from database.');
+    } finally {
+      setIsLoading(false);
     }
-    return INITIAL_PACKAGING_SLIPS;
-  });
+  };
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('UMA_ERP_packagingSlips', JSON.stringify(packagingSlips));
-      } catch (_) {}
-    }
-  }, [packagingSlips]);
-
-  // Load from backend packing orders if available
-  useEffect(() => {
-    if (api && api.get) {
-      api.get('/packing-orders/')
-        .then((res: any) => {
-          const data = (res as any)?.data || res;
-          if (Array.isArray(data) && data.length > 0) {
-            // Merge with local packaging slips
-            const mapped: PackagingSlipDoc[] = data.map((po: any) => ({
-              id: po.id || po.packing_number,
-              packingSlipNo: po.packing_number || po.id,
-              date: po.packing_date || new Date().toISOString().split('T')[0],
-              projectId: po.project_id,
-              projectNumber: po.project_number,
-              jobNumber: po.job_number,
-              qcInspectionNumber: po.qc_inspection_number,
-              customerId: po.customer_id,
-              customerName: po.customer_name || 'Customer',
-              productName: po.product_name || 'Industrial Equipment',
-              specification: po.specification,
-              packageType: po.package_type || 'Wooden Crate',
-              packageDimensions: po.package_dimensions,
-              totalPackages: (po.boxes && po.boxes.length) || 1,
-              totalGrossWeightKg: parseFloat(po.gross_weight_kg) || 0,
-              totalNetWeightKg: parseFloat(po.net_weight_kg) || 0,
-              packedBy: po.packed_by || 'Supervisor',
-              verifiedBy: po.verified_by,
-              status: po.status || 'Packed',
-              boxes: po.boxes || [{ id: 'B-1', boxNumber: 'Package 1', packageType: po.package_type || 'Crate' }],
-              items: po.items || [],
-              remarks: po.remarks,
-              createdAt: po.created_at,
-            }));
-            setPackagingSlips((prev) => {
-              const ids = new Set(mapped.map((m) => m.id));
-              const localUnsynced = prev.filter((p) => !ids.has(p.id));
-              return [...mapped, ...localUnsynced];
-            });
-          }
-        })
-        .catch(() => {
-          // Fallback to local storage
-        });
-    }
+    fetchPackingOrders();
   }, []);
 
   // UI state
@@ -653,7 +525,7 @@ function PackagingPageContent() {
   }, [formBoxes]);
 
   // Save Packaging Slip
-  const handleSavePackaging = () => {
+  const handleSavePackaging = async () => {
     if (!formCustomerName.trim()) {
       toast.error('Please enter or select a customer name.');
       return;
@@ -667,9 +539,11 @@ function PackagingPageContent() {
       return;
     }
 
-    const payload: PackagingSlipDoc = {
+    const payload = {
       id: editingSlipId || formSlipNo || generateNextSlipNo(),
+      packingNumber: formSlipNo || generateNextSlipNo(),
       packingSlipNo: formSlipNo || generateNextSlipNo(),
+      packingDate: formDate,
       date: formDate,
       projectId: formProjectId,
       projectNumber: formProjectNumber,
@@ -684,62 +558,52 @@ function PackagingPageContent() {
       packageDimensions: formBoxes[0]?.dimensions || '',
       totalPackages: formBoxes.length,
       totalGrossWeightKg: totalGrossWeight,
+      grossWeightKg: totalGrossWeight,
       totalNetWeightKg: totalNetWeight,
+      netWeightKg: totalNetWeight,
       packedBy: formPackedBy,
       verifiedBy: formVerifiedBy,
       status: formStatus,
       boxes: formBoxes,
       items: formItems,
       remarks: formRemarks,
-      createdAt: editingSlipId
-        ? packagingSlips.find((p) => p.id === editingSlipId)?.createdAt
-        : new Date().toISOString(),
     };
 
-    setPackagingSlips((prev) => {
-      const exists = prev.some((p) => p.id === payload.id);
-      if (exists) {
-        return prev.map((p) => (p.id === payload.id ? payload : p));
+    try {
+      if (editingSlipId) {
+        await api.production.packingOrders.update(editingSlipId, payload);
+        toast.success(`Packaging Slip ${payload.packingSlipNo} updated successfully!`);
+      } else {
+        await api.production.packingOrders.create(payload);
+        toast.success(`Packaging Slip ${payload.packingSlipNo} created successfully!`);
       }
-      return [payload, ...prev];
-    });
-
-    // Also sync to backend API if available
-    if (api && api.post) {
-      api.post('/packing-orders/', {
-        id: payload.id,
-        packing_number: payload.packingSlipNo,
-        packing_date: payload.date,
-        customer_id: payload.customerId,
-        customer_name: payload.customerName,
-        project_id: payload.projectId,
-        project_number: payload.projectNumber,
-        job_number: payload.jobNumber,
-        qc_inspection_number: payload.qcInspectionNumber,
-        product_name: payload.productName,
-        package_type: payload.packageType,
-        package_dimensions: payload.packageDimensions,
-        gross_weight_kg: payload.totalGrossWeightKg,
-        net_weight_kg: payload.totalNetWeightKg,
-        packed_by: payload.packedBy,
-        verified_by: payload.verifiedBy,
-        status: payload.status,
-        boxes: payload.boxes,
-        items: payload.items,
-        remarks: payload.remarks,
-      }).catch(() => {});
+      await fetchPackingOrders();
+      setShowModal(false);
+    } catch (err: any) {
+      console.error('Failed to save packaging slip:', err);
+      toast.error(err.message || 'Failed to save packaging slip to database.');
     }
-
-    setShowModal(false);
-    toast.success(editingSlipId ? 'Packaging Slip updated successfully!' : 'Packaging Slip created successfully!');
   };
 
   // Delete Packaging Slip
   const handleDeleteSlip = (id: string) => {
-    if (confirm('Are you sure you want to delete this Packaging Slip?')) {
-      setPackagingSlips((prev) => prev.filter((p) => p.id !== id));
-      toast.info('Packaging slip deleted.');
-    }
+    toast.confirm({
+      title: 'Delete Packaging Slip',
+      message: 'Are you sure you want to permanently delete this Packaging Slip from the database?',
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          await api.production.packingOrders.delete(id);
+          toast.success('Packaging slip deleted from database.');
+          setPackagingSlips((prev) => prev.filter((p) => p.id !== id && p.packingSlipNo !== id));
+        } catch (err: any) {
+          console.error('Failed to delete packaging slip:', err);
+          toast.error(err.message || 'Failed to delete packaging slip.');
+        }
+      },
+    });
   };
 
   // 1-Click Action: "Generate Delivery Challan"
@@ -944,7 +808,14 @@ function PackagingPageContent() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E5DCD3]">
-              {filteredSlips.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-12 text-[#8D7B70]">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-crm-brand-700 mb-2"></div>
+                    <p className="text-sm font-medium text-[#5D4E43]">Loading Packaging Slips from database...</p>
+                  </td>
+                </tr>
+              ) : filteredSlips.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-12 text-[#8D7B70]">
                     <Package className="w-10 h-10 mx-auto text-[#B5A496] mb-2 opacity-60" />
