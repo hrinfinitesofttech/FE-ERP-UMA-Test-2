@@ -744,3 +744,188 @@ export const crmTheme = {
 } as const;
 
 export type CrmTheme = typeof crmTheme;
+
+// =========================================================================
+// UMA ERP DESIGN STUDIO DEFINITIONS & FONT HARMONY RECOMMENDATION ENGINE
+// =========================================================================
+
+export interface FontOption {
+  id: string;
+  name: string;
+  category: string;
+  fontFamily: string;
+  description: string;
+}
+
+export const AVAILABLE_FONTS: FontOption[] = [
+  {
+    id: 'Outfit',
+    name: 'Outfit',
+    category: 'Modern Luxury',
+    fontFamily: "'Outfit', sans-serif",
+    description: 'Crisp geometric typography with bold executive prestige',
+  },
+  {
+    id: 'Plus Jakarta Sans',
+    name: 'Plus Jakarta Sans',
+    category: 'Corporate Geometric',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    description: 'Superior legibility for high-density tables and invoices',
+  },
+  {
+    id: 'Space Grotesk',
+    name: 'Space Grotesk',
+    category: 'Industrial Tech',
+    fontFamily: "'Space Grotesk', sans-serif",
+    description: 'Precision engineering aesthetic with distinct technical cuts',
+  },
+  {
+    id: 'DM Sans',
+    name: 'DM Sans',
+    category: 'Soft Contemporary',
+    fontFamily: "'DM Sans', sans-serif",
+    description: 'Modern, balanced and visually effortless for shop-floor work',
+  },
+  {
+    id: 'Inter',
+    name: 'Inter',
+    category: 'Clean Precision',
+    fontFamily: "'Inter', sans-serif",
+    description: 'The global benchmark for data-rich enterprise software UI',
+  },
+];
+
+export type CardRadiusOption = 'sharp' | 'rounded' | 'smooth' | 'pill';
+export type CardBorderWidthOption = '0' | '1' | '2' | '3';
+export type CardShadowOption = 'flat' | 'soft' | 'depth' | 'glow';
+export type CardSurfaceOption = 'solid' | 'subtle' | 'glass';
+export type InputStyleOption = 'box' | 'rounded' | 'pill' | 'underline';
+export type ButtonVariantOption = 'solid' | 'gradient' | 'soft' | 'glass';
+
+export interface DesignStudioConfig {
+  themeId: string;
+  fontFamily: string;
+  headingColor: string;
+  textColor: string;
+  cardRadius: CardRadiusOption;
+  cardBorderWidth: CardBorderWidthOption;
+  cardShadow: CardShadowOption;
+  cardSurface: CardSurfaceOption;
+  inputStyle: InputStyleOption;
+  buttonVariant: ButtonVariantOption;
+}
+
+export const DEFAULT_DESIGN_CONFIG: DesignStudioConfig = {
+  themeId: 'warmIndustrial',
+  fontFamily: 'Outfit',
+  headingColor: '',
+  textColor: '',
+  cardRadius: 'smooth',
+  cardBorderWidth: '1',
+  cardShadow: 'soft',
+  cardSurface: 'solid',
+  inputStyle: 'rounded',
+  buttonVariant: 'gradient',
+};
+
+/**
+ * Intelligent Theme-Font Recommendation Engine
+ * Analyzes the selected color theme and suggests the most harmonious
+ * font pairing, contrast colors, card radiuses, and shadow styles.
+ */
+export function getRecommendedDesignForTheme(themeId: string): DesignStudioConfig {
+  switch (themeId) {
+    case 'obsidianDark':
+      return {
+        themeId: 'obsidianDark',
+        fontFamily: 'Space Grotesk',
+        headingColor: '#F8FAFC',
+        textColor: '#CBD5E1',
+        cardRadius: 'smooth',
+        cardBorderWidth: '1',
+        cardShadow: 'glow',
+        cardSurface: 'solid',
+        inputStyle: 'rounded',
+        buttonVariant: 'gradient',
+      };
+    case 'royalPurple':
+      return {
+        themeId: 'royalPurple',
+        fontFamily: 'DM Sans',
+        headingColor: '#3B0764',
+        textColor: '#1E1B4B',
+        cardRadius: 'pill',
+        cardBorderWidth: '1',
+        cardShadow: 'soft',
+        cardSurface: 'glass',
+        inputStyle: 'pill',
+        buttonVariant: 'gradient',
+      };
+    case 'emeraldGreen':
+      return {
+        themeId: 'emeraldGreen',
+        fontFamily: 'Plus Jakarta Sans',
+        headingColor: '#064E3B',
+        textColor: '#0F172A',
+        cardRadius: 'rounded',
+        cardBorderWidth: '1',
+        cardShadow: 'soft',
+        cardSurface: 'solid',
+        inputStyle: 'rounded',
+        buttonVariant: 'solid',
+      };
+    case 'corporateBlue':
+      return {
+        themeId: 'corporateBlue',
+        fontFamily: 'Plus Jakarta Sans',
+        headingColor: '#0C4A6E',
+        textColor: '#0F172A',
+        cardRadius: 'rounded',
+        cardBorderWidth: '1',
+        cardShadow: 'depth',
+        cardSurface: 'solid',
+        inputStyle: 'rounded',
+        buttonVariant: 'solid',
+      };
+    case 'titaniumGraphite':
+      return {
+        themeId: 'titaniumGraphite',
+        fontFamily: 'Inter',
+        headingColor: '#0F172A',
+        textColor: '#334155',
+        cardRadius: 'sharp',
+        cardBorderWidth: '2',
+        cardShadow: 'flat',
+        cardSurface: 'solid',
+        inputStyle: 'box',
+        buttonVariant: 'solid',
+      };
+    case 'crimsonSteel':
+      return {
+        themeId: 'crimsonSteel',
+        fontFamily: 'Space Grotesk',
+        headingColor: '#881337',
+        textColor: '#1C1917',
+        cardRadius: 'sharp',
+        cardBorderWidth: '2',
+        cardShadow: 'depth',
+        cardSurface: 'solid',
+        inputStyle: 'box',
+        buttonVariant: 'gradient',
+      };
+    default:
+      return {
+        themeId: 'warmIndustrial',
+        fontFamily: 'Outfit',
+        headingColor: '#211B17',
+        textColor: '#211B17',
+        cardRadius: 'smooth',
+        cardBorderWidth: '1',
+        cardShadow: 'soft',
+        cardSurface: 'solid',
+        inputStyle: 'rounded',
+        buttonVariant: 'gradient',
+      };
+  }
+}
+

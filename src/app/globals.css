@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -953,6 +953,128 @@ body.erp-print-landscape {
   .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl, .shadow-xs, .shadow-2xs {
     box-shadow: none !important;
   }
+}
+
+/* ========================================================================= */
+/* UMA ERP GLOBAL THEME, TYPOGRAPHY, CARD & FORM DESIGN STUDIO CASCADE       */
+/* ========================================================================= */
+
+/* 1. Global Typography Cascading Engine */
+[data-font="Outfit"] *:not(code):not(pre):not(kbd):not([class*="lucide"]):not(.font-mono) {
+  font-family: 'Outfit', sans-serif !important;
+}
+[data-font="Plus Jakarta Sans"] *:not(code):not(pre):not(kbd):not([class*="lucide"]):not(.font-mono) {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+[data-font="Space Grotesk"] *:not(code):not(pre):not(kbd):not([class*="lucide"]):not(.font-mono) {
+  font-family: 'Space Grotesk', sans-serif !important;
+}
+[data-font="DM Sans"] *:not(code):not(pre):not(kbd):not([class*="lucide"]):not(.font-mono) {
+  font-family: 'DM Sans', sans-serif !important;
+}
+[data-font="Inter"] *:not(code):not(pre):not(kbd):not([class*="lucide"]):not(.font-mono) {
+  font-family: 'Inter', sans-serif !important;
+}
+
+/* Custom Heading & Text Colors */
+[data-has-custom-heading="true"] h1,
+[data-has-custom-heading="true"] h2,
+[data-has-custom-heading="true"] h3,
+[data-has-custom-heading="true"] h4 {
+  color: var(--erp-heading-color) !important;
+}
+
+[data-has-custom-text="true"] body,
+[data-has-custom-text="true"] .crm-app {
+  color: var(--erp-text-color) !important;
+}
+
+/* 2. Global Card Radius Cascading Engine */
+[data-card-radius="sharp"] .rounded-xl,
+[data-card-radius="sharp"] .rounded-2xl {
+  border-radius: 6px !important;
+}
+[data-card-radius="rounded"] .rounded-xl,
+[data-card-radius="rounded"] .rounded-2xl {
+  border-radius: 12px !important;
+}
+[data-card-radius="smooth"] .rounded-xl,
+[data-card-radius="smooth"] .rounded-2xl {
+  border-radius: 18px !important;
+}
+[data-card-radius="pill"] .rounded-xl,
+[data-card-radius="pill"] .rounded-2xl {
+  border-radius: 26px !important;
+}
+
+/* 3. Global Card Border Width Cascading Engine */
+[data-card-border="0"] .border:not(table *):not(button *):not([class*="border-b-"]):not([class*="border-t-"]):not([class*="border-l-"]):not([class*="border-r-"]) {
+  border-width: 0px !important;
+}
+[data-card-border="1"] .border:not(table *):not([class*="border-b-"]):not([class*="border-t-"]):not([class*="border-l-"]):not([class*="border-r-"]) {
+  border-width: 1px !important;
+}
+[data-card-border="2"] .border:not(table *):not([class*="border-b-"]):not([class*="border-t-"]):not([class*="border-l-"]):not([class*="border-r-"]) {
+  border-width: 2px !important;
+}
+[data-card-border="3"] .border:not(table *):not([class*="border-b-"]):not([class*="border-t-"]):not([class*="border-l-"]):not([class*="border-r-"]) {
+  border-width: 3px !important;
+}
+
+/* 4. Global Card Shadow Cascading Engine */
+[data-card-shadow="flat"] .shadow-xs,
+[data-card-shadow="flat"] .shadow-sm,
+[data-card-shadow="flat"] .shadow-md,
+[data-card-shadow="flat"] .shadow-lg,
+[data-card-shadow="flat"] .shadow-2xs {
+  box-shadow: none !important;
+}
+[data-card-shadow="soft"] .shadow-xs,
+[data-card-shadow="soft"] .shadow-sm {
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04) !important;
+}
+[data-card-shadow="depth"] .shadow-xs,
+[data-card-shadow="depth"] .shadow-sm {
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.12), 0 4px 10px -2px rgba(0, 0, 0, 0.06) !important;
+}
+[data-card-shadow="glow"] .shadow-xs,
+[data-card-shadow="glow"] .shadow-sm {
+  box-shadow: 0 0 18px -1px var(--color-primary-light, rgba(169, 107, 52, 0.35)) !important;
+}
+
+/* 5. Global Form Input Styling Engine */
+[data-input-style="pill"] input:not([type="checkbox"]):not([type="radio"]),
+[data-input-style="pill"] select {
+  border-radius: 9999px !important;
+  padding-left: 1.15rem !important;
+  padding-right: 1.15rem !important;
+}
+[data-input-style="box"] input:not([type="checkbox"]):not([type="radio"]),
+[data-input-style="box"] select {
+  border-radius: 6px !important;
+}
+[data-input-style="rounded"] input:not([type="checkbox"]):not([type="radio"]),
+[data-input-style="rounded"] select {
+  border-radius: 12px !important;
+}
+[data-input-style="underline"] input:not([type="checkbox"]):not([type="radio"]),
+[data-input-style="underline"] select {
+  border-radius: 0px !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-bottom-width: 2px !important;
+  background-color: transparent !important;
+}
+
+/* 6. Global Card Surface Texture Engine */
+[data-card-surface="glass"] .bg-white:not(button):not(input):not(select),
+[data-card-surface="glass"] .bg-\[\#ffffff\] {
+  backdrop-filter: blur(12px) !important;
+  background-color: rgba(255, 255, 255, 0.88) !important;
+}
+[data-card-surface="subtle"] .bg-white:not(button):not(input):not(select) {
+  background-color: var(--crm-surface-subtle, #FCFAF7) !important;
 }
 
 
