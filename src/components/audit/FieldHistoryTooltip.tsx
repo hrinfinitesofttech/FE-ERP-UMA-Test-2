@@ -39,7 +39,7 @@ export function FieldHistoryTooltip({
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 left-0 mt-1 w-72 bg-white dark:bg-white rounded-xl shadow-xl border border-slate-200 dark:border-[#EBE3DB] p-3 text-xs animate-in fade-in zoom-in-95">
+        <div className="absolute z-50 left-0 mt-1 w-72 bg-white dark:bg-white rounded-xl shadow-xl border border-slate-200 dark:border-[color:var(--crm-border-default)] p-3 text-xs animate-in fade-in zoom-in-95">
           <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
             <div className="flex items-center gap-1.5 font-bold text-slate-800">
               <History className="w-3.5 h-3.5 text-crm-brand-700" />

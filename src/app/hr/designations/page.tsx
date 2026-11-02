@@ -339,15 +339,15 @@ export default function DesignationsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-white text-[#211B17]">
+    <div className="p-6 space-y-6 bg-white text-[color:var(--crm-text-primary)]">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2">
             <Briefcase className="w-7 h-7 text-indigo-600" />
             Designation Master
           </h1>
-          <p className="text-sm text-[#70665F] mt-1">
+          <p className="text-sm text-[color:var(--crm-text-secondary)] mt-1">
             Manufacturing Role Cadres, Hierarchy Levels, Responsibilities & Job Descriptions
           </p>
         </div>
@@ -384,18 +384,18 @@ export default function DesignationsPage() {
       )}
 
       {/* Filter Bar */}
-      <div className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl p-4 flex flex-col sm:flex-row gap-4 justify-between items-center shadow-xs">
+      <div className="bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl p-4 flex flex-col sm:flex-row gap-4 justify-between items-center shadow-xs">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-[#70665F]" />
+          <Search className="w-4 h-4 absolute left-3 top-3 text-[color:var(--crm-text-secondary)]" />
           <input
             type="text"
             placeholder="Search designations, code, department..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-white border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-indigo-500 font-medium"
+            className="w-full pl-9 pr-4 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-indigo-500 font-medium"
           />
         </div>
-        <div className="text-xs text-[#70665F] font-mono">
+        <div className="text-xs text-[color:var(--crm-text-secondary)] font-mono">
           Total Designations Defined: <span className="text-indigo-600 font-bold">{designations.length}</span>
         </div>
       </div>
@@ -403,18 +403,18 @@ export default function DesignationsPage() {
       {/* Designation Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredDesignations.length === 0 ? (
-          <div className="col-span-full p-12 text-center bg-white rounded-2xl border border-[#EBE3DB] shadow-xs">
+          <div className="col-span-full p-12 text-center bg-white rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
             <div className="max-w-md mx-auto space-y-2">
               <Briefcase className="w-10 h-10 text-indigo-400 mx-auto" />
-              <h4 className="text-base font-bold text-[#211B17]">No designations found</h4>
-              <p className="text-xs text-[#70665F]">Try adjusting your search query or add a new role.</p>
+              <h4 className="text-base font-bold text-[color:var(--crm-text-primary)]">No designations found</h4>
+              <p className="text-xs text-[color:var(--crm-text-secondary)]">Try adjusting your search query or add a new role.</p>
             </div>
           </div>
         ) : (
           filteredDesignations.map((desg) => (
             <div
               key={desg.id}
-              className="bg-white border border-[#EBE3DB] rounded-2xl p-5 space-y-4 shadow-md hover:border-indigo-400 transition flex flex-col justify-between"
+              className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-5 space-y-4 shadow-md hover:border-indigo-400 transition flex flex-col justify-between"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -427,26 +427,26 @@ export default function DesignationsPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-base font-bold text-[#211B17]">{desg.designationName}</h3>
-                  <div className="flex items-center gap-1.5 text-xs text-[#70665F] mt-1">
-                    <Building className="w-3.5 h-3.5 text-[#70665F]" />
-                    <span>Department: <strong className="text-[#211B17]">{desg.department}</strong></span>
+                  <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">{desg.designationName}</h3>
+                  <div className="flex items-center gap-1.5 text-xs text-[color:var(--crm-text-secondary)] mt-1">
+                    <Building className="w-3.5 h-3.5 text-[color:var(--crm-text-secondary)]" />
+                    <span>Department: <strong className="text-[color:var(--crm-text-primary)]">{desg.department}</strong></span>
                   </div>
                 </div>
 
-                <div className="text-xs text-[#544B45] bg-[#FAF7F2] p-3 rounded-xl border border-[#EBE3DB] space-y-1">
-                  <div className="font-semibold text-[#70665F]">Reporting Head:</div>
-                  <div className="text-[#211B17] font-medium">{desg.reportingDesignation || 'General Manager'}</div>
-                  <div className="font-semibold text-[#70665F] pt-1">Role Summary:</div>
-                  <div className="text-[#544B45] line-clamp-2">{desg.jobDescription || 'Standard manufacturing role duties'}</div>
+                <div className="text-xs text-[color:var(--crm-text-secondary)] bg-[color:var(--crm-bg-app)] p-3 rounded-xl border border-[color:var(--crm-border-default)] space-y-1">
+                  <div className="font-semibold text-[color:var(--crm-text-secondary)]">Reporting Head:</div>
+                  <div className="text-[color:var(--crm-text-primary)] font-medium">{desg.reportingDesignation || 'General Manager'}</div>
+                  <div className="font-semibold text-[color:var(--crm-text-secondary)] pt-1">Role Summary:</div>
+                  <div className="text-[color:var(--crm-text-secondary)] line-clamp-2">{desg.jobDescription || 'Standard manufacturing role duties'}</div>
                 </div>
 
                 {desg.responsibilities && desg.responsibilities.length > 0 && (
                   <div className="space-y-1 text-xs">
-                    <div className="font-bold text-[#70665F]">Key Responsibilities:</div>
+                    <div className="font-bold text-[color:var(--crm-text-secondary)]">Key Responsibilities:</div>
                     <div className="flex flex-wrap gap-1">
                       {desg.responsibilities.map((r, i) => (
-                        <span key={i} className="px-2 py-0.5 bg-white border border-[#EBE3DB] text-[#544B45] rounded-md text-[11px]">
+                        <span key={i} className="px-2 py-0.5 bg-white border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] rounded-md text-[11px]">
                           • {r}
                         </span>
                       ))}
@@ -455,7 +455,7 @@ export default function DesignationsPage() {
                 )}
               </div>
 
-              <div className="pt-3 border-t border-[#EBE3DB] flex items-center justify-between text-xs">
+              <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex items-center justify-between text-xs">
                 <span className="text-emerald-600 font-semibold flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" /> {desg.status || 'Active'} Status
                 </span>
@@ -479,16 +479,16 @@ export default function DesignationsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto"
           >
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <h2 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                 <Briefcase className="w-5 h-5 text-indigo-600" /> Define New Designation
               </h2>
               <button
                 type="button"
                 onClick={closeAddModalWithConfirm}
-                className="text-[#70665F] hover:text-[#211B17] cursor-pointer"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -496,7 +496,7 @@ export default function DesignationsPage() {
 
             <form onSubmit={handleSubmit} noValidate className="space-y-4 text-xs">
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Designation Code</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Designation Code</label>
                 <input
                   type="text"
                   placeholder="e.g. DESG-CNC-SUP"
@@ -505,12 +505,12 @@ export default function DesignationsPage() {
                     setFormData({ ...formData, designationCode: e.target.value.toUpperCase() });
                     if (addErrors.designationCode) setAddErrors((prev) => ({ ...prev, designationCode: '' }));
                   }}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] font-mono focus:outline-none focus:border-indigo-600"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] font-mono focus:outline-none focus:border-indigo-600"
                 />
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Designation Title *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Designation Title *</label>
                 <input
                   type="text"
                   required
@@ -520,8 +520,8 @@ export default function DesignationsPage() {
                     setFormData({ ...formData, designationName: e.target.value });
                     if (addErrors.designationName) setAddErrors((prev) => ({ ...prev, designationName: '' }));
                   }}
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border rounded-xl text-[#211B17] font-semibold focus:outline-none ${
-                    addErrors.designationName ? 'border-rose-500 bg-rose-50/20' : 'border-[#EBE3DB] focus:border-indigo-600'
+                  className={`w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border rounded-xl text-[color:var(--crm-text-primary)] font-semibold focus:outline-none ${
+                    addErrors.designationName ? 'border-rose-500 bg-rose-50/20' : 'border-[color:var(--crm-border-default)] focus:border-indigo-600'
                   }`}
                 />
                 {addErrors.designationName && (
@@ -533,15 +533,15 @@ export default function DesignationsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Department *</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Department *</label>
                   <select
                     value={formData.department}
                     onChange={(e) => {
                       setFormData({ ...formData, department: e.target.value });
                       if (addErrors.department) setAddErrors((prev) => ({ ...prev, department: '' }));
                     }}
-                    className={`w-full px-3 py-2 bg-[#FAF7F2] border rounded-xl text-[#211B17] font-medium focus:outline-none ${
-                      addErrors.department ? 'border-rose-500' : 'border-[#EBE3DB] focus:border-indigo-600'
+                    className={`w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border rounded-xl text-[color:var(--crm-text-primary)] font-medium focus:outline-none ${
+                      addErrors.department ? 'border-rose-500' : 'border-[color:var(--crm-border-default)] focus:border-indigo-600'
                     }`}
                   >
                     {departments.map((d) => (
@@ -557,7 +557,7 @@ export default function DesignationsPage() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Cadre Level (1-7) *</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Cadre Level (1-7) *</label>
                   <input
                     type="number"
                     min="1"
@@ -567,8 +567,8 @@ export default function DesignationsPage() {
                       setFormData({ ...formData, level: Number(e.target.value) });
                       if (addErrors.level) setAddErrors((prev) => ({ ...prev, level: '' }));
                     }}
-                    className={`w-full px-3 py-2 bg-[#FAF7F2] border rounded-xl text-[#211B17] focus:outline-none ${
-                      addErrors.level ? 'border-rose-500' : 'border-[#EBE3DB] focus:border-indigo-600'
+                    className={`w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none ${
+                      addErrors.level ? 'border-rose-500' : 'border-[color:var(--crm-border-default)] focus:border-indigo-600'
                     }`}
                   />
                   {addErrors.level && (
@@ -580,7 +580,7 @@ export default function DesignationsPage() {
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Reporting Designation *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Reporting Designation *</label>
                 <input
                   type="text"
                   required
@@ -590,8 +590,8 @@ export default function DesignationsPage() {
                     setFormData({ ...formData, reportingDesignation: e.target.value });
                     if (addErrors.reportingDesignation) setAddErrors((prev) => ({ ...prev, reportingDesignation: '' }));
                   }}
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border rounded-xl text-[#211B17] focus:outline-none ${
-                    addErrors.reportingDesignation ? 'border-rose-500' : 'border-[#EBE3DB] focus:border-indigo-600'
+                  className={`w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none ${
+                    addErrors.reportingDesignation ? 'border-rose-500' : 'border-[color:var(--crm-border-default)] focus:border-indigo-600'
                   }`}
                 />
                 {addErrors.reportingDesignation && (
@@ -602,7 +602,7 @@ export default function DesignationsPage() {
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Job Description *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Job Description *</label>
                 <textarea
                   rows={2}
                   required
@@ -612,8 +612,8 @@ export default function DesignationsPage() {
                     setFormData({ ...formData, jobDescription: e.target.value });
                     if (addErrors.jobDescription) setAddErrors((prev) => ({ ...prev, jobDescription: '' }));
                   }}
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border rounded-xl text-[#211B17] focus:outline-none ${
-                    addErrors.jobDescription ? 'border-rose-500' : 'border-[#EBE3DB] focus:border-indigo-600'
+                  className={`w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none ${
+                    addErrors.jobDescription ? 'border-rose-500' : 'border-[color:var(--crm-border-default)] focus:border-indigo-600'
                   }`}
                 />
                 {addErrors.jobDescription && (
@@ -624,7 +624,7 @@ export default function DesignationsPage() {
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Key Responsibilities (Comma separated) *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Key Responsibilities (Comma separated) *</label>
                 <input
                   type="text"
                   required
@@ -634,8 +634,8 @@ export default function DesignationsPage() {
                     setFormData({ ...formData, responsibilities: e.target.value });
                     if (addErrors.responsibilities) setAddErrors((prev) => ({ ...prev, responsibilities: '' }));
                   }}
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border rounded-xl text-[#211B17] focus:outline-none ${
-                    addErrors.responsibilities ? 'border-rose-500' : 'border-[#EBE3DB] focus:border-indigo-600'
+                  className={`w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none ${
+                    addErrors.responsibilities ? 'border-rose-500' : 'border-[color:var(--crm-border-default)] focus:border-indigo-600'
                   }`}
                 />
                 {addErrors.responsibilities && (
@@ -645,11 +645,11 @@ export default function DesignationsPage() {
                 )}
               </div>
 
-              <div className="pt-3 border-t border-[#EBE3DB] flex justify-end gap-2">
+              <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={closeAddModalWithConfirm}
-                  className="px-4 py-2 bg-[#FAF7F2] hover:bg-slate-200 text-[#544B45] font-semibold rounded-xl cursor-pointer"
+                  className="px-4 py-2 bg-[color:var(--crm-bg-app)] hover:bg-slate-200 text-[color:var(--crm-text-secondary)] font-semibold rounded-xl cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -675,17 +675,17 @@ export default function DesignationsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto"
           >
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <h2 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                 <Edit2 className="w-5 h-5 text-indigo-600" />
                 Edit Designation: {editingDesignation.designationName}
               </h2>
               <button
                 type="button"
                 onClick={closeEditModalWithConfirm}
-                className="text-[#70665F] hover:text-[#211B17] cursor-pointer"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -693,7 +693,7 @@ export default function DesignationsPage() {
 
             <form onSubmit={handleUpdate} noValidate className="space-y-4 text-xs">
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Designation Code</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Designation Code</label>
                 <input
                   type="text"
                   value={editingDesignation.designationCode || ''}
@@ -701,12 +701,12 @@ export default function DesignationsPage() {
                     setEditingDesignation({ ...editingDesignation, designationCode: e.target.value.toUpperCase() });
                     if (editErrors.designationCode) setEditErrors((prev) => ({ ...prev, designationCode: '' }));
                   }}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] font-mono focus:outline-none focus:border-indigo-600"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] font-mono focus:outline-none focus:border-indigo-600"
                 />
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Designation Title *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Designation Title *</label>
                 <input
                   type="text"
                   required
@@ -715,8 +715,8 @@ export default function DesignationsPage() {
                     setEditingDesignation({ ...editingDesignation, designationName: e.target.value });
                     if (editErrors.designationName) setEditErrors((prev) => ({ ...prev, designationName: '' }));
                   }}
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border rounded-xl text-[#211B17] font-semibold focus:outline-none ${
-                    editErrors.designationName ? 'border-rose-500 bg-rose-50/20' : 'border-[#EBE3DB] focus:border-indigo-600'
+                  className={`w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border rounded-xl text-[color:var(--crm-text-primary)] font-semibold focus:outline-none ${
+                    editErrors.designationName ? 'border-rose-500 bg-rose-50/20' : 'border-[color:var(--crm-border-default)] focus:border-indigo-600'
                   }`}
                 />
                 {editErrors.designationName && (
@@ -728,15 +728,15 @@ export default function DesignationsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Department *</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Department *</label>
                   <select
                     value={editingDesignation.department || ''}
                     onChange={(e) => {
                       setEditingDesignation({ ...editingDesignation, department: e.target.value });
                       if (editErrors.department) setEditErrors((prev) => ({ ...prev, department: '' }));
                     }}
-                    className={`w-full px-3 py-2 bg-[#FAF7F2] border rounded-xl text-[#211B17] font-medium focus:outline-none ${
-                      editErrors.department ? 'border-rose-500' : 'border-[#EBE3DB] focus:border-indigo-600'
+                    className={`w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border rounded-xl text-[color:var(--crm-text-primary)] font-medium focus:outline-none ${
+                      editErrors.department ? 'border-rose-500' : 'border-[color:var(--crm-border-default)] focus:border-indigo-600'
                     }`}
                   >
                     {departments.map((d) => (
@@ -752,7 +752,7 @@ export default function DesignationsPage() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Cadre Level (1-7) *</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Cadre Level (1-7) *</label>
                   <input
                     type="number"
                     min="1"
@@ -762,8 +762,8 @@ export default function DesignationsPage() {
                       setEditingDesignation({ ...editingDesignation, level: Number(e.target.value) });
                       if (editErrors.level) setEditErrors((prev) => ({ ...prev, level: '' }));
                     }}
-                    className={`w-full px-3 py-2 bg-[#FAF7F2] border rounded-xl text-[#211B17] focus:outline-none ${
-                      editErrors.level ? 'border-rose-500' : 'border-[#EBE3DB] focus:border-indigo-600'
+                    className={`w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none ${
+                      editErrors.level ? 'border-rose-500' : 'border-[color:var(--crm-border-default)] focus:border-indigo-600'
                     }`}
                   />
                   {editErrors.level && (
@@ -775,7 +775,7 @@ export default function DesignationsPage() {
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Reporting Designation *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Reporting Designation *</label>
                 <input
                   type="text"
                   required
@@ -784,8 +784,8 @@ export default function DesignationsPage() {
                     setEditingDesignation({ ...editingDesignation, reportingDesignation: e.target.value });
                     if (editErrors.reportingDesignation) setEditErrors((prev) => ({ ...prev, reportingDesignation: '' }));
                   }}
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border rounded-xl text-[#211B17] focus:outline-none ${
-                    editErrors.reportingDesignation ? 'border-rose-500' : 'border-[#EBE3DB] focus:border-indigo-600'
+                  className={`w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none ${
+                    editErrors.reportingDesignation ? 'border-rose-500' : 'border-[color:var(--crm-border-default)] focus:border-indigo-600'
                   }`}
                 />
                 {editErrors.reportingDesignation && (
@@ -796,7 +796,7 @@ export default function DesignationsPage() {
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Job Description *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Job Description *</label>
                 <textarea
                   rows={2}
                   required
@@ -805,8 +805,8 @@ export default function DesignationsPage() {
                     setEditingDesignation({ ...editingDesignation, jobDescription: e.target.value });
                     if (editErrors.jobDescription) setEditErrors((prev) => ({ ...prev, jobDescription: '' }));
                   }}
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border rounded-xl text-[#211B17] focus:outline-none ${
-                    editErrors.jobDescription ? 'border-rose-500' : 'border-[#EBE3DB] focus:border-indigo-600'
+                  className={`w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none ${
+                    editErrors.jobDescription ? 'border-rose-500' : 'border-[color:var(--crm-border-default)] focus:border-indigo-600'
                   }`}
                 />
                 {editErrors.jobDescription && (
@@ -817,7 +817,7 @@ export default function DesignationsPage() {
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Key Responsibilities (Comma separated) *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Key Responsibilities (Comma separated) *</label>
                 <input
                   type="text"
                   required
@@ -833,8 +833,8 @@ export default function DesignationsPage() {
                     } as any);
                     if (editErrors.responsibilities) setEditErrors((prev) => ({ ...prev, responsibilities: '' }));
                   }}
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border rounded-xl text-[#211B17] focus:outline-none ${
-                    editErrors.responsibilities ? 'border-rose-500' : 'border-[#EBE3DB] focus:border-indigo-600'
+                  className={`w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none ${
+                    editErrors.responsibilities ? 'border-rose-500' : 'border-[color:var(--crm-border-default)] focus:border-indigo-600'
                   }`}
                 />
                 {editErrors.responsibilities && (
@@ -846,16 +846,16 @@ export default function DesignationsPage() {
 
               {!isEditFormDirty && (
                 <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] flex items-center gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <AlertCircle className="w-3.5 h-3.5 text-crm-brand-600 shrink-0" />
                   <span>No changes made yet. Change any field to enable update.</span>
                 </div>
               )}
 
-              <div className="pt-3 border-t border-[#EBE3DB] flex justify-end gap-2">
+              <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={closeEditModalWithConfirm}
-                  className="px-4 py-2 bg-[#FAF7F2] hover:bg-slate-200 text-[#544B45] font-semibold rounded-xl cursor-pointer"
+                  className="px-4 py-2 bg-[color:var(--crm-bg-app)] hover:bg-slate-200 text-[color:var(--crm-text-secondary)] font-semibold rounded-xl cursor-pointer"
                 >
                   Cancel
                 </button>

@@ -30,7 +30,7 @@ export default function ScrapPage() {
       onCodeClick: (s: ScrapEntry) => toast.info(`Scrap Entry #${s.scrapNumber}`, `Reason: ${s.reason || 'N/A'} • Created By: ${s.createdBy || 'N/A'}`),
       cell: (s: ScrapEntry) => (
         <div>
-          <div className="font-semibold text-[#7C3AED] hover:underline cursor-pointer">{s.scrapNumber}</div>
+          <div className="font-semibold text-[color:var(--crm-brand-600)] hover:underline cursor-pointer">{s.scrapNumber}</div>
           <div className="text-[11px] text-gray-400">{s.entryDate}</div>
         </div>
       ),
@@ -169,16 +169,16 @@ export default function ScrapPage() {
       {/* Add Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
-                <Trash2 className="w-5 h-5 text-yellow-400" />
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <h2 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
+                <Trash2 className="w-5 h-5 text-crm-brand-600" />
                 Add Scrap & Rejection Record
               </h2>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] transition"
+                className="p-1 rounded-lg text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-bg-app)] transition"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -187,11 +187,11 @@ export default function ScrapPage() {
             <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] mb-1">Select Item *</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1">Select Item *</label>
                   <select
                     value={itemId}
                     onChange={(e) => setItemId(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-yellow-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-yellow-500"
                   >
                     {itemMasters.map((i) => (
                       <option key={i.id} value={i.id}>
@@ -201,11 +201,11 @@ export default function ScrapPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[#70665F] mb-1">Target Job Number</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1">Target Job Number</label>
                   <select
                     value={jobId}
                     onChange={(e) => setJobId(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-yellow-500 font-mono"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-yellow-500 font-mono"
                   >
                     {projectJobs.map((j) => (
                       <option key={j.id} value={j.jobNumber}>
@@ -218,11 +218,11 @@ export default function ScrapPage() {
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[#70665F] mb-1">Scrap Source</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1">Scrap Source</label>
                   <select
                     value={source}
                     onChange={(e) => setSource(e.target.value as any)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-yellow-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-yellow-500"
                   >
                     <option value="Production Scrap">Production Scrap</option>
                     <option value="Purchase Rejection">Purchase Rejection</option>
@@ -231,46 +231,46 @@ export default function ScrapPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[#70665F] mb-1">Quantity ({selectedItem?.uom})</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1">Quantity ({selectedItem?.uom})</label>
                   <input
                     type="number"
                     value={qty}
                     onChange={(e) => setQty(Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-yellow-400 font-bold focus:outline-none focus:border-yellow-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-yellow-400 font-bold focus:outline-none focus:border-yellow-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#70665F] mb-1">Est. Scrap Value (₹)</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1">Est. Scrap Value (₹)</label>
                   <input
                     type="number"
                     value={val}
                     onChange={(e) => setVal(Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-emerald-400 font-bold focus:outline-none focus:border-yellow-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-emerald-400 font-bold focus:outline-none focus:border-yellow-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[#70665F] mb-1">Scrap Reason & Offcut Description</label>
+                <label className="block text-[color:var(--crm-text-secondary)] mb-1">Scrap Reason & Offcut Description</label>
                 <textarea
                   rows={2}
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-yellow-500"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-yellow-500"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] hover:bg-[#FAF7F2] text-xs font-semibold"
+                  className="px-4 py-2 rounded-xl bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] text-xs font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-yellow-600 text-[#211B17] hover:bg-yellow-500 text-xs font-semibold shadow-lg shadow-yellow-600/30"
+                  className="px-4 py-2 rounded-xl bg-yellow-600 text-[color:var(--crm-text-primary)] hover:bg-yellow-500 text-xs font-semibold shadow-lg shadow-yellow-600/30"
                 >
                   Confirm Scrap Entry
                 </button>

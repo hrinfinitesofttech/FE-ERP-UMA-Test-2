@@ -325,11 +325,11 @@ function ExhibitionsContent() {
       onCodeClick: (expo) => openViewModal(expo),
       cell: (expo) => (
         <div>
-          <span className="font-bold text-slate-900 block hover:text-[#7C3AED] cursor-pointer" onClick={() => openViewModal(expo)}>
+          <span className="font-bold text-slate-900 block hover:text-[color:var(--crm-brand-600)] cursor-pointer" onClick={() => openViewModal(expo)}>
             {expo.expoName}
           </span>
           <span className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-            <MapPin className="w-3 h-3 text-[#7C3AED]" />
+            <MapPin className="w-3 h-3 text-[color:var(--crm-brand-600)]" />
             {expo.location} • Stall: {expo.stallNumber || 'TBD'}
           </span>
         </div>
@@ -399,7 +399,7 @@ function ExhibitionsContent() {
           <button
             onClick={() => openViewModal(expo)}
             title="View Details & Linked Leads"
-            className="p-1.5 text-slate-500 hover:text-[#7C3AED] hover:bg-slate-100 rounded-lg transition"
+            className="p-1.5 text-slate-500 hover:text-[color:var(--crm-brand-600)] hover:bg-slate-100 rounded-lg transition"
           >
             <Eye className="w-4 h-4" />
           </button>
@@ -427,7 +427,7 @@ function ExhibitionsContent() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-purple-50 text-[#7C3AED] border border-purple-200">
+          <div className="p-2.5 rounded-xl bg-purple-50 text-[color:var(--crm-brand-600)] border border-purple-200">
             <Building2 className="w-5 h-5" />
           </div>
           <div>
@@ -510,7 +510,7 @@ function ExhibitionsContent() {
                   <Edit2 className="w-4 h-4 text-blue-600" />
                   Edit Expo & Update ROI Metrics
                 </h3>
-                <p className="text-[11px] text-[#70665F]">ID: {selectedExpo.id}</p>
+                <p className="text-[11px] text-[color:var(--crm-text-secondary)]">ID: {selectedExpo.id}</p>
               </div>
               <button
                 type="button"
@@ -588,9 +588,9 @@ function ExhibitionsContent() {
               </div>
 
               {/* ROI & Conversion Metrics Section */}
-              <div className="bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB] space-y-3">
+              <div className="bg-[color:var(--crm-bg-app)] p-4 rounded-xl border border-[color:var(--crm-border-default)] space-y-3">
                 <h4 className="font-bold text-slate-900 flex items-center gap-1.5 text-xs">
-                  <TrendingUp className="w-4 h-4 text-[#5C3A21]" />
+                  <TrendingUp className="w-4 h-4 text-[#31394C]" />
                   Trade Show ROI & Funnel Conversions
                 </h4>
 
@@ -684,7 +684,7 @@ function ExhibitionsContent() {
           <div className="bg-white border rounded-2xl shadow-2xl w-full max-w-3xl sm:max-w-4xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
-                <span className="px-2 py-0.5 bg-[#FAF7F2] text-[#5C3A21] border border-[#EBE3DB] rounded-md font-mono text-[10px] font-bold uppercase">
+                <span className="px-2 py-0.5 bg-[color:var(--crm-bg-app)] text-[#31394C] border border-[color:var(--crm-border-default)] rounded-md font-mono text-[10px] font-bold uppercase">
                   {selectedExpo.id}
                 </span>
                 <h3 className="text-base font-bold text-slate-900 mt-1">
@@ -703,21 +703,21 @@ function ExhibitionsContent() {
             <div className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl">
                 <div>
-                  <span className="text-[#70665F] block text-[11px]">Venue & Location</span>
+                  <span className="text-[color:var(--crm-text-secondary)] block text-[11px]">Venue & Location</span>
                   <span className="font-semibold text-slate-900">{selectedExpo.location}</span>
                 </div>
                 <div>
-                  <span className="text-[#70665F] block text-[11px]">Stall / Booth</span>
+                  <span className="text-[color:var(--crm-text-secondary)] block text-[11px]">Stall / Booth</span>
                   <span className="font-mono font-bold text-slate-900">{selectedExpo.stallNumber || 'N/A'}</span>
                 </div>
                 <div>
-                  <span className="text-[#70665F] block text-[11px]">Dates</span>
+                  <span className="text-[color:var(--crm-text-secondary)] block text-[11px]">Dates</span>
                   <span className="font-mono text-slate-900">
                     {formatDate(selectedExpo.startDate)} to {formatDate(selectedExpo.endDate)}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[#70665F] block text-[11px]">Budget</span>
+                  <span className="text-[color:var(--crm-text-secondary)] block text-[11px]">Budget</span>
                   <span className="font-mono font-bold text-slate-900">{formatCurrency(selectedExpo.budget)}</span>
                 </div>
               </div>
@@ -744,21 +744,21 @@ function ExhibitionsContent() {
 
               {selectedExpo.productsDisplayed && (
                 <div>
-                  <span className="text-[#70665F] block text-[11px]">Products Displayed</span>
+                  <span className="text-[color:var(--crm-text-secondary)] block text-[11px]">Products Displayed</span>
                   <span className="text-slate-800 font-medium">{selectedExpo.productsDisplayed}</span>
                 </div>
               )}
 
               {selectedExpo.contactPerson && (
                 <div>
-                  <span className="text-[#70665F] block text-[11px]">Key Contact</span>
+                  <span className="text-[color:var(--crm-text-secondary)] block text-[11px]">Key Contact</span>
                   <span className="text-slate-800 font-medium">{selectedExpo.contactPerson}</span>
                 </div>
               )}
 
               {selectedExpo.notes && (
                 <div>
-                  <span className="text-[#70665F] block text-[11px]">Notes</span>
+                  <span className="text-[color:var(--crm-text-secondary)] block text-[11px]">Notes</span>
                   <p className="text-slate-700 bg-slate-50 p-2.5 rounded-lg">{selectedExpo.notes}</p>
                 </div>
               )}
@@ -781,7 +781,7 @@ function ExhibitionsContent() {
                     </button>
                     <Link
                       href={`/crm/leads/new?source=exhibition&expoId=${selectedExpo.id}&expoName=${encodeURIComponent(selectedExpo.expoName)}`}
-                      className="text-[11px] text-[#70665F] hover:text-[#211B17] font-semibold underline ml-1"
+                      className="text-[11px] text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] font-semibold underline ml-1"
                     >
                       Full Form ↗
                     </Link>
@@ -853,7 +853,7 @@ function ExhibitionsContent() {
                                 value={row.companyName}
                                 onChange={(e) => updateQuickLeadRow(row.tempId, 'companyName', e.target.value)}
                                 placeholder="Company / Firm Name *"
-                                className="w-full px-2.5 py-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-md text-xs font-semibold text-[#211B17] focus:outline-none focus:border-emerald-600"
+                                className="w-full px-2.5 py-1.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-md text-xs font-semibold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-600"
                               />
                             </div>
 
@@ -864,7 +864,7 @@ function ExhibitionsContent() {
                                 value={row.contactPerson}
                                 onChange={(e) => updateQuickLeadRow(row.tempId, 'contactPerson', e.target.value)}
                                 placeholder="Visitor / Contact Person *"
-                                className="w-full px-2.5 py-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-md text-xs text-[#211B17] focus:outline-none focus:border-emerald-600"
+                                className="w-full px-2.5 py-1.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-md text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-600"
                               />
                             </div>
 
@@ -875,7 +875,7 @@ function ExhibitionsContent() {
                                 value={row.mobile}
                                 onChange={(e) => updateQuickLeadRow(row.tempId, 'mobile', e.target.value)}
                                 placeholder="Mobile / Phone *"
-                                className="w-full px-2.5 py-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-md text-xs font-mono text-[#211B17] focus:outline-none focus:border-emerald-600"
+                                className="w-full px-2.5 py-1.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-md text-xs font-mono text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-600"
                               />
                             </div>
 
@@ -885,7 +885,7 @@ function ExhibitionsContent() {
                                 value={row.productName}
                                 onChange={(e) => updateQuickLeadRow(row.tempId, 'productName', e.target.value)}
                                 placeholder="Product Requirement..."
-                                className="w-full px-2.5 py-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-md text-xs text-[#211B17] focus:outline-none focus:border-emerald-600"
+                                className="w-full px-2.5 py-1.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-md text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-600"
                               />
                             </div>
 
@@ -947,7 +947,7 @@ function ExhibitionsContent() {
                   );
                   if (linkedLeads.length === 0) {
                     return (
-                      <p className="text-[#70665F] text-[11px] bg-slate-50 p-3 rounded-lg text-center">
+                      <p className="text-[color:var(--crm-text-secondary)] text-[11px] bg-slate-50 p-3 rounded-lg text-center">
                         No leads recorded for this exhibition yet. Click &ldquo;+ Add Lead from Expo&rdquo; to register visitor cards.
                       </p>
                     );
@@ -959,9 +959,9 @@ function ExhibitionsContent() {
                           <div>
                             <Link href={`/crm/leads/${l.id}`} className="font-bold text-slate-900 hover:text-crm-brand-700 flex items-center gap-1">
                               <span>{l.companyName}</span>
-                              <ExternalLink className="w-3 h-3 text-[#70665F]" />
+                              <ExternalLink className="w-3 h-3 text-[color:var(--crm-text-secondary)]" />
                             </Link>
-                            <span className="text-[10px] text-[#70665F]">
+                            <span className="text-[10px] text-[color:var(--crm-text-secondary)]">
                               {[l.contactPerson, l.mobile, l.productName].filter(Boolean).join(' • ')}
                             </span>
                           </div>

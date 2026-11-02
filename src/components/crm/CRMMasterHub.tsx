@@ -343,17 +343,17 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
           <div className="space-y-1">
             <span
               title={lead.leadNo || lead.id}
-              className="font-mono font-bold text-xs text-[#75401F] bg-[#FAF3EA] border border-[#E7DED5] px-2.5 py-0.5 rounded-md inline-flex items-center gap-1 shadow-2xs"
+              className="font-mono font-bold text-xs text-[color:var(--crm-brand-700)] bg-[color:var(--crm-brand-50)] border border-[color:var(--crm-border-default)] px-2.5 py-0.5 rounded-md inline-flex items-center gap-1 shadow-2xs"
             >
-              <Tag className="w-3 h-3 text-[#A89F91]" />
+              <Tag className="w-3 h-3 text-[color:var(--crm-text-tertiary)]" />
               {cleanRef}
             </span>
-            <div className="text-[11px] text-[#70665F] flex items-center gap-1 font-mono">
-              <Calendar className="w-3 h-3 text-[#A89F91] shrink-0" />
+            <div className="text-[11px] text-[color:var(--crm-text-secondary)] flex items-center gap-1 font-mono">
+              <Calendar className="w-3 h-3 text-[color:var(--crm-text-tertiary)] shrink-0" />
               <span>{formatDate(lead.createdDate)}</span>
             </div>
             {lead.source && (
-              <span className="inline-block text-[9px] uppercase font-bold tracking-wider text-[#8C5229] bg-[#F5E6D8] px-1.5 py-0.5 rounded border border-[#E7DED5]">
+              <span className="inline-block text-[9px] uppercase font-bold tracking-wider text-[#47536E] bg-[#E8EDF8] px-1.5 py-0.5 rounded border border-[color:var(--crm-border-default)]">
                 {lead.source.replace('_', ' ')}
               </span>
             )}
@@ -369,21 +369,21 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
           <Link
             href={`/crm/leads/${lead.id}`}
             onClick={(e) => e.stopPropagation()}
-            className="font-bold text-xs text-slate-900 hover:text-[#75401F] transition flex items-center gap-1 group"
+            className="font-bold text-xs text-slate-900 hover:text-[color:var(--crm-brand-700)] transition flex items-center gap-1 group"
           >
-            <Building className="w-3.5 h-3.5 text-[#8C5229] shrink-0" />
+            <Building className="w-3.5 h-3.5 text-[#47536E] shrink-0" />
             <span className="truncate group-hover:underline" title={lead.companyName}>
               {lead.companyName}
             </span>
-            <ArrowUpRight className="w-3 h-3 text-[#8C5229] opacity-0 group-hover:opacity-100 transition shrink-0" />
+            <ArrowUpRight className="w-3 h-3 text-[#47536E] opacity-0 group-hover:opacity-100 transition shrink-0" />
           </Link>
 
-          <div className="flex items-center gap-1.5 text-[11px] text-[#544B45]">
+          <div className="flex items-center gap-1.5 text-[11px] text-[color:var(--crm-text-secondary)]">
             <span
               className={`font-medium truncate ${
                 lead.contactPerson && lead.contactPerson !== 'Contact Person' && lead.contactPerson !== 'Contact'
-                  ? 'text-[#211B17]'
-                  : 'text-[#A89F91] italic'
+                  ? 'text-[color:var(--crm-text-primary)]'
+                  : 'text-[color:var(--crm-text-tertiary)] italic'
               }`}
               title={lead.contactPerson}
             >
@@ -396,21 +396,21 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
                 href={`tel:${lead.mobile}`}
                 onClick={(e) => e.stopPropagation()}
                 title="Call Lead"
-                className="font-mono text-[10px] text-[#75401F] hover:underline flex items-center gap-0.5 bg-[#FAF7F2] border border-[#EBE3DB] px-1.5 py-0.5 rounded shrink-0"
+                className="font-mono text-[10px] text-[color:var(--crm-brand-700)] hover:underline flex items-center gap-0.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] px-1.5 py-0.5 rounded shrink-0"
               >
-                <Phone className="w-2.5 h-2.5 text-[#8C5229]" /> {lead.mobile}
+                <Phone className="w-2.5 h-2.5 text-[#47536E]" /> {lead.mobile}
               </a>
             ) : null}
           </div>
 
           {lead.address ? (
-            <div className="text-[10px] text-[#8D827A] flex items-center gap-1" title={lead.address}>
-              <MapPin className="w-2.5 h-2.5 text-[#A89F91] shrink-0" />
+            <div className="text-[10px] text-[color:var(--crm-text-tertiary)] flex items-center gap-1" title={lead.address}>
+              <MapPin className="w-2.5 h-2.5 text-[color:var(--crm-text-tertiary)] shrink-0" />
               <span className="truncate max-w-[200px]">{lead.address}</span>
             </div>
           ) : lead.city ? (
-            <div className="text-[10px] text-[#8D827A] flex items-center gap-1">
-              <MapPin className="w-2.5 h-2.5 text-[#A89F91] shrink-0" />
+            <div className="text-[10px] text-[color:var(--crm-text-tertiary)] flex items-center gap-1">
+              <MapPin className="w-2.5 h-2.5 text-[color:var(--crm-text-tertiary)] shrink-0" />
               <span className="truncate">{lead.city}{lead.state ? `, ${lead.state}` : ''}</span>
             </div>
           ) : null}
@@ -454,7 +454,7 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
                   e.stopPropagation();
                   router.push(`/crm/enquiries/new?leadId=${encodeURIComponent(lead.id || lead.leadNo)}`);
                 }}
-                className="px-2.5 py-1 bg-[#75401F] hover:bg-[#5C3218] text-white rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
+                className="px-2.5 py-1 bg-[color:var(--crm-brand-700)] hover:bg-[#1B3489] text-white rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
                 title="Create Technical Enquiry for this Lead"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -466,7 +466,7 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
             <button
               onClick={(e) => handleOpenEdit(lead, e)}
               title="Edit Lead Record"
-              className="p-1.5 text-[#70665F] hover:text-[#75401F] hover:bg-[#FAF3EA] rounded-lg border border-[#E7DED5] transition cursor-pointer"
+              className="p-1.5 text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-brand-700)] hover:bg-[color:var(--crm-brand-50)] rounded-lg border border-[color:var(--crm-border-default)] transition cursor-pointer"
             >
               <Pencil className="w-3.5 h-3.5" />
             </button>
@@ -491,17 +491,17 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
   return (
     <div className="w-full space-y-3 sm:space-y-3.5 text-xs pb-10">
       {/* 1. TOP HEADER BANNER - COMPACT */}
-      <div className="bg-gradient-to-r from-[#FAF3EA] via-[#F8EDE0] to-[#F1DFC9] px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl border border-[#E9DFD3] text-[#211B17] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+      <div className="bg-gradient-to-r from-[color:var(--crm-brand-50)] via-[#EDF1FA] to-[#E3EAF8] px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl border border-[#D4DAE8] text-[color:var(--crm-text-primary)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
         <div>
           <div className="flex items-center gap-1.5 mb-0.5">
-            <span className="px-2 py-0.5 rounded-full bg-[#F5E6D8] text-[#8C5229] border border-[#E7DED5] font-mono text-[9px] font-bold uppercase tracking-wider">
+            <span className="px-2 py-0.5 rounded-full bg-[#E8EDF8] text-[#47536E] border border-[color:var(--crm-border-default)] font-mono text-[9px] font-bold uppercase tracking-wider">
               CRM Engine
             </span>
             <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 text-[9px] font-bold border border-emerald-200">
               Live Cloud Sync
             </span>
           </div>
-          <h1 className="text-base sm:text-lg font-extrabold text-[#211B17] tracking-tight">
+          <h1 className="text-base sm:text-lg font-extrabold text-[color:var(--crm-text-primary)] tracking-tight">
             Leads Pipeline & Enquiries
           </h1>
         </div>
@@ -517,7 +517,7 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
           </Link>
           <Link
             href="/crm/quotations/new"
-            className="px-3 py-1.5 bg-white hover:bg-[#FAF7F2] border border-[#E7DED5] text-slate-800 rounded-lg font-bold text-xs transition flex items-center gap-1.5 shadow-2xs"
+            className="px-3 py-1.5 bg-white hover:bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] text-slate-800 rounded-lg font-bold text-xs transition flex items-center gap-1.5 shadow-2xs"
           >
             <FileText className="w-3.5 h-3.5 text-blue-600" />
             <span>+ New Quotation</span>
@@ -540,24 +540,24 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
 
       {/* 2. OVERVIEW KPI CARDS - COMPACT & PROPORTIONAL */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
-        <div className="bg-white px-3.5 py-2.5 rounded-xl border border-[#EBE3DB] shadow-2xs flex flex-col justify-between">
+        <div className="bg-white px-3.5 py-2.5 rounded-xl border border-[color:var(--crm-border-default)] shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-[#70665F] uppercase tracking-wider">Prospective Leads</span>
-            <div className="w-5 h-5 rounded bg-[#FAF3EA] flex items-center justify-center text-crm-brand-700">
+            <span className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">Prospective Leads</span>
+            <div className="w-5 h-5 rounded bg-[color:var(--crm-brand-50)] flex items-center justify-center text-crm-brand-700">
               <UserPlus className="w-3 h-3" />
             </div>
           </div>
           <div className="mt-1 flex items-baseline justify-between gap-1">
-            <span suppressHydrationWarning className="text-lg font-extrabold text-[#211B17] font-mono">{totalLeads}</span>
+            <span suppressHydrationWarning className="text-lg font-extrabold text-[color:var(--crm-text-primary)] font-mono">{totalLeads}</span>
             <span suppressHydrationWarning className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
               Pipe {totalPipelineBudget > 0 ? formatCurrency(totalPipelineBudget) : '—'}
             </span>
           </div>
         </div>
 
-        <div className="bg-white px-3.5 py-2.5 rounded-xl border border-[#EBE3DB] shadow-2xs flex flex-col justify-between">
+        <div className="bg-white px-3.5 py-2.5 rounded-xl border border-[color:var(--crm-border-default)] shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-[#70665F] uppercase tracking-wider">Active Pipeline</span>
+            <span className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">Active Pipeline</span>
             <div className="w-5 h-5 rounded bg-blue-50 flex items-center justify-center text-blue-600">
               <TrendingUp className="w-3 h-3" />
             </div>
@@ -570,9 +570,9 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
           </div>
         </div>
 
-        <div className="bg-white px-3.5 py-2.5 rounded-xl border border-[#EBE3DB] shadow-2xs flex flex-col justify-between">
+        <div className="bg-white px-3.5 py-2.5 rounded-xl border border-[color:var(--crm-border-default)] shadow-2xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-[#70665F] uppercase tracking-wider">Won & Converted</span>
+            <span className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">Won & Converted</span>
             <div className="w-5 h-5 rounded bg-emerald-50 flex items-center justify-center text-emerald-600">
               <CheckCircle2 className="w-3 h-3" />
             </div>
@@ -587,16 +587,16 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
 
         <Link
           href="/crm/quotations"
-          className="bg-white px-3.5 py-2.5 rounded-xl border border-[#EBE3DB] hover:border-slate-300 transition-all hover:shadow-2xs flex flex-col justify-between"
+          className="bg-white px-3.5 py-2.5 rounded-xl border border-[color:var(--crm-border-default)] hover:border-slate-300 transition-all hover:shadow-2xs flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-[#70665F] uppercase tracking-wider">Quotations</span>
+            <span className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">Quotations</span>
             <div className="w-5 h-5 rounded bg-purple-50 flex items-center justify-center text-purple-700">
               <FileCheck2 className="w-3 h-3" />
             </div>
           </div>
           <div className="mt-1 flex items-baseline justify-between gap-1">
-            <span suppressHydrationWarning className="text-lg font-extrabold text-[#211B17] font-mono">{totalQuotations}</span>
+            <span suppressHydrationWarning className="text-lg font-extrabold text-[color:var(--crm-text-primary)] font-mono">{totalQuotations}</span>
             <span suppressHydrationWarning className="text-[10px] text-purple-700 font-bold bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200">
               {activeQuotations} active
             </span>
@@ -666,20 +666,20 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
       {/* ---------------------------------------------------------------------- */}
       {editingLead && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-xl w-full p-6 shadow-2xl animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3 mb-4">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl max-w-xl w-full p-6 shadow-2xl animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3 mb-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-[#FAF3EA] border border-[#E7DED5] flex items-center justify-center text-[#8C5229]">
+                <div className="w-8 h-8 rounded-lg bg-[color:var(--crm-brand-50)] border border-[color:var(--crm-border-default)] flex items-center justify-center text-[#47536E]">
                   <Pencil className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm text-[#211B17]">Edit Lead Details</h3>
-                  <p className="text-[11px] text-[#70665F] font-mono">Ref: {getCleanRef(editingLead)}</p>
+                  <h3 className="font-bold text-sm text-[color:var(--crm-text-primary)]">Edit Lead Details</h3>
+                  <p className="text-[11px] text-[color:var(--crm-text-secondary)] font-mono">Ref: {getCleanRef(editingLead)}</p>
                 </div>
               </div>
               <button
                 onClick={() => setEditingLead(null)}
-                className="text-[#70665F] hover:text-[#211B17] p-1 rounded-lg hover:bg-[#FAF7F2]"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1 rounded-lg hover:bg-[color:var(--crm-bg-app)]"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -687,7 +687,7 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
 
             <form onSubmit={handleSaveEditLead} className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Company Name <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -695,13 +695,13 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
                   required
                   value={editLeadData.companyName || ''}
                   onChange={(e) => setEditLeadData((prev) => ({ ...prev, companyName: e.target.value }))}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl font-bold text-[#211B17] focus:outline-none focus:border-[#75401F]"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl font-bold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-[color:var(--crm-brand-700)]"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     Contact Person <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -709,11 +709,11 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
                     required
                     value={editLeadData.contactPerson || ''}
                     onChange={(e) => setEditLeadData((prev) => ({ ...prev, contactPerson: e.target.value }))}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                    className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl focus:outline-none focus:border-[color:var(--crm-brand-700)]"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     Mobile Number <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -725,14 +725,14 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
                       const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
                       setEditLeadData((prev) => ({ ...prev, mobile: clean }));
                     }}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl font-mono focus:outline-none focus:border-[#75401F]"
+                    className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl font-mono focus:outline-none focus:border-[color:var(--crm-brand-700)]"
                     placeholder="10-digit mobile"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Email Address <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -740,13 +740,13 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
                   required
                   value={editLeadData.email || ''}
                   onChange={(e) => setEditLeadData((prev) => ({ ...prev, email: e.target.value }))}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl focus:outline-none focus:border-[color:var(--crm-brand-700)]"
                   placeholder="name@company.com"
                 />
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Address <span className="text-rose-500">*</span>
                 </label>
                 <textarea
@@ -754,39 +754,39 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
                   required
                   value={editLeadData.address || ''}
                   onChange={(e) => setEditLeadData((prev) => ({ ...prev, address: e.target.value }))}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl focus:outline-none focus:border-[color:var(--crm-brand-700)]"
                   placeholder="e.g. Plot No. 42, GIDC Industrial Estate..."
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">City</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">City</label>
                   <input
                     type="text"
                     value={editLeadData.city || ''}
                     onChange={(e) => setEditLeadData((prev) => ({ ...prev, city: e.target.value }))}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                    className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl focus:outline-none focus:border-[color:var(--crm-brand-700)]"
                     placeholder="City"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">State</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">State</label>
                   <input
                     type="text"
                     value={editLeadData.state || ''}
                     onChange={(e) => setEditLeadData((prev) => ({ ...prev, state: e.target.value }))}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                    className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl focus:outline-none focus:border-[color:var(--crm-brand-700)]"
                     placeholder="State"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Pincode</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Pincode</label>
                   <input
                     type="text"
                     value={editLeadData.pincode || ''}
                     onChange={(e) => setEditLeadData((prev) => ({ ...prev, pincode: e.target.value }))}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                    className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl focus:outline-none focus:border-[color:var(--crm-brand-700)]"
                     placeholder="Pincode"
                   />
                 </div>
@@ -794,44 +794,44 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Product / Machine</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Product / Machine</label>
                   <input
                     type="text"
                     value={editLeadData.productName || ''}
                     onChange={(e) => setEditLeadData((prev) => ({ ...prev, productName: e.target.value }))}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                    className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl focus:outline-none focus:border-[color:var(--crm-brand-700)]"
                     placeholder="e.g. Storage Tank"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Quantity</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Quantity</label>
                   <input
                     type="number"
                     min={1}
                     value={editLeadData.quantity ?? 1}
                     onChange={(e) => setEditLeadData((prev) => ({ ...prev, quantity: Number(e.target.value) || 1 }))}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                    className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl focus:outline-none focus:border-[color:var(--crm-brand-700)]"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Budget (₹)</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Budget (₹)</label>
                   <input
                     type="number"
                     min={0}
                     value={editLeadData.budget ?? 0}
                     onChange={(e) => setEditLeadData((prev) => ({ ...prev, budget: Number(e.target.value) || 0 }))}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                    className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl focus:outline-none focus:border-[color:var(--crm-brand-700)]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Status</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Status</label>
                   <select
                     value={editLeadData.status || 'new'}
                     onChange={(e) => setEditLeadData((prev) => ({ ...prev, status: e.target.value as any }))}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                    className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl focus:outline-none focus:border-[color:var(--crm-brand-700)]"
                   >
                     <option value="new">New</option>
                     <option value="contacted">Contacted</option>
@@ -843,11 +843,11 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Priority</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Priority</label>
                   <select
                     value={editLeadData.priority || 'medium'}
                     onChange={(e) => setEditLeadData((prev) => ({ ...prev, priority: e.target.value as any }))}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                    className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl focus:outline-none focus:border-[color:var(--crm-brand-700)]"
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
@@ -857,22 +857,22 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Notes / Requirement</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Notes / Requirement</label>
                 <textarea
                   rows={2}
                   value={editLeadData.notes || ''}
                   onChange={(e) => setEditLeadData((prev) => ({ ...prev, notes: e.target.value }))}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl focus:outline-none focus:border-[#75401F]"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl focus:outline-none focus:border-[color:var(--crm-brand-700)]"
                   placeholder="Notes or special requirements..."
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setEditingLead(null)}
                   disabled={isSavingEdit}
-                  className="px-4 py-2 border border-[#EBE3DB] rounded-xl hover:bg-slate-50 font-semibold cursor-pointer"
+                  className="px-4 py-2 border border-[color:var(--crm-border-default)] rounded-xl hover:bg-slate-50 font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -904,12 +904,12 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
       {/* ---------------------------------------------------------------------- */}
       {deletingLead && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center space-y-3 animate-in zoom-in-95 duration-150">
-            <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-inner">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center space-y-3 animate-in zoom-in-95 duration-150">
+            <div className="w-12 h-12 rounded-full bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center mx-auto shadow-inner">
               <AlertTriangle className="w-6 h-6" />
             </div>
-            <h4 className="font-extrabold text-base text-[#211B17]">Delete Lead Record?</h4>
-            <p className="text-xs text-[#70665F] leading-relaxed">
+            <h4 className="font-extrabold text-base text-[color:var(--crm-text-primary)]">Delete Lead Record?</h4>
+            <p className="text-xs text-[color:var(--crm-text-secondary)] leading-relaxed">
               Are you sure you want to permanently delete lead for <strong className="text-slate-900">{deletingLead.companyName}</strong> (Ref: {getCleanRef(deletingLead)})?
             </p>
             <p className="text-[10px] text-rose-600 font-medium bg-rose-50 p-2 rounded-lg border border-rose-200">
@@ -920,7 +920,7 @@ export function CRMMasterHub({ defaultTab }: CRMMasterHubProps) {
                 type="button"
                 onClick={() => setDeletingLead(null)}
                 disabled={isDeleting}
-                className="px-4 py-2 border border-[#EBE3DB] rounded-xl font-semibold hover:bg-slate-50 text-xs cursor-pointer"
+                className="px-4 py-2 border border-[color:var(--crm-border-default)] rounded-xl font-semibold hover:bg-slate-50 text-xs cursor-pointer"
               >
                 Cancel
               </button>

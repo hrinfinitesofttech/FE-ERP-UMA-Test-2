@@ -181,21 +181,21 @@ function MRPContent() {
   return (
     <div className="space-y-5">
       {/* 1. Header Card */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-xs">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-700 border border-amber-500/20 flex items-center justify-center flex-shrink-0 shadow-2xs">
+          <div className="w-12 h-12 rounded-2xl bg-crm-brand-50 text-crm-brand-700 border border-crm-brand-100 flex items-center justify-center flex-shrink-0 shadow-2xs">
             <Cpu className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl font-bold text-[#211B17] tracking-tight">
+              <h1 className="text-xl font-bold text-[color:var(--crm-text-primary)] tracking-tight">
                 Material Planning & Issue Hub (MRP)
               </h1>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-200">
                 Unified MRP & Issue Engine
               </span>
             </div>
-            <p className="text-xs text-[#70665F] mt-0.5">
+            <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">
               Net Material Calculations, Stock Readiness Clearance, & Physical Store Issue Slips.
             </p>
           </div>
@@ -203,12 +203,12 @@ function MRPContent() {
 
         {/* Global Job Selector & Search */}
         <div className="flex items-center gap-2.5 w-full lg:w-auto flex-wrap">
-          <div className="flex items-center gap-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-1.5 text-xs text-[#544B45]">
-            <span className="text-[11px] text-[#8D7B70] font-semibold">Job Filter:</span>
+          <div className="flex items-center gap-1.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-1.5 text-xs text-[color:var(--crm-text-secondary)]">
+            <span className="text-[11px] text-[color:var(--crm-text-tertiary)] font-semibold">Job Filter:</span>
             <select
               value={selectedJob}
               onChange={(e) => setSelectedJob(e.target.value)}
-              className="bg-transparent font-bold text-[#211B17] focus:outline-none cursor-pointer"
+              className="bg-transparent font-bold text-[color:var(--crm-text-primary)] focus:outline-none cursor-pointer"
             >
               <option value="All">All Active Jobs</option>
               {Array.from(new Set((mrpRequirements || []).map((m) => m.jobNumber).filter(Boolean))).map((jb) => (
@@ -220,13 +220,13 @@ function MRPContent() {
           </div>
 
           <div className="relative flex-1 sm:w-56">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8D7B70]" />
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--crm-text-tertiary)]" />
             <input
               type="text"
               placeholder="Search items or codes..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-8 pr-3 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-crm-brand-700"
+              className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl pl-8 pr-3 py-1.5 text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-700"
             />
           </div>
 
@@ -248,42 +248,42 @@ function MRPContent() {
 
       {/* 2. Unified KPI Summary Bar */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-2xs">
-          <span className="text-[11px] font-semibold text-[#8D7B70] block">Total BOM Items Tracked</span>
-          <span className="text-xl font-extrabold text-[#211B17] mt-0.5 block">{woItems.length} Items</span>
+        <div className="bg-white p-4 rounded-xl border border-[color:var(--crm-border-default)] shadow-2xs">
+          <span className="text-[11px] font-semibold text-[color:var(--crm-text-tertiary)] block">Total BOM Items Tracked</span>
+          <span className="text-xl font-extrabold text-[color:var(--crm-text-primary)] mt-0.5 block">{woItems.length} Items</span>
           <span className="text-[10px] text-crm-brand-600 font-bold">In Active Production</span>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-2xs">
-          <span className="text-[11px] font-semibold text-[#8D7B70] block">Stock Ready Items</span>
+        <div className="bg-white p-4 rounded-xl border border-[color:var(--crm-border-default)] shadow-2xs">
+          <span className="text-[11px] font-semibold text-[color:var(--crm-text-tertiary)] block">Stock Ready Items</span>
           <span className="text-xl font-extrabold text-emerald-700 mt-0.5 block">{availableCount} Covered</span>
           <span className="text-[10px] text-emerald-600 font-medium">Ready for allocation</span>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-2xs">
-          <span className="text-[11px] font-semibold text-[#8D7B70] block">Material Shortages</span>
+        <div className="bg-white p-4 rounded-xl border border-[color:var(--crm-border-default)] shadow-2xs">
+          <span className="text-[11px] font-semibold text-[color:var(--crm-text-tertiary)] block">Material Shortages</span>
           <span className={cn('text-xl font-extrabold mt-0.5 block', shortageCount > 0 ? 'text-amber-700' : 'text-emerald-700')}>
             {shortageCount} Shortages
           </span>
-          <span className="text-[10px] text-[#8D7B70] font-medium">Requires Purchase Requisition</span>
+          <span className="text-[10px] text-[color:var(--crm-text-tertiary)] font-medium">Requires Purchase Requisition</span>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-2xs">
-          <span className="text-[11px] font-semibold text-[#8D7B70] block">Store Issue Slips</span>
-          <span className="text-xl font-extrabold text-[#211B17] mt-0.5 block">{materialIssues.length} Slips</span>
+        <div className="bg-white p-4 rounded-xl border border-[color:var(--crm-border-default)] shadow-2xs">
+          <span className="text-[11px] font-semibold text-[color:var(--crm-text-tertiary)] block">Store Issue Slips</span>
+          <span className="text-xl font-extrabold text-[color:var(--crm-text-primary)] mt-0.5 block">{materialIssues.length} Slips</span>
           <span className="text-[10px] text-blue-600 font-medium">Physical Shop Deliveries</span>
         </div>
       </div>
 
       {/* 3. Three-Tab Navigation Hub */}
-      <div className="flex items-center gap-2 border-b border-[#EBE3DB] pb-2">
+      <div className="flex items-center gap-2 border-b border-[color:var(--crm-border-default)] pb-2">
         <button
           onClick={() => setActiveTab('mrp')}
           className={cn(
             'inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer',
             activeTab === 'mrp'
               ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-xs'
-              : 'bg-white border border-[#EBE3DB] text-[#544B45] hover:bg-[#FAF7F2]'
+              : 'bg-white border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)]'
           )}
         >
           <Cpu className="w-4 h-4" />
@@ -291,7 +291,7 @@ function MRPContent() {
           <span
             className={cn(
               'px-1.5 py-0.2 rounded-full text-[10px] font-mono',
-              activeTab === 'mrp' ? 'bg-white/20 text-white' : 'bg-[#EFE8DF] text-crm-brand-800'
+              activeTab === 'mrp' ? 'bg-white/20 text-white' : 'bg-[color:var(--crm-surface-subtle)] text-crm-brand-800'
             )}
           >
             {filteredMrp.length}
@@ -304,7 +304,7 @@ function MRPContent() {
             'inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer',
             activeTab === 'availability'
               ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-xs'
-              : 'bg-white border border-[#EBE3DB] text-[#544B45] hover:bg-[#FAF7F2]'
+              : 'bg-white border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)]'
           )}
         >
           <ShieldCheck className="w-4 h-4" />
@@ -312,7 +312,7 @@ function MRPContent() {
           <span
             className={cn(
               'px-1.5 py-0.2 rounded-full text-[10px] font-mono',
-              activeTab === 'availability' ? 'bg-white/20 text-white' : 'bg-[#EFE8DF] text-crm-brand-800'
+              activeTab === 'availability' ? 'bg-white/20 text-white' : 'bg-[color:var(--crm-surface-subtle)] text-crm-brand-800'
             )}
           >
             {isFullyAvailable ? 'Ready' : `${shortageCount} Short`}
@@ -325,7 +325,7 @@ function MRPContent() {
             'inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer',
             activeTab === 'issue'
               ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-xs'
-              : 'bg-white border border-[#EBE3DB] text-[#544B45] hover:bg-[#FAF7F2]'
+              : 'bg-white border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)]'
           )}
         >
           <Truck className="w-4 h-4" />
@@ -333,7 +333,7 @@ function MRPContent() {
           <span
             className={cn(
               'px-1.5 py-0.2 rounded-full text-[10px] font-mono',
-              activeTab === 'issue' ? 'bg-white/20 text-white' : 'bg-[#EFE8DF] text-crm-brand-800'
+              activeTab === 'issue' ? 'bg-white/20 text-white' : 'bg-[color:var(--crm-surface-subtle)] text-crm-brand-800'
             )}
           >
             {filteredIssues.length}
@@ -345,19 +345,19 @@ function MRPContent() {
       {/* TAB 1: MRP ENGINE TABLE                                                   */}
       {/* ========================================================================= */}
       {activeTab === 'mrp' && (
-        <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-xs overflow-hidden">
-          <div className="p-4 border-b border-[#EBE3DB] bg-[#FAF7F2]/60 flex items-center justify-between">
-            <div className="text-xs text-[#70665F]">
-              <span className="font-bold text-[#211B17]">MRP Net Formula:</span> Net Req Qty = Required Qty - (Available Stock - Reserved) - Open PO Qty
+        <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs overflow-hidden">
+          <div className="p-4 border-b border-[color:var(--crm-border-default)] bg-[#F4F6FA]/60 flex items-center justify-between">
+            <div className="text-xs text-[color:var(--crm-text-secondary)]">
+              <span className="font-bold text-[color:var(--crm-text-primary)]">MRP Net Formula:</span> Net Req Qty = Required Qty - (Available Stock - Reserved) - Open PO Qty
             </div>
-            <div className="text-xs text-[#8D7B70]">
-              Showing <span className="font-bold text-[#211B17]">{filteredMrp.length}</span> calculation rows
+            <div className="text-xs text-[color:var(--crm-text-tertiary)]">
+              Showing <span className="font-bold text-[color:var(--crm-text-primary)]">{filteredMrp.length}</span> calculation rows
             </div>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-[#544B45]">
-              <thead className="bg-[#FAF7F2] text-[#70665F] font-bold uppercase text-[10px] tracking-wider border-b border-[#EBE3DB]">
+            <table className="w-full text-left text-xs text-[color:var(--crm-text-secondary)]">
+              <thead className="bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] font-bold uppercase text-[10px] tracking-wider border-b border-[color:var(--crm-border-default)]">
                 <tr>
                   <th className="p-3.5">Job Number</th>
                   <th className="p-3.5">Item Code & Name</th>
@@ -370,22 +370,22 @@ function MRPContent() {
                   <th className="p-3.5 text-right">Procurement Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#EBE3DB]">
+              <tbody className="divide-y divide-[color:var(--crm-border-default)]">
                 {filteredMrp.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="p-8 text-center text-[#8D7B70]">
+                    <td colSpan={9} className="p-8 text-center text-[color:var(--crm-text-tertiary)]">
                       No MRP items matching the selected filters.
                     </td>
                   </tr>
                 ) : (
                   filteredMrp.map((item) => (
-                    <tr key={item.id} className="hover:bg-[#FAF7F2]/60 transition">
+                    <tr key={item.id} className="hover:bg-[#F4F6FA]/60 transition">
                       <td className="p-3.5 font-mono font-bold text-crm-brand-700">{item.jobNumber}</td>
                       <td className="p-3.5">
-                        <div className="font-mono font-bold text-[#211B17]">{item.itemCode}</div>
-                        <div className="text-[11px] text-[#70665F] font-medium">{item.itemName}</div>
+                        <div className="font-mono font-bold text-[color:var(--crm-text-primary)]">{item.itemCode}</div>
+                        <div className="text-[11px] text-[color:var(--crm-text-secondary)] font-medium">{item.itemName}</div>
                       </td>
-                      <td className="p-3.5 text-right font-bold text-[#211B17]">
+                      <td className="p-3.5 text-right font-bold text-[color:var(--crm-text-primary)]">
                         {item.requiredQuantity} {item.uom}
                       </td>
                       <td className="p-3.5 text-right font-mono text-emerald-700 font-semibold">
@@ -444,11 +444,11 @@ function MRPContent() {
       {activeTab === 'availability' && (
         <div className="space-y-4">
           {/* Readiness Banner */}
-          <div className="bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="bg-white p-5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-[#8D7B70]">Selected Work Order:</span>
-                <span className="font-mono font-bold text-sm text-[#211B17]">
+                <span className="text-xs font-semibold text-[color:var(--crm-text-tertiary)]">Selected Work Order:</span>
+                <span className="font-mono font-bold text-sm text-[color:var(--crm-text-primary)]">
                   {selectedWo?.workOrderNumber || 'WO-001'} ({selectedWo?.jobNumber || selectedJob})
                 </span>
                 <span
@@ -462,7 +462,7 @@ function MRPContent() {
                   {isFullyAvailable ? 'Fully Cleared / Stock Ready' : `${shortageCount} Shortages Remaining`}
                 </span>
               </div>
-              <p className="text-xs text-[#70665F]">
+              <p className="text-xs text-[color:var(--crm-text-secondary)]">
                 Verify physical store inventory before authorizing work order release to shop floor operators.
               </p>
             </div>
@@ -482,17 +482,17 @@ function MRPContent() {
           </div>
 
           {/* Checklist Table */}
-          <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-xs overflow-hidden">
-            <div className="p-4 border-b border-[#EBE3DB] bg-[#FAF7F2]/60">
-              <h3 className="text-xs font-bold text-[#211B17] flex items-center gap-2">
+          <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs overflow-hidden">
+            <div className="p-4 border-b border-[color:var(--crm-border-default)] bg-[#F4F6FA]/60">
+              <h3 className="text-xs font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                 <Box className="w-4 h-4 text-emerald-700" />
                 BOM Material Stock Checklist
               </h3>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-[#544B45]">
-                <thead className="bg-[#FAF7F2] text-[#70665F] font-bold uppercase text-[10px] tracking-wider border-b border-[#EBE3DB]">
+              <table className="w-full text-left text-xs text-[color:var(--crm-text-secondary)]">
+                <thead className="bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] font-bold uppercase text-[10px] tracking-wider border-b border-[color:var(--crm-border-default)]">
                   <tr>
                     <th className="p-3.5">Item Code & Name</th>
                     <th className="p-3.5">Category</th>
@@ -502,10 +502,10 @@ function MRPContent() {
                     <th className="p-3.5">Availability Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#EBE3DB]">
+                <tbody className="divide-y divide-[color:var(--crm-border-default)]">
                   {woItems.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-[#8D7B70]">
+                      <td colSpan={6} className="p-8 text-center text-[color:var(--crm-text-tertiary)]">
                         No BOM items registered for this job.
                       </td>
                     </tr>
@@ -513,13 +513,13 @@ function MRPContent() {
                     woItems.map((itm) => {
                       const isReady = (itm.netRequirementQty || 0) <= 0;
                       return (
-                        <tr key={itm.id} className="hover:bg-[#FAF7F2]/60 transition">
+                        <tr key={itm.id} className="hover:bg-[#F4F6FA]/60 transition">
                           <td className="p-3.5">
-                            <div className="font-mono font-bold text-[#211B17]">{itm.itemCode}</div>
-                            <div className="text-[11px] text-[#70665F]">{itm.itemName}</div>
+                            <div className="font-mono font-bold text-[color:var(--crm-text-primary)]">{itm.itemCode}</div>
+                            <div className="text-[11px] text-[color:var(--crm-text-secondary)]">{itm.itemName}</div>
                           </td>
                           <td className="p-3.5 font-medium">{itm.category || 'Raw Material'}</td>
-                          <td className="p-3.5 text-right font-bold text-[#211B17]">
+                          <td className="p-3.5 text-right font-bold text-[color:var(--crm-text-primary)]">
                             {itm.requiredQuantity} {itm.uom}
                           </td>
                           <td className="p-3.5 text-right font-mono font-semibold text-emerald-700">
@@ -545,7 +545,7 @@ function MRPContent() {
                                 </>
                               ) : (
                                 <>
-                                  <AlertTriangle className="w-3 h-3 text-amber-600" /> Shortage
+                                  <AlertTriangle className="w-3 h-3 text-crm-brand-600" /> Shortage
                                 </>
                               )}
                             </span>
@@ -565,10 +565,10 @@ function MRPContent() {
       {/* TAB 3: MATERIAL REQUEST & ISSUE SLIPS                                     */}
       {/* ========================================================================= */}
       {activeTab === 'issue' && (
-        <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-xs overflow-hidden">
-          <div className="p-4 border-b border-[#EBE3DB] bg-[#FAF7F2]/60 flex items-center justify-between">
-            <div className="text-xs text-[#70665F]">
-              <span className="font-bold text-[#211B17]">Store-Production Interface:</span> Material Requisitions & Approved Physical Store Issue Slips.
+        <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs overflow-hidden">
+          <div className="p-4 border-b border-[color:var(--crm-border-default)] bg-[#F4F6FA]/60 flex items-center justify-between">
+            <div className="text-xs text-[color:var(--crm-text-secondary)]">
+              <span className="font-bold text-[color:var(--crm-text-primary)]">Store-Production Interface:</span> Material Requisitions & Approved Physical Store Issue Slips.
             </div>
             <button
               onClick={() => {
@@ -584,8 +584,8 @@ function MRPContent() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-[#544B45]">
-              <thead className="bg-[#FAF7F2] text-[#70665F] font-bold uppercase text-[10px] tracking-wider border-b border-[#EBE3DB]">
+            <table className="w-full text-left text-xs text-[color:var(--crm-text-secondary)]">
+              <thead className="bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] font-bold uppercase text-[10px] tracking-wider border-b border-[color:var(--crm-border-default)]">
                 <tr>
                   <th className="p-3.5">Issue Slip #</th>
                   <th className="p-3.5">Job / WO #</th>
@@ -597,37 +597,37 @@ function MRPContent() {
                   <th className="p-3.5">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#EBE3DB]">
+              <tbody className="divide-y divide-[color:var(--crm-border-default)]">
                 {filteredIssues.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="p-8 text-center text-[#8D7B70]">
+                    <td colSpan={8} className="p-8 text-center text-[color:var(--crm-text-tertiary)]">
                       No material issue slips recorded yet. Click &quot;+ New Issue Slip&quot; to raise a requisition.
                     </td>
                   </tr>
                 ) : (
                   filteredIssues.map((iss) => (
-                    <tr key={iss.id} className="hover:bg-[#FAF7F2]/60 transition">
+                    <tr key={iss.id} className="hover:bg-[#F4F6FA]/60 transition">
                       <td className="p-3.5 font-mono font-bold text-crm-brand-700">{iss.issueNumber || iss.id}</td>
                       <td className="p-3.5">
-                        <div className="font-mono font-bold text-[#211B17]">{iss.workOrderNumber}</div>
-                        <div className="text-[11px] text-[#70665F] font-mono">{(iss as any).jobNumber || iss.jobId}</div>
+                        <div className="font-mono font-bold text-[color:var(--crm-text-primary)]">{iss.workOrderNumber}</div>
+                        <div className="text-[11px] text-[color:var(--crm-text-secondary)] font-mono">{(iss as any).jobNumber || iss.jobId}</div>
                       </td>
                       <td className="p-3.5 font-medium">{iss.productionStage || 'Assembly & Welding'}</td>
                       <td className="p-3.5 font-medium">{iss.requestedBy}</td>
-                      <td className="p-3.5 text-[#70665F] text-[11px]">{iss.warehouseName || 'Raw Material Store'}</td>
+                      <td className="p-3.5 text-[color:var(--crm-text-secondary)] text-[11px]">{iss.warehouseName || 'Raw Material Store'}</td>
                       <td className="p-3.5">
                         {iss.items && iss.items.length > 0 ? (
                           <div>
-                            <span className="font-bold text-[#211B17]">{iss.items[0].itemName}</span>
-                            <span className="text-[11px] text-[#8D7B70] block">
+                            <span className="font-bold text-[color:var(--crm-text-primary)]">{iss.items[0].itemName}</span>
+                            <span className="text-[11px] text-[color:var(--crm-text-tertiary)] block">
                               {iss.items[0].issuedQuantity} {iss.items[0].uom}
                             </span>
                           </div>
                         ) : (
-                          <span className="text-[#8D7B70]">1 Line Item</span>
+                          <span className="text-[color:var(--crm-text-tertiary)]">1 Line Item</span>
                         )}
                       </td>
-                      <td className="p-3.5 text-right font-mono font-bold text-[#211B17]">
+                      <td className="p-3.5 text-right font-mono font-bold text-[color:var(--crm-text-primary)]">
                         ₹{(iss.totalIssueValue || 0).toLocaleString('en-IN')}
                       </td>
                       <td className="p-3.5">
@@ -649,15 +649,15 @@ function MRPContent() {
       {/* ========================================================================= */}
       {showIssueModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl border border-[#EBE3DB] shadow-2xl max-w-lg w-full p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+          <div className="bg-white rounded-3xl border border-[color:var(--crm-border-default)] shadow-2xl max-w-lg w-full p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
               <div className="flex items-center gap-2">
                 <Truck className="w-5 h-5 text-crm-brand-700" />
-                <h3 className="font-bold text-base text-[#211B17]">New Material Requisition & Issue Slip</h3>
+                <h3 className="font-bold text-base text-[color:var(--crm-text-primary)]">New Material Requisition & Issue Slip</h3>
               </div>
               <button
                 onClick={() => setShowIssueModal(false)}
-                className="p-1 rounded-lg text-[#8D7B70] hover:bg-[#FAF7F2] transition cursor-pointer"
+                className="p-1 rounded-lg text-[color:var(--crm-text-tertiary)] hover:bg-[color:var(--crm-bg-app)] transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -665,11 +665,11 @@ function MRPContent() {
 
             <form onSubmit={handleCreateIssueSlip} className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-[11px] font-bold text-[#544B45] mb-1">Target Work Order</label>
+                <label className="block text-[11px] font-bold text-[color:var(--crm-text-secondary)] mb-1">Target Work Order</label>
                 <select
                   value={issueWo}
                   onChange={(e) => setIssueWo(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] font-semibold focus:outline-none focus:border-crm-brand-700"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-xs text-[color:var(--crm-text-primary)] font-semibold focus:outline-none focus:border-crm-brand-700"
                 >
                   {workOrders.map((w) => (
                     <option key={w.id} value={w.workOrderNumber}>
@@ -680,11 +680,11 @@ function MRPContent() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-[#544B45] mb-1">Item Required from Store</label>
+                <label className="block text-[11px] font-bold text-[color:var(--crm-text-secondary)] mb-1">Item Required from Store</label>
                 <select
                   value={issueItemCode}
                   onChange={(e) => setIssueItemCode(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] font-semibold focus:outline-none focus:border-crm-brand-700"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-xs text-[color:var(--crm-text-primary)] font-semibold focus:outline-none focus:border-crm-brand-700"
                 >
                   {itemMasters.map((i) => (
                     <option key={i.id} value={i.itemCode}>
@@ -696,53 +696,53 @@ function MRPContent() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-[#544B45] mb-1">Quantity</label>
+                  <label className="block text-[11px] font-bold text-[color:var(--crm-text-secondary)] mb-1">Quantity</label>
                   <input
                     type="number"
                     min="1"
                     value={issueQty}
                     onChange={(e) => setIssueQty(Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] font-mono font-bold focus:outline-none focus:border-crm-brand-700"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-xs text-[color:var(--crm-text-primary)] font-mono font-bold focus:outline-none focus:border-crm-brand-700"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-[#544B45] mb-1">Store Bin / Location</label>
+                  <label className="block text-[11px] font-bold text-[color:var(--crm-text-secondary)] mb-1">Store Bin / Location</label>
                   <input
                     type="text"
                     value={issueLocation}
                     onChange={(e) => setIssueLocation(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] focus:outline-none focus:border-crm-brand-700"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-700"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-[#544B45] mb-1">Requested By (Supervisor / Operator)</label>
+                <label className="block text-[11px] font-bold text-[color:var(--crm-text-secondary)] mb-1">Requested By (Supervisor / Operator)</label>
                 <input
                   type="text"
                   placeholder="e.g. Ramesh Patel (Fabrication Incharge)"
                   value={issueRequestedBy}
                   onChange={(e) => setIssueRequestedBy(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] focus:outline-none focus:border-crm-brand-700"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-700"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-[#544B45] mb-1">Remarks / Operation Stage</label>
+                <label className="block text-[11px] font-bold text-[color:var(--crm-text-secondary)] mb-1">Remarks / Operation Stage</label>
                 <input
                   type="text"
                   placeholder="e.g. Required for Shell Rolling and Flange fitment"
                   value={issueRemarks}
                   onChange={(e) => setIssueRemarks(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] focus:outline-none focus:border-crm-brand-700"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-700"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setShowIssueModal(false)}
-                  className="px-4 py-2 rounded-xl border border-[#D5CAC0] bg-white text-xs font-bold text-[#544B45] hover:bg-[#FAF7F2] transition cursor-pointer"
+                  className="px-4 py-2 rounded-xl border border-[color:var(--crm-border-strong)] bg-white text-xs font-bold text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] transition cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -763,7 +763,7 @@ function MRPContent() {
 
 export default function MRPPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-xs text-[#8D7B70]">Loading MRP Hub...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-xs text-[color:var(--crm-text-tertiary)]">Loading MRP Hub...</div>}>
       <MRPContent />
     </Suspense>
   );

@@ -211,7 +211,7 @@ export default function ProjectListPage() {
       onCodeClick: (p) => router.push(`/projects/${p.id}`),
       cell: (p) => (
         <div className="space-y-1">
-          <span className="font-mono font-bold text-[#7C3AED] hover:underline cursor-pointer">
+          <span className="font-mono font-bold text-[color:var(--crm-brand-600)] hover:underline cursor-pointer">
             {p.projectNumber}
           </span>
           <span className="text-[10px] text-slate-500 block">Start: {formatDate(p.startDate)}</span>
@@ -270,7 +270,7 @@ export default function ProjectListPage() {
               <span className="text-slate-500 font-medium truncate max-w-[60px]">
                 {p.currentStage || p.status || 'Planning'}
               </span>
-              <span className="font-bold text-[#7C3AED]">{pct}%</span>
+              <span className="font-bold text-[color:var(--crm-brand-600)]">{pct}%</span>
             </div>
             <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
               <div
@@ -278,8 +278,8 @@ export default function ProjectListPage() {
                   pct >= 100
                     ? 'bg-emerald-500'
                     : pct >= 50
-                    ? 'bg-gradient-to-r from-[#7C3AED] to-emerald-500'
-                    : 'bg-[#7C3AED]'
+                    ? 'bg-gradient-to-r from-[color:var(--crm-brand-600)] to-emerald-500'
+                    : 'bg-[color:var(--crm-brand-600)]'
                 }`}
                 style={{ width: `${Math.min(pct, 100)}%` }}
               />
@@ -350,7 +350,7 @@ export default function ProjectListPage() {
                 title="Create Project Planning"
                 className="px-2 py-1 text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg inline-flex items-center gap-1 transition shadow-xs"
               >
-                <Plus className="w-3 h-3 text-amber-600" />
+                <Plus className="w-3 h-3 text-crm-brand-600" />
                 <span>Plan Project</span>
               </Link>
             )}
@@ -425,7 +425,7 @@ export default function ProjectListPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#204354] shadow-2xs cursor-pointer"
+              className="px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#1F3FB0] shadow-2xs cursor-pointer"
               title="Filter by Status"
             >
               <option value="all">All Statuses ({totalCount})</option>
@@ -475,17 +475,17 @@ export default function ProjectListPage() {
       {/* MODAL: EDIT PROJECT */}
       {editingProject && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
-            <div className="p-4 border-b border-[#EBE3DB] bg-[#FAF7F2] flex items-center justify-between">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
+            <div className="p-4 border-b border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Edit3 className="w-5 h-5 text-blue-600" />
-                <h3 className="font-bold text-[#211B17] text-sm">
+                <h3 className="font-bold text-[color:var(--crm-text-primary)] text-sm">
                   Edit Project Details ({editingProject.projectNumber})
                 </h3>
               </div>
               <button
                 onClick={() => setEditingProject(null)}
-                className="p-1 rounded-lg text-[#70665F] hover:bg-white transition"
+                className="p-1 rounded-lg text-[color:var(--crm-text-secondary)] hover:bg-white transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -493,27 +493,27 @@ export default function ProjectListPage() {
 
             <form onSubmit={handleEditSubmit} className="p-5 space-y-4 text-xs">
               {/* Reference Info (Readonly) */}
-              <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] grid grid-cols-2 gap-2 text-xs">
+              <div className="p-3 bg-[color:var(--crm-bg-app)] rounded-xl border border-[color:var(--crm-border-default)] grid grid-cols-2 gap-2 text-xs">
                 <div>
-                  <span className="text-[#70665F] block">Customer:</span>
-                  <span className="font-bold text-[#211B17]">{editingProject.customerName}</span>
+                  <span className="text-[color:var(--crm-text-secondary)] block">Customer:</span>
+                  <span className="font-bold text-[color:var(--crm-text-primary)]">{editingProject.customerName}</span>
                 </div>
                 <div>
-                  <span className="text-[#70665F] block">Customer PO:</span>
-                  <span className="font-mono text-[#544B45] font-semibold">{editingProject.customerPoNumber || 'N/A'}</span>
+                  <span className="text-[color:var(--crm-text-secondary)] block">Customer PO:</span>
+                  <span className="font-mono text-[color:var(--crm-text-secondary)] font-semibold">{editingProject.customerPoNumber || 'N/A'}</span>
                 </div>
               </div>
 
               {/* Equipment Name & Specification */}
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">
+                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">
                   Machine / Scope Name <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={editFormData.productName || ''}
                   onChange={(e) => setEditFormData({ ...editFormData, productName: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17] font-semibold"
+                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)] font-semibold"
                 />
                 {editErrors.productName && (
                   <p className="text-rose-500 text-[11px] mt-1">{editErrors.productName}</p>
@@ -521,23 +521,23 @@ export default function ProjectListPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">Scope & Technical Specifications</label>
+                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Scope & Technical Specifications</label>
                 <textarea
                   rows={2}
                   value={editFormData.specification || ''}
                   onChange={(e) => setEditFormData({ ...editFormData, specification: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
+                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)]"
                 />
               </div>
 
               {/* Status & Progress % */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Status</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Status</label>
                   <select
                     value={editFormData.status || 'planning'}
                     onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value as any })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17] font-medium"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)] font-medium"
                   >
                     <option value="planning">Planning</option>
                     <option value="design">Design Release</option>
@@ -550,7 +550,7 @@ export default function ProjectListPage() {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">
                     Progress Percentage ({editFormData.progressPercent || 0}%)
                   </label>
                   <input
@@ -567,20 +567,20 @@ export default function ProjectListPage() {
 
               {/* Delivery Date */}
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">Committed Delivery Target</label>
+                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Committed Delivery Target</label>
                 <input
                   type="date"
                   value={editFormData.deliveryDate ? editFormData.deliveryDate.split('T')[0] : ''}
                   onChange={(e) => setEditFormData({ ...editFormData, deliveryDate: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
+                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)]"
                 />
               </div>
 
-              <div className="p-4 border-t border-[#EBE3DB] bg-[#FAF7F2] -mx-5 -mb-5 rounded-b-2xl flex justify-end gap-3">
+              <div className="p-4 border-t border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)] -mx-5 -mb-5 rounded-b-2xl flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setEditingProject(null)}
-                  className="px-4 py-2 bg-white border border-[#EBE3DB] text-[#544B45] font-semibold rounded-lg hover:bg-slate-50 transition"
+                  className="px-4 py-2 bg-white border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold rounded-lg hover:bg-slate-50 transition"
                 >
                   Cancel
                 </button>
@@ -599,17 +599,17 @@ export default function ProjectListPage() {
       {/* MODAL: DELETE CONFIRMATION */}
       {deletingProject && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center space-y-4">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center space-y-4">
             <Trash2 className="w-12 h-12 text-rose-500 mx-auto" />
-            <h3 className="text-base font-bold text-[#211B17]">Delete Project Record?</h3>
-            <p className="text-xs text-[#70665F]">
+            <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">Delete Project Record?</h3>
+            <p className="text-xs text-[color:var(--crm-text-secondary)]">
               Are you sure you want to delete project{' '}
-              <strong className="text-[#211B17]">{deletingProject.projectNumber}</strong> ({deletingProject.productName})?
+              <strong className="text-[color:var(--crm-text-primary)]">{deletingProject.projectNumber}</strong> ({deletingProject.productName})?
             </p>
-            <div className="pt-3 border-t border-[#EBE3DB] flex justify-center gap-3">
+            <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex justify-center gap-3">
               <button
                 onClick={() => setDeletingProject(null)}
-                className="px-4 py-2 bg-white border border-[#EBE3DB] text-[#544B45] font-semibold text-xs rounded-lg"
+                className="px-4 py-2 bg-white border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold text-xs rounded-lg"
               >
                 Cancel
               </button>
@@ -627,11 +627,11 @@ export default function ProjectListPage() {
       {/* CREATE PROJECT FROM CUSTOMER PO MODAL */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
-            <div className="p-4 border-b border-[#EBE3DB] bg-[#FAF7F2] flex items-center justify-between">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
+            <div className="p-4 border-b border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Briefcase className="w-5 h-5 text-crm-brand-700" />
-                <h3 className="font-bold text-[#211B17] text-sm">Create New Project (From Customer PO)</h3>
+                <h3 className="font-bold text-[color:var(--crm-text-primary)] text-sm">Create New Project (From Customer PO)</h3>
               </div>
               <button
                 onClick={() => {
@@ -639,7 +639,7 @@ export default function ProjectListPage() {
                   setSelectedPOId('');
                   setErrorMsg('');
                 }}
-                className="p-1 rounded-lg text-[#70665F] hover:bg-white transition cursor-pointer"
+                className="p-1 rounded-lg text-[color:var(--crm-text-secondary)] hover:bg-white transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -658,9 +658,9 @@ export default function ProjectListPage() {
               )}
 
               <div>
-                <label className="block text-xs font-bold text-[#544B45] mb-1.5 flex items-center justify-between">
+                <label className="block text-xs font-bold text-[color:var(--crm-text-secondary)] mb-1.5 flex items-center justify-between">
                   <span>Select Customer Purchase Order (Customer PO) *</span>
-                  <span className="text-[11px] font-mono text-[#7C3AED]">
+                  <span className="text-[11px] font-mono text-[color:var(--crm-brand-600)]">
                     {availableCustomerPOs.length} Unassigned POs Available
                   </span>
                 </label>
@@ -675,7 +675,7 @@ export default function ProjectListPage() {
                       setSelectedPOId(e.target.value);
                       setErrorMsg('');
                     }}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-crm-brand-700 text-[#211B17]"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-crm-brand-700 text-[color:var(--crm-text-primary)]"
                   >
                     <option value="">-- Choose Customer PO to Create Project --</option>
                     {availableCustomerPOs.map((po) => (
@@ -688,7 +688,7 @@ export default function ProjectListPage() {
               </div>
 
               {selectedPOId && (
-                <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] space-y-3 text-xs">
+                <div className="p-4 bg-[color:var(--crm-bg-app)] rounded-xl border border-[color:var(--crm-border-default)] space-y-3 text-xs">
                   {(() => {
                     const po = customerPOs.find((p) => p.id === selectedPOId || p.poNumber === selectedPOId);
                     if (!po) return null;
@@ -706,31 +706,31 @@ export default function ProjectListPage() {
                     return (
                       <>
                         <div className="flex justify-between font-semibold">
-                          <span className="text-[#70665F]">Customer / Client:</span>
-                          <span className="text-[#211B17] font-bold">{po.customerName}</span>
+                          <span className="text-[color:var(--crm-text-secondary)]">Customer / Client:</span>
+                          <span className="text-[color:var(--crm-text-primary)] font-bold">{po.customerName}</span>
                         </div>
                         <div className="flex justify-between font-semibold">
-                          <span className="text-[#70665F]">Customer PO Number:</span>
+                          <span className="text-[color:var(--crm-text-secondary)]">Customer PO Number:</span>
                           <span className="font-mono text-crm-brand-700 font-bold">{po.poNumber}</span>
                         </div>
                         <div className="flex justify-between font-semibold">
-                          <span className="text-[#70665F]">Linked Quotation:</span>
+                          <span className="text-[color:var(--crm-text-secondary)]">Linked Quotation:</span>
                           <span className="font-mono text-purple-700 font-bold">{po.quotationNumber || qtn?.quotationNumber || 'Direct PO'}</span>
                         </div>
                         <div className="flex justify-between font-semibold">
-                          <span className="text-[#70665F]">Equipment / Machine:</span>
-                          <span className="text-[#211B17] font-bold truncate max-w-xs">{machineName}</span>
+                          <span className="text-[color:var(--crm-text-secondary)]">Equipment / Machine:</span>
+                          <span className="text-[color:var(--crm-text-primary)] font-bold truncate max-w-xs">{machineName}</span>
                         </div>
                         <div className="flex justify-between font-semibold">
-                          <span className="text-[#70665F]">Confirmed Order Value:</span>
+                          <span className="text-[color:var(--crm-text-secondary)]">Confirmed Order Value:</span>
                           <span className="font-mono text-emerald-700 font-bold">{formatCurrency(po.poAmount)}</span>
                         </div>
                         <div className="flex justify-between font-semibold">
-                          <span className="text-[#70665F]">Committed Delivery Date:</span>
-                          <span className="font-mono text-[#544B45] font-bold">{formatDate(po.deliveryDate)}</span>
+                          <span className="text-[color:var(--crm-text-secondary)]">Committed Delivery Date:</span>
+                          <span className="font-mono text-[color:var(--crm-text-secondary)] font-bold">{formatDate(po.deliveryDate)}</span>
                         </div>
 
-                        <div className="pt-2 border-t border-[#EBE3DB] flex justify-between text-[11px] font-mono font-bold text-crm-brand-700">
+                        <div className="pt-2 border-t border-[color:var(--crm-border-default)] flex justify-between text-[11px] font-mono font-bold text-crm-brand-700">
                           <span>Auto Project ID: PRJ-2026-xxx</span>
                         </div>
                       </>
@@ -740,14 +740,14 @@ export default function ProjectListPage() {
               )}
             </div>
 
-            <div className="p-4 border-t border-[#EBE3DB] bg-[#FAF7F2] flex justify-end gap-2">
+            <div className="p-4 border-t border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)] flex justify-end gap-2">
               <button
                 onClick={() => {
                   setIsCreateModalOpen(false);
                   setSelectedPOId('');
                   setErrorMsg('');
                 }}
-                className="px-4 py-2 bg-white border border-[#EBE3DB] hover:bg-slate-50 text-[#544B45] font-bold rounded-xl transition cursor-pointer"
+                className="px-4 py-2 bg-white border border-[color:var(--crm-border-default)] hover:bg-slate-50 text-[color:var(--crm-text-secondary)] font-bold rounded-xl transition cursor-pointer"
               >
                 Cancel
               </button>

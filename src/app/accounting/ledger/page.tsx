@@ -415,9 +415,9 @@ export default function GeneralLedgerPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-[#FAF7F2] text-[#211B17]">
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)]">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#EBE3DB] shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
         <div className="flex items-center gap-3.5">
           <div className="p-3 bg-amber-50 text-amber-700 rounded-2xl border border-amber-200">
             <BookOpen className="w-7 h-7" />
@@ -426,7 +426,7 @@ export default function GeneralLedgerPage() {
             <div className="text-[11px] font-semibold tracking-wider uppercase text-slate-400 mb-0.5">
               ACCOUNTING &amp; FINANCE / GENERAL LEDGER
             </div>
-            <h1 className="text-xl font-black text-[#211B17] tracking-tight flex items-center gap-2">
+            <h1 className="text-xl font-black text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2">
               <span>Account Ledger Book</span>
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold border border-amber-300 font-mono">
                 {selectedAccount.accountCode}
@@ -441,7 +441,7 @@ export default function GeneralLedgerPage() {
         <div className="flex items-center gap-2 print:hidden">
           <button
             onClick={() => printContent('printable-ledger-report', { title: `Ledger_${selectedAccount.accountCode}_${selectedAccount.accountName}` })}
-            className="px-3.5 py-2.5 bg-white border border-[#EBE3DB] hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+            className="px-3.5 py-2.5 bg-white border border-[color:var(--crm-border-default)] hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
           >
             <Printer className="w-4 h-4 text-slate-600" />
             <span>Print Ledger</span>
@@ -450,7 +450,7 @@ export default function GeneralLedgerPage() {
       </div>
 
       {/* Account & Date Selection Control Bar */}
-      <div className="bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-xs space-y-4 print:hidden">
+      <div className="bg-white p-5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs space-y-4 print:hidden">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Account Selector */}
           <div>
@@ -549,7 +549,7 @@ export default function GeneralLedgerPage() {
 
       {/* Account Info & Balance Summary Banner */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4.5 rounded-2xl border border-[#EBE3DB] shadow-xs space-y-1">
+        <div className="bg-white p-4.5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs space-y-1">
           <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
             Opening Balance
           </div>
@@ -562,7 +562,7 @@ export default function GeneralLedgerPage() {
           <div className="text-[10px] text-slate-400">As of starting period</div>
         </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-[#EBE3DB] shadow-xs space-y-1">
+        <div className="bg-white p-4.5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs space-y-1">
           <div className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider">
             Total Debits (Dr)
           </div>
@@ -572,7 +572,7 @@ export default function GeneralLedgerPage() {
           <div className="text-[10px] text-slate-400">Total inward / debited</div>
         </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-[#EBE3DB] shadow-xs space-y-1">
+        <div className="bg-white p-4.5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs space-y-1">
           <div className="text-[11px] font-semibold text-rose-600 uppercase tracking-wider">
             Total Credits (Cr)
           </div>
@@ -582,7 +582,7 @@ export default function GeneralLedgerPage() {
           <div className="text-[10px] text-slate-400">Total outward / credited</div>
         </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-[#EBE3DB] shadow-xs space-y-1 bg-amber-50/20">
+        <div className="bg-white p-4.5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs space-y-1 bg-amber-50/20">
           <div className="text-[11px] font-semibold text-amber-800 uppercase tracking-wider">
             Closing Balance
           </div>

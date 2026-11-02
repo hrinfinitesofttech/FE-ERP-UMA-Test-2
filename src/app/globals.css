@@ -1,33 +1,33 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --crm-font-sans: "Manrope", "Inter", "Segoe UI", sans-serif;
+  --crm-font-sans: "Inter", "Segoe UI", sans-serif;
 
-  --crm-brand-50: #f8f0e8;
-  --crm-brand-100: #f0dfce;
-  --crm-brand-200: #dec0a1;
-  --crm-brand-300: #c99c70;
-  --crm-brand-400: #b67f48;
-  --crm-brand-500: #a96b34;
-  --crm-brand-600: #8f5228;
-  --crm-brand-700: #75401f;
-  --crm-brand-800: #5f3218;
-  --crm-brand-900: #442313;
+  --crm-brand-50: #eff4ff;
+  --crm-brand-100: #dbe6fe;
+  --crm-brand-200: #bfd2fe;
+  --crm-brand-300: #93b4fd;
+  --crm-brand-400: #608cfa;
+  --crm-brand-500: #3b68f0;
+  --crm-brand-600: #2a4fd6;
+  --crm-brand-700: #1f3fb0;
+  --crm-brand-800: #1b3489;
+  --crm-brand-900: #172b6b;
 
-  --crm-bg-app: #fbf8f3;
-  --crm-bg-sidebar: #fffdfc;
+  --crm-bg-app: #f4f6fa;
+  --crm-bg-sidebar: #ffffff;
   --crm-surface-card: #ffffff;
-  --crm-surface-subtle: #f5efe7;
-  --crm-text-primary: #211b17;
-  --crm-text-secondary: #70665f;
-  --crm-text-tertiary: #8d827a;
+  --crm-surface-subtle: #eef1f7;
+  --crm-text-primary: #0f172a;
+  --crm-text-secondary: #475467;
+  --crm-text-tertiary: #7a8699;
   --crm-text-inverse: #ffffff;
-  --crm-border-default: #e7ded5;
-  --crm-border-strong: #d5cac0;
+  --crm-border-default: #e2e7ef;
+  --crm-border-strong: #cbd3e0;
 
   --crm-status-info: #0e91b2;
   --crm-status-info-soft: #ddf5fa;
@@ -54,8 +54,8 @@
   --crm-radius-xl: 16px;
   --crm-radius-pill: 999px;
 
-  --crm-shadow-subtle: 0 1px 2px rgb(33 27 23 / 5%);
-  --crm-shadow-card: 0 4px 16px rgb(77 50 32 / 7%);
+  --crm-shadow-subtle: 0 1px 2px rgb(15 23 42 / 5%);
+  --crm-shadow-card: 0 4px 16px rgb(15 23 42 / 7%);
 
   /* Backward Compatibility Variables */
   --color-primary: var(--crm-brand-700);
@@ -88,9 +88,9 @@
 
 /* Client overrides should replace primitives only; semantic usage stays stable. */
 [data-crm-theme="client"] {
-  --crm-brand-500: var(--client-brand-accent, #a96b34);
-  --crm-brand-700: var(--client-brand-primary, #75401f);
-  --crm-brand-800: var(--client-brand-hover, #5f3218);
+  --crm-brand-500: var(--client-brand-accent, #3b68f0);
+  --crm-brand-700: var(--client-brand-primary, #1f3fb0);
+  --crm-brand-800: var(--client-brand-hover, #1b3489);
 }
 
 body, .crm-app {
@@ -133,7 +133,7 @@ aside a[class*="bg-crm-brand-700"] span:not([class*="font-mono"]) {
 }
 
 aside a[class*="bg-crm-brand-700"]:hover {
-  background-color: var(--crm-brand-800, #5f3218) !important;
+  background-color: var(--crm-brand-800, #1b3489) !important;
   color: #ffffff !important;
 }
 
@@ -191,19 +191,19 @@ select {
 }
 
 select:hover {
-  border-color: var(--crm-brand-500, #a96b34) !important;
+  border-color: var(--crm-brand-500, #3b68f0) !important;
 }
 
 select:focus {
   outline: none !important;
-  border-color: var(--crm-brand-700, #75401f) !important;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--crm-brand-700, #75401f), transparent 80%) !important;
+  border-color: var(--crm-brand-700, #1f3fb0) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--crm-brand-700, #1f3fb0), transparent 80%) !important;
 }
 
 /* Styled option elements */
 select option {
   background-color: var(--crm-surface-card, #ffffff);
-  color: var(--crm-text-primary, #211b17);
+  color: var(--crm-text-primary, #0f172a);
   padding: 8px 12px;
   font-weight: 500;
 }
@@ -232,8 +232,8 @@ html.dark div[class*="bg-[#F4EFEA]"],
   background-color: #080c14 !important;
 }
 
-html.dark div[class*="border-[#E6DDD2]"],
-[data-theme="obsidianDark"] div[class*="border-[#E6DDD2]"] {
+html.dark div[class*="border-[#D2D8E7]"],
+[data-theme="obsidianDark"] div[class*="border-[#D2D8E7]"] {
   border-color: #1e293b !important;
   box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6) !important;
 }
@@ -248,31 +248,31 @@ html.dark .bg-\[\#ffffff\],
 }
 
 /* 3. Subtle / Cream / Warm Stone Backgrounds (Headers, Inner panels, Table heads) */
-html.dark .bg-\[\#FAF7F2\],
+html.dark .bg-\[\#F4F6FA\],
 html.dark .bg-\[\#FCFAF7\],
-html.dark .bg-\[\#FBF8F3\],
-html.dark .bg-\[\#F5EFE7\],
-html.dark .bg-\[\#F3ECE4\],
-html.dark .bg-\[\#F3EDE4\],
-html.dark .bg-\[\#FAF0E6\],
-html.dark .bg-\[\#F6F1EA\],
+html.dark .bg-\[\#F4F6FA\],
+html.dark .bg-\[\#EEF1F7\],
+html.dark .bg-\[\#EEF1F7\],
+html.dark .bg-\[\#E6E9F1\],
+html.dark .bg-\[\#F1F4FA\],
+html.dark .bg-\[\#EBEEF5\],
 html.dark .bg-\[\#FCF5ED\],
-html.dark .bg-\[\#F2EBE1\],
-html.dark .bg-\[\#FAF6EE\],
+html.dark .bg-\[\#E3E7F0\],
+html.dark .bg-\[\#F1F3F7\],
 html.dark .bg-\[\#F4EFEA\],
 html.dark .bg-slate-50,
 html.dark .bg-slate-100,
-[data-theme="obsidianDark"] .bg-\[\#FAF7F2\],
+[data-theme="obsidianDark"] .bg-\[\#F4F6FA\],
 [data-theme="obsidianDark"] .bg-\[\#FCFAF7\],
-[data-theme="obsidianDark"] .bg-\[\#FBF8F3\],
-[data-theme="obsidianDark"] .bg-\[\#F5EFE7\],
-[data-theme="obsidianDark"] .bg-\[\#F3ECE4\],
-[data-theme="obsidianDark"] .bg-\[\#F3EDE4\],
-[data-theme="obsidianDark"] .bg-\[\#FAF0E6\],
-[data-theme="obsidianDark"] .bg-\[\#F6F1EA\],
+[data-theme="obsidianDark"] .bg-\[\#F4F6FA\],
+[data-theme="obsidianDark"] .bg-\[\#EEF1F7\],
+[data-theme="obsidianDark"] .bg-\[\#EEF1F7\],
+[data-theme="obsidianDark"] .bg-\[\#E6E9F1\],
+[data-theme="obsidianDark"] .bg-\[\#F1F4FA\],
+[data-theme="obsidianDark"] .bg-\[\#EBEEF5\],
 [data-theme="obsidianDark"] .bg-\[\#FCF5ED\],
-[data-theme="obsidianDark"] .bg-\[\#F2EBE1\],
-[data-theme="obsidianDark"] .bg-\[\#FAF6EE\],
+[data-theme="obsidianDark"] .bg-\[\#E3E7F0\],
+[data-theme="obsidianDark"] .bg-\[\#F1F3F7\],
 [data-theme="obsidianDark"] .bg-\[\#F4EFEA\],
 [data-theme="obsidianDark"] .bg-slate-50,
 [data-theme="obsidianDark"] .bg-slate-100 {
@@ -281,100 +281,100 @@ html.dark .bg-slate-100,
 }
 
 /* Transparent overlays */
-html.dark [class*="bg-[#FAF7F2]/"],
-[data-theme="obsidianDark"] [class*="bg-[#FAF7F2]/"] {
+html.dark [class*="bg-[#F4F6FA]/"],
+[data-theme="obsidianDark"] [class*="bg-[#F4F6FA]/"] {
   background-color: rgba(11, 17, 32, 0.7) !important;
 }
 
 /* 4. Borders */
-html.dark .border-\[\#EDE5DC\],
-html.dark .border-\[\#EBE3DB\],
-html.dark .border-\[\#E5DDD0\],
-html.dark .border-\[\#E7DED5\],
-html.dark .border-\[\#D5CAC0\],
-html.dark .border-\[\#E6DDD2\],
-html.dark .border-\[\#E5DCD3\],
-html.dark .border-\[\#D5C7B8\],
-html.dark .border-\[\#F2ECE4\],
-html.dark .border-\[\#E9DFD3\],
-html.dark .border-\[\#E0D7CC\],
-html.dark .border-\[\#EAE2D8\],
+html.dark .border-\[\#DDE1EC\],
+html.dark .border-\[\#E2E7EF\],
+html.dark .border-\[\#D0D6E5\],
+html.dark .border-\[\#E2E7EF\],
+html.dark .border-\[\#CBD3E0\],
+html.dark .border-\[\#D2D8E7\],
+html.dark .border-\[\#E2E7EF\],
+html.dark .border-\[\#BAC2D3\],
+html.dark .border-\[\#E5E9F1\],
+html.dark .border-\[\#D4DAE8\],
+html.dark .border-\[\#CDD2DF\],
+html.dark .border-\[\#D8DDEA\],
 html.dark .border-slate-100,
 html.dark .border-slate-200,
-html.dark .divide-\[\#EDE5DC\] > * + *,
-html.dark .divide-\[\#F2ECE4\] > * + *,
-[data-theme="obsidianDark"] .border-\[\#EDE5DC\],
-[data-theme="obsidianDark"] .border-\[\#EBE3DB\],
-[data-theme="obsidianDark"] .border-\[\#E5DDD0\],
-[data-theme="obsidianDark"] .border-\[\#E7DED5\],
-[data-theme="obsidianDark"] .border-\[\#D5CAC0\],
-[data-theme="obsidianDark"] .border-\[\#E6DDD2\],
-[data-theme="obsidianDark"] .border-\[\#E5DCD3\],
-[data-theme="obsidianDark"] .border-\[\#D5C7B8\],
-[data-theme="obsidianDark"] .border-\[\#F2ECE4\],
-[data-theme="obsidianDark"] .border-\[\#E9DFD3\],
-[data-theme="obsidianDark"] .border-\[\#E0D7CC\],
-[data-theme="obsidianDark"] .border-\[\#EAE2D8\],
+html.dark .divide-\[\#DDE1EC\] > * + *,
+html.dark .divide-\[\#E5E9F1\] > * + *,
+[data-theme="obsidianDark"] .border-\[\#DDE1EC\],
+[data-theme="obsidianDark"] .border-\[\#E2E7EF\],
+[data-theme="obsidianDark"] .border-\[\#D0D6E5\],
+[data-theme="obsidianDark"] .border-\[\#E2E7EF\],
+[data-theme="obsidianDark"] .border-\[\#CBD3E0\],
+[data-theme="obsidianDark"] .border-\[\#D2D8E7\],
+[data-theme="obsidianDark"] .border-\[\#E2E7EF\],
+[data-theme="obsidianDark"] .border-\[\#BAC2D3\],
+[data-theme="obsidianDark"] .border-\[\#E5E9F1\],
+[data-theme="obsidianDark"] .border-\[\#D4DAE8\],
+[data-theme="obsidianDark"] .border-\[\#CDD2DF\],
+[data-theme="obsidianDark"] .border-\[\#D8DDEA\],
 [data-theme="obsidianDark"] .border-slate-100,
 [data-theme="obsidianDark"] .border-slate-200,
-[data-theme="obsidianDark"] .divide-\[\#EDE5DC\] > * + *,
-[data-theme="obsidianDark"] .divide-\[\#F2ECE4\] > * + * {
+[data-theme="obsidianDark"] .divide-\[\#DDE1EC\] > * + *,
+[data-theme="obsidianDark"] .divide-\[\#E5E9F1\] > * + * {
   border-color: #1e293b !important;
 }
 
 /* 5. Typography: Dark brown/black text becomes bright white */
-html.dark .text-\[\#211B17\],
-html.dark .text-\[\#3E2723\],
-[data-theme="obsidianDark"] .text-\[\#211B17\],
-[data-theme="obsidianDark"] .text-\[\#3E2723\] {
+html.dark .text-\[\#0F172A\],
+html.dark .text-\[\#0F172A\],
+[data-theme="obsidianDark"] .text-\[\#0F172A\],
+[data-theme="obsidianDark"] .text-\[\#0F172A\] {
   color: #f8fafc !important;
 }
 
 /* Secondary muted text */
-html.dark .text-\[\#544B45\],
-html.dark .text-\[\#4A3B32\],
-html.dark .text-\[\#6E5D53\],
-html.dark .text-\[\#70665F\],
-html.dark .text-\[\#8D7B70\],
-html.dark .text-\[\#8D827A\],
-html.dark .text-\[\#8C7D72\],
-html.dark .text-\[\#8C7A6F\],
-html.dark .text-\[\#9E8E82\],
-html.dark .text-\[\#6F6156\],
-[data-theme="obsidianDark"] .text-\[\#544B45\],
-[data-theme="obsidianDark"] .text-\[\#4A3B32\],
-[data-theme="obsidianDark"] .text-\[\#6E5D53\],
-[data-theme="obsidianDark"] .text-\[\#70665F\],
-[data-theme="obsidianDark"] .text-\[\#8D7B70\],
-[data-theme="obsidianDark"] .text-\[\#8D827A\],
-[data-theme="obsidianDark"] .text-\[\#8C7D72\],
-[data-theme="obsidianDark"] .text-\[\#8C7A6F\],
-[data-theme="obsidianDark"] .text-\[\#9E8E82\],
-[data-theme="obsidianDark"] .text-\[\#6F6156\] {
+html.dark .text-\[\#3C465D\],
+html.dark .text-\[\#30394C\],
+html.dark .text-\[\#4B5876\],
+html.dark .text-\[\#475467\],
+html.dark .text-\[\#63739A\],
+html.dark .text-\[\#7A8699\],
+html.dark .text-\[\#63749B\],
+html.dark .text-\[\#627299\],
+html.dark .text-\[\#7886A8\],
+html.dark .text-\[\#4D5A78\],
+[data-theme="obsidianDark"] .text-\[\#3C465D\],
+[data-theme="obsidianDark"] .text-\[\#30394C\],
+[data-theme="obsidianDark"] .text-\[\#4B5876\],
+[data-theme="obsidianDark"] .text-\[\#475467\],
+[data-theme="obsidianDark"] .text-\[\#63739A\],
+[data-theme="obsidianDark"] .text-\[\#7A8699\],
+[data-theme="obsidianDark"] .text-\[\#63749B\],
+[data-theme="obsidianDark"] .text-\[\#627299\],
+[data-theme="obsidianDark"] .text-\[\#7886A8\],
+[data-theme="obsidianDark"] .text-\[\#4D5A78\] {
   color: #94a3b8 !important;
 }
 
 /* Accent copper titles become neon cyan/sky in dark mode */
-html.dark .text-\[\#9C6538\],
-[data-theme="obsidianDark"] .text-\[\#9C6538\] {
+html.dark .text-\[\#2A4FD6\],
+[data-theme="obsidianDark"] .text-\[\#2A4FD6\] {
   color: #38bdf8 !important;
 }
 
 /* 6. Dashboard Hero Banner (Turn beige gradient into cosmic midnight) */
-html.dark [class*="from-[#FAF3EA]"],
-[data-theme="obsidianDark"] [class*="from-[#FAF3EA]"] {
+html.dark [class*="from-[#EFF4FF]"],
+[data-theme="obsidianDark"] [class*="from-[#EFF4FF]"] {
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0b1120 100%) !important;
   border-color: #1e293b !important;
 }
 
 /* 7. Hover States */
-html.dark .hover\:bg-\[\#FAF7F2\]:hover,
-html.dark .hover\:bg-\[\#F3EDE4\]:hover,
-html.dark .hover\:bg-\[\#F3ECE4\]:hover,
+html.dark .hover\:bg-\[\#F4F6FA\]:hover,
+html.dark .hover\:bg-\[\#E6E9F1\]:hover,
+html.dark .hover\:bg-\[\#EEF1F7\]:hover,
 html.dark .hover\:bg-white:hover,
-[data-theme="obsidianDark"] .hover\:bg-\[\#FAF7F2\]:hover,
-[data-theme="obsidianDark"] .hover\:bg-\[\#F3EDE4\]:hover,
-[data-theme="obsidianDark"] .hover\:bg-\[\#F3ECE4\]:hover,
+[data-theme="obsidianDark"] .hover\:bg-\[\#F4F6FA\]:hover,
+[data-theme="obsidianDark"] .hover\:bg-\[\#E6E9F1\]:hover,
+[data-theme="obsidianDark"] .hover\:bg-\[\#EEF1F7\]:hover,
 [data-theme="obsidianDark"] .hover\:bg-white:hover {
   background-color: #1a253a !important;
 }
@@ -399,8 +399,8 @@ html.dark textarea::placeholder,
 }
 
 /* Topbar Global Search Button */
-html.dark button[class*="bg-[#FAF7F2]"],
-[data-theme="obsidianDark"] button[class*="bg-[#FAF7F2]"] {
+html.dark button[class*="bg-[#F4F6FA]"],
+[data-theme="obsidianDark"] button[class*="bg-[#F4F6FA]"] {
   background-color: #0b1120 !important;
   border-color: #1e293b !important;
   color: #94a3b8 !important;
@@ -414,10 +414,10 @@ html.dark kbd,
 }
 
 /* 9. Metric Badges (Avoid muddy light brown circles in dark cards) */
-html.dark .bg-\[\#F6E7D8\],
-html.dark .bg-\[\#EFE8DE\],
-[data-theme="obsidianDark"] .bg-\[\#F6E7D8\],
-[data-theme="obsidianDark"] .bg-\[\#EFE8DE\] {
+html.dark .bg-\[\#E8EDF8\],
+html.dark .bg-\[\#DFE4EE\],
+[data-theme="obsidianDark"] .bg-\[\#E8EDF8\],
+[data-theme="obsidianDark"] .bg-\[\#DFE4EE\] {
   background-color: #1e293b !important;
   color: #38bdf8 !important;
 }
@@ -662,7 +662,7 @@ table {
 input[type="date"] {
   font-family: var(--crm-font-mono, monospace), sans-serif;
   letter-spacing: -0.01em;
-  accent-color: var(--crm-brand-700, #75401f);
+  accent-color: var(--crm-brand-700, #1f3fb0);
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator {
@@ -674,7 +674,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator:hover {
-  background-color: rgba(117, 64, 31, 0.1);
+  background-color: rgba(31, 63, 176, 0.1);
   filter: invert(0.2) sepia(0.5) saturate(3) hue-rotate(350deg);
   transform: scale(1.1);
 }
@@ -724,31 +724,31 @@ select:not([multiple]) {
 }
 
 select:not([multiple]):hover {
-  border-color: var(--crm-brand-400, #b67f48);
+  border-color: var(--crm-brand-400, #608cfa);
 }
 
 select:not([multiple]):focus {
   outline: none;
-  border-color: var(--crm-brand-700, #75401f) !important;
-  box-shadow: 0 0 0 3px rgba(117, 64, 31, 0.12) !important;
+  border-color: var(--crm-brand-700, #1f3fb0) !important;
+  box-shadow: 0 0 0 3px rgba(31, 63, 176, 0.12) !important;
 }
 
 select option {
   background-color: #ffffff;
-  color: #211b17;
+  color: #0f172a;
   padding: 8px 12px;
   font-size: 13px;
 }
 
 select option:checked {
-  background-color: var(--crm-brand-50, #f8f0e8);
-  color: var(--crm-brand-700, #75401f);
+  background-color: var(--crm-brand-50, #eff4ff);
+  color: var(--crm-brand-700, #1f3fb0);
   font-weight: 600;
 }
 
 select:disabled {
-  background-color: #f5efe7 !important;
-  color: #8d827a !important;
+  background-color: #eef1f7 !important;
+  color: #7a8699 !important;
   cursor: not-allowed;
   opacity: 0.65;
 }
@@ -1110,3 +1110,66 @@ body.erp-print-landscape {
 
 
 
+
+/* ------------------------------------------------------------------
+   Readability pass (applies app-wide)
+   - numbers/IDs use the normal UI font with tabular figures instead of monospace
+   - tiny 9-10px labels are raised to a comfortable minimum
+   - very wide letter-spacing on uppercase labels is toned down
+   ------------------------------------------------------------------ */
+.font-mono {
+  font-family: var(--crm-font-sans), "Segoe UI", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: normal;
+}
+code,
+pre,
+kbd,
+samp {
+  font-family: ui-monospace, "JetBrains Mono", "Consolas", monospace;
+}
+.text-\[9px\],
+.text-\[10px\],
+.text-\[10\.5px\],
+.text-\[11px\] {
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+.text-\[12px\] {
+  font-size: 13px;
+}
+.tracking-widest {
+  letter-spacing: 0.06em;
+}
+.tracking-wider {
+  letter-spacing: 0.035em;
+}
+
+
+/* ------------------------------------------------------------------
+   Icon style: one consistent, lighter stroke across the whole app
+   ------------------------------------------------------------------ */
+svg.lucide {
+  stroke-width: 1.75;
+}
+
+/* ------------------------------------------------------------------
+   Typography scale: slightly larger base, lighter heavy weights
+   ------------------------------------------------------------------ */
+html {
+  font-size: 103%; /* ~16.5px root */
+}
+body {
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+.font-black {
+  font-weight: 800;
+}
+.font-extrabold {
+  font-weight: 700;
+}
+h1, h2, h3, h4 {
+  letter-spacing: -0.01em;
+}

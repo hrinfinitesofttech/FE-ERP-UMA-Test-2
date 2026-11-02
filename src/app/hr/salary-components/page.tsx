@@ -36,32 +36,32 @@ export default function SalaryComponentsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-white text-[#211B17] ">
+    <div className="p-6 space-y-6 bg-white text-[color:var(--crm-text-primary)] ">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2">
             <Calculator className="w-7 h-7 text-crm-brand-500" />
             Configurable Salary Component Master
           </h1>
-          <p className="text-sm text-[#70665F] mt-1">
+          <p className="text-sm text-[color:var(--crm-text-secondary)] mt-1">
             Indian Statutory Formula Engine: PF, ESI, Professional Tax, TDS & Employer Contribution Rules
           </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-[#211B17] font-semibold text-sm rounded-lg shadow-md transition"
+          className="flex items-center gap-2 px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-[color:var(--crm-text-primary)] font-semibold text-sm rounded-lg shadow-md transition"
         >
           <Plus className="w-4 h-4" /> Add Salary Component Rule
         </button>
       </div>
 
       {/* Components Table */}
-      <div className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl overflow-hidden shadow-xl">
+      <div className="bg-white/80 border border-[#E2E7EF]/60 rounded-xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="bg-white/80 border-b border-[#EBE3DB] text-xs font-semibold text-[#70665F] uppercase tracking-wider">
+              <tr className="bg-white/80 border-b border-[color:var(--crm-border-default)] text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">
                 <th className="p-4">Code</th>
                 <th className="p-4">Component Name</th>
                 <th className="p-4">Category Type</th>
@@ -70,22 +70,22 @@ export default function SalaryComponentsPage() {
                 <th className="p-4">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EBE3DB] text-[#3E2723]">
+            <tbody className="divide-y divide-[color:var(--crm-border-default)] text-[color:var(--crm-text-primary)]">
               {salaryComponents.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-xs text-[#70665F]">
+                  <td colSpan={6} className="py-12 text-center text-xs text-[color:var(--crm-text-secondary)]">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <Calculator className="w-8 h-8 text-[#A8988C] opacity-50" />
-                      <p className="font-semibold text-[#544B45]">No salary components defined</p>
-                      <p className="text-[11px] text-[#8C7A6F]">Click Define Component to configure earnings, deductions or statutory heads.</p>
+                      <Calculator className="w-8 h-8 text-[color:var(--crm-text-tertiary)] opacity-50" />
+                      <p className="font-semibold text-[color:var(--crm-text-secondary)]">No salary components defined</p>
+                      <p className="text-[11px] text-[color:var(--crm-text-tertiary)]">Click Define Component to configure earnings, deductions or statutory heads.</p>
                     </div>
                   </td>
                 </tr>
               ) : (
                 salaryComponents.map((comp) => (
-                  <tr key={comp.id} className="hover:bg-[#FAF7F2]/40 transition">
+                  <tr key={comp.id} className="hover:bg-[#F4F6FA]/40 transition">
                     <td className="p-4 font-mono text-xs text-crm-brand-700 font-bold">{comp.componentCode}</td>
-                    <td className="p-4 font-bold text-[#211B17]">{comp.componentName}</td>
+                    <td className="p-4 font-bold text-[color:var(--crm-text-primary)]">{comp.componentName}</td>
                     <td className="p-4">
                       <span
                         className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
@@ -93,19 +93,19 @@ export default function SalaryComponentsPage() {
                             ? 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/20'
                             : comp.componentType === 'Deduction'
                             ? 'bg-rose-500/10 text-rose-700 border border-rose-500/20'
-                            : 'bg-[#FAF7F2] text-[#75401F] border border-[#D5CAC0]'
+                            : 'bg-[color:var(--crm-bg-app)] text-[color:var(--crm-brand-700)] border border-[color:var(--crm-border-strong)]'
                         }`}
                       >
                         {comp.componentType}
                       </span>
                     </td>
-                    <td className="p-4 font-mono text-xs text-[#544B45]">
-                      <div className="font-semibold text-[#3E2723]">{comp.calculationType}</div>
+                    <td className="p-4 font-mono text-xs text-[color:var(--crm-text-secondary)]">
+                      <div className="font-semibold text-[color:var(--crm-text-primary)]">{comp.calculationType}</div>
                       {comp.percentageOrFormula && <div className="text-amber-700">{comp.percentageOrFormula}</div>}
                     </td>
                     <td className="p-4 text-xs">
                       <div>Taxable: {comp.isTaxable ? <span className="text-amber-700 font-semibold">Yes</span> : 'No'}</div>
-                      <div>Statutory: {comp.isStatutory ? <span className="text-[#75401F] font-semibold">Statutory Rule</span> : 'Standard'}</div>
+                      <div>Statutory: {comp.isStatutory ? <span className="text-[color:var(--crm-brand-700)] font-semibold">Statutory Rule</span> : 'Standard'}</div>
                     </td>
                     <td className="p-4 text-xs font-semibold text-emerald-700">{comp.status}</td>
                   </tr>
@@ -119,36 +119,36 @@ export default function SalaryComponentsPage() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <h2 className="text-lg font-bold text-[#211B17] flex items-center gap-2">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <h2 className="text-lg font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                 <Calculator className="w-5 h-5 text-crm-brand-500" /> Define Salary Component
               </h2>
-              <button onClick={() => setShowModal(false)} className="text-[#70665F] hover:text-[#211B17]">
+              <button onClick={() => setShowModal(false)} className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-3 text-xs">
               <div>
-                <label className="block text-[#70665F] mb-1">Component Name *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] mb-1">Component Name *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Production Performance Incentive"
                   value={formData.componentName}
                   onChange={(e) => setFormData({ ...formData, componentName: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
+                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] mb-1">Type</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1">Type</label>
                   <select
                     value={formData.componentType}
                     onChange={(e) => setFormData({ ...formData, componentType: e.target.value as any })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)]"
                   >
                     <option value="Earning">Earning</option>
                     <option value="Deduction">Deduction</option>
@@ -156,11 +156,11 @@ export default function SalaryComponentsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[#70665F] mb-1">Calculation Method</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1">Calculation Method</label>
                   <select
                     value={formData.calculationType}
                     onChange={(e) => setFormData({ ...formData, calculationType: e.target.value as any })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)]"
                   >
                     <option value="Fixed Amount">Fixed Amount</option>
                     <option value="Percentage of Basic">Percentage of Basic</option>
@@ -170,21 +170,21 @@ export default function SalaryComponentsPage() {
               </div>
 
               <div>
-                <label className="block text-[#70665F] mb-1">Formula / Rate Description</label>
+                <label className="block text-[color:var(--crm-text-secondary)] mb-1">Formula / Rate Description</label>
                 <input
                   type="text"
                   placeholder="e.g. 12% of Basic Salary"
                   value={formData.percentageOrFormula}
                   onChange={(e) => setFormData({ ...formData, percentageOrFormula: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
+                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)]"
                 />
               </div>
 
-              <div className="pt-3 border-t border-[#EBE3DB] flex justify-end gap-3">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-white text-[#544B45] font-semibold rounded-lg">
+              <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex justify-end gap-3">
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-white text-[color:var(--crm-text-secondary)] font-semibold rounded-lg">
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-[#211B17] font-semibold rounded-lg">
+                <button type="submit" className="px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-[color:var(--crm-text-primary)] font-semibold rounded-lg">
                   Save Component Rule
                 </button>
               </div>

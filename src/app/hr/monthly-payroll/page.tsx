@@ -15,22 +15,22 @@ export default function MonthlyPayrollPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-white text-[#211B17] ">
+    <div className="p-6 space-y-6 bg-white text-[color:var(--crm-text-primary)] ">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2">
-            <Banknote className="w-7 h-7 text-green-400" />
+          <h1 className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2">
+            <Banknote className="w-7 h-7 text-green-700" />
             Monthly Payroll Processing Engine
           </h1>
-          <p className="text-sm text-[#70665F] mt-1">
+          <p className="text-sm text-[color:var(--crm-text-secondary)] mt-1">
             Automated Calculation: Attendance Days + LOP + OT + Salary Structure - Loan EMI - TDS = Net Pay
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={handleRunPayroll}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 text-[#211B17] font-semibold text-sm rounded-lg shadow-md transition"
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 text-[color:var(--crm-text-primary)] font-semibold text-sm rounded-lg shadow-md transition"
           >
             <Play className="w-4 h-4" /> Run Payroll for {selectedMonth}
           </button>
@@ -38,11 +38,11 @@ export default function MonthlyPayrollPage() {
       </div>
 
       {/* Payroll Workflow Execution Steps Banner */}
-      <div className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl p-5 space-y-3">
-        <h3 className="text-xs font-bold text-[#70665F] uppercase tracking-wider">Automated 9-Step Integrated Payroll Flow</h3>
+      <div className="bg-white/80 border border-[#E2E7EF]/60 rounded-xl p-5 space-y-3">
+        <h3 className="text-xs font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">Automated 9-Step Integrated Payroll Flow</h3>
         <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-2 text-center text-xs">
           {['1. Attendance', '2. Leave LOP', '3. Overtime', '4. Salary Struct', '5. Advances', '6. Expenses', '7. Tax Deduct', '8. Calculation', '9. Accounting'].map((step, idx) => (
-            <div key={idx} className="p-2 bg-white/80 rounded border border-[#EBE3DB] text-[#544B45] font-semibold text-[11px]">
+            <div key={idx} className="p-2 bg-white/80 rounded border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold text-[11px]">
               {step}
             </div>
           ))}
@@ -50,15 +50,15 @@ export default function MonthlyPayrollPage() {
       </div>
 
       {/* Payroll Records List */}
-      <div className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl overflow-hidden shadow-xl">
-        <div className="p-4 border-b border-[#EBE3DB] flex items-center justify-between">
-          <h3 className="font-bold text-[#211B17] text-base">Generated Monthly Payroll Statements</h3>
-          <span className="text-xs text-[#70665F] font-mono">Period: {selectedMonth} ({financialYear})</span>
+      <div className="bg-white/80 border border-[#E2E7EF]/60 rounded-xl overflow-hidden shadow-xl">
+        <div className="p-4 border-b border-[color:var(--crm-border-default)] flex items-center justify-between">
+          <h3 className="font-bold text-[color:var(--crm-text-primary)] text-base">Generated Monthly Payroll Statements</h3>
+          <span className="text-xs text-[color:var(--crm-text-secondary)] font-mono">Period: {selectedMonth} ({financialYear})</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="bg-white/80 border-b border-[#EBE3DB] text-xs font-semibold text-[#70665F] uppercase tracking-wider">
+              <tr className="bg-white/80 border-b border-[color:var(--crm-border-default)] text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">
                 <th className="p-4">Payroll Ref</th>
                 <th className="p-4">Employee</th>
                 <th className="p-4">Days (Present / LOP)</th>
@@ -69,37 +69,37 @@ export default function MonthlyPayrollPage() {
                 <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EBE3DB] text-[#3E2723]">
+            <tbody className="divide-y divide-[color:var(--crm-border-default)] text-[color:var(--crm-text-primary)]">
               {payrollRecords.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-xs text-[#70665F]">
+                  <td colSpan={7} className="py-12 text-center text-xs text-[color:var(--crm-text-secondary)]">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <Banknote className="w-8 h-8 text-[#A8988C] opacity-50" />
-                      <p className="font-semibold text-[#544B45]">No payroll records processed</p>
-                      <p className="text-[11px] text-[#8C7A6F]">Click &quot;Calculate Monthly Payroll&quot; to compute biometric attendance, earnings, PF &amp; net payouts.</p>
+                      <Banknote className="w-8 h-8 text-[color:var(--crm-text-tertiary)] opacity-50" />
+                      <p className="font-semibold text-[color:var(--crm-text-secondary)]">No payroll records processed</p>
+                      <p className="text-[11px] text-[color:var(--crm-text-tertiary)]">Click &quot;Calculate Monthly Payroll&quot; to compute biometric attendance, earnings, PF &amp; net payouts.</p>
                     </div>
                   </td>
                 </tr>
               ) : (
                 payrollRecords.map((pay) => (
-                  <tr key={pay.id} className="hover:bg-[#FAF7F2]/40 transition">
+                  <tr key={pay.id} className="hover:bg-[#F4F6FA]/40 transition">
                     <td className="p-4 font-mono text-xs text-emerald-600 font-bold">{pay.payrollNumber}</td>
                     <td className="p-4">
-                      <div className="font-bold text-[#211B17]">{pay.employeeName}</div>
-                      <div className="text-xs text-[#70665F]">{pay.department} | {pay.designation}</div>
+                      <div className="font-bold text-[color:var(--crm-text-primary)]">{pay.employeeName}</div>
+                      <div className="text-xs text-[color:var(--crm-text-secondary)]">{pay.department} | {pay.designation}</div>
                     </td>
                     <td className="p-4 text-xs font-mono">
                       <div className="text-emerald-600 font-semibold">Present: {pay.presentDays}/{pay.workingDays}</div>
                       {pay.lossOfPayDays > 0 && <div className="text-rose-600">LOP: {pay.lossOfPayDays} Days</div>}
                       {pay.overtimeHours > 0 && <div className="text-amber-600">OT: +{pay.overtimeHours} Hrs</div>}
                     </td>
-                    <td className="p-4 font-mono text-xs text-[#3E2723]">
-                      <div className="font-bold text-[#211B17]">₹{pay.grossEarnings?.toLocaleString()}</div>
-                      <div className="text-[11px] text-[#70665F]">Basic: ₹{pay.basicSalary?.toLocaleString()}</div>
+                    <td className="p-4 font-mono text-xs text-[color:var(--crm-text-primary)]">
+                      <div className="font-bold text-[color:var(--crm-text-primary)]">₹{pay.grossEarnings?.toLocaleString()}</div>
+                      <div className="text-[11px] text-[color:var(--crm-text-secondary)]">Basic: ₹{pay.basicSalary?.toLocaleString()}</div>
                     </td>
                     <td className="p-4 font-mono text-xs text-rose-600">
                       <div className="font-bold">-₹{pay.totalDeductions?.toLocaleString()}</div>
-                      <div className="text-[11px] text-[#70665F]">PF: ₹{pay.pfDeduction} | PT: ₹{pay.ptDeduction}</div>
+                      <div className="text-[11px] text-[color:var(--crm-text-secondary)]">PF: ₹{pay.pfDeduction} | PT: ₹{pay.ptDeduction}</div>
                     </td>
                     <td className="p-4 font-mono text-sm font-extrabold text-emerald-600">
                       ₹{pay.netSalary?.toLocaleString()}
@@ -118,7 +118,7 @@ export default function MonthlyPayrollPage() {
                     <td className="p-4 text-right">
                       <Link
                         href="/hr/payslips"
-                        className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-white text-[#211B17] text-xs font-semibold rounded border border-[#EBE3DB] transition inline-flex items-center min-h-[36px]"
+                        className="px-3 py-1.5 bg-[color:var(--crm-bg-app)] hover:bg-white text-[color:var(--crm-text-primary)] text-xs font-semibold rounded border border-[color:var(--crm-border-default)] transition inline-flex items-center min-h-[36px]"
                       >
                         Payslip PDF
                       </Link>

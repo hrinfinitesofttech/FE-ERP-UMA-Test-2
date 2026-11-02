@@ -106,7 +106,7 @@ export default function Customer360Page() {
 
   if (!customer) {
     return (
-      <div className="p-8 text-center text-[#70665F] text-xs">
+      <div className="p-8 text-center text-[color:var(--crm-text-secondary)] text-xs">
         <p>Customer account not found.</p>
         <Link href="/crm/customers" className="text-crm-brand-700 font-bold underline mt-2 block">
           Return to Customer Directory
@@ -124,7 +124,7 @@ export default function Customer360Page() {
       </Link>
 
       {/* Top 360° Header */}
-      <div className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl p-6 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-white border border-slate-200 dark:border-[color:var(--crm-border-default)] rounded-2xl p-6 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
@@ -134,47 +134,47 @@ export default function Customer360Page() {
               <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-mono text-[10px] font-bold uppercase border border-amber-300">
                 {customer.category} Account
               </span>
-              <span className="text-[#70665F] font-mono">GST: {customer.gstin || 'N/A'}</span>
+              <span className="text-[color:var(--crm-text-secondary)] font-mono">GST: {customer.gstin || 'N/A'}</span>
             </div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-[#211B17] mt-1">{customer.companyName}</h1>
-            <p className="text-[#70665F]">{customer.industry} • Account Manager: {customer.assignedSalesPerson || 'Sales Team'}</p>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-[color:var(--crm-text-primary)] mt-1">{customer.companyName}</h1>
+            <p className="text-[color:var(--crm-text-secondary)]">{customer.industry} • Account Manager: {customer.assignedSalesPerson || 'Sales Team'}</p>
           </div>
 
-          <div className="bg-slate-50 dark:bg-[#FAF7F2] p-3.5 rounded-xl border border-slate-200 dark:border-[#EBE3DB] text-right">
-            <span className="text-[10px] text-[#70665F] font-semibold uppercase block">Total Lifetime Orders</span>
+          <div className="bg-slate-50 dark:bg-[color:var(--crm-bg-app)] p-3.5 rounded-xl border border-slate-200 dark:border-[color:var(--crm-border-default)] text-right">
+            <span className="text-[10px] text-[color:var(--crm-text-secondary)] font-semibold uppercase block">Total Lifetime Orders</span>
             <span className="text-base font-extrabold text-emerald-600 block">{formatCurrency(totalBusinessValue)}</span>
-            <span className="text-[10px] text-[#70665F] block">{relatedSalesOrders.length} Confirmed Projects</span>
+            <span className="text-[10px] text-[color:var(--crm-text-secondary)] block">{relatedSalesOrders.length} Confirmed Projects</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-100 dark:border-[#EBE3DB] text-[11px]">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-100 dark:border-[color:var(--crm-border-default)] text-[11px]">
           <div>
-            <span className="text-[#70665F] block">Primary Contact</span>
-            <span className="font-bold text-slate-800 dark:text-[#544B45]">{customer.contactPerson}</span>
-            <span className="text-[#70665F] block">{customer.designation}</span>
+            <span className="text-[color:var(--crm-text-secondary)] block">Primary Contact</span>
+            <span className="font-bold text-slate-800 dark:text-[color:var(--crm-text-secondary)]">{customer.contactPerson}</span>
+            <span className="text-[color:var(--crm-text-secondary)] block">{customer.designation}</span>
           </div>
           <div>
-            <span className="text-[#70665F] block">Contact Info</span>
-            <span className="font-bold text-slate-800 dark:text-[#544B45]">{customer.mobile}</span>
-            <span className="text-[#70665F] block">{customer.email || 'No email registered'}</span>
+            <span className="text-[color:var(--crm-text-secondary)] block">Contact Info</span>
+            <span className="font-bold text-slate-800 dark:text-[color:var(--crm-text-secondary)]">{customer.mobile}</span>
+            <span className="text-[color:var(--crm-text-secondary)] block">{customer.email || 'No email registered'}</span>
           </div>
           <div>
-            <span className="text-[#70665F] block">Payment Terms</span>
-            <span className="font-semibold text-slate-700 dark:text-[#544B45]">{customer.paymentTerms}</span>
+            <span className="text-[color:var(--crm-text-secondary)] block">Payment Terms</span>
+            <span className="font-semibold text-slate-700 dark:text-[color:var(--crm-text-secondary)]">{customer.paymentTerms}</span>
             {Boolean(customer.creditPeriodDays) && (
-              <span className="text-[#70665F] block text-[10px]">{customer.creditPeriodDays} Days Credit Period</span>
+              <span className="text-[color:var(--crm-text-secondary)] block text-[10px]">{customer.creditPeriodDays} Days Credit Period</span>
             )}
           </div>
           <div>
-            <span className="text-[#70665F] block">Credit Limit</span>
-            <span className="font-mono font-bold text-slate-800 dark:text-[#544B45]">{formatCurrency(customer.creditLimit)}</span>
-            <span className="text-[#70665F] block text-[10px] capitalize">Status: {(customer as any).status || 'Active'}</span>
+            <span className="text-[color:var(--crm-text-secondary)] block">Credit Limit</span>
+            <span className="font-mono font-bold text-slate-800 dark:text-[color:var(--crm-text-secondary)]">{formatCurrency(customer.creditLimit)}</span>
+            <span className="text-[color:var(--crm-text-secondary)] block text-[10px] capitalize">Status: {(customer as any).status || 'Active'}</span>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-[#EBE3DB] space-x-2 font-medium overflow-x-auto">
+      <div className="flex border-b border-slate-200 dark:border-[color:var(--crm-border-default)] space-x-2 font-medium overflow-x-auto">
         {[
           { id: 'orders', label: `Sales Orders (${relatedSalesOrders.length})`, icon: Layers },
           { id: 'projects', label: `MTO Projects (${relatedProjects.length})`, icon: Briefcase },
@@ -192,7 +192,7 @@ export default function Customer360Page() {
               className={`flex items-center gap-1.5 py-2.5 px-3.5 border-b-2 transition whitespace-nowrap ${
                 isActive
                   ? 'border-crm-brand-700 text-crm-brand-700 font-bold'
-                  : 'border-transparent text-[#70665F] hover:text-slate-800'
+                  : 'border-transparent text-[color:var(--crm-text-secondary)] hover:text-slate-800'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -203,21 +203,21 @@ export default function Customer360Page() {
       </div>
 
       {/* Tab Content */}
-      <div className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl p-5 shadow-sm space-y-3">
+      <div className="bg-white dark:bg-white border border-slate-200 dark:border-[color:var(--crm-border-default)] rounded-2xl p-5 shadow-sm space-y-3">
         {activeTab === 'orders' && (
           <div className="space-y-3">
-            <h3 className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Customer Sales Orders History</h3>
+            <h3 className="font-bold text-sm text-slate-800 dark:text-[color:var(--crm-text-secondary)]">Customer Sales Orders History</h3>
             {relatedSalesOrders.length === 0 ? (
               <p className="text-slate-500 py-4 text-center">No sales orders registered yet.</p>
             ) : (
               relatedSalesOrders.map((so) => (
-                <div key={so.id} className="p-3.5 bg-slate-50 dark:bg-[#FAF7F2]/60 rounded-xl border flex items-center justify-between">
+                <div key={so.id} className="p-3.5 bg-slate-50 dark:bg-[#F4F6FA]/60 rounded-xl border flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-mono font-bold text-crm-brand-700">{so.salesOrderNumber}</span>
-                      <span className="text-[#70665F] font-mono text-[10px]">PO: {so.customerPoNumber}</span>
+                      <span className="text-[color:var(--crm-text-secondary)] font-mono text-[10px]">PO: {so.customerPoNumber}</span>
                     </div>
-                    <span className="font-semibold text-slate-900 dark:text-[#211B17] block mt-0.5">{so.items[0]?.productName}</span>
+                    <span className="font-semibold text-slate-900 dark:text-[color:var(--crm-text-primary)] block mt-0.5">{so.items[0]?.productName}</span>
                   </div>
                   <div className="text-right">
                     <span className="font-bold text-emerald-600 block">{formatCurrency(so.orderValue)}</span>
@@ -231,22 +231,22 @@ export default function Customer360Page() {
 
         {activeTab === 'projects' && (
           <div className="space-y-3">
-            <h3 className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Active Manufacturing Jobs</h3>
+            <h3 className="font-bold text-sm text-slate-800 dark:text-[color:var(--crm-text-secondary)]">Active Manufacturing Jobs</h3>
             {relatedProjects.length === 0 ? (
               <p className="text-slate-500 py-4 text-center">No active projects found.</p>
             ) : (
               relatedProjects.map((p) => (
-                <div key={p.id} className="p-3.5 bg-slate-50 dark:bg-[#FAF7F2]/60 rounded-xl border flex items-center justify-between">
+                <div key={p.id} className="p-3.5 bg-slate-50 dark:bg-[#F4F6FA]/60 rounded-xl border flex items-center justify-between">
                   <div>
                     <span className="font-mono font-bold text-crm-brand-700 block">{p.projectNumber} • {p.jobNumber}</span>
-                    <span className="font-semibold text-slate-800 dark:text-[#544B45] block">{p.productName}</span>
-                    <span className="text-[10px] text-[#70665F]">Lead: {p.projectManager} • Delivery: {formatDate(p.deliveryDate)}</span>
+                    <span className="font-semibold text-slate-800 dark:text-[color:var(--crm-text-secondary)] block">{p.productName}</span>
+                    <span className="text-[10px] text-[color:var(--crm-text-secondary)]">Lead: {p.projectManager} • Delivery: {formatDate(p.deliveryDate)}</span>
                   </div>
                   <div className="text-right">
                     <span className="px-2 py-0.5 rounded uppercase font-mono text-[10px] font-bold bg-purple-100 text-purple-800">
                       {p.status}
                     </span>
-                    <span className="block font-bold text-slate-700 dark:text-[#544B45] mt-1">{p.progressPercent}% Complete</span>
+                    <span className="block font-bold text-slate-700 dark:text-[color:var(--crm-text-secondary)] mt-1">{p.progressPercent}% Complete</span>
                   </div>
                 </div>
               ))
@@ -256,15 +256,15 @@ export default function Customer360Page() {
 
         {activeTab === 'quotations' && (
           <div className="space-y-3">
-            <h3 className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Historical Quotations & Revisions</h3>
+            <h3 className="font-bold text-sm text-slate-800 dark:text-[color:var(--crm-text-secondary)]">Historical Quotations & Revisions</h3>
             {relatedQuotations.length === 0 ? (
               <p className="text-slate-500 py-4 text-center">No quotations created yet.</p>
             ) : (
               relatedQuotations.map((q) => (
-                <div key={q.id} className="p-3.5 bg-slate-50 dark:bg-[#FAF7F2]/60 rounded-xl border flex items-center justify-between">
+                <div key={q.id} className="p-3.5 bg-slate-50 dark:bg-[#F4F6FA]/60 rounded-xl border flex items-center justify-between">
                   <div>
                     <span className="font-mono font-bold text-crm-brand-700">{q.quotationNumber} ({q.currentRevision})</span>
-                    <span className="text-[#70665F] text-[11px] block">{q.latestSummary?.machineProduct || 'Process Equipment'}</span>
+                    <span className="text-[color:var(--crm-text-secondary)] text-[11px] block">{q.latestSummary?.machineProduct || 'Process Equipment'}</span>
                   </div>
                   <div className="text-right">
                     <span className="font-bold text-emerald-600 block">{formatCurrency(q.latestSummary?.grandTotal || (q.revisions && q.revisions[q.revisions.length - 1]?.grandTotal) || 0)}</span>
@@ -280,18 +280,18 @@ export default function Customer360Page() {
 
         {activeTab === 'visits' && (
           <div className="space-y-3">
-            <h3 className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Plant & Site Visits Record</h3>
+            <h3 className="font-bold text-sm text-slate-800 dark:text-[color:var(--crm-text-secondary)]">Plant & Site Visits Record</h3>
             {relatedVisits.length === 0 ? (
               <p className="text-slate-500 py-4 text-center">No site visits logged for this customer.</p>
             ) : (
               relatedVisits.map((v) => (
-                <div key={v.id} className="p-3.5 bg-slate-50 dark:bg-[#FAF7F2]/60 rounded-xl border">
+                <div key={v.id} className="p-3.5 bg-slate-50 dark:bg-[#F4F6FA]/60 rounded-xl border">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900 dark:text-[#211B17]">{v.purpose}</span>
-                    <span className="text-[#70665F] font-mono text-[10px]">{v.visitDate}</span>
+                    <span className="font-bold text-slate-900 dark:text-[color:var(--crm-text-primary)]">{v.purpose}</span>
+                    <span className="text-[color:var(--crm-text-secondary)] font-mono text-[10px]">{v.visitDate}</span>
                   </div>
-                  <p className="text-[#70665F] text-[11px] mt-1">{v.discussionNotes}</p>
-                  <div className="mt-2 flex items-center justify-between text-[10px] text-[#70665F] font-medium">
+                  <p className="text-[color:var(--crm-text-secondary)] text-[11px] mt-1">{v.discussionNotes}</p>
+                  <div className="mt-2 flex items-center justify-between text-[10px] text-[color:var(--crm-text-secondary)] font-medium">
                     <span>Location: {v.location}</span>
                     <span className="uppercase font-bold text-emerald-600">Outcome: {v.outcome}</span>
                   </div>
@@ -304,7 +304,7 @@ export default function Customer360Page() {
         {activeTab === 'contacts' && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Associated Customer Contacts</h3>
+              <h3 className="font-bold text-sm text-slate-800 dark:text-[color:var(--crm-text-secondary)]">Associated Customer Contacts</h3>
               <span className="text-slate-500 text-[11px]">{combinedContacts.length} Contact(s) Registered</span>
             </div>
             {combinedContacts.length === 0 ? (
@@ -335,7 +335,7 @@ export default function Customer360Page() {
 
         {activeTab === 'details' && (
           <div className="space-y-4">
-            <h3 className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Statutory, Banking & Logistics Details</h3>
+            <h3 className="font-bold text-sm text-slate-800 dark:text-[color:var(--crm-text-secondary)]">Statutory, Banking & Logistics Details</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Statutory & Tax */}
@@ -427,7 +427,7 @@ export default function Customer360Page() {
               {/* Logistics & Dispatch Instructions */}
               <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
                 <div className="flex items-center gap-2 font-bold text-slate-800 text-xs pb-1 border-b border-slate-200">
-                  <Truck className="w-4 h-4 text-amber-600" />
+                  <Truck className="w-4 h-4 text-crm-brand-600" />
                   <span>Logistics & Project Requirements</span>
                 </div>
                 <div className="space-y-1.5 text-[11px]">

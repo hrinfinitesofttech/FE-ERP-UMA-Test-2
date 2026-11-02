@@ -604,14 +604,14 @@ function QuotationFormContent() {
         <ArrowLeft className="w-3.5 h-3.5" /> Back to Quotations
       </Link>
 
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl p-6 shadow-sm space-y-6">
-        <div className="border-b border-[#EBE3DB] pb-4 flex items-center justify-between">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-6 shadow-sm space-y-6">
+        <div className="border-b border-[color:var(--crm-border-default)] pb-4 flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-[#211B17] flex items-center gap-2">
+            <h1 className="text-lg font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
               <FileCheck2 className="w-5 h-5 text-crm-brand-700" />
               Generate Technical & Commercial Quotation (Rev-00)
             </h1>
-            <p className="text-[#70665F] mt-0.5">
+            <p className="text-[color:var(--crm-text-secondary)] mt-0.5">
               Build formal machine quotation with line items, tax calculations, technical scope, and dynamic terms & conditions.
             </p>
           </div>
@@ -622,7 +622,7 @@ function QuotationFormContent() {
 
         {/* Selected Enquiry Autofill Banner */}
         {selectedEnquiry && (
-          <div className="p-3.5 bg-gradient-to-r from-purple-50 via-[#FAF7F2] to-amber-50 border border-purple-200 rounded-xl flex items-center justify-between text-slate-800 shadow-xs">
+          <div className="p-3.5 bg-gradient-to-r from-purple-50 via-[color:var(--crm-bg-app)] to-crm-brand-50 border border-purple-200 rounded-xl flex items-center justify-between text-slate-800 shadow-xs">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-lg bg-purple-700 text-white flex items-center justify-center font-bold text-xs shadow-xs">
                 <Sparkles className="w-4 h-4" />
@@ -631,13 +631,13 @@ function QuotationFormContent() {
                 <span className="font-bold text-slate-900 block text-xs">
                   Quotation for Enquiry: <span className="font-mono text-purple-800 font-extrabold">{selectedEnquiry.enquiryNo || selectedEnquiry.id}</span> — {selectedEnquiry.customerName}
                 </span>
-                <span className="text-[11px] text-[#70665F]">
+                <span className="text-[11px] text-[color:var(--crm-text-secondary)]">
                   Contact: {selectedEnquiry.contactPerson || 'N/A'} ({selectedEnquiry.contactMobile || 'N/A'}) • Machine: <strong className="text-slate-800">{selectedEnquiry.machineProduct}</strong> • Quantity: <strong className="text-slate-800">{selectedEnquiry.quantity || 1} {selectedEnquiry.unitOfMeasure || 'Nos'}</strong>
                 </span>
               </div>
             </div>
             <div className="text-right">
-              <span className="text-[10px] uppercase font-bold text-[#70665F] block">Enquiry Date</span>
+              <span className="text-[10px] uppercase font-bold text-[color:var(--crm-text-secondary)] block">Enquiry Date</span>
               <span className="font-mono font-bold text-purple-700 text-xs">
                 {formatDate(selectedEnquiry.enquiryDate)}
               </span>
@@ -649,7 +649,7 @@ function QuotationFormContent() {
           {/* HEADER METADATA */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-[#544B45] font-semibold mb-1">
+              <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                 Select Customer / Technical Inquiry <span className="text-rose-500">*</span>
               </label>
               <select
@@ -664,7 +664,7 @@ function QuotationFormContent() {
                     : ''
                 }
                 onChange={(e) => handleRecordSelect(e.target.value)}
-                className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-bold text-[#211B17] focus:outline-none focus:border-crm-brand-700"
+                className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg font-bold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-700"
               >
                 <option value="">-- Select Pending Inquiry, Lead, or Customer --</option>
 
@@ -708,30 +708,30 @@ function QuotationFormContent() {
             </div>
 
             <div>
-              <label className="block text-[#544B45] font-semibold mb-1">Quotation Date</label>
+              <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Quotation Date</label>
               <input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-mono font-medium text-[#211B17]"
+                className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg font-mono font-medium text-[color:var(--crm-text-primary)]"
               />
             </div>
 
             <div>
-              <label className="block text-[#544B45] font-semibold mb-1">Valid Until</label>
+              <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Valid Until</label>
               <input
                 type="date"
                 value={validUntil}
                 onChange={(e) => setValidUntil(e.target.value)}
-                className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-mono font-medium text-[#211B17]"
+                className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg font-mono font-medium text-[color:var(--crm-text-primary)]"
               />
             </div>
           </div>
 
           {/* RECIPIENT & CONTACT DETAILS CARD */}
-          <div className="p-4 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl space-y-3 shadow-xs">
+          <div className="p-4 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl space-y-3 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-xs text-[#211B17] flex items-center gap-1.5">
+              <span className="font-bold text-xs text-[color:var(--crm-text-primary)] flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5 text-crm-brand-700" />
                 Quotation Recipient & Contact Details (Email Dispatch Target)
               </span>
@@ -749,21 +749,21 @@ function QuotationFormContent() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1 flex items-center gap-1">
-                  <User className="w-3 h-3 text-[#70665F]" /> Attention / Contact Person
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1 flex items-center gap-1">
+                  <User className="w-3 h-3 text-[color:var(--crm-text-secondary)]" /> Attention / Contact Person
                 </label>
                 <input
                   type="text"
                   value={contactPerson}
                   onChange={(e) => setContactPerson(e.target.value)}
                   placeholder="e.g. Ramesh Patel"
-                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg font-medium text-[#211B17] focus:outline-none focus:border-crm-brand-700"
+                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg font-medium text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-700"
                 />
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1 flex items-center gap-1">
-                  <Mail className="w-3 h-3 text-[#70665F]" />
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1 flex items-center gap-1">
+                  <Mail className="w-3 h-3 text-[color:var(--crm-text-secondary)]" />
                   Recipient Email ID (Quotation will be sent here) <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -772,28 +772,28 @@ function QuotationFormContent() {
                   value={contactEmail}
                   onChange={(e) => setContactEmail(e.target.value)}
                   placeholder="e.g. client@company.com"
-                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg font-medium text-[#211B17] focus:outline-none focus:border-crm-brand-700"
+                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg font-medium text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-700"
                 />
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1 flex items-center gap-1">
-                  <Phone className="w-3 h-3 text-[#70665F]" /> Contact Mobile Number
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1 flex items-center gap-1">
+                  <Phone className="w-3 h-3 text-[color:var(--crm-text-secondary)]" /> Contact Mobile Number
                 </label>
                 <input
                   type="tel"
                   value={contactMobile}
                   onChange={(e) => setContactMobile(e.target.value)}
                   placeholder="e.g. 9876543210"
-                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg font-medium text-[#211B17] focus:outline-none focus:border-crm-brand-700"
+                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg font-medium text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-700"
                 />
               </div>
             </div>
           </div>
 
           {/* LINE ITEMS / MACHINERY TABLE (Image 2) */}
-          <div className="space-y-4 pt-4 border-t border-[#EBE3DB]">
-            <h3 className="font-bold text-sm text-[#211B17]">
+          <div className="space-y-4 pt-4 border-t border-[color:var(--crm-border-default)]">
+            <h3 className="font-bold text-sm text-[color:var(--crm-text-primary)]">
               Equipment / Machine Line Items
             </h3>
 
@@ -802,18 +802,18 @@ function QuotationFormContent() {
               {items.map((item, idx) => (
                 <div
                   key={item.id}
-                  className="p-5 rounded-2xl border border-[#EBE3DB] bg-white space-y-4 shadow-xs"
+                  className="p-5 rounded-2xl border border-[color:var(--crm-border-default)] bg-white space-y-4 shadow-xs"
                 >
                   {/* Machine Name & Add Machine button */}
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-xs font-bold text-[#4A3B32]">
+                      <label className="text-xs font-bold text-[color:var(--crm-text-primary)]">
                         Machine / Item Name * (#{idx + 1})
                       </label>
                       <button
                         type="button"
                         onClick={() => addItem()}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-[#FAF7F2] text-[#3E2723] border border-[#E7DED5] rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>+ Add Machine</span>
@@ -827,7 +827,7 @@ function QuotationFormContent() {
                         value={item.productName}
                         onChange={(e) => handleItemChange(idx, 'productName', e.target.value)}
                         placeholder="e.g. 10 KL SS 316L Limpet Jacketed Reactor"
-                        className="w-full px-3.5 py-2.5 bg-white border border-[#E7DED5] rounded-xl text-xs font-bold text-[#211B17] focus:outline-none focus:border-[#3E2723]"
+                        className="w-full px-3.5 py-2.5 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-xs font-bold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-[color:var(--crm-text-primary)]"
                       />
                       {items.length > 1 && (
                         <button
@@ -845,13 +845,13 @@ function QuotationFormContent() {
                   {/* Item Technical Description with + Add Line */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold text-[#4A3B32]">
+                      <label className="text-xs font-bold text-[color:var(--crm-text-primary)]">
                         Item Technical Description
                       </label>
                       <button
                         type="button"
                         onClick={() => addDescriptionLine(idx)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-[#3E2723] bg-white hover:bg-[#FAF7F2] border border-[#E7DED5] rounded-lg transition shadow-2xs cursor-pointer active:scale-95"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-[color:var(--crm-text-primary)] bg-white hover:bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg transition shadow-2xs cursor-pointer active:scale-95"
                       >
                         <Plus className="w-3 h-3" />
                         <span>+ Add Line</span>
@@ -864,7 +864,7 @@ function QuotationFormContent() {
                         : ['']
                       ).map((line, lineIdx) => (
                         <div key={lineIdx} className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-[#70665F] w-4 shrink-0 font-mono">
+                          <span className="text-xs font-bold text-[color:var(--crm-text-secondary)] w-4 shrink-0 font-mono">
                             {lineIdx + 1}.
                           </span>
                           <input
@@ -878,12 +878,12 @@ function QuotationFormContent() {
                                 ? 'Standard technical specifications'
                                 : 'Shell thk, dish ends, agitator drive, motor rating...'
                             }
-                            className="w-full px-3.5 py-2 bg-white border border-[#E7DED5] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-[#3E2723]"
+                            className="w-full px-3.5 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-[color:var(--crm-text-primary)]"
                           />
                           <button
                             type="button"
                             onClick={() => removeDescriptionLine(idx, lineIdx)}
-                            className="p-1.5 text-rose-400 hover:text-rose-600 rounded-lg transition shrink-0 cursor-pointer"
+                            className="p-1.5 text-rose-700 hover:text-rose-600 rounded-lg transition shrink-0 cursor-pointer"
                             title="Remove Line"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -896,7 +896,7 @@ function QuotationFormContent() {
                   {/* Quantity, Unit Rate, Discount %, GST %, Total Amount */}
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-1">
                     <div>
-                      <label className="block text-[11px] font-bold text-[#70665F] mb-1">
+                      <label className="block text-[11px] font-bold text-[color:var(--crm-text-secondary)] mb-1">
                         Quantity
                       </label>
                       <input
@@ -910,11 +910,11 @@ function QuotationFormContent() {
                             e.target.value === '' ? '' : Number(e.target.value)
                           )
                         }
-                        className="w-full px-3 py-2 bg-white border border-[#E7DED5] rounded-xl text-xs font-mono font-bold text-[#211B17]"
+                        className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-xs font-mono font-bold text-[color:var(--crm-text-primary)]"
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-bold text-[#70665F] mb-1">
+                      <label className="block text-[11px] font-bold text-[color:var(--crm-text-secondary)] mb-1">
                         Unit Rate (₹)
                       </label>
                       <input
@@ -927,11 +927,11 @@ function QuotationFormContent() {
                             e.target.value === '' ? '' : Number(e.target.value)
                           )
                         }
-                        className="w-full px-3 py-2 bg-white border border-[#E7DED5] rounded-xl text-xs font-mono font-bold text-[#211B17]"
+                        className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-xs font-mono font-bold text-[color:var(--crm-text-primary)]"
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-bold text-[#70665F] mb-1">
+                      <label className="block text-[11px] font-bold text-[color:var(--crm-text-secondary)] mb-1">
                         Discount %
                       </label>
                       <input
@@ -944,11 +944,11 @@ function QuotationFormContent() {
                             e.target.value === '' ? '' : Number(e.target.value)
                           )
                         }
-                        className="w-full px-3 py-2 bg-white border border-[#E7DED5] rounded-xl text-xs font-mono text-[#211B17]"
+                        className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-xs font-mono text-[color:var(--crm-text-primary)]"
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-bold text-[#70665F] mb-1">
+                      <label className="block text-[11px] font-bold text-[color:var(--crm-text-secondary)] mb-1">
                         GST %
                       </label>
                       <select
@@ -956,7 +956,7 @@ function QuotationFormContent() {
                         onChange={(e) =>
                           handleItemChange(idx, 'taxPercent', Number(e.target.value))
                         }
-                        className="w-full px-3 py-2 bg-white border border-[#E7DED5] rounded-xl text-xs font-semibold text-[#211B17]"
+                        className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold text-[color:var(--crm-text-primary)]"
                       >
                         <option value={18}>18% GST</option>
                         <option value={12}>12% GST</option>
@@ -965,7 +965,7 @@ function QuotationFormContent() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[11px] font-bold text-[#70665F] mb-1">
+                      <label className="block text-[11px] font-bold text-[color:var(--crm-text-secondary)] mb-1">
                         Total Amount (₹)
                       </label>
                       <div className="w-full px-3 py-2 bg-[#E8F5E9]/60 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800 font-mono flex items-center">
@@ -978,16 +978,16 @@ function QuotationFormContent() {
             </div>
 
             {/* Taxable Subtotal & Grand Total Summary Bar (Image 3) */}
-            <div className="p-4 bg-[#FAF7F2] border border-[#EBE3DB] rounded-2xl flex items-center justify-between flex-wrap gap-4">
-              <div className="text-xs text-[#70665F]">
+            <div className="p-4 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-2xl flex items-center justify-between flex-wrap gap-4">
+              <div className="text-xs text-[color:var(--crm-text-secondary)]">
                 <span>Taxable Subtotal: </span>
-                <strong className="text-[#211B17] font-mono">₹{subTotal.toLocaleString('en-IN')}</strong>
+                <strong className="text-[color:var(--crm-text-primary)] font-mono">₹{subTotal.toLocaleString('en-IN')}</strong>
                 <span className="mx-2">•</span>
                 <span>Total Tax: </span>
-                <strong className="text-[#211B17] font-mono">₹{totalTax.toLocaleString('en-IN')}</strong>
+                <strong className="text-[color:var(--crm-text-primary)] font-mono">₹{totalTax.toLocaleString('en-IN')}</strong>
               </div>
               <div>
-                <span className="text-xs text-[#70665F] font-bold mr-2">Grand Total:</span>
+                <span className="text-xs text-[color:var(--crm-text-secondary)] font-bold mr-2">Grand Total:</span>
                 <span className="text-base font-extrabold text-emerald-700 font-mono">
                   ₹{grandTotal.toLocaleString('en-IN')}
                 </span>
@@ -996,15 +996,15 @@ function QuotationFormContent() {
           </div>
 
           {/* TERMS & CONDITIONS (Image 3) */}
-          <div className="space-y-3 pt-3 border-t border-[#EBE3DB]">
+          <div className="space-y-3 pt-3 border-t border-[color:var(--crm-border-default)]">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-sm text-[#211B17]">
+              <h3 className="font-bold text-sm text-[color:var(--crm-text-primary)]">
                 Terms & Conditions
               </h3>
               <button
                 type="button"
                 onClick={addTermLine}
-                className="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-[#FAF7F2] text-[#3E2723] border border-[#E7DED5] rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
+                className="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>+ Add New</span>
@@ -1014,7 +1014,7 @@ function QuotationFormContent() {
             <div className="space-y-2">
               {termsList.map((term, tIdx) => (
                 <div key={tIdx} className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-[#70665F] w-4 shrink-0 font-mono">
+                  <span className="text-xs font-bold text-[color:var(--crm-text-secondary)] w-4 shrink-0 font-mono">
                     {tIdx + 1}.
                   </span>
                   <input
@@ -1022,12 +1022,12 @@ function QuotationFormContent() {
                     value={term}
                     onChange={(e) => handleTermChange(tIdx, e.target.value)}
                     placeholder="Enter term or condition..."
-                    className="w-full px-3.5 py-2 bg-white border border-[#E7DED5] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-[#3E2723]"
+                    className="w-full px-3.5 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-[color:var(--crm-text-primary)]"
                   />
                   <button
                     type="button"
                     onClick={() => removeTermLine(tIdx)}
-                    className="p-1.5 text-rose-400 hover:text-rose-600 rounded-lg transition shrink-0 cursor-pointer"
+                    className="p-1.5 text-rose-700 hover:text-rose-600 rounded-lg transition shrink-0 cursor-pointer"
                     title="Remove Term"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -1038,16 +1038,16 @@ function QuotationFormContent() {
           </div>
 
           {/* FOOTER ACTIONS (Image 3) */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#EBE3DB]">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[color:var(--crm-border-default)]">
             <Link
               href="/crm/quotations"
-              className="px-5 py-2.5 border border-[#EBE3DB] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs"
+              className="px-5 py-2.5 border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] rounded-xl font-bold transition text-xs"
             >
               Cancel
             </Link>
             <button
               type="submit"
-              className="px-6 py-2.5 bg-[#3E2723] hover:bg-[#2A1810] text-white rounded-xl font-bold transition text-xs shadow-xs active:scale-95 cursor-pointer"
+              className="px-6 py-2.5 bg-[color:var(--crm-text-primary)] hover:bg-[#171A23] text-white rounded-xl font-bold transition text-xs shadow-xs active:scale-95 cursor-pointer"
             >
               Save & Generate Quotation
             </button>
@@ -1060,7 +1060,7 @@ function QuotationFormContent() {
 
 export default function NewQuotationPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-xs text-[#70665F]">Loading quotation editor...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-xs text-[color:var(--crm-text-secondary)]">Loading quotation editor...</div>}>
       <QuotationFormContent />
     </Suspense>
   );

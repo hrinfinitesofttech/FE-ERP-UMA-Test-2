@@ -120,7 +120,7 @@ export default function DepartmentsPage() {
       isCodeLink: true,
       onCodeClick: (dept) => openEditModal(dept),
       cell: (dept) => (
-        <span className="font-mono font-bold text-[#7C3AED] hover:underline cursor-pointer">
+        <span className="font-mono font-bold text-[color:var(--crm-brand-600)] hover:underline cursor-pointer">
           {dept.code}
         </span>
       ),
@@ -276,53 +276,53 @@ export default function DepartmentsPage() {
       {/* CREATE MODAL */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[#EBE3DB]">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[color:var(--crm-border-default)]">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-crm-brand-100 text-crm-brand-800 flex items-center justify-center font-bold">
                   <Building className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-[#211B17]">Add New Department</h3>
-                  <p className="text-[11px] text-[#70665F]">Configure code, manager and workflow details</p>
+                  <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)]">Add New Department</h3>
+                  <p className="text-[11px] text-[color:var(--crm-text-secondary)]">Configure code, manager and workflow details</p>
                 </div>
               </div>
-              <button onClick={() => setShowModal(false)} className="text-[#70665F] hover:text-[#211B17] p-1">
+              <button onClick={() => setShowModal(false)} className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleCreate} className="space-y-3">
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Department Code *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Department Code *</label>
                 <input
                   type="text"
                   required
                   value={code}
                   onChange={(e) => setCode(e.target.value?.toUpperCase())}
                   placeholder="e.g. LOG"
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg font-mono uppercase text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg font-mono uppercase text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500"
                 />
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Department Name *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Department Name *</label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Logistics & Dispatch"
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500"
                 />
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Assigned Manager</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Assigned Manager</label>
                 <select
                   value={managerId}
                   onChange={(e) => setManagerId(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500"
                 >
                   {employees.map((emp) => (
                     <option key={emp.id} value={emp.id}>
@@ -333,21 +333,21 @@ export default function DepartmentsPage() {
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Description</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Description</label>
                 <textarea
                   rows={2}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Responsibilities of this department..."
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-[#EBE3DB] rounded-lg hover:bg-[#FAF7F5] text-[#544B45] font-semibold"
+                  className="px-4 py-2 border border-[color:var(--crm-border-default)] rounded-lg hover:bg-[#FAF7F5] text-[color:var(--crm-text-secondary)] font-semibold"
                 >
                   Cancel
                 </button>
@@ -366,51 +366,51 @@ export default function DepartmentsPage() {
       {/* EDIT MODAL */}
       {editDept && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[#EBE3DB]">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[color:var(--crm-border-default)]">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+                <div className="w-8 h-8 rounded-lg bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center font-bold">
                   <Edit2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-[#211B17]">Edit Department</h3>
-                  <p className="text-[11px] text-[#70665F]">Update name, manager and description</p>
+                  <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)]">Edit Department</h3>
+                  <p className="text-[11px] text-[color:var(--crm-text-secondary)]">Update name, manager and description</p>
                 </div>
               </div>
-              <button onClick={() => setEditDept(null)} className="text-[#70665F] hover:text-[#211B17] p-1">
+              <button onClick={() => setEditDept(null)} className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleUpdate} className="space-y-3">
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Department Code</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Department Code</label>
                 <input
                   type="text"
                   disabled
                   value={editCode}
-                  className="w-full px-3 py-2 bg-gray-100 border border-[#EBE3DB] rounded-lg font-mono uppercase text-[#70665F] cursor-not-allowed"
+                  className="w-full px-3 py-2 bg-gray-100 border border-[color:var(--crm-border-default)] rounded-lg font-mono uppercase text-[color:var(--crm-text-secondary)] cursor-not-allowed"
                 />
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Department Name *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Department Name *</label>
                 <input
                   type="text"
                   required
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   placeholder="Department Name"
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500"
                 />
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Assigned Manager</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Assigned Manager</label>
                 <select
                   value={editManagerId}
                   onChange={(e) => setEditManagerId(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500"
                 >
                   <option value="">Unassigned</option>
                   {employees.map((emp) => (
@@ -422,21 +422,21 @@ export default function DepartmentsPage() {
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Description</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Description</label>
                 <textarea
                   rows={2}
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
                   placeholder="Responsibilities of this department..."
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setEditDept(null)}
-                  className="px-4 py-2 border border-[#EBE3DB] rounded-lg hover:bg-[#FAF7F5] text-[#544B45] font-semibold"
+                  className="px-4 py-2 border border-[color:var(--crm-border-default)] rounded-lg hover:bg-[#FAF7F5] text-[color:var(--crm-text-secondary)] font-semibold"
                 >
                   Cancel
                 </button>
@@ -455,14 +455,14 @@ export default function DepartmentsPage() {
       {/* DELETE CONFIRMATION MODAL */}
       {confirmDeleteDept && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center font-bold flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center font-bold flex-shrink-0">
                 <Trash2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-[#211B17]">Delete Department</h3>
-                <p className="text-xs text-[#70665F]">
+                <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">Delete Department</h3>
+                <p className="text-xs text-[color:var(--crm-text-secondary)]">
                   Code: <span className="font-mono font-bold text-slate-800">{confirmDeleteDept.code}</span>
                 </p>
               </div>
@@ -484,12 +484,12 @@ export default function DepartmentsPage() {
               </p>
             </div>
 
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#EBE3DB]">
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[color:var(--crm-border-default)]">
               <button
                 type="button"
                 disabled={isDeletingDept}
                 onClick={() => setConfirmDeleteDept(null)}
-                className="px-4 py-2 border border-[#EBE3DB] rounded-lg hover:bg-[#FAF7F5] text-[#544B45] font-semibold"
+                className="px-4 py-2 border border-[color:var(--crm-border-default)] rounded-lg hover:bg-[#FAF7F5] text-[color:var(--crm-text-secondary)] font-semibold"
               >
                 Cancel
               </button>

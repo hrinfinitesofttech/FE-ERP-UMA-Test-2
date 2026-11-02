@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 
 export default function ExpensesPage() {
-  const {
+  const { currentUser,
     expenseEntries,
     addExpenseEntry,
     approveExpenseEntry,
@@ -42,7 +42,7 @@ export default function ExpensesPage() {
   const [category, setCategory] = useState('Power & Electricity');
   const [subTotal, setSubTotal] = useState<number | string>('');
   const [gstRate, setGstRate] = useState<number>(18);
-  const [claimedBy, setClaimedBy] = useState('Rajesh Patel');
+  const [claimedBy, setClaimedBy] = useState(currentUser?.name || '');
   const [vendorName, setVendorName] = useState('');
   const [paymentMode, setPaymentMode] = useState('Bank_Transfer');
   const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
@@ -145,16 +145,16 @@ export default function ExpensesPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-[#FAF7F2] min-h-screen text-[#211B17]">
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)] min-h-screen text-[color:var(--crm-text-primary)]">
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#EBE3DB] shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-sm">
         <div className="flex items-center gap-3.5">
           <div className="p-3 bg-orange-500/10 text-orange-600 rounded-xl border border-orange-500/20">
             <Wallet className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-[#211B17]">Factory & Operating Expense Tracker</h1>
-            <p className="text-xs text-[#70665F] mt-0.5">
+            <h1 className="text-xl font-bold text-[color:var(--crm-text-primary)]">Factory & Operating Expense Tracker</h1>
+            <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">
               Admin & Manufacturing Overhead Vouchers • Direct Database & Cash-Flow Sync
             </p>
           </div>
@@ -184,60 +184,60 @@ export default function ExpensesPage() {
 
       {/* KPI Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#70665F]">Total Expenses</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-[color:var(--crm-text-secondary)]">Total Expenses</span>
             <Receipt className="w-5 h-5 text-crm-brand-700" />
           </div>
-          <div className="text-2xl font-extrabold text-[#211B17] mt-2 font-mono">{stats.totalCount}</div>
-          <div className="text-[11px] text-[#70665F] mt-1">₹{stats.totalAmount.toLocaleString()} Total Spent</div>
+          <div className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] mt-2 font-mono">{stats.totalCount}</div>
+          <div className="text-[11px] text-[color:var(--crm-text-secondary)] mt-1">₹{stats.totalAmount.toLocaleString()} Total Spent</div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#70665F]">Pending Approval</span>
-            <Clock className="w-5 h-5 text-amber-500" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-[color:var(--crm-text-secondary)]">Pending Approval</span>
+            <Clock className="w-5 h-5 text-crm-brand-600" />
           </div>
           <div className="text-2xl font-extrabold text-amber-600 mt-2 font-mono">{stats.pendingCount}</div>
           <div className="text-[11px] text-amber-700 font-medium mt-1">₹{stats.pendingAmount.toLocaleString()} Awaiting Approval</div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#70665F]">Approved Vouchers</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-[color:var(--crm-text-secondary)]">Approved Vouchers</span>
             <CheckCircle2 className="w-5 h-5 text-emerald-600" />
           </div>
           <div className="text-2xl font-extrabold text-emerald-600 mt-2 font-mono">{stats.approvedCount}</div>
           <div className="text-[11px] text-emerald-700 font-medium mt-1">₹{stats.approvedAmount.toLocaleString()} Passed for Payment</div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#70665F]">Total Expense Volume</span>
-            <TrendingUp className="w-5 h-5 text-orange-500" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-[color:var(--crm-text-secondary)]">Total Expense Volume</span>
+            <TrendingUp className="w-5 h-5 text-crm-brand-600" />
           </div>
-          <div className="text-2xl font-extrabold text-[#211B17] mt-2 font-mono">
+          <div className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] mt-2 font-mono">
             ₹{stats.totalAmount.toLocaleString()}
           </div>
-          <div className="text-[11px] text-[#70665F] mt-1">Across all categories</div>
+          <div className="text-[11px] text-[color:var(--crm-text-secondary)] mt-1">Across all categories</div>
         </div>
       </div>
 
       {/* Filter & Search Controls */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-[#EBE3DB] shadow-sm">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-[color:var(--crm-border-default)] shadow-sm">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--crm-text-secondary)]" />
           <input
             type="text"
             placeholder="Search expense no, category, claimed by, vendor..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg pl-9 pr-4 py-1.5 text-xs text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+            className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg pl-9 pr-4 py-1.5 text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-          <span className="text-xs text-[#70665F] font-semibold">Status:</span>
+          <span className="text-xs text-[color:var(--crm-text-secondary)] font-semibold">Status:</span>
           {['All', 'Pending_Approval', 'Approved'].map((st) => (
             <button
               key={st}
@@ -245,7 +245,7 @@ export default function ExpensesPage() {
               className={`px-3 py-1 text-xs font-semibold rounded-lg transition ${
                 statusFilter === st
                   ? 'bg-crm-brand-700 text-white shadow-xs'
-                  : 'bg-[#FAF7F2] text-[#544B45] hover:bg-[#EBE3DB]'
+                  : 'bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-border-default)]'
               }`}
             >
               {st === 'Pending_Approval' ? 'Pending' : st}
@@ -255,10 +255,10 @@ export default function ExpensesPage() {
       </div>
 
       {/* Expenses Table */}
-      <div className="bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden shadow-sm">
+      <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-[#544B45]">
-            <thead className="bg-[#FAF7F2] text-[#70665F] uppercase font-bold text-[10px] tracking-wider border-b border-[#EBE3DB]">
+          <table className="w-full text-left text-xs text-[color:var(--crm-text-secondary)]">
+            <thead className="bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] uppercase font-bold text-[10px] tracking-wider border-b border-[color:var(--crm-border-default)]">
               <tr>
                 <th className="py-3.5 px-4">Expense No</th>
                 <th className="py-3.5 px-4">Date</th>
@@ -271,10 +271,10 @@ export default function ExpensesPage() {
                 <th className="py-3.5 px-4 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EBE3DB]">
+            <tbody className="divide-y divide-[color:var(--crm-border-default)]">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-10 text-center text-[#70665F]">
+                  <td colSpan={9} className="py-10 text-center text-[color:var(--crm-text-secondary)]">
                     No expense records found. Click &quot;+ Log Expense Entry&quot; to add a new expense.
                   </td>
                 </tr>
@@ -284,21 +284,21 @@ export default function ExpensesPage() {
                   const displayGrandTotal = Number(e.grandTotal ?? e.totalAmount ?? e.amount ?? 0);
 
                   return (
-                    <tr key={e.id} className="hover:bg-[#FAF7F2]/60 transition font-sans">
+                    <tr key={e.id} className="hover:bg-[#F4F6FA]/60 transition font-sans">
                       <td className="py-3 px-4 font-mono font-bold text-orange-600">{e.expenseNumber || e.id}</td>
-                      <td className="py-3 px-4 text-[#70665F] whitespace-nowrap">{e.expenseDate || e.date}</td>
-                      <td className="py-3 px-4 font-semibold text-[#211B17]">{e.category}</td>
-                      <td className="py-3 px-4 text-[#544B45]">
-                        <div className="font-medium text-[#211B17]">{e.claimedBy}</div>
-                        {e.vendorName && <div className="text-[10px] text-[#70665F] font-mono">Vendor: {e.vendorName}</div>}
+                      <td className="py-3 px-4 text-[color:var(--crm-text-secondary)] whitespace-nowrap">{e.expenseDate || e.date}</td>
+                      <td className="py-3 px-4 font-semibold text-[color:var(--crm-text-primary)]">{e.category}</td>
+                      <td className="py-3 px-4 text-[color:var(--crm-text-secondary)]">
+                        <div className="font-medium text-[color:var(--crm-text-primary)]">{e.claimedBy}</div>
+                        {e.vendorName && <div className="text-[10px] text-[color:var(--crm-text-secondary)] font-mono">Vendor: {e.vendorName}</div>}
                       </td>
-                      <td className="py-3 px-4 text-[#70665F] max-w-xs truncate" title={e.description}>
+                      <td className="py-3 px-4 text-[color:var(--crm-text-secondary)] max-w-xs truncate" title={e.description}>
                         {e.description || '-'}
                       </td>
-                      <td className="py-3 px-4 text-right font-mono text-[#544B45]">
+                      <td className="py-3 px-4 text-right font-mono text-[color:var(--crm-text-secondary)]">
                         ₹{displaySubTotal.toLocaleString()}
                       </td>
-                      <td className="py-3 px-4 text-right font-mono font-bold text-[#211B17]">
+                      <td className="py-3 px-4 text-right font-mono font-bold text-[color:var(--crm-text-primary)]">
                         ₹{displayGrandTotal.toLocaleString()}
                       </td>
                       <td className="py-3 px-4 text-center">
@@ -362,20 +362,20 @@ export default function ExpensesPage() {
       {/* Log Expense Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-orange-100 rounded-xl text-orange-700">
                   <Wallet className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-[#211B17]">Log Factory / Operating Expense</h3>
-                  <p className="text-[11px] text-[#70665F]">Submit overhead expense voucher for approval</p>
+                  <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">Log Factory / Operating Expense</h3>
+                  <p className="text-[11px] text-[color:var(--crm-text-secondary)]">Submit overhead expense voucher for approval</p>
                 </div>
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-[#70665F] hover:text-[#211B17] p-1 rounded-lg hover:bg-gray-100"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1 rounded-lg hover:bg-gray-100"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -384,11 +384,11 @@ export default function ExpensesPage() {
             <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Expense Category *</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Expense Category *</label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500"
                   >
                     <option value="Power & Electricity">Power & Electricity</option>
                     <option value="Factory Maintenance">Factory Maintenance</option>
@@ -402,20 +402,20 @@ export default function ExpensesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Expense Date *</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Expense Date *</label>
                   <input
                     type="date"
                     required
                     value={expenseDate}
                     onChange={(e) => setExpenseDate(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Taxable SubTotal (₹) *</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Taxable SubTotal (₹) *</label>
                   <input
                     type="number"
                     required
@@ -423,16 +423,16 @@ export default function ExpensesPage() {
                     placeholder="e.g. 145000"
                     value={subTotal}
                     onChange={(e) => setSubTotal(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] font-mono focus:outline-none focus:border-crm-brand-500 font-bold"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] font-mono focus:outline-none focus:border-crm-brand-500 font-bold"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">GST Rate</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">GST Rate</label>
                   <select
                     value={gstRate}
                     onChange={(e) => setGstRate(Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500"
                   >
                     <option value={0}>0% (Exempted)</option>
                     <option value={5}>5% GST</option>
@@ -447,11 +447,11 @@ export default function ExpensesPage() {
               {numSubTotal > 0 && (
                 <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-xl flex items-center justify-between text-xs">
                   <div>
-                    <span className="text-[#70665F]">GST ({gstRate}%): </span>
-                    <strong className="font-mono text-[#211B17]">₹{taxAmount.toLocaleString()}</strong>
+                    <span className="text-[color:var(--crm-text-secondary)]">GST ({gstRate}%): </span>
+                    <strong className="font-mono text-[color:var(--crm-text-primary)]">₹{taxAmount.toLocaleString()}</strong>
                   </div>
                   <div>
-                    <span className="text-[#70665F]">Grand Total: </span>
+                    <span className="text-[color:var(--crm-text-secondary)]">Grand Total: </span>
                     <strong className="font-mono text-base text-crm-brand-800">
                       ₹{grandTotal.toLocaleString()}
                     </strong>
@@ -461,23 +461,23 @@ export default function ExpensesPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Claimed By *</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Claimed By *</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. Rajesh Patel"
                     value={claimedBy}
                     onChange={(e) => setClaimedBy(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Payment Mode</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Payment Mode</label>
                   <select
                     value={paymentMode}
                     onChange={(e) => setPaymentMode(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500"
                   >
                     <option value="Bank_Transfer">Bank Transfer (NEFT/RTGS)</option>
                     <option value="Cheque">Cheque</option>
@@ -488,32 +488,32 @@ export default function ExpensesPage() {
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Vendor / Payee Name (Optional)</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Vendor / Payee Name (Optional)</label>
                 <input
                   type="text"
                   placeholder="e.g. MGVCL / Torrent Power / Local Supplier"
                   value={vendorName}
                   onChange={(e) => setVendorName(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500"
                 />
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Description / Bill Ref</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Description / Bill Ref</label>
                 <textarea
                   rows={2}
                   placeholder="e.g. MGVCL Plant 1 Industrial Power Bill - Sep 2026"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500"
                 />
               </div>
 
-              <div className="flex justify-end gap-2.5 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold transition"
+                  className="px-4 py-2 rounded-xl bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold transition"
                 >
                   Cancel
                 </button>

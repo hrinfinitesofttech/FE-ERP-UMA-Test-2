@@ -35,15 +35,15 @@ export default function ReimbursementsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-white text-[#211B17] ">
+    <div className="p-6 space-y-6 bg-white text-[color:var(--crm-text-primary)] ">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2">
             <Receipt className="w-7 h-7 text-rose-400" />
             Reimbursements & Employee Expense Claims
           </h1>
-          <p className="text-sm text-[#70665F] mt-1">
+          <p className="text-sm text-[color:var(--crm-text-secondary)] mt-1">
             Travel, Client Entertainment & On-Site Tool Purchase Expense Claims with Accounting Voucher Integration
           </p>
         </div>
@@ -56,11 +56,11 @@ export default function ReimbursementsPage() {
       </div>
 
       {/* Reimbursements Table */}
-      <div className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl overflow-hidden shadow-xl">
+      <div className="bg-white/80 border border-[#E2E7EF]/60 rounded-xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="bg-white/80 border-b border-[#EBE3DB] text-xs font-semibold text-[#70665F] uppercase tracking-wider">
+              <tr className="bg-white/80 border-b border-[color:var(--crm-border-default)] text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">
                 <th className="p-4">Claim Ref</th>
                 <th className="p-4">Employee</th>
                 <th className="p-4">Category & Date</th>
@@ -70,33 +70,33 @@ export default function ReimbursementsPage() {
                 <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EBE3DB] text-[#3E2723]">
+            <tbody className="divide-y divide-[color:var(--crm-border-default)] text-[color:var(--crm-text-primary)]">
               {reimbursementExpenses.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-xs text-[#70665F]">
+                  <td colSpan={7} className="py-12 text-center text-xs text-[color:var(--crm-text-secondary)]">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <Receipt className="w-8 h-8 text-[#A8988C] opacity-50" />
-                      <p className="font-semibold text-[#544B45]">No reimbursement claims</p>
-                      <p className="text-[11px] text-[#8C7A6F]">No employee expense bills or conveyance claims submitted for approval.</p>
+                      <Receipt className="w-8 h-8 text-[color:var(--crm-text-tertiary)] opacity-50" />
+                      <p className="font-semibold text-[color:var(--crm-text-secondary)]">No reimbursement claims</p>
+                      <p className="text-[11px] text-[color:var(--crm-text-tertiary)]">No employee expense bills or conveyance claims submitted for approval.</p>
                     </div>
                   </td>
                 </tr>
               ) : (
                 reimbursementExpenses.map((exp) => (
-                  <tr key={exp.id} className="hover:bg-[#FAF7F2]/40 transition">
+                  <tr key={exp.id} className="hover:bg-[#F4F6FA]/40 transition">
                     <td className="p-4 font-mono text-xs text-rose-600 font-bold">{exp.reimbursementNo}</td>
                     <td className="p-4">
-                      <div className="font-bold text-[#211B17]">{exp.employeeName}</div>
-                      <div className="text-xs text-[#70665F]">{exp.department}</div>
+                      <div className="font-bold text-[color:var(--crm-text-primary)]">{exp.employeeName}</div>
+                      <div className="text-xs text-[color:var(--crm-text-secondary)]">{exp.department}</div>
                     </td>
-                    <td className="p-4 text-xs font-semibold text-[#544B45]">
+                    <td className="p-4 text-xs font-semibold text-[color:var(--crm-text-secondary)]">
                       <div className="text-rose-600 font-bold">{exp.category}</div>
-                      <div className="text-[#70665F]">{exp.expenseDate}</div>
+                      <div className="text-[color:var(--crm-text-secondary)]">{exp.expenseDate}</div>
                     </td>
                     <td className="p-4 font-mono font-extrabold text-emerald-600 text-sm">
                       ₹{exp.amount?.toLocaleString()}
                     </td>
-                    <td className="p-4 text-xs text-[#544B45] max-w-xs truncate">&quot;{exp.description}&quot;</td>
+                    <td className="p-4 text-xs text-[color:var(--crm-text-secondary)] max-w-xs truncate">&quot;{exp.description}&quot;</td>
                     <td className="p-4">
                       <span
                         className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
@@ -137,23 +137,23 @@ export default function ReimbursementsPage() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <h2 className="text-lg font-bold text-[#211B17] flex items-center gap-2">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <h2 className="text-lg font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                 <Receipt className="w-5 h-5 text-rose-400" /> Submit Expense Claim
               </h2>
-              <button onClick={() => setShowModal(false)} className="text-[#70665F] hover:text-[#211B17]">
+              <button onClick={() => setShowModal(false)} className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-3 text-xs">
               <div>
-                <label className="block text-[#70665F] mb-1">Select Employee</label>
+                <label className="block text-[color:var(--crm-text-secondary)] mb-1">Select Employee</label>
                 <select
                   value={formData.employeeId}
                   onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
+                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)]"
                 >
                   {availableEmployees.map((e) => (
                     <option key={e.id} value={e.id}>
@@ -165,11 +165,11 @@ export default function ReimbursementsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] mb-1">Expense Category</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1">Expense Category</label>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)]"
                   >
                     <option value="Travel / Conveyance">Travel / Conveyance</option>
                     <option value="Client Entertainment">Client Entertainment</option>
@@ -179,28 +179,28 @@ export default function ReimbursementsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[#70665F] mb-1">Amount Claimed (₹)</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1">Amount Claimed (₹)</label>
                   <input
                     type="number"
                     value={formData.amount}
                     onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17] font-mono"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)] font-mono"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[#70665F] mb-1">Expense Description</label>
+                <label className="block text-[color:var(--crm-text-secondary)] mb-1">Expense Description</label>
                 <textarea
                   rows={2}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17]"
+                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)]"
                 ></textarea>
               </div>
 
-              <div className="pt-3 border-t border-[#EBE3DB] flex justify-end gap-3">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-white text-[#544B45] font-semibold rounded-lg">
+              <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex justify-end gap-3">
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-white text-[color:var(--crm-text-secondary)] font-semibold rounded-lg">
                   Cancel
                 </button>
                 <button type="submit" className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-lg shadow-sm transition cursor-pointer">

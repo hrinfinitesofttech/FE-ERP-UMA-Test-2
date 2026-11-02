@@ -12,7 +12,7 @@ import { Receipt, Search, Plus, Filter, CheckCircle2, Clock, Eye, Download, File
 function SalesInvoicesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { salesInvoices, addSalesInvoice, approveSalesInvoice, customers, salesOrders } = useERP();
+  const { currentUser, salesInvoices, addSalesInvoice, approveSalesInvoice, customers, salesOrders } = useERP();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -211,7 +211,7 @@ function SalesInvoicesContent() {
       status: 'Draft',
       paymentStatus: 'Unpaid',
       termsAndConditions: '1. Subject to Vadodara Jurisdiction. 2. Payment due within 30 days.',
-      createdBy: 'Rajesh Patel',
+      createdBy: currentUser?.name || currentUser?.username || '',
     });
 
     setIsModalOpen(false);
@@ -409,11 +409,11 @@ function SalesInvoicesContent() {
       {/* New Invoice Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
               <div>
-                <h3 className="text-base font-bold text-[#211B17]">Generate GST Sales Invoice</h3>
-                <p className="text-[11px] text-[#70665F]">Select a Sales Order to auto-fill customer, items, and pricing</p>
+                <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">Generate GST Sales Invoice</h3>
+                <p className="text-[11px] text-[color:var(--crm-text-secondary)]">Select a Sales Order to auto-fill customer, items, and pricing</p>
               </div>
               <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-semibold rounded-full border border-emerald-200">
                 <Sparkles className="w-3 h-3 text-emerald-600" />
@@ -430,7 +430,7 @@ function SalesInvoicesContent() {
                 <select
                   value={selectedSoId}
                   onChange={(e) => handleSelectSalesOrder(e.target.value)}
-                  className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-[#3E2723] font-medium"
+                  className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-medium"
                 >
                   <option value="DIRECT_INVOICE">-- Direct / Manual Sales Invoice --</option>
                   {salesOrders.map((so) => (
@@ -443,7 +443,7 @@ function SalesInvoicesContent() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] mb-1 font-medium">Customer</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1 font-medium">Customer</label>
                   <select
                     value={customerId}
                     onChange={(e) => {
@@ -455,7 +455,7 @@ function SalesInvoicesContent() {
                         setPlaceOfSupply('Gujarat (24)');
                       }
                     }}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723]"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)]"
                   >
                     {customers.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -466,11 +466,11 @@ function SalesInvoicesContent() {
                 </div>
 
                 <div>
-                  <label className="block text-[#70665F] mb-1 font-medium">Place of Supply (GST Type)</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1 font-medium">Place of Supply (GST Type)</label>
                   <select
                     value={placeOfSupply}
                     onChange={(e) => setPlaceOfSupply(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723]"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)]"
                   >
                     <option value="Gujarat (24)">Gujarat (Intrastate CGST 9% + SGST 9%)</option>
                     <option value="Other State (Interstate IGST)">Other State (Interstate IGST 18%)</option>
@@ -482,31 +482,31 @@ function SalesInvoicesContent() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] mb-1 font-medium">Sales Order Reference</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1 font-medium">Sales Order Reference</label>
                   <input
                     type="text"
                     value={salesOrderNumber}
                     onChange={(e) => setSalesOrderNumber(e.target.value)}
                     placeholder="e.g. SO-2026-0001"
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723]"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[#70665F] mb-1 font-medium">Payment Due Date</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1 font-medium">Payment Due Date</label>
                   <input
                     type="date"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono"
                   />
                 </div>
               </div>
 
               {/* Items Section */}
-              <div className="space-y-2 pt-2 border-t border-[#EBE3DB]">
+              <div className="space-y-2 pt-2 border-t border-[color:var(--crm-border-default)]">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-[#211B17]">Invoice Line Items ({items.length})</span>
+                  <span className="font-bold text-[color:var(--crm-text-primary)]">Invoice Line Items ({items.length})</span>
                   <button
                     type="button"
                     onClick={handleAddItem}
@@ -519,9 +519,9 @@ function SalesInvoicesContent() {
                 {items.map((it, idx) => {
                   const lineTotal = (Number(it.qty) || 0) * (Number(it.unitPrice) || 0);
                   return (
-                    <div key={idx} className="grid grid-cols-12 gap-2 p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] items-end">
+                    <div key={idx} className="grid grid-cols-12 gap-2 p-3 bg-[color:var(--crm-bg-app)] rounded-xl border border-[color:var(--crm-border-default)] items-end">
                       <div className="col-span-5">
-                        <label className="block text-[#70665F] text-[10px]">Description / Product</label>
+                        <label className="block text-[color:var(--crm-text-secondary)] text-[10px]">Description / Product</label>
                         <input
                           type="text"
                           value={it.description}
@@ -530,11 +530,11 @@ function SalesInvoicesContent() {
                             const val = e.target.value;
                             setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, description: val } : item)));
                           }}
-                          className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-[#3E2723] text-xs"
+                          className="w-full bg-white border border-[color:var(--crm-border-default)] rounded-lg px-2.5 py-1.5 text-[color:var(--crm-text-primary)] text-xs"
                         />
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-[#70665F] text-[10px]">HSN/SAC</label>
+                        <label className="block text-[color:var(--crm-text-secondary)] text-[10px]">HSN/SAC</label>
                         <input
                           type="text"
                           value={it.hsnSac}
@@ -542,11 +542,11 @@ function SalesInvoicesContent() {
                             const val = e.target.value;
                             setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, hsnSac: val } : item)));
                           }}
-                          className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-[#3E2723] text-xs font-mono"
+                          className="w-full bg-white border border-[color:var(--crm-border-default)] rounded-lg px-2 py-1.5 text-[color:var(--crm-text-primary)] text-xs font-mono"
                         />
                       </div>
                       <div className="col-span-1">
-                        <label className="block text-[#70665F] text-[10px]">Qty</label>
+                        <label className="block text-[color:var(--crm-text-secondary)] text-[10px]">Qty</label>
                         <input
                           type="number"
                           placeholder="0"
@@ -555,11 +555,11 @@ function SalesInvoicesContent() {
                             const val = e.target.value === '' ? '' : Number(e.target.value);
                             setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, qty: val } : item)));
                           }}
-                          className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-[#3E2723] text-xs text-center"
+                          className="w-full bg-white border border-[color:var(--crm-border-default)] rounded-lg px-2 py-1.5 text-[color:var(--crm-text-primary)] text-xs text-center"
                         />
                       </div>
                       <div className="col-span-3">
-                        <label className="block text-[#70665F] text-[10px]">Unit Rate (₹)</label>
+                        <label className="block text-[color:var(--crm-text-secondary)] text-[10px]">Unit Rate (₹)</label>
                         <input
                           type="number"
                           placeholder="0"
@@ -568,7 +568,7 @@ function SalesInvoicesContent() {
                             const val = e.target.value === '' ? '' : Number(e.target.value);
                             setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, unitPrice: val } : item)));
                           }}
-                          className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-[#3E2723] text-xs text-right font-mono"
+                          className="w-full bg-white border border-[color:var(--crm-border-default)] rounded-lg px-2 py-1.5 text-[color:var(--crm-text-primary)] text-xs text-right font-mono"
                         />
                       </div>
                       <div className="col-span-1 flex justify-center pb-1">
@@ -600,29 +600,29 @@ function SalesInvoicesContent() {
                 const grandTotal = subTotal + totalTax;
 
                 return (
-                  <div className="bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB] space-y-1.5 text-xs">
-                    <div className="flex justify-between text-[#70665F]">
+                  <div className="bg-[color:var(--crm-bg-app)] p-4 rounded-xl border border-[color:var(--crm-border-default)] space-y-1.5 text-xs">
+                    <div className="flex justify-between text-[color:var(--crm-text-secondary)]">
                       <span>Taxable Value (Subtotal):</span>
-                      <span className="font-mono font-semibold text-[#3E2723]">₹{subTotal.toLocaleString('en-IN')}</span>
+                      <span className="font-mono font-semibold text-[color:var(--crm-text-primary)]">₹{subTotal.toLocaleString('en-IN')}</span>
                     </div>
                     {isGujarat ? (
                       <>
-                        <div className="flex justify-between text-[#70665F]">
+                        <div className="flex justify-between text-[color:var(--crm-text-secondary)]">
                           <span>CGST (9%):</span>
                           <span className="font-mono text-amber-700">₹{cgst.toLocaleString('en-IN')}</span>
                         </div>
-                        <div className="flex justify-between text-[#70665F]">
+                        <div className="flex justify-between text-[color:var(--crm-text-secondary)]">
                           <span>SGST (9%):</span>
                           <span className="font-mono text-amber-700">₹{sgst.toLocaleString('en-IN')}</span>
                         </div>
                       </>
                     ) : (
-                      <div className="flex justify-between text-[#70665F]">
+                      <div className="flex justify-between text-[color:var(--crm-text-secondary)]">
                         <span>IGST (18%):</span>
                         <span className="font-mono text-amber-700">₹{igst.toLocaleString('en-IN')}</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-sm font-bold text-[#211B17] pt-2 border-t border-[#EBE3DB]">
+                    <div className="flex justify-between text-sm font-bold text-[color:var(--crm-text-primary)] pt-2 border-t border-[color:var(--crm-border-default)]">
                       <span>Grand Total (Payable):</span>
                       <span className="font-mono text-emerald-600">₹{grandTotal.toLocaleString('en-IN')}</span>
                     </div>
@@ -630,11 +630,11 @@ function SalesInvoicesContent() {
                 );
               })()}
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-white border border-[#EBE3DB] text-[#544B45] hover:bg-gray-50"
+                  className="px-4 py-2 rounded-xl bg-white border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] hover:bg-gray-50"
                 >
                   Cancel
                 </button>
@@ -657,14 +657,14 @@ function SalesInvoicesContent() {
           onClick={() => setSelectedInvoiceForPrint(null)}
         >
           <div
-            className="bg-white border border-[#EBE3DB] rounded-2xl max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-2xl max-h-[92vh] overflow-y-auto text-[#211B17]"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-2xl max-h-[92vh] overflow-y-auto text-[color:var(--crm-text-primary)]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Action Bar (Hidden when printed) */}
-            <div className="flex items-center justify-between pb-4 border-b border-[#EBE3DB] print:hidden">
+            <div className="flex items-center justify-between pb-4 border-b border-[color:var(--crm-border-default)] print:hidden">
               <div className="flex items-center gap-2">
                 <Receipt className="w-5 h-5 text-emerald-600" />
-                <h3 className="text-base font-bold text-[#211B17]">
+                <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">
                   Tax Invoice Preview: <span className="font-mono text-emerald-700">{selectedInvoiceForPrint.invoiceNumber}</span>
                 </h3>
               </div>
@@ -688,7 +688,7 @@ function SalesInvoicesContent() {
                 <button
                   type="button"
                   onClick={() => setSelectedInvoiceForPrint(null)}
-                  className="p-2 rounded-xl text-[#70665F] hover:bg-[#FAF7F2] hover:text-[#211B17] transition cursor-pointer"
+                  className="p-2 rounded-xl text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] hover:text-[color:var(--crm-text-primary)] transition cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -703,10 +703,10 @@ function SalesInvoicesContent() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src="/uma-mark.png" alt="Uma Techno Fab" className="w-12 h-12 object-contain shrink-0 mt-0.5" />
                   <div>
-                    <h1 className="text-xl font-black text-[#18417D] uppercase tracking-tight">UMA TECHNO FAB PVT. LTD.</h1>
-                    <p className="text-[11px] text-[#544B45] font-medium leading-relaxed">
+                    <h1 className="text-xl font-black text-[#1F3FB0] uppercase tracking-tight">UMA TECHNO FAB PVT. LTD.</h1>
+                    <p className="text-[11px] text-[color:var(--crm-text-secondary)] font-medium leading-relaxed">
                       Plot No. 42-45, GIDC Industrial Estate, Manjusar, Savli, Vadodara - 391775, Gujarat, India<br />
-                      GSTIN: <span className="font-mono font-bold text-[#211B17]">24AAACU1234F1Z5</span> • PAN: <span className="font-mono font-bold text-[#211B17]">AAACU1234F</span> • State Code: 24<br />
+                      GSTIN: <span className="font-mono font-bold text-[color:var(--crm-text-primary)]">24AAACU1234F1Z5</span> • PAN: <span className="font-mono font-bold text-[color:var(--crm-text-primary)]">AAACU1234F</span> • State Code: 24<br />
                       Email: accounts@umatechnofab.com • Phone: +91 265 2984110
                     </p>
                   </div>
@@ -715,47 +715,47 @@ function SalesInvoicesContent() {
                   <span className="inline-block px-3 py-1 bg-emerald-800 text-white text-xs font-black uppercase rounded tracking-wider">
                     TAX INVOICE
                   </span>
-                  <div className="text-[11px] font-mono text-[#544B45] mt-1.5">
+                  <div className="text-[11px] font-mono text-[color:var(--crm-text-secondary)] mt-1.5">
                     Original for Recipient
                   </div>
                 </div>
               </div>
 
               {/* Invoice Meta Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB] text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[color:var(--crm-bg-app)] p-4 rounded-xl border border-[color:var(--crm-border-default)] text-xs">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-[#70665F] block">Invoice Number</span>
+                  <span className="text-[10px] uppercase font-bold text-[color:var(--crm-text-secondary)] block">Invoice Number</span>
                   <span className="font-mono font-bold text-emerald-800 text-sm">{selectedInvoiceForPrint.invoiceNumber}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-[#70665F] block">Invoice Date</span>
-                  <span className="font-mono font-semibold text-[#211B17]">{selectedInvoiceForPrint.invoiceDate}</span>
+                  <span className="text-[10px] uppercase font-bold text-[color:var(--crm-text-secondary)] block">Invoice Date</span>
+                  <span className="font-mono font-semibold text-[color:var(--crm-text-primary)]">{selectedInvoiceForPrint.invoiceDate}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-[#70665F] block">Sales Order Ref</span>
-                  <span className="font-mono font-semibold text-[#211B17]">{selectedInvoiceForPrint.salesOrderNumber || 'SO-DIRECT'}</span>
+                  <span className="text-[10px] uppercase font-bold text-[color:var(--crm-text-secondary)] block">Sales Order Ref</span>
+                  <span className="font-mono font-semibold text-[color:var(--crm-text-primary)]">{selectedInvoiceForPrint.salesOrderNumber || 'SO-DIRECT'}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-[#70665F] block">Due Date</span>
-                  <span className="font-mono font-semibold text-[#211B17]">{selectedInvoiceForPrint.dueDate || selectedInvoiceForPrint.invoiceDate}</span>
+                  <span className="text-[10px] uppercase font-bold text-[color:var(--crm-text-secondary)] block">Due Date</span>
+                  <span className="font-mono font-semibold text-[color:var(--crm-text-primary)]">{selectedInvoiceForPrint.dueDate || selectedInvoiceForPrint.invoiceDate}</span>
                 </div>
               </div>
 
               {/* Bill To & Ship To */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div className="p-4 rounded-xl border border-[#EBE3DB] bg-white">
+                <div className="p-4 rounded-xl border border-[color:var(--crm-border-default)] bg-white">
                   <span className="text-[10px] uppercase font-bold text-emerald-800 block mb-1">Details of Receiver (Billed To)</span>
-                  <h4 className="font-bold text-[#211B17] text-sm">{selectedInvoiceForPrint.customerName}</h4>
-                  <div className="text-[#544B45] text-[11px] space-y-0.5 mt-1">
+                  <h4 className="font-bold text-[color:var(--crm-text-primary)] text-sm">{selectedInvoiceForPrint.customerName}</h4>
+                  <div className="text-[color:var(--crm-text-secondary)] text-[11px] space-y-0.5 mt-1">
                     <p>Customer ID: <span className="font-mono">{selectedInvoiceForPrint.customerId || '—'}</span></p>
-                    <p>GSTIN: <span className="font-mono font-semibold text-[#211B17]">{(selectedInvoiceForPrint as any).customerGstin || '—'}</span></p>
+                    <p>GSTIN: <span className="font-mono font-semibold text-[color:var(--crm-text-primary)]">{(selectedInvoiceForPrint as any).customerGstin || '—'}</span></p>
                     <p>Place of Supply: <span className="font-semibold">{selectedInvoiceForPrint.placeOfSupply || 'Gujarat (24)'}</span></p>
                   </div>
                 </div>
-                <div className="p-4 rounded-xl border border-[#EBE3DB] bg-white">
+                <div className="p-4 rounded-xl border border-[color:var(--crm-border-default)] bg-white">
                   <span className="text-[10px] uppercase font-bold text-emerald-800 block mb-1">Dispatched From (Factory Site)</span>
-                  <h4 className="font-bold text-[#211B17] text-sm">UMA Techno Fab Work Center 01</h4>
-                  <div className="text-[#544B45] text-[11px] space-y-0.5 mt-1">
+                  <h4 className="font-bold text-[color:var(--crm-text-primary)] text-sm">UMA Techno Fab Work Center 01</h4>
+                  <div className="text-[color:var(--crm-text-secondary)] text-[11px] space-y-0.5 mt-1">
                     <p>Project Reference: <span className="font-mono font-semibold">{selectedInvoiceForPrint.projectId || selectedInvoiceForPrint.jobNumber || 'PROJECT MTO'}</span></p>
                     <p>Payment Terms: 30 Days Net from Delivery</p>
                     <p>Status: <span className="font-bold text-emerald-700">{selectedInvoiceForPrint.status}</span></p>
@@ -764,9 +764,9 @@ function SalesInvoicesContent() {
               </div>
 
               {/* Line Items Table */}
-              <div className="border border-[#EBE3DB] rounded-xl overflow-hidden">
+              <div className="border border-[color:var(--crm-border-default)] rounded-xl overflow-hidden">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-[#FAF7F2] text-[#544B45] uppercase text-[10px] font-bold border-b border-[#EBE3DB]">
+                  <thead className="bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] uppercase text-[10px] font-bold border-b border-[color:var(--crm-border-default)]">
                     <tr>
                       <th className="p-2.5">#</th>
                       <th className="p-2.5">Item Description</th>
@@ -776,7 +776,7 @@ function SalesInvoicesContent() {
                       <th className="p-2.5 text-right">Taxable Value (₹)</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#EBE3DB]">
+                  <tbody className="divide-y divide-[color:var(--crm-border-default)]">
                     {(selectedInvoiceForPrint.items && selectedInvoiceForPrint.items.length > 0
                       ? selectedInvoiceForPrint.items
                       : [
@@ -789,13 +789,13 @@ function SalesInvoicesContent() {
                           },
                         ]
                     ).map((itm: any, idx: number) => (
-                      <tr key={idx} className="hover:bg-[#FAF7F2]/50">
-                        <td className="p-2.5 text-[#70665F] font-mono">{idx + 1}</td>
-                        <td className="p-2.5 font-semibold text-[#211B17]">{itm.description || itm.item_description || itm.itemName || 'Engineering Equipment'}</td>
-                        <td className="p-2.5 font-mono text-[#544B45]">{itm.hsnSac || itm.hsn_sac || '8462'}</td>
+                      <tr key={idx} className="hover:bg-[#F4F6FA]/50">
+                        <td className="p-2.5 text-[color:var(--crm-text-secondary)] font-mono">{idx + 1}</td>
+                        <td className="p-2.5 font-semibold text-[color:var(--crm-text-primary)]">{itm.description || itm.item_description || itm.itemName || 'Engineering Equipment'}</td>
+                        <td className="p-2.5 font-mono text-[color:var(--crm-text-secondary)]">{itm.hsnSac || itm.hsn_sac || '8462'}</td>
                         <td className="p-2.5 text-right font-mono">{itm.quantity ?? itm.qty ?? 1}</td>
                         <td className="p-2.5 text-right font-mono">₹{Number(itm.rate || itm.unitPrice || 0).toLocaleString('en-IN')}</td>
-                        <td className="p-2.5 text-right font-mono font-bold text-[#211B17]">
+                        <td className="p-2.5 text-right font-mono font-bold text-[color:var(--crm-text-primary)]">
                           ₹{Number(itm.amount || (itm.quantity * itm.rate) || selectedInvoiceForPrint.subTotal || 0).toLocaleString('en-IN')}
                         </td>
                       </tr>
@@ -806,41 +806,41 @@ function SalesInvoicesContent() {
 
               {/* Tax & Total Summary */}
               <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] text-xs flex-1 space-y-1">
-                  <span className="font-bold text-[#211B17] block text-[11px]">Bank Remittance Details:</span>
-                  <p className="text-[11px] text-[#544B45]">Bank Name: <span className="font-semibold text-[#211B17]">HDFC Bank Ltd</span></p>
-                  <p className="text-[11px] text-[#544B45]">A/C No: <span className="font-mono font-bold text-[#211B17]">50200088991234</span> (Current)</p>
-                  <p className="text-[11px] text-[#544B45]">IFSC Code: <span className="font-mono font-bold text-[#211B17]">HDFC0000288</span> (Vadodara Branch)</p>
+                <div className="p-3 bg-[color:var(--crm-bg-app)] rounded-xl border border-[color:var(--crm-border-default)] text-xs flex-1 space-y-1">
+                  <span className="font-bold text-[color:var(--crm-text-primary)] block text-[11px]">Bank Remittance Details:</span>
+                  <p className="text-[11px] text-[color:var(--crm-text-secondary)]">Bank Name: <span className="font-semibold text-[color:var(--crm-text-primary)]">HDFC Bank Ltd</span></p>
+                  <p className="text-[11px] text-[color:var(--crm-text-secondary)]">A/C No: <span className="font-mono font-bold text-[color:var(--crm-text-primary)]">50200088991234</span> (Current)</p>
+                  <p className="text-[11px] text-[color:var(--crm-text-secondary)]">IFSC Code: <span className="font-mono font-bold text-[color:var(--crm-text-primary)]">HDFC0000288</span> (Vadodara Branch)</p>
                 </div>
 
-                <div className="w-full sm:w-72 bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB] space-y-2 text-xs">
-                  <div className="flex justify-between text-[#544B45]">
+                <div className="w-full sm:w-72 bg-[color:var(--crm-bg-app)] p-4 rounded-xl border border-[color:var(--crm-border-default)] space-y-2 text-xs">
+                  <div className="flex justify-between text-[color:var(--crm-text-secondary)]">
                     <span>Taxable Subtotal:</span>
-                    <span className="font-mono font-semibold text-[#211B17]">
+                    <span className="font-mono font-semibold text-[color:var(--crm-text-primary)]">
                       ₹{Number(selectedInvoiceForPrint.subTotal ?? (selectedInvoiceForPrint as any).taxable_amount ?? 0).toLocaleString('en-IN')}
                     </span>
                   </div>
-                  <div className="flex justify-between text-[#544B45]">
+                  <div className="flex justify-between text-[color:var(--crm-text-secondary)]">
                     <span>CGST (9%):</span>
-                    <span className="font-mono font-semibold text-[#211B17]">
+                    <span className="font-mono font-semibold text-[color:var(--crm-text-primary)]">
                       ₹{Number((selectedInvoiceForPrint as any).cgst_amount || selectedInvoiceForPrint.cgstAmount || 0).toLocaleString('en-IN')}
                     </span>
                   </div>
-                  <div className="flex justify-between text-[#544B45]">
+                  <div className="flex justify-between text-[color:var(--crm-text-secondary)]">
                     <span>SGST (9%):</span>
-                    <span className="font-mono font-semibold text-[#211B17]">
+                    <span className="font-mono font-semibold text-[color:var(--crm-text-primary)]">
                       ₹{Number((selectedInvoiceForPrint as any).sgst_amount || selectedInvoiceForPrint.sgstAmount || 0).toLocaleString('en-IN')}
                     </span>
                   </div>
                   {(Number((selectedInvoiceForPrint as any).igst_amount || selectedInvoiceForPrint.igstAmount || 0) > 0) && (
-                    <div className="flex justify-between text-[#544B45]">
+                    <div className="flex justify-between text-[color:var(--crm-text-secondary)]">
                       <span>IGST (18%):</span>
-                      <span className="font-mono font-semibold text-[#211B17]">
+                      <span className="font-mono font-semibold text-[color:var(--crm-text-primary)]">
                         ₹{Number((selectedInvoiceForPrint as any).igst_amount || selectedInvoiceForPrint.igstAmount || 0).toLocaleString('en-IN')}
                       </span>
                     </div>
                   )}
-                  <div className="flex justify-between pt-2 border-t border-[#EBE3DB] text-sm">
+                  <div className="flex justify-between pt-2 border-t border-[color:var(--crm-border-default)] text-sm">
                     <span className="font-black text-emerald-950">Grand Total:</span>
                     <span className="font-mono font-black text-emerald-800 text-base">
                       ₹{Number(selectedInvoiceForPrint.grandTotal ?? (selectedInvoiceForPrint as any).grand_total ?? 0).toLocaleString('en-IN')}
@@ -850,15 +850,15 @@ function SalesInvoicesContent() {
               </div>
 
               {/* Authorized Signatory */}
-              <div className="pt-8 border-t border-[#EBE3DB] flex justify-between items-end text-[11px] text-[#70665F]">
+              <div className="pt-8 border-t border-[color:var(--crm-border-default)] flex justify-between items-end text-[11px] text-[color:var(--crm-text-secondary)]">
                 <div>
                   <p>Declaration: Certified that all particulars are true and correct.</p>
                   <p>Subject to Vadodara Jurisdiction.</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-[#211B17]">For UMA TECHNO FAB PRIVATE LIMITED</p>
+                  <p className="font-bold text-[color:var(--crm-text-primary)]">For UMA TECHNO FAB PRIVATE LIMITED</p>
                   <div className="h-10"></div>
-                  <p className="font-semibold text-[#211B17]">Authorized Signatory</p>
+                  <p className="font-semibold text-[color:var(--crm-text-primary)]">Authorized Signatory</p>
                 </div>
               </div>
             </div>

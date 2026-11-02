@@ -479,7 +479,7 @@ export default function AttendancePage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-[#FDFBF9] min-h-screen text-[#211B17]">
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)] min-h-screen text-[color:var(--crm-text-primary)]">
       {/* Toast Notification */}
       {successToast && (
         <div className="fixed top-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
@@ -496,23 +496,23 @@ export default function AttendancePage() {
       )}
 
       {/* Header with Live Terminal */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-5">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2.5">
+          <h1 className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2.5">
             <div className="p-2 bg-amber-500/10 rounded-lg text-amber-700">
               <Clock className="w-6 h-6" />
             </div>
             Daily Attendance Management & Biometric Log
           </h1>
-          <p className="text-sm text-[#70665F] mt-1">
+          <p className="text-sm text-[color:var(--crm-text-secondary)] mt-1">
             Real-Time Punch In/Out Logs, Late Coming Tracking, Monthly Calendar & Regularization Approvals
           </p>
         </div>
 
         {/* Live Punch Terminal Card */}
-        <div className="flex flex-wrap items-center gap-3 bg-white border border-[#EBE3DB] rounded-2xl p-2.5 shadow-xs">
+        <div className="flex flex-wrap items-center gap-3 bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-2.5 shadow-xs">
           <div className="px-3 py-1 bg-amber-50 rounded-xl flex items-center gap-2 text-xs font-mono font-bold text-amber-900 border border-amber-200">
-            <Clock className="w-4 h-4 text-amber-700 animate-pulse" />
+            <Clock className="w-4 h-4 text-crm-brand-600 animate-pulse" />
             <span>{currentTimeStr}</span>
           </div>
 
@@ -536,7 +536,7 @@ export default function AttendancePage() {
 
           <button
             onClick={handleOpenPunchModal}
-            className="flex items-center gap-1.5 px-3 py-2 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold text-xs rounded-xl transition border border-[#EBE3DB] cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold text-xs rounded-xl transition border border-[color:var(--crm-border-default)] cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" /> Manual Punch
           </button>
@@ -544,13 +544,13 @@ export default function AttendancePage() {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex items-center gap-2 border-b border-[#EBE3DB] pb-1">
+      <div className="flex items-center gap-2 border-b border-[color:var(--crm-border-default)] pb-1">
         <button
           onClick={() => setActiveTab('daily')}
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer ${
             activeTab === 'daily'
               ? 'bg-amber-700 text-white shadow-xs'
-              : 'text-[#70665F] hover:bg-[#FAF7F2] hover:text-[#211B17]'
+              : 'text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] hover:text-[color:var(--crm-text-primary)]'
           }`}
         >
           <Clock className="w-4 h-4" /> Daily Attendance Log ({allRecords.length})
@@ -561,7 +561,7 @@ export default function AttendancePage() {
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer ${
             activeTab === 'calendar'
               ? 'bg-amber-700 text-white shadow-xs'
-              : 'text-[#70665F] hover:bg-[#FAF7F2] hover:text-[#211B17]'
+              : 'text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] hover:text-[color:var(--crm-text-primary)]'
           }`}
         >
           <CalendarDays className="w-4 h-4" /> Monthly Calendar & Analytics
@@ -572,7 +572,7 @@ export default function AttendancePage() {
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer ${
             activeTab === 'regularizations'
               ? 'bg-amber-700 text-white shadow-xs'
-              : 'text-[#70665F] hover:bg-[#FAF7F2] hover:text-[#211B17]'
+              : 'text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] hover:text-[color:var(--crm-text-primary)]'
           }`}
         >
           <FileText className="w-4 h-4" /> Regularization Requests ({regularizations.length})
@@ -584,9 +584,9 @@ export default function AttendancePage() {
         <div className="space-y-5 animate-in fade-in duration-200">
           {/* KPI Cards Summary Row */}
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-            <div className="bg-white border border-[#EBE3DB] rounded-xl p-4 flex flex-col justify-between shadow-xs">
-              <span className="text-xs font-semibold text-[#70665F] uppercase tracking-wider">Total Entries</span>
-              <span className="text-2xl font-black text-[#211B17] mt-1">{totalCount}</span>
+            <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-4 flex flex-col justify-between shadow-xs">
+              <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">Total Entries</span>
+              <span className="text-2xl font-black text-[color:var(--crm-text-primary)] mt-1">{totalCount}</span>
             </div>
             <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-4 flex flex-col justify-between shadow-xs">
               <span className="text-xs font-semibold text-emerald-800 uppercase tracking-wider">Present (Full Day)</span>
@@ -607,17 +607,17 @@ export default function AttendancePage() {
           </div>
 
           {/* Multi-Filter Bar */}
-          <div className="bg-white border border-[#EBE3DB] rounded-xl p-4 shadow-xs space-y-3">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-4 shadow-xs space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-center">
               {/* 1. Search */}
               <div className="relative md:col-span-2">
-                <Search className="w-4 h-4 text-[#A89F91] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-[color:var(--crm-text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Search by employee name, ID, or department..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-[#FDFBF9] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-amber-600 focus:bg-white transition"
+                  className="w-full pl-9 pr-4 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600 focus:bg-white transition"
                 />
               </div>
 
@@ -627,7 +627,7 @@ export default function AttendancePage() {
                   type="date"
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#FDFBF9] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-amber-600"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600"
                   title="Filter by specific date"
                 />
               </div>
@@ -637,7 +637,7 @@ export default function AttendancePage() {
                 <select
                   value={selectedDepartment}
                   onChange={(e) => setSelectedDepartment(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#FDFBF9] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-amber-600"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600"
                 >
                   <option value="ALL">All Departments</option>
                   {departments.map((d) => (
@@ -653,7 +653,7 @@ export default function AttendancePage() {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#FDFBF9] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-amber-600"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600"
                 >
                   <option value="ALL">All Attendance Statuses</option>
                   <option value="Present">Present</option>
@@ -667,16 +667,16 @@ export default function AttendancePage() {
 
             {/* Filter Badges & Reset Button */}
             {isFiltered && (
-              <div className="pt-2 border-t border-[#EBE3DB] flex items-center justify-between text-xs text-[#70665F]">
+              <div className="pt-2 border-t border-[color:var(--crm-border-default)] flex items-center justify-between text-xs text-[color:var(--crm-text-secondary)]">
                 <div className="flex items-center gap-2">
-                  <Filter className="w-3.5 h-3.5 text-amber-700" />
+                  <Filter className="w-3.5 h-3.5 text-crm-brand-600" />
                   <span>
                     Showing <strong>{filteredRecords.length}</strong> of {allRecords.length} attendance records
                   </span>
                 </div>
                 <button
                   onClick={handleResetFilters}
-                  className="flex items-center gap-1.5 px-3 py-1 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold rounded-lg transition cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold rounded-lg transition cursor-pointer"
                 >
                   <RotateCcw className="w-3.5 h-3.5" /> Reset Filters
                 </button>
@@ -686,12 +686,12 @@ export default function AttendancePage() {
 
           {/* Attendance Log Table */}
           {filteredRecords.length === 0 ? (
-            <div className="bg-white border border-[#EBE3DB] rounded-2xl p-12 text-center space-y-3 shadow-xs">
-              <Clock className="w-12 h-12 text-[#A89F91] mx-auto" />
-              <h3 className="text-base font-bold text-[#211B17]">
+            <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-12 text-center space-y-3 shadow-xs">
+              <Clock className="w-12 h-12 text-[color:var(--crm-text-tertiary)] mx-auto" />
+              <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">
                 No attendance records found for the selected filters.
               </h3>
-              <p className="text-xs text-[#70665F] max-w-md mx-auto">
+              <p className="text-xs text-[color:var(--crm-text-secondary)] max-w-md mx-auto">
                 Try adjusting your search criteria, clearing the date/department filter, or clicking &quot;Reset Filters&quot;.
               </p>
               {isFiltered && (
@@ -704,11 +704,11 @@ export default function AttendancePage() {
               )}
             </div>
           ) : (
-            <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xs">
+            <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl overflow-hidden shadow-xs">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[#70665F] font-semibold uppercase text-[11px] tracking-wider">
+                    <tr className="bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold uppercase text-[11px] tracking-wider">
                       <th className="py-3.5 px-4">Employee</th>
                       <th className="py-3.5 px-4">Date & Shift</th>
                       <th className="py-3.5 px-4">Check-In / Out</th>
@@ -717,23 +717,23 @@ export default function AttendancePage() {
                       <th className="py-3.5 px-4">Source & Audit</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#EBE3DB]/60 text-[#211B17]">
+                  <tbody className="divide-y divide-[#E2E7EF]/60 text-[color:var(--crm-text-primary)]">
                     {filteredRecords.map((a) => (
-                      <tr key={a.id} className="hover:bg-[#FAF7F2]/60 transition">
+                      <tr key={a.id} className="hover:bg-[#F4F6FA]/60 transition">
                         <td className="py-3.5 px-4">
-                          <div className="font-bold text-[#211B17]">{a.employeeName}</div>
-                          <div className="text-[11px] text-[#70665F]">{a.employeeId} • {a.department}</div>
+                          <div className="font-bold text-[color:var(--crm-text-primary)]">{a.employeeName}</div>
+                          <div className="text-[11px] text-[color:var(--crm-text-secondary)]">{a.employeeId} • {a.department}</div>
                         </td>
                         <td className="py-3.5 px-4">
-                          <div className="font-semibold text-[#211B17]">{a.date}</div>
-                          <div className="text-[11px] text-[#70665F]">{a.shiftName || 'General Shift'}</div>
+                          <div className="font-semibold text-[color:var(--crm-text-primary)]">{a.date}</div>
+                          <div className="text-[11px] text-[color:var(--crm-text-secondary)]">{a.shiftName || 'General Shift'}</div>
                         </td>
                         <td className="py-3.5 px-4 font-mono">
                           <div className="text-emerald-700 font-bold">{a.checkIn || '--:--'} (In)</div>
-                          <div className="text-[#70665F]">{a.checkOut || '--:--'} (Out)</div>
+                          <div className="text-[color:var(--crm-text-secondary)]">{a.checkOut || '--:--'} (Out)</div>
                         </td>
                         <td className="py-3.5 px-4">
-                          <div className="font-semibold text-[#211B17]">{a.totalHours} hrs</div>
+                          <div className="font-semibold text-[color:var(--crm-text-primary)]">{a.totalHours} hrs</div>
                           {a.lateMinutes > 0 ? (
                             <span className="text-[11px] text-rose-600 font-semibold block">
                               Late by {a.lateMinutes} mins
@@ -760,17 +760,17 @@ export default function AttendancePage() {
                           </span>
                         </td>
                         <td className="py-3.5 px-4">
-                          <div className="flex items-center gap-1.5 font-medium text-[#544B45]">
+                          <div className="flex items-center gap-1.5 font-medium text-[color:var(--crm-text-secondary)]">
                             {a.source === 'Biometric System' ? (
                               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                             ) : a.source === 'Mobile App GPS' ? (
                               <Smartphone className="w-3.5 h-3.5 text-blue-600" />
                             ) : (
-                              <Laptop className="w-3.5 h-3.5 text-amber-600" />
+                              <Laptop className="w-3.5 h-3.5 text-crm-brand-600" />
                             )}
                             <span>{a.source}</span>
                           </div>
-                          <div className="text-[10px] text-[#70665F] italic truncate max-w-[180px]" title={a.remarks}>
+                          <div className="text-[10px] text-[color:var(--crm-text-secondary)] italic truncate max-w-[180px]" title={a.remarks}>
                             {a.remarks || 'Captured at gate'}
                           </div>
                         </td>
@@ -788,24 +788,24 @@ export default function AttendancePage() {
       {activeTab === 'calendar' && (
         <div className="space-y-5 animate-in fade-in duration-200">
           {/* Calendar Controls Bar */}
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div>
-                <label className="block text-[11px] font-bold text-[#70665F] uppercase mb-1">Select Month / Year</label>
+                <label className="block text-[11px] font-bold text-[color:var(--crm-text-secondary)] uppercase mb-1">Select Month / Year</label>
                 <input
                   type="month"
                   value={calendarMonthYear}
                   onChange={(e) => setCalendarMonthYear(e.target.value)}
-                  className="px-3 py-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-bold text-[#211B17] focus:outline-none focus:border-amber-600"
+                  className="px-3 py-1.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-bold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-[#70665F] uppercase mb-1">Employee</label>
+                <label className="block text-[11px] font-bold text-[color:var(--crm-text-secondary)] uppercase mb-1">Employee</label>
                 <select
                   value={calendarEmployeeId}
                   onChange={(e) => setCalendarEmployeeId(e.target.value)}
-                  className="px-3 py-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-amber-600"
+                  className="px-3 py-1.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600"
                 >
                   <option value="">-- Active Logged-in Employee --</option>
                   {availableEmployees.map((emp) => (
@@ -829,9 +829,9 @@ export default function AttendancePage() {
           {/* Monthly KPI Stats Cards */}
           {monthlySummaryData && (
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-              <div className="bg-white border border-[#EBE3DB] rounded-xl p-3.5 shadow-xs">
-                <span className="text-[10px] font-bold uppercase text-[#70665F]">Calendar Days</span>
-                <div className="text-xl font-black text-[#211B17] mt-1">{monthlySummaryData.total_days}</div>
+              <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-3.5 shadow-xs">
+                <span className="text-[10px] font-bold uppercase text-[color:var(--crm-text-secondary)]">Calendar Days</span>
+                <div className="text-xl font-black text-[color:var(--crm-text-primary)] mt-1">{monthlySummaryData.total_days}</div>
               </div>
               <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 shadow-xs">
                 <span className="text-[10px] font-bold uppercase text-emerald-800">Present Days</span>
@@ -861,13 +861,13 @@ export default function AttendancePage() {
           )}
 
           {/* Calendar Day Grid */}
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl p-5 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <h3 className="font-extrabold text-sm text-[#211B17] flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-amber-700" />
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-5 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <h3 className="font-extrabold text-sm text-[color:var(--crm-text-primary)] flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-crm-brand-600" />
                 Monthly Attendance Breakdown ({calendarMonthYear})
               </h3>
-              <div className="flex flex-wrap items-center gap-3 text-[10px] font-semibold text-[#70665F]">
+              <div className="flex flex-wrap items-center gap-3 text-[10px] font-semibold text-[color:var(--crm-text-secondary)]">
                 <span className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Present
                 </span>
@@ -890,8 +890,8 @@ export default function AttendancePage() {
             </div>
 
             {isLoadingMonthly ? (
-              <div className="py-12 text-center text-xs text-[#70665F]">
-                <RefreshCw className="w-8 h-8 text-amber-700 animate-spin mx-auto mb-2" />
+              <div className="py-12 text-center text-xs text-[color:var(--crm-text-secondary)]">
+                <RefreshCw className="w-8 h-8 text-crm-brand-600 animate-spin mx-auto mb-2" />
                 Loading calendar records from backend...
               </div>
             ) : monthlySummaryData?.breakdown ? (
@@ -921,15 +921,15 @@ export default function AttendancePage() {
                           : isLeave
                           ? 'bg-blue-50 border-blue-200 text-blue-950'
                           : isWeeklyOff
-                          ? 'bg-[#FAF7F2] border-[#EBE3DB] text-[#70665F]'
+                          ? 'bg-[color:var(--crm-bg-app)] border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)]'
                           : isHoliday
                           ? 'bg-purple-50 border-purple-200 text-purple-950'
-                          : 'bg-white border-[#EBE3DB]'
+                          : 'bg-white border-[color:var(--crm-border-default)]'
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-xs">{day.date.split('-')[2]}</span>
-                        <span className="text-[10px] font-mono text-[#70665F]">{day.day_name?.slice(0, 3)}</span>
+                        <span className="text-[10px] font-mono text-[color:var(--crm-text-secondary)]">{day.day_name?.slice(0, 3)}</span>
                       </div>
 
                       <div className="my-1">
@@ -952,7 +952,7 @@ export default function AttendancePage() {
                         </span>
                       </div>
 
-                      <div className="text-[10px] font-mono flex items-center justify-between text-[#70665F]">
+                      <div className="text-[10px] font-mono flex items-center justify-between text-[color:var(--crm-text-secondary)]">
                         <span>{day.hours > 0 ? `${day.hours}h` : '--'}</span>
                         {day.late_minutes > 0 && (
                           <span className="text-rose-600 font-bold">+{day.late_minutes}m</span>
@@ -963,7 +963,7 @@ export default function AttendancePage() {
                 })}
               </div>
             ) : (
-              <div className="py-12 text-center text-xs text-[#70665F]">
+              <div className="py-12 text-center text-xs text-[color:var(--crm-text-secondary)]">
                 Click &quot;Refresh Monthly Summary&quot; to load detailed daily attendance breakdown.
               </div>
             )}
@@ -974,10 +974,10 @@ export default function AttendancePage() {
       {/* TAB 3: REGULARIZATION REQUESTS */}
       {activeTab === 'regularizations' && (
         <div className="space-y-5 animate-in fade-in duration-200">
-          <div className="flex items-center justify-between bg-white border border-[#EBE3DB] rounded-2xl p-4 shadow-xs">
+          <div className="flex items-center justify-between bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-4 shadow-xs">
             <div>
-              <h3 className="font-extrabold text-base text-[#211B17]">Missed Punch & Regularization Workflow</h3>
-              <p className="text-xs text-[#70665F] mt-0.5">
+              <h3 className="font-extrabold text-base text-[color:var(--crm-text-primary)]">Missed Punch & Regularization Workflow</h3>
+              <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">
                 Staff submit regularization for biometric errors; Manager approvals sync corrected timestamps to attendance
               </p>
             </div>
@@ -990,19 +990,19 @@ export default function AttendancePage() {
           </div>
 
           {regularizations.length === 0 ? (
-            <div className="bg-white border border-[#EBE3DB] rounded-2xl p-12 text-center space-y-3 shadow-xs">
+            <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-12 text-center space-y-3 shadow-xs">
               <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
-              <h4 className="text-base font-bold text-[#211B17]">No Regularization Requests Found</h4>
-              <p className="text-xs text-[#70665F] max-w-md mx-auto">
+              <h4 className="text-base font-bold text-[color:var(--crm-text-primary)]">No Regularization Requests Found</h4>
+              <p className="text-xs text-[color:var(--crm-text-secondary)] max-w-md mx-auto">
                 No missed punch or regularization requests have been filed yet. Click &quot;Request Regularization&quot; to file a new entry.
               </p>
             </div>
           ) : (
-            <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xs">
+            <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl overflow-hidden shadow-xs">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[#70665F] font-semibold uppercase text-[11px] tracking-wider">
+                    <tr className="bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold uppercase text-[11px] tracking-wider">
                       <th className="py-3.5 px-4">Employee</th>
                       <th className="py-3.5 px-4">Date & Punch Type</th>
                       <th className="py-3.5 px-4">Requested Time</th>
@@ -1011,20 +1011,20 @@ export default function AttendancePage() {
                       <th className="py-3.5 px-4 text-right">Manager Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#EBE3DB]/60 text-[#211B17]">
+                  <tbody className="divide-y divide-[#E2E7EF]/60 text-[color:var(--crm-text-primary)]">
                     {regularizations.map((reg) => (
-                      <tr key={reg.id} className="hover:bg-[#FAF7F2]/60 transition">
+                      <tr key={reg.id} className="hover:bg-[#F4F6FA]/60 transition">
                         <td className="py-3.5 px-4 font-bold">
                           {reg.employee_name || reg.employee || 'Employee'}
                         </td>
                         <td className="py-3.5 px-4">
                           <div className="font-semibold">{reg.date}</div>
-                          <span className="text-[10px] font-mono text-[#70665F]">{reg.punch_type}</span>
+                          <span className="text-[10px] font-mono text-[color:var(--crm-text-secondary)]">{reg.punch_type}</span>
                         </td>
                         <td className="py-3.5 px-4 font-mono font-bold text-amber-900">
                           {reg.requested_time || reg.actual_punch_time || '09:00'}
                         </td>
-                        <td className="py-3.5 px-4 text-[#70665F] max-w-xs truncate">
+                        <td className="py-3.5 px-4 text-[color:var(--crm-text-secondary)] max-w-xs truncate">
                           &ldquo;{reg.reason}&rdquo;
                         </td>
                         <td className="py-3.5 px-4">
@@ -1057,7 +1057,7 @@ export default function AttendancePage() {
                               </button>
                             </div>
                           ) : (
-                            <span className="text-xs text-[#A89F91] font-semibold">Processed</span>
+                            <span className="text-xs text-[color:var(--crm-text-tertiary)] font-semibold">Processed</span>
                           )}
                         </td>
                       </tr>
@@ -1080,17 +1080,17 @@ export default function AttendancePage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl relative my-8"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl relative my-8"
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3.5">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3.5">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-amber-500/10 rounded-lg text-amber-700">
                   <Clock className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-[#211B17]">Manual Punch / Attendance Log</h2>
-                  <p className="text-xs text-[#70665F]">
+                  <h2 className="text-lg font-bold text-[color:var(--crm-text-primary)]">Manual Punch / Attendance Log</h2>
+                  <p className="text-xs text-[color:var(--crm-text-secondary)]">
                     Live Server Clock auto-captures time securely; manual backdated override requires reason
                   </p>
                 </div>
@@ -1098,7 +1098,7 @@ export default function AttendancePage() {
               <button
                 type="button"
                 onClick={() => setShowPunchModal(false)}
-                className="text-[#70665F] hover:text-[#211B17] p-1.5 rounded-lg hover:bg-[#F5EFEB] transition cursor-pointer"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1.5 rounded-lg hover:bg-[#F5EFEB] transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1107,7 +1107,7 @@ export default function AttendancePage() {
             {/* Live Server Clock Badge */}
             <div className="p-3.5 bg-amber-50/70 border border-amber-200 rounded-xl flex items-center justify-between text-xs">
               <div className="flex items-center gap-2 text-amber-950 font-semibold">
-                <Clock className="w-4 h-4 text-amber-700 animate-pulse" />
+                <Clock className="w-4 h-4 text-crm-brand-600 animate-pulse" />
                 <span>Live Server Timestamp:</span>
               </div>
               <span className="font-mono font-black text-amber-900 text-sm tracking-widest">
@@ -1119,7 +1119,7 @@ export default function AttendancePage() {
             <form onSubmit={handlePunchSubmit} className="space-y-4 text-xs">
               {/* 1. Employee Selection */}
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Select Employee <span className="text-rose-500">*</span>
                 </label>
                 <select
@@ -1134,10 +1134,10 @@ export default function AttendancePage() {
                       });
                     }
                   }}
-                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition ${
+                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                     formErrors.employeeId
                       ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                      : 'border-[#EBE3DB] focus:border-amber-600'
+                      : 'border-[color:var(--crm-border-default)] focus:border-amber-600'
                   }`}
                 >
                   <option value="">-- Choose Employee --</option>
@@ -1158,7 +1158,7 @@ export default function AttendancePage() {
               {/* 2. Date & Status */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     Date <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -1175,20 +1175,20 @@ export default function AttendancePage() {
                         });
                       }
                     }}
-                    className={`w-full px-3.5 py-2.5 border rounded-lg text-xs text-[#211B17] focus:outline-none transition disabled:bg-[#FAF7F2] ${
+                    className={`w-full px-3.5 py-2.5 border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition disabled:bg-[color:var(--crm-bg-app)] ${
                       formErrors.date
                         ? 'border-rose-400 bg-rose-50/20'
-                        : 'border-[#EBE3DB] focus:border-amber-600'
+                        : 'border-[color:var(--crm-border-default)] focus:border-amber-600'
                     }`}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Status</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Status</label>
                   <select
                     value={formData.status}
                     onChange={(e) => handleStatusChangeInModal(e.target.value as AttendanceStatusType)}
-                    className="w-full px-3.5 py-2.5 bg-white border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-amber-600 transition"
+                    className="w-full px-3.5 py-2.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600 transition"
                   >
                     <option value="Present">Present (Full Day)</option>
                     <option value="Late">Late Arrival</option>
@@ -1204,7 +1204,7 @@ export default function AttendancePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="block text-[#544B45] font-semibold">Check-In Time</label>
+                    <label className="block text-[color:var(--crm-text-secondary)] font-semibold">Check-In Time</label>
                     <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
                       {isManualOverride ? <Unlock className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
                       {isManualOverride ? 'Editable' : 'Auto Server-Locked'}
@@ -1215,9 +1215,9 @@ export default function AttendancePage() {
                     readOnly={!isManualOverride}
                     value={formData.checkIn}
                     onChange={(e) => setFormData({ ...formData, checkIn: e.target.value })}
-                    className={`w-full px-3.5 py-2.5 border rounded-lg text-xs font-mono font-bold text-[#211B17] focus:outline-none transition ${
-                      !isManualOverride ? 'bg-[#FAF7F2] text-emerald-800' : 'bg-white border-amber-600'
-                    } ${formErrors.checkIn ? 'border-rose-400 bg-rose-50/20' : 'border-[#EBE3DB]'}`}
+                    className={`w-full px-3.5 py-2.5 border rounded-lg text-xs font-mono font-bold text-[color:var(--crm-text-primary)] focus:outline-none transition ${
+                      !isManualOverride ? 'bg-[color:var(--crm-bg-app)] text-emerald-800' : 'bg-white border-amber-600'
+                    } ${formErrors.checkIn ? 'border-rose-400 bg-rose-50/20' : 'border-[color:var(--crm-border-default)]'}`}
                   />
                   {formErrors.checkIn && (
                     <p className="text-rose-600 text-[11px] mt-1 flex items-center gap-1 font-medium">
@@ -1229,28 +1229,28 @@ export default function AttendancePage() {
 
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="block text-[#544B45] font-semibold">Check-Out Time</label>
-                    <span className="text-[10px] text-[#70665F]">Scheduled End</span>
+                    <label className="block text-[color:var(--crm-text-secondary)] font-semibold">Check-Out Time</label>
+                    <span className="text-[10px] text-[color:var(--crm-text-secondary)]">Scheduled End</span>
                   </div>
                   <input
                     type="time"
                     readOnly={!isManualOverride}
                     value={formData.checkOut}
                     onChange={(e) => setFormData({ ...formData, checkOut: e.target.value })}
-                    className={`w-full px-3.5 py-2.5 border rounded-lg text-xs font-mono text-[#211B17] focus:outline-none transition ${
-                      !isManualOverride ? 'bg-[#FAF7F2]' : 'bg-white border-amber-600'
-                    } border-[#EBE3DB]`}
+                    className={`w-full px-3.5 py-2.5 border rounded-lg text-xs font-mono text-[color:var(--crm-text-primary)] focus:outline-none transition ${
+                      !isManualOverride ? 'bg-[color:var(--crm-bg-app)]' : 'bg-white border-amber-600'
+                    } border-[color:var(--crm-border-default)]`}
                   />
                 </div>
               </div>
 
               {/* 4. Manual Override Toggle */}
-              <div className="p-3 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl flex items-center justify-between">
+              <div className="p-3 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-bold text-[#211B17] block">
+                  <span className="text-xs font-bold text-[color:var(--crm-text-primary)] block">
                     Missed Punch / Backdated Manual Override
                   </span>
-                  <span className="text-[10px] text-[#70665F]">
+                  <span className="text-[10px] text-[color:var(--crm-text-secondary)]">
                     Enable manual time entry for missed gate cards or biometric failures
                   </span>
                 </div>
@@ -1277,7 +1277,7 @@ export default function AttendancePage() {
               {/* 5. Mandatory Reason if Manual Override is Active */}
               {isManualOverride && (
                 <div className="animate-in fade-in duration-200">
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     Reason for Manual Regularization <span className="text-rose-500">*</span>
                   </label>
                   <textarea
@@ -1294,10 +1294,10 @@ export default function AttendancePage() {
                         });
                       }
                     }}
-                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition ${
+                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                       formErrors.manualReason
                         ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                        : 'border-[#EBE3DB] focus:border-amber-600'
+                        : 'border-[color:var(--crm-border-default)] focus:border-amber-600'
                     }`}
                   />
                   {formErrors.manualReason && (
@@ -1310,11 +1310,11 @@ export default function AttendancePage() {
               )}
 
               {/* Form Buttons */}
-              <div className="pt-4 border-t border-[#EBE3DB] flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setShowPunchModal(false)}
-                  className="px-4 py-2.5 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold text-xs rounded-lg transition cursor-pointer"
+                  className="px-4 py-2.5 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold text-xs rounded-lg transition cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1340,22 +1340,22 @@ export default function AttendancePage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl relative my-8"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl relative my-8"
           >
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-amber-500/10 rounded-lg text-amber-700">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-[#211B17]">Request Attendance Regularization</h3>
-                  <p className="text-xs text-[#70665F]">Submit missed punch for manager review</p>
+                  <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">Request Attendance Regularization</h3>
+                  <p className="text-xs text-[color:var(--crm-text-secondary)]">Submit missed punch for manager review</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowRegModal(false)}
-                className="text-[#70665F] hover:text-[#211B17] p-1.5 rounded-lg hover:bg-[#FAF7F2] transition cursor-pointer"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1.5 rounded-lg hover:bg-[color:var(--crm-bg-app)] transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1363,11 +1363,11 @@ export default function AttendancePage() {
 
             <form onSubmit={handleSubmitRegularization} className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Employee</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Employee</label>
                 <select
                   value={regForm.employeeId}
                   onChange={(e) => setRegForm({ ...regForm, employeeId: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-xs"
+                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs"
                 >
                   <option value="">-- Myself (Logged-In User) --</option>
                   {availableEmployees.map((emp) => (
@@ -1380,21 +1380,21 @@ export default function AttendancePage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Date</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Date</label>
                   <input
                     type="date"
                     value={regForm.date}
                     onChange={(e) => setRegForm({ ...regForm, date: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-xs"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Punch Type</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Punch Type</label>
                   <select
                     value={regForm.punchType}
                     onChange={(e) => setRegForm({ ...regForm, punchType: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-xs"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs"
                   >
                     <option value="CHECK_IN">Check-In</option>
                     <option value="CHECK_OUT">Check-Out</option>
@@ -1403,33 +1403,33 @@ export default function AttendancePage() {
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Requested Corrected Time</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Requested Corrected Time</label>
                 <input
                   type="time"
                   value={regForm.requestedTime}
                   onChange={(e) => setRegForm({ ...regForm, requestedTime: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-xs font-mono font-bold"
+                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs font-mono font-bold"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Reason for Regularization</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Reason for Regularization</label>
                 <textarea
                   rows={3}
                   placeholder="Explain why biometric check was missed (e.g. Card malfunctioning, machine power cut, client meeting direct arrival)..."
                   value={regForm.reason}
                   onChange={(e) => setRegForm({ ...regForm, reason: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-xs focus:outline-none focus:border-amber-600"
+                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs focus:outline-none focus:border-amber-600"
                   required
                 />
               </div>
 
-              <div className="pt-3 border-t border-[#EBE3DB] flex items-center justify-end gap-2.5">
+              <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setShowRegModal(false)}
-                  className="px-4 py-2 bg-[#FAF7F2] text-[#544B45] font-semibold rounded-lg hover:bg-[#EBE3DB] transition cursor-pointer"
+                  className="px-4 py-2 bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] font-semibold rounded-lg hover:bg-[color:var(--crm-border-default)] transition cursor-pointer"
                 >
                   Cancel
                 </button>

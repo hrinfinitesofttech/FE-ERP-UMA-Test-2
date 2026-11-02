@@ -314,7 +314,7 @@ export default function PromotionsPage() {
   }, [employeePromotions, searchTerm]);
 
   return (
-    <div className="p-6 space-y-6 bg-[#FDFBF9] min-h-screen text-[#211B17]">
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)] min-h-screen text-[color:var(--crm-text-primary)]">
       {/* Toast Notification */}
       {successToast && (
         <div className="fixed top-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
@@ -324,15 +324,15 @@ export default function PromotionsPage() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2.5">
+          <h1 className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2.5">
             <div className="p-2 bg-rose-500/10 rounded-lg text-rose-600">
               <TrendingUp className="w-6 h-6" />
             </div>
             Promotion & Salary Increment Records
           </h1>
-          <p className="text-sm text-[#70665F] mt-1">
+          <p className="text-sm text-[color:var(--crm-text-secondary)] mt-1">
             Designation Upgrades, Cadre Level Reclassifications & CTC Increment Audit History
           </p>
         </div>
@@ -346,69 +346,69 @@ export default function PromotionsPage() {
 
       {/* Stats Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm flex items-center justify-between">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold text-[#70665F] uppercase tracking-wider block">
+            <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">
               Total Promotions Logged
             </span>
-            <span className="text-2xl font-black text-[#211B17]">
+            <span className="text-2xl font-black text-[color:var(--crm-text-primary)]">
               {employeePromotions.length}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-600">
+          <div className="w-10 h-10 rounded-xl bg-crm-brand-50 flex items-center justify-center text-crm-brand-700">
             <Award className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm flex items-center justify-between">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold text-[#70665F] uppercase tracking-wider block">
+            <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">
               Active Staff Mastered
             </span>
-            <span className="text-2xl font-black text-[#211B17]">
+            <span className="text-2xl font-black text-[color:var(--crm-text-primary)]">
               {availableEmployees.length}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+          <div className="w-10 h-10 rounded-xl bg-crm-brand-50 flex items-center justify-center text-crm-brand-700">
             <UserCheck className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm flex items-center justify-between">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold text-[#70665F] uppercase tracking-wider block">
+            <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">
               Audit Compliance Status
             </span>
             <span className="text-sm font-bold text-emerald-600 flex items-center gap-1 mt-1">
               <CheckCircle2 className="w-4 h-4" /> Fully Traceable Log
             </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600">
+          <div className="w-10 h-10 rounded-xl bg-crm-brand-50 flex items-center justify-center text-crm-brand-700">
             <History className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* Search Bar */}
-      <div className="bg-white border border-[#EBE3DB] rounded-xl p-3.5 shadow-sm flex items-center justify-between gap-3">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-3.5 shadow-sm flex items-center justify-between gap-3">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-[#A89F91] absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[color:var(--crm-text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by Employee name, ID, or Designation..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-[#FDFBF9] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-rose-600 focus:bg-white transition"
+            className="w-full pl-9 pr-4 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-rose-600 focus:bg-white transition"
           />
         </div>
       </div>
 
       {/* Promotions List */}
       {filteredPromotions.length === 0 ? (
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-12 text-center space-y-3 shadow-sm">
-          <TrendingUp className="w-12 h-12 text-[#A89F91] mx-auto" />
-          <h3 className="text-base font-bold text-[#211B17]">No promotion records found</h3>
-          <p className="text-xs text-[#70665F] max-w-md mx-auto">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-12 text-center space-y-3 shadow-sm">
+          <TrendingUp className="w-12 h-12 text-[color:var(--crm-text-tertiary)] mx-auto" />
+          <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">No promotion records found</h3>
+          <p className="text-xs text-[color:var(--crm-text-secondary)] max-w-md mx-auto">
             {searchTerm
               ? 'No promotion orders match your search criteria. Try a different query.'
               : 'No promotion orders recorded yet. Click "+ Record Promotion Order" to create one.'}
@@ -423,18 +423,18 @@ export default function PromotionsPage() {
             return (
               <div
                 key={prm.id}
-                className="bg-white border border-[#EBE3DB] hover:border-rose-300 rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-md transition duration-200"
+                className="bg-white border border-[color:var(--crm-border-default)] hover:border-rose-300 rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-md transition duration-200"
               >
                 {/* Top Row: ID, Name, Status, Action Buttons */}
-                <div className="flex items-center justify-between border-b border-[#EBE3DB]/60 pb-3">
+                <div className="flex items-center justify-between border-b border-[#E2E7EF]/60 pb-3">
                   <div className="flex items-center gap-3">
                     <span className="font-mono text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-md border border-rose-200">
                       {prm.id}
                     </span>
                     <div>
-                      <h3 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+                      <h3 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                         {displayName}
-                        <span className="text-xs font-normal text-[#70665F]">({prm.employeeId})</span>
+                        <span className="text-xs font-normal text-[color:var(--crm-text-secondary)]">({prm.employeeId})</span>
                       </h3>
                     </div>
                   </div>
@@ -443,14 +443,14 @@ export default function PromotionsPage() {
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => handleOpenEditModal(prm)}
-                      className="p-1.5 text-[#544B45] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                      className="p-1.5 text-[color:var(--crm-text-secondary)] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
                       title="Edit promotion record"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDeleteRecord(prm)}
-                      className="p-1.5 text-[#544B45] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                      className="p-1.5 text-[color:var(--crm-text-secondary)] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
                       title="Delete promotion record"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -459,8 +459,8 @@ export default function PromotionsPage() {
                 </div>
 
                 <div className="flex items-center justify-between text-xs">
-                  <div className="text-[#70665F]">
-                    Effective Date: <strong className="text-[#211B17]">{prm.effectiveDate}</strong>
+                  <div className="text-[color:var(--crm-text-secondary)]">
+                    Effective Date: <strong className="text-[color:var(--crm-text-primary)]">{prm.effectiveDate}</strong>
                   </div>
                   <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200">
                     {prm.status || 'Approved'}
@@ -468,25 +468,25 @@ export default function PromotionsPage() {
                 </div>
 
                 {/* Details Container */}
-                <div className="bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB] space-y-2.5 text-xs">
+                <div className="bg-[color:var(--crm-bg-app)] p-4 rounded-xl border border-[color:var(--crm-border-default)] space-y-2.5 text-xs">
                   <div className="flex justify-between items-center">
-                    <span className="text-[#70665F] font-medium">Designation Upgrade:</span>
-                    <span className="font-medium text-[#211B17] flex items-center gap-1.5">
-                      <span className="text-[#70665F]">{prm.oldDesignation || '—'}</span>
+                    <span className="text-[color:var(--crm-text-secondary)] font-medium">Designation Upgrade:</span>
+                    <span className="font-medium text-[color:var(--crm-text-primary)] flex items-center gap-1.5">
+                      <span className="text-[color:var(--crm-text-secondary)]">{prm.oldDesignation || '—'}</span>
                       <ArrowRight className="w-3.5 h-3.5 text-rose-600" />
                       <strong className="text-rose-700">{prm.newDesignation}</strong>
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <span className="text-[#70665F] font-medium">Cadre Grade Level:</span>
-                    <span className="text-[#544B45]">
+                    <span className="text-[color:var(--crm-text-secondary)] font-medium">Cadre Grade Level:</span>
+                    <span className="text-[color:var(--crm-text-secondary)]">
                       {prm.oldGrade || 'Level 3'} → <strong className="text-amber-800">{prm.newGrade || 'Level 4'}</strong>
                     </span>
                   </div>
 
-                  <div className="flex justify-between items-center border-t border-[#EBE3DB] pt-2">
-                    <span className="text-[#70665F] font-medium">CTC Revision:</span>
+                  <div className="flex justify-between items-center border-t border-[color:var(--crm-border-default)] pt-2">
+                    <span className="text-[color:var(--crm-text-secondary)] font-medium">CTC Revision:</span>
                     <span className="font-bold text-emerald-700 text-sm">
                       ₹{Number(prm.oldCTC || 0).toLocaleString()} → ₹{Number(prm.newCTC || 0).toLocaleString()}
                     </span>
@@ -499,12 +499,12 @@ export default function PromotionsPage() {
                 </div>
 
                 {/* Footer: Audit & Approver */}
-                <div className="text-[11px] text-[#70665F] flex items-center justify-between border-t border-[#EBE3DB]/60 pt-2.5">
+                <div className="text-[11px] text-[color:var(--crm-text-secondary)] flex items-center justify-between border-t border-[#E2E7EF]/60 pt-2.5">
                   <span className="italic truncate max-w-[200px]">
                     &quot;{(prm as any).reason || 'Approved in annual revision'}&quot;
                   </span>
                   <span>
-                    Approved By: <strong className="text-[#211B17]">{prm.approvedBy || 'HR Head'}</strong>
+                    Approved By: <strong className="text-[color:var(--crm-text-primary)]">{prm.approvedBy || 'HR Head'}</strong>
                   </span>
                 </div>
               </div>
@@ -523,19 +523,19 @@ export default function PromotionsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl relative my-8"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl relative my-8"
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3.5">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3.5">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-rose-500/10 rounded-lg text-rose-600">
                   <TrendingUp className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-[#211B17]">
+                  <h2 className="text-lg font-bold text-[color:var(--crm-text-primary)]">
                     {editingId ? 'Edit Promotion / Increment Order' : 'Record Promotion / Increment Order'}
                   </h2>
-                  <p className="text-xs text-[#70665F]">
+                  <p className="text-xs text-[color:var(--crm-text-secondary)]">
                     {editingId ? 'Modify saved promotion parameters and audit trail' : 'Upgrade employee designation, grade, or salary package'}
                   </p>
                 </div>
@@ -543,7 +543,7 @@ export default function PromotionsPage() {
               <button
                 type="button"
                 onClick={closeModalWithConfirm}
-                className="text-[#70665F] hover:text-[#211B17] p-1.5 rounded-lg hover:bg-[#F5EFEB] transition"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1.5 rounded-lg hover:bg-[#F5EFEB] transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -553,17 +553,17 @@ export default function PromotionsPage() {
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
               {/* 1. Select Employee */}
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Select Employee <span className="text-rose-500">*</span>
                 </label>
                 <select
                   value={formData.employeeId}
                   disabled={editingId !== null}
                   onChange={(e) => handleEmployeeChange(e.target.value)}
-                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition disabled:bg-gray-100 ${
+                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition disabled:bg-gray-100 ${
                     formErrors.employeeId
                       ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                      : 'border-[#EBE3DB] focus:border-rose-600'
+                      : 'border-[color:var(--crm-border-default)] focus:border-rose-600'
                   }`}
                 >
                   <option value="">-- Choose Employee from Master --</option>
@@ -584,17 +584,17 @@ export default function PromotionsPage() {
               {/* 2. Designation Upgrade */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Current Designation</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Current Designation</label>
                   <input
                     type="text"
                     readOnly
                     value={formData.oldDesignation || 'Select employee first'}
-                    className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs text-[#70665F] font-medium"
+                    className="w-full px-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-secondary)] font-medium"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     New Designation <span className="text-rose-500">*</span>
                   </label>
                   <select
@@ -609,10 +609,10 @@ export default function PromotionsPage() {
                         });
                       }
                     }}
-                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition ${
+                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                       formErrors.newDesignation
                         ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                        : 'border-[#EBE3DB] focus:border-rose-600'
+                        : 'border-[color:var(--crm-border-default)] focus:border-rose-600'
                     }`}
                   >
                     <option value="">-- Select New Designation --</option>
@@ -634,11 +634,11 @@ export default function PromotionsPage() {
               {/* 3. Grade Change */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Current Grade Level</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Current Grade Level</label>
                   <select
                     value={formData.oldGrade}
                     onChange={(e) => setFormData({ ...formData, oldGrade: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-white border border-[#EBE3DB] rounded-lg text-xs text-[#211B17]"
+                    className="w-full px-3.5 py-2.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)]"
                   >
                     {CADRE_GRADES.map((g) => (
                       <option key={g} value={g}>{g}</option>
@@ -647,11 +647,11 @@ export default function PromotionsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">New Grade Level</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">New Grade Level</label>
                   <select
                     value={formData.newGrade}
                     onChange={(e) => setFormData({ ...formData, newGrade: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-white border border-[#EBE3DB] rounded-lg text-xs text-[#211B17]"
+                    className="w-full px-3.5 py-2.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)]"
                   >
                     {CADRE_GRADES.map((g) => (
                       <option key={g} value={g}>{g}</option>
@@ -663,17 +663,17 @@ export default function PromotionsPage() {
               {/* 4. CTC Revisions & Increment */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Current Annual CTC (₹)</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Current Annual CTC (₹)</label>
                   <input
                     type="number"
                     value={formData.oldCTC}
                     onChange={(e) => setFormData({ ...formData, oldCTC: Number(e.target.value) })}
-                    className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] font-semibold"
+                    className="w-full px-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] font-semibold"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     New Annual CTC (₹) <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -690,10 +690,10 @@ export default function PromotionsPage() {
                         });
                       }
                     }}
-                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] font-bold focus:outline-none transition ${
+                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] font-bold focus:outline-none transition ${
                       formErrors.newCTC
                         ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                        : 'border-[#EBE3DB] focus:border-rose-600'
+                        : 'border-[color:var(--crm-border-default)] focus:border-rose-600'
                     }`}
                   />
                   {formErrors.newCTC && (
@@ -708,7 +708,7 @@ export default function PromotionsPage() {
               {/* Live Increment Preview Badge */}
               {formData.newCTC > 0 && (
                 <div className="p-3 bg-rose-50/70 border border-rose-200 rounded-xl flex items-center justify-between text-xs">
-                  <span className="font-semibold text-[#544B45]">Calculated Increment:</span>
+                  <span className="font-semibold text-[color:var(--crm-text-secondary)]">Calculated Increment:</span>
                   <div className="text-right">
                     <span className="font-bold text-rose-700">
                       +{calculatedIncrement.pct}% (+₹{calculatedIncrement.diff.toLocaleString()}/annum)
@@ -719,7 +719,7 @@ export default function PromotionsPage() {
 
               {/* 5. Effective Date */}
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Effective Date <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -735,10 +735,10 @@ export default function PromotionsPage() {
                       });
                     }
                   }}
-                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition ${
+                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                     formErrors.effectiveDate
                       ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                      : 'border-[#EBE3DB] focus:border-rose-600'
+                      : 'border-[color:var(--crm-border-default)] focus:border-rose-600'
                   }`}
                 />
                 {formErrors.effectiveDate && (
@@ -751,7 +751,7 @@ export default function PromotionsPage() {
 
               {/* 6. Reason / Justification */}
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Justification / Appraisal Reference <span className="text-rose-500">*</span>
                 </label>
                 <textarea
@@ -768,10 +768,10 @@ export default function PromotionsPage() {
                       });
                     }
                   }}
-                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition ${
+                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                     formErrors.reason
                       ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                      : 'border-[#EBE3DB] focus:border-rose-600'
+                      : 'border-[color:var(--crm-border-default)] focus:border-rose-600'
                   }`}
                 />
                 {formErrors.reason && (
@@ -783,11 +783,11 @@ export default function PromotionsPage() {
               </div>
 
               {/* Form Buttons */}
-              <div className="pt-4 border-t border-[#EBE3DB] flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={closeModalWithConfirm}
-                  className="px-4 py-2.5 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold text-xs rounded-lg transition"
+                  className="px-4 py-2.5 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold text-xs rounded-lg transition"
                 >
                   Cancel
                 </button>
@@ -814,27 +814,27 @@ export default function PromotionsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl"
           >
             <div className="flex items-center gap-3">
               <div className="p-3 bg-rose-100 text-rose-600 rounded-xl">
                 <ShieldAlert className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-[#211B17]">Delete Promotion Record</h3>
-                <p className="text-xs text-[#70665F]">Order ID: {deleteConfirmItem.id}</p>
+                <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">Delete Promotion Record</h3>
+                <p className="text-xs text-[color:var(--crm-text-secondary)]">Order ID: {deleteConfirmItem.id}</p>
               </div>
             </div>
 
-            <p className="text-sm text-[#544B45] leading-relaxed">
+            <p className="text-sm text-[color:var(--crm-text-secondary)] leading-relaxed">
               Are you sure you want to delete this record? This will remove the promotion order for <strong>{deleteConfirmItem.employeeName}</strong> and revert the CTC audit record.
             </p>
 
-            <div className="pt-3 border-t border-[#EBE3DB] flex items-center justify-end gap-3 text-xs">
+            <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-3 text-xs">
               <button
                 type="button"
                 onClick={() => setDeleteConfirmItem(null)}
-                className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold rounded-lg transition"
+                className="px-4 py-2 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold rounded-lg transition"
               >
                 Cancel
               </button>

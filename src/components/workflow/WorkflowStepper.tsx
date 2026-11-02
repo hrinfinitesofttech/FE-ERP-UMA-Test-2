@@ -35,18 +35,18 @@ export function WorkflowStepper({
                   'group flex items-center gap-2 px-3 py-1.5 rounded-lg border text-left transition-all text-xs',
                   isCompleted && 'bg-emerald-50/80 border-emerald-200 text-emerald-900 dark:bg-emerald-950/30 dark:border-emerald-800 dark:text-emerald-300',
                   isInProgress && 'bg-crm-brand- border-crm-brand- text-crm-brand- ring-2 ring-crm-brand-600/20 shadow-sm font-medium dark:bg-crm-brand-/40 dark:border-crm-brand-800 dark:text-crm-brand-',
-                  isPending && 'bg-slate-50 border-slate-200 text-[#70665F] opacity-75 dark:bg-white dark:border-[#EBE3DB] dark:text-[#70665F]',
+                  isPending && 'bg-slate-50 border-slate-200 text-[color:var(--crm-text-secondary)] opacity-75 dark:bg-white dark:border-[color:var(--crm-border-default)] dark:text-[color:var(--crm-text-secondary)]',
                   interactive && 'hover:shadow hover:border-slate-300 cursor-pointer'
                 )}
               >
                 <div className="flex-shrink-0">
                   {isCompleted && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />}
                   {isInProgress && <Clock className="w-3.5 h-3.5 text-crm-brand-700 animate-spin dark:text-crm-brand-500" />}
-                  {isPending && <Circle className="w-3.5 h-3.5 text-[#70665F]" />}
+                  {isPending && <Circle className="w-3.5 h-3.5 text-[color:var(--crm-text-secondary)]" />}
                 </div>
                 <div className="flex flex-col">
                   <span className="font-semibold leading-tight">{step.name}</span>
-                  <div className="flex items-center gap-1 text-[10px] text-[#70665F]">
+                  <div className="flex items-center gap-1 text-[10px] text-[color:var(--crm-text-secondary)]">
                     <span className="uppercase tracking-wider">{step.department}</span>
                     {step.completedAt && <span>• {step.completedAt}</span>}
                   </div>
@@ -54,7 +54,7 @@ export function WorkflowStepper({
               </button>
 
               {!isLast && (
-                <div className="text-[#544B45] dark:text-slate-700 px-0.5">
+                <div className="text-[color:var(--crm-text-secondary)] dark:text-slate-700 px-0.5">
                   <ArrowRight className="w-3 h-3" />
                 </div>
               )}

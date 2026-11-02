@@ -298,7 +298,7 @@ export default function FullAndFinalSettlementPage() {
     .reduce((sum, s) => sum + Number(s.netFinalPayable || 0), 0);
 
   return (
-    <div className="p-6 space-y-6 bg-[#FDFBF9] min-h-screen text-[#211B17]">
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)] min-h-screen text-[color:var(--crm-text-primary)]">
       {/* Toast Notification */}
       {successToast && (
         <div className="fixed top-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
@@ -308,22 +308,22 @@ export default function FullAndFinalSettlementPage() {
       )}
 
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2.5">
+          <h1 className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2.5">
             <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-600">
               <Calculator className="w-6 h-6" />
             </div>
             Full & Final (F&F) Settlement Engine
           </h1>
-          <p className="text-sm text-[#70665F] mt-1">
+          <p className="text-sm text-[color:var(--crm-text-secondary)] mt-1">
             Automated Exit Settlement: Unpaid Salary + Leave Encashment + Expenses - Advance/Loan Recoveries → Accounting Posting
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={handleRefresh}
-            className="flex items-center gap-1.5 px-3 py-2 bg-white border border-[#EBE3DB] hover:bg-[#F5EFEB] text-[#544B45] font-semibold text-xs rounded-lg transition shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-2 bg-white border border-[color:var(--crm-border-default)] hover:bg-[#F5EFEB] text-[color:var(--crm-text-secondary)] font-semibold text-xs rounded-lg transition shadow-sm"
             title="Reload settlement records"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
@@ -361,58 +361,58 @@ export default function FullAndFinalSettlementPage() {
 
       {/* Metric Cards Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm flex items-center justify-between">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold text-[#70665F] uppercase tracking-wider block">
+            <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">
               Total Settlements
             </span>
-            <span className="text-2xl font-black text-[#211B17]">
+            <span className="text-2xl font-black text-[color:var(--crm-text-primary)]">
               {totalSettlementCount}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+          <div className="w-10 h-10 rounded-xl bg-crm-brand-50 flex items-center justify-center text-crm-brand-700">
             <Calculator className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm flex items-center justify-between">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold text-[#70665F] uppercase tracking-wider block">
+            <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">
               Pending Clearance
             </span>
             <span className="text-2xl font-black text-amber-700">
               ₹{pendingAmount.toLocaleString()}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600">
+          <div className="w-10 h-10 rounded-xl bg-crm-brand-50 flex items-center justify-center text-crm-brand-700">
             <Clock className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm flex items-center justify-between">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold text-[#70665F] uppercase tracking-wider block">
+            <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">
               Paid / Cleared
             </span>
             <span className="text-2xl font-black text-emerald-700">
               ₹{paidAmount.toLocaleString()}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+          <div className="w-10 h-10 rounded-xl bg-crm-brand-50 flex items-center justify-center text-crm-brand-700">
             <CheckCircle2 className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm flex items-center justify-between">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold text-[#70665F] uppercase tracking-wider block">
+            <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">
               Resigned Staff Pool
             </span>
             <span className="text-2xl font-black text-blue-700">
               {employeeExits.length} Exits Logged
             </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600">
+          <div className="w-10 h-10 rounded-xl bg-crm-brand-50 flex items-center justify-center text-crm-brand-700">
             <Landmark className="w-5 h-5" />
           </div>
         </div>
@@ -427,15 +427,15 @@ export default function FullAndFinalSettlementPage() {
       </div>
 
       {/* Search & Status Filters */}
-      <div className="bg-white border border-[#EBE3DB] rounded-xl p-3.5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-3.5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 text-[#A89F91] absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[color:var(--crm-text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by Employee, Exit ID, Voucher..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-[#FDFBF9] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-emerald-600 focus:bg-white transition"
+            className="w-full pl-9 pr-4 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-600 focus:bg-white transition"
           />
         </div>
 
@@ -447,7 +447,7 @@ export default function FullAndFinalSettlementPage() {
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition ${
                 statusFilter === st
                   ? 'bg-emerald-700 text-white shadow-sm'
-                  : 'bg-[#FAF7F2] text-[#70665F] hover:bg-[#EBE3DB]'
+                  : 'bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-border-default)]'
               }`}
             >
               {st === 'all' ? 'All Status' : st === 'pending' ? 'Pending Accounting Clearance' : st}
@@ -458,15 +458,15 @@ export default function FullAndFinalSettlementPage() {
 
       {/* Settlements List */}
       {isLoading ? (
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-12 text-center">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-12 text-center">
           <RefreshCw className="w-8 h-8 text-emerald-600 animate-spin mx-auto mb-3" />
-          <p className="text-sm font-semibold text-[#544B45]">Loading settlement records...</p>
+          <p className="text-sm font-semibold text-[color:var(--crm-text-secondary)]">Loading settlement records...</p>
         </div>
       ) : filteredSettlements.length === 0 ? (
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-12 text-center space-y-3 shadow-sm">
-          <Calculator className="w-12 h-12 text-[#A89F91] mx-auto" />
-          <h3 className="text-base font-bold text-[#211B17]">No Full & Final Settlements Found</h3>
-          <p className="text-xs text-[#70665F] max-w-md mx-auto">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-12 text-center space-y-3 shadow-sm">
+          <Calculator className="w-12 h-12 text-[color:var(--crm-text-tertiary)] mx-auto" />
+          <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">No Full & Final Settlements Found</h3>
+          <p className="text-xs text-[color:var(--crm-text-secondary)] max-w-md mx-auto">
             {searchTerm || statusFilter !== 'all'
               ? 'No settlement records match your search filter.'
               : 'Click "Create F&F Calculation" above to calculate and record an employee exit settlement.'}
@@ -477,18 +477,18 @@ export default function FullAndFinalSettlementPage() {
           {filteredSettlements.map((fnf) => (
             <div
               key={fnf.id}
-              className="bg-white border border-[#EBE3DB] hover:border-emerald-300 rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-md transition duration-200"
+              className="bg-white border border-[color:var(--crm-border-default)] hover:border-emerald-300 rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-md transition duration-200"
             >
               {/* Header Row */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#EBE3DB]/60 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E2E7EF]/60 pb-3">
                 <div className="flex items-center gap-3">
                   <span className="px-2.5 py-1 bg-emerald-50 text-emerald-800 text-xs font-mono font-bold rounded-md border border-emerald-200">
                     {fnf.id}
                   </span>
                   <div>
-                    <h3 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+                    <h3 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                       {fnf.employeeName}
-                      <span className="text-xs font-normal text-[#70665F]">({fnf.employeeId})</span>
+                      <span className="text-xs font-normal text-[color:var(--crm-text-secondary)]">({fnf.employeeId})</span>
                     </h3>
                   </div>
                 </div>
@@ -508,7 +508,7 @@ export default function FullAndFinalSettlementPage() {
 
                   <button
                     onClick={() => setDeleteConfirmId(fnf.id)}
-                    className="p-1.5 text-[#70665F] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                    className="p-1.5 text-[color:var(--crm-text-secondary)] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
                     title="Delete settlement calculation"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -533,18 +533,18 @@ export default function FullAndFinalSettlementPage() {
 
                 return (
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] space-y-1 text-xs">
-                      <span className="text-[11px] font-bold text-[#70665F] uppercase block">Total Additions</span>
+                    <div className="p-3 bg-[color:var(--crm-bg-app)] rounded-xl border border-[color:var(--crm-border-default)] space-y-1 text-xs">
+                      <span className="text-[11px] font-bold text-[color:var(--crm-text-secondary)] uppercase block">Total Additions</span>
                       <div className="text-emerald-700 font-bold text-base">₹{addTotal.toLocaleString()}</div>
-                      <div className="text-[11px] text-[#70665F]">
+                      <div className="text-[11px] text-[color:var(--crm-text-secondary)]">
                         Salary: ₹{fnf.pendingSalaryAmount.toLocaleString()} ({fnf.pendingSalaryDays}d) • Leave: ₹{fnf.leaveEncashmentAmount.toLocaleString()}
                       </div>
                     </div>
 
-                    <div className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] space-y-1 text-xs">
-                      <span className="text-[11px] font-bold text-[#70665F] uppercase block">Total Deductions</span>
+                    <div className="p-3 bg-[color:var(--crm-bg-app)] rounded-xl border border-[color:var(--crm-border-default)] space-y-1 text-xs">
+                      <span className="text-[11px] font-bold text-[color:var(--crm-text-secondary)] uppercase block">Total Deductions</span>
                       <div className="text-rose-700 font-bold text-base">₹{dedTotal.toLocaleString()}</div>
-                      <div className="text-[11px] text-[#70665F]">
+                      <div className="text-[11px] text-[color:var(--crm-text-secondary)]">
                         Advance: ₹{fnf.advanceRecovery.toLocaleString()} • Notice/Other: ₹{(fnf.noticePeriodRecovery + fnf.otherDeductions).toLocaleString()}
                       </div>
                     </div>
@@ -572,17 +572,17 @@ export default function FullAndFinalSettlementPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-2xl p-6 space-y-5 shadow-2xl relative my-8"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-2xl p-6 space-y-5 shadow-2xl relative my-8"
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3.5">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3.5">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-600">
                   <Calculator className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-[#211B17]">New Full & Final Settlement</h2>
-                  <p className="text-xs text-[#70665F]">
+                  <h2 className="text-lg font-bold text-[color:var(--crm-text-primary)]">New Full & Final Settlement</h2>
+                  <p className="text-xs text-[color:var(--crm-text-secondary)]">
                     Select employee from the dropdown to auto-link exit data & calculate final settlement
                   </p>
                 </div>
@@ -590,7 +590,7 @@ export default function FullAndFinalSettlementPage() {
               <button
                 type="button"
                 onClick={closeModalWithConfirm}
-                className="text-[#70665F] hover:text-[#211B17] p-1.5 rounded-lg hover:bg-[#F5EFEB] transition"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1.5 rounded-lg hover:bg-[#F5EFEB] transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -609,16 +609,16 @@ export default function FullAndFinalSettlementPage() {
               {/* Employee Selection & Exit Reference */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     Select Employee <span className="text-rose-500">*</span>
                   </label>
                   <select
                     value={formData.employeeId}
                     onChange={(e) => handleEmployeeChange(e.target.value)}
-                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition ${
+                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                       formErrors.employeeId
                         ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                        : 'border-[#EBE3DB] focus:border-emerald-600'
+                        : 'border-[color:var(--crm-border-default)] focus:border-emerald-600'
                     }`}
                   >
                     <option value="">-- Select Resigned / Exited Employee --</option>
@@ -637,40 +637,40 @@ export default function FullAndFinalSettlementPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     Exit Reference / Reason ID
                   </label>
                   <input
                     type="text"
                     readOnly
                     value={formData.exitId || (formLoading ? 'Loading...' : '—')}
-                    className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs text-[#544B45] font-mono"
+                    className="w-full px-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-secondary)] font-mono"
                   />
                 </div>
               </div>
 
               {/* Employee Snapshot when Loaded */}
               {formLoading ? (
-                <div className="p-4 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-center flex items-center justify-center gap-2 text-xs text-[#544B45]">
+                <div className="p-4 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-center flex items-center justify-center gap-2 text-xs text-[color:var(--crm-text-secondary)]">
                   <RefreshCw className="w-4 h-4 animate-spin text-emerald-600" />
                   Loading fresh employee parameters & exit details...
                 </div>
               ) : formData.employeeId && formData.employeeName ? (
-                <div className="p-3 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+                <div className="p-3 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
                   <div>
-                    <span className="text-[#70665F] block">Name:</span>
-                    <strong className="text-[#211B17]">{formData.employeeName}</strong>
+                    <span className="text-[color:var(--crm-text-secondary)] block">Name:</span>
+                    <strong className="text-[color:var(--crm-text-primary)]">{formData.employeeName}</strong>
                   </div>
                   <div>
-                    <span className="text-[#70665F] block">Department:</span>
-                    <span className="text-[#211B17]">{formData.department}</span>
+                    <span className="text-[color:var(--crm-text-secondary)] block">Department:</span>
+                    <span className="text-[color:var(--crm-text-primary)]">{formData.department}</span>
                   </div>
                   <div>
-                    <span className="text-[#70665F] block">Designation:</span>
-                    <span className="text-[#211B17]">{formData.designation}</span>
+                    <span className="text-[color:var(--crm-text-secondary)] block">Designation:</span>
+                    <span className="text-[color:var(--crm-text-primary)]">{formData.designation}</span>
                   </div>
                   <div>
-                    <span className="text-[#70665F] block">Last Working Date:</span>
+                    <span className="text-[color:var(--crm-text-secondary)] block">Last Working Date:</span>
                     <span className="text-amber-800 font-semibold">{formData.lastWorkingDate}</span>
                   </div>
                 </div>
@@ -686,7 +686,7 @@ export default function FullAndFinalSettlementPage() {
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-[11px] text-[#544B45] block">Pending Salary (Days)</label>
+                      <label className="text-[11px] text-[color:var(--crm-text-secondary)] block">Pending Salary (Days)</label>
                       <input
                         type="number"
                         value={formData.pendingSalaryDays}
@@ -695,23 +695,23 @@ export default function FullAndFinalSettlementPage() {
                           const amt = d * 2333;
                           setFormData({ ...formData, pendingSalaryDays: d, pendingSalaryAmount: amt });
                         }}
-                        className="w-full px-2.5 py-1.5 bg-white border border-[#EBE3DB] rounded text-xs"
+                        className="w-full px-2.5 py-1.5 bg-white border border-[color:var(--crm-border-default)] rounded text-xs"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] text-[#544B45] block">Pending Salary (₹)</label>
+                      <label className="text-[11px] text-[color:var(--crm-text-secondary)] block">Pending Salary (₹)</label>
                       <input
                         type="number"
                         value={formData.pendingSalaryAmount}
                         onChange={(e) => setFormData({ ...formData, pendingSalaryAmount: Number(e.target.value) })}
-                        className="w-full px-2.5 py-1.5 bg-white border border-[#EBE3DB] rounded text-xs font-semibold"
+                        className="w-full px-2.5 py-1.5 bg-white border border-[color:var(--crm-border-default)] rounded text-xs font-semibold"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-[11px] text-[#544B45] block">Leave Encash. (Days)</label>
+                      <label className="text-[11px] text-[color:var(--crm-text-secondary)] block">Leave Encash. (Days)</label>
                       <input
                         type="number"
                         value={formData.leaveEncashmentDays}
@@ -720,46 +720,46 @@ export default function FullAndFinalSettlementPage() {
                           const amt = d * 2000;
                           setFormData({ ...formData, leaveEncashmentDays: d, leaveEncashmentAmount: amt });
                         }}
-                        className="w-full px-2.5 py-1.5 bg-white border border-[#EBE3DB] rounded text-xs"
+                        className="w-full px-2.5 py-1.5 bg-white border border-[color:var(--crm-border-default)] rounded text-xs"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] text-[#544B45] block">Leave Encash. (₹)</label>
+                      <label className="text-[11px] text-[color:var(--crm-text-secondary)] block">Leave Encash. (₹)</label>
                       <input
                         type="number"
                         value={formData.leaveEncashmentAmount}
                         onChange={(e) => setFormData({ ...formData, leaveEncashmentAmount: Number(e.target.value) })}
-                        className="w-full px-2.5 py-1.5 bg-white border border-[#EBE3DB] rounded text-xs font-semibold"
+                        className="w-full px-2.5 py-1.5 bg-white border border-[color:var(--crm-border-default)] rounded text-xs font-semibold"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2">
                     <div>
-                      <label className="text-[10px] text-[#544B45] block">Bonus (₹)</label>
+                      <label className="text-[10px] text-[color:var(--crm-text-secondary)] block">Bonus (₹)</label>
                       <input
                         type="number"
                         value={formData.bonusIncentive}
                         onChange={(e) => setFormData({ ...formData, bonusIncentive: Number(e.target.value) })}
-                        className="w-full px-2 py-1.5 bg-white border border-[#EBE3DB] rounded text-xs"
+                        className="w-full px-2 py-1.5 bg-white border border-[color:var(--crm-border-default)] rounded text-xs"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] text-[#544B45] block">Overtime (₹)</label>
+                      <label className="text-[10px] text-[color:var(--crm-text-secondary)] block">Overtime (₹)</label>
                       <input
                         type="number"
                         value={formData.overtimeAmount}
                         onChange={(e) => setFormData({ ...formData, overtimeAmount: Number(e.target.value) })}
-                        className="w-full px-2 py-1.5 bg-white border border-[#EBE3DB] rounded text-xs"
+                        className="w-full px-2 py-1.5 bg-white border border-[color:var(--crm-border-default)] rounded text-xs"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] text-[#544B45] block">Expense (₹)</label>
+                      <label className="text-[10px] text-[color:var(--crm-text-secondary)] block">Expense (₹)</label>
                       <input
                         type="number"
                         value={formData.reimbursementsAmount}
                         onChange={(e) => setFormData({ ...formData, reimbursementsAmount: Number(e.target.value) })}
-                        className="w-full px-2 py-1.5 bg-white border border-[#EBE3DB] rounded text-xs"
+                        className="w-full px-2 py-1.5 bg-white border border-[color:var(--crm-border-default)] rounded text-xs"
                       />
                     </div>
                   </div>
@@ -778,42 +778,42 @@ export default function FullAndFinalSettlementPage() {
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-[11px] text-[#544B45] block">Advance Recovery (₹)</label>
+                      <label className="text-[11px] text-[color:var(--crm-text-secondary)] block">Advance Recovery (₹)</label>
                       <input
                         type="number"
                         value={formData.advanceRecovery}
                         onChange={(e) => setFormData({ ...formData, advanceRecovery: Number(e.target.value) })}
-                        className="w-full px-2.5 py-1.5 bg-white border border-[#EBE3DB] rounded text-xs"
+                        className="w-full px-2.5 py-1.5 bg-white border border-[color:var(--crm-border-default)] rounded text-xs"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] text-[#544B45] block">Loan Recovery (₹)</label>
+                      <label className="text-[11px] text-[color:var(--crm-text-secondary)] block">Loan Recovery (₹)</label>
                       <input
                         type="number"
                         value={formData.loanRecovery}
                         onChange={(e) => setFormData({ ...formData, loanRecovery: Number(e.target.value) })}
-                        className="w-full px-2.5 py-1.5 bg-white border border-[#EBE3DB] rounded text-xs"
+                        className="w-full px-2.5 py-1.5 bg-white border border-[color:var(--crm-border-default)] rounded text-xs"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-[11px] text-[#544B45] block">Notice Shortfall (₹)</label>
+                      <label className="text-[11px] text-[color:var(--crm-text-secondary)] block">Notice Shortfall (₹)</label>
                       <input
                         type="number"
                         value={formData.noticePeriodRecovery}
                         onChange={(e) => setFormData({ ...formData, noticePeriodRecovery: Number(e.target.value) })}
-                        className="w-full px-2.5 py-1.5 bg-white border border-[#EBE3DB] rounded text-xs"
+                        className="w-full px-2.5 py-1.5 bg-white border border-[color:var(--crm-border-default)] rounded text-xs"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] text-[#544B45] block">Other Deductions (₹)</label>
+                      <label className="text-[11px] text-[color:var(--crm-text-secondary)] block">Other Deductions (₹)</label>
                       <input
                         type="number"
                         value={formData.otherDeductions}
                         onChange={(e) => setFormData({ ...formData, otherDeductions: Number(e.target.value) })}
-                        className="w-full px-2.5 py-1.5 bg-white border border-[#EBE3DB] rounded text-xs"
+                        className="w-full px-2.5 py-1.5 bg-white border border-[color:var(--crm-border-default)] rounded text-xs"
                       />
                     </div>
                   </div>
@@ -841,11 +841,11 @@ export default function FullAndFinalSettlementPage() {
               </div>
 
               {/* Form Buttons */}
-              <div className="pt-4 border-t border-[#EBE3DB] flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={closeModalWithConfirm}
-                  className="px-4 py-2.5 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold text-xs rounded-lg transition"
+                  className="px-4 py-2.5 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold text-xs rounded-lg transition"
                 >
                   Cancel
                 </button>
@@ -871,27 +871,27 @@ export default function FullAndFinalSettlementPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl"
           >
             <div className="flex items-center gap-3">
               <div className="p-3 bg-rose-100 text-rose-600 rounded-xl">
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-[#211B17]">Delete Settlement Record</h3>
-                <p className="text-xs text-[#70665F]">Record ID: {deleteConfirmId}</p>
+                <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">Delete Settlement Record</h3>
+                <p className="text-xs text-[color:var(--crm-text-secondary)]">Record ID: {deleteConfirmId}</p>
               </div>
             </div>
 
-            <p className="text-sm text-[#544B45] leading-relaxed">
+            <p className="text-sm text-[color:var(--crm-text-secondary)] leading-relaxed">
               Are you sure you want to delete this settlement calculation record? This action will remove the F&F record from the audit log.
             </p>
 
-            <div className="pt-3 border-t border-[#EBE3DB] flex items-center justify-end gap-3 text-xs">
+            <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-3 text-xs">
               <button
                 type="button"
                 onClick={() => setDeleteConfirmId(null)}
-                className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold rounded-lg transition"
+                className="px-4 py-2 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold rounded-lg transition"
               >
                 Cancel
               </button>

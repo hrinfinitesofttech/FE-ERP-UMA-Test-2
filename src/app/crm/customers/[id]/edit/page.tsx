@@ -348,7 +348,7 @@ export default function EditCustomerMasterPage() {
         <button
           type="button"
           onClick={() => router.push('/crm/customers')}
-          className="px-4 py-2 bg-[#75401F] text-white rounded-lg text-xs font-bold"
+          className="px-4 py-2 bg-[color:var(--crm-brand-700)] text-white rounded-lg text-xs font-bold"
         >
           Back to Customer Master
         </button>
@@ -657,9 +657,9 @@ export default function EditCustomerMasterPage() {
         <div className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Billing Address Card */}
-            <div className="p-4 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl space-y-3">
-              <span className="text-xs font-bold text-[#211B17] flex items-center gap-1.5">
-                <Building2 className="w-4 h-4 text-[#75401F]" />
+            <div className="p-4 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl space-y-3">
+              <span className="text-xs font-bold text-[color:var(--crm-text-primary)] flex items-center gap-1.5">
+                <Building2 className="w-4 h-4 text-[color:var(--crm-brand-700)]" />
                 Registered Billing Address
               </span>
               <textarea
@@ -667,7 +667,7 @@ export default function EditCustomerMasterPage() {
                 value={formData.billingAddress}
                 onChange={(e) => setFormData({ ...formData, billingAddress: e.target.value })}
                 placeholder="Plot No., Industrial Area, Street Name..."
-                className="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#7C3AED]"
+                className="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[color:var(--crm-brand-600)]"
               />
               <div className="grid grid-cols-3 gap-2">
                 <input
@@ -695,16 +695,16 @@ export default function EditCustomerMasterPage() {
             </div>
 
             {/* Shipping Address Card */}
-            <div className="p-4 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl space-y-3">
+            <div className="p-4 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#211B17] flex items-center gap-1.5">
-                  <Truck className="w-4 h-4 text-[#75401F]" />
+                <span className="text-xs font-bold text-[color:var(--crm-text-primary)] flex items-center gap-1.5">
+                  <Truck className="w-4 h-4 text-[color:var(--crm-brand-700)]" />
                   Shipping / Site Delivery Address
                 </span>
                 <button
                   type="button"
                   onClick={handleCopyBillingToShipping}
-                  className="text-[11px] font-bold text-[#75401F] hover:text-[#5C3218] flex items-center gap-1 bg-white px-2 py-0.5 rounded border border-[#E7DED5] cursor-pointer"
+                  className="text-[11px] font-bold text-[color:var(--crm-brand-700)] hover:text-[#1B3489] flex items-center gap-1 bg-white px-2 py-0.5 rounded border border-[color:var(--crm-border-default)] cursor-pointer"
                 >
                   <Copy className="w-3 h-3" />
                   <span>Same as Billing</span>
@@ -715,7 +715,7 @@ export default function EditCustomerMasterPage() {
                 value={formData.shippingAddress}
                 onChange={(e) => setFormData({ ...formData, shippingAddress: e.target.value })}
                 placeholder="Plant site, Delivery Gate No., Project Site address..."
-                className="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#7C3AED]"
+                className="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[color:var(--crm-brand-600)]"
               />
               <div className="pt-1">
                 <input
@@ -830,7 +830,7 @@ export default function EditCustomerMasterPage() {
               value={formData.inspectionRequirements}
               onChange={(e) => setFormData({ ...formData, inspectionRequirements: e.target.value })}
               placeholder="e.g. Third-Party Inspection required: TUV / BVQI / Lloyd's / IBR / ASME. Radiography test, Hydro-testing witnessed by client."
-              className="w-full py-2 px-3 text-xs bg-white border border-[#CBD5E1] rounded-lg text-[#1E293B] focus:outline-none focus:border-[#7C3AED]"
+              className="w-full py-2 px-3 text-xs bg-white border border-[#CBD5E1] rounded-lg text-[#1E293B] focus:outline-none focus:border-[color:var(--crm-brand-600)]"
             />
           </div>
 
@@ -843,7 +843,7 @@ export default function EditCustomerMasterPage() {
               value={formData.specialInstructions}
               onChange={(e) => setFormData({ ...formData, specialInstructions: e.target.value })}
               placeholder="e.g. Seaworthy wooden box packaging, Nitrogen purging before dispatch, pickling & passivation required, specific primer paint shade."
-              className="w-full py-2 px-3 text-xs bg-white border border-[#CBD5E1] rounded-lg text-[#1E293B] focus:outline-none focus:border-[#7C3AED]"
+              className="w-full py-2 px-3 text-xs bg-white border border-[#CBD5E1] rounded-lg text-[#1E293B] focus:outline-none focus:border-[color:var(--crm-brand-600)]"
             />
           </div>
         </div>
@@ -909,7 +909,7 @@ export default function EditCustomerMasterPage() {
               <button
                 type="button"
                 onClick={handleAddAddress}
-                className="px-4 py-2 text-xs font-bold bg-[#75401F] hover:bg-[#5C3218] text-white rounded-lg transition"
+                className="px-4 py-2 text-xs font-bold bg-[color:var(--crm-brand-700)] hover:bg-[#1B3489] text-white rounded-lg transition"
               >
                 Add Address
               </button>
@@ -971,7 +971,7 @@ export default function EditCustomerMasterPage() {
               <button
                 type="button"
                 onClick={handleAddContact}
-                className="px-4 py-2 text-xs font-bold bg-[#75401F] hover:bg-[#5C3218] text-white rounded-lg transition"
+                className="px-4 py-2 text-xs font-bold bg-[color:var(--crm-brand-700)] hover:bg-[#1B3489] text-white rounded-lg transition"
               >
                 Add Contact
               </button>

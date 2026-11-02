@@ -115,7 +115,7 @@ function ProductionPlanningHubContent() {
     <div className="space-y-4">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-5 right-5 z-50 bg-[#211B17] text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-[#EBE3DB]/20 text-xs animate-in slide-in-from-top-2 duration-200">
+        <div className="fixed top-5 right-5 z-50 bg-[color:var(--crm-text-primary)] text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-[#E2E7EF]/20 text-xs animate-in slide-in-from-top-2 duration-200">
           <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
           <div>
             <div className="font-bold text-emerald-300">{toastMessage.title}</div>
@@ -131,8 +131,8 @@ function ProductionPlanningHubContent() {
             <div className="text-[11px] font-semibold tracking-wider uppercase text-slate-400 mb-0.5">
               DASHBOARD / PRODUCTION &amp; SHOP FLOOR / PRODUCTION PLANNING
             </div>
-            <h1 className="text-2xl font-black text-[#211B17] tracking-tight flex items-center gap-2.5">
-              <Compass className="w-6 h-6 text-amber-600" />
+            <h1 className="text-2xl font-black text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2.5">
+              <Compass className="w-6 h-6 text-crm-brand-600" />
               <span>Production Planning</span>
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold border border-amber-300">
                 Live Pipeline
@@ -153,7 +153,7 @@ function ProductionPlanningHubContent() {
             </Link>
             <Link
               href="/projects/planning"
-              className="px-3.5 py-2 bg-white border border-[#EBE3DB] hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-xs"
+              className="px-3.5 py-2 bg-white border border-[color:var(--crm-border-default)] hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-xs"
             >
               <ExternalLink className="w-3.5 h-3.5 text-purple-600" />
               <span>Master Project Planning</span>
@@ -171,7 +171,7 @@ function ProductionPlanningHubContent() {
               <span className="text-xs font-semibold uppercase tracking-wider">Planned Projects</span>
               <Briefcase className="w-4 h-4 text-purple-600" />
             </div>
-            <div className="text-2xl font-black text-[#211B17]">{planningMetrics.totalProjects}</div>
+            <div className="text-2xl font-black text-[color:var(--crm-text-primary)]">{planningMetrics.totalProjects}</div>
             <div className="text-[11px] text-slate-500">Total Projects in Pipeline</div>
           </div>
 
@@ -215,7 +215,7 @@ function ProductionPlanningHubContent() {
               placeholder="Search by Project #, Plan #, Customer, Scope..."
               value={planningSearchQuery}
               onChange={(e) => setPlanningSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-[#211B17]"
+              className="w-full pl-9 pr-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-[color:var(--crm-text-primary)]"
             />
           </div>
 
@@ -227,7 +227,7 @@ function ProductionPlanningHubContent() {
             <select
               value={planningStatusFilter}
               onChange={(e) => setPlanningStatusFilter(e.target.value as any)}
-              className="px-3 py-1.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-[#211B17]"
+              className="px-3 py-1.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-[color:var(--crm-text-primary)]"
             >
               <option value="all">All Projects ({projectPlanningRecords.length})</option>
               <option value="in_progress">In Production ({planningMetrics.inProgressProjects})</option>
@@ -285,7 +285,7 @@ function ProductionPlanningHubContent() {
                       >
                         {/* Project No & Plan No */}
                         <td className="py-3.5 px-4 font-mono">
-                          <div className="font-bold text-[#7C3AED] group-hover:underline flex items-center gap-1">
+                          <div className="font-bold text-[color:var(--crm-brand-600)] group-hover:underline flex items-center gap-1">
                             <span>{r.projectNumber}</span>
                           </div>
                           <div className="text-[10px] text-slate-500 font-mono mt-0.5">
@@ -365,7 +365,7 @@ function ProductionPlanningHubContent() {
                           <div className="w-28 space-y-1">
                             <div className="flex justify-between text-[10px] font-mono">
                               <span className="text-slate-500 font-medium">Progress</span>
-                              <span className="font-bold text-[#7C3AED]">{pct}%</span>
+                              <span className="font-bold text-[color:var(--crm-brand-600)]">{pct}%</span>
                             </div>
                             <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
                               <div
@@ -373,8 +373,8 @@ function ProductionPlanningHubContent() {
                                   pct >= 100
                                     ? 'bg-emerald-500'
                                     : pct >= 50
-                                    ? 'bg-gradient-to-r from-[#7C3AED] to-emerald-500'
-                                    : 'bg-[#7C3AED]'
+                                    ? 'bg-gradient-to-r from-[color:var(--crm-brand-600)] to-emerald-500'
+                                    : 'bg-[color:var(--crm-brand-600)]'
                                 }`}
                                 style={{ width: `${Math.min(pct, 100)}%` }}
                               />
@@ -405,7 +405,7 @@ function ProductionPlanningHubContent() {
                               </>
                             ) : (
                               <>
-                                <Clock className="w-3 h-3 text-amber-600" />
+                                <Clock className="w-3 h-3 text-crm-brand-600" />
                                 <span>Planned</span>
                               </>
                             )}
@@ -429,7 +429,7 @@ function ProductionPlanningHubContent() {
                               <button
                                 type="button"
                                 onClick={() => handleDispatchPlan(r.id, r.projectNumber)}
-                                className="px-2.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-lg text-[11px] transition shadow-xs flex items-center gap-1 active:scale-95 cursor-pointer animate-pulse"
+                                className="px-2.5 py-1.5 bg-gradient-to-r from-crm-brand-500 to-crm-brand-700 hover:from-crm-brand-700 hover:to-crm-brand-700 text-white font-bold rounded-lg text-[11px] transition shadow-xs flex items-center gap-1 active:scale-95 cursor-pointer animate-pulse"
                                 title="Send and notify all departments for execution"
                               >
                                 <Send className="w-3 h-3" />
@@ -475,7 +475,7 @@ export function ProductionPlanningHub({ initialTab = 'planning' }: ProductionPla
     <Suspense
       fallback={
         <div className="p-8 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
-          <Compass className="w-4 h-4 text-amber-600 animate-spin" />
+          <Compass className="w-4 h-4 text-crm-brand-600 animate-spin" />
           <span>Loading Production Planning...</span>
         </div>
       }

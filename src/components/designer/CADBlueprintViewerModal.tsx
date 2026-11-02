@@ -50,7 +50,7 @@ export default function CADBlueprintViewerModal({
   const format = drawing.fileFormat || 'DWG';
   const drawnBy = drawing.drawnBy || 'Dharmesh Joshi';
   const checkedBy = drawing.checkedBy || 'Ketan Patel';
-  const approvedBy = drawing.approvedBy || 'Rajesh Patel';
+  const approvedBy = drawing.approvedBy || '—';
 
   // Palette settings based on CAD theme
   const getThemeStyles = () => {
@@ -160,12 +160,12 @@ export default function CADBlueprintViewerModal({
       <div
         onClick={(e) => e.stopPropagation()}
         id="printable-cad-drawing-sheet"
-        className="bg-white border border-[#E7DED5] rounded-3xl w-full max-w-6xl overflow-hidden shadow-2xl flex flex-col max-h-[94vh]"
+        className="bg-white border border-[color:var(--crm-border-default)] rounded-3xl w-full max-w-6xl overflow-hidden shadow-2xl flex flex-col max-h-[94vh]"
       >
         {/* Modal Top Navigation Bar */}
-        <div className="bg-[#FAF7F2] border-b border-[#E7DED5] px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
+        <div className="bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#FAF0E6] border border-[#E7DED5] flex items-center justify-center text-[#75401F] shadow-xs">
+            <div className="w-9 h-9 rounded-xl bg-[#F1F4FA] border border-[color:var(--crm-border-default)] flex items-center justify-center text-[color:var(--crm-brand-700)] shadow-xs">
               <Compass className="w-5 h-5" />
             </div>
             <div>
@@ -173,7 +173,7 @@ export default function CADBlueprintViewerModal({
                 <span className="font-mono font-extrabold text-[#0E91B2] bg-[#E0F2FE] px-2 py-0.5 rounded text-xs border border-[#BAE6FD]">
                   {drawingNum}
                 </span>
-                <span className="px-2 py-0.5 rounded bg-[#FAF0E6] text-[#75401F] font-mono text-[11px] font-bold border border-[#E7DED5]">
+                <span className="px-2 py-0.5 rounded bg-[#F1F4FA] text-[color:var(--crm-brand-700)] font-mono text-[11px] font-bold border border-[color:var(--crm-border-default)]">
                   {rev}
                 </span>
                 <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-[#169B62] bg-[#DCFCE7] px-2 py-0.5 rounded border border-[#BBF7D0]">
@@ -181,7 +181,7 @@ export default function CADBlueprintViewerModal({
                   ASME Sec VIII Div 1
                 </span>
               </div>
-              <h2 className="text-sm sm:text-base font-extrabold text-[#211B17] mt-0.5 truncate max-w-md">
+              <h2 className="text-sm sm:text-base font-extrabold text-[color:var(--crm-text-primary)] mt-0.5 truncate max-w-md">
                 {drawingTitle}
               </h2>
             </div>
@@ -190,14 +190,14 @@ export default function CADBlueprintViewerModal({
           {/* Controls: Tabs & Themes & Close */}
           <div className="flex items-center gap-2 print:hidden">
             {/* View Mode Tabs */}
-            <div className="bg-white p-1 rounded-xl border border-[#E7DED5] flex items-center gap-1 text-xs">
+            <div className="bg-white p-1 rounded-xl border border-[color:var(--crm-border-default)] flex items-center gap-1 text-xs">
               <button
                 type="button"
                 onClick={() => setActiveTab('blueprint')}
                 className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
                   activeTab === 'blueprint'
-                    ? 'bg-[#3E2723] text-white shadow-xs'
-                    : 'text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]'
+                    ? 'bg-[color:var(--crm-text-primary)] text-white shadow-xs'
+                    : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-bg-app)]'
                 }`}
               >
                 <Compass className="w-3.5 h-3.5" />
@@ -208,8 +208,8 @@ export default function CADBlueprintViewerModal({
                 onClick={() => setActiveTab('nozzles')}
                 className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
                   activeTab === 'nozzles'
-                    ? 'bg-[#3E2723] text-white shadow-xs'
-                    : 'text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]'
+                    ? 'bg-[color:var(--crm-text-primary)] text-white shadow-xs'
+                    : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-bg-app)]'
                 }`}
               >
                 <FileSpreadsheet className="w-3.5 h-3.5" />
@@ -220,8 +220,8 @@ export default function CADBlueprintViewerModal({
                 onClick={() => setActiveTab('specs')}
                 className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
                   activeTab === 'specs'
-                    ? 'bg-[#3E2723] text-white shadow-xs'
-                    : 'text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]'
+                    ? 'bg-[color:var(--crm-text-primary)] text-white shadow-xs'
+                    : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-bg-app)]'
                 }`}
               >
                 <Sliders className="w-3.5 h-3.5" />
@@ -231,12 +231,12 @@ export default function CADBlueprintViewerModal({
 
             {/* Theme Selector (only in blueprint view) */}
             {activeTab === 'blueprint' && (
-              <div className="hidden md:flex items-center gap-1 bg-white p-1 rounded-xl border border-[#E7DED5] text-xs">
+              <div className="hidden md:flex items-center gap-1 bg-white p-1 rounded-xl border border-[color:var(--crm-border-default)] text-xs">
                 <button
                   type="button"
                   onClick={() => setTheme('blueprint')}
                   className={`px-2 py-1 rounded text-[11px] font-semibold transition ${
-                    theme === 'blueprint' ? 'bg-[#0E2E5C] text-cyan-200' : 'text-[#70665F]'
+                    theme === 'blueprint' ? 'bg-[#0E2E5C] text-cyan-200' : 'text-[color:var(--crm-text-secondary)]'
                   }`}
                   title="Navy Blueprint Theme"
                 >
@@ -246,7 +246,7 @@ export default function CADBlueprintViewerModal({
                   type="button"
                   onClick={() => setTheme('dark')}
                   className={`px-2 py-1 rounded text-[11px] font-semibold transition ${
-                    theme === 'dark' ? 'bg-slate-900 text-amber-300' : 'text-[#70665F]'
+                    theme === 'dark' ? 'bg-slate-900 text-amber-300' : 'text-[color:var(--crm-text-secondary)]'
                   }`}
                   title="AutoCAD Dark Theme"
                 >
@@ -256,7 +256,7 @@ export default function CADBlueprintViewerModal({
                   type="button"
                   onClick={() => setTheme('paper')}
                   className={`px-2 py-1 rounded text-[11px] font-semibold transition ${
-                    theme === 'paper' ? 'bg-slate-200 text-slate-900' : 'text-[#70665F]'
+                    theme === 'paper' ? 'bg-slate-200 text-slate-900' : 'text-[color:var(--crm-text-secondary)]'
                   }`}
                   title="White Drafting Paper"
                 >
@@ -268,7 +268,7 @@ export default function CADBlueprintViewerModal({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl text-[#70665F] hover:text-[#211B17] hover:bg-white border border-transparent hover:border-[#E7DED5] transition cursor-pointer"
+              className="p-2 rounded-xl text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-white border border-transparent hover:border-[color:var(--crm-border-default)] transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -276,9 +276,9 @@ export default function CADBlueprintViewerModal({
         </div>
 
         {/* Modal Body */}
-        <div className="flex-1 overflow-hidden p-4 sm:p-6 bg-[#FAF7F2] flex flex-col">
+        <div className="flex-1 overflow-hidden p-4 sm:p-6 bg-[color:var(--crm-bg-app)] flex flex-col">
           {activeTab === 'blueprint' && (
-            <div className="flex-1 flex flex-col rounded-2xl border border-[#E7DED5] shadow-inner overflow-hidden relative min-h-[480px]">
+            <div className="flex-1 flex flex-col rounded-2xl border border-[color:var(--crm-border-default)] shadow-inner overflow-hidden relative min-h-[480px]">
               {/* CAD Canvas Top Floating Bar */}
               <div
                 className="px-4 py-2 flex flex-wrap items-center justify-between gap-3 text-xs border-b z-20 backdrop-blur-md"
@@ -695,14 +695,14 @@ export default function CADBlueprintViewerModal({
 
           {/* TAB 2: NOZZLE SCHEDULE & PIPING DETAILS */}
           {activeTab === 'nozzles' && (
-            <div className="flex-1 overflow-auto bg-white rounded-2xl border border-[#E7DED5] p-5 space-y-4 shadow-sm">
-              <div className="flex items-center justify-between border-b border-[#E7DED5] pb-3">
+            <div className="flex-1 overflow-auto bg-white rounded-2xl border border-[color:var(--crm-border-default)] p-5 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
                 <div>
-                  <h3 className="text-base font-extrabold text-[#211B17] flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-[#8C5229]" />
+                  <h3 className="text-base font-extrabold text-[color:var(--crm-text-primary)] flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-[#47536E]" />
                     Nozzle Schedule & Connection Matrix
                   </h3>
-                  <p className="text-xs text-[#70665F]">
+                  <p className="text-xs text-[color:var(--crm-text-secondary)]">
                     Fabrication nozzle schedule for {drawingTitle} ({drawingNum})
                   </p>
                 </div>
@@ -714,7 +714,7 @@ export default function CADBlueprintViewerModal({
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
-                    <tr className="bg-[#FAF7F2] text-[10px] font-bold text-[#70665F] uppercase tracking-wider border-b border-[#E7DED5]">
+                    <tr className="bg-[color:var(--crm-bg-app)] text-[10px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider border-b border-[color:var(--crm-border-default)]">
                       <th className="py-2.5 px-3">MARK</th>
                       <th className="py-2.5 px-3">SIZE & RATING</th>
                       <th className="py-2.5 px-3">SERVICE / FUNCTION</th>
@@ -724,56 +724,56 @@ export default function CADBlueprintViewerModal({
                       <th className="py-2.5 px-3">MATERIAL (MOC)</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#EFE8DE] text-[#211B17] font-medium">
-                    <tr className="hover:bg-[#FAF7F2]">
+                  <tbody className="divide-y divide-[#DFE4EE] text-[color:var(--crm-text-primary)] font-medium">
+                    <tr className="hover:bg-[color:var(--crm-bg-app)]">
                       <td className="py-2.5 px-3 font-mono font-bold text-[#0E91B2]">N1</td>
                       <td className="py-2.5 px-3 font-mono">4&quot; NB 150# ANSI B16.5</td>
-                      <td className="py-2.5 px-3 font-bold text-[#211B17]">Process Feed Inlet</td>
+                      <td className="py-2.5 px-3 font-bold text-[color:var(--crm-text-primary)]">Process Feed Inlet</td>
                       <td className="py-2.5 px-3">Raised Face (RF)</td>
                       <td className="py-2.5 px-3 font-mono">0° (North)</td>
                       <td className="py-2.5 px-3 font-mono">+3,850 mm</td>
                       <td className="py-2.5 px-3 font-mono text-[#15803D]">SS 316L</td>
                     </tr>
-                    <tr className="hover:bg-[#FAF7F2]">
+                    <tr className="hover:bg-[color:var(--crm-bg-app)]">
                       <td className="py-2.5 px-3 font-mono font-bold text-[#0E91B2]">N2</td>
                       <td className="py-2.5 px-3 font-mono">6&quot; NB 150# ANSI B16.5</td>
-                      <td className="py-2.5 px-3 font-bold text-[#211B17]">Vapor Outlet / Condenser Reflux</td>
+                      <td className="py-2.5 px-3 font-bold text-[color:var(--crm-text-primary)]">Vapor Outlet / Condenser Reflux</td>
                       <td className="py-2.5 px-3">Raised Face (RF)</td>
                       <td className="py-2.5 px-3 font-mono">180° (South)</td>
                       <td className="py-2.5 px-3 font-mono">+3,800 mm</td>
                       <td className="py-2.5 px-3 font-mono text-[#15803D]">SS 316L</td>
                     </tr>
-                    <tr className="hover:bg-[#FAF7F2]">
+                    <tr className="hover:bg-[color:var(--crm-bg-app)]">
                       <td className="py-2.5 px-3 font-mono font-bold text-[#0E91B2]">N3</td>
                       <td className="py-2.5 px-3 font-mono">2&quot; NB 150# ANSI B16.5</td>
-                      <td className="py-2.5 px-3 font-bold text-[#211B17]">Nitrogen Blanketing / Relief</td>
+                      <td className="py-2.5 px-3 font-bold text-[color:var(--crm-text-primary)]">Nitrogen Blanketing / Relief</td>
                       <td className="py-2.5 px-3">Raised Face (RF)</td>
                       <td className="py-2.5 px-3 font-mono">90° (East)</td>
                       <td className="py-2.5 px-3 font-mono">+3,750 mm</td>
                       <td className="py-2.5 px-3 font-mono text-[#15803D]">SS 316L</td>
                     </tr>
-                    <tr className="hover:bg-[#FAF7F2]">
+                    <tr className="hover:bg-[color:var(--crm-bg-app)]">
                       <td className="py-2.5 px-3 font-mono font-bold text-[#0E91B2]">N4</td>
                       <td className="py-2.5 px-3 font-mono">1.5&quot; NB 150# ANSI B16.5</td>
-                      <td className="py-2.5 px-3 font-bold text-[#211B17]">TI-101 Thermowell Sensor</td>
+                      <td className="py-2.5 px-3 font-bold text-[color:var(--crm-text-primary)]">TI-101 Thermowell Sensor</td>
                       <td className="py-2.5 px-3">Raised Face (RF)</td>
                       <td className="py-2.5 px-3 font-mono">270° (West)</td>
                       <td className="py-2.5 px-3 font-mono">+1,400 mm</td>
                       <td className="py-2.5 px-3 font-mono text-[#15803D]">SS 316L</td>
                     </tr>
-                    <tr className="hover:bg-[#FAF7F2]">
+                    <tr className="hover:bg-[color:var(--crm-bg-app)]">
                       <td className="py-2.5 px-3 font-mono font-bold text-[#0E91B2]">N5</td>
                       <td className="py-2.5 px-3 font-mono">3&quot; NB 150# ANSI B16.5</td>
-                      <td className="py-2.5 px-3 font-bold text-[#211B17]">Bottom Drain Flush Valve</td>
+                      <td className="py-2.5 px-3 font-bold text-[color:var(--crm-text-primary)]">Bottom Drain Flush Valve</td>
                       <td className="py-2.5 px-3">Raised Face (RF)</td>
                       <td className="py-2.5 px-3 font-mono">Center Centerline</td>
                       <td className="py-2.5 px-3 font-mono">+120 mm</td>
                       <td className="py-2.5 px-3 font-mono text-[#15803D]">SS 316L</td>
                     </tr>
-                    <tr className="hover:bg-[#FAF7F2]">
+                    <tr className="hover:bg-[color:var(--crm-bg-app)]">
                       <td className="py-2.5 px-3 font-mono font-bold text-[#0E91B2]">M1</td>
                       <td className="py-2.5 px-3 font-mono">20&quot; NB Davit Arm Manway</td>
-                      <td className="py-2.5 px-3 font-bold text-[#211B17]">Inspection & Catalyst Loading</td>
+                      <td className="py-2.5 px-3 font-bold text-[color:var(--crm-text-primary)]">Inspection & Catalyst Loading</td>
                       <td className="py-2.5 px-3">Full Face O-Ring</td>
                       <td className="py-2.5 px-3 font-mono">45° (North-East)</td>
                       <td className="py-2.5 px-3 font-mono">+3,900 mm</td>
@@ -787,74 +787,74 @@ export default function CADBlueprintViewerModal({
 
           {/* TAB 3: ASME DESIGN SPECIFICATIONS & CODE DATA */}
           {activeTab === 'specs' && (
-            <div className="flex-1 overflow-auto bg-white rounded-2xl border border-[#E7DED5] p-5 space-y-4 shadow-sm">
-              <div className="flex items-center justify-between border-b border-[#E7DED5] pb-3">
+            <div className="flex-1 overflow-auto bg-white rounded-2xl border border-[color:var(--crm-border-default)] p-5 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
                 <div>
-                  <h3 className="text-base font-extrabold text-[#211B17] flex items-center gap-2">
+                  <h3 className="text-base font-extrabold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                     <ShieldCheck className="w-5 h-5 text-[#169B62]" />
                     Design Parameters & Quality Verification Sheet
                   </h3>
-                  <p className="text-xs text-[#70665F]">
+                  <p className="text-xs text-[color:var(--crm-text-secondary)]">
                     Manufacturing Quality Plan & Code Compliance Data
                   </p>
                 </div>
-                <span className="font-mono text-xs font-bold text-[#8C5229] bg-[#FAF0E6] px-3 py-1 rounded-full border border-[#E7DED5]">
+                <span className="font-mono text-xs font-bold text-[#47536E] bg-[#F1F4FA] px-3 py-1 rounded-full border border-[color:var(--crm-border-default)]">
                   Job: {jobRef}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-[#E7DED5] space-y-2">
-                  <span className="text-[10px] font-bold text-[#70665F] uppercase block tracking-wider">
+                <div className="p-4 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] space-y-2">
+                  <span className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] uppercase block tracking-wider">
                     PRESSURE & TEMPERATURE
                   </span>
                   <div className="flex justify-between font-mono">
-                    <span className="text-[#70665F]">Design Internal Press:</span>
-                    <strong className="text-[#211B17]">6.50 Bar (g)</strong>
+                    <span className="text-[color:var(--crm-text-secondary)]">Design Internal Press:</span>
+                    <strong className="text-[color:var(--crm-text-primary)]">6.50 Bar (g)</strong>
                   </div>
                   <div className="flex justify-between font-mono">
-                    <span className="text-[#70665F]">Hydraulic Test Press:</span>
+                    <span className="text-[color:var(--crm-text-secondary)]">Hydraulic Test Press:</span>
                     <strong className="text-emerald-600">9.75 Bar (g) (1.5x)</strong>
                   </div>
                   <div className="flex justify-between font-mono">
-                    <span className="text-[#70665F]">Design Temp Range:</span>
-                    <strong className="text-[#211B17]">-10°C to +180°C</strong>
+                    <span className="text-[color:var(--crm-text-secondary)]">Design Temp Range:</span>
+                    <strong className="text-[color:var(--crm-text-primary)]">-10°C to +180°C</strong>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-[#E7DED5] space-y-2">
-                  <span className="text-[10px] font-bold text-[#70665F] uppercase block tracking-wider">
+                <div className="p-4 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] space-y-2">
+                  <span className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] uppercase block tracking-wider">
                     METALLURGY & CORROSION
                   </span>
                   <div className="flex justify-between font-mono">
-                    <span className="text-[#70665F]">Shell & Head MOC:</span>
+                    <span className="text-[color:var(--crm-text-secondary)]">Shell & Head MOC:</span>
                     <strong className="text-[#0E91B2]">ASTM A240 Gr. 316L</strong>
                   </div>
                   <div className="flex justify-between font-mono">
-                    <span className="text-[#70665F]">Jacket / Support MOC:</span>
-                    <strong className="text-[#211B17]">IS 2062 E250BR / CS</strong>
+                    <span className="text-[color:var(--crm-text-secondary)]">Jacket / Support MOC:</span>
+                    <strong className="text-[color:var(--crm-text-primary)]">IS 2062 E250BR / CS</strong>
                   </div>
                   <div className="flex justify-between font-mono">
-                    <span className="text-[#70665F]">Corrosion Allowance:</span>
-                    <strong className="text-[#211B17]">1.50 mm (Shell)</strong>
+                    <span className="text-[color:var(--crm-text-secondary)]">Corrosion Allowance:</span>
+                    <strong className="text-[color:var(--crm-text-primary)]">1.50 mm (Shell)</strong>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-[#E7DED5] space-y-2">
-                  <span className="text-[10px] font-bold text-[#70665F] uppercase block tracking-wider">
+                <div className="p-4 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] space-y-2">
+                  <span className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] uppercase block tracking-wider">
                     NDE & TESTING CODES
                   </span>
                   <div className="flex justify-between font-mono">
-                    <span className="text-[#70665F]">Design Standard:</span>
+                    <span className="text-[color:var(--crm-text-secondary)]">Design Standard:</span>
                     <strong className="text-[#169B62]">ASME Sec VIII Div 1</strong>
                   </div>
                   <div className="flex justify-between font-mono">
-                    <span className="text-[#70665F]">Radiography (RT):</span>
-                    <strong className="text-[#211B17]">100% Spot Radiography</strong>
+                    <span className="text-[color:var(--crm-text-secondary)]">Radiography (RT):</span>
+                    <strong className="text-[color:var(--crm-text-primary)]">100% Spot Radiography</strong>
                   </div>
                   <div className="flex justify-between font-mono">
-                    <span className="text-[#70665F]">DPI / Ultrasonic:</span>
-                    <strong className="text-[#211B17]">100% Nozzle Weld Seams</strong>
+                    <span className="text-[color:var(--crm-text-secondary)]">DPI / Ultrasonic:</span>
+                    <strong className="text-[color:var(--crm-text-primary)]">100% Nozzle Weld Seams</strong>
                   </div>
                 </div>
               </div>
@@ -863,17 +863,17 @@ export default function CADBlueprintViewerModal({
         </div>
 
         {/* Modal Bottom Footer Actions */}
-        <div className="bg-white border-t border-[#E7DED5] px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3 text-xs print:hidden">
+        <div className="bg-white border-t border-[color:var(--crm-border-default)] px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3 text-xs print:hidden">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[#70665F]">
-              Project Reference: <strong className="text-[#211B17]">{jobRef}</strong>
+            <span className="font-mono text-[color:var(--crm-text-secondary)]">
+              Project Reference: <strong className="text-[color:var(--crm-text-primary)]">{jobRef}</strong>
             </span>
-            <span className="text-[#70665F]">•</span>
+            <span className="text-[color:var(--crm-text-secondary)]">•</span>
             <Link
               href={`/designer/bom?job=${jobRef}`}
-              className="font-bold text-[#75401F] hover:underline inline-flex items-center gap-1"
+              className="font-bold text-[color:var(--crm-brand-700)] hover:underline inline-flex items-center gap-1"
             >
-              <FileSpreadsheet className="w-3.5 h-3.5 text-[#75401F]" />
+              <FileSpreadsheet className="w-3.5 h-3.5 text-[color:var(--crm-brand-700)]" />
               <span>Open Master BOM</span>
             </Link>
           </div>
@@ -882,18 +882,18 @@ export default function CADBlueprintViewerModal({
             <button
               type="button"
               onClick={handlePrint}
-              className="px-3.5 py-2 rounded-xl bg-[#FAF7F2] hover:bg-[#F3EFE9] text-[#211B17] border border-[#E7DED5] font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+              className="px-3.5 py-2 rounded-xl bg-[color:var(--crm-bg-app)] hover:bg-[#F3EFE9] text-[color:var(--crm-text-primary)] border border-[color:var(--crm-border-default)] font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs"
             >
-              <Printer className="w-4 h-4 text-[#70665F]" />
+              <Printer className="w-4 h-4 text-[color:var(--crm-text-secondary)]" />
               <span>Print A1 Blueprint</span>
             </button>
 
             <button
               type="button"
               onClick={handleDownload}
-              className="px-4 py-2 rounded-xl bg-[#3E2723] hover:bg-[#2C1810] text-white font-bold flex items-center gap-2 transition cursor-pointer shadow-md"
+              className="px-4 py-2 rounded-xl bg-[color:var(--crm-text-primary)] hover:bg-[#171B25] text-white font-bold flex items-center gap-2 transition cursor-pointer shadow-md"
             >
-              <Download className="w-4 h-4 text-amber-300" />
+              <Download className="w-4 h-4 text-crm-brand-600" />
               <span>Download {format} File ({drawing.fileSize || '4.8 MB'})</span>
             </button>
           </div>

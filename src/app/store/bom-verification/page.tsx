@@ -359,9 +359,9 @@ function BOMMaterialVerificationContent() {
   }
 
   return (
-    <div className="p-6 space-y-6 text-[#211B17]">
+    <div className="p-6 space-y-6 text-[color:var(--crm-text-primary)]">
       {/* 1. TOP HEADER & BOM SELECTOR */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-5">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-5">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full bg-crm-brand-100 text-crm-brand-800 border border-crm-brand-200 text-xs font-mono font-bold">
@@ -372,11 +372,11 @@ function BOMMaterialVerificationContent() {
               Live Stock Matcher
             </span>
           </div>
-          <h1 className="text-2xl font-black text-[#211B17] tracking-tight mt-1.5 flex items-center gap-2">
+          <h1 className="text-2xl font-black text-[color:var(--crm-text-primary)] tracking-tight mt-1.5 flex items-center gap-2">
             <FileSpreadsheet className="w-7 h-7 text-crm-brand-700" />
             BOM Material Verification & Stock Check
           </h1>
-          <p className="text-xs text-[#70665F] mt-1 max-w-3xl leading-relaxed">
+          <p className="text-xs text-[color:var(--crm-text-secondary)] mt-1 max-w-3xl leading-relaxed">
             Verify Bill of Materials (BOM) against available Store Inventory. Items in stock show with a{' '}
             <strong className="text-emerald-700">Green Checkmark</strong>, while out-of-stock items show with a{' '}
             <strong className="text-rose-700">Red Border</strong> and can be sent to the{' '}
@@ -385,15 +385,15 @@ function BOMMaterialVerificationContent() {
         </div>
 
         {/* BOM Selector Dropdown */}
-        <div className="flex items-center gap-3 bg-white p-2.5 rounded-2xl border border-[#EBE3DB] shadow-sm">
-          <label className="text-xs font-bold text-[#544B45] whitespace-nowrap pl-1">Select BOM:</label>
+        <div className="flex items-center gap-3 bg-white p-2.5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-sm">
+          <label className="text-xs font-bold text-[color:var(--crm-text-secondary)] whitespace-nowrap pl-1">Select BOM:</label>
           <select
             value={selectedBomId}
             onChange={(e) => {
               setSelectedBomId(e.target.value);
               setSuccessToast(null);
             }}
-            className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-bold text-[#211B17] focus:outline-none focus:border-crm-brand-600 cursor-pointer min-w-[260px]"
+            className="bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-xs font-bold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-600 cursor-pointer min-w-[260px]"
           >
             {boms.map((bom) => (
               <option key={bom.id} value={bom.id}>
@@ -436,8 +436,8 @@ function BOMMaterialVerificationContent() {
 
       {/* 3. CURRENT BOM SUMMARY CARD & METRICS */}
       {currentBOM && (
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-5 shadow-xs space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-[#EBE3DB]">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-5 shadow-xs space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-[color:var(--crm-border-default)]">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-crm-brand-100 border border-crm-brand-200 flex items-center justify-center text-crm-brand-700 font-bold">
                 <FileSpreadsheet className="w-5 h-5" />
@@ -452,7 +452,7 @@ function BOMMaterialVerificationContent() {
                     Job: {currentBOM.jobNumber}
                   </span>
                 </div>
-                <h3 className="font-extrabold text-[#211B17] text-sm mt-0.5">
+                <h3 className="font-extrabold text-[color:var(--crm-text-primary)] text-sm mt-0.5">
                   {currentBOM.machineName || currentBOM.bomName || 'Engineered Make-to-Order Equipment'}
                 </h3>
               </div>
@@ -485,7 +485,7 @@ function BOMMaterialVerificationContent() {
 
               <Link
                 href="/purchase/requisition"
-                className="px-3.5 py-2.5 bg-white hover:bg-[#FAF7F2] border border-[#EBE3DB] text-[#544B45] hover:text-[#211B17] rounded-xl font-bold text-xs flex items-center gap-1.5 transition shadow-2xs"
+                className="px-3.5 py-2.5 bg-white hover:bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] rounded-xl font-bold text-xs flex items-center gap-1.5 transition shadow-2xs"
                 title="View existing requisitions in Purchase module"
               >
                 <span>PR Register</span>
@@ -522,13 +522,13 @@ function BOMMaterialVerificationContent() {
           {/* 4 KPI Metric Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             {/* Total BOM Items */}
-            <div className="p-3.5 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
-              <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider block">Total BOM Items</span>
+            <div className="p-3.5 bg-[color:var(--crm-bg-app)] rounded-xl border border-[color:var(--crm-border-default)]">
+              <span className="text-[11px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">Total BOM Items</span>
               <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-2xl font-black text-[#211B17] font-mono">{totalBOMItems}</span>
-                <span className="text-xs text-[#70665F]">Items</span>
+                <span className="text-2xl font-black text-[color:var(--crm-text-primary)] font-mono">{totalBOMItems}</span>
+                <span className="text-xs text-[color:var(--crm-text-secondary)]">Items</span>
               </div>
-              <span className="text-[10px] text-[#70665F] block mt-0.5">Required for Machine Assembly</span>
+              <span className="text-[10px] text-[color:var(--crm-text-secondary)] block mt-0.5">Required for Machine Assembly</span>
             </div>
 
             {/* In-Stock Items (GREEN) */}
@@ -562,13 +562,13 @@ function BOMMaterialVerificationContent() {
             </div>
 
             {/* Readiness Rate & Est Shortage Cost */}
-            <div className="p-3.5 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
-              <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider block">Shop Readiness Rate</span>
+            <div className="p-3.5 bg-[color:var(--crm-bg-app)] rounded-xl border border-[color:var(--crm-border-default)]">
+              <span className="text-[11px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">Shop Readiness Rate</span>
               <div className="flex items-baseline gap-2 mt-1">
                 <span className="text-2xl font-black text-crm-brand-800 font-mono">{readinessPercent}%</span>
-                <span className="text-xs text-[#70665F]">Ready</span>
+                <span className="text-xs text-[color:var(--crm-text-secondary)]">Ready</span>
               </div>
-              <span className="text-[10px] text-[#70665F] font-mono block mt-0.5">
+              <span className="text-[10px] text-[color:var(--crm-text-secondary)] font-mono block mt-0.5">
                 Shortage Value: <strong className="text-rose-700">{formatCurrency(totalShortageValuation)}</strong>
               </span>
             </div>
@@ -607,15 +607,15 @@ function BOMMaterialVerificationContent() {
       )}
 
       {/* 4. FILTER BAR & SEARCH */}
-      <div className="p-4 rounded-2xl bg-white border border-[#EBE3DB] flex flex-col md:flex-row items-center justify-between gap-3 shadow-xs">
+      <div className="p-4 rounded-2xl bg-white border border-[color:var(--crm-border-default)] flex flex-col md:flex-row items-center justify-between gap-3 shadow-xs">
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--crm-text-secondary)]" />
           <input
             type="text"
             placeholder="Search Part #, Item Name, Specs..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-xl bg-white border border-[#EBE3DB] text-xs text-[#211B17] placeholder-slate-400 focus:outline-none focus:border-crm-brand-600"
+            className="w-full pl-9 pr-3 py-2 rounded-xl bg-white border border-[color:var(--crm-border-default)] text-xs text-[color:var(--crm-text-primary)] placeholder-slate-400 focus:outline-none focus:border-crm-brand-600"
           />
         </div>
 
@@ -626,7 +626,7 @@ function BOMMaterialVerificationContent() {
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
               statusFilter === 'ALL'
                 ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-xs'
-                : 'bg-[#FAF7F2] text-[#544B45] hover:bg-[#EFE8DF]'
+                : 'bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-surface-subtle)]'
             }`}
           >
             All Items ({verifiedItems.length})
@@ -659,10 +659,10 @@ function BOMMaterialVerificationContent() {
       {/* 5. VERIFIED MATERIAL ITEMS LIST (CARDS & TABLE) */}
       <div className="space-y-3">
         {filteredItems.length === 0 ? (
-          <div className="p-8 text-center bg-white rounded-2xl border border-[#EBE3DB] space-y-2">
-            <Package className="w-10 h-10 text-[#A89F91] mx-auto" />
-            <h4 className="text-sm font-bold text-[#211B17]">No BOM items found for this selection</h4>
-            <p className="text-xs text-[#70665F]">Try clearing the search query or select another BOM.</p>
+          <div className="p-8 text-center bg-white rounded-2xl border border-[color:var(--crm-border-default)] space-y-2">
+            <Package className="w-10 h-10 text-[color:var(--crm-text-tertiary)] mx-auto" />
+            <h4 className="text-sm font-bold text-[color:var(--crm-text-primary)]">No BOM items found for this selection</h4>
+            <p className="text-xs text-[color:var(--crm-text-secondary)]">Try clearing the search query or select another BOM.</p>
           </div>
         ) : (
           filteredItems.map((item) => {
@@ -691,31 +691,31 @@ function BOMMaterialVerificationContent() {
 
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono font-bold text-xs text-[#211B17] bg-white px-2 py-0.5 rounded border border-[#EBE3DB]">
+                      <span className="font-mono font-bold text-xs text-[color:var(--crm-text-primary)] bg-white px-2 py-0.5 rounded border border-[color:var(--crm-border-default)]">
                         {item.partNumber}
                       </span>
-                      <span className="font-extrabold text-sm text-[#211B17]">{item.itemName}</span>
-                      <span className="px-2 py-0.5 rounded-full bg-white text-[#70665F] border border-[#EBE3DB] text-[10px] font-semibold">
+                      <span className="font-extrabold text-sm text-[color:var(--crm-text-primary)]">{item.itemName}</span>
+                      <span className="px-2 py-0.5 rounded-full bg-white text-[color:var(--crm-text-secondary)] border border-[color:var(--crm-border-default)] text-[10px] font-semibold">
                         {item.category}
                       </span>
                     </div>
 
-                    <p className="text-xs text-[#544B45] font-medium leading-relaxed">{item.description}</p>
-                    <div className="flex items-center gap-3 text-[11px] text-[#70665F] font-mono">
-                      <span>Spec: <strong className="text-[#3E2723]">{item.specification}</strong></span>
+                    <p className="text-xs text-[color:var(--crm-text-secondary)] font-medium leading-relaxed">{item.description}</p>
+                    <div className="flex items-center gap-3 text-[11px] text-[color:var(--crm-text-secondary)] font-mono">
+                      <span>Spec: <strong className="text-[color:var(--crm-text-primary)]">{item.specification}</strong></span>
                       <span>•</span>
-                      <span>Location: <strong className="text-[#3E2723]">{item.locationBin}</strong> ({item.warehouseName})</span>
+                      <span>Location: <strong className="text-[color:var(--crm-text-primary)]">{item.locationBin}</strong> ({item.warehouseName})</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Stock Comparison Matrix & Visual Badges */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4 lg:gap-6 self-stretch lg:self-auto justify-between border-t lg:border-t-0 pt-3 lg:pt-0 border-[#EBE3DB]">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 lg:gap-6 self-stretch lg:self-auto justify-between border-t lg:border-t-0 pt-3 lg:pt-0 border-[color:var(--crm-border-default)]">
                   {/* Quantity Breakdown */}
                   <div className="grid grid-cols-3 gap-3 text-center min-w-[240px]">
-                    <div className="bg-white p-2 rounded-xl border border-[#EBE3DB]">
-                      <span className="text-[10px] text-[#70665F] block font-bold uppercase">Required Qty</span>
-                      <span className="font-extrabold font-sans text-sm text-[#211B17]">
+                    <div className="bg-white p-2 rounded-xl border border-[color:var(--crm-border-default)]">
+                      <span className="text-[10px] text-[color:var(--crm-text-secondary)] block font-bold uppercase">Required Qty</span>
+                      <span className="font-extrabold font-sans text-sm text-[color:var(--crm-text-primary)]">
                         {item.requiredQty} {item.unit}
                       </span>
                     </div>
@@ -724,7 +724,7 @@ function BOMMaterialVerificationContent() {
                       className={`p-2 rounded-xl border ${
                         item.isAvailable
                           ? 'bg-emerald-100/60 border-emerald-300 text-emerald-900'
-                          : 'bg-white border-[#EBE3DB] text-[#544B45]'
+                          : 'bg-white border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)]'
                       }`}
                     >
                       <span className="text-[10px] block font-bold uppercase">Store Stock</span>
@@ -737,7 +737,7 @@ function BOMMaterialVerificationContent() {
                       className={`p-2 rounded-xl border ${
                         isRedBorder
                           ? 'bg-rose-100/80 border-rose-300 text-rose-900'
-                          : 'bg-white border-[#EBE3DB] text-slate-500'
+                          : 'bg-white border-[color:var(--crm-border-default)] text-slate-500'
                       }`}
                     >
                       <span className="text-[10px] block font-bold uppercase">Shortage</span>
@@ -813,26 +813,26 @@ function BOMMaterialVerificationContent() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-2xl my-8 overflow-hidden shadow-2xl space-y-4 p-6 text-xs"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-2xl my-8 overflow-hidden shadow-2xl space-y-4 p-6 text-xs"
           >
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
               <div>
                 <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-mono text-[10px] font-bold">
                   STORE REQUISITION GENERATOR
                 </span>
-                <h3 className="text-base font-extrabold text-[#211B17] mt-1 flex items-center gap-2">
+                <h3 className="text-base font-extrabold text-[color:var(--crm-text-primary)] mt-1 flex items-center gap-2">
                   <Send className="w-5 h-5 text-rose-600" />
                   Send Shortage Items to Purchase Requisition (PR) Register
                 </h3>
-                <p className="text-[#70665F] text-[11px] mt-0.5">
+                <p className="text-[color:var(--crm-text-secondary)] text-[11px] mt-0.5">
                   Generate an official Purchase Requisition mapped to Project{' '}
-                  <strong className="text-[#211B17] font-mono">{currentBOM?.projectId || currentBOM?.jobNumber}</strong>.
+                  <strong className="text-[color:var(--crm-text-primary)] font-mono">{currentBOM?.projectId || currentBOM?.jobNumber}</strong>.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowPRModal(false)}
-                className="text-[#70665F] hover:text-[#211B17] cursor-pointer"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -840,23 +840,23 @@ function BOMMaterialVerificationContent() {
 
             <form onSubmit={handleConfirmSubmitPR} className="space-y-4">
               {/* Target Project & Dates */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-[#FAF7F2] p-3 rounded-xl border border-[#EBE3DB]">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-[color:var(--crm-bg-app)] p-3 rounded-xl border border-[color:var(--crm-border-default)]">
                 <div>
-                  <label className="text-[#70665F] font-bold text-[10px] block mb-0.5">PROJECT REFERENCE</label>
-                  <span className="font-mono font-bold text-xs text-[#211B17]">{currentBOM?.projectId || currentBOM?.jobNumber}</span>
-                  <span className="text-[10px] text-[#70665F] block">({currentProject?.projectName || currentBOM?.machineName || 'Engineering Project'})</span>
+                  <label className="text-[color:var(--crm-text-secondary)] font-bold text-[10px] block mb-0.5">PROJECT REFERENCE</label>
+                  <span className="font-mono font-bold text-xs text-[color:var(--crm-text-primary)]">{currentBOM?.projectId || currentBOM?.jobNumber}</span>
+                  <span className="text-[10px] text-[color:var(--crm-text-secondary)] block">({currentProject?.projectName || currentBOM?.machineName || 'Engineering Project'})</span>
                 </div>
                 <div>
-                  <label className="text-[#70665F] font-bold text-[10px] block mb-0.5">BOM REFERENCE</label>
+                  <label className="text-[color:var(--crm-text-secondary)] font-bold text-[10px] block mb-0.5">BOM REFERENCE</label>
                   <span className="font-mono font-bold text-xs text-crm-brand-700">{currentBOM?.bomNumber}</span>
-                  <span className="text-[10px] text-[#70665F] block">{currentBOM?.revision || 'REV-01'}</span>
+                  <span className="text-[10px] text-[color:var(--crm-text-secondary)] block">{currentBOM?.revision || 'REV-01'}</span>
                 </div>
                 <div>
-                  <label className="text-[#70665F] font-bold text-[10px] block mb-0.5">PRIORITY LEVEL *</label>
+                  <label className="text-[color:var(--crm-text-secondary)] font-bold text-[10px] block mb-0.5">PRIORITY LEVEL *</label>
                   <select
                     value={prPriority}
                     onChange={(e) => setPrPriority(e.target.value as any)}
-                    className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-bold text-[#211B17] focus:outline-none focus:border-crm-brand-600"
+                    className="w-full bg-white border border-[color:var(--crm-border-default)] rounded-lg px-2 py-1 text-xs font-bold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-600"
                   >
                     <option value="Urgent">Urgent (Production Critical)</option>
                     <option value="High">High</option>
@@ -868,38 +868,38 @@ function BOMMaterialVerificationContent() {
 
               {/* Target Required By Date */}
               <div>
-                <label className="text-[#544B45] font-bold block mb-1">Target Procurement Date (Required by Date) *</label>
+                <label className="text-[color:var(--crm-text-secondary)] font-bold block mb-1">Target Procurement Date (Required by Date) *</label>
                 <input
                   type="date"
                   required
                   value={prRequiredDate}
                   onChange={(e) => setPrRequiredDate(e.target.value)}
-                  className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600 font-mono"
+                  className="w-full bg-white border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-600 font-mono"
                 />
               </div>
 
               {/* Shortage Items List to be added to PR */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-[#211B17] text-xs">
+                  <span className="font-bold text-[color:var(--crm-text-primary)] text-xs">
                     Items to Requisition ({selectedItemsForPR.length}):
                   </span>
                 </div>
 
-                <div className="border border-[#EBE3DB] rounded-xl overflow-hidden max-h-48 overflow-y-auto">
+                <div className="border border-[color:var(--crm-border-default)] rounded-xl overflow-hidden max-h-48 overflow-y-auto">
                   <table className="w-full text-left text-[11px]">
-                    <thead className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[#70665F] uppercase font-mono">
+                    <thead className="bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] uppercase font-mono">
                       <tr>
                         <th className="p-2">Item Code</th>
                         <th className="p-2">Item Name</th>
                         <th className="p-2 text-right">Shortage Qty</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#EBE3DB]">
+                    <tbody className="divide-y divide-[color:var(--crm-border-default)]">
                       {selectedItemsForPR.map((it) => (
                         <tr key={it.id} className="hover:bg-rose-50/30">
-                          <td className="p-2 font-mono font-bold text-[#211B17]">{it.partNumber}</td>
-                          <td className="p-2 font-medium text-[#211B17]">{it.itemName}</td>
+                          <td className="p-2 font-mono font-bold text-[color:var(--crm-text-primary)]">{it.partNumber}</td>
+                          <td className="p-2 font-medium text-[color:var(--crm-text-primary)]">{it.itemName}</td>
                           <td className="p-2 text-right font-mono font-bold text-rose-700">
                             {it.shortageQty} {it.unit}
                           </td>
@@ -912,22 +912,22 @@ function BOMMaterialVerificationContent() {
 
               {/* Remarks */}
               <div>
-                <label className="text-[#544B45] font-bold block mb-1">Requisition Notes & Justification</label>
+                <label className="text-[color:var(--crm-text-secondary)] font-bold block mb-1">Requisition Notes & Justification</label>
                 <textarea
                   rows={2}
                   value={prRemarks}
                   onChange={(e) => setPrRemarks(e.target.value)}
                   placeholder="Justification for purchase requisition, supplier references, or urgent shop floor requirements..."
-                  className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] placeholder-slate-400 focus:outline-none focus:border-crm-brand-600"
+                  className="w-full bg-white border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] placeholder-slate-400 focus:outline-none focus:border-crm-brand-600"
                 />
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setShowPRModal(false)}
-                  className="px-4 py-2 rounded-xl bg-white border border-[#EBE3DB] text-[#544B45] font-bold hover:bg-[#FAF7F2] cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-white border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-bold hover:bg-[color:var(--crm-bg-app)] cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -949,7 +949,7 @@ function BOMMaterialVerificationContent() {
 
 export default function BOMMaterialVerificationPage() {
   return (
-    <React.Suspense fallback={<div className="p-8 text-center text-xs text-[#70665F]">Loading BOM Verification...</div>}>
+    <React.Suspense fallback={<div className="p-8 text-center text-xs text-[color:var(--crm-text-secondary)]">Loading BOM Verification...</div>}>
       <BOMMaterialVerificationContent />
     </React.Suspense>
   );

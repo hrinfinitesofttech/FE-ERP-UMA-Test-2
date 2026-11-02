@@ -501,7 +501,7 @@ export default function EnquiriesRegisterPage() {
           </div>
           {e.expectedDelivery && (
             <div className="text-[10px] text-amber-700 font-mono flex items-center gap-1">
-              <Clock className="w-3 h-3 text-amber-500" />
+              <Clock className="w-3 h-3 text-crm-brand-600" />
               <span>Target: {formatDate(e.expectedDelivery)}</span>
             </div>
           )}
@@ -585,7 +585,7 @@ export default function EnquiriesRegisterPage() {
             ) : (
               <button
                 onClick={() => router.push(`/crm/quotations/new?enquiryId=${encodeURIComponent(e.id || e.enquiryNo)}`)}
-                className="p-1.5 bg-[#3E2723] hover:bg-[#2A1810] text-white rounded text-xs font-bold inline-flex items-center justify-center transition shadow-xs cursor-pointer active:scale-95"
+                className="p-1.5 bg-[color:var(--crm-text-primary)] hover:bg-[#171A23] text-white rounded text-xs font-bold inline-flex items-center justify-center transition shadow-xs cursor-pointer active:scale-95"
                 title="Create Quotation for this Enquiry"
               >
                 <FileCheck2 className="w-3.5 h-3.5" />
@@ -644,7 +644,7 @@ export default function EnquiriesRegisterPage() {
         <div className="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs space-y-1">
           <div className="flex items-center justify-between text-amber-700">
             <span className="text-[10px] font-bold uppercase tracking-wider">Active / Pending</span>
-            <Clock className="w-4 h-4 text-amber-600" />
+            <Clock className="w-4 h-4 text-crm-brand-600" />
           </div>
           <div className="text-xl font-black text-amber-800 font-mono">{activeEnquiries}</div>
           <div className="text-[10px] text-amber-700/80">Under technical evaluation</div>
@@ -888,7 +888,7 @@ export default function EnquiriesRegisterPage() {
                         setViewingEnquiry(null);
                         router.push(`/crm/quotations/new?enquiryId=${encodeURIComponent(target.id || target.enquiryNo)}`);
                       }}
-                      className="px-4 py-2 bg-[#3E2723] hover:bg-[#2A1810] text-white rounded-xl font-bold transition text-xs shadow-xs flex items-center gap-1.5 cursor-pointer"
+                      className="px-4 py-2 bg-[color:var(--crm-text-primary)] hover:bg-[#171A23] text-white rounded-xl font-bold transition text-xs shadow-xs flex items-center gap-1.5 cursor-pointer"
                     >
                       <FileCheck2 className="w-3.5 h-3.5" />
                       <span>Create Quotation</span>
@@ -904,15 +904,15 @@ export default function EnquiriesRegisterPage() {
       {/* Delete Confirmation Modal */}
       {deletingEnquiry && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl max-w-sm w-full border border-[#E7DED5] shadow-xl p-5 space-y-4">
-            <h3 className="font-bold text-sm text-[#211B17]">Delete Enquiry?</h3>
-            <p className="text-xs text-[#70665F]">
+          <div className="bg-white rounded-2xl max-w-sm w-full border border-[color:var(--crm-border-default)] shadow-xl p-5 space-y-4">
+            <h3 className="font-bold text-sm text-[color:var(--crm-text-primary)]">Delete Enquiry?</h3>
+            <p className="text-xs text-[color:var(--crm-text-secondary)]">
               Are you sure you want to delete enquiry <span className="font-mono font-bold">{deletingEnquiry.enquiryNo || deletingEnquiry.id}</span> for <strong className="text-slate-800">{deletingEnquiry.customerName}</strong>? This action cannot be undone.
             </p>
             <div className="flex justify-end gap-2 pt-2">
               <button
                 onClick={() => setDeletingEnletingEnquiry(null)}
-                className="px-3.5 py-1.5 border border-[#E7DED5] text-[#70665F] rounded-lg font-bold text-xs"
+                className="px-3.5 py-1.5 border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] rounded-lg font-bold text-xs"
               >
                 Cancel
               </button>

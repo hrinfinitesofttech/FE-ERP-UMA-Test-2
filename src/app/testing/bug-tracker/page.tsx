@@ -87,17 +87,17 @@ export default function BugTrackerPage() {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white border border-[#EBE3DB] p-6 rounded-2xl shadow-xl">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white border border-[color:var(--crm-border-default)] p-6 rounded-2xl shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400">
               <Bug className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-[#211B17] tracking-wide">
+              <h1 className="text-xl font-bold text-[color:var(--crm-text-primary)] tracking-wide">
                 Internal ERP Defect & Bug Tracker
               </h1>
-              <p className="text-xs text-[#70665F]">
+              <p className="text-xs text-[color:var(--crm-text-secondary)]">
                 Log, prioritize, assign, and track technical issues & regression bugs across all 11 ERP modules
               </p>
             </div>
@@ -114,10 +114,10 @@ export default function BugTrackerPage() {
       </div>
 
       {/* Filters & Search */}
-      <div className="bg-white border border-[#EBE3DB] p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-[#544B45] font-semibold flex items-center gap-1.5">
-              <Filter className="w-3.5 h-3.5 text-[#70665F]" /> Status:
+            <span className="text-xs text-[color:var(--crm-text-secondary)] font-semibold flex items-center gap-1.5">
+              <Filter className="w-3.5 h-3.5 text-[color:var(--crm-text-secondary)]" /> Status:
             </span>
             <CustomSelect
               size="sm"
@@ -136,21 +136,21 @@ export default function BugTrackerPage() {
           </div>
 
         <div className="relative min-w-[240px]">
-          <Search className="w-4 h-4 text-[#70665F] absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[color:var(--crm-text-secondary)] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search bug ticket or title..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#FAF7F2] text-xs text-[#211B17] pl-9 pr-4 py-2 rounded-xl border border-[#EBE3DB] focus:outline-none focus:border-red-500"
+            className="w-full bg-[color:var(--crm-bg-app)] text-xs text-[color:var(--crm-text-primary)] pl-9 pr-4 py-2 rounded-xl border border-[color:var(--crm-border-default)] focus:outline-none focus:border-red-500"
           />
         </div>
       </div>
 
       {/* Bug List Table */}
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xl">
-        <div className="p-4 border-b border-[#EBE3DB] flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-bold text-[#211B17]">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl overflow-hidden shadow-xl">
+        <div className="p-4 border-b border-[color:var(--crm-border-default)] flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm font-bold text-[color:var(--crm-text-primary)]">
             <ShieldAlert className="w-4 h-4 text-red-400" />
             Defect Registry ({filteredBugs.length} Tickets)
           </div>
@@ -159,7 +159,7 @@ export default function BugTrackerPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-[#FAF7F2] text-[10px] font-semibold text-[#70665F] uppercase tracking-wider border-b border-[#EBE3DB]">
+              <tr className="bg-[color:var(--crm-bg-app)] text-[10px] font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider border-b border-[color:var(--crm-border-default)]">
                 <th className="py-3 px-4">Bug Ticket</th>
                 <th className="py-3 px-4">Module & Page</th>
                 <th className="py-3 px-4">Title & Details</th>
@@ -170,33 +170,33 @@ export default function BugTrackerPage() {
                 <th className="py-3 px-4 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EBE3DB] text-[#544B45]">
+            <tbody className="divide-y divide-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)]">
               {filteredBugs.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-xs text-[#70665F]">
+                  <td colSpan={8} className="py-12 text-center text-xs text-[color:var(--crm-text-secondary)]">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <Bug className="w-8 h-8 text-[#A8988C] opacity-50" />
-                      <p className="font-semibold text-[#544B45]">No bug tickets recorded</p>
-                      <p className="text-[11px] text-[#8C7A6F]">No defects match the selected filter or no technical bugs reported.</p>
+                      <Bug className="w-8 h-8 text-[color:var(--crm-text-tertiary)] opacity-50" />
+                      <p className="font-semibold text-[color:var(--crm-text-secondary)]">No bug tickets recorded</p>
+                      <p className="text-[11px] text-[color:var(--crm-text-tertiary)]">No defects match the selected filter or no technical bugs reported.</p>
                     </div>
                   </td>
                 </tr>
               ) : (
                 filteredBugs.map((bug) => (
-                  <tr key={bug.id} className="hover:bg-[#FAF7F2]/40 transition">
+                  <tr key={bug.id} className="hover:bg-[#F4F6FA]/40 transition">
                     <td className="py-3 px-4 font-mono font-bold text-red-600">
                       <div>{bug.bugNo}</div>
-                      <div className="text-[10px] text-[#70665F] font-normal">{bug.createdDate}</div>
+                      <div className="text-[10px] text-[color:var(--crm-text-secondary)] font-normal">{bug.createdDate}</div>
                     </td>
                     <td className="py-3 px-4">
-                      <span className="px-2 py-0.5 rounded bg-[#FAF7F2] text-[#544B45] border border-[#EBE3DB] text-[10px] font-semibold">
+                      <span className="px-2 py-0.5 rounded bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] border border-[color:var(--crm-border-default)] text-[10px] font-semibold">
                         {bug.module}
                       </span>
-                      <div className="text-[10px] text-[#70665F] mt-0.5">{bug.page}</div>
+                      <div className="text-[10px] text-[color:var(--crm-text-secondary)] mt-0.5">{bug.page}</div>
                     </td>
                     <td className="py-3 px-4 space-y-0.5 max-w-sm">
-                      <div className="font-semibold text-[#211B17]">{bug.title}</div>
-                      <div className="text-[11px] text-[#70665F] leading-tight line-clamp-2">{bug.description}</div>
+                      <div className="font-semibold text-[color:var(--crm-text-primary)]">{bug.title}</div>
+                      <div className="text-[11px] text-[color:var(--crm-text-secondary)] leading-tight line-clamp-2">{bug.description}</div>
                     </td>
                     <td className="py-3 px-4">
                       <span
@@ -205,16 +205,16 @@ export default function BugTrackerPage() {
                           bug.severity === 'Critical' && 'bg-red-500/20 text-red-700 border border-red-500/40',
                           bug.severity === 'High' && 'bg-orange-500/20 text-orange-700 border border-orange-500/40',
                           bug.severity === 'Medium' && 'bg-amber-500/20 text-amber-700 border border-amber-500/40',
-                          bug.severity === 'Low' && 'bg-[#FAF7F2] text-[#70665F]'
+                          bug.severity === 'Low' && 'bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)]'
                         )}
                       >
                         {bug.severity}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-[#544B45] font-medium">{bug.priority}</td>
-                    <td className="py-3 px-4 text-[#70665F]">
+                    <td className="py-3 px-4 text-[color:var(--crm-text-secondary)] font-medium">{bug.priority}</td>
+                    <td className="py-3 px-4 text-[color:var(--crm-text-secondary)]">
                       <div className="flex items-center gap-1.5">
-                        <User className="w-3 h-3 text-[#70665F]" />
+                        <User className="w-3 h-3 text-[color:var(--crm-text-secondary)]" />
                         <span>{bug.assignedDeveloper}</span>
                       </div>
                     </td>
@@ -223,7 +223,7 @@ export default function BugTrackerPage() {
                         className={cn(
                           'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider',
                           bug.status === 'Closed' && 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/30',
-                          bug.status === 'Fixed' && 'bg-[#FAF7F2] text-[#75401F] border border-[#D5CAC0]',
+                          bug.status === 'Fixed' && 'bg-[color:var(--crm-bg-app)] text-[color:var(--crm-brand-700)] border border-[color:var(--crm-border-strong)]',
                           bug.status === 'In_Progress' && 'bg-amber-500/10 text-amber-700 border border-amber-500/30',
                           bug.status === 'Open' && 'bg-red-500/10 text-red-700 border border-red-500/30'
                         )}
@@ -235,7 +235,7 @@ export default function BugTrackerPage() {
                       <select
                         value={bug.status}
                         onChange={(e) => updateBugTicketStatus(bug.id, e.target.value as any)}
-                        className="bg-[#FAF7F2] text-[11px] text-[#544B45] px-2 py-1 rounded-lg border border-[#EBE3DB] focus:outline-none cursor-pointer min-h-[36px]"
+                        className="bg-[color:var(--crm-bg-app)] text-[11px] text-[color:var(--crm-text-secondary)] px-2 py-1 rounded-lg border border-[color:var(--crm-border-default)] focus:outline-none cursor-pointer min-h-[36px]"
                       >
                         <option value="Open">Open</option>
                         <option value="In_Progress">In Progress</option>
@@ -255,16 +255,16 @@ export default function BugTrackerPage() {
       {/* Add Bug Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <form onSubmit={handleCreateBug} className="bg-white border border-[#EBE3DB] rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <div className="font-bold text-[#211B17] text-sm flex items-center gap-2">
+          <form onSubmit={handleCreateBug} className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <div className="font-bold text-[color:var(--crm-text-primary)] text-sm flex items-center gap-2">
                 <Bug className="w-4 h-4 text-red-400" />
                 Report New Technical Defect
               </div>
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] transition"
+                className="p-1 rounded-lg text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-bg-app)] transition"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -295,37 +295,37 @@ export default function BugTrackerPage() {
               </div>
 
               <div>
-                <label className="text-[#70665F] font-semibold">Affected Page Name *</label>
+                <label className="text-[color:var(--crm-text-secondary)] font-semibold">Affected Page Name *</label>
                 <input
                   type="text"
                   value={pageName}
                   onChange={(e) => setPageName(e.target.value)}
                   placeholder="e.g. Expenses / Job 360"
-                  className="w-full bg-[#FAF7F2] text-[#211B17] p-2.5 rounded-xl border border-[#EBE3DB] mt-1"
+                  className="w-full bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)] p-2.5 rounded-xl border border-[color:var(--crm-border-default)] mt-1"
                   required
                 />
               </div>
 
               <div className="col-span-2">
-                <label className="text-[#70665F] font-semibold">Bug Summary Title *</label>
+                <label className="text-[color:var(--crm-text-secondary)] font-semibold">Bug Summary Title *</label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Brief summary of the issue..."
-                  className="w-full bg-[#FAF7F2] text-[#211B17] p-2.5 rounded-xl border border-[#EBE3DB] mt-1"
+                  className="w-full bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)] p-2.5 rounded-xl border border-[color:var(--crm-border-default)] mt-1"
                   required
                 />
               </div>
 
               <div className="col-span-2">
-                <label className="text-[#70665F] font-semibold">Steps to Reproduce *</label>
+                <label className="text-[color:var(--crm-text-secondary)] font-semibold">Steps to Reproduce *</label>
                 <textarea
                   rows={2}
                   value={stepsToReproduce}
                   onChange={(e) => setStepsToReproduce(e.target.value)}
                   placeholder="1. Go to page... 2. Click button..."
-                  className="w-full bg-[#FAF7F2] text-[#211B17] p-2 rounded-xl border border-[#EBE3DB] mt-1"
+                  className="w-full bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)] p-2 rounded-xl border border-[color:var(--crm-border-default)] mt-1"
                   required
                 />
               </div>
@@ -359,11 +359,11 @@ export default function BugTrackerPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 border-t border-[#EBE3DB] pt-4">
+            <div className="flex items-center justify-end gap-3 border-t border-[color:var(--crm-border-default)] pt-4">
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#FAF7F2] text-[#544B45] rounded-xl text-xs font-semibold"
+                className="px-4 py-2 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] rounded-xl text-xs font-semibold"
               >
                 Cancel
               </button>

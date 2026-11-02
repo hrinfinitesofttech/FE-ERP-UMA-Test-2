@@ -165,18 +165,18 @@ export default function FixedAssetsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-[#FAF7F2] min-h-screen text-[#211B17]">
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)] min-h-screen text-[color:var(--crm-text-primary)]">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#EBE3DB] shadow-sm">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-sm">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-teal-50 border border-teal-200 rounded-xl text-teal-700">
             <Building className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-[#211B17]">
+            <h1 className="text-xl font-bold text-[color:var(--crm-text-primary)]">
               Fixed Assets Register & Capital Expenditure
             </h1>
-            <p className="text-xs text-[#70665F] mt-0.5">
+            <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">
               Plant, Machinery, Factory Buildings & Heavy Vehicles • Income Tax Act & Companies Act Depreciation
             </p>
           </div>
@@ -193,15 +193,15 @@ export default function FixedAssetsPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl space-y-1 shadow-sm">
-          <div className="text-xs text-[#70665F] font-medium flex items-center justify-between">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl space-y-1 shadow-sm">
+          <div className="text-xs text-[color:var(--crm-text-secondary)] font-medium flex items-center justify-between">
             <span>Total Gross Asset Cost</span>
-            <DollarSign className="w-4 h-4 text-[#70665F]" />
+            <DollarSign className="w-4 h-4 text-[color:var(--crm-text-secondary)]" />
           </div>
-          <div className="text-2xl font-bold text-[#211B17] font-mono">
+          <div className="text-2xl font-bold text-[color:var(--crm-text-primary)] font-mono">
             ₹{totalGrossCost.toLocaleString('en-IN')}
           </div>
-          <div className="text-[10px] text-[#70665F]">{fixedAssets.length} Registered Capital Assets</div>
+          <div className="text-[10px] text-[color:var(--crm-text-secondary)]">{fixedAssets.length} Registered Capital Assets</div>
         </div>
 
         <div className="bg-white border border-rose-200 p-4 rounded-xl space-y-1 shadow-sm">
@@ -237,15 +237,15 @@ export default function FixedAssetsPage() {
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="bg-white border border-[#EBE3DB] p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-sm">
+      <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-sm">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 bg-[#FAF7F2] px-3 py-1.5 rounded-xl border border-[#EBE3DB]">
-            <Filter className="w-3.5 h-3.5 text-[#70665F]" />
-            <span className="text-xs text-[#544B45] font-semibold">Category:</span>
+          <div className="flex items-center gap-2 bg-[color:var(--crm-bg-app)] px-3 py-1.5 rounded-xl border border-[color:var(--crm-border-default)]">
+            <Filter className="w-3.5 h-3.5 text-[color:var(--crm-text-secondary)]" />
+            <span className="text-xs text-[color:var(--crm-text-secondary)] font-semibold">Category:</span>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="bg-transparent text-xs text-[#211B17] font-medium focus:outline-none cursor-pointer"
+              className="bg-transparent text-xs text-[color:var(--crm-text-primary)] font-medium focus:outline-none cursor-pointer"
             >
               <option value="All">All Categories</option>
               <option value="Plant & Machinery">Plant & Machinery</option>
@@ -257,12 +257,12 @@ export default function FixedAssetsPage() {
             </select>
           </div>
 
-          <div className="flex items-center gap-2 bg-[#FAF7F2] px-3 py-1.5 rounded-xl border border-[#EBE3DB]">
-            <span className="text-xs text-[#544B45] font-semibold">Status:</span>
+          <div className="flex items-center gap-2 bg-[color:var(--crm-bg-app)] px-3 py-1.5 rounded-xl border border-[color:var(--crm-border-default)]">
+            <span className="text-xs text-[color:var(--crm-text-secondary)] font-semibold">Status:</span>
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="bg-transparent text-xs text-[#211B17] font-medium focus:outline-none cursor-pointer"
+              className="bg-transparent text-xs text-[color:var(--crm-text-primary)] font-medium focus:outline-none cursor-pointer"
             >
               <option value="All">All Statuses</option>
               <option value="Active">Active</option>
@@ -274,30 +274,30 @@ export default function FixedAssetsPage() {
         </div>
 
         <div className="relative min-w-[280px]">
-          <Search className="w-4 h-4 text-[#70665F] absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[color:var(--crm-text-secondary)] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search asset code, name, location, vendor..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-4 py-2 text-xs text-[#211B17] focus:outline-none focus:border-teal-500 transition"
+            className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl pl-9 pr-4 py-2 text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-teal-500 transition"
           />
         </div>
       </div>
 
       {/* Table Section */}
-      <div className="bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-[#EBE3DB] flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-bold text-[#211B17]">
+      <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-[color:var(--crm-border-default)] flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm font-bold text-[color:var(--crm-text-primary)]">
             <Layers className="w-4 h-4 text-teal-600" />
             Fixed Asset Master Register ({filtered.length} Assets)
           </div>
-          <span className="text-xs text-[#70665F]">Real-time database records</span>
+          <span className="text-xs text-[color:var(--crm-text-secondary)]">Real-time database records</span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-[#544B45] border-collapse">
-            <thead className="bg-[#FAF7F2] text-[#70665F] uppercase font-semibold text-[10px] tracking-wider border-b border-[#EBE3DB]">
+          <table className="w-full text-left text-xs text-[color:var(--crm-text-secondary)] border-collapse">
+            <thead className="bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] uppercase font-semibold text-[10px] tracking-wider border-b border-[color:var(--crm-border-default)]">
               <tr>
                 <th className="py-3.5 px-4">Asset Code</th>
                 <th className="py-3.5 px-4">Asset Name & Details</th>
@@ -311,28 +311,28 @@ export default function FixedAssetsPage() {
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EBE3DB]">
+            <tbody className="divide-y divide-[color:var(--crm-border-default)]">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="py-8 text-center text-[#70665F]">
+                  <td colSpan={10} className="py-8 text-center text-[color:var(--crm-text-secondary)]">
                     No fixed assets found. Click &quot;Register Fixed Asset&quot; to add one.
                   </td>
                 </tr>
               ) : (
                 filtered.map((a) => (
-                  <tr key={a.id} className="hover:bg-[#FAF7F2]/60 transition">
+                  <tr key={a.id} className="hover:bg-[#F4F6FA]/60 transition">
                     <td className="py-3 px-4 font-mono font-bold text-teal-700">{a.assetCode}</td>
                     <td className="py-3 px-4 max-w-xs space-y-0.5">
-                      <div className="font-semibold text-[#211B17]">{a.assetName}</div>
+                      <div className="font-semibold text-[color:var(--crm-text-primary)]">{a.assetName}</div>
                       {a.supplierName && (
-                        <div className="text-[10px] text-[#70665F] truncate">
+                        <div className="text-[10px] text-[color:var(--crm-text-secondary)] truncate">
                           Vendor: {a.supplierName} {a.invoiceNumber ? `(${a.invoiceNumber})` : ''}
                         </div>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-[#544B45]">{a.category}</td>
-                    <td className="py-3 px-4 text-[#70665F]">{a.location}</td>
-                    <td className="py-3 px-4 text-right font-mono text-[#211B17]">
+                    <td className="py-3 px-4 text-[color:var(--crm-text-secondary)]">{a.category}</td>
+                    <td className="py-3 px-4 text-[color:var(--crm-text-secondary)]">{a.location}</td>
+                    <td className="py-3 px-4 text-right font-mono text-[color:var(--crm-text-primary)]">
                       ₹{Number(a.purchaseCost || a.purchaseValue || 0).toLocaleString('en-IN')}
                     </td>
                     <td className="py-3 px-4 text-right font-mono text-rose-600">
@@ -363,14 +363,14 @@ export default function FixedAssetsPage() {
                         <button
                           onClick={() => handleOpenEditModal(a)}
                           title="Edit / Update Asset Details"
-                          className="p-1.5 bg-[#FAF7F2] hover:bg-[#EFE9E1] text-[#544B45] border border-[#EBE3DB] rounded-lg text-xs font-semibold transition cursor-pointer"
+                          className="p-1.5 bg-[color:var(--crm-bg-app)] hover:bg-[#E1E5EF] text-[color:var(--crm-text-secondary)] border border-[color:var(--crm-border-default)] rounded-lg text-xs font-semibold transition cursor-pointer"
                         >
-                          <Edit3 className="w-3.5 h-3.5 text-[#544B45]" />
+                          <Edit3 className="w-3.5 h-3.5 text-[color:var(--crm-text-secondary)]" />
                         </button>
                         <button
                           onClick={() => setDeletingId(a.id)}
                           title="Delete Fixed Asset"
-                          className="p-1.5 bg-[#FAF7F2] hover:bg-rose-50 text-rose-600 border border-[#EBE3DB] rounded-lg text-xs font-semibold transition cursor-pointer"
+                          className="p-1.5 bg-[color:var(--crm-bg-app)] hover:bg-rose-50 text-rose-600 border border-[color:var(--crm-border-default)] rounded-lg text-xs font-semibold transition cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -387,15 +387,15 @@ export default function FixedAssetsPage() {
       {/* Register Fixed Asset Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <h3 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <h3 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                 <Building className="w-5 h-5 text-teal-600" />
                 Register New Fixed Asset
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-[#70665F] hover:text-[#211B17]"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -404,21 +404,21 @@ export default function FixedAssetsPage() {
             <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Asset Code</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Asset Code</label>
                   <input
                     type="text"
                     required
                     value={assetCode}
                     onChange={(e) => setAssetCode(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] font-mono focus:outline-none focus:border-teal-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono focus:outline-none focus:border-teal-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Category</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Category</label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-teal-500 cursor-pointer"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-teal-500 cursor-pointer"
                   >
                     <option value="Plant & Machinery">Plant & Machinery</option>
                     <option value="Factory Building">Factory Building</option>
@@ -431,30 +431,30 @@ export default function FixedAssetsPage() {
               </div>
 
               <div>
-                <label className="block text-[#70665F] font-semibold mb-1">Asset Name & Model</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Asset Name & Model</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. High Precision CNC Plasma Cutting Machine"
                   value={assetName}
                   onChange={(e) => setAssetName(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-teal-500"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-teal-500"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Purchase Date</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Purchase Date</label>
                   <input
                     type="date"
                     required
                     value={purchaseDate}
                     onChange={(e) => setPurchaseDate(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] font-mono focus:outline-none focus:border-teal-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono focus:outline-none focus:border-teal-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Purchase Cost (₹)</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Purchase Cost (₹)</label>
                   <input
                     type="number"
                     required
@@ -462,97 +462,97 @@ export default function FixedAssetsPage() {
                     placeholder="2850000"
                     value={purchaseCost}
                     onChange={(e) => setPurchaseCost(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] font-mono focus:outline-none focus:border-teal-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono focus:outline-none focus:border-teal-500"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Supplier / Vendor Name</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Supplier / Vendor Name</label>
                   <input
                     type="text"
                     placeholder="e.g. Messer Cutting Systems"
                     value={supplierName}
                     onChange={(e) => setSupplierName(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-teal-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-teal-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Invoice / PO Number</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Invoice / PO Number</label>
                   <input
                     type="text"
                     placeholder="e.g. INV-MES-2024-089"
                     value={invoiceNumber}
                     onChange={(e) => setInvoiceNumber(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] font-mono focus:outline-none focus:border-teal-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono focus:outline-none focus:border-teal-500"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Physical Location</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Physical Location</label>
                   <input
                     type="text"
                     placeholder="Bay-3 Machine Shop"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-teal-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-teal-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Department</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Department</label>
                   <input
                     type="text"
                     placeholder="Production"
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-teal-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-teal-500"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 bg-[#FAF7F2] p-3 rounded-xl border border-[#EBE3DB]">
+              <div className="grid grid-cols-3 gap-3 bg-[color:var(--crm-bg-app)] p-3 rounded-xl border border-[color:var(--crm-border-default)]">
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Dep. Method</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Dep. Method</label>
                   <select
                     value={depreciationMethod}
                     onChange={(e) => setDepreciationMethod(e.target.value as any)}
-                    className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-[#211B17] focus:outline-none cursor-pointer"
+                    className="w-full bg-white border border-[color:var(--crm-border-default)] rounded-lg px-2 py-1.5 text-[color:var(--crm-text-primary)] focus:outline-none cursor-pointer"
                   >
                     <option value="WDV">WDV</option>
                     <option value="SLM">SLM</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Rate (%)</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Rate (%)</label>
                   <input
                     type="number"
                     min="0"
                     max="100"
                     value={depreciationRate}
                     onChange={(e) => setDepreciationRate(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-[#211B17] font-mono focus:outline-none"
+                    className="w-full bg-white border border-[color:var(--crm-border-default)] rounded-lg px-2 py-1.5 text-[color:var(--crm-text-primary)] font-mono focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Useful Life (Yrs)</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Useful Life (Yrs)</label>
                   <input
                     type="number"
                     min="1"
                     value={usefulLifeYears}
                     onChange={(e) => setUsefulLifeYears(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-[#211B17] font-mono focus:outline-none"
+                    className="w-full bg-white border border-[color:var(--crm-border-default)] rounded-lg px-2 py-1.5 text-[color:var(--crm-text-primary)] font-mono focus:outline-none"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2.5 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] hover:bg-[#EFE9E1] text-[#544B45] font-semibold border border-[#EBE3DB]"
+                  className="px-4 py-2 rounded-xl bg-[color:var(--crm-bg-app)] hover:bg-[#E1E5EF] text-[color:var(--crm-text-secondary)] font-semibold border border-[color:var(--crm-border-default)]"
                 >
                   Cancel
                 </button>
@@ -571,15 +571,15 @@ export default function FixedAssetsPage() {
       {/* Edit / Update Fixed Asset Modal */}
       {editingAsset && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <h3 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <h3 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                 <Edit3 className="w-5 h-5 text-teal-600" />
                 Update Fixed Asset: {editingAsset.assetCode}
               </h3>
               <button
                 onClick={() => setEditingAsset(null)}
-                className="text-[#70665F] hover:text-[#211B17]"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -588,21 +588,21 @@ export default function FixedAssetsPage() {
             <form onSubmit={handleSaveEdit} className="space-y-3.5 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Asset Code</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Asset Code</label>
                   <input
                     type="text"
                     required
                     value={editFormData.assetCode || ''}
                     onChange={(e) => setEditFormData({ ...editFormData, assetCode: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] font-mono focus:outline-none"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Category</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Category</label>
                   <select
                     value={editFormData.category || 'Plant & Machinery'}
                     onChange={(e) => setEditFormData({ ...editFormData, category: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none cursor-pointer"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none cursor-pointer"
                   >
                     <option value="Plant & Machinery">Plant & Machinery</option>
                     <option value="Factory Building">Factory Building</option>
@@ -615,42 +615,42 @@ export default function FixedAssetsPage() {
               </div>
 
               <div>
-                <label className="block text-[#70665F] font-semibold mb-1">Asset Name</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Asset Name</label>
                 <input
                   type="text"
                   required
                   value={editFormData.assetName || ''}
                   onChange={(e) => setEditFormData({ ...editFormData, assetName: e.target.value })}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Purchase Cost (₹)</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Purchase Cost (₹)</label>
                   <input
                     type="number"
                     required
                     value={editFormData.purchaseCost || 0}
                     onChange={(e) => setEditFormData({ ...editFormData, purchaseCost: Number(e.target.value) })}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] font-mono focus:outline-none"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Accumulated Dep. (₹)</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Accumulated Dep. (₹)</label>
                   <input
                     type="number"
                     value={editFormData.accumulatedDepreciation || 0}
                     onChange={(e) => setEditFormData({ ...editFormData, accumulatedDepreciation: Number(e.target.value) })}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] font-mono focus:outline-none text-rose-600 font-semibold"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono focus:outline-none text-rose-600 font-semibold"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Status</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Status</label>
                   <select
                     value={editFormData.status || 'Active'}
                     onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none cursor-pointer font-semibold"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none cursor-pointer font-semibold"
                   >
                     <option value="Active">Active</option>
                     <option value="Under Maintenance">Under Maintenance</option>
@@ -662,30 +662,30 @@ export default function FixedAssetsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Physical Location</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Physical Location</label>
                   <input
                     type="text"
                     value={editFormData.location || ''}
                     onChange={(e) => setEditFormData({ ...editFormData, location: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Department</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Department</label>
                   <input
                     type="text"
                     value={editFormData.department || ''}
                     onChange={(e) => setEditFormData({ ...editFormData, department: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2.5 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setEditingAsset(null)}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] hover:bg-[#EFE9E1] text-[#544B45] font-semibold border border-[#EBE3DB]"
+                  className="px-4 py-2 rounded-xl bg-[color:var(--crm-bg-app)] hover:bg-[#E1E5EF] text-[color:var(--crm-text-secondary)] font-semibold border border-[color:var(--crm-border-default)]"
                 >
                   Cancel
                 </button>
@@ -704,18 +704,18 @@ export default function FixedAssetsPage() {
       {/* Delete Confirmation Modal */}
       {deletingId && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
             <div className="flex items-center gap-3 text-rose-600">
               <AlertCircle className="w-6 h-6" />
-              <h3 className="font-bold text-sm text-[#211B17]">Delete Fixed Asset?</h3>
+              <h3 className="font-bold text-sm text-[color:var(--crm-text-primary)]">Delete Fixed Asset?</h3>
             </div>
-            <p className="text-xs text-[#70665F]">
+            <p className="text-xs text-[color:var(--crm-text-secondary)]">
               Are you sure you want to delete this Fixed Asset record? This action will remove it from the asset register.
             </p>
             <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={() => setDeletingId(null)}
-                className="px-3.5 py-1.5 bg-[#FAF7F2] hover:bg-[#EFE9E1] text-[#544B45] text-xs font-semibold rounded-xl border border-[#EBE3DB]"
+                className="px-3.5 py-1.5 bg-[color:var(--crm-bg-app)] hover:bg-[#E1E5EF] text-[color:var(--crm-text-secondary)] text-xs font-semibold rounded-xl border border-[color:var(--crm-border-default)]"
               >
                 Cancel
               </button>

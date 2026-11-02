@@ -47,9 +47,9 @@ const colorStyles = {
     activeBorder: 'border-rose-600 ring-1 ring-rose-600 bg-rose-50/20',
   },
   teal: {
-    iconBg: 'bg-teal-50 text-[#204354]',
-    valueColor: 'text-[#204354]',
-    activeBorder: 'border-[#204354] ring-1 ring-[#204354] bg-teal-50/20',
+    iconBg: 'bg-teal-50 text-[#1F3FB0]',
+    valueColor: 'text-[#1F3FB0]',
+    activeBorder: 'border-[#1F3FB0] ring-1 ring-[#1F3FB0] bg-teal-50/20',
   },
 };
 

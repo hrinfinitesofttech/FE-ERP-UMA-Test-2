@@ -44,7 +44,7 @@ export function ShimmerStats({ count = 4, className }: { count?: number; classNa
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="p-4 bg-white border border-[#E7DED5] rounded-2xl space-y-3 shadow-xs"
+          className="p-4 bg-white border border-[color:var(--crm-border-default)] rounded-2xl space-y-3 shadow-xs"
         >
           <div className="flex items-center justify-between">
             <div className="h-3 w-20 rounded-md animate-shimmer" />
@@ -60,7 +60,7 @@ export function ShimmerStats({ count = 4, className }: { count?: number; classNa
 
 export function ShimmerCard({ className }: { className?: string }) {
   return (
-    <div className={cn('p-5 bg-white border border-[#E7DED5] rounded-2xl shadow-xs space-y-4', className)}>
+    <div className={cn('p-5 bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-xs space-y-4', className)}>
       <div className="flex items-center justify-between">
         <div className="space-y-1.5">
           <div className="h-4 w-36 rounded-md animate-shimmer" />
@@ -95,17 +95,17 @@ export function ShimmerTable({
   className?: string;
 }) {
   return (
-    <div className={cn('bg-white rounded-2xl border border-[#E7DED5] shadow-xs overflow-hidden flex flex-col', className)}>
+    <div className={cn('bg-white rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs overflow-hidden flex flex-col', className)}>
       {/* Header bar */}
-      <div className="p-4 sm:p-5 border-b border-[#E7DED5] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 bg-[#FAF7F2]">
+      <div className="p-4 sm:p-5 border-b border-[color:var(--crm-border-default)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 bg-[color:var(--crm-bg-app)]">
         <div className="space-y-1.5">
           {title ? (
-            <h3 className="text-sm font-bold text-[#211B17]">{title}</h3>
+            <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)]">{title}</h3>
           ) : (
             <div className="h-4 w-44 rounded-md animate-shimmer" />
           )}
           {subtitle ? (
-            <p className="text-xs text-[#70665F]">{subtitle}</p>
+            <p className="text-xs text-[color:var(--crm-text-secondary)]">{subtitle}</p>
           ) : (
             <div className="h-3 w-64 rounded-md animate-shimmer" />
           )}
@@ -120,7 +120,7 @@ export function ShimmerTable({
       {/* Table rows */}
       <div className="overflow-x-auto min-h-[240px]">
         <table className="w-full text-left text-xs">
-          <thead className="bg-[#FAF7F2] border-b border-[#E7DED5]">
+          <thead className="bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)]">
             <tr>
               {Array.from({ length: columns }).map((_, cIdx) => (
                 <th key={cIdx} className="py-3 px-4">
@@ -129,7 +129,7 @@ export function ShimmerTable({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#EFE8DE]">
+          <tbody className="divide-y divide-[#DFE4EE]">
             {Array.from({ length: rows }).map((_, rIdx) => (
               <tr key={rIdx}>
                 {Array.from({ length: columns }).map((_, cIdx) => (
@@ -149,7 +149,7 @@ export function ShimmerTable({
       </div>
 
       {/* Footer bar */}
-      <div className="p-3.5 border-t border-[#E7DED5] flex items-center justify-between bg-[#FAF7F2]">
+      <div className="p-3.5 border-t border-[color:var(--crm-border-default)] flex items-center justify-between bg-[color:var(--crm-bg-app)]">
         <div className="h-3 w-36 rounded-md animate-shimmer" />
         <div className="flex items-center gap-2">
           <div className="h-6 w-6 rounded-md animate-shimmer" />
@@ -163,8 +163,8 @@ export function ShimmerTable({
 
 export function ShimmerForm({ className }: { className?: string }) {
   return (
-    <div className={cn('bg-white rounded-2xl border border-[#E7DED5] p-6 shadow-xs space-y-6', className)}>
-      <div className="space-y-2 border-b border-[#E7DED5] pb-4">
+    <div className={cn('bg-white rounded-2xl border border-[color:var(--crm-border-default)] p-6 shadow-xs space-y-6', className)}>
+      <div className="space-y-2 border-b border-[color:var(--crm-border-default)] pb-4">
         <div className="h-5 w-48 rounded-md animate-shimmer" />
         <div className="h-3.5 w-72 rounded-md animate-shimmer" />
       </div>
@@ -176,7 +176,7 @@ export function ShimmerForm({ className }: { className?: string }) {
           </div>
         ))}
       </div>
-      <div className="flex justify-end gap-3 pt-4 border-t border-[#E7DED5]">
+      <div className="flex justify-end gap-3 pt-4 border-t border-[color:var(--crm-border-default)]">
         <div className="h-9 w-20 rounded-xl animate-shimmer" />
         <div className="h-9 w-28 rounded-xl animate-shimmer" />
       </div>
@@ -200,15 +200,15 @@ export function PageLoadingSkeleton({
   return (
     <div className="p-6 space-y-6">
       {/* Header Skeleton */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-xs">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
         <div className="space-y-1.5">
           {title ? (
-            <h1 className="text-2xl font-bold text-[#211B17] tracking-tight">{title}</h1>
+            <h1 className="text-2xl font-bold text-[color:var(--crm-text-primary)] tracking-tight">{title}</h1>
           ) : (
             <div className="h-7 w-56 rounded-lg animate-shimmer" />
           )}
           {subtitle ? (
-            <p className="text-xs text-[#70665F]">{subtitle}</p>
+            <p className="text-xs text-[color:var(--crm-text-secondary)]">{subtitle}</p>
           ) : (
             <div className="h-3.5 w-80 rounded-md animate-shimmer" />
           )}

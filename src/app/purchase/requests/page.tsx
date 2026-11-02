@@ -1003,7 +1003,7 @@ export default function PurchaseRequestsPage() {
           onClick={() => handleOpenLetterView(r)}
           className="text-amber-800 hover:text-amber-950 font-mono font-bold text-xs underline cursor-pointer text-left flex items-center gap-1"
         >
-          <FileText className="w-3 h-3 text-amber-700 shrink-0" />
+          <FileText className="w-3 h-3 text-crm-brand-600 shrink-0" />
           <span>{r.rfqNumber}</span>
         </button>
       ),
@@ -1016,7 +1016,7 @@ export default function PurchaseRequestsPage() {
         const dueDate = r.dueDate || (r as any).due_date || '';
         return (
           <div className="space-y-0.5 text-xs font-mono">
-            <div className="flex items-center gap-1 text-[#211B17] font-semibold">
+            <div className="flex items-center gap-1 text-[color:var(--crm-text-primary)] font-semibold">
               <Calendar className="w-3 h-3 text-slate-500 shrink-0" />
               <span>Created: {reqDate}</span>
             </div>
@@ -1041,7 +1041,7 @@ export default function PurchaseRequestsPage() {
 
         return (
           <div className="space-y-1.5 max-w-sm">
-            <span className="font-bold text-xs text-[#211B17] block truncate">
+            <span className="font-bold text-xs text-[color:var(--crm-text-primary)] block truncate">
               {r.subject || 'Material Purchase Requirement'}
             </span>
 
@@ -1156,47 +1156,47 @@ export default function PurchaseRequestsPage() {
 
       {/* KPI Cards Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider block">
+            <span className="text-[11px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">
               Total Purchase Requests
             </span>
-            <span className="text-2xl font-black text-[#211B17] font-mono mt-0.5 block">
+            <span className="text-2xl font-black text-[color:var(--crm-text-primary)] font-mono mt-0.5 block">
               {totalRequestsCount}
             </span>
             <span className="text-[11px] text-amber-700 font-medium">Inquiries sent to vendors</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-800 flex items-center justify-center border border-amber-200">
+          <div className="w-10 h-10 rounded-xl bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center border border-crm-brand-100">
             <FileText className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider block">
+            <span className="text-[11px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">
               Total Material Lines
             </span>
-            <span className="text-2xl font-black text-[#211B17] font-mono mt-0.5 block">
+            <span className="text-2xl font-black text-[color:var(--crm-text-primary)] font-mono mt-0.5 block">
               {totalItemLines}
             </span>
             <span className="text-[11px] text-emerald-700 font-medium">Plates, Coils, Bought-out</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center border border-emerald-200">
+          <div className="w-10 h-10 rounded-xl bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center border border-crm-brand-100">
             <Package className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider block">
+            <span className="text-[11px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">
               Registered Suppliers
             </span>
-            <span className="text-2xl font-black text-[#211B17] font-mono mt-0.5 block">
+            <span className="text-2xl font-black text-[color:var(--crm-text-primary)] font-mono mt-0.5 block">
               {suppliers.length}
             </span>
             <span className="text-[11px] text-blue-700 font-medium">Active vendors in directory</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-800 flex items-center justify-center border border-blue-200">
+          <div className="w-10 h-10 rounded-xl bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center border border-crm-brand-100">
             <Building className="w-5 h-5" />
           </div>
         </div>
@@ -1218,18 +1218,18 @@ export default function PurchaseRequestsPage() {
       {/* ===================================================================== */}
       {isFormModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 overflow-y-auto">
-          <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-200">
             {/* Modal Header */}
-            <div className="px-5 py-3.5 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-[#EBE3DB] flex items-center justify-between shrink-0">
+            <div className="px-5 py-3.5 bg-gradient-to-r from-crm-brand-50 to-crm-brand-50 border-b border-[color:var(--crm-border-default)] flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-amber-600 text-white flex items-center justify-center shadow-xs">
                   <FileText className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-[#211B17] text-sm">
+                  <h3 className="font-extrabold text-[color:var(--crm-text-primary)] text-sm">
                     {editingId ? 'Edit Purchase Request' : 'Create New Purchase Request (REQUIRE)'}
                   </h3>
-                  <p className="text-[11px] text-[#70665F]">
+                  <p className="text-[11px] text-[color:var(--crm-text-secondary)]">
                     Generates official inquiry letter matching Uma Technofab format
                   </p>
                 </div>
@@ -1237,7 +1237,7 @@ export default function PurchaseRequestsPage() {
               <button
                 type="button"
                 onClick={() => setIsFormModalOpen(false)}
-                className="p-1 rounded-lg hover:bg-white text-[#70665F] transition"
+                className="p-1 rounded-lg hover:bg-white text-[color:var(--crm-text-secondary)] transition"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1246,21 +1246,21 @@ export default function PurchaseRequestsPage() {
             {/* Modal Form Body */}
             <form onSubmit={handleSubmitForm} className="p-5 space-y-4 overflow-y-auto flex-1 text-xs">
               {/* Row 1: Project & Document Details */}
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] space-y-3">
-                <h4 className="font-bold text-[#211B17] text-xs flex items-center gap-1.5">
-                  <FolderKanban className="w-3.5 h-3.5 text-amber-700" />
+              <div className="p-3.5 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] space-y-3">
+                <h4 className="font-bold text-[color:var(--crm-text-primary)] text-xs flex items-center gap-1.5">
+                  <FolderKanban className="w-3.5 h-3.5 text-crm-brand-600" />
                   <span>Project & Document Details</span>
                 </h4>
 
                 <div>
                   {/* Linked Project Reference */}
-                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                  <label className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] block mb-1">
                     Linked Project Reference:
                   </label>
                   <select
                     value={formData.selectedProjectId}
                     onChange={(e) => handleProjectSelect(e.target.value)}
-                    className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] font-semibold focus:outline-none focus:border-amber-600 font-mono"
+                    className="w-full bg-white border border-[color:var(--crm-border-default)] rounded-lg px-2.5 py-1.5 text-xs text-[color:var(--crm-text-primary)] font-semibold focus:outline-none focus:border-amber-600 font-mono"
                   >
                     <option value="">-- Select Project Reference --</option>
                     {projects.map((p) => (
@@ -1273,23 +1273,23 @@ export default function PurchaseRequestsPage() {
 
 
                 {/* Document Metadata Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-2 border-t border-[#EBE3DB]">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-2 border-t border-[color:var(--crm-border-default)]">
                   <div>
-                    <label className="text-[10px] font-bold text-[#70665F] block mb-1">REQ. NO:</label>
+                    <label className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] block mb-1">REQ. NO:</label>
                     <input
                       type="text"
                       value={formData.rfqNumber}
                       onChange={(e) => setFormData({ ...formData, rfqNumber: e.target.value })}
-                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-mono font-bold text-amber-900"
+                      className="w-full bg-white border border-[color:var(--crm-border-default)] rounded-lg px-2 py-1 text-xs font-mono font-bold text-amber-900"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-[#70665F] block mb-1">DATE:</label>
+                    <label className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] block mb-1">DATE:</label>
                     <input
                       type="text"
                       value={formData.rfqDate}
                       onChange={(e) => setFormData({ ...formData, rfqDate: e.target.value })}
-                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-mono font-bold text-[#211B17]"
+                      className="w-full bg-white border border-[color:var(--crm-border-default)] rounded-lg px-2 py-1 text-xs font-mono font-bold text-[color:var(--crm-text-primary)]"
                     />
                   </div>
                   <div>
@@ -1303,21 +1303,21 @@ export default function PurchaseRequestsPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-[#70665F] block mb-1">DELIVERY LOCATION:</label>
+                    <label className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] block mb-1">DELIVERY LOCATION:</label>
                     <input
                       type="text"
                       value={formData.deliveryLocation}
                       onChange={(e) => setFormData({ ...formData, deliveryLocation: e.target.value })}
-                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-bold text-[#211B17]"
+                      className="w-full bg-white border border-[color:var(--crm-border-default)] rounded-lg px-2 py-1 text-xs font-bold text-[color:var(--crm-text-primary)]"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-[#70665F] block mb-1">TAXES:</label>
+                    <label className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] block mb-1">TAXES:</label>
                     <input
                       type="text"
                       value={formData.taxes}
                       onChange={(e) => setFormData({ ...formData, taxes: e.target.value })}
-                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-bold text-[#211B17]"
+                      className="w-full bg-white border border-[color:var(--crm-border-default)] rounded-lg px-2 py-1 text-xs font-bold text-[color:var(--crm-text-primary)]"
                     />
                   </div>
                 </div>
@@ -1325,7 +1325,7 @@ export default function PurchaseRequestsPage() {
 
               {/* Row 2: Subject */}
               <div>
-                <label className="text-[10px] font-bold text-[#70665F] block mb-1 uppercase tracking-wider">
+                <label className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] block mb-1 uppercase tracking-wider">
                   Subject Line *:
                 </label>
                 <input
@@ -1334,7 +1334,7 @@ export default function PurchaseRequestsPage() {
                   value={formData.subject}
                   onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                   placeholder="e.g. REQUIRE FOR SS 316 L HR PLATE & COIL JINDAL MAKE"
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-bold text-[#211B17] focus:outline-none focus:border-amber-600"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-xs font-bold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600"
                 />
               </div>
 
@@ -1342,11 +1342,11 @@ export default function PurchaseRequestsPage() {
               <div className="space-y-2">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
-                    <h4 className="font-bold text-[#211B17] text-xs flex items-center gap-1.5">
-                      <Package className="w-3.5 h-3.5 text-amber-700" />
+                    <h4 className="font-bold text-[color:var(--crm-text-primary)] text-xs flex items-center gap-1.5">
+                      <Package className="w-3.5 h-3.5 text-crm-brand-600" />
                       <span>Material Lines to Quote ({formData.items.length})</span>
                     </h4>
-                    <p className="text-[11px] text-[#70665F]">
+                    <p className="text-[11px] text-[color:var(--crm-text-secondary)]">
                       Select items from project requirement dropdown or customize description, quantity, and UOM
                     </p>
                   </div>
@@ -1367,7 +1367,7 @@ export default function PurchaseRequestsPage() {
                       onClick={handleAddItem}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs transition cursor-pointer shadow-2xs active:scale-95"
                     >
-                      <Plus className="w-3.5 h-3.5 text-amber-700" />
+                      <Plus className="w-3.5 h-3.5 text-crm-brand-600" />
                       <span>Add Material Line</span>
                     </button>
                   </div>
@@ -1398,9 +1398,9 @@ export default function PurchaseRequestsPage() {
                   </div>
                 )}
 
-                <div className="border border-[#EBE3DB] rounded-xl overflow-x-auto">
+                <div className="border border-[color:var(--crm-border-default)] rounded-xl overflow-x-auto">
                   <table className="w-full text-left text-xs min-w-[850px]">
-                    <thead className="bg-[#FAF7F2] text-[10px] font-bold text-[#70665F] uppercase border-b border-[#EBE3DB]">
+                    <thead className="bg-[color:var(--crm-bg-app)] text-[10px] font-bold text-[color:var(--crm-text-secondary)] uppercase border-b border-[color:var(--crm-border-default)]">
                       <tr>
                         <th className="p-2 w-8 text-center">SR.</th>
                         <th className="p-2 w-52">SELECT ITEM (DROPDOWN)</th>
@@ -1411,17 +1411,17 @@ export default function PurchaseRequestsPage() {
                         <th className="p-2 w-8 text-center"></th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#EBE3DB] bg-white">
+                    <tbody className="divide-y divide-[color:var(--crm-border-default)] bg-white">
                       {formData.items.map((itm: any, idx: number) => (
-                        <tr key={itm.id} className="hover:bg-[#FAF7F2]/50">
-                          <td className="p-2 text-center font-mono font-bold text-[#70665F]">
+                        <tr key={itm.id} className="hover:bg-[#F4F6FA]/50">
+                          <td className="p-2 text-center font-mono font-bold text-[color:var(--crm-text-secondary)]">
                             {idx + 1}
                           </td>
                           <td className="p-1.5">
                             <select
                               value={itm.selectedItemKey || ''}
                               onChange={(e) => handleSelectItemForLine(itm.id, e.target.value)}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-xs font-semibold text-[#211B17] focus:outline-none focus:border-amber-600 truncate"
+                              className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-2 py-1.5 text-xs font-semibold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600 truncate"
                               title="Select item from project requisition or master catalog"
                             >
                               <option value="">-- Choose Item / Requisition --</option>
@@ -1460,7 +1460,7 @@ export default function PurchaseRequestsPage() {
                               value={itm.groupTitle || ''}
                               onChange={(e) => handleItemFieldChange(itm.id, 'groupTitle', e.target.value)}
                               placeholder="❖ Fabricated / SS 316 L"
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-amber-600"
+                              className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-amber-600"
                             />
                           </td>
                           <td className="p-1.5">
@@ -1470,7 +1470,7 @@ export default function PurchaseRequestsPage() {
                               value={itm.itemName}
                               onChange={(e) => handleItemFieldChange(itm.id, 'itemName', e.target.value)}
                               placeholder="e.g. tank box 7865X4548 SIZE"
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-xs font-bold text-[#211B17] focus:outline-none focus:border-amber-600"
+                              className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-2 py-1.5 text-xs font-bold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600"
                             />
                           </td>
                           <td className="p-1.5">
@@ -1482,14 +1482,14 @@ export default function PurchaseRequestsPage() {
                               value={itm.quantity}
                               onChange={(e) => handleItemFieldChange(itm.id, 'quantity', e.target.value)}
                               placeholder="e.g. 2"
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1.5 text-xs font-mono font-bold text-center text-amber-900 focus:outline-none focus:border-amber-600"
+                              className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-2 py-1.5 text-xs font-mono font-bold text-center text-amber-900 focus:outline-none focus:border-amber-600"
                             />
                           </td>
                           <td className="p-1.5">
                             <select
                               value={(itm.unitOfMeasure || 'NOS').toUpperCase()}
                               onChange={(e) => handleItemFieldChange(itm.id, 'unitOfMeasure', e.target.value)}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-1 py-1.5 text-xs font-bold text-center text-[#211B17]"
+                              className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-1 py-1.5 text-xs font-bold text-center text-[color:var(--crm-text-primary)]"
                             >
                               <option value="NOS">NOS</option>
                               <option value="KG">KG</option>
@@ -1530,9 +1530,9 @@ export default function PurchaseRequestsPage() {
               </div>
 
               {/* Row 4: Special Note & Signatory */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#EBE3DB]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[color:var(--crm-border-default)]">
                 <div>
-                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                  <label className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] block mb-1">
                     Special Note / Instruction:
                   </label>
                   <textarea
@@ -1540,30 +1540,30 @@ export default function PurchaseRequestsPage() {
                     value={formData.specialNote}
                     onChange={(e) => setFormData({ ...formData, specialNote: e.target.value })}
                     placeholder="e.g. REQUIRE TC&#10;SEND A BEST RATE"
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-2.5 py-1.5 text-xs font-bold text-amber-950"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-2.5 py-1.5 text-xs font-bold text-amber-950"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                  <label className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] block mb-1">
                     Signatory Authority:
                   </label>
-                  <div className="p-3 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl space-y-1">
-                    <span className="text-xs font-bold text-[#211B17] block">Thanking you we remain.</span>
+                  <div className="p-3 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl space-y-1">
+                    <span className="text-xs font-bold text-[color:var(--crm-text-primary)] block">Thanking you we remain.</span>
                     <span className="text-xs font-extrabold text-amber-900 block">For, UMA TECHNOFAB.</span>
-                    <span className="text-[11px] text-[#70665F] block">Authorized Purchase Representative</span>
+                    <span className="text-[11px] text-[color:var(--crm-text-secondary)] block">Authorized Purchase Representative</span>
                   </div>
                 </div>
               </div>
 
               {/* Row 5: Terms & Conditions with Headlines (Matching Quotation structure) */}
-              <div className="space-y-2.5 pt-3 border-t border-[#EBE3DB]">
+              <div className="space-y-2.5 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-bold text-[#211B17] text-xs flex items-center gap-1.5">
-                      <FileText className="w-3.5 h-3.5 text-amber-700" />
+                    <h4 className="font-bold text-[color:var(--crm-text-primary)] text-xs flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-crm-brand-600" />
                       <span>Terms & Conditions</span>
                     </h4>
-                    <p className="text-[11px] text-[#70665F]">
+                    <p className="text-[11px] text-[color:var(--crm-text-secondary)]">
                       Official terms printed at the bottom of the purchase inquiry letter
                     </p>
                   </div>
@@ -1572,15 +1572,15 @@ export default function PurchaseRequestsPage() {
                     onClick={handleAddTerm}
                     className="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-amber-50 text-amber-900 border border-amber-300 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
                   >
-                    <Plus className="w-3.5 h-3.5 text-amber-700" />
+                    <Plus className="w-3.5 h-3.5 text-crm-brand-600" />
                     <span>+ Add Term Line</span>
                   </button>
                 </div>
 
-                <div className="space-y-2 bg-[#FAF7F2] p-3 rounded-xl border border-[#EBE3DB]">
+                <div className="space-y-2 bg-[color:var(--crm-bg-app)] p-3 rounded-xl border border-[color:var(--crm-border-default)]">
                   {formData.terms.map((term: string, tIdx: number) => (
                     <div key={tIdx} className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-[#70665F] w-6 shrink-0 font-mono text-center">
+                      <span className="text-xs font-bold text-[color:var(--crm-text-secondary)] w-6 shrink-0 font-mono text-center">
                         {tIdx + 1}.
                       </span>
                       <input
@@ -1588,7 +1588,7 @@ export default function PurchaseRequestsPage() {
                         value={term}
                         onChange={(e) => handleTermChange(tIdx, e.target.value)}
                         placeholder="e.g. Delivery: Material strictly along with Test Certificate & Challan"
-                        className="w-full px-3 py-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-amber-600 font-medium"
+                        className="w-full px-3 py-1.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600 font-medium"
                       />
                       <button
                         type="button"
@@ -1602,7 +1602,7 @@ export default function PurchaseRequestsPage() {
                   ))}
 
                   {formData.terms.length === 0 && (
-                    <div className="text-center py-2 text-xs text-[#70665F]">
+                    <div className="text-center py-2 text-xs text-[color:var(--crm-text-secondary)]">
                       No terms added. Click &quot;+ Add Term Line&quot; to add custom terms.
                     </div>
                   )}
@@ -1610,11 +1610,11 @@ export default function PurchaseRequestsPage() {
               </div>
 
               {/* Modal Submit Footer */}
-              <div className="border-t border-[#EBE3DB] pt-3 flex items-center justify-between shrink-0">
+              <div className="border-t border-[color:var(--crm-border-default)] pt-3 flex items-center justify-between shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsFormModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-white hover:bg-[#FAF7F2] border border-[#EBE3DB] text-[#70665F] font-bold text-xs cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-bold text-xs cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1636,14 +1636,14 @@ export default function PurchaseRequestsPage() {
       {/* ===================================================================== */}
       {isViewLetterOpen && selectedRequest && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto print:static print:inset-auto print:p-0 print:bg-white print:overflow-visible print:block print:z-auto">
-          <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-2xl max-w-4xl w-full max-h-[95vh] flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-200 print:static print:max-h-none print:overflow-visible print:border-none print:shadow-none print:transform-none print:animate-none print:w-full print:m-0 print:block">
+          <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] shadow-2xl max-w-4xl w-full max-h-[95vh] flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-200 print:static print:max-h-none print:overflow-visible print:border-none print:shadow-none print:transform-none print:animate-none print:w-full print:m-0 print:block">
             {/* Modal Top Action Bar (Hidden during print) */}
-            <div className="px-5 py-3 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between shrink-0 print:hidden">
+            <div className="px-5 py-3 bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] flex items-center justify-between shrink-0 print:hidden">
               <div className="flex items-center gap-2">
                 <span className="font-mono font-bold text-xs px-2.5 py-1 rounded-md bg-amber-100 text-amber-900 border border-amber-300">
                   {selectedRequest.rfqNumber}
                 </span>
-                <span className="text-xs font-semibold text-[#70665F]">
+                <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)]">
                   Official Purchase Inquiry Letter (REQUIRE)
                 </span>
                 {selectedRequest.projectId && (
@@ -1680,7 +1680,7 @@ export default function PurchaseRequestsPage() {
                 <button
                   type="button"
                   onClick={() => setIsViewLetterOpen(false)}
-                  className="p-1.5 rounded-xl hover:bg-white text-[#70665F] transition cursor-pointer"
+                  className="p-1.5 rounded-xl hover:bg-white text-[color:var(--crm-text-secondary)] transition cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1942,17 +1942,17 @@ export default function PurchaseRequestsPage() {
 
         return (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-[#2C241F] rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-xl border border-[#E7DED5]">
-              <div className="flex items-center justify-between border-b border-[#E7DED5] pb-3">
+            <div className="bg-white dark:bg-[#1D222E] rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-xl border border-[color:var(--crm-border-default)]">
+              <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+                  <div className="w-8 h-8 rounded-lg bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center font-bold">
                     <Mail className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm text-[#211B17] dark:text-white">
+                    <h3 className="font-bold text-sm text-[color:var(--crm-text-primary)] dark:text-white">
                       Send Official Purchase Inquiry Letter (REQUIRE)
                     </h3>
-                    <p className="text-[11px] text-[#70665F]">
+                    <p className="text-[11px] text-[color:var(--crm-text-secondary)]">
                       Dispatches formal Purchase Inquiry with attached official RFQ letter PDF.
                     </p>
                   </div>
@@ -1960,7 +1960,7 @@ export default function PurchaseRequestsPage() {
                 <button
                   type="button"
                   onClick={() => setShowEmailModal(false)}
-                  className="text-[#70665F] hover:text-[#211B17] text-lg font-bold p-1 cursor-pointer"
+                  className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] text-lg font-bold p-1 cursor-pointer"
                 >
                   ✕
                 </button>
@@ -1973,21 +1973,21 @@ export default function PurchaseRequestsPage() {
                 }}
                 className="space-y-4 text-xs"
               >
-                <div className="p-3 bg-[#FAF7F2] dark:bg-[#1f1915] rounded-xl border border-[#E7DED5] space-y-2">
+                <div className="p-3 bg-[color:var(--crm-bg-app)] dark:bg-[#1f1915] rounded-xl border border-[color:var(--crm-border-default)] space-y-2">
                   <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-[#70665F]">Inquiry Reference:</span>
+                    <span className="text-[color:var(--crm-text-secondary)]">Inquiry Reference:</span>
                     <span className="font-mono font-bold text-emerald-700">{emailTargetRequest.rfqNumber}</span>
                   </div>
                   <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-[#70665F]">Project / Job:</span>
+                    <span className="text-[color:var(--crm-text-secondary)]">Project / Job:</span>
                     <span className="font-mono text-slate-700 dark:text-slate-300">{emailTargetRequest.projectId || 'General'}</span>
                   </div>
                   <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-[#70665F]">Total Items:</span>
+                    <span className="text-[color:var(--crm-text-secondary)]">Total Items:</span>
                     <strong className="font-mono text-slate-800 dark:text-slate-200">{emailTargetRequest.items?.length || 0} Required Line Items</strong>
                   </div>
                   <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-[#70665F]">PDF Attachment:</span>
+                    <span className="text-[color:var(--crm-text-secondary)]">PDF Attachment:</span>
                     <span className="font-mono text-emerald-800 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
                       Official_Purchase_Inquiry_{emailTargetRequest.rfqNumber}.pdf
                     </span>
@@ -1996,7 +1996,7 @@ export default function PurchaseRequestsPage() {
 
                 {/* Primary Recipient Email Input */}
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1 flex items-center justify-between">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1 flex items-center justify-between">
                     <span>
                       Recipient Email ID {validAdditional.length === 0 && <span className="text-rose-500">*</span>}
                     </span>
@@ -2007,14 +2007,14 @@ export default function PurchaseRequestsPage() {
                     )}
                   </label>
                   <div className="relative">
-                    <Mail className="w-4 h-4 text-[#70665F] absolute left-3 top-2.5" />
+                    <Mail className="w-4 h-4 text-[color:var(--crm-text-secondary)] absolute left-3 top-2.5" />
                     <input
                       type="email"
                       required={validAdditional.length === 0}
                       value={targetEmail}
                       onChange={(e) => setTargetEmail(e.target.value)}
                       placeholder={validAdditional.length > 0 ? 'Enter additional recipient email (optional)' : 'Enter recipient email address'}
-                      className="w-full pl-9 pr-3 py-2 bg-[#FAF7F2] dark:bg-[#1f1915] border border-[#E7DED5] rounded-lg font-mono text-sm font-semibold text-[#211B17] dark:text-white focus:outline-none focus:border-emerald-600"
+                      className="w-full pl-9 pr-3 py-2 bg-[color:var(--crm-bg-app)] dark:bg-[#1f1915] border border-[color:var(--crm-border-default)] rounded-lg font-mono text-sm font-semibold text-[color:var(--crm-text-primary)] dark:text-white focus:outline-none focus:border-emerald-600"
                     />
                   </div>
                 </div>
@@ -2023,7 +2023,7 @@ export default function PurchaseRequestsPage() {
                 <div className="p-3 bg-amber-50/60 dark:bg-amber-950/20 rounded-xl border border-amber-200/80 space-y-2">
                   <div className="flex items-center justify-between">
                     <label className="text-[11px] font-bold text-amber-950 dark:text-amber-200 flex items-center gap-1.5">
-                      <Building className="w-3.5 h-3.5 text-amber-800" />
+                      <Building className="w-3.5 h-3.5 text-crm-brand-600" />
                       <span>Send to Additional Vendors (Multi-Vendor Dispatch):</span>
                     </label>
                     <span className="text-[10px] text-amber-800 font-semibold">
@@ -2062,7 +2062,7 @@ export default function PurchaseRequestsPage() {
                         }
                       }
                     }}
-                    className="w-full bg-white dark:bg-[#2C241F] border border-amber-300 rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] dark:text-white font-medium focus:outline-none focus:border-amber-600 cursor-pointer"
+                    className="w-full bg-white dark:bg-[#1D222E] border border-amber-300 rounded-lg px-2.5 py-1.5 text-xs text-[color:var(--crm-text-primary)] dark:text-white font-medium focus:outline-none focus:border-amber-600 cursor-pointer"
                   >
                     <option value="">+ Select another vendor from Vendor Master to add...</option>
                     {suppliers
@@ -2080,7 +2080,7 @@ export default function PurchaseRequestsPage() {
                       {additionalVendors.map((v, vIdx) => (
                         <span
                           key={vIdx}
-                          className="inline-flex items-center gap-1.5 bg-white dark:bg-[#2C241F] border border-amber-300 text-amber-950 dark:text-amber-200 px-2 py-1 rounded-md text-[11px] font-medium shadow-2xs"
+                          className="inline-flex items-center gap-1.5 bg-white dark:bg-[#1D222E] border border-amber-300 text-amber-950 dark:text-amber-200 px-2 py-1 rounded-md text-[11px] font-medium shadow-2xs"
                         >
                           <span className="font-bold">{v.name}:</span>
                           <span className="font-mono text-[10px] text-slate-600 dark:text-slate-300">{v.email}</span>
@@ -2102,8 +2102,8 @@ export default function PurchaseRequestsPage() {
                   </p>
                 </div>
 
-                <div className="flex justify-between items-center pt-2 border-t border-[#E7DED5]">
-                  <div className="text-[11px] text-[#70665F]">
+                <div className="flex justify-between items-center pt-2 border-t border-[color:var(--crm-border-default)]">
+                  <div className="text-[11px] text-[color:var(--crm-text-secondary)]">
                     Total Recipients: <strong className="text-emerald-700 font-bold">{totalRecipientCount} Email(s)</strong>
                   </div>
                   <div className="flex gap-2">
@@ -2111,7 +2111,7 @@ export default function PurchaseRequestsPage() {
                       type="button"
                       onClick={() => setShowEmailModal(false)}
                       disabled={isSendingEmail}
-                      className="px-4 py-2 border border-[#E7DED5] rounded-lg font-semibold text-[#544B45] hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                      className="px-4 py-2 border border-[color:var(--crm-border-default)] rounded-lg font-semibold text-[color:var(--crm-text-secondary)] hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                     >
                       Cancel
                     </button>

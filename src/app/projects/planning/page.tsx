@@ -384,7 +384,7 @@ export default function ProjectPlanningPage() {
       onCodeClick: (r) => router.push(`/projects/${r.projectId}`),
       cell: (r) => (
         <div className="space-y-0.5">
-          <span className="font-mono font-bold text-[#7C3AED] hover:underline cursor-pointer block text-xs">
+          <span className="font-mono font-bold text-[color:var(--crm-brand-600)] hover:underline cursor-pointer block text-xs">
             {r.projectNumber}
           </span>
           <span className="text-[10px] text-slate-500 font-mono block">Plan: {r.planningNumber}</span>
@@ -473,7 +473,7 @@ export default function ProjectPlanningPage() {
           <div className="w-24 space-y-1">
             <div className="flex justify-between text-[10px] font-mono">
               <span className="text-slate-500 font-medium">Progress</span>
-              <span className="font-bold text-[#7C3AED]">{pct}%</span>
+              <span className="font-bold text-[color:var(--crm-brand-600)]">{pct}%</span>
             </div>
             <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
               <div
@@ -481,8 +481,8 @@ export default function ProjectPlanningPage() {
                   pct >= 100
                     ? 'bg-emerald-500'
                     : pct >= 50
-                    ? 'bg-gradient-to-r from-[#7C3AED] to-emerald-500'
-                    : 'bg-[#7C3AED]'
+                    ? 'bg-gradient-to-r from-[color:var(--crm-brand-600)] to-emerald-500'
+                    : 'bg-[color:var(--crm-brand-600)]'
                 }`}
                 style={{ width: `${Math.min(pct, 100)}%` }}
               />
@@ -551,7 +551,7 @@ export default function ProjectPlanningPage() {
     <div className="space-y-4">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-5 right-5 z-50 bg-[#211B17] text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-[#EBE3DB]/20 text-xs animate-in slide-in-from-top-2 duration-200">
+        <div className="fixed top-5 right-5 z-50 bg-[color:var(--crm-text-primary)] text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-[#E2E7EF]/20 text-xs animate-in slide-in-from-top-2 duration-200">
           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           <span className="font-semibold">{toastMessage}</span>
         </div>
@@ -615,7 +615,7 @@ export default function ProjectPlanningPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#204354] shadow-2xs cursor-pointer"
+                className="px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#1F3FB0] shadow-2xs cursor-pointer"
                 title="Filter by Status"
               >
                 <option value="all">All Statuses ({totalPlannedProjects})</option>
@@ -634,7 +634,7 @@ export default function ProjectPlanningPage() {
       {mode === 'form' && (
         <form onSubmit={handleSavePlanning} className="space-y-4">
           {/* Header Card */}
-          <div className="bg-white p-4 rounded-2xl border border-[#EBE3DB] shadow-xs flex flex-wrap items-center justify-between gap-3">
+          <div className="bg-white p-4 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -645,11 +645,11 @@ export default function ProjectPlanningPage() {
                 <ArrowLeft className="w-4 h-4" />
               </button>
               <div>
-                <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+                <h2 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                   <Workflow className="w-5 h-5 text-crm-brand-700" />
                   <span>{editingRecordId ? `Edit Project Planning` : 'Create New Project Planning'}</span>
                 </h2>
-                <p className="text-xs text-[#70665F]">
+                <p className="text-xs text-[color:var(--crm-text-secondary)]">
                   Assign planned tasks, timelines, team members, and milestones for project execution.
                 </p>
               </div>
@@ -659,7 +659,7 @@ export default function ProjectPlanningPage() {
               <button
                 type="button"
                 onClick={handleCancelOrBackToList}
-                className="px-4 py-2 bg-white border border-[#EBE3DB] hover:bg-slate-50 text-[#544B45] font-bold rounded-xl text-xs transition cursor-pointer"
+                className="px-4 py-2 bg-white border border-[color:var(--crm-border-default)] hover:bg-slate-50 text-[color:var(--crm-text-secondary)] font-bold rounded-xl text-xs transition cursor-pointer"
               >
                 Cancel
               </button>
@@ -689,20 +689,20 @@ export default function ProjectPlanningPage() {
           )}
 
           {/* STEP 1: SELECT PROJECT */}
-          <div className="bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <h3 className="text-xs font-bold text-[#211B17] uppercase tracking-wider flex items-center gap-2">
+          <div className="bg-white p-5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <h3 className="text-xs font-bold text-[color:var(--crm-text-primary)] uppercase tracking-wider flex items-center gap-2">
                 <Briefcase className="w-4 h-4 text-crm-brand-700" />
                 <span>1. Select Project For Planning</span>
               </h3>
-              <span className="text-[11px] font-mono text-[#7C3AED]">
+              <span className="text-[11px] font-mono text-[color:var(--crm-brand-600)]">
                 {availableProjectsForPlanning.length} Unplanned Projects Available
               </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-[#544B45] mb-1.5">
+                <label className="block text-xs font-bold text-[color:var(--crm-text-secondary)] mb-1.5">
                   Select Project <span className="text-rose-500">*</span>
                 </label>
                 {availableProjectsForPlanning.length === 0 && !editingRecordId ? (
@@ -717,7 +717,7 @@ export default function ProjectPlanningPage() {
                       setFormErrors({});
                     }}
                     disabled={Boolean(editingRecordId)}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-crm-brand-700 text-[#211B17]"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-crm-brand-700 text-[color:var(--crm-text-primary)]"
                   >
                     <option value="">-- Choose Project To Plan --</option>
                     {availableProjectsForPlanning.map((p) => (
@@ -731,22 +731,22 @@ export default function ProjectPlanningPage() {
 
               {/* Selected Project Info Preview */}
               {currentSelectedProject ? (
-                <div className="p-3.5 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] grid grid-cols-2 gap-2 text-xs">
+                <div className="p-3.5 bg-[color:var(--crm-bg-app)] rounded-xl border border-[color:var(--crm-border-default)] grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <span className="text-[#70665F] block text-[11px]">Customer / Client:</span>
-                    <span className="font-bold text-[#211B17] block truncate">{currentSelectedProject.customerName}</span>
+                    <span className="text-[color:var(--crm-text-secondary)] block text-[11px]">Customer / Client:</span>
+                    <span className="font-bold text-[color:var(--crm-text-primary)] block truncate">{currentSelectedProject.customerName}</span>
                   </div>
                   <div>
-                    <span className="text-[#70665F] block text-[11px]">Customer PO:</span>
+                    <span className="text-[color:var(--crm-text-secondary)] block text-[11px]">Customer PO:</span>
                     <span className="font-mono text-crm-brand-700 font-bold block">{currentSelectedProject.customerPoNumber || 'N/A'}</span>
                   </div>
                   <div>
-                    <span className="text-[#70665F] block text-[11px]">Scope / Machine:</span>
-                    <span className="font-semibold text-[#211B17] block truncate">{currentSelectedProject.productName}</span>
+                    <span className="text-[color:var(--crm-text-secondary)] block text-[11px]">Scope / Machine:</span>
+                    <span className="font-semibold text-[color:var(--crm-text-primary)] block truncate">{currentSelectedProject.productName}</span>
                   </div>
                   <div>
-                    <span className="text-[#70665F] block text-[11px]">Committed Delivery:</span>
-                    <span className="font-mono text-[#544B45] font-semibold block">{formatDate(currentSelectedProject.deliveryDate)}</span>
+                    <span className="text-[color:var(--crm-text-secondary)] block text-[11px]">Committed Delivery:</span>
+                    <span className="font-mono text-[color:var(--crm-text-secondary)] font-semibold block">{formatDate(currentSelectedProject.deliveryDate)}</span>
                   </div>
                 </div>
               ) : (
@@ -758,14 +758,14 @@ export default function ProjectPlanningPage() {
           </div>
 
           {/* STEP 2: PLANNED TASKS TABLE */}
-          <div className="bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-xs space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#EBE3DB] pb-3">
+          <div className="bg-white p-5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[color:var(--crm-border-default)] pb-3">
               <div>
-                <h3 className="text-xs font-bold text-[#211B17] uppercase tracking-wider flex items-center gap-2">
+                <h3 className="text-xs font-bold text-[color:var(--crm-text-primary)] uppercase tracking-wider flex items-center gap-2">
                   <CheckSquare className="w-4 h-4 text-crm-brand-700" />
                   <span>2. Planned Tasks, Team Assignees & Timeline</span>
                 </h3>
-                <p className="text-[11px] text-[#70665F]">
+                <p className="text-[11px] text-[color:var(--crm-text-secondary)]">
                   Select tasks from Master Tasks library, assign responsible team member(s), and set target timelines.
                 </p>
               </div>
@@ -783,9 +783,9 @@ export default function ProjectPlanningPage() {
             </div>
 
             {/* Tasks Dynamic Table */}
-            <div className="overflow-x-auto border border-[#EBE3DB] rounded-xl">
+            <div className="overflow-x-auto border border-[color:var(--crm-border-default)] rounded-xl">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#FAF7F2] text-[#544B45] font-bold border-b border-[#EBE3DB]">
+                <thead className="bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] font-bold border-b border-[color:var(--crm-border-default)]">
                   <tr>
                     <th className="py-2.5 px-3 w-10 text-center">#</th>
                     <th className="py-2.5 px-3 min-w-[200px]">Task / Operation (from Task Master)</th>
@@ -799,7 +799,7 @@ export default function ProjectPlanningPage() {
                     <th className="py-2.5 px-3 w-12 text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#EBE3DB]">
+                <tbody className="divide-y divide-[color:var(--crm-border-default)]">
                   {taskList.map((task, idx) => (
                     <tr key={task.id} className="hover:bg-slate-50/70 transition">
                       {/* Sr No */}
@@ -812,7 +812,7 @@ export default function ProjectPlanningPage() {
                         <select
                           value={task.taskName}
                           onChange={(e) => handleUpdateTaskField(task.id, 'taskName', e.target.value)}
-                          className="w-full px-2.5 py-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-semibold text-[#211B17] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                          className="w-full px-2.5 py-1.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs font-semibold text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                         >
                           <option value="">-- Choose Master Task --</option>
                           {Array.from(new Set(masterTasks.map((m) => m.department || 'General'))).map((dept) => (
@@ -834,7 +834,7 @@ export default function ProjectPlanningPage() {
                         <select
                           value={task.department || 'Production'}
                           onChange={(e) => handleUpdateTaskField(task.id, 'department', e.target.value)}
-                          className="w-full px-2 py-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-semibold text-[#211B17] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                          className="w-full px-2 py-1.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs font-semibold text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                         >
                           <option value="Production">Production</option>
                           <option value="Design">Design</option>
@@ -929,7 +929,7 @@ export default function ProjectPlanningPage() {
                         <select
                           value={task.status}
                           onChange={(e) => handleUpdateTaskField(task.id, 'status', e.target.value)}
-                          className="w-full px-2 py-1 bg-white border border-[#EBE3DB] rounded-lg text-xs font-semibold text-[#211B17]"
+                          className="w-full px-2 py-1 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs font-semibold text-[color:var(--crm-text-primary)]"
                         >
                           <option value="pending">Pending</option>
                           <option value="in_progress">In Progress</option>
@@ -948,7 +948,7 @@ export default function ProjectPlanningPage() {
                             step="5"
                             value={task.progressPercent}
                             onChange={(e) => handleUpdateTaskField(task.id, 'progressPercent', Number(e.target.value))}
-                            className="w-16 px-2 py-1 bg-white border border-[#EBE3DB] rounded-lg font-mono font-bold text-xs text-center text-[#7C3AED]"
+                            className="w-16 px-2 py-1 bg-white border border-[color:var(--crm-border-default)] rounded-lg font-mono font-bold text-xs text-center text-[color:var(--crm-brand-600)]"
                           />
                           <span className="font-mono text-xs font-bold text-slate-500">%</span>
                         </div>
@@ -998,8 +998,8 @@ export default function ProjectPlanningPage() {
             </div>
 
             {/* Form Footer Save Button Bar */}
-            <div className="p-4 border-t border-[#EBE3DB] bg-[#FAF7F2] -mx-5 -mb-5 rounded-b-2xl flex flex-wrap items-center justify-between gap-3">
-              <div className="text-xs text-[#544B45]">
+            <div className="p-4 border-t border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)] -mx-5 -mb-5 rounded-b-2xl flex flex-wrap items-center justify-between gap-3">
+              <div className="text-xs text-[color:var(--crm-text-secondary)]">
                 Total Tasks: <strong>{taskList.length}</strong> • Assigned Persons:{' '}
                 <strong>
                   {Array.from(new Set(taskList.flatMap((t) => t.assignedPersons || []).filter(Boolean))).length}
@@ -1010,7 +1010,7 @@ export default function ProjectPlanningPage() {
                 <button
                   type="button"
                   onClick={handleCancelOrBackToList}
-                  className="px-4 py-2 bg-white border border-[#EBE3DB] hover:bg-slate-50 text-[#544B45] font-bold rounded-xl text-xs transition cursor-pointer"
+                  className="px-4 py-2 bg-white border border-[color:var(--crm-border-default)] hover:bg-slate-50 text-[color:var(--crm-text-secondary)] font-bold rounded-xl text-xs transition cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1032,17 +1032,17 @@ export default function ProjectPlanningPage() {
       {/* ========================================================================= */}
       {viewingRecord && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="p-4 border-b border-[#EBE3DB] bg-[#FAF7F2] flex items-center justify-between">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="p-4 border-b border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Workflow className="w-5 h-5 text-crm-brand-700" />
-                <h3 className="font-bold text-[#211B17] text-sm">
+                <h3 className="font-bold text-[color:var(--crm-text-primary)] text-sm">
                   Project Planning Details — {viewingRecord.projectNumber} ({viewingRecord.planningNumber})
                 </h3>
               </div>
               <button
                 onClick={() => setViewingRecord(null)}
-                className="p-1 rounded-lg text-[#70665F] hover:bg-white transition cursor-pointer"
+                className="p-1 rounded-lg text-[color:var(--crm-text-secondary)] hover:bg-white transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1050,29 +1050,29 @@ export default function ProjectPlanningPage() {
 
             <div className="p-5 space-y-4 text-xs">
               {/* Project Meta Card */}
-              <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+              <div className="p-4 bg-[color:var(--crm-bg-app)] rounded-xl border border-[color:var(--crm-border-default)] grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                 <div>
-                  <span className="text-[#70665F] block text-[11px]">Customer:</span>
-                  <span className="font-bold text-[#211B17] block">{viewingRecord.customerName}</span>
+                  <span className="text-[color:var(--crm-text-secondary)] block text-[11px]">Customer:</span>
+                  <span className="font-bold text-[color:var(--crm-text-primary)] block">{viewingRecord.customerName}</span>
                 </div>
                 <div>
-                  <span className="text-[#70665F] block text-[11px]">Machine Scope:</span>
-                  <span className="font-semibold text-[#211B17] block truncate">{viewingRecord.productName}</span>
+                  <span className="text-[color:var(--crm-text-secondary)] block text-[11px]">Machine Scope:</span>
+                  <span className="font-semibold text-[color:var(--crm-text-primary)] block truncate">{viewingRecord.productName}</span>
                 </div>
                 <div>
-                  <span className="text-[#70665F] block text-[11px]">Customer PO:</span>
+                  <span className="text-[color:var(--crm-text-secondary)] block text-[11px]">Customer PO:</span>
                   <span className="font-mono text-crm-brand-700 font-bold block">{viewingRecord.customerPoNumber || 'N/A'}</span>
                 </div>
                 <div>
-                  <span className="text-[#70665F] block text-[11px]">Overall Progress:</span>
-                  <span className="font-mono text-[#7C3AED] font-bold block">{viewingRecord.overallProgress || 0}%</span>
+                  <span className="text-[color:var(--crm-text-secondary)] block text-[11px]">Overall Progress:</span>
+                  <span className="font-mono text-[color:var(--crm-brand-600)] font-bold block">{viewingRecord.overallProgress || 0}%</span>
                 </div>
               </div>
 
               {/* Tasks List Table */}
-              <div className="border border-[#EBE3DB] rounded-xl overflow-hidden">
+              <div className="border border-[color:var(--crm-border-default)] rounded-xl overflow-hidden">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-[#FAF7F2] text-[#544B45] font-bold border-b border-[#EBE3DB]">
+                  <thead className="bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] font-bold border-b border-[color:var(--crm-border-default)]">
                     <tr>
                       <th className="py-2 px-3 w-8 text-center">#</th>
                       <th className="py-2 px-3">Task Name</th>
@@ -1082,7 +1082,7 @@ export default function ProjectPlanningPage() {
                       <th className="py-2 px-3 text-right">Progress</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#EBE3DB]">
+                  <tbody className="divide-y divide-[color:var(--crm-border-default)]">
                     {viewingRecord.tasks?.map((t, idx) => (
                       <tr key={t.id} className="hover:bg-slate-50">
                         <td className="py-2 px-3 text-center font-mono text-slate-500 font-bold">{idx + 1}</td>
@@ -1109,7 +1109,7 @@ export default function ProjectPlanningPage() {
                         <td className="py-2 px-3">
                           <StatusBadge status={(t.status || 'pending') as any} />
                         </td>
-                        <td className="py-2 px-3 text-right font-mono font-bold text-[#7C3AED]">
+                        <td className="py-2 px-3 text-right font-mono font-bold text-[color:var(--crm-brand-600)]">
                           {t.progressPercent || 0}%
                         </td>
                       </tr>
@@ -1118,7 +1118,7 @@ export default function ProjectPlanningPage() {
                 </table>
               </div>
 
-              <div className="p-4 border-t border-[#EBE3DB] bg-[#FAF7F2] -mx-5 -mb-5 flex flex-wrap items-center justify-between gap-2">
+              <div className="p-4 border-t border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)] -mx-5 -mb-5 flex flex-wrap items-center justify-between gap-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -1145,7 +1145,7 @@ export default function ProjectPlanningPage() {
                   </button>
                   <button
                     onClick={() => setViewingRecord(null)}
-                    className="px-4 py-2 bg-white border border-[#EBE3DB] hover:bg-slate-50 text-[#544B45] font-bold rounded-xl text-xs transition cursor-pointer"
+                    className="px-4 py-2 bg-white border border-[color:var(--crm-border-default)] hover:bg-slate-50 text-[color:var(--crm-text-secondary)] font-bold rounded-xl text-xs transition cursor-pointer"
                   >
                     Close
                   </button>
@@ -1161,17 +1161,17 @@ export default function ProjectPlanningPage() {
       {/* ========================================================================= */}
       {deletingRecord && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center space-y-4">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center space-y-4">
             <Trash2 className="w-12 h-12 text-rose-500 mx-auto" />
-            <h3 className="text-base font-bold text-[#211B17]">Delete Project Planning?</h3>
-            <p className="text-xs text-[#70665F]">
+            <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">Delete Project Planning?</h3>
+            <p className="text-xs text-[color:var(--crm-text-secondary)]">
               Are you sure you want to delete the planning schedule for{' '}
-              <strong className="text-[#211B17]">{deletingRecord.projectNumber}</strong>? The project will become available for new planning.
+              <strong className="text-[color:var(--crm-text-primary)]">{deletingRecord.projectNumber}</strong>? The project will become available for new planning.
             </p>
-            <div className="pt-3 border-t border-[#EBE3DB] flex justify-center gap-3">
+            <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex justify-center gap-3">
               <button
                 onClick={() => setDeletingRecord(null)}
-                className="px-4 py-2 bg-white border border-[#EBE3DB] text-[#544B45] font-semibold text-xs rounded-lg cursor-pointer"
+                className="px-4 py-2 bg-white border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold text-xs rounded-lg cursor-pointer"
               >
                 Cancel
               </button>

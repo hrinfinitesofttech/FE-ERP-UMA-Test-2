@@ -651,7 +651,7 @@ export default function FollowUpsPage() {
             type="button"
             onClick={() => setViewFilter('all')}
             className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition text-xs cursor-pointer ${
-              viewFilter === 'all' ? 'bg-[#7C3AED] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              viewFilter === 'all' ? 'bg-[color:var(--crm-brand-600)] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
             <span>All Records</span>
@@ -672,7 +672,7 @@ export default function FollowUpsPage() {
                 type="button"
                 onClick={() => setEntityFilter(ent)}
                 className={`px-2.5 py-1 rounded text-[11px] font-bold capitalize transition cursor-pointer ${
-                  entityFilter === ent ? 'bg-white text-[#7C3AED] shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  entityFilter === ent ? 'bg-white text-[color:var(--crm-brand-600)] shadow-2xs' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 {ent === 'all' ? 'All' : ent}
@@ -685,7 +685,7 @@ export default function FollowUpsPage() {
             <button
               type="button"
               onClick={() => setViewType('list')}
-              className={`p-1.5 rounded-md transition cursor-pointer ${viewType === 'list' ? 'bg-white text-[#7C3AED] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+              className={`p-1.5 rounded-md transition cursor-pointer ${viewType === 'list' ? 'bg-white text-[color:var(--crm-brand-600)] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
               title="Table List View"
             >
               <List className="w-4 h-4" />
@@ -693,7 +693,7 @@ export default function FollowUpsPage() {
             <button
               type="button"
               onClick={() => setViewType('calendar')}
-              className={`p-1.5 rounded-md transition cursor-pointer ${viewType === 'calendar' ? 'bg-white text-[#7C3AED] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+              className={`p-1.5 rounded-md transition cursor-pointer ${viewType === 'calendar' ? 'bg-white text-[color:var(--crm-brand-600)] shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
               title="Interactive Calendar View"
             >
               <CalendarDays className="w-4 h-4" />
@@ -757,13 +757,13 @@ export default function FollowUpsPage() {
       {/* COMPLETION & LOG INTERACTION MODAL */}
       {completeModalId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
+          <div className="bg-white dark:bg-white border border-slate-200 dark:border-[color:var(--crm-border-default)] rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-slate-900 dark:text-[#211B17] flex items-center gap-2">
+              <h3 className="text-base font-bold text-slate-900 dark:text-[color:var(--crm-text-primary)] flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                 Log Interaction & Complete Follow-up
               </h3>
-              <button onClick={() => setCompleteModalId(null)} className="text-[#70665F] hover:text-[#211B17]">
+              <button onClick={() => setCompleteModalId(null)} className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -777,11 +777,11 @@ export default function FollowUpsPage() {
 
             <div className="space-y-3">
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Interaction Outcome *</label>
+                <label className="block text-slate-700 dark:text-[color:var(--crm-text-secondary)] font-semibold mb-1">Interaction Outcome *</label>
                 <select
                   value={outcome}
                   onChange={(e) => setOutcome(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs font-semibold"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs font-semibold"
                 >
                   <option value="connected">Connected & Discussed</option>
                   <option value="callback_requested">Callback Requested</option>
@@ -794,7 +794,7 @@ export default function FollowUpsPage() {
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Discussion Summary / Customer Response *</label>
+                <label className="block text-slate-700 dark:text-[color:var(--crm-text-secondary)] font-semibold mb-1">Discussion Summary / Customer Response *</label>
                 <textarea
                   rows={3}
                   required
@@ -804,13 +804,13 @@ export default function FollowUpsPage() {
                     if (completeError) setCompleteError('');
                   }}
                   placeholder="Customer agreed on delivery timeline, requested revised commercial terms..."
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-xs"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[color:var(--crm-bg-app)] border border-slate-200 dark:border-[color:var(--crm-border-default)] rounded-lg text-xs"
                 />
               </div>
 
-              <div className="pt-2 border-t border-[#EBE3DB] space-y-2">
+              <div className="pt-2 border-t border-[color:var(--crm-border-default)] space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-2 font-semibold text-[#544B45] cursor-pointer">
+                  <label className="flex items-center gap-2 font-semibold text-[color:var(--crm-text-secondary)] cursor-pointer">
                     <input
                       type="checkbox"
                       checked={scheduleNext}
@@ -824,21 +824,21 @@ export default function FollowUpsPage() {
                       <button
                         type="button"
                         onClick={() => setQuickNextDate(2)}
-                        className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[#544B45] text-[10px] font-bold"
+                        className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[color:var(--crm-text-secondary)] text-[10px] font-bold"
                       >
                         +2 Days
                       </button>
                       <button
                         type="button"
                         onClick={() => setQuickNextDate(7)}
-                        className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[#544B45] text-[10px] font-bold"
+                        className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[color:var(--crm-text-secondary)] text-[10px] font-bold"
                       >
                         +7 Days
                       </button>
                       <button
                         type="button"
                         onClick={() => setQuickNextDate(15)}
-                        className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[#544B45] text-[10px] font-bold"
+                        className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[color:var(--crm-text-secondary)] text-[10px] font-bold"
                       >
                         +15 Days
                       </button>
@@ -848,7 +848,7 @@ export default function FollowUpsPage() {
 
                 {scheduleNext && (
                   <div>
-                    <label className="block text-[#70665F] text-[11px] mb-1">
+                    <label className="block text-[color:var(--crm-text-secondary)] text-[11px] mb-1">
                       Next Follow-up Due Date <span className="text-rose-500 font-bold">*</span>
                     </label>
                     <ERPDatePicker
@@ -869,7 +869,7 @@ export default function FollowUpsPage() {
                 <button
                   type="button"
                   onClick={() => setCompleteModalId(null)}
-                  className="px-4 py-2 border rounded-lg font-semibold text-[#544B45]"
+                  className="px-4 py-2 border rounded-lg font-semibold text-[color:var(--crm-text-secondary)]"
                 >
                   Cancel
                 </button>

@@ -292,7 +292,7 @@ export function PermissionMatrixModal({
         {employee.permissionsReviewRequired && (
           <div className="px-6 py-2.5 bg-amber-50 border-b border-amber-200 text-amber-900 text-xs flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+              <AlertCircle className="w-4 h-4 text-crm-brand-600 flex-shrink-0" />
               <span>
                 <strong>Department Transfer Detected:</strong> This employee was transferred from <em>{employee.previousDepartmentName || 'previous department'}</em> to <em>{employee.departmentName}</em>. Obsolete permissions were reset to department defaults. Please verify and save the updated configuration.
               </span>

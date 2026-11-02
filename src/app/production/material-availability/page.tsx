@@ -11,7 +11,7 @@ export default function MaterialAvailabilityRedirect() {
   }, [router]);
 
   return (
-    <div className="p-8 text-center text-xs text-[#8D7B70]">
+    <div className="p-8 text-center text-xs text-[color:var(--crm-text-tertiary)]">
       Redirecting to Material Planning & Availability Check...
     </div>
   );

@@ -34,8 +34,8 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const THEME_STORAGE_KEY = 'uma_erp_theme_preference';
-const DESIGN_STUDIO_STORAGE_KEY = 'uma_erp_design_studio_config';
+const THEME_STORAGE_KEY = 'uma_erp_theme_preference_v2';
+const DESIGN_STUDIO_STORAGE_KEY = 'uma_erp_design_studio_config_v2';
 
 function cssVarMap(tokens: ThemeDefinition): Record<string, string> {
   const c = tokens.colors;
@@ -104,8 +104,8 @@ export function ClientThemeProvider({
 
       // 2. Data Attributes & Font for Cascading Engine
       root.setAttribute('data-theme', tokens.id);
-      root.setAttribute('data-font', config.fontFamily || 'Outfit');
-      root.style.setProperty('--crm-font-sans', `'${config.fontFamily || 'Outfit'}', sans-serif`);
+      root.setAttribute('data-font', config.fontFamily || 'Inter');
+      root.style.setProperty('--crm-font-sans', `'${config.fontFamily || 'Inter'}', sans-serif`);
       root.setAttribute('data-card-radius', config.cardRadius || 'smooth');
       root.setAttribute('data-card-border', config.cardBorderWidth || '1');
       root.setAttribute('data-card-shadow', config.cardShadow || 'soft');
@@ -281,17 +281,17 @@ export function ClientThemeProvider({
   const resetToDefaults = useCallback(() => {
     const defaultConfig: DesignStudioConfig = {
       ...DEFAULT_DESIGN_CONFIG,
-      themeId: 'warmIndustrial',
+      themeId: defaultThemeId,
     };
-    setThemeId('warmIndustrial');
+    setThemeId(defaultThemeId);
     setDesignState(defaultConfig);
     try {
-      localStorage.setItem(THEME_STORAGE_KEY, 'warmIndustrial');
+      localStorage.setItem(THEME_STORAGE_KEY, defaultThemeId);
       localStorage.setItem(DESIGN_STUDIO_STORAGE_KEY, JSON.stringify(defaultConfig));
     } catch {
       // Ignore storage errors
     }
-    applyDesignToDOM(themes['warmIndustrial'], defaultConfig);
+    applyDesignToDOM(themes[defaultThemeId], defaultConfig);
   }, [applyDesignToDOM]);
 
   return (

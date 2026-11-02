@@ -296,7 +296,7 @@ export default function EditVendorMasterPage() {
         <p className="text-sm font-semibold text-[#64748B]">Vendor record not found.</p>
         <button
           onClick={() => router.push('/purchase/suppliers')}
-          className="mt-3 px-4 py-2 bg-[#7C3AED] text-white text-xs font-bold rounded-lg"
+          className="mt-3 px-4 py-2 bg-[color:var(--crm-brand-600)] text-white text-xs font-bold rounded-lg"
         >
           Back to Vendor Master
         </button>
@@ -633,7 +633,7 @@ export default function EditVendorMasterPage() {
               <button
                 type="button"
                 onClick={handleAddAddress}
-                className="px-4 py-2 text-xs font-bold bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-lg transition shadow-xs"
+                className="px-4 py-2 text-xs font-bold bg-[color:var(--crm-brand-600)] hover:bg-[#6D28D9] text-white rounded-lg transition shadow-xs"
               >
                 Add Address
               </button>
@@ -696,7 +696,7 @@ export default function EditVendorMasterPage() {
               <button
                 type="button"
                 onClick={handleAddContact}
-                className="px-4 py-2 text-xs font-bold bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-lg transition shadow-xs"
+                className="px-4 py-2 text-xs font-bold bg-[color:var(--crm-brand-600)] hover:bg-[#6D28D9] text-white rounded-lg transition shadow-xs"
               >
                 Add Contact
               </button>

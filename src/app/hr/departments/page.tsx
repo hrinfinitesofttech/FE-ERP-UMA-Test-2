@@ -371,15 +371,15 @@ export default function DepartmentsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-white text-[#211B17]">
+    <div className="p-6 space-y-6 bg-white text-[color:var(--crm-text-primary)]">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2">
             <Building className="w-7 h-7 text-crm-brand-500" />
             Departments Master (Integrated ERP Master)
           </h1>
-          <p className="text-sm text-[#70665F] mt-1">
+          <p className="text-sm text-[color:var(--crm-text-secondary)] mt-1">
             Single Source of Truth for Organizational Hierarchy, Department Managers & Staff Headcount
           </p>
         </div>
@@ -417,7 +417,7 @@ export default function DepartmentsPage() {
 
       {/* Info Alert */}
       <div className="p-4 sm:p-5 bg-cyan-50/90 border border-cyan-200 rounded-2xl flex items-center gap-3.5 text-xs text-cyan-950 shadow-xs">
-        <div className="w-9 h-9 rounded-xl bg-cyan-100 border border-cyan-200 flex items-center justify-center flex-shrink-0 text-cyan-700">
+        <div className="w-9 h-9 rounded-xl bg-crm-brand-50 border border-crm-brand-100 flex items-center justify-center flex-shrink-0 text-crm-brand-700">
           <Shield className="w-5 h-5 text-cyan-700" />
         </div>
         <div className="leading-relaxed">
@@ -437,7 +437,7 @@ export default function DepartmentsPage() {
           return (
             <div
               key={dept.id}
-              className="bg-white border border-[#EBE3DB] rounded-2xl p-5 hover:border-crm-brand-600/50 transition space-y-4 shadow-lg flex flex-col justify-between"
+              className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-5 hover:border-crm-brand-600/50 transition space-y-4 shadow-lg flex flex-col justify-between"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -472,28 +472,28 @@ export default function DepartmentsPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-base font-bold text-[#211B17]">{currentName}</h3>
-                  <p className="text-xs text-[#70665F] mt-0.5">{dept.description || 'No description provided'}</p>
+                  <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">{currentName}</h3>
+                  <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">{dept.description || 'No description provided'}</p>
                 </div>
 
-                <div className="border-t border-[#EBE3DB] pt-3 space-y-2 text-xs">
-                  <div className="flex justify-between items-center text-[#544B45]">
-                    <span className="text-[#70665F]">Department Manager (HOD):</span>
-                    <span className="font-semibold text-[#211B17]">{dept.managerName || 'Assigned Lead'}</span>
+                <div className="border-t border-[color:var(--crm-border-default)] pt-3 space-y-2 text-xs">
+                  <div className="flex justify-between items-center text-[color:var(--crm-text-secondary)]">
+                    <span className="text-[color:var(--crm-text-secondary)]">Department Manager (HOD):</span>
+                    <span className="font-semibold text-[color:var(--crm-text-primary)]">{dept.managerName || 'Assigned Lead'}</span>
                   </div>
-                  <div className="flex justify-between items-center text-[#544B45]">
-                    <span className="text-[#70665F]">Assigned Headcount:</span>
+                  <div className="flex justify-between items-center text-[color:var(--crm-text-secondary)]">
+                    <span className="text-[color:var(--crm-text-secondary)]">Assigned Headcount:</span>
                     <span className="font-bold text-crm-brand-600">{deptEmployees.length} Staff</span>
                   </div>
-                  <div className="flex justify-between items-center text-[#544B45]">
-                    <span className="text-[#70665F]">Reporting Hierarchy:</span>
-                    <span className="text-[#544B45]">General Manager → MD</span>
+                  <div className="flex justify-between items-center text-[color:var(--crm-text-secondary)]">
+                    <span className="text-[color:var(--crm-text-secondary)]">Reporting Hierarchy:</span>
+                    <span className="text-[color:var(--crm-text-secondary)]">General Manager → MD</span>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-[#EBE3DB] flex items-center justify-between text-xs">
-                <span className="text-[#70665F] font-mono">Code: {dept.code || dept.id}</span>
+              <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex items-center justify-between text-xs">
+                <span className="text-[color:var(--crm-text-secondary)] font-mono">Code: {dept.code || dept.id}</span>
                 <button
                   onClick={() => setViewStaffDept(dept)}
                   className="text-crm-brand-600 hover:text-crm-brand-700 font-semibold flex items-center gap-1 cursor-pointer"
@@ -514,17 +514,17 @@ export default function DepartmentsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl"
           >
-            <div className="flex items-center justify-between pb-3 border-b border-[#EBE3DB]">
-              <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+            <div className="flex items-center justify-between pb-3 border-b border-[color:var(--crm-border-default)]">
+              <h2 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                 <Building className="w-5 h-5 text-crm-brand-600" />
                 Add New Department
               </h2>
               <button
                 type="button"
                 onClick={closeAddModalWithConfirm}
-                className="text-[#70665F] hover:text-[#211B17] cursor-pointer"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -532,7 +532,7 @@ export default function DepartmentsPage() {
 
             <form onSubmit={handleCreate} noValidate className="space-y-4 text-xs">
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">Department Name *</label>
+                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Department Name *</label>
                 <input
                   type="text"
                   required
@@ -545,8 +545,8 @@ export default function DepartmentsPage() {
                       setDeptCode(e.target.value.replace(/[^A-Za-z]/g, '').slice(0, 4).toUpperCase());
                     }
                   }}
-                  className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] font-semibold focus:outline-none ${
-                    addErrors.deptName ? 'border-rose-500 bg-rose-50/20' : 'border-[#EBE3DB] focus:border-crm-brand-600'
+                  className={`w-full bg-[color:var(--crm-bg-app)] border rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-semibold focus:outline-none ${
+                    addErrors.deptName ? 'border-rose-500 bg-rose-50/20' : 'border-[color:var(--crm-border-default)] focus:border-crm-brand-600'
                   }`}
                 />
                 {addErrors.deptName && (
@@ -558,7 +558,7 @@ export default function DepartmentsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Department Code</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Department Code</label>
                   <input
                     type="text"
                     placeholder="e.g. QA, RD, FIN"
@@ -567,7 +567,7 @@ export default function DepartmentsPage() {
                       setDeptCode(e.target.value.toUpperCase());
                       if (addErrors.deptCode) setAddErrors((prev) => ({ ...prev, deptCode: '' }));
                     }}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] font-mono focus:outline-none focus:border-crm-brand-600"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono focus:outline-none focus:border-crm-brand-600"
                   />
                   {addErrors.deptCode && (
                     <p className="text-rose-500 text-[11px] mt-1 flex items-center gap-1 font-semibold">
@@ -576,11 +576,11 @@ export default function DepartmentsPage() {
                   )}
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Status</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Status</label>
                   <select
                     value={status}
                     onChange={(e) => setStatus(e.target.value as any)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none"
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
@@ -590,13 +590,13 @@ export default function DepartmentsPage() {
 
               {/* Assign Staff Multi-Select (Searchable + Tags) */}
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">
+                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">
                   Assign Staff (Multi-Select) *
                 </label>
 
                 {/* Selected Staff Tags */}
                 {selectedStaffIds.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-2 p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl">
+                  <div className="flex flex-wrap gap-1.5 mb-2 p-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl">
                     {selectedStaffIds.map((id) => {
                       const emp = availableEmployees.find((e) => e.id === id);
                       const name = emp ? (emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || emp.id) : id;
@@ -604,11 +604,11 @@ export default function DepartmentsPage() {
                       return (
                         <span
                           key={id}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-[#EBE3DB] text-[11px] font-semibold text-[#211B17] shadow-sm"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-[color:var(--crm-border-default)] text-[11px] font-semibold text-[color:var(--crm-text-primary)] shadow-sm"
                         >
                           <Users className="w-3 h-3 text-crm-brand-600" />
                           <span>{name}</span>
-                          <span className="text-[10px] text-[#70665F]">({desig})</span>
+                          <span className="text-[10px] text-[color:var(--crm-text-secondary)]">({desig})</span>
                           <button
                             type="button"
                             onClick={() => {
@@ -636,7 +636,7 @@ export default function DepartmentsPage() {
                 {/* Staff Search Input */}
                 <div className="relative">
                   <div className="relative">
-                    <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#70665F]" />
+                    <Search className="w-4 h-4 absolute left-3 top-2.5 text-[color:var(--crm-text-secondary)]" />
                     <input
                       type="text"
                       placeholder="Search active staff by name or designation..."
@@ -646,13 +646,13 @@ export default function DepartmentsPage() {
                         setStaffSearchQuery(e.target.value);
                         setIsStaffDropdownOpen(true);
                       }}
-                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600"
+                      className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl pl-9 pr-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-600"
                     />
                   </div>
 
                   {/* Dropdown list */}
                   {isStaffDropdownOpen && (
-                    <div className="mt-1 border border-[#EBE3DB] rounded-xl bg-white shadow-xl max-h-48 overflow-y-auto z-20">
+                    <div className="mt-1 border border-[color:var(--crm-border-default)] rounded-xl bg-white shadow-xl max-h-48 overflow-y-auto z-20">
                       {(() => {
                         const filtered = availableEmployees.filter((emp) => {
                           const fullName = (emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`).toLowerCase();
@@ -663,7 +663,7 @@ export default function DepartmentsPage() {
 
                         if (filtered.length === 0) {
                           return (
-                            <div className="p-3 text-center text-[#70665F] text-xs">
+                            <div className="p-3 text-center text-[color:var(--crm-text-secondary)] text-xs">
                               No active staff member found.
                             </div>
                           );
@@ -688,7 +688,7 @@ export default function DepartmentsPage() {
                                   if (!selectedHodId) setSelectedHodId(emp.id);
                                 }
                               }}
-                              className={`p-2.5 px-3 flex items-center justify-between border-b last:border-b-0 border-[#EBE3DB] cursor-pointer hover:bg-[#FAF7F2] transition ${
+                              className={`p-2.5 px-3 flex items-center justify-between border-b last:border-b-0 border-[color:var(--crm-border-default)] cursor-pointer hover:bg-[color:var(--crm-bg-app)] transition ${
                                 isSelected ? 'bg-crm-brand-50' : ''
                               }`}
                             >
@@ -700,8 +700,8 @@ export default function DepartmentsPage() {
                                   className="rounded text-crm-brand-600 cursor-pointer"
                                 />
                                 <div>
-                                  <div className="font-semibold text-[#211B17]">{name}</div>
-                                  <div className="text-[10px] text-[#70665F]">{desig}</div>
+                                  <div className="font-semibold text-[color:var(--crm-text-primary)]">{name}</div>
+                                  <div className="text-[10px] text-[color:var(--crm-text-secondary)]">{desig}</div>
                                 </div>
                               </div>
                               {otherDept && (
@@ -726,7 +726,7 @@ export default function DepartmentsPage() {
 
               {/* Department Head (HOD) selection - Strictly Dropdown of assigned staff */}
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">
+                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">
                   Department Head (HOD) *
                 </label>
                 <select
@@ -737,8 +737,8 @@ export default function DepartmentsPage() {
                       setAddErrors((prev) => ({ ...prev, hod: '' }));
                     }
                   }}
-                  className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] focus:outline-none ${
-                    addErrors.hod ? 'border-rose-500 bg-rose-50/20' : 'border-[#EBE3DB] focus:border-crm-brand-600'
+                  className={`w-full bg-[color:var(--crm-bg-app)] border rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none ${
+                    addErrors.hod ? 'border-rose-500 bg-rose-50/20' : 'border-[color:var(--crm-border-default)] focus:border-crm-brand-600'
                   }`}
                 >
                   <option value="">-- Select Department Head from Assigned Staff --</option>
@@ -755,7 +755,7 @@ export default function DepartmentsPage() {
                   })}
                 </select>
                 {selectedStaffIds.length === 0 && (
-                  <p className="text-[#70665F] text-[10px] mt-0.5">
+                  <p className="text-[color:var(--crm-text-secondary)] text-[10px] mt-0.5">
                     Assign staff members above to select a Department Head.
                   </p>
                 )}
@@ -767,7 +767,7 @@ export default function DepartmentsPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">Description *</label>
+                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Description *</label>
                 <textarea
                   required
                   placeholder="Responsibilities, operational scope, and key deliverables..."
@@ -777,8 +777,8 @@ export default function DepartmentsPage() {
                     if (addErrors.description) setAddErrors((prev) => ({ ...prev, description: '' }));
                   }}
                   rows={2}
-                  className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] focus:outline-none ${
-                    addErrors.description ? 'border-rose-500 bg-rose-50/20' : 'border-[#EBE3DB] focus:border-crm-brand-600'
+                  className={`w-full bg-[color:var(--crm-bg-app)] border rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none ${
+                    addErrors.description ? 'border-rose-500 bg-rose-50/20' : 'border-[color:var(--crm-border-default)] focus:border-crm-brand-600'
                   }`}
                 />
                 {addErrors.description && (
@@ -788,11 +788,11 @@ export default function DepartmentsPage() {
                 )}
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={closeAddModalWithConfirm}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200 cursor-pointer font-semibold"
+                  className="px-4 py-2 rounded-xl bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] hover:bg-slate-200 cursor-pointer font-semibold"
                 >
                   Cancel
                 </button>
@@ -824,17 +824,17 @@ export default function DepartmentsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl"
           >
-            <div className="flex items-center justify-between pb-3 border-b border-[#EBE3DB]">
-              <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
-                <Edit2 className="w-5 h-5 text-amber-500" />
+            <div className="flex items-center justify-between pb-3 border-b border-[color:var(--crm-border-default)]">
+              <h2 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
+                <Edit2 className="w-5 h-5 text-crm-brand-600" />
                 Edit Department: {editingDept.departmentName || editingDept.name}
               </h2>
               <button
                 type="button"
                 onClick={closeEditModalWithConfirm}
-                className="text-[#70665F] hover:text-[#211B17] cursor-pointer"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -842,7 +842,7 @@ export default function DepartmentsPage() {
 
             <form onSubmit={handleUpdate} noValidate className="space-y-4 text-xs">
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">Department Name *</label>
+                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Department Name *</label>
                 <input
                   type="text"
                   required
@@ -855,8 +855,8 @@ export default function DepartmentsPage() {
                     });
                     if (editErrors.departmentName) setEditErrors((prev) => ({ ...prev, departmentName: '' }));
                   }}
-                  className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] font-semibold focus:outline-none ${
-                    editErrors.departmentName ? 'border-rose-500 bg-rose-50/20' : 'border-[#EBE3DB] focus:border-amber-600'
+                  className={`w-full bg-[color:var(--crm-bg-app)] border rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-semibold focus:outline-none ${
+                    editErrors.departmentName ? 'border-rose-500 bg-rose-50/20' : 'border-[color:var(--crm-border-default)] focus:border-amber-600'
                   }`}
                 />
                 {editErrors.departmentName && (
@@ -868,7 +868,7 @@ export default function DepartmentsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Department Code</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Department Code</label>
                   <input
                     type="text"
                     value={editingDept.code || ''}
@@ -876,15 +876,15 @@ export default function DepartmentsPage() {
                       setEditingDept({ ...editingDept, code: e.target.value.toUpperCase() });
                       if (editErrors.code) setEditErrors((prev) => ({ ...prev, code: '' }));
                     }}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] font-mono focus:outline-none focus:border-amber-600"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono focus:outline-none focus:border-amber-600"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Status</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Status</label>
                   <select
                     value={editingDept.status || 'active'}
                     onChange={(e) => setEditingDept({ ...editingDept, status: e.target.value as any })}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none"
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
@@ -894,13 +894,13 @@ export default function DepartmentsPage() {
 
               {/* Assign Staff Multi-Select for Edit Modal */}
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">
+                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">
                   Assign Staff (Multi-Select) *
                 </label>
 
                 {/* Selected Staff Tags */}
                 {editStaffIds.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-2 p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl">
+                  <div className="flex flex-wrap gap-1.5 mb-2 p-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl">
                     {editStaffIds.map((id) => {
                       const emp = availableEmployees.find((e) => e.id === id);
                       const name = emp ? (emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || emp.id) : id;
@@ -908,11 +908,11 @@ export default function DepartmentsPage() {
                       return (
                         <span
                           key={id}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-[#EBE3DB] text-[11px] font-semibold text-[#211B17] shadow-sm"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-[color:var(--crm-border-default)] text-[11px] font-semibold text-[color:var(--crm-text-primary)] shadow-sm"
                         >
-                          <Users className="w-3 h-3 text-amber-600" />
+                          <Users className="w-3 h-3 text-crm-brand-600" />
                           <span>{name}</span>
-                          <span className="text-[10px] text-[#70665F]">({desig})</span>
+                          <span className="text-[10px] text-[color:var(--crm-text-secondary)]">({desig})</span>
                           <button
                             type="button"
                             onClick={() => {
@@ -940,7 +940,7 @@ export default function DepartmentsPage() {
                 {/* Staff Search Input */}
                 <div className="relative">
                   <div className="relative">
-                    <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#70665F]" />
+                    <Search className="w-4 h-4 absolute left-3 top-2.5 text-[color:var(--crm-text-secondary)]" />
                     <input
                       type="text"
                       placeholder="Search staff to add or reassign..."
@@ -950,13 +950,13 @@ export default function DepartmentsPage() {
                         setEditStaffSearchQuery(e.target.value);
                         setIsEditStaffDropdownOpen(true);
                       }}
-                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-3 py-2 text-[#211B17] focus:outline-none focus:border-amber-600"
+                      className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl pl-9 pr-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600"
                     />
                   </div>
 
                   {/* Dropdown list */}
                   {isEditStaffDropdownOpen && (
-                    <div className="mt-1 border border-[#EBE3DB] rounded-xl bg-white shadow-xl max-h-48 overflow-y-auto z-20">
+                    <div className="mt-1 border border-[color:var(--crm-border-default)] rounded-xl bg-white shadow-xl max-h-48 overflow-y-auto z-20">
                       {(() => {
                         const filtered = availableEmployees.filter((emp) => {
                           const fullName = (emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`).toLowerCase();
@@ -967,7 +967,7 @@ export default function DepartmentsPage() {
 
                         if (filtered.length === 0) {
                           return (
-                            <div className="p-3 text-center text-[#70665F] text-xs">
+                            <div className="p-3 text-center text-[color:var(--crm-text-secondary)] text-xs">
                               No active staff member found.
                             </div>
                           );
@@ -992,7 +992,7 @@ export default function DepartmentsPage() {
                                   if (!editHodId) setEditHodId(emp.id);
                                 }
                               }}
-                              className={`p-2.5 px-3 flex items-center justify-between border-b last:border-b-0 border-[#EBE3DB] cursor-pointer hover:bg-[#FAF7F2] transition ${
+                              className={`p-2.5 px-3 flex items-center justify-between border-b last:border-b-0 border-[color:var(--crm-border-default)] cursor-pointer hover:bg-[color:var(--crm-bg-app)] transition ${
                                 isSelected ? 'bg-amber-50' : ''
                               }`}
                             >
@@ -1004,8 +1004,8 @@ export default function DepartmentsPage() {
                                   className="rounded text-amber-600 cursor-pointer"
                                 />
                                 <div>
-                                  <div className="font-semibold text-[#211B17]">{name}</div>
-                                  <div className="text-[10px] text-[#70665F]">{desig}</div>
+                                  <div className="font-semibold text-[color:var(--crm-text-primary)]">{name}</div>
+                                  <div className="text-[10px] text-[color:var(--crm-text-secondary)]">{desig}</div>
                                 </div>
                               </div>
                               {otherDept && (
@@ -1030,7 +1030,7 @@ export default function DepartmentsPage() {
 
               {/* Department Head (HOD) selection - Strictly Dropdown of assigned staff */}
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">
+                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">
                   Department Head (HOD) *
                 </label>
                 <select
@@ -1041,8 +1041,8 @@ export default function DepartmentsPage() {
                       setEditErrors((prev) => ({ ...prev, hod: '' }));
                     }
                   }}
-                  className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] focus:outline-none ${
-                    editErrors.hod ? 'border-rose-500 bg-rose-50/20' : 'border-[#EBE3DB] focus:border-amber-600'
+                  className={`w-full bg-[color:var(--crm-bg-app)] border rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none ${
+                    editErrors.hod ? 'border-rose-500 bg-rose-50/20' : 'border-[color:var(--crm-border-default)] focus:border-amber-600'
                   }`}
                 >
                   <option value="">-- Select Department Head from Assigned Staff --</option>
@@ -1059,7 +1059,7 @@ export default function DepartmentsPage() {
                   })}
                 </select>
                 {editStaffIds.length === 0 && (
-                  <p className="text-[#70665F] text-[10px] mt-0.5">
+                  <p className="text-[color:var(--crm-text-secondary)] text-[10px] mt-0.5">
                     Assign staff members above to select a Department Head.
                   </p>
                 )}
@@ -1071,7 +1071,7 @@ export default function DepartmentsPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">Description *</label>
+                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Description *</label>
                 <textarea
                   required
                   placeholder="Responsibilities, operational scope, and key deliverables..."
@@ -1081,8 +1081,8 @@ export default function DepartmentsPage() {
                     if (editErrors.description) setEditErrors((prev) => ({ ...prev, description: '' }));
                   }}
                   rows={2}
-                  className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#211B17] focus:outline-none ${
-                    editErrors.description ? 'border-rose-500 bg-rose-50/20' : 'border-[#EBE3DB] focus:border-amber-600'
+                  className={`w-full bg-[color:var(--crm-bg-app)] border rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none ${
+                    editErrors.description ? 'border-rose-500 bg-rose-50/20' : 'border-[color:var(--crm-border-default)] focus:border-amber-600'
                   }`}
                 />
                 {editErrors.description && (
@@ -1094,16 +1094,16 @@ export default function DepartmentsPage() {
 
               {!isEditFormDirty && (
                 <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] flex items-center gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <AlertCircle className="w-3.5 h-3.5 text-crm-brand-600 shrink-0" />
                   <span>No changes made yet. Change any field to enable update.</span>
                 </div>
               )}
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={closeEditModalWithConfirm}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200 cursor-pointer font-semibold"
+                  className="px-4 py-2 rounded-xl bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] hover:bg-slate-200 cursor-pointer font-semibold"
                 >
                   Cancel
                 </button>
@@ -1135,14 +1135,14 @@ export default function DepartmentsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl"
           >
-            <div className="flex items-center justify-between pb-3 border-b border-[#EBE3DB]">
-              <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+            <div className="flex items-center justify-between pb-3 border-b border-[color:var(--crm-border-default)]">
+              <h2 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                 <Users className="w-5 h-5 text-crm-brand-600" />
                 Staff Members in {viewStaffDept.departmentName || viewStaffDept.name}
               </h2>
-              <button onClick={() => setViewStaffDept(null)} className="text-[#70665F] hover:text-[#211B17] cursor-pointer">
+              <button onClick={() => setViewStaffDept(null)} className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1156,7 +1156,7 @@ export default function DepartmentsPage() {
 
               if (deptEmployees.length === 0) {
                 return (
-                  <div className="p-8 text-center text-[#70665F] text-xs">
+                  <div className="p-8 text-center text-[color:var(--crm-text-secondary)] text-xs">
                     No staff currently assigned to this department.
                   </div>
                 );
@@ -1167,13 +1167,13 @@ export default function DepartmentsPage() {
                   {deptEmployees.map((emp) => (
                     <div
                       key={emp.id}
-                      className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] flex items-center justify-between text-xs"
+                      className="p-3 bg-[color:var(--crm-bg-app)] rounded-xl border border-[color:var(--crm-border-default)] flex items-center justify-between text-xs"
                     >
                       <div>
-                        <div className="font-bold text-[#211B17]">
+                        <div className="font-bold text-[color:var(--crm-text-primary)]">
                           {emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`}
                         </div>
-                        <div className="text-[11px] text-[#70665F]">
+                        <div className="text-[11px] text-[color:var(--crm-text-secondary)]">
                           {emp.role || emp.designation || 'Staff'} • {emp.email || emp.phone}
                         </div>
                       </div>
@@ -1186,11 +1186,11 @@ export default function DepartmentsPage() {
               );
             })()}
 
-            <div className="flex justify-end pt-3 border-t border-[#EBE3DB]">
+            <div className="flex justify-end pt-3 border-t border-[color:var(--crm-border-default)]">
               <button
                 type="button"
                 onClick={() => setViewStaffDept(null)}
-                className="px-4 py-2 rounded-xl bg-[#FAF7F2] hover:bg-slate-200 text-[#211B17] font-semibold text-xs cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[color:var(--crm-bg-app)] hover:bg-slate-200 text-[color:var(--crm-text-primary)] font-semibold text-xs cursor-pointer"
               >
                 Close
               </button>

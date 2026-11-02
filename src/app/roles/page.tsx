@@ -128,7 +128,7 @@ export default function RolesPage() {
       onCodeClick: (role) => openEditModal(role),
       cell: (role) => (
         <div>
-          <span className="font-bold text-[#7C3AED] hover:underline cursor-pointer block font-mono">
+          <span className="font-bold text-[color:var(--crm-brand-600)] hover:underline cursor-pointer block font-mono">
             {role.name}
           </span>
           <span className="text-[11px] text-slate-500">{role.description}</span>
@@ -144,7 +144,7 @@ export default function RolesPage() {
             'px-2 py-0.5 rounded text-[10px] font-bold font-mono',
             role.isSystem
               ? 'bg-slate-100 text-slate-800 border border-slate-300'
-              : 'bg-purple-50 text-[#7C3AED] border border-purple-200'
+              : 'bg-purple-50 text-[color:var(--crm-brand-600)] border border-purple-200'
           )}
         >
           {role.isSystem ? 'SYSTEM DEFINED' : 'CUSTOM ROLE'}
@@ -157,7 +157,7 @@ export default function RolesPage() {
       cell: (role) => (
         <Link
           href="/permissions"
-          className="text-[#7C3AED] hover:underline font-semibold text-xs flex items-center gap-1"
+          className="text-[color:var(--crm-brand-600)] hover:underline font-semibold text-xs flex items-center gap-1"
         >
           <Lock className="w-3 h-3" />
           <span>Configure Matrix ({role.permissions?.length || 0} modules)</span>
@@ -259,51 +259,51 @@ export default function RolesPage() {
       {/* CREATE MODAL */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[#EBE3DB]">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[color:var(--crm-border-default)]">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-crm-brand-100 text-crm-brand-800 flex items-center justify-center font-bold">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-[#211B17]">Create Custom System Role</h3>
-                  <p className="text-[11px] text-[#70665F]">Configure title and access scope</p>
+                  <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)]">Create Custom System Role</h3>
+                  <p className="text-[11px] text-[color:var(--crm-text-secondary)]">Configure title and access scope</p>
                 </div>
               </div>
-              <button onClick={() => setShowModal(false)} className="text-[#70665F] hover:text-[#211B17] p-1">
+              <button onClick={() => setShowModal(false)} className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleCreateRole} className="space-y-3">
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Role Title *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Role Title *</label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Senior Estimation Engineer"
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500"
                 />
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Description</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Description</label>
                 <textarea
                   rows={2}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Role responsibilities and department scope..."
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-[#EBE3DB] rounded-lg hover:bg-[#FAF7F5] text-[#544B45] font-semibold"
+                  className="px-4 py-2 border border-[color:var(--crm-border-default)] rounded-lg hover:bg-[#FAF7F5] text-[color:var(--crm-text-secondary)] font-semibold"
                 >
                   Cancel
                 </button>
@@ -322,51 +322,51 @@ export default function RolesPage() {
       {/* EDIT ROLE MODAL */}
       {editRole && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[#EBE3DB]">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[color:var(--crm-border-default)]">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+                <div className="w-8 h-8 rounded-lg bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center font-bold">
                   <Edit2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-[#211B17]">Edit Role</h3>
-                  <p className="text-[11px] text-[#70665F]">Update role title and description</p>
+                  <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)]">Edit Role</h3>
+                  <p className="text-[11px] text-[color:var(--crm-text-secondary)]">Update role title and description</p>
                 </div>
               </div>
-              <button onClick={() => setEditRole(null)} className="text-[#70665F] hover:text-[#211B17] p-1">
+              <button onClick={() => setEditRole(null)} className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleUpdateRole} className="space-y-3">
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Role Title *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Role Title *</label>
                 <input
                   type="text"
                   required
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   placeholder="Role Title"
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500"
                 />
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Description</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Description</label>
                 <textarea
                   rows={2}
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
                   placeholder="Role responsibilities and department scope..."
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setEditRole(null)}
-                  className="px-4 py-2 border border-[#EBE3DB] rounded-lg hover:bg-[#FAF7F5] text-[#544B45] font-semibold"
+                  className="px-4 py-2 border border-[color:var(--crm-border-default)] rounded-lg hover:bg-[#FAF7F5] text-[color:var(--crm-text-secondary)] font-semibold"
                 >
                   Cancel
                 </button>
@@ -385,14 +385,14 @@ export default function RolesPage() {
       {/* DELETE CONFIRMATION MODAL */}
       {confirmDeleteRole && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-2xl w-full max-w-md p-6 text-xs space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center font-bold flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center font-bold flex-shrink-0">
                 <Trash2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-[#211B17]">Delete Role</h3>
-                <p className="text-xs text-[#70665F]">Confirm permanent deletion of custom role</p>
+                <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">Delete Role</h3>
+                <p className="text-xs text-[color:var(--crm-text-secondary)]">Confirm permanent deletion of custom role</p>
               </div>
             </div>
 
@@ -408,12 +408,12 @@ export default function RolesPage() {
               </p>
             </div>
 
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#EBE3DB]">
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[color:var(--crm-border-default)]">
               <button
                 type="button"
                 disabled={isDeletingRole}
                 onClick={() => setConfirmDeleteRole(null)}
-                className="px-4 py-2 border border-[#EBE3DB] rounded-lg hover:bg-[#FAF7F5] text-[#544B45] font-semibold"
+                className="px-4 py-2 border border-[color:var(--crm-border-default)] rounded-lg hover:bg-[#FAF7F5] text-[color:var(--crm-text-secondary)] font-semibold"
               >
                 Cancel
               </button>

@@ -1158,10 +1158,10 @@ export function GlobalSearchModal() {
         if (e.target === e.currentTarget) setIsSearchOpen(false);
       }}
     >
-      <div className="bg-white border border-[#E7DED5] rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col my-auto max-h-[85vh] animate-in zoom-in-95 duration-150">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col my-auto max-h-[85vh] animate-in zoom-in-95 duration-150">
         {/* Search Bar Input Header */}
-        <div className="p-4 sm:p-5 border-b border-[#E7DED5] bg-gradient-to-r from-[#FAF7F2] via-[#FAF3EA] to-[#F8EDE0] flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-2xl bg-white border border-[#E5DDD0] text-[#75401F] flex items-center justify-center shadow-xs flex-shrink-0">
+        <div className="p-4 sm:p-5 border-b border-[color:var(--crm-border-default)] bg-gradient-to-r from-[color:var(--crm-bg-app)] via-[color:var(--crm-brand-50)] to-[#EDF1FA] flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-2xl bg-white border border-[#D0D6E5] text-[color:var(--crm-brand-700)] flex items-center justify-center shadow-xs flex-shrink-0">
             <Search className="w-5 h-5" />
           </div>
 
@@ -1176,9 +1176,9 @@ export function GlobalSearchModal() {
               }}
               onKeyDown={handleInputKeyDown}
               placeholder="Search any page, module, project #, lead, customer, stock, PO..."
-              className="w-full text-base sm:text-lg font-bold bg-transparent text-[#211B17] placeholder:text-[#9E8E82] focus:outline-none"
+              className="w-full text-base sm:text-lg font-bold bg-transparent text-[color:var(--crm-text-primary)] placeholder:text-[color:var(--crm-text-tertiary)] focus:outline-none"
             />
-            <div className="text-[11px] text-[#70665F] truncate">
+            <div className="text-[11px] text-[color:var(--crm-text-secondary)] truncate">
               {cleanQuery
                 ? `Found ${matchedPages.length} Pages • ${matchedRecords.length} Live Records`
                 : 'Type anything to instantly find and jump to any page in the entire ERP'}
@@ -1187,14 +1187,14 @@ export function GlobalSearchModal() {
 
           <button
             onClick={() => setIsSearchOpen(false)}
-            className="p-2 rounded-xl text-[#70665F] hover:text-[#211B17] hover:bg-white border border-[#E5DDD0] transition cursor-pointer flex-shrink-0"
+            className="p-2 rounded-xl text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-white border border-[#D0D6E5] transition cursor-pointer flex-shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Category Filter Chips */}
-        <div className="px-4 py-2 bg-[#FCFAF7] border-b border-[#EFE8DE] flex items-center gap-1.5 overflow-x-auto scrollbar-none text-xs">
+        <div className="px-4 py-2 bg-[#FCFAF7] border-b border-[#DFE4EE] flex items-center gap-1.5 overflow-x-auto scrollbar-none text-xs">
           {categoriesList.map((cat) => (
             <button
               key={cat}
@@ -1205,7 +1205,7 @@ export function GlobalSearchModal() {
               className={`px-3 py-1 rounded-full font-bold text-[11px] whitespace-nowrap transition cursor-pointer ${
                 selectedCategory === cat
                   ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-xs'
-                  : 'bg-white text-[#70665F] hover:bg-[#F3EDE4] border border-[#E5DDD0]'
+                  : 'bg-white text-[color:var(--crm-text-secondary)] hover:bg-[#E6E9F1] border border-[#D0D6E5]'
               }`}
             >
               {cat}
@@ -1214,16 +1214,16 @@ export function GlobalSearchModal() {
         </div>
 
         {/* Results Container */}
-        <div ref={listRef} className="flex-1 overflow-y-auto p-3 space-y-4 text-xs divide-y divide-[#EFE8DE]">
+        <div ref={listRef} className="flex-1 overflow-y-auto p-3 space-y-4 text-xs divide-y divide-[#DFE4EE]">
           {/* 1. MATCHED ERP PAGES */}
           {matchedPages.length > 0 && (
             <div className="space-y-2 pt-1">
-              <div className="flex items-center justify-between px-2 text-[11px] font-bold text-[#75401F] uppercase tracking-wider">
+              <div className="flex items-center justify-between px-2 text-[11px] font-bold text-[color:var(--crm-brand-700)] uppercase tracking-wider">
                 <span className="flex items-center gap-1.5">
                   <Compass className="w-3.5 h-3.5" />
                   ERP Pages & Modules ({matchedPages.length})
                 </span>
-                <span className="text-[#9E8E82] font-mono lowercase text-[10px]">Jump to page</span>
+                <span className="text-[color:var(--crm-text-tertiary)] font-mono lowercase text-[10px]">Jump to page</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -1239,32 +1239,32 @@ export function GlobalSearchModal() {
                       }}
                       className={`text-left p-3 rounded-2xl border transition-all flex items-start gap-3 cursor-pointer group ${
                         isSelected
-                          ? 'bg-[#FAF3EA] border-crm-brand-700 shadow-sm ring-1 ring-crm-brand-700'
-                          : 'bg-white hover:bg-[#FAF7F2] border-[#EAE2D8]'
+                          ? 'bg-[color:var(--crm-brand-50)] border-crm-brand-700 shadow-sm ring-1 ring-crm-brand-700'
+                          : 'bg-white hover:bg-[color:var(--crm-bg-app)] border-[#D8DDEA]'
                       }`}
                     >
-                      <div className="w-8 h-8 rounded-xl bg-[#FAF0E6] text-crm-brand-700 border border-[#E7DED5] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform mt-0.5">
+                      <div className="w-8 h-8 rounded-xl bg-[#F1F4FA] text-crm-brand-700 border border-[color:var(--crm-border-default)] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform mt-0.5">
                         <Icon className="w-4 h-4" />
                       </div>
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-1">
-                          <span className="font-bold text-[#211B17] text-xs truncate group-hover:text-crm-brand-700 transition-colors">
+                          <span className="font-bold text-[color:var(--crm-text-primary)] text-xs truncate group-hover:text-crm-brand-700 transition-colors">
                             {page.title}
                           </span>
-                          <span className="px-1.5 py-0.5 rounded-md bg-[#FAF0E6] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E7DED5] flex-shrink-0">
+                          <span className="px-1.5 py-0.5 rounded-md bg-[#F1F4FA] text-crm-brand-700 font-mono text-[9px] font-bold border border-[color:var(--crm-border-default)] flex-shrink-0">
                             {page.category}
                           </span>
                         </div>
-                        <p className="text-[#70665F] text-[11px] leading-tight line-clamp-1 mt-0.5">
+                        <p className="text-[color:var(--crm-text-secondary)] text-[11px] leading-tight line-clamp-1 mt-0.5">
                           {page.description}
                         </p>
-                        <span className="font-mono text-[10px] text-[#9E8E82] truncate block mt-0.5">
+                        <span className="font-mono text-[10px] text-[color:var(--crm-text-tertiary)] truncate block mt-0.5">
                           {page.path}
                         </span>
                       </div>
 
-                      <ArrowUpRight className="w-3.5 h-3.5 text-[#9E8E82] group-hover:text-crm-brand-700 transition-colors flex-shrink-0 mt-1" />
+                      <ArrowUpRight className="w-3.5 h-3.5 text-[color:var(--crm-text-tertiary)] group-hover:text-crm-brand-700 transition-colors flex-shrink-0 mt-1" />
                     </button>
                   );
                 })}
@@ -1280,7 +1280,7 @@ export function GlobalSearchModal() {
                   <Database className="w-3.5 h-3.5" />
                   Live Records Found ({matchedRecords.length})
                 </span>
-                <span className="text-[#9E8E82] font-mono lowercase text-[10px]">Open Record</span>
+                <span className="text-[color:var(--crm-text-tertiary)] font-mono lowercase text-[10px]">Open Record</span>
               </div>
 
               <div className="space-y-1.5">
@@ -1294,15 +1294,15 @@ export function GlobalSearchModal() {
                       className={`w-full text-left p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 cursor-pointer group ${
                         isSelected
                           ? 'bg-[#E0F2FE] border-[#0E91B2] shadow-sm ring-1 ring-[#0E91B2]'
-                          : 'bg-white hover:bg-[#FAF7F2] border-[#EAE2D8]'
+                          : 'bg-white hover:bg-[color:var(--crm-bg-app)] border-[#D8DDEA]'
                       }`}
                     >
                       <div className="space-y-0.5 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-bold text-[#211B17] text-xs truncate">
+                          <span className="font-bold text-[color:var(--crm-text-primary)] text-xs truncate">
                             {rec.title}
                           </span>
-                          <span className="px-2 py-0.5 rounded-md bg-[#FAF0E6] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E7DED5]">
+                          <span className="px-2 py-0.5 rounded-md bg-[#F1F4FA] text-crm-brand-700 font-mono text-[9px] font-bold border border-[color:var(--crm-border-default)]">
                             {rec.tag}
                           </span>
                           {rec.badge && (
@@ -1311,7 +1311,7 @@ export function GlobalSearchModal() {
                             </span>
                           )}
                         </div>
-                        <p className="text-[#70665F] text-[11px] truncate">
+                        <p className="text-[color:var(--crm-text-secondary)] text-[11px] truncate">
                           {rec.subtitle}
                         </p>
                       </div>
@@ -1329,12 +1329,12 @@ export function GlobalSearchModal() {
 
           {/* EMPTY STATE */}
           {matchedPages.length === 0 && matchedRecords.length === 0 && (
-            <div className="py-16 text-center text-[#8D827A] space-y-2">
-              <div className="w-12 h-12 rounded-2xl bg-[#FAF0E6] text-crm-brand-700 flex items-center justify-center mx-auto border border-[#E7DED5]">
+            <div className="py-16 text-center text-[color:var(--crm-text-tertiary)] space-y-2">
+              <div className="w-12 h-12 rounded-2xl bg-[#F1F4FA] text-crm-brand-700 flex items-center justify-center mx-auto border border-[color:var(--crm-border-default)]">
                 <Search className="w-6 h-6" />
               </div>
-              <h3 className="font-bold text-sm text-[#211B17]">No Matching Pages or Records</h3>
-              <p className="text-xs text-[#70665F] max-w-sm mx-auto">
+              <h3 className="font-bold text-sm text-[color:var(--crm-text-primary)]">No Matching Pages or Records</h3>
+              <p className="text-xs text-[color:var(--crm-text-secondary)] max-w-sm mx-auto">
                 We couldn&apos;t find any page or record matching &ldquo;{query}&rdquo;. Try searching by keyword like &ldquo;leads&rdquo;, &ldquo;store&rdquo;, &ldquo;po&rdquo;, &ldquo;payroll&rdquo;, or &ldquo;production&rdquo;.
               </p>
             </div>
@@ -1342,22 +1342,22 @@ export function GlobalSearchModal() {
         </div>
 
         {/* Modal Footer Keybind Info */}
-        <div className="px-5 py-3 bg-[#FAF7F2] border-t border-[#E7DED5] text-[11px] text-[#70665F] flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="px-5 py-3 bg-[color:var(--crm-bg-app)] border-t border-[color:var(--crm-border-default)] text-[11px] text-[color:var(--crm-text-secondary)] flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-white border border-[#E7DED5] font-mono text-[10px] font-bold shadow-2xs">↑</kbd>
-              <kbd className="px-1.5 py-0.5 rounded bg-white border border-[#E7DED5] font-mono text-[10px] font-bold shadow-2xs">↓</kbd> to navigate
+              <kbd className="px-1.5 py-0.5 rounded bg-white border border-[color:var(--crm-border-default)] font-mono text-[10px] font-bold shadow-2xs">↑</kbd>
+              <kbd className="px-1.5 py-0.5 rounded bg-white border border-[color:var(--crm-border-default)] font-mono text-[10px] font-bold shadow-2xs">↓</kbd> to navigate
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-white border border-[#E7DED5] font-mono text-[10px] font-bold shadow-2xs">Enter</kbd> to select
+              <kbd className="px-1.5 py-0.5 rounded bg-white border border-[color:var(--crm-border-default)] font-mono text-[10px] font-bold shadow-2xs">Enter</kbd> to select
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-white border border-[#E7DED5] font-mono text-[10px] font-bold shadow-2xs">Esc</kbd> to close
+              <kbd className="px-1.5 py-0.5 rounded bg-white border border-[color:var(--crm-border-default)] font-mono text-[10px] font-bold shadow-2xs">Esc</kbd> to close
             </span>
           </div>
 
-          <div className="flex items-center gap-2 font-bold text-[#75401F]">
-            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+          <div className="flex items-center gap-2 font-bold text-[color:var(--crm-brand-700)]">
+            <Sparkles className="w-3.5 h-3.5 text-crm-brand-600" />
             <span>Uma Techno Fab Spotlight Search (Ctrl+K)</span>
           </div>
         </div>

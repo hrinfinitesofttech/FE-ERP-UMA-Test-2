@@ -348,7 +348,7 @@ export default function EmployeeTransfersPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-[#FDFBF9] min-h-screen text-[#211B17]">
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)] min-h-screen text-[color:var(--crm-text-primary)]">
       {/* Toast Notification */}
       {successToast && (
         <div className="fixed top-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
@@ -358,22 +358,22 @@ export default function EmployeeTransfersPage() {
       )}
 
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2.5">
+          <h1 className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2.5">
             <div className="p-2 bg-amber-500/10 rounded-lg text-amber-600">
               <Workflow className="w-6 h-6" />
             </div>
             Employee Transfers & Internal Mobility
           </h1>
-          <p className="text-sm text-[#70665F] mt-1">
+          <p className="text-sm text-[color:var(--crm-text-secondary)] mt-1">
             Department, Plant Location & Role Reassignments with Historical Audit Log
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={handleRefresh}
-            className="flex items-center gap-1.5 px-3 py-2 bg-white border border-[#EBE3DB] hover:bg-[#F5EFEB] text-[#544B45] font-semibold text-xs rounded-lg transition shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-2 bg-white border border-[color:var(--crm-border-default)] hover:bg-[#F5EFEB] text-[color:var(--crm-text-secondary)] font-semibold text-xs rounded-lg transition shadow-sm"
             title="Reload transfer records"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
@@ -406,68 +406,68 @@ export default function EmployeeTransfersPage() {
 
       {/* Stats Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm flex items-center justify-between">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold text-[#70665F] uppercase tracking-wider block">
+            <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">
               Total Transfers Logged
             </span>
-            <span className="text-2xl font-black text-[#211B17]">
+            <span className="text-2xl font-black text-[color:var(--crm-text-primary)]">
               {employeeTransfers.length}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600">
+          <div className="w-10 h-10 rounded-xl bg-crm-brand-50 flex items-center justify-center text-crm-brand-700">
             <Workflow className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm flex items-center justify-between">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold text-[#70665F] uppercase tracking-wider block">
+            <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">
               Departments Active
             </span>
-            <span className="text-2xl font-black text-[#211B17]">
+            <span className="text-2xl font-black text-[color:var(--crm-text-primary)]">
               {departments.length}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600">
+          <div className="w-10 h-10 rounded-xl bg-crm-brand-50 flex items-center justify-center text-crm-brand-700">
             <Building className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm flex items-center justify-between">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold text-[#70665F] uppercase tracking-wider block">
+            <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">
               Total Staff Mastered
             </span>
-            <span className="text-2xl font-black text-[#211B17]">
+            <span className="text-2xl font-black text-[color:var(--crm-text-primary)]">
               {availableEmployees.length}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+          <div className="w-10 h-10 rounded-xl bg-crm-brand-50 flex items-center justify-center text-crm-brand-700">
             <UserCheck className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white border border-[#EBE3DB] rounded-xl p-3.5 shadow-sm flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-3.5 shadow-sm flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-[#A89F91] absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[color:var(--crm-text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by Employee name, ID, or department..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-[#FDFBF9] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-amber-600 focus:bg-white transition"
+            className="w-full pl-9 pr-4 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600 focus:bg-white transition"
           />
         </div>
 
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-[#70665F]" />
+          <Filter className="w-4 h-4 text-[color:var(--crm-text-secondary)]" />
           <select
             value={departmentFilter}
             onChange={(e) => setDepartmentFilter(e.target.value)}
-            className="px-3 py-2 bg-[#FDFBF9] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-amber-600"
+            className="px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600"
           >
             <option value="ALL">All Departments</option>
             {activeDepartments.map((dept) => (
@@ -481,19 +481,19 @@ export default function EmployeeTransfersPage() {
 
       {/* Transfers List */}
       {isLoading ? (
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-12 text-center">
-          <RefreshCw className="w-8 h-8 text-amber-600 animate-spin mx-auto mb-3" />
-          <p className="text-sm font-semibold text-[#544B45]">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-12 text-center">
+          <RefreshCw className="w-8 h-8 text-crm-brand-600 animate-spin mx-auto mb-3" />
+          <p className="text-sm font-semibold text-[color:var(--crm-text-secondary)]">
             Loading transfer orders...
           </p>
         </div>
       ) : filteredTransfers.length === 0 ? (
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-12 text-center space-y-3 shadow-sm">
-          <Workflow className="w-12 h-12 text-[#A89F91] mx-auto" />
-          <h3 className="text-base font-bold text-[#211B17]">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-12 text-center space-y-3 shadow-sm">
+          <Workflow className="w-12 h-12 text-[color:var(--crm-text-tertiary)] mx-auto" />
+          <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">
             No transfer records found
           </h3>
-          <p className="text-xs text-[#70665F] max-w-md mx-auto">
+          <p className="text-xs text-[color:var(--crm-text-secondary)] max-w-md mx-auto">
             {searchTerm || departmentFilter !== 'ALL'
               ? 'No transfer records match your filter criteria. Try resetting the filters.'
               : 'No transfer orders have been issued yet. Click "+ Issue Transfer Order" to create one.'}
@@ -511,18 +511,18 @@ export default function EmployeeTransfersPage() {
             return (
               <div
                 key={trn.id}
-                className="bg-white border border-[#EBE3DB] hover:border-amber-600/40 rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-md transition duration-200"
+                className="bg-white border border-[color:var(--crm-border-default)] hover:border-amber-600/40 rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-md transition duration-200"
               >
                 {/* Top Row: ID, Name, Status, Actions */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#EBE3DB]/60 pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E2E7EF]/60 pb-3">
                   <div className="flex items-center gap-3">
                     <span className="px-2.5 py-1 bg-amber-500/10 text-amber-700 text-xs font-mono font-bold rounded-md border border-amber-500/20">
                       {trn.id}
                     </span>
                     <div>
-                      <h3 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+                      <h3 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                         {displayName}
-                        <span className="text-xs font-normal text-[#70665F]">
+                        <span className="text-xs font-normal text-[color:var(--crm-text-secondary)]">
                           ({trn.employeeId})
                         </span>
                       </h3>
@@ -536,17 +536,17 @@ export default function EmployeeTransfersPage() {
                     </span>
 
                     {/* Edit & Delete Action Buttons */}
-                    <div className="flex items-center gap-1 border-l border-[#EBE3DB] pl-2">
+                    <div className="flex items-center gap-1 border-l border-[color:var(--crm-border-default)] pl-2">
                       <button
                         onClick={() => handleOpenEditModal(trn)}
-                        className="p-1.5 text-[#544B45] hover:text-amber-600 hover:bg-amber-50 rounded-lg transition"
+                        className="p-1.5 text-[color:var(--crm-text-secondary)] hover:text-amber-600 hover:bg-amber-50 rounded-lg transition"
                         title="Edit transfer order"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteRecord(trn)}
-                        className="p-1.5 text-[#544B45] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                        className="p-1.5 text-[color:var(--crm-text-secondary)] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
                         title="Delete transfer order"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -558,23 +558,23 @@ export default function EmployeeTransfersPage() {
                 {/* Transfer Details: Comparison Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Previous Position */}
-                  <div className="bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB] space-y-2">
-                    <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider block border-b border-[#EBE3DB] pb-1.5">
+                  <div className="bg-[color:var(--crm-bg-app)] p-4 rounded-xl border border-[color:var(--crm-border-default)] space-y-2">
+                    <span className="text-[11px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block border-b border-[color:var(--crm-border-default)] pb-1.5">
                       Previous Position
                     </span>
                     <div className="grid grid-cols-3 gap-2 text-xs pt-1">
-                      <div className="text-[#70665F]">Dept:</div>
-                      <div className="col-span-2 font-semibold text-[#211B17]">
+                      <div className="text-[color:var(--crm-text-secondary)]">Dept:</div>
+                      <div className="col-span-2 font-semibold text-[color:var(--crm-text-primary)]">
                         {trn.fromDepartment || '—'}
                       </div>
 
-                      <div className="text-[#70665F]">Designation:</div>
-                      <div className="col-span-2 text-[#544B45]">
+                      <div className="text-[color:var(--crm-text-secondary)]">Designation:</div>
+                      <div className="col-span-2 text-[color:var(--crm-text-secondary)]">
                         {trn.fromDesignation || '—'}
                       </div>
 
-                      <div className="text-[#70665F]">Location:</div>
-                      <div className="col-span-2 text-[#544B45]">
+                      <div className="text-[color:var(--crm-text-secondary)]">Location:</div>
+                      <div className="col-span-2 text-[color:var(--crm-text-secondary)]">
                         {trn.fromLocation || '—'}
                       </div>
                     </div>
@@ -584,7 +584,7 @@ export default function EmployeeTransfersPage() {
                   <div className="bg-amber-50/40 p-4 rounded-xl border border-amber-200/80 space-y-2">
                     <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block border-b border-amber-200/60 pb-1.5 flex items-center justify-between">
                       <span>Transferred Position</span>
-                      <ArrowRight className="w-3.5 h-3.5 text-amber-600" />
+                      <ArrowRight className="w-3.5 h-3.5 text-crm-brand-600" />
                     </span>
                     <div className="grid grid-cols-3 gap-2 text-xs pt-1">
                       <div className="text-amber-900/70">Dept:</div>
@@ -593,12 +593,12 @@ export default function EmployeeTransfersPage() {
                       </div>
 
                       <div className="text-amber-900/70">Designation:</div>
-                      <div className="col-span-2 font-medium text-[#211B17]">
+                      <div className="col-span-2 font-medium text-[color:var(--crm-text-primary)]">
                         {trn.toDesignation}
                       </div>
 
                       <div className="text-amber-900/70">Location:</div>
-                      <div className="col-span-2 text-[#544B45]">
+                      <div className="col-span-2 text-[color:var(--crm-text-secondary)]">
                         {trn.toLocation || '—'}
                       </div>
                     </div>
@@ -606,16 +606,16 @@ export default function EmployeeTransfersPage() {
                 </div>
 
                 {/* Bottom Row: Reason & Approver */}
-                <div className="text-xs text-[#70665F] flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-[#EBE3DB]/60 pt-3">
+                <div className="text-xs text-[color:var(--crm-text-secondary)] flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-[#E2E7EF]/60 pt-3">
                   <div>
-                    <span className="font-semibold text-[#544B45]">Reason:</span>{' '}
-                    <span className="italic text-[#211B17]">
+                    <span className="font-semibold text-[color:var(--crm-text-secondary)]">Reason:</span>{' '}
+                    <span className="italic text-[color:var(--crm-text-primary)]">
                       &quot;{trn.reason}&quot;
                     </span>
                   </div>
                   <div>
-                    <span className="font-semibold text-[#544B45]">Approved By:</span>{' '}
-                    <strong className="text-[#211B17]">{trn.approvedBy || 'HR Manager'}</strong>
+                    <span className="font-semibold text-[color:var(--crm-text-secondary)]">Approved By:</span>{' '}
+                    <strong className="text-[color:var(--crm-text-primary)]">{trn.approvedBy || 'HR Manager'}</strong>
                   </div>
                 </div>
               </div>
@@ -636,19 +636,19 @@ export default function EmployeeTransfersPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-xl p-6 space-y-5 shadow-2xl relative my-8"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-xl p-6 space-y-5 shadow-2xl relative my-8"
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3.5">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3.5">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-amber-500/10 rounded-lg text-amber-600">
                   <Workflow className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-[#211B17]">
+                  <h2 className="text-lg font-bold text-[color:var(--crm-text-primary)]">
                     {editingId ? 'Edit Employee Transfer Order' : 'Issue Employee Transfer Order'}
                   </h2>
-                  <p className="text-xs text-[#70665F]">
+                  <p className="text-xs text-[color:var(--crm-text-secondary)]">
                     {editingId ? 'Modify transfer parameters and work assignment' : 'Assign a staff member to a new department or location'}
                   </p>
                 </div>
@@ -656,7 +656,7 @@ export default function EmployeeTransfersPage() {
               <button
                 type="button"
                 onClick={closeModalWithConfirm}
-                className="text-[#70665F] hover:text-[#211B17] p-1.5 rounded-lg hover:bg-[#F5EFEB] transition"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1.5 rounded-lg hover:bg-[#F5EFEB] transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -666,17 +666,17 @@ export default function EmployeeTransfersPage() {
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
               {/* 1. Select Employee */}
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Select Employee <span className="text-rose-500">*</span>
                 </label>
                 <select
                   value={formData.employeeId}
                   disabled={editingId !== null}
                   onChange={(e) => handleEmployeeChange(e.target.value)}
-                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition disabled:bg-gray-100 ${
+                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition disabled:bg-gray-100 ${
                     formErrors.employeeId
                       ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                      : 'border-[#EBE3DB] focus:border-amber-600'
+                      : 'border-[color:var(--crm-border-default)] focus:border-amber-600'
                   }`}
                 >
                   <option value="">-- Choose Employee from Master --</option>
@@ -696,9 +696,9 @@ export default function EmployeeTransfersPage() {
 
               {/* Current Position Snapshot (Auto-populated) */}
               {selectedEmployeeObj && (
-                <div className="bg-[#FAF7F2] p-3.5 rounded-xl border border-[#EBE3DB] space-y-1.5">
+                <div className="bg-[color:var(--crm-bg-app)] p-3.5 rounded-xl border border-[color:var(--crm-border-default)] space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider">
+                    <span className="text-[11px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">
                       Current Assignment
                     </span>
                     <span className="text-[11px] text-amber-700 font-semibold">
@@ -707,20 +707,20 @@ export default function EmployeeTransfersPage() {
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-xs pt-1">
                     <div>
-                      <span className="text-[#70665F] block text-[10px]">Department</span>
-                      <strong className="text-[#211B17]">
+                      <span className="text-[color:var(--crm-text-secondary)] block text-[10px]">Department</span>
+                      <strong className="text-[color:var(--crm-text-primary)]">
                         {formData.fromDepartment || selectedEmployeeObj.department}
                       </strong>
                     </div>
                     <div>
-                      <span className="text-[#70665F] block text-[10px]">Designation</span>
-                      <span className="text-[#544B45]">
+                      <span className="text-[color:var(--crm-text-secondary)] block text-[10px]">Designation</span>
+                      <span className="text-[color:var(--crm-text-secondary)]">
                         {formData.fromDesignation || selectedEmployeeObj.designation}
                       </span>
                     </div>
                     <div>
-                      <span className="text-[#70665F] block text-[10px]">Location</span>
-                      <span className="text-[#544B45]">
+                      <span className="text-[color:var(--crm-text-secondary)] block text-[10px]">Location</span>
+                      <span className="text-[color:var(--crm-text-secondary)]">
                         {formData.fromLocation || 'Plant 1'}
                       </span>
                     </div>
@@ -731,7 +731,7 @@ export default function EmployeeTransfersPage() {
               {/* 2. New Department & Effective Date */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     New Department <span className="text-rose-500">*</span>
                   </label>
                   <select
@@ -751,10 +751,10 @@ export default function EmployeeTransfersPage() {
                         });
                       }
                     }}
-                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition ${
+                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                       formErrors.toDepartment
                         ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                        : 'border-[#EBE3DB] focus:border-amber-600'
+                        : 'border-[color:var(--crm-border-default)] focus:border-amber-600'
                     }`}
                   >
                     <option value="">-- Select New Department --</option>
@@ -773,7 +773,7 @@ export default function EmployeeTransfersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     Transfer Effective Date <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -790,10 +790,10 @@ export default function EmployeeTransfersPage() {
                         });
                       }
                     }}
-                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition ${
+                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                       formErrors.effectiveDate
                         ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                        : 'border-[#EBE3DB] focus:border-amber-600'
+                        : 'border-[color:var(--crm-border-default)] focus:border-amber-600'
                     }`}
                   />
                   {formErrors.effectiveDate && (
@@ -808,7 +808,7 @@ export default function EmployeeTransfersPage() {
               {/* 3. New Designation & New Location */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     New Designation <span className="text-rose-500">*</span>
                   </label>
                   <select
@@ -824,10 +824,10 @@ export default function EmployeeTransfersPage() {
                         });
                       }
                     }}
-                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition disabled:bg-gray-100 disabled:text-gray-400 ${
+                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition disabled:bg-gray-100 disabled:text-gray-400 ${
                       formErrors.toDesignation
                         ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                        : 'border-[#EBE3DB] focus:border-amber-600'
+                        : 'border-[color:var(--crm-border-default)] focus:border-amber-600'
                     }`}
                   >
                     <option value="">
@@ -850,7 +850,7 @@ export default function EmployeeTransfersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     New Plant / Work Location
                   </label>
                   <select
@@ -858,7 +858,7 @@ export default function EmployeeTransfersPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, toLocation: e.target.value })
                     }
-                    className="w-full px-3.5 py-2.5 bg-white border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-amber-600 transition"
+                    className="w-full px-3.5 py-2.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600 transition"
                   >
                     {PLANT_LOCATIONS.map((loc) => (
                       <option key={loc} value={loc}>
@@ -871,7 +871,7 @@ export default function EmployeeTransfersPage() {
 
               {/* 4. Transfer Reason */}
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Transfer Reason <span className="text-rose-500">*</span>
                 </label>
                 <textarea
@@ -888,10 +888,10 @@ export default function EmployeeTransfersPage() {
                       });
                     }
                   }}
-                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition ${
+                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                     formErrors.reason
                       ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                      : 'border-[#EBE3DB] focus:border-amber-600'
+                      : 'border-[color:var(--crm-border-default)] focus:border-amber-600'
                   }`}
                 />
                 {formErrors.reason && (
@@ -903,11 +903,11 @@ export default function EmployeeTransfersPage() {
               </div>
 
               {/* Form Actions */}
-              <div className="pt-4 border-t border-[#EBE3DB] flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={closeModalWithConfirm}
-                  className="px-4 py-2.5 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold text-xs rounded-lg transition"
+                  className="px-4 py-2.5 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold text-xs rounded-lg transition"
                 >
                   Cancel
                 </button>
@@ -934,27 +934,27 @@ export default function EmployeeTransfersPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl"
           >
             <div className="flex items-center gap-3">
               <div className="p-3 bg-amber-100 text-amber-700 rounded-xl">
                 <ShieldAlert className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-[#211B17]">Delete Transfer Order</h3>
-                <p className="text-xs text-[#70665F]">Order ID: {deleteConfirmTrn.id}</p>
+                <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">Delete Transfer Order</h3>
+                <p className="text-xs text-[color:var(--crm-text-secondary)]">Order ID: {deleteConfirmTrn.id}</p>
               </div>
             </div>
 
-            <p className="text-sm text-[#544B45] leading-relaxed">
+            <p className="text-sm text-[color:var(--crm-text-secondary)] leading-relaxed">
               Are you sure you want to delete this transfer order for <strong>{deleteConfirmTrn.employeeName}</strong>? This action will remove the transfer record from the history audit log.
             </p>
 
-            <div className="pt-3 border-t border-[#EBE3DB] flex items-center justify-end gap-3 text-xs">
+            <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-3 text-xs">
               <button
                 type="button"
                 onClick={() => setDeleteConfirmTrn(null)}
-                className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold rounded-lg transition"
+                className="px-4 py-2 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold rounded-lg transition"
               >
                 Cancel
               </button>

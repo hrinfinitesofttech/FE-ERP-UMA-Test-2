@@ -21,7 +21,7 @@ import {
 import { MissedPunchRequest } from '../../../types/hr';
 
 export default function MissedPunchPage() {
-  const {
+  const { currentUser,
     missedPunchRequests,
     addMissedPunchRequest,
     updateMissedPunchStatus,
@@ -125,7 +125,7 @@ export default function MissedPunchPage() {
       missingPunchType: formData.missingPunchType,
       requestedTime: formData.requestedTime.trim(),
       reason: formData.reason.trim(),
-      reportingManager: (emp as any)?.reportingManager || 'Rajesh Patel',
+      reportingManager: (emp as any)?.reportingManager || '',
     });
     setShowModal(false);
   };
@@ -170,17 +170,17 @@ export default function MissedPunchPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-[#FAF7F2] min-h-screen text-[#211B17]">
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)] min-h-screen text-[color:var(--crm-text-primary)]">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-[#EBE3DB] p-6 rounded-2xl shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-[color:var(--crm-border-default)] p-6 rounded-2xl shadow-sm">
         <div>
-          <h1 className="text-2xl font-bold text-[#211B17] tracking-tight flex items-center gap-2.5">
+          <h1 className="text-2xl font-bold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2.5">
             <div className="p-2 bg-orange-50 border border-orange-200 rounded-xl text-orange-600">
               <AlertTriangle className="w-6 h-6" />
             </div>
             Missed Punch Request Portal
           </h1>
-          <p className="text-xs text-[#70665F] mt-1.5">
+          <p className="text-xs text-[color:var(--crm-text-secondary)] mt-1.5">
             Biometric Technical Fault Corrections & Gate Punch Override Approvals • Stored in Database
           </p>
         </div>
@@ -195,16 +195,16 @@ export default function MissedPunchPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl space-y-1 shadow-sm">
-          <div className="text-xs text-[#70665F] font-medium">Total Requests</div>
-          <div className="text-2xl font-bold text-[#211B17] font-mono">{totalCount}</div>
-          <div className="text-[10px] text-[#70665F]">Overall Submissions</div>
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl space-y-1 shadow-sm">
+          <div className="text-xs text-[color:var(--crm-text-secondary)] font-medium">Total Requests</div>
+          <div className="text-2xl font-bold text-[color:var(--crm-text-primary)] font-mono">{totalCount}</div>
+          <div className="text-[10px] text-[color:var(--crm-text-secondary)]">Overall Submissions</div>
         </div>
 
         <div className="bg-white border border-amber-200 p-4 rounded-xl space-y-1 shadow-sm">
           <div className="text-xs text-amber-700 font-medium flex items-center justify-between">
             <span>Pending Approvals</span>
-            <Clock className="w-4 h-4 text-amber-500" />
+            <Clock className="w-4 h-4 text-crm-brand-600" />
           </div>
           <div className="text-2xl font-bold text-amber-700 font-mono">{pendingCount}</div>
           <div className="text-[10px] text-amber-600">Awaiting HR Sign-off</div>
@@ -230,15 +230,15 @@ export default function MissedPunchPage() {
       </div>
 
       {/* Filters & Search */}
-      <div className="bg-white border border-[#EBE3DB] p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-sm">
+      <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-[#FAF7F2] px-3 py-1.5 rounded-xl border border-[#EBE3DB]">
-            <Filter className="w-3.5 h-3.5 text-[#70665F]" />
-            <span className="text-xs text-[#544B45] font-semibold">Status:</span>
+          <div className="flex items-center gap-2 bg-[color:var(--crm-bg-app)] px-3 py-1.5 rounded-xl border border-[color:var(--crm-border-default)]">
+            <Filter className="w-3.5 h-3.5 text-[color:var(--crm-text-secondary)]" />
+            <span className="text-xs text-[color:var(--crm-text-secondary)] font-semibold">Status:</span>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="bg-transparent text-xs text-[#211B17] font-medium focus:outline-none cursor-pointer"
+              className="bg-transparent text-xs text-[color:var(--crm-text-primary)] font-medium focus:outline-none cursor-pointer"
             >
               <option value="All">All Statuses ({totalCount})</option>
               <option value="Pending">Pending ({pendingCount})</option>
@@ -249,25 +249,25 @@ export default function MissedPunchPage() {
         </div>
 
         <div className="relative min-w-[280px]">
-          <Search className="w-4 h-4 text-[#70665F] absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[color:var(--crm-text-secondary)] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search employee, request no, reason..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#FAF7F2] text-xs text-[#211B17] pl-9 pr-4 py-2 rounded-xl border border-[#EBE3DB] focus:outline-none focus:border-orange-500 transition"
+            className="w-full bg-[color:var(--crm-bg-app)] text-xs text-[color:var(--crm-text-primary)] pl-9 pr-4 py-2 rounded-xl border border-[color:var(--crm-border-default)] focus:outline-none focus:border-orange-500 transition"
           />
         </div>
       </div>
 
       {/* Missed Punch Table */}
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-[#EBE3DB] flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-bold text-[#211B17]">
-            <FileText className="w-4 h-4 text-orange-600" />
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-[color:var(--crm-border-default)] flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm font-bold text-[color:var(--crm-text-primary)]">
+            <FileText className="w-4 h-4 text-crm-brand-600" />
             Missed Punch Requests ({filteredRequests.length})
           </div>
-          <span className="text-xs text-[#70665F]">
+          <span className="text-xs text-[color:var(--crm-text-secondary)]">
             Approve, Reject, or Edit attendance regularization overrides
           </span>
         </div>
@@ -275,7 +275,7 @@ export default function MissedPunchPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[11px] font-semibold text-[#70665F] uppercase tracking-wider">
+              <tr className="bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] text-[11px] font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">
                 <th className="py-3.5 px-4">Req No.</th>
                 <th className="py-3.5 px-4">Employee</th>
                 <th className="py-3.5 px-4">Date</th>
@@ -285,23 +285,23 @@ export default function MissedPunchPage() {
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EBE3DB] text-[#544B45]">
+            <tbody className="divide-y divide-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)]">
               {filteredRequests.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-[#70665F]">
+                  <td colSpan={7} className="py-8 text-center text-[color:var(--crm-text-secondary)]">
                     No missed punch requests found.
                   </td>
                 </tr>
               ) : (
                 filteredRequests.map((req) => (
-                  <tr key={req.id} className="hover:bg-[#FAF7F2]/50 transition">
+                  <tr key={req.id} className="hover:bg-[#F4F6FA]/50 transition">
                     <td className="py-3 px-4 font-mono font-bold text-orange-700">
                       {req.requestNumber}
                     </td>
-                    <td className="py-3 px-4 font-semibold text-[#211B17]">
+                    <td className="py-3 px-4 font-semibold text-[color:var(--crm-text-primary)]">
                       {req.employeeName}
                     </td>
-                    <td className="py-3 px-4 font-mono text-[11px] text-[#544B45]">
+                    <td className="py-3 px-4 font-mono text-[11px] text-[color:var(--crm-text-secondary)]">
                       {req.date}
                     </td>
                     <td className="py-3 px-4 font-semibold text-sky-700">
@@ -309,7 +309,7 @@ export default function MissedPunchPage() {
                         {req.missingPunchType} @ {req.requestedTime}
                       </span>
                     </td>
-                    <td className="py-3 px-4 max-w-xs truncate text-[11px] text-[#70665F] italic">
+                    <td className="py-3 px-4 max-w-xs truncate text-[11px] text-[color:var(--crm-text-secondary)] italic">
                       &quot;{req.reason}&quot;
                     </td>
                     <td className="py-3 px-4">
@@ -323,7 +323,7 @@ export default function MissedPunchPage() {
                         }`}
                       >
                         {req.status === 'Approved' && <CheckCircle2 className="w-3 h-3 text-emerald-600" />}
-                        {req.status === 'Pending' && <Clock className="w-3 h-3 text-amber-600" />}
+                        {req.status === 'Pending' && <Clock className="w-3 h-3 text-crm-brand-600" />}
                         {req.status === 'Rejected' && <XCircle className="w-3 h-3 text-rose-600" />}
                         {req.status}
                       </span>
@@ -371,14 +371,14 @@ export default function MissedPunchPage() {
                         <button
                           onClick={() => handleOpenEditModal(req)}
                           title="Edit Details"
-                          className="p-1.5 bg-[#FAF7F2] hover:bg-[#EFE9E1] text-[#544B45] border border-[#EBE3DB] rounded-lg text-xs font-semibold transition cursor-pointer"
+                          className="p-1.5 bg-[color:var(--crm-bg-app)] hover:bg-[#E1E5EF] text-[color:var(--crm-text-secondary)] border border-[color:var(--crm-border-default)] rounded-lg text-xs font-semibold transition cursor-pointer"
                         >
-                          <Edit3 className="w-3.5 h-3.5 text-[#544B45]" />
+                          <Edit3 className="w-3.5 h-3.5 text-[color:var(--crm-text-secondary)]" />
                         </button>
                         <button
                           onClick={() => setDeletingId(req.id)}
                           title="Delete Request"
-                          className="p-1.5 bg-[#FAF7F2] hover:bg-rose-50 text-rose-600 border border-[#EBE3DB] rounded-lg text-xs font-semibold transition cursor-pointer"
+                          className="p-1.5 bg-[color:var(--crm-bg-app)] hover:bg-rose-50 text-rose-600 border border-[color:var(--crm-border-default)] rounded-lg text-xs font-semibold transition cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -395,15 +395,15 @@ export default function MissedPunchPage() {
       {/* Submit Missed Punch Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-orange-600" />
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <h2 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-crm-brand-600" />
                 Submit Missed Punch Request
               </h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-[#70665F] hover:text-[#211B17]"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -411,7 +411,7 @@ export default function MissedPunchPage() {
 
             <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-[#70665F] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Select Employee <span className="text-rose-500">*</span>
                 </label>
                 <select
@@ -420,8 +420,8 @@ export default function MissedPunchPage() {
                     setFormData({ ...formData, employeeId: e.target.value });
                     if (formErrors.employeeId) setFormErrors({ ...formErrors, employeeId: '' });
                   }}
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border rounded-xl text-[#211B17] focus:outline-none focus:border-orange-500 cursor-pointer font-medium ${
-                    formErrors.employeeId ? 'border-rose-400 bg-rose-50' : 'border-[#EBE3DB]'
+                  className={`w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none focus:border-orange-500 cursor-pointer font-medium ${
+                    formErrors.employeeId ? 'border-rose-400 bg-rose-50' : 'border-[color:var(--crm-border-default)]'
                   }`}
                 >
                   <option value="">-- Select Employee --</option>
@@ -440,7 +440,7 @@ export default function MissedPunchPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     Date <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -450,8 +450,8 @@ export default function MissedPunchPage() {
                       setFormData({ ...formData, date: e.target.value });
                       if (formErrors.date) setFormErrors({ ...formErrors, date: '' });
                     }}
-                    className={`w-full px-3 py-2 bg-[#FAF7F2] border rounded-xl text-[#211B17] focus:outline-none focus:border-orange-500 font-mono ${
-                      formErrors.date ? 'border-rose-400 bg-rose-50' : 'border-[#EBE3DB]'
+                    className={`w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none focus:border-orange-500 font-mono ${
+                      formErrors.date ? 'border-rose-400 bg-rose-50' : 'border-[color:var(--crm-border-default)]'
                     }`}
                   />
                   {formErrors.date && (
@@ -462,13 +462,13 @@ export default function MissedPunchPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     Punch Type <span className="text-rose-500">*</span>
                   </label>
                   <select
                     value={formData.missingPunchType}
                     onChange={(e) => setFormData({ ...formData, missingPunchType: e.target.value as any })}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] focus:outline-none focus:border-orange-500 cursor-pointer font-medium"
+                    className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none focus:border-orange-500 cursor-pointer font-medium"
                   >
                     <option value="Check-In">Check-In</option>
                     <option value="Check-Out">Check-Out</option>
@@ -478,7 +478,7 @@ export default function MissedPunchPage() {
               </div>
 
               <div>
-                <label className="block text-[#70665F] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Requested Exact Time <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -489,8 +489,8 @@ export default function MissedPunchPage() {
                     setFormData({ ...formData, requestedTime: e.target.value });
                     if (formErrors.requestedTime) setFormErrors({ ...formErrors, requestedTime: '' });
                   }}
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border rounded-xl text-[#211B17] font-mono focus:outline-none focus:border-orange-500 ${
-                    formErrors.requestedTime ? 'border-rose-400 bg-rose-50' : 'border-[#EBE3DB]'
+                  className={`w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border rounded-xl text-[color:var(--crm-text-primary)] font-mono focus:outline-none focus:border-orange-500 ${
+                    formErrors.requestedTime ? 'border-rose-400 bg-rose-50' : 'border-[color:var(--crm-border-default)]'
                   }`}
                 />
                 {formErrors.requestedTime && (
@@ -501,7 +501,7 @@ export default function MissedPunchPage() {
               </div>
 
               <div>
-                <label className="block text-[#70665F] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Reason / Technical Justification <span className="text-rose-500">*</span>
                 </label>
                 <textarea
@@ -512,8 +512,8 @@ export default function MissedPunchPage() {
                     setFormData({ ...formData, reason: e.target.value });
                     if (formErrors.reason) setFormErrors({ ...formErrors, reason: '' });
                   }}
-                  className={`w-full px-3 py-2 bg-[#FAF7F2] border rounded-xl text-[#211B17] focus:outline-none focus:border-orange-500 ${
-                    formErrors.reason ? 'border-rose-400 bg-rose-50' : 'border-[#EBE3DB]'
+                  className={`w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none focus:border-orange-500 ${
+                    formErrors.reason ? 'border-rose-400 bg-rose-50' : 'border-[color:var(--crm-border-default)]'
                   }`}
                 />
                 {formErrors.reason && (
@@ -523,11 +523,11 @@ export default function MissedPunchPage() {
                 )}
               </div>
 
-              <div className="pt-3 border-t border-[#EBE3DB] flex justify-end gap-2.5">
+              <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#EFE9E1] text-[#544B45] font-semibold rounded-xl border border-[#EBE3DB]"
+                  className="px-4 py-2 bg-[color:var(--crm-bg-app)] hover:bg-[#E1E5EF] text-[color:var(--crm-text-secondary)] font-semibold rounded-xl border border-[color:var(--crm-border-default)]"
                 >
                   Cancel
                 </button>
@@ -546,48 +546,48 @@ export default function MissedPunchPage() {
       {/* Edit / Update Modal */}
       {editingRequest && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
-                <Edit3 className="w-4 h-4 text-orange-600" />
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <h2 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
+                <Edit3 className="w-4 h-4 text-crm-brand-600" />
                 Update Missed Punch: {editingRequest.requestNumber}
               </h2>
               <button
                 onClick={() => setEditingRequest(null)}
-                className="text-[#70665F] hover:text-[#211B17]"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveEdit} className="space-y-3.5 text-xs">
-              <div className="bg-[#FAF7F2] p-3 rounded-xl border border-[#EBE3DB] flex items-center justify-between">
+              <div className="bg-[color:var(--crm-bg-app)] p-3 rounded-xl border border-[color:var(--crm-border-default)] flex items-center justify-between">
                 <div>
-                  <div className="text-[#70665F] text-[10px]">Employee</div>
-                  <div className="font-bold text-[#211B17]">{editingRequest.employeeName}</div>
+                  <div className="text-[color:var(--crm-text-secondary)] text-[10px]">Employee</div>
+                  <div className="font-bold text-[color:var(--crm-text-primary)]">{editingRequest.employeeName}</div>
                 </div>
                 <div>
-                  <div className="text-[#70665F] text-[10px]">Req Number</div>
+                  <div className="text-[color:var(--crm-text-secondary)] text-[10px]">Req Number</div>
                   <div className="font-mono font-bold text-orange-600">{editingRequest.requestNumber}</div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Date</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Date</label>
                   <input
                     type="date"
                     value={editFormData.date || ''}
                     onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] font-mono focus:outline-none"
+                    className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] font-mono focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Punch Type</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Punch Type</label>
                   <select
                     value={editFormData.missingPunchType || 'Check-Out'}
                     onChange={(e) => setEditFormData({ ...editFormData, missingPunchType: e.target.value as any })}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] focus:outline-none cursor-pointer font-medium"
+                    className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none cursor-pointer font-medium"
                   >
                     <option value="Check-In">Check-In</option>
                     <option value="Check-Out">Check-Out</option>
@@ -598,20 +598,20 @@ export default function MissedPunchPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Requested Time</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Requested Time</label>
                   <input
                     type="text"
                     value={editFormData.requestedTime || ''}
                     onChange={(e) => setEditFormData({ ...editFormData, requestedTime: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] font-mono focus:outline-none"
+                    className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] font-mono focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Status</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Status</label>
                   <select
                     value={editFormData.status || 'Pending'}
                     onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value as any })}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] focus:outline-none cursor-pointer font-semibold"
+                    className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none cursor-pointer font-semibold"
                   >
                     <option value="Pending">Pending</option>
                     <option value="Approved">Approved</option>
@@ -621,20 +621,20 @@ export default function MissedPunchPage() {
               </div>
 
               <div>
-                <label className="block text-[#70665F] font-semibold mb-1">Reason</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Reason</label>
                 <textarea
                   rows={2}
                   value={editFormData.reason || ''}
                   onChange={(e) => setEditFormData({ ...editFormData, reason: e.target.value })}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] focus:outline-none"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none"
                 />
               </div>
 
-              <div className="pt-3 border-t border-[#EBE3DB] flex justify-end gap-2.5">
+              <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setEditingRequest(null)}
-                  className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#EFE9E1] text-[#544B45] font-semibold rounded-xl border border-[#EBE3DB]"
+                  className="px-4 py-2 bg-[color:var(--crm-bg-app)] hover:bg-[#E1E5EF] text-[color:var(--crm-text-secondary)] font-semibold rounded-xl border border-[color:var(--crm-border-default)]"
                 >
                   Cancel
                 </button>
@@ -653,44 +653,44 @@ export default function MissedPunchPage() {
       {/* Reject Modal */}
       {rejectingRequest && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
               <h2 className="text-base font-bold text-rose-700 flex items-center gap-2">
                 <XCircle className="w-5 h-5 text-rose-600" />
                 Reject Missed Punch Request
               </h2>
               <button
                 onClick={() => setRejectingRequest(null)}
-                className="text-[#70665F] hover:text-[#211B17]"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleConfirmReject} className="space-y-3.5 text-xs">
-              <div className="text-[#544B45]">
+              <div className="text-[color:var(--crm-text-secondary)]">
                 Are you sure you want to reject the missed punch request for{' '}
-                <span className="font-bold text-[#211B17]">{rejectingRequest.employeeName}</span>{' '}
+                <span className="font-bold text-[color:var(--crm-text-primary)]">{rejectingRequest.employeeName}</span>{' '}
                 ({rejectingRequest.requestNumber})?
               </div>
 
               <div>
-                <label className="block text-[#70665F] font-semibold mb-1">Rejection Reason</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Rejection Reason</label>
                 <textarea
                   rows={3}
                   required
                   placeholder="Enter reason for rejection..."
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] focus:outline-none focus:border-rose-500"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none focus:border-rose-500"
                 />
               </div>
 
-              <div className="pt-3 border-t border-[#EBE3DB] flex justify-end gap-2.5">
+              <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setRejectingRequest(null)}
-                  className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#EFE9E1] text-[#544B45] font-semibold rounded-xl border border-[#EBE3DB]"
+                  className="px-4 py-2 bg-[color:var(--crm-bg-app)] hover:bg-[#E1E5EF] text-[color:var(--crm-text-secondary)] font-semibold rounded-xl border border-[color:var(--crm-border-default)]"
                 >
                   Cancel
                 </button>
@@ -709,18 +709,18 @@ export default function MissedPunchPage() {
       {/* Delete Confirmation Modal */}
       {deletingId && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
             <div className="flex items-center gap-3 text-rose-600">
               <AlertCircle className="w-6 h-6" />
-              <h3 className="font-bold text-sm text-[#211B17]">Delete Missed Punch Record?</h3>
+              <h3 className="font-bold text-sm text-[color:var(--crm-text-primary)]">Delete Missed Punch Record?</h3>
             </div>
-            <p className="text-xs text-[#70665F]">
+            <p className="text-xs text-[color:var(--crm-text-secondary)]">
               Are you sure you want to delete this record? This action cannot be undone.
             </p>
             <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={() => setDeletingId(null)}
-                className="px-3.5 py-1.5 bg-[#FAF7F2] hover:bg-[#EFE9E1] text-[#544B45] text-xs font-semibold rounded-xl border border-[#EBE3DB]"
+                className="px-3.5 py-1.5 bg-[color:var(--crm-bg-app)] hover:bg-[#E1E5EF] text-[color:var(--crm-text-secondary)] text-xs font-semibold rounded-xl border border-[color:var(--crm-border-default)]"
               >
                 Cancel
               </button>

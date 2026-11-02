@@ -286,7 +286,7 @@ export function ProjectTasksDetailView({ planId }: ProjectTasksDetailViewProps) 
     <div className="space-y-5 animate-in fade-in duration-150">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-5 right-5 z-50 bg-[#211B17] text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-[#EBE3DB]/20 text-xs animate-in slide-in-from-top-2 duration-200">
+        <div className="fixed top-5 right-5 z-50 bg-[color:var(--crm-text-primary)] text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-[#E2E7EF]/20 text-xs animate-in slide-in-from-top-2 duration-200">
           <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
           <div>
             <div className="font-bold text-emerald-300">{toastMessage.title}</div>
@@ -340,7 +340,7 @@ export function ProjectTasksDetailView({ planId }: ProjectTasksDetailViewProps) 
 
             <Link
               href={`/projects/planning?mode=edit&id=${currentPlan.id}`}
-              className="px-3.5 py-2 bg-white border border-[#EBE3DB] hover:bg-slate-50 text-xs font-bold text-slate-700 rounded-xl transition flex items-center gap-1.5 shadow-xs"
+              className="px-3.5 py-2 bg-white border border-[color:var(--crm-border-default)] hover:bg-slate-50 text-xs font-bold text-slate-700 rounded-xl transition flex items-center gap-1.5 shadow-xs"
             >
               <ExternalLink className="w-3.5 h-3.5 text-purple-700" />
               <span>Edit in Master Planning</span>
@@ -374,7 +374,7 @@ export function ProjectTasksDetailView({ planId }: ProjectTasksDetailViewProps) 
               </span>
             </div>
 
-            <h1 className="text-xl sm:text-2xl font-black text-[#211B17]">
+            <h1 className="text-xl sm:text-2xl font-black text-[color:var(--crm-text-primary)]">
               {currentPlan.customerName}
             </h1>
             <p className="text-xs font-medium text-slate-600">
@@ -397,10 +397,10 @@ export function ProjectTasksDetailView({ planId }: ProjectTasksDetailViewProps) 
           </div>
 
           {/* Big Progress Meter */}
-          <div className="bg-[#FAF7F2] p-4.5 rounded-xl border border-[#EBE3DB] min-w-[260px] space-y-2">
+          <div className="bg-[color:var(--crm-bg-app)] p-4.5 rounded-xl border border-[color:var(--crm-border-default)] min-w-[260px] space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#544B45]">Overall Project Progress</span>
-              <span className="text-xl font-black text-[#7C3AED] font-mono">
+              <span className="text-xs font-bold text-[color:var(--crm-text-secondary)]">Overall Project Progress</span>
+              <span className="text-xl font-black text-[color:var(--crm-brand-600)] font-mono">
                 {currentPlan.overallProgress || 0}%
               </span>
             </div>
@@ -409,7 +409,7 @@ export function ProjectTasksDetailView({ planId }: ProjectTasksDetailViewProps) 
                 className={`h-full rounded-full transition-all duration-500 ${
                   (currentPlan.overallProgress || 0) >= 100
                     ? 'bg-emerald-500'
-                    : 'bg-gradient-to-r from-[#7C3AED] to-emerald-500'
+                    : 'bg-gradient-to-r from-[color:var(--crm-brand-600)] to-emerald-500'
                 }`}
                 style={{ width: `${Math.min(currentPlan.overallProgress || 0, 100)}%` }}
               />
@@ -431,8 +431,8 @@ export function ProjectTasksDetailView({ planId }: ProjectTasksDetailViewProps) 
         {/* Header & Local Filters */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200 pb-3.5">
           <div>
-            <h2 className="text-base font-black text-[#211B17] flex items-center gap-2">
-              <Workflow className="w-5 h-5 text-amber-600" />
+            <h2 className="text-base font-black text-[color:var(--crm-text-primary)] flex items-center gap-2">
+              <Workflow className="w-5 h-5 text-crm-brand-600" />
               <span>Project Operations &amp; Tasks Board</span>
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -449,14 +449,14 @@ export function ProjectTasksDetailView({ planId }: ProjectTasksDetailViewProps) 
                 placeholder="Search tasks, bay, team..."
                 value={taskSearchQuery}
                 onChange={(e) => setTaskSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-[#211B17]"
+                className="w-full pl-9 pr-3 py-1.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-[color:var(--crm-text-primary)]"
               />
             </div>
 
             <select
               value={taskStatusFilter}
               onChange={(e) => setTaskStatusFilter(e.target.value as any)}
-              className="w-full sm:w-auto px-3 py-1.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-[#211B17]"
+              className="w-full sm:w-auto px-3 py-1.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-[color:var(--crm-text-primary)]"
             >
               <option value="all">All Tasks ({totalCount})</option>
               <option value="in_progress">In Progress ({inProgressCount})</option>
@@ -468,7 +468,7 @@ export function ProjectTasksDetailView({ planId }: ProjectTasksDetailViewProps) 
 
         {/* List of Tasks */}
         {!filteredTasks || filteredTasks.length === 0 ? (
-          <div className="p-8 text-center text-slate-400 bg-[#FAF7F2] rounded-xl border border-dashed border-slate-200">
+          <div className="p-8 text-center text-slate-400 bg-[color:var(--crm-bg-app)] rounded-xl border border-dashed border-slate-200">
             <p className="text-sm font-semibold text-slate-600">
               {taskSearchQuery ? 'No tasks matched your search query.' : 'No tasks have been planned for this project yet.'}
             </p>
@@ -503,7 +503,7 @@ export function ProjectTasksDetailView({ planId }: ProjectTasksDetailViewProps) 
                       ? 'bg-emerald-50/40 border-emerald-200'
                       : isInProgress
                       ? 'bg-blue-50/50 border-blue-300 shadow-sm ring-2 ring-blue-500/20'
-                      : 'bg-[#FAF7F2] border-[#EBE3DB]'
+                      : 'bg-[color:var(--crm-bg-app)] border-[color:var(--crm-border-default)]'
                   }`}
                 >
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -523,7 +523,7 @@ export function ProjectTasksDetailView({ planId }: ProjectTasksDetailViewProps) 
 
                       <div className="space-y-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-bold text-sm text-[#211B17]">
+                          <span className="font-bold text-sm text-[color:var(--crm-text-primary)]">
                             {task.taskName}
                           </span>
                           {task.department && (
@@ -552,17 +552,17 @@ export function ProjectTasksDetailView({ planId }: ProjectTasksDetailViewProps) 
 
                         {/* Supervisor Stage Reached & Work Done Banner */}
                         {(task.stageReached || task.workDoneDetails || task.supervisorName) && (
-                          <div className="bg-amber-50/70 border border-amber-200/80 rounded-lg p-2 text-xs text-[#211B17] space-y-0.5">
+                          <div className="bg-amber-50/70 border border-amber-200/80 rounded-lg p-2 text-xs text-[color:var(--crm-text-primary)] space-y-0.5">
                             <div className="flex flex-wrap items-center gap-3">
                               {task.supervisorName && (
                                 <span className="font-bold text-slate-800 flex items-center gap-1">
-                                  <Users className="w-3 h-3 text-amber-600" />
+                                  <Users className="w-3 h-3 text-crm-brand-600" />
                                   {task.supervisorName}
                                 </span>
                               )}
                               {task.stageReached && (
                                 <span className="text-amber-900 font-semibold flex items-center gap-1">
-                                  <MapPin className="w-3 h-3 text-amber-600" />
+                                  <MapPin className="w-3 h-3 text-crm-brand-600" />
                                   {task.stageReached} {task.workstationOrBay ? `(${task.workstationOrBay})` : ''}
                                 </span>
                               )}
@@ -599,7 +599,7 @@ export function ProjectTasksDetailView({ planId }: ProjectTasksDetailViewProps) 
 
                           {/* Timeline */}
                           <div className="flex items-center gap-1.5 font-mono text-[11px]">
-                            <Calendar className="w-3.5 h-3.5 text-amber-600" />
+                            <Calendar className="w-3.5 h-3.5 text-crm-brand-600" />
                             <span className="text-slate-500">Timeline:</span>
                             <strong className="text-slate-800">{formatDate(task.startDate)}</strong>
                             <span className="text-slate-400">to</span>
@@ -620,7 +620,7 @@ export function ProjectTasksDetailView({ planId }: ProjectTasksDetailViewProps) 
                       <div className="space-y-1 w-full sm:w-44">
                         <div className="flex items-center justify-between text-xs font-mono">
                           <span className="text-[11px] text-slate-500">Progress:</span>
-                          <span className={`font-bold ${isCompleted ? 'text-emerald-700' : 'text-[#7C3AED]'}`}>
+                          <span className={`font-bold ${isCompleted ? 'text-emerald-700' : 'text-[color:var(--crm-brand-600)]'}`}>
                             {task.progressPercent || 0}%
                           </span>
                         </div>
@@ -709,7 +709,7 @@ export function ProjectTasksDetailView({ planId }: ProjectTasksDetailViewProps) 
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden my-6">
             {/* Modal Header */}
-            <div className="bg-[#211B17] text-white p-4.5 flex items-center justify-between">
+            <div className="bg-[color:var(--crm-text-primary)] text-white p-4.5 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center font-bold">
                   <Factory className="w-5 h-5" />
@@ -737,7 +737,7 @@ export function ProjectTasksDetailView({ planId }: ProjectTasksDetailViewProps) 
             <div className="bg-amber-50/70 border-b border-amber-200 p-3.5 flex flex-wrap items-center justify-between gap-2 text-xs">
               <div>
                 <span className="text-slate-500 text-[11px]">Operation / Task:</span>
-                <div className="font-black text-[#211B17] text-sm">{activeModalData.task.taskName}</div>
+                <div className="font-black text-[color:var(--crm-text-primary)] text-sm">{activeModalData.task.taskName}</div>
               </div>
               <div className="flex items-center gap-2">
                 <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-200">
@@ -799,7 +799,7 @@ export function ProjectTasksDetailView({ planId }: ProjectTasksDetailViewProps) 
                   <select
                     value={modalStatus}
                     onChange={(e) => setModalStatus(e.target.value as 'pending' | 'in_progress' | 'completed' | 'on_hold')}
-                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 text-[#211B17]"
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 text-[color:var(--crm-text-primary)]"
                   >
                     <option value="pending">Pending / Not Started</option>
                     <option value="in_progress">In Progress (Active Work)</option>
@@ -834,7 +834,7 @@ export function ProjectTasksDetailView({ planId }: ProjectTasksDetailViewProps) 
                   value={modalWorkDone}
                   onChange={(e) => setModalWorkDone(e.target.value)}
                   placeholder="Enter detailed description of what was completed on the shopfloor..."
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500 text-[#211B17]"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500 text-[color:var(--crm-text-primary)]"
                 />
               </div>
 
@@ -864,7 +864,7 @@ export function ProjectTasksDetailView({ planId }: ProjectTasksDetailViewProps) 
                     value={modalStage}
                     onChange={(e) => setModalStage(e.target.value)}
                     placeholder="e.g. Bay 3 - Shell Rolling & Tack Fitment"
-                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500 text-[#211B17]"
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500 text-[color:var(--crm-text-primary)]"
                   />
                 </div>
 
@@ -877,7 +877,7 @@ export function ProjectTasksDetailView({ planId }: ProjectTasksDetailViewProps) 
                     value={modalBay}
                     onChange={(e) => setModalBay(e.target.value)}
                     placeholder="e.g. Bay 2, Machine #04, Plasma Table"
-                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500 text-[#211B17]"
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500 text-[color:var(--crm-text-primary)]"
                   />
                   <span className="text-[10px] text-slate-400">
                     Identify specific shopfloor location or machine assigned
@@ -894,7 +894,7 @@ export function ProjectTasksDetailView({ planId }: ProjectTasksDetailViewProps) 
                   <select
                     value={modalSupervisor}
                     onChange={(e) => setModalSupervisor(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 text-[#211B17]"
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 text-[color:var(--crm-text-primary)]"
                   >
                     <option value="">-- Choose Supervisor --</option>
                     {staffList.map((emp) => {
@@ -921,7 +921,7 @@ export function ProjectTasksDetailView({ planId }: ProjectTasksDetailViewProps) 
                     value={modalNotes}
                     onChange={(e) => setModalNotes(e.target.value)}
                     placeholder="Any material delay, drawing question, or instruction..."
-                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500 text-[#211B17]"
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500 text-[color:var(--crm-text-primary)]"
                   />
                 </div>
               </div>

@@ -1076,7 +1076,7 @@ interface ERPContextType {
   toggleGoLiveItem: (id: string) => void;
 }
 
-export const CURRENT_ERP_CACHE_VERSION = '2026.10.14-stable-v1';
+export const CURRENT_ERP_CACHE_VERSION = '2026.11.01-no-seed-data-v1';
 
 // Synchronous wipe if version is older (runs before any useState initializer):
 if (typeof window !== 'undefined') {
@@ -1090,6 +1090,18 @@ if (typeof window !== 'undefined') {
           localStorage.removeItem(k);
         }
       }
+      // One-time removal of sample records that older builds seeded into browser storage.
+      // Only these exact sample records are dropped; every real record is kept.
+      const dropSamples = (storageKey: string, isSample: (r: any) => boolean) => {
+        try {
+          const raw = localStorage.getItem(storageKey);
+          if (!raw) return;
+          const arr = JSON.parse(raw);
+          if (Array.isArray(arr)) localStorage.setItem(storageKey, JSON.stringify(arr.filter((r) => !isSample(r))));
+        } catch (_) {}
+      };
+      dropSamples('UMA_ERP_projectPlanningRecords', (r) => ['PLN-2026-0001', 'PLN-2026-0002'].includes(r?.id) && /Infinite Engineering|Reliance/i.test(r?.customerName || ''));
+      dropSamples('UMA_ERP_serviceRequests', (r) => ['SR-2026-0001', 'SR-2026-0002', 'SR-2026-0003'].includes(r?.id) && /Reliance|Tata|Infinite/i.test(r?.customerName || ''));
       localStorage.setItem('UMA_ERP_VERSION', CURRENT_ERP_CACHE_VERSION);
     }
   } catch (_) {}
@@ -2229,176 +2241,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     return DEFAULT_MASTER_TASKS;
   });
 
-  const DEFAULT_PROJECT_PLANNING_RECORDS: ProjectPlanningRecord[] = [
-    {
-      id: 'PLN-2026-0001',
-      planningNumber: 'PLN-2026-0001',
-      projectId: 'PRJ-2026-0001',
-      projectNumber: 'PRJ-2026-0001',
-      customerName: 'Infinite Engineering Solutions',
-      productName: 'Custom Chemical Reactor (3000L Limpet Coil Vessel)',
-      customerPoNumber: 'PO-INF-2026-981',
-      deliveryDate: '2026-11-20',
-      totalTasks: 6,
-      completedTasks: 1,
-      overallProgress: 17,
-      status: 'in_progress',
-      createdAt: '2026-10-01T08:00:00.000Z',
-      updatedAt: '2026-10-18T10:00:00.000Z',
-      tasks: [
-        {
-          id: 'TSK-PRJ1-01',
-          masterTaskId: 'MT-004',
-          taskName: 'CNC High-Definition Laser & Plasma Plate Cutting',
-          assignedPersons: ['Vikram Rathore', 'Shop Bay 1 Team'],
-          startDate: '2026-10-02',
-          endDate: '2026-10-05',
-          durationDays: 3,
-          status: 'completed',
-          progressPercent: 100,
-          remarks: 'Shell and dish profile cutting finished with precision.',
-        },
-        {
-          id: 'TSK-PRJ1-02',
-          masterTaskId: 'MT-005',
-          taskName: 'Hydraulic 4-Roll Plate Bending & Dish End Rolling',
-          assignedPersons: ['Vikram Rathore', 'Manoj Sharma'],
-          startDate: '2026-10-06',
-          endDate: '2026-10-10',
-          durationDays: 4,
-          status: 'in_progress',
-          progressPercent: 50,
-          remarks: 'Shell rolling to 2200mm diameter in progress.',
-        },
-        {
-          id: 'TSK-PRJ1-03',
-          masterTaskId: 'MT-006',
-          taskName: 'Shell, Dish End & Limpet Coil Fit-Up Assembly',
-          assignedPersons: ['Kailash Mistri', 'Suresh Parmar'],
-          startDate: '2026-10-11',
-          endDate: '2026-10-15',
-          durationDays: 4,
-          status: 'pending',
-          progressPercent: 0,
-          remarks: 'Tack welding and alignment of limpet coils.',
-        },
-        {
-          id: 'TSK-PRJ1-04',
-          masterTaskId: 'MT-007',
-          taskName: 'Longitudinal Seam, Circ Seam & Nozzle TIG/SAW Welding',
-          assignedPersons: ['Ramesh Solanki', 'Certified Welder Team'],
-          startDate: '2026-10-16',
-          endDate: '2026-10-23',
-          durationDays: 7,
-          status: 'pending',
-          progressPercent: 0,
-          remarks: 'Full radiography standard ASME Sec IX welding.',
-        },
-        {
-          id: 'TSK-PRJ1-05',
-          masterTaskId: 'MT-014',
-          taskName: 'Hydrostatic Pressure Testing (45 Bar) & Quality Inspection',
-          assignedPersons: ['Quality Inspection Team', 'TPI Third Party'],
-          startDate: '2026-10-24',
-          endDate: '2026-10-28',
-          durationDays: 4,
-          status: 'pending',
-          progressPercent: 0,
-          remarks: 'Holding for 2 hours with calibrated pressure gauge.',
-        },
-        {
-          id: 'TSK-PRJ1-06',
-          masterTaskId: 'MT-008',
-          taskName: 'Surface Preparation, Sand Blasting & Polyurethane Enamel Topcoat',
-          assignedPersons: ['Finishing & Painting Crew'],
-          startDate: '2026-10-29',
-          endDate: '2026-11-04',
-          durationDays: 6,
-          status: 'pending',
-          progressPercent: 0,
-          remarks: 'Application of Berger Luxol PU Enamel Topcoat (RAL 7035).',
-        },
-      ],
-    },
-    {
-      id: 'PLN-2026-0002',
-      planningNumber: 'PLN-2026-0002',
-      projectId: 'PRJ-2026-0002',
-      projectNumber: 'PRJ-2026-0002',
-      customerName: 'Reliance Life Sciences Ltd',
-      productName: 'Pharmaceutical Grade Storage Tank (1500L SS 316L)',
-      customerPoNumber: 'PO-RLS-4402',
-      deliveryDate: '2026-11-28',
-      totalTasks: 5,
-      completedTasks: 0,
-      overallProgress: 0,
-      status: 'planned',
-      createdAt: '2026-10-05T09:00:00.000Z',
-      updatedAt: '2026-10-18T10:00:00.000Z',
-      tasks: [
-        {
-          id: 'TSK-PRJ2-01',
-          masterTaskId: 'MT-004',
-          taskName: 'Laser CNC Cutting of SS 316L Mirror Finish Plates',
-          assignedPersons: ['Shop Bay 1 Team'],
-          startDate: '2026-10-10',
-          endDate: '2026-10-13',
-          durationDays: 3,
-          status: 'pending',
-          progressPercent: 0,
-          remarks: 'Protective film preserved on both faces.',
-        },
-        {
-          id: 'TSK-PRJ2-02',
-          masterTaskId: 'MT-005',
-          taskName: 'Torispherical Dish Forming & Flanging',
-          assignedPersons: ['Manoj Sharma'],
-          startDate: '2026-10-14',
-          endDate: '2026-10-18',
-          durationDays: 4,
-          status: 'pending',
-          progressPercent: 0,
-          remarks: 'Spinning machine forming.',
-        },
-        {
-          id: 'TSK-PRJ2-03',
-          masterTaskId: 'MT-007',
-          taskName: 'Sanitary Orbital Pipe & Shell TIG Welding',
-          assignedPersons: ['Ramesh Solanki'],
-          startDate: '2026-10-19',
-          endDate: '2026-10-25',
-          durationDays: 6,
-          status: 'pending',
-          progressPercent: 0,
-          remarks: 'Purge gas backup with argon.',
-        },
-        {
-          id: 'TSK-PRJ2-04',
-          masterTaskId: 'MT-014',
-          taskName: 'Internal Mirror Polishing (Ra < 0.4 µm) & Hydro Test',
-          assignedPersons: ['Quality Inspection Team'],
-          startDate: '2026-10-26',
-          endDate: '2026-11-02',
-          durationDays: 7,
-          status: 'pending',
-          progressPercent: 0,
-          remarks: 'Electro-polishing and surface roughness certification.',
-        },
-        {
-          id: 'TSK-PRJ2-05',
-          masterTaskId: 'MT-016',
-          taskName: 'Cleanroom Packaging, Nitrogen Purging & Sealing',
-          assignedPersons: ['Dispatch Team'],
-          startDate: '2026-11-03',
-          endDate: '2026-11-06',
-          durationDays: 3,
-          status: 'pending',
-          progressPercent: 0,
-          remarks: 'Double-wrapped with vapor barrier.',
-        },
-      ],
-    },
-  ];
+  const DEFAULT_PROJECT_PLANNING_RECORDS: ProjectPlanningRecord[] = [];
 
   const [projectPlanningRecords, setProjectPlanningRecords] = useState<ProjectPlanningRecord[]>(() => {
     if (typeof window !== 'undefined') {
@@ -4442,7 +4285,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           bomRevision: i.bomRevision || i.bom_revision || 'Rev-01',
           productionStage: i.productionStage || i.production_stage || 'Shell & Dish End Cutting / Rolling',
           requestedBy: i.requestedBy || i.requested_by || i.issued_to || '',
-          issuedBy: i.issuedBy || i.issued_by || 'Hitesh Rawal (Store Head)',
+          issuedBy: i.issuedBy || i.issued_by || '',
           warehouseId: i.warehouseId || i.warehouse_id || 'wh-main',
           warehouseName: i.warehouseName || i.warehouse_name || 'Main Raw Material & Plate Yard',
           status: i.status || 'Fully Issued',
@@ -4470,7 +4313,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
           warehouseId: r.warehouseId || r.warehouse_id || 'wh-main',
           warehouseName: r.warehouseName || r.warehouse_name || 'Main Raw Material & Plate Yard',
           returnedBy: r.returnedBy || r.returned_by || 'Ketan Parmar (Shop Supervisor)',
-          receivedBy: r.receivedBy || r.received_by || 'Hitesh Rawal (Store Head)',
+          receivedBy: r.receivedBy || r.received_by || '',
           totalReturnValue: Number(r.totalReturnValue ?? r.total_return_value ?? 0),
           remarks: r.remarks || r.notes || '',
           items: Array.isArray(r.items) ? r.items : [],
@@ -4538,9 +4381,32 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
         api.production.holds.list(),
         api.production.wip.list(),
         api.production.routingOperations.list(),
+        api.production.completions.list(),
       ]);
 
       applyLive<ManufacturingJob>(val(results[0]), setManufacturingJobs, 'manufacturingJobs');
+
+      const rawCompletions = val<any[]>(results[12]);
+      if (rawCompletions && Array.isArray(rawCompletions)) {
+        setProductionCompletions(
+          rawCompletions.map((c: any) => ({
+            ...c,
+            id: String(c.id || c.completionNumber || c.completion_number),
+            completionNumber: c.completionNumber || c.completion_number || c.id,
+            completionDate: c.completionDate || c.completion_date || '',
+            jobId: c.jobId || c.job_id || '',
+            jobNumber: c.jobNumber || c.job_number || '',
+            workOrderNumber: c.workOrderNumber || c.work_order_number || '',
+            productName: c.productName || c.product_name || '',
+            completedQuantity: Number(c.completedQuantity ?? c.completed_quantity ?? 0),
+            rejectedQuantity: Number(c.rejectedQuantity ?? c.rejected_quantity ?? 0),
+            reworkQuantity: Number(c.reworkQuantity ?? c.rework_quantity ?? 0),
+            scrapQuantity: Number(c.scrapQuantity ?? c.scrap_quantity ?? 0),
+            completedBy: c.completedBy || c.completed_by || '',
+            qcStatus: c.qcStatus || c.qc_status || 'Passed',
+          }))
+        );
+      }
       applyLive<WorkCenter>(val(results[1]), setWorkCenters, 'workCenters');
 
       const woRes = val<WorkOrder[]>(results[2]);
@@ -5095,7 +4961,14 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
   // Route-Aware On-Demand Module Fetching (Uses 60s cache window to avoid refetching on every tab switch)
   useEffect(() => {
     if (!pathname) return;
-    if (pathname.startsWith('/users') || pathname.startsWith('/hr') || pathname.startsWith('/payroll')) {
+    if (pathname === '/' || pathname === '/dashboard') {
+      // The home dashboard summarises every module, so it needs all of them loaded
+      syncCRM(false).catch(() => {});
+      syncProjects(false).catch(() => {});
+      syncProduction(false).catch(() => {});
+      syncStore(false).catch(() => {});
+      syncIntegration(false).catch(() => {});
+    } else if (pathname.startsWith('/users') || pathname.startsWith('/hr') || pathname.startsWith('/payroll')) {
       syncHR(false).catch(() => {});
     } else if (pathname.startsWith('/crm') || pathname === '/sales') {
       syncCRM(false).catch(() => {});
@@ -13446,77 +13319,7 @@ export function ERPProvider({ children }: { children: React.ReactNode }) {
     return [];
   });
 
-  const DEFAULT_SERVICE_REQUESTS: ServiceRequest[] = [
-    {
-      id: 'SR-2026-0001',
-      requestNumber: 'SR-2026-0001',
-      requestDate: '2026-10-18',
-      customerName: 'Reliance Industries Limited',
-      contactNumber: '+91 98250 12345',
-      homeAddress: 'Plot 45, GIDC Chemical Zone, Dahej, Gujarat',
-      email: 'maintenance.dahej@ril.com',
-      requestType: 'Repair',
-      description: 'Primary mechanical seal leaking and vibration observed in reactor agitator gearbox.',
-      requestedDateTime: '2026-10-19T09:30',
-      preferredVisitDate: '2026-10-19',
-      urgencyLevel: 'Emergency',
-      priority: 'Critical',
-      applicantName: 'Vikram Joshi (Maintenance Mgr)',
-      requestSubmissionDate: '2026-10-18',
-      completedBy: 'Ramesh Mistri (Sr. Technician)',
-      completedDate: '2026-10-20',
-      approvedBy: 'Sunil Mehta (Plant Head)',
-      approvedDate: '2026-10-20',
-      status: 'Resolved',
-      createdAt: '2026-10-18T08:00:00.000Z',
-    },
-    {
-      id: 'SR-2026-0002',
-      requestNumber: 'SR-2026-0002',
-      requestDate: '2026-10-20',
-      customerName: 'Adani Ports & Special Economic Zone',
-      contactNumber: '+91 97240 67890',
-      homeAddress: 'Terminal 2, Mundra Port, Kutch, Gujarat',
-      email: 'service.mundra@adani.com',
-      requestType: 'Installation',
-      description: 'Erection & alignment commissioning for new 5000L SS316 holding vessel and piping hookup.',
-      requestedDateTime: '2026-10-22T11:00',
-      preferredVisitDate: '2026-10-22',
-      urgencyLevel: 'High',
-      priority: 'High',
-      applicantName: 'Hardik Shah (Project Lead)',
-      requestSubmissionDate: '2026-10-20',
-      completedBy: 'Devendra Parmar',
-      completedDate: '',
-      approvedBy: 'Bhavin Patel',
-      approvedDate: '',
-      status: 'Scheduled',
-      createdAt: '2026-10-20T10:15:00.000Z',
-    },
-    {
-      id: 'SR-2026-0003',
-      requestNumber: 'SR-2026-0003',
-      requestDate: '2026-10-21',
-      customerName: 'Torrent Pharmaceuticals Ltd',
-      contactNumber: '+91 98980 54321',
-      homeAddress: 'Indrad Plant, Mehsana Highway, Gujarat',
-      email: 'engineering@torrentpharma.com',
-      requestType: 'Maintenance',
-      description: 'Preventive health check-up, limpet coil hydro testing, and gasket replacement.',
-      requestedDateTime: '2026-10-25T14:00',
-      preferredVisitDate: '2026-10-25',
-      urgencyLevel: 'Medium',
-      priority: 'Medium',
-      applicantName: 'Priya Sharma (QC Officer)',
-      requestSubmissionDate: '2026-10-21',
-      completedBy: '',
-      completedDate: '',
-      approvedBy: '',
-      approvedDate: '',
-      status: 'In Progress',
-      createdAt: '2026-10-21T09:00:00.000Z',
-    },
-  ];
+  const DEFAULT_SERVICE_REQUESTS: ServiceRequest[] = [];
 
   const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>(() => {
     if (typeof window !== 'undefined') {

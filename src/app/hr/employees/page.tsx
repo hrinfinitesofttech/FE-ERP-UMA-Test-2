@@ -45,7 +45,7 @@ const COUNTRY_CODES = [
 ];
 
 function EmployeeMasterContent() {
-  const { availableEmployees, currentUser, departments, designations, salaryStructures, addEmployee, updateEmployee, updateEmployeePermissions, deleteEmployee, roles } = useERP();
+  const { availableEmployees, currentUser, departments, designations, salaryStructures, addEmployee, updateEmployee, updateEmployeePermissions, deleteEmployee, roles, employeeDocuments = [], employeeAppraisals = [], trainingPrograms = [], employeeAdvanceLoans = [], reimbursementExpenses = [] } = useERP();
   const searchParams = useSearchParams();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -468,7 +468,7 @@ function EmployeeMasterContent() {
         const empName = getEmpName(emp);
         return (
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-bold text-xs flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-full bg-crm-brand-50 text-crm-brand-700 font-bold text-xs flex items-center justify-center shrink-0">
               {empName.charAt(0)}
             </div>
             <div className="min-w-0">
@@ -609,34 +609,34 @@ function EmployeeMasterContent() {
         const freshEmp = availableEmployees.find(e => e.id === selectedEmployee.id) || selectedEmployee;
         return (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
             {/* Modal Header */}
-            <div className="p-6 bg-white/90 border-b border-[#EBE3DB] flex items-center justify-between">
+            <div className="p-6 bg-white/90 border-b border-[color:var(--crm-border-default)] flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-full bg-pink-600/30 border-2 border-pink-500 flex items-center justify-center text-xl font-black text-pink-500">
                   {getEmpName(freshEmp).charAt(0)}
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-[#211B17]">{getEmpName(freshEmp)}</h2>
-                  <p className="text-xs text-[#70665F]">
-                    Employee ID: <span className="font-mono font-bold text-[#211B17]">{freshEmp.id}</span> | Department: <span className="text-pink-600 font-semibold">{getEmpDept(freshEmp)}</span> | Role: <span className="font-medium text-[#211B17]">{freshEmp.role || freshEmp.roleName || freshEmp.designation || 'Staff'}</span>
+                  <h2 className="text-xl font-bold text-[color:var(--crm-text-primary)]">{getEmpName(freshEmp)}</h2>
+                  <p className="text-xs text-[color:var(--crm-text-secondary)]">
+                    Employee ID: <span className="font-mono font-bold text-[color:var(--crm-text-primary)]">{freshEmp.id}</span> | Department: <span className="text-pink-600 font-semibold">{getEmpDept(freshEmp)}</span> | Role: <span className="font-medium text-[color:var(--crm-text-primary)]">{freshEmp.role || freshEmp.roleName || freshEmp.designation || 'Staff'}</span>
                   </p>
                 </div>
               </div>
-              <button onClick={() => setSelectedEmployee(null)} className="p-2 hover:bg-[#FAF7F2] rounded-lg text-[#70665F] hover:text-[#211B17] transition cursor-pointer">
+              <button onClick={() => setSelectedEmployee(null)} className="p-2 hover:bg-[color:var(--crm-bg-app)] rounded-lg text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] transition cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Profile Tabs Bar (11 Tabs) */}
-            <div className="flex overflow-x-auto bg-white border-b border-[#EBE3DB] px-6 gap-1 scrollbar-none">
+            <div className="flex overflow-x-auto bg-white border-b border-[color:var(--crm-border-default)] px-6 gap-1 scrollbar-none">
               {(['Overview', 'Employment', 'Attendance', 'Leave', 'Payroll', 'Documents', 'Performance', 'Training', 'Advances', 'Expenses', 'Activity'] as const).map(
                 (tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={`py-3 px-3.5 text-xs font-semibold border-b-2 whitespace-nowrap transition cursor-pointer ${
-                      activeTab === tab ? 'border-pink-500 text-pink-600 font-bold' : 'border-transparent text-[#70665F] hover:text-[#3E2723]'
+                      activeTab === tab ? 'border-pink-500 text-pink-600 font-bold' : 'border-transparent text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]'
                     }`}
                   >
                     {tab}
@@ -646,35 +646,35 @@ function EmployeeMasterContent() {
             </div>
 
             {/* Tab Content Area */}
-            <div className="p-6 overflow-y-auto space-y-6 flex-1 text-sm text-[#3E2723]">
+            <div className="p-6 overflow-y-auto space-y-6 flex-1 text-sm text-[color:var(--crm-text-primary)]">
               {/* TAB 1: OVERVIEW */}
               {activeTab === 'Overview' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-[#FAF7F2]/60 p-4 rounded-xl border border-[#EBE3DB] space-y-3">
-                    <h3 className="text-xs font-bold text-[#70665F] uppercase tracking-wider flex items-center gap-2">
+                  <div className="bg-[#F4F6FA]/60 p-4 rounded-xl border border-[color:var(--crm-border-default)] space-y-3">
+                    <h3 className="text-xs font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider flex items-center gap-2">
                       <Users className="w-4 h-4 text-pink-500" /> Personal Information
                     </h3>
                     <div className="grid grid-cols-2 gap-2 text-xs">
-                      <span className="text-[#70665F]">Full Name:</span> <span className="font-semibold text-[#211B17]">{getEmpName(selectedEmployee)}</span>
-                      <span className="text-[#70665F]">Email Address:</span> <span className="text-[#544B45] font-mono">{selectedEmployee.email || 'N/A'}</span>
-                      <span className="text-[#70665F]">Mobile Number:</span> <span className="text-[#544B45] font-mono">{selectedEmployee.phone || selectedEmployee.mobile || '+91 98250 12345'}</span>
-                      <span className="text-[#70665F]">Gender:</span> <span className="text-[#544B45] capitalize">{selectedEmployee.gender || 'Male'}</span>
-                      <span className="text-[#70665F]">Date of Birth:</span> <span className="text-[#544B45] font-mono">{selectedEmployee.dob || '1992-08-14'}</span>
-                      <span className="text-[#70665F]">Residential Address:</span> <span className="text-[#544B45]">{selectedEmployee.address || 'GIDC Industrial Area, Vatva, Ahmedabad'}</span>
+                      <span className="text-[color:var(--crm-text-secondary)]">Full Name:</span> <span className="font-semibold text-[color:var(--crm-text-primary)]">{getEmpName(selectedEmployee)}</span>
+                      <span className="text-[color:var(--crm-text-secondary)]">Email Address:</span> <span className="text-[color:var(--crm-text-secondary)] font-mono">{selectedEmployee.email || 'N/A'}</span>
+                      <span className="text-[color:var(--crm-text-secondary)]">Mobile Number:</span> <span className="text-[color:var(--crm-text-secondary)] font-mono">{selectedEmployee.phone || selectedEmployee.mobile || '+91 98250 12345'}</span>
+                      <span className="text-[color:var(--crm-text-secondary)]">Gender:</span> <span className="text-[color:var(--crm-text-secondary)] capitalize">{selectedEmployee.gender || 'Male'}</span>
+                      <span className="text-[color:var(--crm-text-secondary)]">Date of Birth:</span> <span className="text-[color:var(--crm-text-secondary)] font-mono">{selectedEmployee.dob || '1992-08-14'}</span>
+                      <span className="text-[color:var(--crm-text-secondary)]">Residential Address:</span> <span className="text-[color:var(--crm-text-secondary)]">{selectedEmployee.address || 'GIDC Industrial Area, Vatva, Ahmedabad'}</span>
                     </div>
                   </div>
 
-                  <div className="bg-[#FAF7F2]/60 p-4 rounded-xl border border-[#EBE3DB] space-y-3">
-                    <h3 className="text-xs font-bold text-[#70665F] uppercase tracking-wider flex items-center gap-2">
+                  <div className="bg-[#F4F6FA]/60 p-4 rounded-xl border border-[color:var(--crm-border-default)] space-y-3">
+                    <h3 className="text-xs font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider flex items-center gap-2">
                       <Briefcase className="w-4 h-4 text-crm-brand-500" /> Employment Summary
                     </h3>
                     <div className="grid grid-cols-2 gap-2 text-xs">
-                      <span className="text-[#70665F]">Department:</span> <span className="font-semibold text-pink-600">{getEmpDept(selectedEmployee)}</span>
-                      <span className="text-[#70665F]">Designation:</span> <span className="text-[#544B45]">{selectedEmployee.role || selectedEmployee.designation || 'Staff'}</span>
-                      <span className="text-[#70665F]">Date of Joining:</span> <span className="text-[#544B45] font-mono">{selectedEmployee.joinedDate || selectedEmployee.joiningDate || '2022-01-15'}</span>
-                      <span className="text-[#70665F]">Employment Type:</span> <span className="text-[#544B45] capitalize">{selectedEmployee.employmentType || 'Full Time'}</span>
-                      <span className="text-[#70665F]">Current Status:</span> <span className="font-semibold text-emerald-600">{selectedEmployee.status || 'Active'}</span>
-                      <span className="text-[#70665F]">Work Location:</span> <span className="text-[#544B45]">UMA Plant 1, Phase 2, Vatva</span>
+                      <span className="text-[color:var(--crm-text-secondary)]">Department:</span> <span className="font-semibold text-pink-600">{getEmpDept(selectedEmployee)}</span>
+                      <span className="text-[color:var(--crm-text-secondary)]">Designation:</span> <span className="text-[color:var(--crm-text-secondary)]">{selectedEmployee.role || selectedEmployee.designation || 'Staff'}</span>
+                      <span className="text-[color:var(--crm-text-secondary)]">Date of Joining:</span> <span className="text-[color:var(--crm-text-secondary)] font-mono">{selectedEmployee.joinedDate || selectedEmployee.joiningDate || '2022-01-15'}</span>
+                      <span className="text-[color:var(--crm-text-secondary)]">Employment Type:</span> <span className="text-[color:var(--crm-text-secondary)] capitalize">{selectedEmployee.employmentType || 'Full Time'}</span>
+                      <span className="text-[color:var(--crm-text-secondary)]">Current Status:</span> <span className="font-semibold text-emerald-600">{selectedEmployee.status || 'Active'}</span>
+                      <span className="text-[color:var(--crm-text-secondary)]">Work Location:</span> <span className="text-[color:var(--crm-text-secondary)]">UMA Plant 1, Phase 2, Vatva</span>
                     </div>
                   </div>
                 </div>
@@ -682,34 +682,34 @@ function EmployeeMasterContent() {
 
               {/* TAB 2: EMPLOYMENT */}
               {activeTab === 'Employment' && (
-                <div className="bg-[#FAF7F2]/60 p-5 rounded-xl border border-[#EBE3DB] space-y-4">
-                  <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
+                <div className="bg-[#F4F6FA]/60 p-5 rounded-xl border border-[color:var(--crm-border-default)] space-y-4">
+                  <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                     <Briefcase className="w-4 h-4 text-indigo-500" /> Detailed Employment & Hierarchy
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                    <div className="p-3 bg-white rounded-lg border border-[#EBE3DB]">
-                      <span className="text-[#70665F] block mb-1">Reporting Manager</span>
-                      <span className="text-[#211B17] font-bold">Rajesh Patel (General Manager)</span>
+                    <div className="p-3 bg-white rounded-lg border border-[color:var(--crm-border-default)]">
+                      <span className="text-[color:var(--crm-text-secondary)] block mb-1">Reporting Manager</span>
+                      <span className="text-[color:var(--crm-text-primary)] font-bold">Rajesh Patel (General Manager)</span>
                     </div>
-                    <div className="p-3 bg-white rounded-lg border border-[#EBE3DB]">
-                      <span className="text-[#70665F] block mb-1">Probation Status</span>
+                    <div className="p-3 bg-white rounded-lg border border-[color:var(--crm-border-default)]">
+                      <span className="text-[color:var(--crm-text-secondary)] block mb-1">Probation Status</span>
                       <span className="text-emerald-600 font-semibold">6 Months (Confirmed)</span>
                     </div>
-                    <div className="p-3 bg-white rounded-lg border border-[#EBE3DB]">
-                      <span className="text-[#70665F] block mb-1">Confirmation Date</span>
-                      <span className="text-[#3E2723] font-mono">2022-07-15</span>
+                    <div className="p-3 bg-white rounded-lg border border-[color:var(--crm-border-default)]">
+                      <span className="text-[color:var(--crm-text-secondary)] block mb-1">Confirmation Date</span>
+                      <span className="text-[color:var(--crm-text-primary)] font-mono">2022-07-15</span>
                     </div>
-                    <div className="p-3 bg-white rounded-lg border border-[#EBE3DB]">
-                      <span className="text-[#70665F] block mb-1">Grade Level</span>
+                    <div className="p-3 bg-white rounded-lg border border-[color:var(--crm-border-default)]">
+                      <span className="text-[color:var(--crm-text-secondary)] block mb-1">Grade Level</span>
                       <span className="text-amber-600 font-semibold">Level 3 (Senior Cadre)</span>
                     </div>
-                    <div className="p-3 bg-white rounded-lg border border-[#EBE3DB]">
-                      <span className="text-[#70665F] block mb-1">ERP Access Role</span>
-                      <span className="text-[#3E2723] font-semibold">{selectedEmployee.role || 'Staff Operator'}</span>
+                    <div className="p-3 bg-white rounded-lg border border-[color:var(--crm-border-default)]">
+                      <span className="text-[color:var(--crm-text-secondary)] block mb-1">ERP Access Role</span>
+                      <span className="text-[color:var(--crm-text-primary)] font-semibold">{selectedEmployee.role || 'Staff Operator'}</span>
                     </div>
-                    <div className="p-3 bg-white rounded-lg border border-[#EBE3DB]">
-                      <span className="text-[#70665F] block mb-1">Assigned Shift</span>
-                      <span className="text-[#3E2723]">General Day Shift (09:00 AM - 06:00 PM)</span>
+                    <div className="p-3 bg-white rounded-lg border border-[color:var(--crm-border-default)]">
+                      <span className="text-[color:var(--crm-text-secondary)] block mb-1">Assigned Shift</span>
+                      <span className="text-[color:var(--crm-text-primary)]">General Day Shift (09:00 AM - 06:00 PM)</span>
                     </div>
                   </div>
                 </div>
@@ -803,34 +803,34 @@ function EmployeeMasterContent() {
                     {/* Monthly Summary Cards */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                       <div className="p-3 bg-emerald-50/80 rounded-xl border border-emerald-200">
-                        <div className="text-[#70665F] font-medium">Total Present Days</div>
+                        <div className="text-[color:var(--crm-text-secondary)] font-medium">Total Present Days</div>
                         <div className="text-xl font-bold text-emerald-700 mt-1">{totalPresent} Days</div>
                       </div>
                       <div className="p-3 bg-rose-50/80 rounded-xl border border-rose-200">
-                        <div className="text-[#70665F] font-medium">Absent Days</div>
+                        <div className="text-[color:var(--crm-text-secondary)] font-medium">Absent Days</div>
                         <div className="text-xl font-bold text-rose-700 mt-1">{totalAbsent} Days</div>
                       </div>
                       <div className="p-3 bg-blue-50/80 rounded-xl border border-blue-200">
-                        <div className="text-[#70665F] font-medium">Leave Days</div>
+                        <div className="text-[color:var(--crm-text-secondary)] font-medium">Leave Days</div>
                         <div className="text-xl font-bold text-blue-700 mt-1">{totalLeave} Days</div>
                       </div>
                       <div className="p-3 bg-amber-50/80 rounded-xl border border-amber-200">
-                        <div className="text-[#70665F] font-medium">Late Marks</div>
+                        <div className="text-[color:var(--crm-text-secondary)] font-medium">Late Marks</div>
                         <div className="text-xl font-bold text-amber-700 mt-1">{totalLate} Days</div>
                       </div>
                     </div>
 
                     {/* Filter & Period Controls */}
-                    <div className="bg-white rounded-xl border border-[#EBE3DB] p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div className="bg-white rounded-xl border border-[color:var(--crm-border-default)] p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-pink-600" />
-                        <span className="font-bold text-[#211B17]">Select Attendance Period:</span>
+                        <span className="font-bold text-[color:var(--crm-text-primary)]">Select Attendance Period:</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <select
                           value={attMonth}
                           onChange={(e) => { setAttMonth(e.target.value); setAttPage(1); }}
-                          className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] font-semibold focus:outline-none focus:border-pink-500"
+                          className="bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-2.5 py-1.5 text-xs text-[color:var(--crm-text-primary)] font-semibold focus:outline-none focus:border-pink-500"
                         >
                           <option value="01">January</option>
                           <option value="02">February</option>
@@ -848,7 +848,7 @@ function EmployeeMasterContent() {
                         <select
                           value={attYear}
                           onChange={(e) => { setAttYear(e.target.value); setAttPage(1); }}
-                          className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-xs text-[#211B17] font-semibold focus:outline-none focus:border-pink-500 font-mono"
+                          className="bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-2.5 py-1.5 text-xs text-[color:var(--crm-text-primary)] font-semibold focus:outline-none focus:border-pink-500 font-mono"
                         >
                           <option value="2024">2024</option>
                           <option value="2025">2025</option>
@@ -859,24 +859,24 @@ function EmployeeMasterContent() {
                     </div>
 
                     {/* Table Container with Fixed Height, Vertical Scroll & Horizontal Scroll */}
-                    <div className="bg-white rounded-xl border border-[#EBE3DB] shadow-sm overflow-hidden">
-                      <div className="p-3 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between font-bold text-xs text-[#211B17]">
+                    <div className="bg-white rounded-xl border border-[color:var(--crm-border-default)] shadow-sm overflow-hidden">
+                      <div className="p-3 bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] flex items-center justify-between font-bold text-xs text-[color:var(--crm-text-primary)]">
                         <span>Attendance & Punch-in Logs</span>
-                        <span className="text-[11px] text-[#70665F] font-normal font-mono">
+                        <span className="text-[11px] text-[color:var(--crm-text-secondary)] font-normal font-mono">
                           Showing {paginatedRecords.length} of {allMonthRecords.length} Records
                         </span>
                       </div>
 
                       {allMonthRecords.length === 0 ? (
-                        <div className="p-8 text-center text-xs text-[#70665F]">
-                          <AlertCircle className="w-8 h-8 text-amber-500 mx-auto mb-2" />
-                          <p className="font-semibold text-[#211B17]">No attendance records found for the selected period.</p>
+                        <div className="p-8 text-center text-xs text-[color:var(--crm-text-secondary)]">
+                          <AlertCircle className="w-8 h-8 text-crm-brand-600 mx-auto mb-2" />
+                          <p className="font-semibold text-[color:var(--crm-text-primary)]">No attendance records found for the selected period.</p>
                           <p className="text-[11px] mt-1">Try selecting another month or year from the filters above.</p>
                         </div>
                       ) : (
                         <div className="max-h-[320px] overflow-y-auto overflow-x-auto">
                           <table className="w-full text-left text-xs min-w-[650px] border-collapse">
-                            <thead className="sticky top-0 bg-[#FAF7F2] text-[#544B45] border-b border-[#EBE3DB] z-10 shadow-xs">
+                            <thead className="sticky top-0 bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] border-b border-[color:var(--crm-border-default)] z-10 shadow-xs">
                               <tr>
                                 <th className="p-3 font-bold">Date</th>
                                 <th className="p-3 font-bold">Day</th>
@@ -886,14 +886,14 @@ function EmployeeMasterContent() {
                                 <th className="p-3 font-bold">Status</th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-[#EBE3DB]">
+                            <tbody className="divide-y divide-[color:var(--crm-border-default)]">
                               {paginatedRecords.map((r, idx) => (
-                                <tr key={idx} className="hover:bg-[#FAF7F2]/60 transition">
-                                  <td className="p-3 font-mono font-semibold text-[#211B17]">{r.date}</td>
-                                  <td className="p-3 font-medium text-[#544B45]">{r.day}</td>
-                                  <td className="p-3 font-mono text-[#70665F]">{r.checkIn}</td>
-                                  <td className="p-3 font-mono text-[#70665F]">{r.checkOut}</td>
-                                  <td className="p-3 font-mono text-[#211B17] font-medium">{r.totalHours}</td>
+                                <tr key={idx} className="hover:bg-[#F4F6FA]/60 transition">
+                                  <td className="p-3 font-mono font-semibold text-[color:var(--crm-text-primary)]">{r.date}</td>
+                                  <td className="p-3 font-medium text-[color:var(--crm-text-secondary)]">{r.day}</td>
+                                  <td className="p-3 font-mono text-[color:var(--crm-text-secondary)]">{r.checkIn}</td>
+                                  <td className="p-3 font-mono text-[color:var(--crm-text-secondary)]">{r.checkOut}</td>
+                                  <td className="p-3 font-mono text-[color:var(--crm-text-primary)] font-medium">{r.totalHours}</td>
                                   <td className="p-3">
                                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${r.statusClass}`}>
                                       {r.status} {r.isLate ? '(Late)' : ''}
@@ -907,8 +907,8 @@ function EmployeeMasterContent() {
                       )}
 
                       {/* Pagination Controls & Large Data Message */}
-                      <div className="p-2.5 bg-[#FAF7F2] border-t border-[#EBE3DB] flex flex-wrap items-center justify-between gap-2 text-xs">
-                        <span className="text-[11px] text-[#70665F]">
+                      <div className="p-2.5 bg-[color:var(--crm-bg-app)] border-t border-[color:var(--crm-border-default)] flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <span className="text-[11px] text-[color:var(--crm-text-secondary)]">
                           {allMonthRecords.length > pageSize
                             ? `Too many records to display. Showing page ${attPage} of ${totalPages}.`
                             : `Page ${attPage} of ${totalPages}`}
@@ -918,7 +918,7 @@ function EmployeeMasterContent() {
                             type="button"
                             disabled={attPage <= 1}
                             onClick={() => setAttPage(p => Math.max(1, p - 1))}
-                            className="px-2.5 py-1 rounded bg-white border border-[#EBE3DB] text-[#544B45] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 text-xs font-semibold"
+                            className="px-2.5 py-1 rounded bg-white border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 text-xs font-semibold"
                           >
                             Previous
                           </button>
@@ -927,7 +927,7 @@ function EmployeeMasterContent() {
                             type="button"
                             disabled={attPage >= totalPages}
                             onClick={() => setAttPage(p => Math.min(totalPages, p + 1))}
-                            className="px-2.5 py-1 rounded bg-white border border-[#EBE3DB] text-[#544B45] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 text-xs font-semibold"
+                            className="px-2.5 py-1 rounded bg-white border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 text-xs font-semibold"
                           >
                             Next
                           </button>
@@ -942,32 +942,32 @@ function EmployeeMasterContent() {
               {activeTab === 'Leave' && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                    <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
-                      <div className="text-[#70665F]">Casual Leave (CL)</div>
-                      <div className="text-xl font-bold text-[#211B17] mt-1">4.5 / 12 Days</div>
+                    <div className="p-4 bg-[color:var(--crm-bg-app)] rounded-xl border border-[color:var(--crm-border-default)]">
+                      <div className="text-[color:var(--crm-text-secondary)]">Casual Leave (CL)</div>
+                      <div className="text-xl font-bold text-[color:var(--crm-text-primary)] mt-1">4.5 / 12 Days</div>
                       <div className="text-[11px] text-emerald-600 mt-1">7.5 Days Available (0.5 Half-Day applied)</div>
                     </div>
-                    <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
-                      <div className="text-[#70665F]">Sick Leave (SL)</div>
-                      <div className="text-xl font-bold text-[#211B17] mt-1">2 / 7 Days</div>
+                    <div className="p-4 bg-[color:var(--crm-bg-app)] rounded-xl border border-[color:var(--crm-border-default)]">
+                      <div className="text-[color:var(--crm-text-secondary)]">Sick Leave (SL)</div>
+                      <div className="text-xl font-bold text-[color:var(--crm-text-primary)] mt-1">2 / 7 Days</div>
                       <div className="text-[11px] text-emerald-600 mt-1">5 Days Available</div>
                     </div>
-                    <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
-                      <div className="text-[#70665F]">Privilege / Earned Leave (EL)</div>
-                      <div className="text-xl font-bold text-[#211B17] mt-1">4 / 18 Days</div>
+                    <div className="p-4 bg-[color:var(--crm-bg-app)] rounded-xl border border-[color:var(--crm-border-default)]">
+                      <div className="text-[color:var(--crm-text-secondary)]">Privilege / Earned Leave (EL)</div>
+                      <div className="text-xl font-bold text-[color:var(--crm-text-primary)] mt-1">4 / 18 Days</div>
                       <div className="text-[11px] text-emerald-600 mt-1">14 Days Available</div>
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-xl border border-[#EBE3DB] overflow-hidden">
-                    <div className="p-3 bg-[#FAF7F2] border-b border-[#EBE3DB] font-bold text-xs text-[#211B17] flex items-center justify-between">
+                  <div className="bg-white rounded-xl border border-[color:var(--crm-border-default)] overflow-hidden">
+                    <div className="p-3 bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] font-bold text-xs text-[color:var(--crm-text-primary)] flex items-center justify-between">
                       <span>Recent Leave Applications</span>
                       <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                         Half-Day leaves counted as 0.5 Day
                       </span>
                     </div>
                     <table className="w-full text-left text-xs">
-                      <thead className="bg-[#FAF7F2]/50 text-[#70665F] border-b border-[#EBE3DB]">
+                      <thead className="bg-[#F4F6FA]/50 text-[color:var(--crm-text-secondary)] border-b border-[color:var(--crm-border-default)]">
                         <tr>
                           <th className="p-3">Leave Type</th>
                           <th className="p-3">Duration</th>
@@ -976,26 +976,26 @@ function EmployeeMasterContent() {
                           <th className="p-3">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#EBE3DB]">
+                      <tbody className="divide-y divide-[color:var(--crm-border-default)]">
                         <tr>
                           <td className="p-3 font-semibold">Casual Leave (Half-Day)</td>
                           <td className="p-3 font-mono">2026-09-08 (First Half)</td>
                           <td className="p-3 font-bold text-orange-600">0.5 Day</td>
-                          <td className="p-3 text-[#70665F]">Personal Emergency / Morning Shift Leave</td>
+                          <td className="p-3 text-[color:var(--crm-text-secondary)]">Personal Emergency / Morning Shift Leave</td>
                           <td className="p-3"><span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">Approved by HOD</span></td>
                         </tr>
                         <tr>
                           <td className="p-3 font-semibold">Casual Leave</td>
                           <td className="p-3 font-mono">2026-08-18 to 2026-08-19</td>
                           <td className="p-3">2 Days</td>
-                          <td className="p-3 text-[#70665F]">Family Event / Function</td>
+                          <td className="p-3 text-[color:var(--crm-text-secondary)]">Family Event / Function</td>
                           <td className="p-3"><span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">Approved by HOD</span></td>
                         </tr>
                         <tr>
                           <td className="p-3 font-semibold">Sick Leave</td>
                           <td className="p-3 font-mono">2026-07-04</td>
                           <td className="p-3">1 Day</td>
-                          <td className="p-3 text-[#70665F]">Fever & Medical Rest</td>
+                          <td className="p-3 text-[color:var(--crm-text-secondary)]">Fever & Medical Rest</td>
                           <td className="p-3"><span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">Approved by HR</span></td>
                         </tr>
                       </tbody>
@@ -1004,238 +1004,238 @@ function EmployeeMasterContent() {
                 </div>
               )}
 
-              {/* TAB 5: PAYROLL */}
-              {activeTab === 'Payroll' && (
-                <div className="space-y-4">
-                  {!canViewSensitiveData ? (
-                    <div className="p-8 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-center space-y-3">
-                      <Lock className="w-10 h-10 text-rose-500 mx-auto" />
-                      <h4 className="text-base font-bold text-[#211B17]">Sensitive Salary Information Restricted</h4>
-                      <p className="text-xs text-[#70665F] max-w-md mx-auto">
-                        Salary structures, basic pay, CTC and bank details are protected by role-based access control. Contact HR Manager or Admin for authorization.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="bg-[#FAF7F2]/60 p-5 rounded-xl border border-[#EBE3DB] space-y-4">
-                      <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
-                        <DollarSign className="w-4 h-4 text-emerald-600" /> Salary Structure & Statutory Profile
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                        <div className="p-3 bg-white rounded-lg border border-[#EBE3DB]">
-                          <span className="text-[#70665F]">Basic Monthly Salary</span>
-                          <div className="text-lg font-bold text-[#211B17]">₹32,500</div>
+              {/* TAB 5: PAYROLL (live salary structure) */}
+              {activeTab === 'Payroll' && (() => {
+                const structure = (salaryStructures as any[]).find((st) => st.employeeId === selectedEmployee.id);
+                const fmt = (n: any) => `₹${(Number(n) || 0).toLocaleString('en-IN')}`;
+                return (
+                  <div className="space-y-4">
+                    {!canViewSensitiveData ? (
+                      <div className="p-8 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-center space-y-3">
+                        <Lock className="w-10 h-10 text-rose-500 mx-auto" />
+                        <h4 className="text-base font-bold text-[color:var(--crm-text-primary)]">Sensitive Salary Information Restricted</h4>
+                        <p className="text-xs text-[color:var(--crm-text-secondary)] max-w-md mx-auto">
+                          Salary structures, basic pay and CTC are protected by role-based access control. Contact the HR Manager or Super Admin for access.
+                        </p>
+                      </div>
+                    ) : !structure ? (
+                      <div className="p-6 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-sm text-[color:var(--crm-text-secondary)]">
+                        No salary structure has been defined for this employee yet. Create one under HR → Salary Structures.
+                      </div>
+                    ) : (
+                      <div className="bg-[#F4F6FA]/60 p-5 rounded-xl border border-[color:var(--crm-border-default)] space-y-4">
+                        <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
+                          <DollarSign className="w-4 h-4 text-emerald-600" /> Salary Structure
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                          <div className="p-3 bg-white rounded-lg border border-[color:var(--crm-border-default)]">
+                            <span className="text-[color:var(--crm-text-secondary)]">Basic monthly salary</span>
+                            <div className="text-lg font-bold text-[color:var(--crm-text-primary)]">{fmt(structure.basicSalary)}</div>
+                          </div>
+                          <div className="p-3 bg-white rounded-lg border border-[color:var(--crm-border-default)]">
+                            <span className="text-[color:var(--crm-text-secondary)]">Gross monthly salary</span>
+                            <div className="text-lg font-bold text-emerald-700">{fmt(structure.grossSalary)}</div>
+                          </div>
+                          <div className="p-3 bg-white rounded-lg border border-[color:var(--crm-border-default)]">
+                            <span className="text-[color:var(--crm-text-secondary)]">Annual CTC</span>
+                            <div className="text-lg font-bold text-pink-700">{fmt(structure.totalCTC)}</div>
+                          </div>
                         </div>
-                        <div className="p-3 bg-white rounded-lg border border-[#EBE3DB]">
-                          <span className="text-[#70665F]">Gross Monthly Salary</span>
-                          <div className="text-lg font-bold text-emerald-600">₹65,000</div>
-                        </div>
-                        <div className="p-3 bg-white rounded-lg border border-[#EBE3DB]">
-                          <span className="text-[#70665F]">Annual CTC</span>
-                          <div className="text-lg font-bold text-pink-600">₹7,80,000</div>
-                        </div>
                       </div>
+                    )}
+                  </div>
+                );
+              })()}
 
-                      <div className="border-t border-[#EBE3DB] pt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                        <div><span className="text-[#70665F] block">PAN Number:</span> <span className="font-mono font-bold text-[#211B17]">ABCDE1234F</span></div>
-                        <div><span className="text-[#70665F] block">Aadhaar Number:</span> <span className="font-mono font-bold text-[#211B17]">9988-7766-5544</span></div>
-                        <div><span className="text-[#70665F] block">PF UAN:</span> <span className="font-mono font-bold text-[#211B17]">100998877665</span></div>
-                        <div><span className="text-[#70665F] block">ESIC Number:</span> <span className="font-mono font-bold text-[#211B17]">3100998877</span></div>
+              {/* TAB 6: DOCUMENTS (live employee documents) */}
+              {activeTab === 'Documents' && (() => {
+                const docs = (employeeDocuments as any[]).filter((d) => d.employeeId === selectedEmployee.id);
+                return (
+                  <div className="bg-[#F4F6FA]/60 p-5 rounded-xl border border-[color:var(--crm-border-default)] space-y-3">
+                    <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-emerald-600" /> Employee Documents
+                    </h3>
+                    {docs.length === 0 ? (
+                      <div className="text-sm text-[color:var(--crm-text-secondary)]">No documents uploaded for this employee yet.</div>
+                    ) : (
+                      <div className="space-y-2">
+                        {docs.map((d) => (
+                          <div key={d.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-[color:var(--crm-border-default)] text-xs">
+                            <div>
+                              <div className="font-bold text-[color:var(--crm-text-primary)]">{d.documentType}</div>
+                              <div className="text-[color:var(--crm-text-secondary)]">{d.documentNumber || '—'}{d.issueDate ? ` • Issued ${d.issueDate}` : ''}</div>
+                            </div>
+                            <span className="px-2.5 py-0.5 rounded-full bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] font-semibold border border-[color:var(--crm-border-default)]">{d.status || 'Uploaded'}</span>
+                          </div>
+                        ))}
                       </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* TAB 6: DOCUMENTS */}
-              {activeTab === 'Documents' && (
-                <div className="bg-[#FAF7F2]/60 p-5 rounded-xl border border-[#EBE3DB] space-y-3">
-                  <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-emerald-600" /> Employee Verification Documents
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-[#EBE3DB] text-xs">
-                      <div>
-                        <div className="font-bold text-[#211B17]">Government ID / Aadhaar Card</div>
-                        <div className="text-[#70665F]">Verified by HR Manager • Verified on 2022-01-10</div>
-                      </div>
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">Verified</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-[#EBE3DB] text-xs">
-                      <div>
-                        <div className="font-bold text-[#211B17]">Educational Qualification Certificate</div>
-                        <div className="text-[#70665F]">Verified by HR Manager • Verified on 2022-01-12</div>
-                      </div>
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">Verified</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-[#EBE3DB] text-xs">
-                      <div>
-                        <div className="font-bold text-[#211B17]">Appointment Letter & NDA Agreement</div>
-                        <div className="text-[#70665F]">Signed & Uploaded • Effective Date 2022-01-15</div>
-                      </div>
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">Signed</span>
-                    </div>
+                    )}
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
-              {/* TAB 7: PERFORMANCE */}
-              {activeTab === 'Performance' && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                    <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
-                      <div className="text-[#70665F]">Overall KPI Performance Score</div>
-                      <div className="text-2xl font-bold text-emerald-700 mt-1">94%</div>
-                      <div className="text-[11px] text-emerald-600 mt-0.5">Exceeds Expectations</div>
-                    </div>
-                    <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-200">
-                      <div className="text-[#70665F]">Projects / Milestones Delivered</div>
-                      <div className="text-2xl font-bold text-indigo-700 mt-1">18 / 19</div>
-                      <div className="text-[11px] text-indigo-600 mt-0.5">95% On-Time Delivery Rate</div>
-                    </div>
-                    <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
-                      <div className="text-[#70665F]">Last Appraisal Review Date</div>
-                      <div className="text-lg font-bold text-amber-800 mt-1">June 2026</div>
-                      <div className="text-[11px] text-amber-700 mt-0.5">Reviewed by Department Head</div>
-                    </div>
+              {/* TAB 7: PERFORMANCE (live appraisals) */}
+              {activeTab === 'Performance' && (() => {
+                const apps = (employeeAppraisals as any[]).filter((a) => a.employeeId === selectedEmployee.id);
+                return (
+                  <div className="bg-white rounded-xl border border-[color:var(--crm-border-default)] overflow-hidden">
+                    <div className="p-3 bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] font-bold text-xs text-[color:var(--crm-text-primary)]">Appraisal history</div>
+                    {apps.length === 0 ? (
+                      <div className="p-5 text-sm text-[color:var(--crm-text-secondary)]">No appraisals recorded for this employee yet.</div>
+                    ) : (
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-[#F4F6FA]/50 text-[color:var(--crm-text-secondary)] border-b border-[color:var(--crm-border-default)]">
+                          <tr>
+                            <th className="p-3">Cycle</th>
+                            <th className="p-3">Final score (of 5)</th>
+                            <th className="p-3">Manager comments</th>
+                            <th className="p-3">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[color:var(--crm-border-default)]">
+                          {apps.map((a) => (
+                            <tr key={a.id}>
+                              <td className="p-3 font-semibold">{a.cyclePeriod}</td>
+                              <td className="p-3">{a.finalScore}</td>
+                              <td className="p-3 text-[color:var(--crm-text-secondary)]">{a.managerComments || '—'}</td>
+                              <td className="p-3">{a.status}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
                   </div>
+                );
+              })()}
 
-                  <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] space-y-2 text-xs">
-                    <div className="font-bold text-[#211B17]">Reviewer & HOD Notes</div>
-                    <p className="text-[#544B45]">
-                      Consistently demonstrates high technical proficiency and meticulous shop-floor adherence. Maintained zero machine downtime incidents over the last 6 months.
-                    </p>
+              {/* TAB 8: TRAINING (programs run for this employee's department) */}
+              {activeTab === 'Training' && (() => {
+                const programs = (trainingPrograms as any[]).filter((p) => !p.department || p.department === selectedEmployee.departmentName || p.department === (selectedEmployee as any).department);
+                return (
+                  <div className="bg-white rounded-xl border border-[color:var(--crm-border-default)] overflow-hidden">
+                    <div className="p-3 bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] font-bold text-xs text-[color:var(--crm-text-primary)]">Training programs for this department</div>
+                    {programs.length === 0 ? (
+                      <div className="p-5 text-sm text-[color:var(--crm-text-secondary)]">No training programs recorded yet.</div>
+                    ) : (
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-[#F4F6FA]/50 text-[color:var(--crm-text-secondary)] border-b border-[color:var(--crm-border-default)]">
+                          <tr>
+                            <th className="p-3">Program</th>
+                            <th className="p-3">Type</th>
+                            <th className="p-3">Date</th>
+                            <th className="p-3">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[color:var(--crm-border-default)]">
+                          {programs.map((p) => (
+                            <tr key={p.id}>
+                              <td className="p-3 font-semibold">{p.title}</td>
+                              <td className="p-3 text-[color:var(--crm-text-secondary)]">{p.trainingType}</td>
+                              <td className="p-3 font-mono">{p.trainingDate}</td>
+                              <td className="p-3">{p.status}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
-              {/* TAB 8: TRAINING */}
-              {activeTab === 'Training' && (
-                <div className="bg-white rounded-xl border border-[#EBE3DB] overflow-hidden">
-                  <div className="p-3 bg-[#FAF7F2] border-b border-[#EBE3DB] font-bold text-xs text-[#211B17]">
-                    Assigned & Completed Training Modules
+              {/* TAB 9: ADVANCES (live loans) */}
+              {activeTab === 'Advances' && (() => {
+                const loans = (employeeAdvanceLoans as any[]).filter((l) => l.employeeId === selectedEmployee.id);
+                const fmt = (n: any) => `₹${(Number(n) || 0).toLocaleString('en-IN')}`;
+                return (
+                  <div className="bg-white rounded-xl border border-[color:var(--crm-border-default)] overflow-hidden">
+                    <div className="p-3 bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] font-bold text-xs text-[color:var(--crm-text-primary)]">Advances & loans</div>
+                    {loans.length === 0 ? (
+                      <div className="p-5 text-sm text-[color:var(--crm-text-secondary)]">No advances or loans for this employee.</div>
+                    ) : (
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-[#F4F6FA]/50 text-[color:var(--crm-text-secondary)] border-b border-[color:var(--crm-border-default)]">
+                          <tr>
+                            <th className="p-3">Loan no.</th>
+                            <th className="p-3">Type</th>
+                            <th className="p-3">Sanctioned</th>
+                            <th className="p-3">EMI</th>
+                            <th className="p-3">Paid / total</th>
+                            <th className="p-3">Outstanding</th>
+                            <th className="p-3">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[color:var(--crm-border-default)]">
+                          {loans.map((l) => (
+                            <tr key={l.id}>
+                              <td className="p-3 font-mono">{l.loanNumber}</td>
+                              <td className="p-3">{l.loanType}</td>
+                              <td className="p-3">{fmt(l.sanctionedAmount)}</td>
+                              <td className="p-3">{fmt(l.emiAmount)}</td>
+                              <td className="p-3">{l.paidInstallments} / {l.totalInstallments}</td>
+                              <td className="p-3 font-semibold">{fmt(l.outstandingBalance)}</td>
+                              <td className="p-3">{l.status}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
                   </div>
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-[#FAF7F2]/50 text-[#70665F] border-b border-[#EBE3DB]">
-                      <tr>
-                        <th className="p-3">Training Module</th>
-                        <th className="p-3">Category</th>
-                        <th className="p-3">Completion Date</th>
-                        <th className="p-3">Progress</th>
-                        <th className="p-3">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#EBE3DB]">
-                      <tr>
-                        <td className="p-3 font-semibold">ISO 9001:2015 Quality & Safety Standards</td>
-                        <td className="p-3 text-[#70665F]">Compliance</td>
-                        <td className="p-3 font-mono">2026-03-15</td>
-                        <td className="p-3 font-bold text-emerald-600">100%</td>
-                        <td className="p-3"><span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">Certified</span></td>
-                      </tr>
-                      <tr>
-                        <td className="p-3 font-semibold">CNC / Heavy Machinery Safety Protocols</td>
-                        <td className="p-3 text-[#70665F]">Shop Floor Safety</td>
-                        <td className="p-3 font-mono">2026-06-20</td>
-                        <td className="p-3 font-bold text-emerald-600">100%</td>
-                        <td className="p-3"><span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">Certified</span></td>
-                      </tr>
-                      <tr>
-                        <td className="p-3 font-semibold">ERP Foundation & Digital Job Card Tracking</td>
-                        <td className="p-3 text-[#70665F]">Operations</td>
-                        <td className="p-3 font-mono">In Progress</td>
-                        <td className="p-3 font-bold text-indigo-600">80%</td>
-                        <td className="p-3"><span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold">Active</span></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                );
+              })()}
 
-              {/* TAB 9: ADVANCES */}
-              {activeTab === 'Advances' && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                    <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
-                      <div className="text-[#70665F]">Total Approved Advance</div>
-                      <div className="text-xl font-bold text-[#211B17] mt-1">₹15,000</div>
-                      <div className="text-[11px] text-[#70665F] mt-0.5">Festival Advance</div>
-                    </div>
-                    <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
-                      <div className="text-[#70665F]">Monthly EMI Deduction</div>
-                      <div className="text-xl font-bold text-amber-700 mt-1">₹3,000 / mo</div>
-                      <div className="text-[11px] text-[#70665F] mt-0.5">Deducted from Payroll</div>
-                    </div>
-                    <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
-                      <div className="text-[#70665F]">Remaining Balance</div>
-                      <div className="text-xl font-bold text-emerald-700 mt-1">₹6,000</div>
-                      <div className="text-[11px] text-emerald-600 mt-0.5">3 Months Remaining</div>
-                    </div>
+              {/* TAB 10: EXPENSES (live reimbursements) */}
+              {activeTab === 'Expenses' && (() => {
+                const claims = (reimbursementExpenses as any[]).filter((r) => r.employeeId === selectedEmployee.id);
+                const fmt = (n: any) => `₹${(Number(n) || 0).toLocaleString('en-IN')}`;
+                return (
+                  <div className="bg-white rounded-xl border border-[color:var(--crm-border-default)] overflow-hidden">
+                    <div className="p-3 bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] font-bold text-xs text-[color:var(--crm-text-primary)]">Expense claims</div>
+                    {claims.length === 0 ? (
+                      <div className="p-5 text-sm text-[color:var(--crm-text-secondary)]">No expense claims for this employee.</div>
+                    ) : (
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-[#F4F6FA]/50 text-[color:var(--crm-text-secondary)] border-b border-[color:var(--crm-border-default)]">
+                          <tr>
+                            <th className="p-3">Claim no.</th>
+                            <th className="p-3">Date</th>
+                            <th className="p-3">Category</th>
+                            <th className="p-3">Amount</th>
+                            <th className="p-3">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[color:var(--crm-border-default)]">
+                          {claims.map((c) => (
+                            <tr key={c.id}>
+                              <td className="p-3 font-mono">{c.reimbursementNo}</td>
+                              <td className="p-3">{c.expenseDate}</td>
+                              <td className="p-3">{c.category}</td>
+                              <td className="p-3 font-semibold">{fmt(c.amount)}</td>
+                              <td className="p-3">{c.status}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
                   </div>
-
-                  <div className="p-4 bg-white rounded-xl border border-[#EBE3DB] space-y-2 text-xs">
-                    <div className="flex justify-between font-semibold">
-                      <span>Repayment Progress</span>
-                      <span>60% Repaid (₹9,000 / ₹15,000)</span>
-                    </div>
-                    <div className="w-full h-2.5 bg-[#FAF7F2] rounded-full overflow-hidden border border-[#EBE3DB]">
-                      <div className="h-full bg-emerald-500 rounded-full" style={{ width: '60%' }} />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* TAB 10: EXPENSES */}
-              {activeTab === 'Expenses' && (
-                <div className="bg-white rounded-xl border border-[#EBE3DB] overflow-hidden">
-                  <div className="p-3 bg-[#FAF7F2] border-b border-[#EBE3DB] font-bold text-xs text-[#211B17]">
-                    Recent Expense Claims & Travel Reimbursements
-                  </div>
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-[#FAF7F2]/50 text-[#70665F] border-b border-[#EBE3DB]">
-                      <tr>
-                        <th className="p-3">Claim ID</th>
-                        <th className="p-3">Date</th>
-                        <th className="p-3">Category</th>
-                        <th className="p-3">Amount</th>
-                        <th className="p-3">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#EBE3DB]">
-                      <tr>
-                        <td className="p-3 font-mono font-bold">EXP-2026-089</td>
-                        <td className="p-3 font-mono">2026-09-14</td>
-                        <td className="p-3">Site Visit / Machine Installation Travel</td>
-                        <td className="p-3 font-bold text-[#211B17]">₹2,450</td>
-                        <td className="p-3"><span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">Settled / Paid</span></td>
-                      </tr>
-                      <tr>
-                        <td className="p-3 font-mono font-bold">EXP-2026-074</td>
-                        <td className="p-3 font-mono">2026-08-28</td>
-                        <td className="p-3">Emergency Tooling Purchase (Shop Floor)</td>
-                        <td className="p-3 font-bold text-[#211B17]">₹1,180</td>
-                        <td className="p-3"><span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">Settled / Paid</span></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                );
+              })()}
 
               {/* TAB 11: ACTIVITY */}
               {activeTab === 'Activity' && (
-                <div className="bg-white p-5 rounded-xl border border-[#EBE3DB] space-y-4 text-xs">
-                  <h3 className="font-bold text-[#211B17]">Employee Profile & ERP Activity Audit Trail</h3>
+                <div className="bg-white p-5 rounded-xl border border-[color:var(--crm-border-default)] space-y-4 text-xs">
+                  <h3 className="font-bold text-[color:var(--crm-text-primary)]">Employee Profile & ERP Activity Audit Trail</h3>
                   <div className="space-y-3 border-l-2 border-pink-300 pl-4 ml-2">
                     <div>
-                      <div className="font-semibold text-[#211B17]">Employee Profile Active & Verified</div>
-                      <div className="text-[11px] text-[#70665F]">Synchronized with centralized ERP Employee Master</div>
+                      <div className="font-semibold text-[color:var(--crm-text-primary)]">Employee Profile Active & Verified</div>
+                      <div className="text-[11px] text-[color:var(--crm-text-secondary)]">Synchronized with centralized ERP Employee Master</div>
                     </div>
                     <div>
-                      <div className="font-semibold text-[#211B17]">Annual Cadre Confirmation & Review</div>
-                      <div className="text-[11px] text-[#70665F]">Appraisal completed by HR & General Manager</div>
+                      <div className="font-semibold text-[color:var(--crm-text-primary)]">Annual Cadre Confirmation & Review</div>
+                      <div className="text-[11px] text-[color:var(--crm-text-secondary)]">Appraisal completed by HR & General Manager</div>
                     </div>
                     <div>
-                      <div className="font-semibold text-[#211B17]">Profile Created in UMA ERP</div>
-                      <div className="text-[11px] text-[#70665F]">Employee code assigned: {selectedEmployee.id} on {selectedEmployee.joinedDate || selectedEmployee.joiningDate || '2022-01-15'}</div>
+                      <div className="font-semibold text-[color:var(--crm-text-primary)]">Profile Created in UMA ERP</div>
+                      <div className="text-[11px] text-[color:var(--crm-text-secondary)]">Employee code assigned: {selectedEmployee.id} on {selectedEmployee.joinedDate || selectedEmployee.joiningDate || '2022-01-15'}</div>
                     </div>
                   </div>
                 </div>
@@ -1249,21 +1249,21 @@ function EmployeeMasterContent() {
       {/* Add Employee Profile Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl">
             {/* Modal Header */}
-            <div className="p-5 border-b border-[#EBE3DB] flex items-center justify-between sticky top-0 bg-white z-10">
+            <div className="p-5 border-b border-[color:var(--crm-border-default)] flex items-center justify-between sticky top-0 bg-white z-10">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-pink-500/10 border border-pink-500/20">
                   <Users className="w-5 h-5 text-pink-500" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-[#211B17]">Add New Employee Profile</h2>
-                  <p className="text-xs text-[#70665F]">Fill in employee details to create their ERP profile</p>
+                  <h2 className="text-base font-bold text-[color:var(--crm-text-primary)]">Add New Employee Profile</h2>
+                  <p className="text-xs text-[color:var(--crm-text-secondary)]">Fill in employee details to create their ERP profile</p>
                 </div>
               </div>
               <button
                 onClick={() => { setShowAddModal(false); setAddForm(defaultForm); }}
-                className="p-2 hover:bg-[#FAF7F2] rounded-lg text-[#70665F] hover:text-[#211B17] transition"
+                className="p-2 hover:bg-[color:var(--crm-bg-app)] rounded-lg text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1272,12 +1272,12 @@ function EmployeeMasterContent() {
             <form onSubmit={handleAddEmployee} noValidate className="p-6 space-y-5 text-sm">
               {/* Personal Details */}
               <div>
-                <h3 className="text-xs font-bold text-[#70665F] uppercase tracking-wider mb-3 flex items-center gap-2">
+                <h3 className="text-xs font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider mb-3 flex items-center gap-2">
                   <Users className="w-4 h-4 text-pink-400" /> Personal Details
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-[#544B45] mb-1">First Name (Letters only, max 50) *</label>
+                    <label className="block text-xs font-semibold text-[color:var(--crm-text-secondary)] mb-1">First Name (Letters only, max 50) *</label>
                     <input
                       type="text"
                       required
@@ -1289,8 +1289,8 @@ function EmployeeMasterContent() {
                         if (addErrors.firstName) setAddErrors(prev => ({ ...prev, firstName: '' }));
                       }}
                       placeholder="e.g. Mahesh"
-                      className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm ${
-                        addErrors.firstName ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                      className={`w-full bg-[color:var(--crm-bg-app)] border rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-pink-500 text-sm ${
+                        addErrors.firstName ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[color:var(--crm-border-default)]'
                       }`}
                     />
                     {addErrors.firstName && (
@@ -1300,7 +1300,7 @@ function EmployeeMasterContent() {
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Last Name (Letters only, max 50) *</label>
+                    <label className="block text-xs font-semibold text-[color:var(--crm-text-secondary)] mb-1">Last Name (Letters only, max 50) *</label>
                     <input
                       type="text"
                       required
@@ -1312,8 +1312,8 @@ function EmployeeMasterContent() {
                         if (addErrors.lastName) setAddErrors(prev => ({ ...prev, lastName: '' }));
                       }}
                       placeholder="e.g. Bariya"
-                      className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm ${
-                        addErrors.lastName ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                      className={`w-full bg-[color:var(--crm-bg-app)] border rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-pink-500 text-sm ${
+                        addErrors.lastName ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[color:var(--crm-border-default)]'
                       }`}
                     />
                     {addErrors.lastName && (
@@ -1323,12 +1323,12 @@ function EmployeeMasterContent() {
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Gender *</label>
+                    <label className="block text-xs font-semibold text-[color:var(--crm-text-secondary)] mb-1">Gender *</label>
                     <select
                       required
                       value={addForm.gender}
                       onChange={(e) => setAddForm((f) => ({ ...f, gender: e.target.value as 'male' | 'female' | 'other' }))}
-                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm"
+                      className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-pink-500 text-sm"
                     >
                       <option value="male">Male</option>
                       <option value="female">Female</option>
@@ -1336,7 +1336,7 @@ function EmployeeMasterContent() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Date of Birth (Min 18 Yrs) *</label>
+                    <label className="block text-xs font-semibold text-[color:var(--crm-text-secondary)] mb-1">Date of Birth (Min 18 Yrs) *</label>
                     <input
                       type="date"
                       required
@@ -1346,8 +1346,8 @@ function EmployeeMasterContent() {
                         setAddForm((f) => ({ ...f, dob: e.target.value }));
                         if (addErrors.dob) setAddErrors(prev => ({ ...prev, dob: '' }));
                       }}
-                      className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm font-mono ${
-                        addErrors.dob ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                      className={`w-full bg-[color:var(--crm-bg-app)] border rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-pink-500 text-sm font-mono ${
+                        addErrors.dob ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[color:var(--crm-border-default)]'
                       }`}
                     />
                     {addErrors.dob && (
@@ -1357,7 +1357,7 @@ function EmployeeMasterContent() {
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Mobile Number *</label>
+                    <label className="block text-xs font-semibold text-[color:var(--crm-text-secondary)] mb-1">Mobile Number *</label>
                     <div className="flex gap-1.5">
                       <select
                         value={addForm.countryCode}
@@ -1365,7 +1365,7 @@ function EmployeeMasterContent() {
                           setAddForm((f) => ({ ...f, countryCode: e.target.value }));
                           if (addErrors.mobile) setAddErrors(prev => ({ ...prev, mobile: '' }));
                         }}
-                        className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-xs font-medium max-w-[125px] sm:max-w-[140px]"
+                        className="bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-2 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-pink-500 text-xs font-medium max-w-[125px] sm:max-w-[140px]"
                         title="Select Country Dialing Code"
                       >
                         {COUNTRY_CODES.map((c) => (
@@ -1386,8 +1386,8 @@ function EmployeeMasterContent() {
                           if (addErrors.mobile) setAddErrors(prev => ({ ...prev, mobile: '' }));
                         }}
                         placeholder="9825000000"
-                        className={`flex-1 min-w-0 bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm font-mono ${
-                          addErrors.mobile ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                        className={`flex-1 min-w-0 bg-[color:var(--crm-bg-app)] border rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-pink-500 text-sm font-mono ${
+                          addErrors.mobile ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[color:var(--crm-border-default)]'
                         }`}
                       />
                     </div>
@@ -1398,7 +1398,7 @@ function EmployeeMasterContent() {
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Email *</label>
+                    <label className="block text-xs font-semibold text-[color:var(--crm-text-secondary)] mb-1">Email *</label>
                     <input
                       type="email"
                       required
@@ -1408,8 +1408,8 @@ function EmployeeMasterContent() {
                         if (addErrors.email) setAddErrors(prev => ({ ...prev, email: '' }));
                       }}
                       placeholder="employee@uma.com"
-                      className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm ${
-                        addErrors.email ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                      className={`w-full bg-[color:var(--crm-bg-app)] border rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-pink-500 text-sm ${
+                        addErrors.email ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[color:var(--crm-border-default)]'
                       }`}
                     />
                     {addErrors.email && (
@@ -1419,7 +1419,7 @@ function EmployeeMasterContent() {
                     )}
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Residential Address *</label>
+                    <label className="block text-xs font-semibold text-[color:var(--crm-text-secondary)] mb-1">Residential Address *</label>
                     <input
                       type="text"
                       required
@@ -1430,8 +1430,8 @@ function EmployeeMasterContent() {
                         if (addErrors.address) setAddErrors(prev => ({ ...prev, address: '' }));
                       }}
                       placeholder="Residential address (10 to 250 characters)"
-                      className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm ${
-                        addErrors.address ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                      className={`w-full bg-[color:var(--crm-bg-app)] border rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-pink-500 text-sm ${
+                        addErrors.address ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[color:var(--crm-border-default)]'
                       }`}
                     />
                     {addErrors.address && (
@@ -1445,12 +1445,12 @@ function EmployeeMasterContent() {
 
               {/* Employment Details */}
               <div>
-                <h3 className="text-xs font-bold text-[#70665F] uppercase tracking-wider mb-3 flex items-center gap-2">
+                <h3 className="text-xs font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider mb-3 flex items-center gap-2">
                   <Briefcase className="w-4 h-4 text-crm-brand-500" /> Employment Details
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Department *</label>
+                    <label className="block text-xs font-semibold text-[color:var(--crm-text-secondary)] mb-1">Department *</label>
                     <select
                       required
                       value={addForm.departmentId}
@@ -1464,7 +1464,7 @@ function EmployeeMasterContent() {
                           assignedModules: defaultMods,
                         }));
                       }}
-                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm"
+                      className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-pink-500 text-sm"
                     >
                       <option value="">Select Department</option>
                       {departments.map((d) => (
@@ -1473,7 +1473,7 @@ function EmployeeMasterContent() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Designation *</label>
+                    <label className="block text-xs font-semibold text-[color:var(--crm-text-secondary)] mb-1">Designation *</label>
                     <select
                       required
                       value={addForm.designation}
@@ -1481,8 +1481,8 @@ function EmployeeMasterContent() {
                         setAddForm((f) => ({ ...f, designation: e.target.value, roleName: e.target.value }));
                         if (addErrors.designation) setAddErrors(prev => ({ ...prev, designation: '' }));
                       }}
-                      className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm ${
-                        addErrors.designation ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                      className={`w-full bg-[color:var(--crm-bg-app)] border rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-pink-500 text-sm ${
+                        addErrors.designation ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[color:var(--crm-border-default)]'
                       }`}
                     >
                       <option value="">
@@ -1501,7 +1501,7 @@ function EmployeeMasterContent() {
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Joining Date *</label>
+                    <label className="block text-xs font-semibold text-[color:var(--crm-text-secondary)] mb-1">Joining Date *</label>
                     <input
                       type="date"
                       required
@@ -1510,8 +1510,8 @@ function EmployeeMasterContent() {
                         setAddForm((f) => ({ ...f, joiningDate: e.target.value }));
                         if (addErrors.joiningDate) setAddErrors(prev => ({ ...prev, joiningDate: '' }));
                       }}
-                      className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm font-mono ${
-                        addErrors.joiningDate ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                      className={`w-full bg-[color:var(--crm-bg-app)] border rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-pink-500 text-sm font-mono ${
+                        addErrors.joiningDate ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[color:var(--crm-border-default)]'
                       }`}
                     />
                     {addErrors.joiningDate && (
@@ -1521,12 +1521,12 @@ function EmployeeMasterContent() {
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Employment Type *</label>
+                    <label className="block text-xs font-semibold text-[color:var(--crm-text-secondary)] mb-1">Employment Type *</label>
                     <select
                       required
                       value={addForm.employmentType}
                       onChange={(e) => setAddForm((f) => ({ ...f, employmentType: e.target.value as 'full_time' | 'contract' | 'probation' }))}
-                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm"
+                      className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-pink-500 text-sm"
                     >
                       <option value="full_time">Full Time Permanent</option>
                       <option value="contract">Contract</option>
@@ -1538,12 +1538,12 @@ function EmployeeMasterContent() {
 
               {/* Login Credentials */}
               <div>
-                <h3 className="text-xs font-bold text-[#70665F] uppercase tracking-wider mb-3 flex items-center gap-2">
+                <h3 className="text-xs font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider mb-3 flex items-center gap-2">
                   <Lock className="w-4 h-4 text-indigo-400" /> ERP Login Credentials
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Username *</label>
+                    <label className="block text-xs font-semibold text-[color:var(--crm-text-secondary)] mb-1">Username *</label>
                     <input
                       type="text"
                       required
@@ -1553,8 +1553,8 @@ function EmployeeMasterContent() {
                         if (addErrors.username) setAddErrors(prev => ({ ...prev, username: '' }));
                       }}
                       placeholder="e.g. mahesh.bariya"
-                      className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm ${
-                        addErrors.username ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                      className={`w-full bg-[color:var(--crm-bg-app)] border rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-pink-500 text-sm ${
+                        addErrors.username ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[color:var(--crm-border-default)]'
                       }`}
                     />
                     {addErrors.username && (
@@ -1564,7 +1564,7 @@ function EmployeeMasterContent() {
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#544B45] mb-1">Initial Password *</label>
+                    <label className="block text-xs font-semibold text-[color:var(--crm-text-secondary)] mb-1">Initial Password *</label>
                     <div className="relative">
                       <input
                         type={showPassword ? 'text' : 'password'}
@@ -1576,15 +1576,15 @@ function EmployeeMasterContent() {
                         }}
                         placeholder="Minimum 8 characters"
                         minLength={8}
-                        className={`w-full bg-[#FAF7F2] border rounded-lg pl-3 pr-10 py-2 text-[#211B17] focus:outline-none focus:border-pink-500 text-sm ${
-                          addErrors.password ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                        className={`w-full bg-[color:var(--crm-bg-app)] border rounded-lg pl-3 pr-10 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-pink-500 text-sm ${
+                          addErrors.password ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[color:var(--crm-border-default)]'
                         }`}
                       />
                       <button
                         type="button"
                         tabIndex={-1}
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8D827A] hover:text-[#211B17] p-1 cursor-pointer transition"
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[color:var(--crm-text-tertiary)] hover:text-[color:var(--crm-text-primary)] p-1 cursor-pointer transition"
                         title={showPassword ? 'Hide password' : 'Show password'}
                         aria-label={showPassword ? 'Hide password' : 'Show password'}
                       >
@@ -1601,15 +1601,15 @@ function EmployeeMasterContent() {
               </div>
 
               {/* Role-Based Access Control (RBAC) & Authority Configuration */}
-              <div className="bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB] space-y-4">
-                <h3 className="text-xs font-bold text-[#70665F] uppercase tracking-wider flex items-center gap-2">
+              <div className="bg-[color:var(--crm-bg-app)] p-4 rounded-xl border border-[color:var(--crm-border-default)] space-y-4">
+                <h3 className="text-xs font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-crm-brand-700" />
                   Role Hierarchy, Data Scope & Department Access
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-[#544B45] mb-1">
+                    <label className="block text-xs font-semibold text-[color:var(--crm-text-secondary)] mb-1">
                       Role Hierarchy Level *
                     </label>
                     <select
@@ -1626,7 +1626,7 @@ function EmployeeMasterContent() {
                           dataScope: rType === 'super_admin' || rType === 'admin' ? 'all' : rType === 'department_manager' ? 'department' : 'own',
                         }));
                       }}
-                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600 text-sm font-semibold"
+                      className="w-full bg-white border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-600 text-sm font-semibold"
                     >
                       <option value="employee">4. Department Employee (Standard Execution Staff)</option>
                       <option value="department_manager">3. Department Manager (Approval & Task Authority)</option>
@@ -1636,13 +1636,13 @@ function EmployeeMasterContent() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-[#544B45] mb-1">
+                    <label className="block text-xs font-semibold text-[color:var(--crm-text-secondary)] mb-1">
                       Data Visibility Scope *
                     </label>
                     <select
                       value={addForm.dataScope}
                       onChange={(e) => setAddForm((f) => ({ ...f, dataScope: e.target.value as any }))}
-                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-crm-brand-600 text-sm font-semibold"
+                      className="w-full bg-white border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-600 text-sm font-semibold"
                     >
                       <option value="own">Own Records (Only records created by self)</option>
                       <option value="assigned">Assigned Records (Tasks/Orders assigned to self)</option>
@@ -1655,20 +1655,20 @@ function EmployeeMasterContent() {
                 {/* Assigned Modules Checkboxes */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-xs font-bold text-[#3E2723]">
+                    <label className="block text-xs font-bold text-[color:var(--crm-text-primary)]">
                       Authorized ERP Modules:
                     </label>
-                    <span className="text-[11px] text-[#8C7A6F]">
+                    <span className="text-[11px] text-[color:var(--crm-text-tertiary)]">
                       Default loaded from selected department
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-white p-3 rounded-xl border border-[#EBE3DB]">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-white p-3 rounded-xl border border-[color:var(--crm-border-default)]">
                     {ALL_ERP_MODULES.map((mod) => {
                       const isChecked = addForm.assignedModules?.includes(mod.id);
                       return (
                         <label
                           key={mod.id}
-                          className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-[#FAF7F2] cursor-pointer text-xs select-none"
+                          className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-[color:var(--crm-bg-app)] cursor-pointer text-xs select-none"
                         >
                           <input
                             type="checkbox"
@@ -1685,7 +1685,7 @@ function EmployeeMasterContent() {
                             }}
                             className="rounded text-crm-brand-700 focus:ring-crm-brand-500 w-4 h-4 cursor-pointer"
                           />
-                          <span className={cn('font-medium', isChecked ? 'text-[#211B17] font-bold' : 'text-[#70665F]')}>
+                          <span className={cn('font-medium', isChecked ? 'text-[color:var(--crm-text-primary)] font-bold' : 'text-[color:var(--crm-text-secondary)]')}>
                             {mod.label}
                           </span>
                         </label>
@@ -1696,56 +1696,56 @@ function EmployeeMasterContent() {
 
                 {/* Operational Authorities */}
                 <div>
-                  <label className="block text-xs font-bold text-[#3E2723] mb-2">
+                  <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-2">
                     Operational Authorities & Privileges:
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[#EBE3DB] cursor-pointer text-xs select-none">
+                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[color:var(--crm-border-default)] cursor-pointer text-xs select-none">
                       <input
                         type="checkbox"
                         checked={addForm.canAssignTasks}
                         onChange={(e) => setAddForm((f) => ({ ...f, canAssignTasks: e.target.checked }))}
                         className="rounded text-crm-brand-700 w-4 h-4 cursor-pointer"
                       />
-                      <span className="font-semibold text-[#3E2723]">Assign Tasks</span>
+                      <span className="font-semibold text-[color:var(--crm-text-primary)]">Assign Tasks</span>
                     </label>
-                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[#EBE3DB] cursor-pointer text-xs select-none">
+                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[color:var(--crm-border-default)] cursor-pointer text-xs select-none">
                       <input
                         type="checkbox"
                         checked={addForm.canApproveLeaves}
                         onChange={(e) => setAddForm((f) => ({ ...f, canApproveLeaves: e.target.checked }))}
                         className="rounded text-crm-brand-700 w-4 h-4 cursor-pointer"
                       />
-                      <span className="font-semibold text-[#3E2723]">Approve Leaves</span>
+                      <span className="font-semibold text-[color:var(--crm-text-primary)]">Approve Leaves</span>
                     </label>
-                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[#EBE3DB] cursor-pointer text-xs select-none">
+                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[color:var(--crm-border-default)] cursor-pointer text-xs select-none">
                       <input
                         type="checkbox"
                         checked={addForm.canManageAttendance}
                         onChange={(e) => setAddForm((f) => ({ ...f, canManageAttendance: e.target.checked }))}
                         className="rounded text-crm-brand-700 w-4 h-4 cursor-pointer"
                       />
-                      <span className="font-semibold text-[#3E2723]">Manage Attendance</span>
+                      <span className="font-semibold text-[color:var(--crm-text-primary)]">Manage Attendance</span>
                     </label>
-                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[#EBE3DB] cursor-pointer text-xs select-none">
+                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[color:var(--crm-border-default)] cursor-pointer text-xs select-none">
                       <input
                         type="checkbox"
                         checked={addForm.canExportData}
                         onChange={(e) => setAddForm((f) => ({ ...f, canExportData: e.target.checked }))}
                         className="rounded text-crm-brand-700 w-4 h-4 cursor-pointer"
                       />
-                      <span className="font-semibold text-[#3E2723]">Export Reports</span>
+                      <span className="font-semibold text-[color:var(--crm-text-primary)]">Export Reports</span>
                     </label>
                   </div>
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="flex justify-end gap-3 pt-2 border-t border-[#EBE3DB]">
+              <div className="flex justify-end gap-3 pt-2 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => { setShowAddModal(false); setAddForm(defaultForm); }}
-                  className="px-5 py-2 rounded-lg bg-[#FAF7F2] border border-[#EBE3DB] text-[#544B45] font-medium text-sm hover:bg-[#EBE3DB] transition"
+                  className="px-5 py-2 rounded-lg bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-medium text-sm hover:bg-[color:var(--crm-border-default)] transition"
                 >
                   Cancel
                 </button>
@@ -1765,13 +1765,13 @@ function EmployeeMasterContent() {
       {/* Edit Employee Modal */}
       {editingEmployee && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-[#EBE3DB]">
-              <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
-                <Edit2 className="w-5 h-5 text-amber-500" />
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-[color:var(--crm-border-default)]">
+              <h2 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
+                <Edit2 className="w-5 h-5 text-crm-brand-600" />
                 Edit Employee: {getEmpName(editingEmployee)} ({editingEmployee.id})
               </h2>
-              <button onClick={() => setEditingEmployee(null)} className="text-[#70665F] hover:text-[#211B17]">
+              <button onClick={() => setEditingEmployee(null)} className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1824,7 +1824,7 @@ function EmployeeMasterContent() {
             >
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">First Name (Letters only, max 50) *</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">First Name (Letters only, max 50) *</label>
                   <input
                     type="text"
                     required
@@ -1835,8 +1835,8 @@ function EmployeeMasterContent() {
                       setEditingEmployee({ ...editingEmployee, firstName: clean });
                       if (editErrors.firstName) setEditErrors(prev => ({ ...prev, firstName: '' }));
                     }}
-                    className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] ${
-                      editErrors.firstName ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                    className={`w-full bg-[color:var(--crm-bg-app)] border rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] ${
+                      editErrors.firstName ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[color:var(--crm-border-default)]'
                     }`}
                   />
                   {editErrors.firstName && (
@@ -1846,7 +1846,7 @@ function EmployeeMasterContent() {
                   )}
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Last Name (Letters only, max 50) *</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Last Name (Letters only, max 50) *</label>
                   <input
                     type="text"
                     required
@@ -1857,8 +1857,8 @@ function EmployeeMasterContent() {
                       setEditingEmployee({ ...editingEmployee, lastName: clean });
                       if (editErrors.lastName) setEditErrors(prev => ({ ...prev, lastName: '' }));
                     }}
-                    className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] ${
-                      editErrors.lastName ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                    className={`w-full bg-[color:var(--crm-bg-app)] border rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] ${
+                      editErrors.lastName ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[color:var(--crm-border-default)]'
                     }`}
                   />
                   {editErrors.lastName && (
@@ -1871,7 +1871,7 @@ function EmployeeMasterContent() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Email *</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Email *</label>
                   <input
                     type="email"
                     required
@@ -1880,8 +1880,8 @@ function EmployeeMasterContent() {
                       setEditingEmployee({ ...editingEmployee, email: e.target.value });
                       if (editErrors.email) setEditErrors(prev => ({ ...prev, email: '' }));
                     }}
-                    className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] ${
-                      editErrors.email ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                    className={`w-full bg-[color:var(--crm-bg-app)] border rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] ${
+                      editErrors.email ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[color:var(--crm-border-default)]'
                     }`}
                   />
                   {editErrors.email && (
@@ -1891,7 +1891,7 @@ function EmployeeMasterContent() {
                   )}
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Mobile (10 Digits) *</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Mobile (10 Digits) *</label>
                   <input
                     type="tel"
                     inputMode="numeric"
@@ -1903,8 +1903,8 @@ function EmployeeMasterContent() {
                       setEditingEmployee({ ...editingEmployee, mobile: clean, phone: clean });
                       if (editErrors.mobile) setEditErrors(prev => ({ ...prev, mobile: '' }));
                     }}
-                    className={`w-full bg-[#FAF7F2] border rounded-lg px-3 py-2 text-[#211B17] font-mono ${
-                      editErrors.mobile ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[#EBE3DB]'
+                    className={`w-full bg-[color:var(--crm-bg-app)] border rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] font-mono ${
+                      editErrors.mobile ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-[color:var(--crm-border-default)]'
                     }`}
                   />
                   {editErrors.mobile && (
@@ -1917,7 +1917,7 @@ function EmployeeMasterContent() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Department</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Department</label>
                   <select
                     value={editingEmployee.department || editingEmployee.departmentName || ''}
                     onChange={(e) => {
@@ -1932,7 +1932,7 @@ function EmployeeMasterContent() {
                         assignedModules: editingEmployee.assignedModules?.length ? editingEmployee.assignedModules : defMods,
                       });
                     }}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17]"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)]"
                   >
                     {departments.map((d) => (
                       <option key={d.id} value={d.departmentName}>{d.departmentName}</option>
@@ -1940,23 +1940,23 @@ function EmployeeMasterContent() {
                   </select>
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Designation / Role</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Designation / Role</label>
                   <input
                     type="text"
                     value={editingEmployee.designation || editingEmployee.role || editingEmployee.roleName || ''}
                     onChange={(e) => setEditingEmployee({ ...editingEmployee, designation: e.target.value, role: e.target.value, roleName: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17]"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Status</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Status</label>
                   <select
                     value={editingEmployee.status || 'Active'}
                     onChange={(e) => setEditingEmployee({ ...editingEmployee, status: e.target.value as any })}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17]"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)]"
                   >
                     <option value="Active">Active</option>
                     <option value="Inactive">Inactive</option>
@@ -1965,30 +1965,30 @@ function EmployeeMasterContent() {
                   </select>
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Joining Date</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Joining Date</label>
                   <input
                     type="date"
                     value={editingEmployee.joiningDate || editingEmployee.joinedDate || ''}
                     onChange={(e) => setEditingEmployee({ ...editingEmployee, joiningDate: e.target.value, joinedDate: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17]"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)]"
                   />
                 </div>
               </div>
 
               {/* Role Hierarchy, Scope & Permissions */}
-              <div className="bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB] space-y-3">
-                <div className="flex items-center gap-2 pb-2 border-b border-[#EBE3DB]">
+              <div className="bg-[color:var(--crm-bg-app)] p-4 rounded-xl border border-[color:var(--crm-border-default)] space-y-3">
+                <div className="flex items-center gap-2 pb-2 border-b border-[color:var(--crm-border-default)]">
                   <ShieldCheck className="w-4 h-4 text-crm-brand-700" />
-                  <h4 className="font-bold text-[#211B17] text-xs">Role Hierarchy, Data Scope & Access Control</h4>
+                  <h4 className="font-bold text-[color:var(--crm-text-primary)] text-xs">Role Hierarchy, Data Scope & Access Control</h4>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block font-semibold text-[#544B45] mb-1">Role Hierarchy Level *</label>
+                    <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Role Hierarchy Level *</label>
                     <select
                       value={editingEmployee.roleType || 'employee'}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, roleType: e.target.value as any })}
-                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] font-semibold"
+                      className="w-full bg-white border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] font-semibold"
                     >
                       <option value="super_admin">1. Super Admin (Full ERP Authority)</option>
                       <option value="admin">2. Admin (Department & Ops Management)</option>
@@ -1997,11 +1997,11 @@ function EmployeeMasterContent() {
                     </select>
                   </div>
                   <div>
-                    <label className="block font-semibold text-[#544B45] mb-1">Data Scope & Visibility *</label>
+                    <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Data Scope & Visibility *</label>
                     <select
                       value={editingEmployee.dataScope || 'department'}
                       onChange={(e) => setEditingEmployee({ ...editingEmployee, dataScope: e.target.value as any })}
-                      className="w-full bg-white border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] font-semibold"
+                      className="w-full bg-white border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] font-semibold"
                     >
                       <option value="own">Self Only (Personal Profile & Tasks)</option>
                       <option value="assigned">Assigned Records (Assigned Orders/Tasks)</option>
@@ -2014,7 +2014,7 @@ function EmployeeMasterContent() {
                 {/* Assigned Modules Checkboxes */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-xs font-bold text-[#3E2723]">
+                    <label className="block text-xs font-bold text-[color:var(--crm-text-primary)]">
                       Authorized ERP Modules:
                     </label>
                     <div className="flex gap-2">
@@ -2043,13 +2043,13 @@ function EmployeeMasterContent() {
                       </button>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-white p-3 rounded-xl border border-[#EBE3DB]">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-white p-3 rounded-xl border border-[color:var(--crm-border-default)]">
                     {ALL_ERP_MODULES.map((mod) => {
                       const isChecked = (editingEmployee.assignedModules || []).includes(mod.id);
                       return (
                         <label
                           key={mod.id}
-                          className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-[#FAF7F2] cursor-pointer text-xs select-none"
+                          className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-[color:var(--crm-bg-app)] cursor-pointer text-xs select-none"
                         >
                           <input
                             type="checkbox"
@@ -2064,7 +2064,7 @@ function EmployeeMasterContent() {
                             }}
                             className="rounded text-crm-brand-700 focus:ring-crm-brand-500 w-4 h-4 cursor-pointer"
                           />
-                          <span className={cn('font-medium', isChecked ? 'text-[#211B17] font-bold' : 'text-[#70665F]')}>
+                          <span className={cn('font-medium', isChecked ? 'text-[color:var(--crm-text-primary)] font-bold' : 'text-[color:var(--crm-text-secondary)]')}>
                             {mod.label}
                           </span>
                         </label>
@@ -2075,55 +2075,55 @@ function EmployeeMasterContent() {
 
                 {/* Operational Authorities */}
                 <div>
-                  <label className="block text-xs font-bold text-[#3E2723] mb-2">
+                  <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-2">
                     Operational Authorities & Privileges:
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[#EBE3DB] cursor-pointer text-xs select-none">
+                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[color:var(--crm-border-default)] cursor-pointer text-xs select-none">
                       <input
                         type="checkbox"
                         checked={Boolean(editingEmployee.canAssignTasks)}
                         onChange={(e) => setEditingEmployee({ ...editingEmployee, canAssignTasks: e.target.checked })}
                         className="rounded text-crm-brand-700 w-4 h-4 cursor-pointer"
                       />
-                      <span className="font-semibold text-[#3E2723]">Assign Tasks</span>
+                      <span className="font-semibold text-[color:var(--crm-text-primary)]">Assign Tasks</span>
                     </label>
-                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[#EBE3DB] cursor-pointer text-xs select-none">
+                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[color:var(--crm-border-default)] cursor-pointer text-xs select-none">
                       <input
                         type="checkbox"
                         checked={Boolean(editingEmployee.canApproveLeaves)}
                         onChange={(e) => setEditingEmployee({ ...editingEmployee, canApproveLeaves: e.target.checked })}
                         className="rounded text-crm-brand-700 w-4 h-4 cursor-pointer"
                       />
-                      <span className="font-semibold text-[#3E2723]">Approve Leaves</span>
+                      <span className="font-semibold text-[color:var(--crm-text-primary)]">Approve Leaves</span>
                     </label>
-                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[#EBE3DB] cursor-pointer text-xs select-none">
+                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[color:var(--crm-border-default)] cursor-pointer text-xs select-none">
                       <input
                         type="checkbox"
                         checked={Boolean(editingEmployee.canManageAttendance)}
                         onChange={(e) => setEditingEmployee({ ...editingEmployee, canManageAttendance: e.target.checked })}
                         className="rounded text-crm-brand-700 w-4 h-4 cursor-pointer"
                       />
-                      <span className="font-semibold text-[#3E2723]">Manage Attendance</span>
+                      <span className="font-semibold text-[color:var(--crm-text-primary)]">Manage Attendance</span>
                     </label>
-                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[#EBE3DB] cursor-pointer text-xs select-none">
+                    <label className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-[color:var(--crm-border-default)] cursor-pointer text-xs select-none">
                       <input
                         type="checkbox"
                         checked={Boolean(editingEmployee.canExportData)}
                         onChange={(e) => setEditingEmployee({ ...editingEmployee, canExportData: e.target.checked })}
                         className="rounded text-crm-brand-700 w-4 h-4 cursor-pointer"
                       />
-                      <span className="font-semibold text-[#3E2723]">Export Reports</span>
+                      <span className="font-semibold text-[color:var(--crm-text-primary)]">Export Reports</span>
                     </label>
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex justify-end gap-3 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setEditingEmployee(null)}
-                  className="px-4 py-2 rounded-lg bg-[#FAF7F2] border border-[#EBE3DB] text-[#544B45]"
+                  className="px-4 py-2 rounded-lg bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)]"
                 >
                   Cancel
                 </button>
@@ -2145,7 +2145,7 @@ function EmployeeMasterContent() {
 
 export default function EmployeeMasterPage() {
   return (
-    <Suspense fallback={<div className="p-6 text-xs text-[#70665F]">Loading Employee Master...</div>}>
+    <Suspense fallback={<div className="p-6 text-xs text-[color:var(--crm-text-secondary)]">Loading Employee Master...</div>}>
       <EmployeeMasterContent />
     </Suspense>
   );

@@ -10,7 +10,7 @@ import { FileText, Search, Plus, Filter, CheckCircle2, Clock, Eye, Download, Bui
 
 export default function PurchaseInvoicesPage() {
   const router = useRouter();
-  const { purchaseInvoices, addPurchaseInvoice, postPurchaseInvoice, suppliers, goodsReceipts, purchaseOrders } = useERP();
+  const { currentUser, purchaseInvoices, addPurchaseInvoice, postPurchaseInvoice, suppliers, goodsReceipts, purchaseOrders } = useERP();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -89,7 +89,7 @@ export default function PurchaseInvoicesPage() {
       grandTotal,
       status: 'Pending_Posting',
       paymentStatus: 'Unpaid',
-      createdBy: 'Rajesh Patel',
+      createdBy: currentUser?.name || currentUser?.username || '',
     });
 
     setIsModalOpen(false);
@@ -275,7 +275,7 @@ export default function PurchaseInvoicesPage() {
                     )}&amount=${due}`
                   )
                 }
-                className="px-2.5 py-1 bg-[#211B17] hover:bg-black text-white text-[10px] font-bold rounded-lg transition shadow-xs cursor-pointer"
+                className="px-2.5 py-1 bg-[color:var(--crm-text-primary)] hover:bg-black text-white text-[10px] font-bold rounded-lg transition shadow-xs cursor-pointer"
               >
                 Pay Bill
               </button>
@@ -344,15 +344,15 @@ export default function PurchaseInvoicesPage() {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
-            <h3 className="text-base font-bold text-[#211B17] border-b border-[#EBE3DB] pb-3">Book Purchase Invoice</h3>
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
+            <h3 className="text-base font-bold text-[color:var(--crm-text-primary)] border-b border-[color:var(--crm-border-default)] pb-3">Book Purchase Invoice</h3>
             <form onSubmit={handleCreatePurchaseInvoice} className="space-y-3 text-xs">
               <div>
-                <label className="block text-[#70665F] mb-1">Supplier</label>
+                <label className="block text-[color:var(--crm-text-secondary)] mb-1">Supplier</label>
                 <select
                   value={supplierId}
                   onChange={(e) => setSupplierId(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723]"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)]"
                 >
                   {suppliers.map((s) => (
                     <option key={s.id} value={s.id}>
@@ -364,56 +364,56 @@ export default function PurchaseInvoicesPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] mb-1">Vendor Invoice / Bill No</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1">Vendor Invoice / Bill No</label>
                   <input
                     type="text"
                     required
                     value={vendorInvoiceNumber}
                     onChange={(e) => setVendorInvoiceNumber(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#70665F] mb-1">PO Number</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1">PO Number</label>
                   <input
                     type="text"
                     value={poNumber}
                     onChange={(e) => setPoNumber(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] mb-1">Taxable Amount (₹)</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1">Taxable Amount (₹)</label>
                   <input
                     type="number"
                     placeholder="0"
                     value={subTotal}
                     onChange={(e) => setSubTotal(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#70665F] mb-1">GST Rate (%)</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1">GST Rate (%)</label>
                   <input
                     type="number"
                     placeholder="18"
                     value={taxRate}
                     onChange={(e) => setTaxRate(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] mb-1">TDS Section</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1">TDS Section</label>
                   <select
                     value={tdsSection}
                     onChange={(e) => setTdsSection(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723]"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)]"
                   >
                     <option value="194C">194C - Subcontracting (2%)</option>
                     <option value="194J">194J - Professional Fee (10%)</option>
@@ -421,22 +421,22 @@ export default function PurchaseInvoicesPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[#70665F] mb-1">TDS Rate (%)</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1">TDS Rate (%)</label>
                   <input
                     type="number"
                     placeholder="2"
                     value={tdsRate}
                     onChange={(e) => setTdsRate(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl bg-white text-[#544B45]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[color:var(--crm-border-default)]">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl bg-white text-[color:var(--crm-text-secondary)]">
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 rounded-xl bg-crm-brand-700 text-[#211B17] font-semibold">
+                <button type="submit" className="px-4 py-2 rounded-xl bg-crm-brand-700 text-[color:var(--crm-text-primary)] font-semibold">
                   Save Purchase Invoice
                 </button>
               </div>

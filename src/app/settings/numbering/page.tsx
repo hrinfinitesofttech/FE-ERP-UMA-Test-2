@@ -85,8 +85,8 @@ export default function NumberingSettingsPage() {
       key: 'module',
       header: 'Module',
       cell: (n) => (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-[#7C3AED] border border-purple-200">
-          <Layers className="w-3 h-3 text-[#7C3AED]" />
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-[color:var(--crm-brand-600)] border border-purple-200">
+          <Layers className="w-3 h-3 text-[color:var(--crm-brand-600)]" />
           {n.module}
         </span>
       ),
@@ -110,11 +110,11 @@ export default function NumberingSettingsPage() {
             type="text"
             value={editPrefix}
             onChange={(e) => setEditPrefix(e.target.value)}
-            className="px-2.5 py-1 bg-white border border-[#7C3AED] rounded-lg font-mono font-bold text-xs text-slate-900 focus:outline-none ring-1 ring-purple-500/20"
+            className="px-2.5 py-1 bg-white border border-[color:var(--crm-brand-600)] rounded-lg font-mono font-bold text-xs text-slate-900 focus:outline-none ring-1 ring-purple-500/20"
             placeholder="e.g. QT-2026-"
           />
         ) : (
-          <span className="font-mono font-bold text-[#7C3AED] px-2 py-0.5 rounded bg-purple-50 border border-purple-100">
+          <span className="font-mono font-bold text-[color:var(--crm-brand-600)] px-2 py-0.5 rounded bg-purple-50 border border-purple-100">
             {n.prefix}
           </span>
         ),
@@ -129,7 +129,7 @@ export default function NumberingSettingsPage() {
             min={0}
             value={editCurrentNum}
             onChange={(e) => setEditCurrentNum(Math.max(0, parseInt(e.target.value) || 0))}
-            className="w-20 px-2.5 py-1 bg-white border border-[#7C3AED] rounded-lg font-mono text-xs text-slate-900 focus:outline-none"
+            className="w-20 px-2.5 py-1 bg-white border border-[color:var(--crm-brand-600)] rounded-lg font-mono text-xs text-slate-900 focus:outline-none"
           />
         ) : (
           <span className="font-mono text-slate-700 font-semibold">{n.currentNumber}</span>
@@ -143,7 +143,7 @@ export default function NumberingSettingsPage() {
           <select
             value={editDigits}
             onChange={(e) => setEditDigits(Number(e.target.value))}
-            className="px-2 py-1 bg-white border border-[#7C3AED] rounded-lg font-mono text-xs text-slate-900 focus:outline-none"
+            className="px-2 py-1 bg-white border border-[color:var(--crm-brand-600)] rounded-lg font-mono text-xs text-slate-900 focus:outline-none"
           >
             <option value={3}>3 digits (001)</option>
             <option value={4}>4 digits (0001)</option>
@@ -179,7 +179,7 @@ export default function NumberingSettingsPage() {
             <button
               type="button"
               onClick={() => saveEdit(n)}
-              className="px-2.5 py-1 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-md font-bold text-xs flex items-center gap-1 transition shadow-xs cursor-pointer"
+              className="px-2.5 py-1 bg-[color:var(--crm-brand-600)] hover:bg-[#6D28D9] text-white rounded-md font-bold text-xs flex items-center gap-1 transition shadow-xs cursor-pointer"
             >
               <Save className="w-3 h-3" /> Save
             </button>
@@ -196,7 +196,7 @@ export default function NumberingSettingsPage() {
           <button
             type="button"
             onClick={() => startEdit(n)}
-            className="p-1.5 rounded-md text-slate-600 hover:text-[#7C3AED] hover:bg-slate-100 transition border border-transparent hover:border-slate-200 cursor-pointer"
+            className="p-1.5 rounded-md text-slate-600 hover:text-[color:var(--crm-brand-600)] hover:bg-slate-100 transition border border-transparent hover:border-slate-200 cursor-pointer"
             title="Edit Pattern & Counter"
           >
             <Edit className="w-3.5 h-3.5" />
@@ -211,7 +211,7 @@ export default function NumberingSettingsPage() {
     <div className="space-y-4">
       {/* Info Card Explaining the Feature */}
       <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3.5 flex items-start gap-3">
-        <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+        <Info className="w-4 h-4 text-crm-brand-600 shrink-0 mt-0.5" />
         <div className="text-xs text-amber-900 leading-relaxed">
           <span className="font-bold">What is this section?</span> Every document created in the ERP (such as <strong>Leads</strong>, <strong>Quotations</strong>, <strong>Sales Orders</strong>, <strong>Invoices</strong>, <strong>Job Cards</strong>) is assigned a sequential unique number automatically. Here you can customize the Prefix (e.g. <code className="bg-amber-200/50 px-1 py-0.5 rounded font-mono font-bold">QT-2026-</code>), starting counter, and zero padding.
         </div>
@@ -234,7 +234,7 @@ export default function NumberingSettingsPage() {
               onClick={() => setModuleFilter(m)}
               className={`px-3 py-1.5 rounded-lg font-bold text-xs whitespace-nowrap transition cursor-pointer ${
                 moduleFilter === m
-                  ? 'bg-[#7C3AED] text-white shadow-xs'
+                  ? 'bg-[color:var(--crm-brand-600)] text-white shadow-xs'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
@@ -298,13 +298,13 @@ export default function NumberingSettingsPage() {
       {/* Add Custom Series Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[#EBE3DB]">
-              <h3 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[color:var(--crm-border-default)]">
+              <h3 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                 <Hash className="w-5 h-5 text-pink-600" />
                 Add New Document Numbering Series
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="text-[#70665F] hover:text-[#211B17]">
+              <button onClick={() => setShowAddModal(false)} className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -312,11 +312,11 @@ export default function NumberingSettingsPage() {
             <form onSubmit={handleCreateSeries} className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">ERP Module *</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">ERP Module *</label>
                   <select
                     value={newModule}
                     onChange={(e) => setNewModule(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] focus:outline-none focus:border-pink-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-pink-500"
                   >
                     <option value="CRM & Sales">CRM & Sales</option>
                     <option value="Project Management">Project Management</option>
@@ -327,47 +327,47 @@ export default function NumberingSettingsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Document Identifier *</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Document Identifier *</label>
                   <input
                     type="text"
                     required
                     value={newDocType}
                     onChange={(e) => setNewDocType(e.target.value as any)}
                     placeholder="e.g. delivery_challan"
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] font-mono focus:outline-none focus:border-pink-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] font-mono focus:outline-none focus:border-pink-500"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Prefix Pattern *</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Prefix Pattern *</label>
                   <input
                     type="text"
                     required
                     value={newPrefix}
                     onChange={(e) => setNewPrefix(e.target.value)}
                     placeholder="e.g. DC-2026-"
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] font-mono focus:outline-none focus:border-pink-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] font-mono focus:outline-none focus:border-pink-500"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Starting Number *</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Starting Number *</label>
                   <input
                     type="number"
                     min={1}
                     required
                     value={newStartNum}
                     onChange={(e) => setNewStartNum(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] font-mono focus:outline-none focus:border-pink-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] font-mono focus:outline-none focus:border-pink-500"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Digit Padding *</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Digit Padding *</label>
                   <select
                     value={newDigits}
                     onChange={(e) => setNewDigits(Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-3 py-2 text-[#211B17] font-mono focus:outline-none focus:border-pink-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-[color:var(--crm-text-primary)] font-mono focus:outline-none focus:border-pink-500"
                   >
                     <option value={3}>3 (001)</option>
                     <option value={4}>4 (0001)</option>
@@ -378,18 +378,18 @@ export default function NumberingSettingsPage() {
               </div>
 
               {/* Live Preview Pill */}
-              <div className="p-3 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl flex items-center justify-between">
-                <span className="text-[#70665F] font-medium">Sample Next Auto Number:</span>
+              <div className="p-3 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl flex items-center justify-between">
+                <span className="text-[color:var(--crm-text-secondary)] font-medium">Sample Next Auto Number:</span>
                 <span className="font-mono font-bold text-sm text-pink-700 bg-pink-100/60 px-3 py-1 rounded-md border border-pink-200">
                   {newPrefix.trim()}{String(newStartNum).padStart(newDigits, '0')}
                 </span>
               </div>
 
-              <div className="flex justify-end gap-2.5 pt-2 border-t border-[#EBE3DB]">
+              <div className="flex justify-end gap-2.5 pt-2 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-lg bg-[#FAF7F2] border border-[#EBE3DB] text-[#544B45] font-semibold hover:bg-[#EBE3DB] transition"
+                  className="px-4 py-2 rounded-lg bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold hover:bg-[color:var(--crm-border-default)] transition"
                 >
                   Cancel
                 </button>

@@ -191,7 +191,7 @@ export function ERPListPageLayout<T extends Record<string, any>>({
               setCurrentPage(1);
             }}
             placeholder={searchPlaceholder}
-            className="w-full pl-9 pr-4 py-2 min-h-[40px] bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#204354] focus:border-[#204354] transition shadow-2xs"
+            className="w-full pl-9 pr-4 py-2 min-h-[40px] bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#1F3FB0] focus:border-[#1F3FB0] transition shadow-2xs"
           />
         </div>
 
@@ -218,7 +218,7 @@ export function ERPListPageLayout<T extends Record<string, any>>({
           {addNewHref ? (
             <Link
               href={addNewHref}
-              className="px-4 py-2 min-h-[40px] min-w-[40px] bg-[#204354] hover:bg-[#183442] active:bg-[#122733] text-white rounded-xl text-xs font-semibold shadow-2xs transition inline-flex items-center justify-center gap-1.5 cursor-pointer"
+              className="px-4 py-2 min-h-[40px] min-w-[40px] bg-[#1F3FB0] hover:bg-[#183442] active:bg-[#122733] text-white rounded-xl text-xs font-semibold shadow-2xs transition inline-flex items-center justify-center gap-1.5 cursor-pointer"
               title={addNewLabel}
             >
               <Plus className="w-4 h-4 stroke-[2.5]" />
@@ -227,7 +227,7 @@ export function ERPListPageLayout<T extends Record<string, any>>({
           ) : onAddNew ? (
             <button
               onClick={onAddNew}
-              className="px-4 py-2 min-h-[40px] min-w-[40px] bg-[#204354] hover:bg-[#183442] active:bg-[#122733] text-white rounded-xl text-xs font-semibold shadow-2xs transition inline-flex items-center justify-center gap-1.5 cursor-pointer"
+              className="px-4 py-2 min-h-[40px] min-w-[40px] bg-[#1F3FB0] hover:bg-[#183442] active:bg-[#122733] text-white rounded-xl text-xs font-semibold shadow-2xs transition inline-flex items-center justify-center gap-1.5 cursor-pointer"
               title={addNewLabel}
             >
               <Plus className="w-4 h-4 stroke-[2.5]" />
@@ -289,7 +289,7 @@ export function ERPListPageLayout<T extends Record<string, any>>({
                       <div
                         className={cn(
                           'w-4 h-4 rounded border flex items-center justify-center transition',
-                          isVis ? 'bg-[#204354] border-[#204354] text-white' : 'border-slate-300 bg-white'
+                          isVis ? 'bg-[#1F3FB0] border-[#1F3FB0] text-white' : 'border-slate-300 bg-white'
                         )}
                       >
                         {isVis && <Check className="w-3 h-3 stroke-[3]" />}
@@ -327,12 +327,12 @@ export function ERPListPageLayout<T extends Record<string, any>>({
                   className={cn(
                     'w-full text-left px-2.5 py-1.5 rounded-lg font-medium capitalize flex items-center justify-between transition cursor-pointer',
                     density === mode
-                      ? 'bg-slate-100 text-[#204354] font-bold'
+                      ? 'bg-slate-100 text-[#1F3FB0] font-bold'
                       : 'text-slate-600 hover:bg-slate-50'
                   )}
                 >
                   <span>{mode}</span>
-                  {density === mode && <Check className="w-3.5 h-3.5 text-[#204354]" />}
+                  {density === mode && <Check className="w-3.5 h-3.5 text-[#1F3FB0]" />}
                 </button>
               ))}
             </div>
@@ -453,7 +453,7 @@ export function ERPListPageLayout<T extends Record<string, any>>({
                               <button
                                 onClick={() => onView(row)}
                                 title="View Details"
-                                className="min-w-[38px] min-h-[38px] p-2 flex items-center justify-center text-[#64748B] hover:text-[#7C3AED] hover:bg-purple-50 rounded-lg transition cursor-pointer"
+                                className="min-w-[38px] min-h-[38px] p-2 flex items-center justify-center text-[#64748B] hover:text-[color:var(--crm-brand-600)] hover:bg-purple-50 rounded-lg transition cursor-pointer"
                               >
                                 <Eye className="w-4 h-4" />
                               </button>
@@ -462,7 +462,7 @@ export function ERPListPageLayout<T extends Record<string, any>>({
                               <button
                                 onClick={() => onEdit(row)}
                                 title="Edit Record"
-                                className="min-w-[38px] min-h-[38px] p-2 flex items-center justify-center text-[#475569] hover:text-[#7C3AED] hover:bg-purple-50 rounded-lg transition cursor-pointer"
+                                className="min-w-[38px] min-h-[38px] p-2 flex items-center justify-center text-[#475569] hover:text-[color:var(--crm-brand-600)] hover:bg-purple-50 rounded-lg transition cursor-pointer"
                               >
                                 <Pencil className="w-4 h-4" />
                               </button>
@@ -491,7 +491,7 @@ export function ERPListPageLayout<T extends Record<string, any>>({
         <div className="py-3 px-4 border-t border-[#E2E8F0] bg-white flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#64748B]">
           <div className="flex items-center gap-4">
             {isLoading ? (
-              <span className="flex items-center gap-2 text-xs text-[#7C3AED] font-medium">
+              <span className="flex items-center gap-2 text-xs text-[color:var(--crm-brand-600)] font-medium">
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 <span>Loading latest live records...</span>
               </span>
@@ -510,7 +510,7 @@ export function ERPListPageLayout<T extends Record<string, any>>({
                   setPageSize(Number(e.target.value));
                   setCurrentPage(1);
                 }}
-                className="bg-white border border-[#CBD5E1] rounded-lg px-2.5 py-1.5 min-h-[38px] text-xs font-semibold text-[#1E293B] focus:outline-none focus:border-[#7C3AED] cursor-pointer"
+                className="bg-white border border-[#CBD5E1] rounded-lg px-2.5 py-1.5 min-h-[38px] text-xs font-semibold text-[#1E293B] focus:outline-none focus:border-[color:var(--crm-brand-600)] cursor-pointer"
               >
                 {pageSizeOptions.map((opt) => (
                   <option key={opt} value={opt}>

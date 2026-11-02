@@ -11,7 +11,7 @@ export default function MaterialIssueRedirect() {
   }, [router]);
 
   return (
-    <div className="p-8 text-center text-xs text-[#8D7B70]">
+    <div className="p-8 text-center text-xs text-[color:var(--crm-text-tertiary)]">
       Redirecting to Material Planning & Issue Request Hub...
     </div>
   );

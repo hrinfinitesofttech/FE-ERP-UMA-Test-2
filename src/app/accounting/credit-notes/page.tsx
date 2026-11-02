@@ -163,16 +163,16 @@ export default function CreditNotesPage() {
   );
 
   return (
-    <div className="p-6 space-y-6 bg-[#FAF7F2] text-[#211B17]">
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)]">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#EBE3DB] shadow-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-lg">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-amber-500/10 rounded-2xl text-amber-600 border border-amber-500/20">
             <CreditCard className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-[#211B17]">Credit Notes (Customer Adjustments / Returns)</h1>
-            <p className="text-xs text-[#70665F] mt-0.5">
+            <h1 className="text-xl font-bold text-[color:var(--crm-text-primary)]">Credit Notes (Customer Adjustments / Returns)</h1>
+            <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">
               GST Adjustment Vouchers with strict Invoice validation & DB persistence.
             </p>
           </div>
@@ -193,28 +193,28 @@ export default function CreditNotesPage() {
       </div>
 
       {/* Filter / Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] flex flex-wrap items-center justify-between gap-4 shadow-xs">
+      <div className="bg-white p-4 rounded-xl border border-[color:var(--crm-border-default)] flex flex-wrap items-center justify-between gap-4 shadow-xs">
         <div className="relative w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--crm-text-secondary)]" />
           <input
             type="text"
             placeholder="Search CN no, customer, invoice, reason..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-4 py-2 text-xs text-[#3E2723] focus:outline-none focus:border-crm-brand-600"
+            className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl pl-9 pr-4 py-2 text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-600"
           />
         </div>
 
-        <div className="text-xs text-[#70665F] font-mono">
-          Showing <span className="font-bold text-[#211B17]">{filtered.length}</span> of {creditNotes.length} Credit Notes
+        <div className="text-xs text-[color:var(--crm-text-secondary)] font-mono">
+          Showing <span className="font-bold text-[color:var(--crm-text-primary)]">{filtered.length}</span> of {creditNotes.length} Credit Notes
         </div>
       </div>
 
       {/* Credit Notes Table */}
-      <div className="bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden shadow-xl">
+      <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-[#544B45]">
-            <thead className="bg-[#FAF7F2]/90 text-[#70665F] uppercase font-mono text-[10px] tracking-wider border-b border-[#EBE3DB]">
+          <table className="w-full text-left text-xs text-[color:var(--crm-text-secondary)]">
+            <thead className="bg-[#F4F6FA]/90 text-[color:var(--crm-text-secondary)] uppercase font-mono text-[10px] tracking-wider border-b border-[color:var(--crm-border-default)]">
               <tr>
                 <th className="py-3.5 px-4">CN Number</th>
                 <th className="py-3.5 px-4">Date</th>
@@ -228,36 +228,36 @@ export default function CreditNotesPage() {
                 <th className="py-3.5 px-4 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EBE3DB] font-mono">
+            <tbody className="divide-y divide-[color:var(--crm-border-default)] font-mono">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="py-12 text-center text-xs text-[#70665F]">
+                  <td colSpan={10} className="py-12 text-center text-xs text-[color:var(--crm-text-secondary)]">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <CreditCard className="w-8 h-8 text-[#A8988C] opacity-50" />
-                      <p className="font-semibold text-[#544B45]">No credit notes found</p>
-                      <p className="text-[11px] text-[#8C7A6F]">No records match your search or no credit notes have been issued yet.</p>
+                      <CreditCard className="w-8 h-8 text-[color:var(--crm-text-tertiary)] opacity-50" />
+                      <p className="font-semibold text-[color:var(--crm-text-secondary)]">No credit notes found</p>
+                      <p className="text-[11px] text-[color:var(--crm-text-tertiary)]">No records match your search or no credit notes have been issued yet.</p>
                     </div>
                   </td>
                 </tr>
               ) : (
                 filtered.map((cn) => (
-                <tr key={cn.id} className="hover:bg-[#FAF7F2]/40 transition">
+                <tr key={cn.id} className="hover:bg-[#F4F6FA]/40 transition">
                   <td className="py-3 px-4 font-bold text-amber-600">{cn.creditNoteNumber}</td>
-                  <td className="py-3 px-4 text-[#70665F] font-sans">{cn.creditNoteDate || cn.date || '2026-09-28'}</td>
-                  <td className="py-3 px-4 font-sans font-semibold text-[#3E2723]">{cn.customerName}</td>
-                  <td className="py-3 px-4 text-[#544B45]">
+                  <td className="py-3 px-4 text-[color:var(--crm-text-secondary)] font-sans">{cn.creditNoteDate || cn.date || '2026-09-28'}</td>
+                  <td className="py-3 px-4 font-sans font-semibold text-[color:var(--crm-text-primary)]">{cn.customerName}</td>
+                  <td className="py-3 px-4 text-[color:var(--crm-text-secondary)]">
                     <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-800">
                       {cn.originalInvoiceNumber || 'N/A'}
                     </span>
                   </td>
-                  <td className="py-3 px-4 font-sans text-[#70665F]">{cn.reason}</td>
-                  <td className="py-3 px-4 text-right text-[#544B45]">
+                  <td className="py-3 px-4 font-sans text-[color:var(--crm-text-secondary)]">{cn.reason}</td>
+                  <td className="py-3 px-4 text-right text-[color:var(--crm-text-secondary)]">
                     ₹{Number(cn.taxableAmount || 0)?.toLocaleString('en-IN')}
                   </td>
                   <td className="py-3 px-4 text-right text-yellow-600">
                     ₹{Number(cn.taxAmount || cn.gstAmount || 0)?.toLocaleString('en-IN')}
                   </td>
-                  <td className="py-3 px-4 text-right font-bold text-[#211B17]">
+                  <td className="py-3 px-4 text-right font-bold text-[color:var(--crm-text-primary)]">
                     ₹{Number(cn.totalAmount || 0)?.toLocaleString('en-IN')}
                   </td>
                   <td className="py-3 px-4 text-center font-sans">
@@ -293,24 +293,24 @@ export default function CreditNotesPage() {
       {/* ISSUE CREDIT NOTE MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <h3 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <h3 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-emerald-600" />
                 Issue New Credit Note Voucher
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-[#70665F] hover:text-[#211B17]">
+              <button onClick={() => setIsModalOpen(false)} className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-3 text-xs">
               <div>
-                <label className="block text-[#70665F] font-semibold mb-1">Customer *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Customer *</label>
                 <select
                   value={customerId}
                   onChange={(e) => handleCustomerChange(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-semibold"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-semibold"
                 >
                   {customers.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -321,12 +321,12 @@ export default function CreditNotesPage() {
               </div>
 
               <div>
-                <label className="block text-[#70665F] font-semibold mb-1">Original Sales Invoice *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Original Sales Invoice *</label>
                 {customerInvoices.length > 0 ? (
                   <select
                     value={invoiceNumber}
                     onChange={(e) => handleInvoiceChange(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono font-semibold"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono font-semibold"
                   >
                     {customerInvoices.map((inv) => (
                       <option key={inv.id} value={inv.invoiceNumber}>
@@ -341,7 +341,7 @@ export default function CreditNotesPage() {
                     placeholder="Enter Invoice No. (e.g. SINV-2026-0001)"
                     value={invoiceNumber}
                     onChange={(e) => setInvoiceNumber(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono"
                   />
                 )}
               </div>
@@ -350,8 +350,8 @@ export default function CreditNotesPage() {
               {selectedInvoice && (
                 <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl space-y-1 text-xs">
                   <div className="flex justify-between font-semibold">
-                    <span className="text-[#70665F]">Invoice Grand Total:</span>
-                    <span className="font-mono text-[#211B17]">₹{invoiceGrandTotal.toLocaleString('en-IN')}</span>
+                    <span className="text-[color:var(--crm-text-secondary)]">Invoice Grand Total:</span>
+                    <span className="font-mono text-[color:var(--crm-text-primary)]">₹{invoiceGrandTotal.toLocaleString('en-IN')}</span>
                   </div>
                   {existingCreditedTotal > 0 && (
                     <div className="flex justify-between text-amber-700">
@@ -367,11 +367,11 @@ export default function CreditNotesPage() {
               )}
 
               <div>
-                <label className="block text-[#70665F] font-semibold mb-1">Reason for Credit Adjustment</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Reason for Credit Adjustment</label>
                 <select
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723]"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)]"
                 >
                   <option value="Price Difference / Return">Price Difference / Return</option>
                   <option value="Material Rejection / Return">Material Rejection / Return</option>
@@ -383,34 +383,34 @@ export default function CreditNotesPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Taxable Amount (₹) *</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Taxable Amount (₹) *</label>
                   <input
                     type="number"
                     required
                     placeholder="0"
                     value={taxableAmount}
                     onChange={(e) => handleTaxableChange(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono font-bold"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono font-bold"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">GST Tax 18% (₹) *</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">GST Tax 18% (₹) *</label>
                   <input
                     type="number"
                     required
                     placeholder="0"
                     value={taxAmount}
                     onChange={(e) => setTaxAmount(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono font-bold"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono font-bold"
                   />
                 </div>
               </div>
 
               {/* Total Summary & Validation Alert */}
-              <div className="p-3 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl flex items-center justify-between">
+              <div className="p-3 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl flex items-center justify-between">
                 <div>
-                  <span className="text-[11px] text-[#70665F] block">Total Credit Voucher Value</span>
-                  <span className="text-sm font-mono font-black text-[#211B17]">
+                  <span className="text-[11px] text-[color:var(--crm-text-secondary)] block">Total Credit Voucher Value</span>
+                  <span className="text-sm font-mono font-black text-[color:var(--crm-text-primary)]">
                     ₹{currentTotalCredit.toLocaleString('en-IN')}
                   </span>
                 </div>
@@ -422,11 +422,11 @@ export default function CreditNotesPage() {
                 )}
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] hover:bg-slate-200 text-[#544B45] font-semibold"
+                  className="px-4 py-2 rounded-xl bg-[color:var(--crm-bg-app)] hover:bg-slate-200 text-[color:var(--crm-text-secondary)] font-semibold"
                 >
                   Cancel
                 </button>
@@ -446,51 +446,51 @@ export default function CreditNotesPage() {
       {/* EDIT CREDIT NOTE MODAL */}
       {editingCreditNote && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <h3 className="text-base font-bold text-[#211B17] flex items-center gap-2">
-                <Edit2 className="w-5 h-5 text-amber-600" />
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <h3 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
+                <Edit2 className="w-5 h-5 text-crm-brand-600" />
                 Edit Credit Note: {editingCreditNote.creditNoteNumber}
               </h3>
-              <button onClick={() => setEditingCreditNote(null)} className="text-[#70665F] hover:text-[#211B17]">
+              <button onClick={() => setEditingCreditNote(null)} className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleUpdate} className="space-y-3 text-xs">
               <div>
-                <label className="block text-[#70665F] font-semibold mb-1">Customer Name</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Customer Name</label>
                 <input
                   type="text"
                   readOnly
                   value={editingCreditNote.customerName}
-                  className="w-full bg-slate-100 border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-semibold cursor-not-allowed"
+                  className="w-full bg-slate-100 border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-semibold cursor-not-allowed"
                 />
               </div>
 
               <div>
-                <label className="block text-[#70665F] font-semibold mb-1">Original Invoice Number</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Original Invoice Number</label>
                 <input
                   type="text"
                   value={editingCreditNote.originalInvoiceNumber}
                   onChange={(e) => setEditingCreditNote({ ...editingCreditNote, originalInvoiceNumber: e.target.value })}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-[#70665F] font-semibold mb-1">Reason</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Reason</label>
                 <input
                   type="text"
                   value={editingCreditNote.reason}
                   onChange={(e) => setEditingCreditNote({ ...editingCreditNote, reason: e.target.value })}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723]"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Taxable Amount (₹)</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Taxable Amount (₹)</label>
                   <input
                     type="number"
                     value={editingCreditNote.taxableAmount}
@@ -501,11 +501,11 @@ export default function CreditNotesPage() {
                         taxAmount: Math.round(Number(e.target.value) * 0.18),
                       })
                     }
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono font-bold"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono font-bold"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">GST Tax (₹)</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">GST Tax (₹)</label>
                   <input
                     type="number"
                     value={editingCreditNote.taxAmount || editingCreditNote.gstAmount || 0}
@@ -516,16 +516,16 @@ export default function CreditNotesPage() {
                         gstAmount: Number(e.target.value),
                       })
                     }
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono font-bold"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono font-bold"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setEditingCreditNote(null)}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45]"
+                  className="px-4 py-2 rounded-xl bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)]"
                 >
                   Cancel
                 </button>

@@ -114,7 +114,7 @@ export default function GatePassListPage() {
         onCodeClick: (item) => setSelectedPass(item),
         cell: (item) => (
           <div className="space-y-0.5">
-            <span className="font-mono font-bold text-xs text-[#18417D] hover:underline cursor-pointer">
+            <span className="font-mono font-bold text-xs text-[#1F3FB0] hover:underline cursor-pointer">
               {item.gatePassNo}
             </span>
             <div className="text-[10px] text-slate-500 font-mono">Challan: {item.challanNo}</div>
@@ -136,7 +136,7 @@ export default function GatePassListPage() {
         header: 'Customer / Consignee',
         cell: (item) => (
           <div className="space-y-0.5">
-            <div className="font-bold text-xs text-[#211B17] flex items-center gap-1.5">
+            <div className="font-bold text-xs text-[color:var(--crm-text-primary)] flex items-center gap-1.5">
               <Building className="w-3.5 h-3.5 text-slate-400" />
               <span>{item.customerName}</span>
             </div>
@@ -148,7 +148,7 @@ export default function GatePassListPage() {
         key: 'jobNumber',
         header: 'Job Ref',
         cell: (item) => (
-          <span className="font-mono text-xs font-bold text-[#75401F] bg-[#FAF3EA] px-2 py-0.5 rounded border border-[#E7DED5]">
+          <span className="font-mono text-xs font-bold text-[color:var(--crm-brand-700)] bg-[color:var(--crm-brand-50)] px-2 py-0.5 rounded border border-[color:var(--crm-border-default)]">
             {item.jobNumber}
           </span>
         ),
@@ -235,17 +235,17 @@ export default function GatePassListPage() {
       {/* Gate Pass Printable Modal / Inspector */}
       {selectedPass && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl border border-[#E7DED5] shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]">
-            <div className="p-4 sm:p-5 bg-[#FAF7F2] border-b border-[#E7DED5] flex items-center justify-between">
+          <div className="bg-white rounded-3xl border border-[color:var(--crm-border-default)] shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]">
+            <div className="p-4 sm:p-5 bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-crm-brand-700 text-white flex items-center justify-center font-bold">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-extrabold text-[#211B17]">
+                  <h3 className="text-base font-extrabold text-[color:var(--crm-text-primary)]">
                     Gate Pass Details ({selectedPass.gatePassNo})
                   </h3>
-                  <p className="text-xs text-[#70665F]">
+                  <p className="text-xs text-[color:var(--crm-text-secondary)]">
                     Security Clearance for Outward Materials & Finished Goods
                   </p>
                 </div>
@@ -268,12 +268,12 @@ export default function GatePassListPage() {
               </div>
             </div>
 
-            <div id="printable-gate-pass" className="p-6 overflow-y-auto space-y-5 text-xs text-[#211B17]">
+            <div id="printable-gate-pass" className="p-6 overflow-y-auto space-y-5 text-xs text-[color:var(--crm-text-primary)]">
               {/* Header Box */}
-              <div className="border border-[#E7DED5] rounded-2xl p-4 bg-[#FCFAF7] space-y-2">
-                <div className="flex items-center justify-between border-b border-[#E7DED5] pb-2">
-                  <span className="font-extrabold text-sm text-[#18417D]">UMA TECHNO FAB</span>
-                  <span className="font-mono text-xs font-bold text-[#75401F] bg-[#FAF3EA] px-2.5 py-0.5 rounded border border-[#E7DED5]">
+              <div className="border border-[color:var(--crm-border-default)] rounded-2xl p-4 bg-[#FCFAF7] space-y-2">
+                <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-2">
+                  <span className="font-extrabold text-sm text-[#1F3FB0]">UMA TECHNO FAB</span>
+                  <span className="font-mono text-xs font-bold text-[color:var(--crm-brand-700)] bg-[color:var(--crm-brand-50)] px-2.5 py-0.5 rounded border border-[color:var(--crm-border-default)]">
                     {selectedPass.gatePassNo}
                   </span>
                 </div>
@@ -299,15 +299,15 @@ export default function GatePassListPage() {
 
               {/* Consignee & Vehicle Info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="border border-[#E7DED5] rounded-2xl p-4 space-y-2 bg-white">
+                <div className="border border-[color:var(--crm-border-default)] rounded-2xl p-4 space-y-2 bg-white">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
                     Consignee / Destination
                   </span>
-                  <div className="font-bold text-sm text-[#211B17]">{selectedPass.customerName}</div>
+                  <div className="font-bold text-sm text-[color:var(--crm-text-primary)]">{selectedPass.customerName}</div>
                   <div className="text-slate-600 text-[11px]">{selectedPass.destinationCity}</div>
                 </div>
 
-                <div className="border border-[#E7DED5] rounded-2xl p-4 space-y-2 bg-white">
+                <div className="border border-[color:var(--crm-border-default)] rounded-2xl p-4 space-y-2 bg-white">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
                     Vehicle & Transport Details
                   </span>
@@ -322,7 +322,7 @@ export default function GatePassListPage() {
               </div>
 
               {/* Signatures Strip */}
-              <div className="border-t border-[#E7DED5] pt-6 grid grid-cols-3 gap-4 text-center text-[11px] text-slate-500">
+              <div className="border-t border-[color:var(--crm-border-default)] pt-6 grid grid-cols-3 gap-4 text-center text-[11px] text-slate-500">
                 <div className="space-y-8">
                   <div className="h-6" />
                   <div className="border-t border-slate-300 pt-1 font-semibold">Prepared By ({selectedPass.preparedBy})</div>

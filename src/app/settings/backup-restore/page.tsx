@@ -71,17 +71,17 @@ export default function BackupRestorePage() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white border border-[#EBE3DB] p-6 rounded-2xl shadow-xl">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white border border-[color:var(--crm-border-default)] p-6 rounded-2xl shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-crm-brand-600/10 border border-crm-brand-600/20 rounded-xl text-crm-brand-500">
               <Database className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-[#211B17] tracking-wide">
+              <h1 className="text-xl font-bold text-[color:var(--crm-text-primary)] tracking-wide">
                 Disaster Recovery & Backup Management
               </h1>
-              <p className="text-xs text-[#70665F]">
+              <p className="text-xs text-[color:var(--crm-text-secondary)]">
                 Uma Techno Fab Manufacturing ERP — High Availability Offsite Cloud Backups & Instant Restore Snapshots
               </p>
             </div>
@@ -92,7 +92,7 @@ export default function BackupRestorePage() {
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value as any)}
-            className="bg-[#FAF7F2] text-xs text-[#211B17] px-3 py-2.5 rounded-xl border border-[#EBE3DB] focus:outline-none cursor-pointer"
+            className="bg-[color:var(--crm-bg-app)] text-xs text-[color:var(--crm-text-primary)] px-3 py-2.5 rounded-xl border border-[color:var(--crm-border-default)] focus:outline-none cursor-pointer"
           >
             <option value="Full_System">Full ERP System & Files</option>
             <option value="Database_Only">Database Only (SQL Dump)</option>
@@ -112,38 +112,38 @@ export default function BackupRestorePage() {
 
       {/* Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white border border-[#EBE3DB] p-5 rounded-2xl space-y-2">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-5 rounded-2xl space-y-2">
           <div className="flex items-center gap-2 text-crm-brand-500 font-bold text-xs">
             <Server className="w-4 h-4" />
             Active Cloud Storage Target
           </div>
-          <div className="text-sm font-semibold text-[#211B17]">AWS S3 Encrypted Volume</div>
-          <div className="text-[11px] text-[#70665F]">Region: ap-south-1 (Mumbai, India) | AES-256 Encryption</div>
+          <div className="text-sm font-semibold text-[color:var(--crm-text-primary)]">AWS S3 Encrypted Volume</div>
+          <div className="text-[11px] text-[color:var(--crm-text-secondary)]">Region: ap-south-1 (Mumbai, India) | AES-256 Encryption</div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-5 rounded-2xl space-y-2">
-          <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-5 rounded-2xl space-y-2">
+          <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs">
             <Clock className="w-4 h-4" />
             Automated Cron Schedule
           </div>
-          <div className="text-sm font-semibold text-[#211B17]">Daily Midnight (00:00 IST)</div>
-          <div className="text-[11px] text-[#70665F]">Retention Policy: 30 Daily / 12 Monthly Point-in-time Snapshots</div>
+          <div className="text-sm font-semibold text-[color:var(--crm-text-primary)]">Daily Midnight (00:00 IST)</div>
+          <div className="text-[11px] text-[color:var(--crm-text-secondary)]">Retention Policy: 30 Daily / 12 Monthly Point-in-time Snapshots</div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-5 rounded-2xl space-y-2">
-          <div className="flex items-center gap-2 text-indigo-400 font-bold text-xs">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-5 rounded-2xl space-y-2">
+          <div className="flex items-center gap-2 text-indigo-700 font-bold text-xs">
             <ShieldCheck className="w-4 h-4" />
             Recovery Point Objective (RPO)
           </div>
-          <div className="text-sm font-semibold text-[#211B17] font-mono">&lt; 5 Minutes RPO</div>
-          <div className="text-[11px] text-[#70665F]">Continuous Write-Ahead Log (WAL) Database Replication</div>
+          <div className="text-sm font-semibold text-[color:var(--crm-text-primary)] font-mono">&lt; 5 Minutes RPO</div>
+          <div className="text-[11px] text-[color:var(--crm-text-secondary)]">Continuous Write-Ahead Log (WAL) Database Replication</div>
         </div>
       </div>
 
       {/* Backup Log Table */}
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xl">
-        <div className="p-4 border-b border-[#EBE3DB] flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-bold text-[#211B17]">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl overflow-hidden shadow-xl">
+        <div className="p-4 border-b border-[color:var(--crm-border-default)] flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm font-bold text-[color:var(--crm-text-primary)]">
             <HardDrive className="w-4 h-4 text-crm-brand-500" />
             System Backup Snapshots Registry ({backupRecords.length} Snapshots)
           </div>
@@ -152,7 +152,7 @@ export default function BackupRestorePage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-[#FAF7F2] text-[10px] font-semibold text-[#70665F] uppercase tracking-wider border-b border-[#EBE3DB]">
+              <tr className="bg-[color:var(--crm-bg-app)] text-[10px] font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider border-b border-[color:var(--crm-border-default)]">
                 <th className="py-3 px-4">Backup ID</th>
                 <th className="py-3 px-4">Type</th>
                 <th className="py-3 px-4">File Name & Location</th>
@@ -163,35 +163,35 @@ export default function BackupRestorePage() {
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EBE3DB] text-[#544B45]">
+            <tbody className="divide-y divide-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)]">
               {backupRecords.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-xs text-[#70665F]">
+                  <td colSpan={8} className="py-12 text-center text-xs text-[color:var(--crm-text-secondary)]">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <HardDrive className="w-8 h-8 text-[#A8988C] opacity-50" />
-                      <p className="font-semibold text-[#544B45]">No backup snapshots found</p>
-                      <p className="text-[11px] text-[#8C7A6F]">Click &quot;Create Manual Snapshot&quot; to archive database state.</p>
+                      <HardDrive className="w-8 h-8 text-[color:var(--crm-text-tertiary)] opacity-50" />
+                      <p className="font-semibold text-[color:var(--crm-text-secondary)]">No backup snapshots found</p>
+                      <p className="text-[11px] text-[color:var(--crm-text-tertiary)]">Click &quot;Create Manual Snapshot&quot; to archive database state.</p>
                     </div>
                   </td>
                 </tr>
               ) : (
                 backupRecords.map((bk) => (
-                  <tr key={bk.id} className="hover:bg-[#FAF7F2]/40 transition">
+                  <tr key={bk.id} className="hover:bg-[#F4F6FA]/40 transition">
                     <td className="py-3 px-4 font-mono font-bold text-crm-brand-700">{bk.backupNo}</td>
                     <td className="py-3 px-4">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#FAF7F2] text-[#544B45] border border-[#EBE3DB]">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] border border-[color:var(--crm-border-default)]">
                         {bk.type?.replace('_', ' ')}
                       </span>
                     </td>
                     <td className="py-3 px-4 space-y-0.5">
-                      <div className="font-mono text-[#211B17] text-[11px]">{bk.fileName}</div>
-                      <div className="text-[10px] text-[#70665F]">{bk.location}</div>
+                      <div className="font-mono text-[color:var(--crm-text-primary)] text-[11px]">{bk.fileName}</div>
+                      <div className="text-[10px] text-[color:var(--crm-text-secondary)]">{bk.location}</div>
                     </td>
-                    <td className="py-3 px-4 font-mono text-[#544B45]">{bk.fileSize}</td>
-                    <td className="py-3 px-4 font-mono text-[#544B45]">{bk.recordCount?.toLocaleString()}</td>
-                    <td className="py-3 px-4 text-[#70665F]">
+                    <td className="py-3 px-4 font-mono text-[color:var(--crm-text-secondary)]">{bk.fileSize}</td>
+                    <td className="py-3 px-4 font-mono text-[color:var(--crm-text-secondary)]">{bk.recordCount?.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-[color:var(--crm-text-secondary)]">
                       <div>{bk.createdDate}</div>
-                      <div className="text-[10px] text-[#70665F]">{bk.createdBy}</div>
+                      <div className="text-[10px] text-[color:var(--crm-text-secondary)]">{bk.createdBy}</div>
                     </td>
                     <td className="py-3 px-4">
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/30 flex items-center gap-1 w-fit">
@@ -202,7 +202,7 @@ export default function BackupRestorePage() {
                     <td className="py-3 px-4 text-right space-x-2">
                       <button
                         onClick={() => toast.info(`Downloading snapshot ${bk.fileName} to local system...`)}
-                        className="px-2.5 py-1.5 bg-[#FAF7F2] hover:bg-white text-[#544B45] rounded-lg text-[11px] font-semibold transition border border-[#EBE3DB] inline-flex items-center gap-1 min-h-[36px]"
+                        className="px-2.5 py-1.5 bg-[color:var(--crm-bg-app)] hover:bg-white text-[color:var(--crm-text-secondary)] rounded-lg text-[11px] font-semibold transition border border-[color:var(--crm-border-default)] inline-flex items-center gap-1 min-h-[36px]"
                       >
                         <Download className="w-3 h-3" />
                         Download
@@ -210,7 +210,7 @@ export default function BackupRestorePage() {
                       <button
                         onClick={() => handleRestore(bk.id, bk.backupNo)}
                         disabled={restoringId === bk.id}
-                        className="px-2.5 py-1.5 bg-[#FAF7F2] hover:bg-white text-[#75401F] rounded-lg text-[11px] font-semibold transition border border-[#D5CAC0] inline-flex items-center gap-1 min-h-[36px]"
+                        className="px-2.5 py-1.5 bg-[color:var(--crm-bg-app)] hover:bg-white text-[color:var(--crm-brand-700)] rounded-lg text-[11px] font-semibold transition border border-[color:var(--crm-border-strong)] inline-flex items-center gap-1 min-h-[36px]"
                       >
                         <RotateCcw className={cn('w-3 h-3', restoringId === bk.id && 'animate-spin')} />
                         {restoringId === bk.id ? 'Restoring...' : 'Restore'}

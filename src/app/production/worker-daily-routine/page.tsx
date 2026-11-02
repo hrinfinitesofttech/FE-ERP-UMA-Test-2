@@ -760,7 +760,7 @@ export default function WorkerDailyRoutinePage() {
           className={`fixed top-5 right-5 z-50 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2.5 border text-xs animate-in slide-in-from-top-2 duration-150 ${
             toastType === 'error'
               ? 'bg-rose-900 border-rose-500/40'
-              : 'bg-[#211B17] border-amber-500/40'
+              : 'bg-[color:var(--crm-text-primary)] border-amber-500/40'
           }`}
         >
           {toastType === 'error' ? (
@@ -843,7 +843,7 @@ export default function WorkerDailyRoutinePage() {
             <button
               type="button"
               onClick={() => setShowAddWorkerModal(true)}
-              className="px-4 py-1.5 bg-[#204354] hover:bg-[#183442] active:bg-[#122733] text-white font-semibold rounded-xl text-xs transition shadow-2xs flex items-center gap-1 cursor-pointer"
+              className="px-4 py-1.5 bg-[#1F3FB0] hover:bg-[#183442] active:bg-[#122733] text-white font-semibold rounded-xl text-xs transition shadow-2xs flex items-center gap-1 cursor-pointer"
             >
               Add worker
             </button>
@@ -1047,7 +1047,7 @@ export default function WorkerDailyRoutinePage() {
                 <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
                   {saveStatus === 'saving' ? (
                     <>
-                      <Loader2 className="w-3.5 h-3.5 text-amber-600 animate-spin" />
+                      <Loader2 className="w-3.5 h-3.5 text-crm-brand-600 animate-spin" />
                       <span className="text-amber-600">Syncing...</span>
                     </>
                   ) : saveStatus === 'error' ? (
@@ -1066,7 +1066,7 @@ export default function WorkerDailyRoutinePage() {
                 <button
                   type="button"
                   onClick={handleSaveAll}
-                  className="px-6 py-2 bg-[#204354] hover:bg-[#183442] active:bg-[#132a35] text-white font-bold rounded-xl text-xs shadow-2xs transition cursor-pointer"
+                  className="px-6 py-2 bg-[#1F3FB0] hover:bg-[#183442] active:bg-[#132a35] text-white font-bold rounded-xl text-xs shadow-2xs transition cursor-pointer"
                 >
                   Save all
                 </button>
@@ -1087,7 +1087,7 @@ export default function WorkerDailyRoutinePage() {
                   placeholder="Search worker, trade or job no."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 pr-8 py-2 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#204354]"
+                  className="w-full pl-9 pr-8 py-2 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#1F3FB0]"
                 />
                 {searchTerm && (
                   <button
@@ -1102,7 +1102,7 @@ export default function WorkerDailyRoutinePage() {
               <select
                 value={tradeFilter}
                 onChange={(e) => setTradeFilter(e.target.value)}
-                className="px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#204354] shrink-0 cursor-pointer"
+                className="px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#1F3FB0] shrink-0 cursor-pointer"
               >
                 <option value="all">All trades</option>
                 <option value="Fitter">Fitter / Fabricator</option>
@@ -1182,7 +1182,7 @@ export default function WorkerDailyRoutinePage() {
                   {isLoading ? (
                     <tr>
                       <td colSpan={8} className="py-12 text-center text-slate-500">
-                        <Loader2 className="w-7 h-7 mx-auto mb-2 text-amber-600 animate-spin" />
+                        <Loader2 className="w-7 h-7 mx-auto mb-2 text-crm-brand-600 animate-spin" />
                         <p className="font-semibold text-sm">Loading workers from database...</p>
                       </td>
                     </tr>
@@ -1190,7 +1190,7 @@ export default function WorkerDailyRoutinePage() {
                     <tr>
                       <td colSpan={8} className="py-16 text-center">
                         <div className="max-w-md mx-auto space-y-3">
-                          <div className="w-12 h-12 mx-auto rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+                          <div className="w-12 h-12 mx-auto rounded-full bg-crm-brand-50 flex items-center justify-center text-crm-brand-700">
                             <Users className="w-6 h-6" />
                           </div>
                           <div>
@@ -1739,7 +1739,7 @@ export default function WorkerDailyRoutinePage() {
             <div className="flex items-center justify-between pb-3 border-b border-slate-200">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-amber-100 rounded-xl">
-                  <Plus className="w-5 h-5 text-amber-700" />
+                  <Plus className="w-5 h-5 text-crm-brand-600" />
                 </div>
                 <div>
                   <h3 className="font-black text-slate-900 text-sm">Add New Worker</h3>
@@ -1815,7 +1815,7 @@ export default function WorkerDailyRoutinePage() {
             <div className="flex items-center justify-between pb-3 border-b border-slate-200">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-amber-100 rounded-xl">
-                  <Edit2 className="w-5 h-5 text-amber-700" />
+                  <Edit2 className="w-5 h-5 text-crm-brand-600" />
                 </div>
                 <div>
                   <h3 className="font-black text-slate-900 text-sm">Edit Worker Details</h3>

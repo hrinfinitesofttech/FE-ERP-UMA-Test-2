@@ -93,17 +93,17 @@ export default function Customer360Page() {
   );
 
   return (
-    <div className="p-4 sm:p-6 space-y-5 bg-[#FAF7F2] text-[#544B45] font-sans pb-12">
+    <div className="p-4 sm:p-6 space-y-5 bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] font-sans pb-12">
       {/* Top Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#EBE3DB] shadow-xs">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-[#75401F] flex items-center justify-center flex-shrink-0">
+          <div className="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-[color:var(--crm-brand-700)] flex items-center justify-center flex-shrink-0">
             <UserCheck className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-black text-[#211B17] tracking-tight">{currentCustomer.customerName}</h1>
-            <p className="text-xs text-[#70665F] font-medium mt-0.5">
-              Customer Code: <span className="font-mono font-bold text-[#75401F]">{currentCustomer.customerCode}</span> • GSTIN: {currentCustomer.gstNumber}
+            <h1 className="text-xl sm:text-2xl font-black text-[color:var(--crm-text-primary)] tracking-tight">{currentCustomer.customerName}</h1>
+            <p className="text-xs text-[color:var(--crm-text-secondary)] font-medium mt-0.5">
+              Customer Code: <span className="font-mono font-bold text-[color:var(--crm-brand-700)]">{currentCustomer.customerCode}</span> • GSTIN: {currentCustomer.gstNumber}
             </p>
           </div>
         </div>
@@ -114,7 +114,7 @@ export default function Customer360Page() {
             <select
               value={currentCustomer.customerId}
               onChange={(e) => setSelectedCustId(e.target.value)}
-              className="w-full bg-[#FAF7F2] hover:bg-white text-xs text-[#211B17] font-bold px-3 py-2.5 rounded-xl border border-[#D5CAC0] focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer min-h-[40px]"
+              className="w-full bg-[color:var(--crm-bg-app)] hover:bg-white text-xs text-[color:var(--crm-text-primary)] font-bold px-3 py-2.5 rounded-xl border border-[color:var(--crm-border-strong)] focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer min-h-[40px]"
             >
               {allCustomers.map((c) => (
                 <option key={c.customerId} value={c.customerId}>
@@ -126,7 +126,7 @@ export default function Customer360Page() {
 
           <Link
             href="/crm/customers"
-            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-[#FAF7F2] border border-[#D5CAC0] text-[#4A3B32] text-xs font-bold transition shadow-2xs min-h-[40px] whitespace-nowrap"
+            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-strong)] text-[color:var(--crm-text-primary)] text-xs font-bold transition shadow-2xs min-h-[40px] whitespace-nowrap"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Manage Customers</span>
@@ -136,78 +136,78 @@ export default function Customer360Page() {
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-mono">
-        <div className="p-4 bg-white border border-[#E7DED5] rounded-2xl shadow-2xs space-y-1">
-          <span className="text-[10px] uppercase font-sans text-[#70665F] block font-semibold">Total Order Bookings</span>
+        <div className="p-4 bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-2xs space-y-1">
+          <span className="text-[10px] uppercase font-sans text-[color:var(--crm-text-secondary)] block font-semibold">Total Order Bookings</span>
           <div className="text-xl font-bold font-mono text-emerald-700">
             ₹ {currentCustomer.totalOrderValue > 0 ? currentCustomer.totalOrderValue.toLocaleString('en-IN') : '—'}
           </div>
-          <span className="text-[10px] text-[#8C7A6F] block">Cumulative life-cycle value</span>
+          <span className="text-[10px] text-[color:var(--crm-text-tertiary)] block">Cumulative life-cycle value</span>
         </div>
 
-        <div className="p-4 bg-white border border-[#E7DED5] rounded-2xl shadow-2xs space-y-1">
-          <span className="text-[10px] uppercase font-sans text-[#70665F] block font-semibold">Total Invoiced</span>
-          <div className="text-xl font-bold font-mono text-[#211B17]">
+        <div className="p-4 bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-2xs space-y-1">
+          <span className="text-[10px] uppercase font-sans text-[color:var(--crm-text-secondary)] block font-semibold">Total Invoiced</span>
+          <div className="text-xl font-bold font-mono text-[color:var(--crm-text-primary)]">
             ₹ {currentCustomer.totalInvoiced > 0 ? currentCustomer.totalInvoiced.toLocaleString('en-IN') : '—'}
           </div>
-          <span className="text-[10px] text-[#8C7A6F] block">Dispatched &amp; billed</span>
+          <span className="text-[10px] text-[color:var(--crm-text-tertiary)] block">Dispatched &amp; billed</span>
         </div>
 
-        <div className="p-4 bg-white border border-[#E7DED5] rounded-2xl shadow-2xs space-y-1">
-          <span className="text-[10px] uppercase font-sans text-[#70665F] block font-semibold">Outstanding Receivable</span>
+        <div className="p-4 bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-2xs space-y-1">
+          <span className="text-[10px] uppercase font-sans text-[color:var(--crm-text-secondary)] block font-semibold">Outstanding Receivable</span>
           <div className="text-xl font-bold font-mono text-rose-700">
             ₹ {currentCustomer.outstandingReceivable > 0 ? currentCustomer.outstandingReceivable.toLocaleString('en-IN') : '—'}
           </div>
           <span className="text-[10px] text-rose-700 block">Pending payment</span>
         </div>
 
-        <div className="p-4 bg-white border border-[#E7DED5] rounded-2xl shadow-2xs space-y-1">
-          <span className="text-[10px] uppercase font-sans text-[#70665F] block font-semibold">Approved Credit Limit</span>
-          <div className="text-xl font-bold font-mono text-[#75401F]">
+        <div className="p-4 bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-2xs space-y-1">
+          <span className="text-[10px] uppercase font-sans text-[color:var(--crm-text-secondary)] block font-semibold">Approved Credit Limit</span>
+          <div className="text-xl font-bold font-mono text-[color:var(--crm-brand-700)]">
             ₹ {currentCustomer.creditLimit > 0 ? currentCustomer.creditLimit.toLocaleString('en-IN') : '—'}
           </div>
-          <span className="text-[10px] text-[#8C7A6F] block">Commercial limit</span>
+          <span className="text-[10px] text-[color:var(--crm-text-tertiary)] block">Commercial limit</span>
         </div>
       </div>
 
       {/* Customer Contact & Address Info */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 text-xs">
-        <div className="p-5 sm:p-6 bg-white border border-[#E7DED5] rounded-2xl shadow-xs space-y-3">
-          <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2 pb-3 border-b border-[#F2ECE4]">
-            <Building className="w-4 h-4 text-[#75401F]" />
+        <div className="p-5 sm:p-6 bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-xs space-y-3">
+          <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2 pb-3 border-b border-[color:var(--crm-surface-subtle)]">
+            <Building className="w-4 h-4 text-[color:var(--crm-brand-700)]" />
             <span>Contact &amp; Key Accounts</span>
           </h3>
-          <div className="space-y-2.5 text-[#544B45]">
-            <div className="flex justify-between py-1 border-b border-[#FAF7F2]">
-              <span className="text-[#70665F]">Contact Person:</span>
-              <strong className="text-[#211B17]">{currentCustomer.contactPerson}</strong>
+          <div className="space-y-2.5 text-[color:var(--crm-text-secondary)]">
+            <div className="flex justify-between py-1 border-b border-[color:var(--crm-bg-app)]">
+              <span className="text-[color:var(--crm-text-secondary)]">Contact Person:</span>
+              <strong className="text-[color:var(--crm-text-primary)]">{currentCustomer.contactPerson}</strong>
             </div>
-            <div className="flex justify-between py-1 border-b border-[#FAF7F2]">
-              <span className="text-[#70665F]">Email Address:</span>
-              <span className="text-[#75401F] font-mono font-medium">{currentCustomer.email}</span>
+            <div className="flex justify-between py-1 border-b border-[color:var(--crm-bg-app)]">
+              <span className="text-[color:var(--crm-text-secondary)]">Email Address:</span>
+              <span className="text-[color:var(--crm-brand-700)] font-mono font-medium">{currentCustomer.email}</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-[#FAF7F2]">
-              <span className="text-[#70665F]">Phone / Mobile:</span>
-              <span className="font-mono text-[#211B17]">{currentCustomer.phone}</span>
+            <div className="flex justify-between py-1 border-b border-[color:var(--crm-bg-app)]">
+              <span className="text-[color:var(--crm-text-secondary)]">Phone / Mobile:</span>
+              <span className="font-mono text-[color:var(--crm-text-primary)]">{currentCustomer.phone}</span>
             </div>
             <div className="flex justify-between py-1">
-              <span className="text-[#70665F]">City Location:</span>
-              <span className="text-[#211B17]">{currentCustomer.city}</span>
+              <span className="text-[color:var(--crm-text-secondary)]">City Location:</span>
+              <span className="text-[color:var(--crm-text-primary)]">{currentCustomer.city}</span>
             </div>
           </div>
         </div>
 
-        <div className="p-5 sm:p-6 bg-white border border-[#E7DED5] rounded-2xl shadow-xs space-y-3">
-          <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2 pb-3 border-b border-[#F2ECE4]">
+        <div className="p-5 sm:p-6 bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-xs space-y-3">
+          <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2 pb-3 border-b border-[color:var(--crm-surface-subtle)]">
             <Layers className="w-4 h-4 text-emerald-700" />
             <span>Active MTO Manufacturing Jobs ({customerJobs.length})</span>
           </h3>
           <div className="space-y-2">
             {customerJobs.length > 0 ? (
               customerJobs.map((j) => (
-                <div key={j.id} className="p-3 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] flex justify-between items-center">
+                <div key={j.id} className="p-3 bg-[color:var(--crm-bg-app)] rounded-xl border border-[color:var(--crm-border-default)] flex justify-between items-center">
                   <div>
-                    <span className="font-bold text-[#75401F] font-mono text-xs">{j.jobNumber || j.id}</span>
-                    <p className="text-[11px] text-[#70665F] mt-0.5">{j.productName || j.projectName || 'MTO Equipment'}</p>
+                    <span className="font-bold text-[color:var(--crm-brand-700)] font-mono text-xs">{j.jobNumber || j.id}</span>
+                    <p className="text-[11px] text-[color:var(--crm-text-secondary)] mt-0.5">{j.productName || j.projectName || 'MTO Equipment'}</p>
                   </div>
                   <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-bold uppercase font-mono">
                     {j.currentStage || j.status || 'Active'}
@@ -215,7 +215,7 @@ export default function Customer360Page() {
                 </div>
               ))
             ) : (
-              <p className="text-xs text-[#70665F] py-4 text-center">No active manufacturing jobs recorded for this customer.</p>
+              <p className="text-xs text-[color:var(--crm-text-secondary)] py-4 text-center">No active manufacturing jobs recorded for this customer.</p>
             )}
           </div>
         </div>

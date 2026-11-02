@@ -103,7 +103,7 @@ export default function AssetMasterPage() {
       isCodeLink: true,
       onCodeClick: (asset) => setSelectedAssetForView(asset),
       cell: (asset) => (
-        <span className="font-mono font-bold text-[#7C3AED] hover:underline cursor-pointer">
+        <span className="font-mono font-bold text-[color:var(--crm-brand-600)] hover:underline cursor-pointer">
           {asset.assetCode}
         </span>
       ),
@@ -204,7 +204,7 @@ export default function AssetMasterPage() {
         <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-xs space-y-1">
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-xs font-semibold uppercase tracking-wider">Total Assets</span>
-            <Cpu className="w-4 h-4 text-[#7C3AED]" />
+            <Cpu className="w-4 h-4 text-[color:var(--crm-brand-600)]" />
           </div>
           <div className="text-2xl font-black text-slate-900">{totalAssetsCount} Machines</div>
           <div className="text-xs text-slate-500">Factory plant equipment</div>
@@ -222,7 +222,7 @@ export default function AssetMasterPage() {
         <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-xs space-y-1">
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-xs font-semibold uppercase tracking-wider">Maintenance & Down</span>
-            <Wrench className="w-4 h-4 text-amber-500" />
+            <Wrench className="w-4 h-4 text-crm-brand-600" />
           </div>
           <div className="text-2xl font-black text-amber-600">{maintenanceCount} Under Maint</div>
           <div className="text-xs text-slate-500">Service & breakdown queue</div>
@@ -308,7 +308,7 @@ export default function AssetMasterPage() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
             <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
               <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
-                <Cpu className="w-5 h-5 text-[#7C3AED]" />
+                <Cpu className="w-5 h-5 text-[color:var(--crm-brand-600)]" />
                 Register New Factory Asset
               </h3>
               <button onClick={() => setShowAddModal(false)} className="text-slate-500 hover:text-slate-700 cursor-pointer">
@@ -326,7 +326,7 @@ export default function AssetMasterPage() {
                     placeholder="e.g. MCH-CNC-05"
                     value={formData.assetCode}
                     onChange={(e) => setFormData({ ...formData, assetCode: e.target.value })}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#7C3AED]"
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[color:var(--crm-brand-600)]"
                   />
                 </div>
                 <div>
@@ -337,7 +337,7 @@ export default function AssetMasterPage() {
                     placeholder="e.g. 3kW Fiber Laser Cutter"
                     value={formData.assetName}
                     onChange={(e) => setFormData({ ...formData, assetName: e.target.value })}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#7C3AED]"
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[color:var(--crm-brand-600)]"
                   />
                 </div>
                 <div>
@@ -347,7 +347,7 @@ export default function AssetMasterPage() {
                     placeholder="Haas / Trumpf / Bystronic"
                     value={formData.manufacturer}
                     onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#7C3AED]"
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[color:var(--crm-brand-600)]"
                   />
                 </div>
                 <div>
@@ -357,7 +357,7 @@ export default function AssetMasterPage() {
                     placeholder="Serial No"
                     value={formData.serialNumber}
                     onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#7C3AED]"
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[color:var(--crm-brand-600)]"
                   />
                 </div>
                 <div>
@@ -366,7 +366,7 @@ export default function AssetMasterPage() {
                     type="number"
                     value={formData.purchaseCost}
                     onChange={(e) => setFormData({ ...formData, purchaseCost: Number(e.target.value) })}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#7C3AED]"
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[color:var(--crm-brand-600)]"
                   />
                 </div>
                 <div>
@@ -375,7 +375,7 @@ export default function AssetMasterPage() {
                     type="text"
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#7C3AED]"
+                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[color:var(--crm-brand-600)]"
                   />
                 </div>
               </div>
@@ -388,7 +388,7 @@ export default function AssetMasterPage() {
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 rounded-lg bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold cursor-pointer">
+                <button type="submit" className="px-4 py-2 rounded-lg bg-[color:var(--crm-brand-600)] hover:bg-[#6D28D9] text-white font-semibold cursor-pointer">
                   Save Asset
                 </button>
               </div>

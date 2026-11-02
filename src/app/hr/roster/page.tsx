@@ -352,7 +352,7 @@ export default function ShiftRosterPage() {
   }, [shiftRosters, searchTerm, selectedDeptFilter, selectedDateFilter]);
 
   return (
-    <div className="p-6 space-y-6 bg-[#FDFBF9] min-h-screen text-[#211B17]">
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)] min-h-screen text-[color:var(--crm-text-primary)]">
       {/* Toast Notification */}
       {successToast && (
         <div className="fixed top-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
@@ -362,22 +362,22 @@ export default function ShiftRosterPage() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2.5">
+          <h1 className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2.5">
             <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-700">
               <Calendar className="w-6 h-6" />
             </div>
             Shift Roster & Worker Allocation
           </h1>
-          <p className="text-sm text-[#70665F] mt-1">
+          <p className="text-sm text-[color:var(--crm-text-secondary)] mt-1">
             Weekly / Monthly Shift Scheduling across Production Cells, Assembly Lines, Maintenance & Office
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={handleRefresh}
-            className="flex items-center gap-1.5 px-3 py-2 bg-white border border-[#EBE3DB] hover:bg-[#F5EFEB] text-[#544B45] font-semibold text-xs rounded-lg transition shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-2 bg-white border border-[color:var(--crm-border-default)] hover:bg-[#F5EFEB] text-[color:var(--crm-text-secondary)] font-semibold text-xs rounded-lg transition shadow-sm"
             title="Reload roster"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
@@ -409,15 +409,15 @@ export default function ShiftRosterPage() {
       )}
 
       {/* Filter Bar */}
-      <div className="bg-white border border-[#EBE3DB] rounded-xl p-4 shadow-sm grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-4 shadow-sm grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="relative">
-          <Search className="w-4 h-4 text-[#A89F91] absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[color:var(--crm-text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by employee, department, shift..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-[#FDFBF9] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-indigo-600 focus:bg-white transition"
+            className="w-full pl-9 pr-4 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-indigo-600 focus:bg-white transition"
           />
         </div>
 
@@ -425,7 +425,7 @@ export default function ShiftRosterPage() {
           <select
             value={selectedDeptFilter}
             onChange={(e) => setSelectedDeptFilter(e.target.value)}
-            className="w-full px-3 py-2 bg-[#FDFBF9] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-indigo-600"
+            className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-indigo-600"
           >
             <option value="ALL">All Departments</option>
             {departments.map((d) => (
@@ -441,7 +441,7 @@ export default function ShiftRosterPage() {
             type="date"
             value={selectedDateFilter}
             onChange={(e) => setSelectedDateFilter(e.target.value)}
-            className="w-full px-3 py-2 bg-[#FDFBF9] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-indigo-600"
+            className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-indigo-600"
             title="Filter by shift date"
           />
         </div>
@@ -449,26 +449,26 @@ export default function ShiftRosterPage() {
 
       {/* Roster Table */}
       {isLoading ? (
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-12 text-center">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-12 text-center">
           <RefreshCw className="w-8 h-8 text-indigo-600 animate-spin mx-auto mb-3" />
-          <p className="text-sm font-semibold text-[#544B45]">Loading shift roster...</p>
+          <p className="text-sm font-semibold text-[color:var(--crm-text-secondary)]">Loading shift roster...</p>
         </div>
       ) : filteredRosters.length === 0 ? (
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-12 text-center space-y-3 shadow-sm">
-          <Calendar className="w-12 h-12 text-[#A89F91] mx-auto" />
-          <h3 className="text-base font-bold text-[#211B17]">No shift allocations found</h3>
-          <p className="text-xs text-[#70665F] max-w-md mx-auto">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-12 text-center space-y-3 shadow-sm">
+          <Calendar className="w-12 h-12 text-[color:var(--crm-text-tertiary)] mx-auto" />
+          <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">No shift allocations found</h3>
+          <p className="text-xs text-[color:var(--crm-text-secondary)] max-w-md mx-auto">
             {searchTerm || selectedDeptFilter !== 'ALL' || selectedDateFilter
               ? 'No shift allocations match the selected filters.'
               : 'No shift roster assignments have been scheduled yet. Click "+ Assign Shift Roster" above.'}
           </p>
         </div>
       ) : (
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-sm">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[#70665F] font-semibold uppercase text-[11px] tracking-wider">
+                <tr className="bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold uppercase text-[11px] tracking-wider">
                   <th className="py-3.5 px-4">Roster Ref</th>
                   <th className="py-3.5 px-4">Employee</th>
                   <th className="py-3.5 px-4">Department</th>
@@ -478,17 +478,17 @@ export default function ShiftRosterPage() {
                   <th className="py-3.5 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#EBE3DB]/60 text-[#211B17]">
+              <tbody className="divide-y divide-[#E2E7EF]/60 text-[color:var(--crm-text-primary)]">
                 {filteredRosters.map((rst) => (
-                  <tr key={rst.id} className="hover:bg-[#FAF7F2]/60 transition">
+                  <tr key={rst.id} className="hover:bg-[#F4F6FA]/60 transition">
                     <td className="py-3.5 px-4 font-mono font-bold text-indigo-700">
                       {rst.id}
                     </td>
                     <td className="py-3.5 px-4">
-                      <div className="font-bold text-[#211B17]">{rst.employeeName}</div>
-                      <div className="text-[11px] text-[#70665F]">{rst.employeeId}</div>
+                      <div className="font-bold text-[color:var(--crm-text-primary)]">{rst.employeeName}</div>
+                      <div className="text-[11px] text-[color:var(--crm-text-secondary)]">{rst.employeeId}</div>
                     </td>
-                    <td className="py-3.5 px-4 font-medium text-[#544B45]">{rst.department}</td>
+                    <td className="py-3.5 px-4 font-medium text-[color:var(--crm-text-secondary)]">{rst.department}</td>
                     <td className="py-3.5 px-4 font-mono font-semibold text-amber-800">
                       {rst.date}
                     </td>
@@ -497,19 +497,19 @@ export default function ShiftRosterPage() {
                         {rst.shiftName}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-[#70665F]">{rst.assignedBy || 'Shop Floor Head'}</td>
+                    <td className="py-3.5 px-4 text-[color:var(--crm-text-secondary)]">{rst.assignedBy || 'Shop Floor Head'}</td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenEditModal(rst)}
-                          className="p-1.5 text-[#70665F] hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition"
+                          className="p-1.5 text-[color:var(--crm-text-secondary)] hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition"
                           title="Edit roster"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => setDeleteConfirmRoster(rst)}
-                          className="p-1.5 text-[#70665F] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                          className="p-1.5 text-[color:var(--crm-text-secondary)] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
                           title="Delete roster"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -534,19 +534,19 @@ export default function ShiftRosterPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl relative my-8"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl relative my-8"
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3.5">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3.5">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-700">
                   <Calendar className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-[#211B17]">
+                  <h2 className="text-lg font-bold text-[color:var(--crm-text-primary)]">
                     {editingId ? 'Edit Shift Roster' : 'Assign Shift Roster'}
                   </h2>
-                  <p className="text-xs text-[#70665F]">
+                  <p className="text-xs text-[color:var(--crm-text-secondary)]">
                     Allocate plant workers to operational shifts with automated leave & holiday validation
                   </p>
                 </div>
@@ -554,7 +554,7 @@ export default function ShiftRosterPage() {
               <button
                 type="button"
                 onClick={closeModalWithConfirm}
-                className="text-[#70665F] hover:text-[#211B17] p-1.5 rounded-lg hover:bg-[#F5EFEB] transition"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1.5 rounded-lg hover:bg-[#F5EFEB] transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -581,17 +581,17 @@ export default function ShiftRosterPage() {
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
               {/* 1. Select Employee */}
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Select Employee <span className="text-rose-500">*</span>
                 </label>
                 <select
                   value={formData.employeeId}
                   onBlur={() => handleBlur('employeeId')}
                   onChange={(e) => handleChange('employeeId', e.target.value)}
-                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition ${
+                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                     formErrors.employeeId
                       ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                      : 'border-[#EBE3DB] focus:border-indigo-600'
+                      : 'border-[color:var(--crm-border-default)] focus:border-indigo-600'
                   }`}
                 >
                   <option value="">-- Choose Employee --</option>
@@ -612,7 +612,7 @@ export default function ShiftRosterPage() {
               {/* 2. Shift Date (Start & End) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     Shift Date <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -620,10 +620,10 @@ export default function ShiftRosterPage() {
                     value={formData.startDate}
                     onBlur={() => handleBlur('startDate')}
                     onChange={(e) => handleChange('startDate', e.target.value)}
-                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition ${
+                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                       formErrors.startDate
                         ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                        : 'border-[#EBE3DB] focus:border-indigo-600'
+                        : 'border-[color:var(--crm-border-default)] focus:border-indigo-600'
                     }`}
                   />
                   {formErrors.startDate && (
@@ -635,7 +635,7 @@ export default function ShiftRosterPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     End Date (For Range)
                   </label>
                   <input
@@ -643,10 +643,10 @@ export default function ShiftRosterPage() {
                     value={formData.endDate}
                     onBlur={() => handleBlur('endDate')}
                     onChange={(e) => handleChange('endDate', e.target.value)}
-                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition ${
+                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                       formErrors.endDate
                         ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                        : 'border-[#EBE3DB] focus:border-indigo-600'
+                        : 'border-[color:var(--crm-border-default)] focus:border-indigo-600'
                     }`}
                   />
                   {formErrors.endDate && (
@@ -660,17 +660,17 @@ export default function ShiftRosterPage() {
 
               {/* 3. Select Shift Master */}
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Select Shift Master <span className="text-rose-500">*</span>
                 </label>
                 <select
                   value={formData.shiftId}
                   onBlur={() => handleBlur('shiftId')}
                   onChange={(e) => handleChange('shiftId', e.target.value)}
-                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition ${
+                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                     formErrors.shiftId
                       ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                      : 'border-[#EBE3DB] focus:border-indigo-600'
+                      : 'border-[color:var(--crm-border-default)] focus:border-indigo-600'
                   }`}
                 >
                   <option value="">-- Choose Shift Timing --</option>
@@ -689,11 +689,11 @@ export default function ShiftRosterPage() {
               </div>
 
               {/* Form Buttons */}
-              <div className="pt-4 border-t border-[#EBE3DB] flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={closeModalWithConfirm}
-                  className="px-4 py-2.5 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold text-xs rounded-lg transition"
+                  className="px-4 py-2.5 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold text-xs rounded-lg transition"
                 >
                   Cancel
                 </button>
@@ -720,27 +720,27 @@ export default function ShiftRosterPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl"
           >
             <div className="flex items-center gap-3">
               <div className="p-3 bg-rose-100 text-rose-600 rounded-xl">
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-[#211B17]">Delete Shift Allocation</h3>
-                <p className="text-xs text-[#70665F]">{deleteConfirmRoster.id} • {deleteConfirmRoster.employeeName}</p>
+                <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">Delete Shift Allocation</h3>
+                <p className="text-xs text-[color:var(--crm-text-secondary)]">{deleteConfirmRoster.id} • {deleteConfirmRoster.employeeName}</p>
               </div>
             </div>
 
-            <p className="text-sm text-[#544B45] leading-relaxed">
+            <p className="text-sm text-[color:var(--crm-text-secondary)] leading-relaxed">
               Are you sure you want to delete this shift allocation for <strong>{deleteConfirmRoster.employeeName}</strong> on {deleteConfirmRoster.date}?
             </p>
 
-            <div className="pt-3 border-t border-[#EBE3DB] flex items-center justify-end gap-3 text-xs">
+            <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-3 text-xs">
               <button
                 type="button"
                 onClick={() => setDeleteConfirmRoster(null)}
-                className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold rounded-lg transition"
+                className="px-4 py-2 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold rounded-lg transition"
               >
                 Cancel
               </button>

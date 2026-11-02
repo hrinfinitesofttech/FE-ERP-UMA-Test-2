@@ -470,7 +470,7 @@ function VisitFormContent() {
       <div>
         <Link
           href="/crm/visits"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#70665F] hover:text-[#211B17] transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Site Visits Log</span>
@@ -478,33 +478,33 @@ function VisitFormContent() {
       </div>
 
       {/* Main Container */}
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
         {/* Header with Title and Stepper */}
-        <div className="border-b border-[#EBE3DB] pb-6 space-y-4">
+        <div className="border-b border-[color:var(--crm-border-default)] pb-6 space-y-4">
           <div className="flex items-start justify-between flex-wrap gap-4">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 shrink-0 mt-0.5">
+              <div className="w-10 h-10 rounded-xl bg-crm-brand-50 border border-crm-brand-100 flex items-center justify-center text-crm-brand-700 shrink-0 mt-0.5">
                 <MapPin className="w-5 h-5" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-extrabold text-[#211B17] tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight">
                   {paramEditId ? 'Complete Site Visit Report' : 'Schedule & Log Site Visit'}
                 </h1>
-                <p className="text-xs text-[#70665F] mt-1 leading-relaxed">
+                <p className="text-xs text-[color:var(--crm-text-secondary)] mt-1 leading-relaxed">
                   2-Slide Form: Save in Slide 1 to schedule the visit before leaving. Then fill Slide 2 after visiting the client site.
                 </p>
               </div>
             </div>
 
             {/* Stepper Pill Indicators */}
-            <div className="flex items-center gap-2 bg-[#FAF7F2] p-1.5 rounded-xl border border-[#EBE3DB]">
+            <div className="flex items-center gap-2 bg-[color:var(--crm-bg-app)] p-1.5 rounded-xl border border-[color:var(--crm-border-default)]">
               <button
                 type="button"
                 onClick={() => setCurrentStep(1)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
                   currentStep === 1
                     ? 'bg-emerald-700 text-white shadow-2xs'
-                    : 'text-[#70665F] hover:text-[#211B17]'
+                    : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]'
                 }`}
               >
                 <span className="w-4 h-4 rounded-full bg-white/20 text-center text-[10px] flex items-center justify-center">
@@ -519,7 +519,7 @@ function VisitFormContent() {
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
                   currentStep === 2
                     ? 'bg-emerald-700 text-white shadow-2xs'
-                    : 'text-[#70665F] hover:text-[#211B17]'
+                    : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]'
                 }`}
               >
                 <span className="w-4 h-4 rounded-full bg-white/20 text-center text-[10px] flex items-center justify-center">
@@ -551,13 +551,13 @@ function VisitFormContent() {
                   <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px] flex items-center justify-center">
                     1
                   </span>
-                  <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
+                  <h2 className="text-sm font-bold text-[color:var(--crm-text-primary)] tracking-wide">
                     Select Customer / Lead / Factory Site
                   </h2>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1.5">
+                  <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1.5 flex items-center gap-1.5">
                     <Building2 className="w-3.5 h-3.5 text-emerald-700" />
                     <span>Select Customer / Lead <span className="text-rose-500">*</span></span>
                   </label>
@@ -565,7 +565,7 @@ function VisitFormContent() {
                     required
                     value={selectedRecordKey}
                     onChange={(e) => handleRecordSelect(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-emerald-600 transition"
+                    className="w-full px-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-600 transition"
                   >
                     <option value="">-- Select Customer / Lead / Plant Site --</option>
                     {leads.length > 0 && (
@@ -627,19 +627,19 @@ function VisitFormContent() {
               </div>
 
               {/* Date, Time & Site Location */}
-              <div className="space-y-3 pt-3 border-t border-[#EBE3DB]">
+              <div className="space-y-3 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <div className="flex items-center gap-2">
                   <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px] flex items-center justify-center">
                     2
                   </span>
-                  <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
+                  <h2 className="text-sm font-bold text-[color:var(--crm-text-primary)] tracking-wide">
                     Planned Visit Schedule & Factory Address
                   </h2>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
+                    <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1.5 flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5 text-emerald-700" />
                       <span>Planned Visit Date <span className="text-rose-500">*</span></span>
                     </label>
@@ -648,12 +648,12 @@ function VisitFormContent() {
                       required
                       value={visitDate}
                       onChange={(e) => setVisitDate(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-mono text-[#211B17] focus:outline-none focus:border-emerald-600"
+                      className="w-full px-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-mono text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-600"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
+                    <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1.5 flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5 text-emerald-700" />
                       <span>Visit Time (Clock)</span>
                     </label>
@@ -661,12 +661,12 @@ function VisitFormContent() {
                       type="time"
                       value={visitTime}
                       onChange={(e) => setVisitTime(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-mono text-[#211B17] focus:outline-none focus:border-emerald-600 cursor-pointer"
+                      className="w-full px-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-mono text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-600 cursor-pointer"
                     />
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
+                    <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1.5 flex items-center gap-1">
                       <MapPin className="w-3.5 h-3.5 text-emerald-700" />
                       <span>Site / Factory Location & Address <span className="text-rose-500">*</span></span>
                     </label>
@@ -676,19 +676,19 @@ function VisitFormContent() {
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
                       placeholder="e.g. Plot No. 18, GIDC Estate, Vatva, Ahmedabad, Gujarat"
-                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium text-[#211B17] focus:outline-none focus:border-emerald-600"
+                      className="w-full px-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-medium text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-600"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
+                    <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1.5 flex items-center gap-1">
                       <Briefcase className="w-3.5 h-3.5 text-emerald-700" />
                       <span>Delegated Sales / Site Engineer</span>
                     </label>
                     <select
                       value={employeeId}
                       onChange={(e) => setEmployeeId(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-emerald-600"
+                      className="w-full px-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-600"
                     >
                       {allStaff.map((s) => (
                         <option key={s.id} value={s.id}>
@@ -701,10 +701,10 @@ function VisitFormContent() {
               </div>
 
               {/* Step 1 Actions */}
-              <div className="flex items-center justify-between pt-6 border-t border-[#EBE3DB] flex-wrap gap-3">
+              <div className="flex items-center justify-between pt-6 border-t border-[color:var(--crm-border-default)] flex-wrap gap-3">
                 <Link
                   href="/crm/visits"
-                  className="px-5 py-2.5 border border-[#EBE3DB] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs"
+                  className="px-5 py-2.5 border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] rounded-xl font-bold transition text-xs"
                 >
                   Cancel
                 </Link>
@@ -721,7 +721,7 @@ function VisitFormContent() {
                   <button
                     type="button"
                     onClick={handleProceedToStep2}
-                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-[#4A3B32] border border-[#EBE3DB] rounded-xl font-bold transition text-xs flex items-center gap-2 cursor-pointer"
+                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-[color:var(--crm-text-primary)] border border-[color:var(--crm-border-default)] rounded-xl font-bold transition text-xs flex items-center gap-2 cursor-pointer"
                   >
                     <span>Proceed to Slide 2 (Report)</span>
                     <ArrowRight className="w-4 h-4" />
@@ -737,10 +737,10 @@ function VisitFormContent() {
           {currentStep === 2 && (
             <div className="space-y-6 animate-in fade-in duration-200">
               {/* Step 1 Summary Banner */}
-              <div className="p-3 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl flex items-center justify-between flex-wrap gap-2 text-xs">
+              <div className="p-3 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl flex items-center justify-between flex-wrap gap-2 text-xs">
                 <div>
-                  <span className="text-[#70665F]">Site / Customer: </span>
-                  <strong className="text-[#211B17]">{selectedEntityInfo?.name}</strong>
+                  <span className="text-[color:var(--crm-text-secondary)]">Site / Customer: </span>
+                  <strong className="text-[color:var(--crm-text-primary)]">{selectedEntityInfo?.name}</strong>
                   <span className="text-emerald-700 ml-1.5 font-bold">• {location}</span>
                 </div>
                 <div className="flex items-center gap-2 font-mono text-xs">
@@ -762,14 +762,14 @@ function VisitFormContent() {
                   <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px] flex items-center justify-center">
                     3
                   </span>
-                  <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
+                  <h2 className="text-sm font-bold text-[color:var(--crm-text-primary)] tracking-wide">
                     Visit Purpose & Technical Observations
                   </h2>
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+                    <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1.5">
                       Visit Purpose <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -778,12 +778,12 @@ function VisitFormContent() {
                       value={purpose}
                       onChange={(e) => setPurpose(e.target.value)}
                       placeholder="e.g. Technical site survey, tank foundation measurements, piping line check"
-                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-emerald-600"
+                      className="w-full px-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-600"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+                    <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1.5">
                       Discussion Summary & Field Observations
                     </label>
                     <textarea
@@ -791,12 +791,12 @@ function VisitFormContent() {
                       value={discussionNotes}
                       onChange={(e) => setDiscussionNotes(e.target.value)}
                       placeholder="Discussed with plant head. Space available for equipment. Utility lines verified..."
-                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-emerald-600 leading-relaxed"
+                      className="w-full px-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-600 leading-relaxed"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1.5">
+                    <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1.5 flex items-center gap-1.5">
                       <Layers className="w-3.5 h-3.5 text-emerald-700" />
                       <span>Site Technical Requirements</span>
                     </label>
@@ -805,18 +805,18 @@ function VisitFormContent() {
                       value={requirementDetails}
                       onChange={(e) => setRequirementDetails(e.target.value)}
                       placeholder="Dimensions: 2200mm diameter x 3500mm height, SS316L material, 16 bar test pressure required, flameproof motor..."
-                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-emerald-600 leading-relaxed"
+                      className="w-full px-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-600 leading-relaxed"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+                    <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1.5">
                       Business Outcome / Status <span className="text-rose-500">*</span>
                     </label>
                     <select
                       value={outcome}
                       onChange={(e) => setOutcome(e.target.value as SiteVisit['outcome'])}
-                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-emerald-600"
+                      className="w-full px-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-600"
                     >
                       <option value="positive">Positive Progress</option>
                       <option value="order_expected">Order Expected</option>
@@ -829,13 +829,13 @@ function VisitFormContent() {
               </div>
 
               {/* Next Follow-up Schedule (Auto-syncs into Follow-ups list!) */}
-              <div className="space-y-3 pt-3 border-t border-[#EBE3DB]">
+              <div className="space-y-3 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-2">
                     <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px] flex items-center justify-center">
                       4
                     </span>
-                    <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
+                    <h2 className="text-sm font-bold text-[color:var(--crm-text-primary)] tracking-wide">
                       Next Follow-up Due Date & Time
                     </h2>
                   </div>
@@ -857,7 +857,7 @@ function VisitFormContent() {
                 </div>
 
                 {!hasScheduleNext ? (
-                  <div className="p-3 bg-[#FAF7F2] border border-dashed border-[#EBE3DB] rounded-xl text-xs text-[#70665F] flex items-center justify-between">
+                  <div className="p-3 bg-[color:var(--crm-bg-app)] border border-dashed border-[color:var(--crm-border-default)] rounded-xl text-xs text-[color:var(--crm-text-secondary)] flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <CalendarPlus className="w-4 h-4 text-emerald-600 shrink-0" />
                       <span>Next follow-up is not scheduled. Click above to schedule an upcoming discussion date & time.</span>
@@ -887,7 +887,7 @@ function VisitFormContent() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div>
                         <div className="flex items-center justify-between mb-1">
-                          <label className="text-xs font-bold text-[#4A3B32]">
+                          <label className="text-xs font-bold text-[color:var(--crm-text-primary)]">
                             Next Date <span className="text-rose-500">*</span>
                           </label>
                           <div className="flex items-center gap-1">
@@ -931,19 +931,19 @@ function VisitFormContent() {
                           required={hasScheduleNext}
                           value={nextFollowUpDate}
                           onChange={(e) => setNextFollowUpDate(e.target.value)}
-                          className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs font-mono text-[#211B17]"
+                          className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs font-mono text-[color:var(--crm-text-primary)]"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-xs font-bold text-[#4A3B32] mb-1">
+                        <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1">
                           Next Time (Clock)
                         </label>
                         <input
                           type="time"
                           value={nextFollowUpTime}
                           onChange={(e) => setNextFollowUpTime(e.target.value)}
-                          className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs font-mono text-[#211B17] cursor-pointer"
+                          className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs font-mono text-[color:var(--crm-text-primary)] cursor-pointer"
                         />
                       </div>
                     </div>
@@ -956,11 +956,11 @@ function VisitFormContent() {
               </div>
 
               {/* Form Navigation Actions */}
-              <div className="flex items-center justify-between pt-6 border-t border-[#EBE3DB]">
+              <div className="flex items-center justify-between pt-6 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setCurrentStep(1)}
-                  className="px-5 py-2.5 border border-[#EBE3DB] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs flex items-center gap-1.5 cursor-pointer"
+                  className="px-5 py-2.5 border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] rounded-xl font-bold transition text-xs flex items-center gap-1.5 cursor-pointer"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   <span>← Back to Slide 1</span>
@@ -969,7 +969,7 @@ function VisitFormContent() {
                 <div className="flex items-center gap-2">
                   <Link
                     href="/crm/visits"
-                    className="px-4 py-2.5 border border-[#EBE3DB] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs"
+                    className="px-4 py-2.5 border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] rounded-xl font-bold transition text-xs"
                   >
                     Cancel
                   </Link>
@@ -993,7 +993,7 @@ function VisitFormContent() {
 
 export default function NewVisitPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-xs text-[#70665F]">Loading Site Visit Form...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-xs text-[color:var(--crm-text-secondary)]">Loading Site Visit Form...</div>}>
       <VisitFormContent />
     </Suspense>
   );

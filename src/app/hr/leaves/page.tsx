@@ -534,7 +534,7 @@ export default function LeaveManagementPage() {
   const paginatedRequests = filteredRequests.slice(startIndex, startIndex + pageSize);
 
   return (
-    <div className="p-6 space-y-6 bg-[#FAF7F2] text-[#211B17] min-h-screen">
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)] min-h-screen">
       {/* Toast Notification */}
       {successToast && (
         <div className="fixed top-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
@@ -544,15 +544,15 @@ export default function LeaveManagementPage() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#EBE3DB] shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
         <div>
-          <h1 className="text-xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2.5">
+          <h1 className="text-xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2.5">
             <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-700">
               <FileCheck2 className="w-6 h-6" />
             </div>
             Leave Policy Master & Application Portal
           </h1>
-          <p className="text-xs text-[#70665F] mt-1">
+          <p className="text-xs text-[color:var(--crm-text-secondary)] mt-1">
             Configurable Leave Rules (CL, SL, EL, Comp-Off), Live Balances, Working Days Calculation & Approval Scoping
           </p>
         </div>
@@ -561,7 +561,7 @@ export default function LeaveManagementPage() {
           <button
             onClick={loadLiveData}
             disabled={isLoading}
-            className="flex items-center gap-1.5 px-3 py-2 bg-white border border-[#EBE3DB] hover:bg-[#FAF7F2] text-[#544B45] font-semibold text-xs rounded-xl transition shadow-xs cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2 bg-white border border-[color:var(--crm-border-default)] hover:bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] font-semibold text-xs rounded-xl transition shadow-xs cursor-pointer"
             title="Reload live leave records"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
@@ -605,8 +605,8 @@ export default function LeaveManagementPage() {
 
       {/* Active Leave Types Quota Grid */}
       <div className="space-y-3">
-        <h2 className="text-xs font-bold text-[#544B45] uppercase tracking-wider flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-amber-600" /> Active Leave Quotas & Rules ({activeLeaveTypes.length})
+        <h2 className="text-xs font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-crm-brand-600" /> Active Leave Quotas & Rules ({activeLeaveTypes.length})
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -625,29 +625,29 @@ export default function LeaveManagementPage() {
             return (
               <div
                 key={type.id}
-                className="bg-white border border-[#EBE3DB] rounded-2xl p-4 space-y-3 shadow-xs hover:border-emerald-300 transition duration-200"
+                className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-4 space-y-3 shadow-xs hover:border-emerald-300 transition duration-200"
               >
                 <div className="flex items-center justify-between">
                   <span className="px-2.5 py-1 bg-emerald-50 text-emerald-800 rounded-lg text-xs font-bold font-mono">
                     {type.leaveCode}
                   </span>
-                  <span className="text-[11px] font-semibold text-[#70665F]">
-                    Quota: <strong className="text-[#211B17]">{quota} Days/Yr</strong>
+                  <span className="text-[11px] font-semibold text-[color:var(--crm-text-secondary)]">
+                    Quota: <strong className="text-[color:var(--crm-text-primary)]">{quota} Days/Yr</strong>
                   </span>
                 </div>
 
                 <div>
-                  <h3 className="font-bold text-sm text-[#211B17] leading-tight">{type.leaveName}</h3>
-                  <p className="text-[11px] text-[#70665F] mt-0.5">
+                  <h3 className="font-bold text-sm text-[color:var(--crm-text-primary)] leading-tight">{type.leaveName}</h3>
+                  <p className="text-[11px] text-[color:var(--crm-text-secondary)] mt-0.5">
                     Max {type.maxConsecutiveDays} days stretch • {type.halfDayAllowed ? 'Half-day allowed' : 'Full only'}
                   </p>
                 </div>
 
-                <div className="pt-2 border-t border-[#EBE3DB]/60 flex items-center justify-between text-[11px] text-[#70665F]">
+                <div className="pt-2 border-t border-[#E2E7EF]/60 flex items-center justify-between text-[11px] text-[color:var(--crm-text-secondary)]">
                   <span>Available Balance:</span>
                   <span className="font-mono font-bold text-emerald-700 text-xs">{available} Days</span>
                 </div>
-                <div className="flex items-center justify-between text-[11px] text-[#70665F]">
+                <div className="flex items-center justify-between text-[11px] text-[color:var(--crm-text-secondary)]">
                   <span>Used Days:</span>
                   <span className="font-semibold text-rose-700">{used} Days</span>
                 </div>
@@ -659,15 +659,15 @@ export default function LeaveManagementPage() {
 
       {/* Employee Leave Applications Management Section */}
       <div className="space-y-4">
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-4 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-4 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
           <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 text-[#A89F91] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[color:var(--crm-text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search employee, leave number, reason..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-emerald-600 focus:bg-white transition"
+              className="w-full pl-9 pr-4 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-600 focus:bg-white transition"
             />
           </div>
 
@@ -675,7 +675,7 @@ export default function LeaveManagementPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-emerald-600"
+              className="px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-600"
             >
               <option value="all">All Approval Status</option>
               <option value="pending">Pending Review</option>
@@ -686,7 +686,7 @@ export default function LeaveManagementPage() {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-emerald-600"
+              className="px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-600"
             >
               <option value="all">All Leave Types</option>
               {activeLeaveTypes.map((t) => (
@@ -699,17 +699,17 @@ export default function LeaveManagementPage() {
         </div>
 
         {/* Leave Requests Table */}
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xs">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl overflow-hidden shadow-xs">
           {isLoading ? (
             <div className="p-12 text-center">
               <RefreshCw className="w-8 h-8 text-emerald-600 animate-spin mx-auto mb-3" />
-              <p className="text-sm font-semibold text-[#544B45]">Loading leave applications from server...</p>
+              <p className="text-sm font-semibold text-[color:var(--crm-text-secondary)]">Loading leave applications from server...</p>
             </div>
           ) : filteredRequests.length === 0 ? (
             <div className="p-12 text-center space-y-3">
-              <FileText className="w-12 h-12 text-[#A89F91] mx-auto" />
-              <h3 className="text-base font-bold text-[#211B17]">No leave applications found</h3>
-              <p className="text-xs text-[#70665F] max-w-md mx-auto">
+              <FileText className="w-12 h-12 text-[color:var(--crm-text-tertiary)] mx-auto" />
+              <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">No leave applications found</h3>
+              <p className="text-xs text-[color:var(--crm-text-secondary)] max-w-md mx-auto">
                 {searchTerm || statusFilter !== 'all' || typeFilter !== 'all'
                   ? 'No applications match your filter criteria.'
                   : 'No leave applications have been submitted yet. Click "Apply for Leave" to create a new application.'}
@@ -719,7 +719,7 @@ export default function LeaveManagementPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[#70665F] font-semibold uppercase text-[11px] tracking-wider">
+                  <tr className="bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold uppercase text-[11px] tracking-wider">
                     <th className="py-3.5 px-4">Leave No.</th>
                     <th className="py-3.5 px-4">Employee</th>
                     <th className="py-3.5 px-4">Leave Type</th>
@@ -729,19 +729,19 @@ export default function LeaveManagementPage() {
                     <th className="py-3.5 px-4 text-right">Approval Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#EBE3DB]/60 text-[#211B17]">
+                <tbody className="divide-y divide-[#E2E7EF]/60 text-[color:var(--crm-text-primary)]">
                   {paginatedRequests.map((req) => {
                     const isSelf =
                       req.employeeId === currentUser?.id ||
                       (currentUser as any)?.email === (req as any)?.employeeEmail;
 
                     return (
-                      <tr key={req.id} className="hover:bg-[#FAF7F2]/60 transition">
+                      <tr key={req.id} className="hover:bg-[#F4F6FA]/60 transition">
                         <td className="py-3.5 px-4 font-mono font-bold text-emerald-800">
                           {req.leaveNumber || req.id}
                         </td>
                         <td className="py-3.5 px-4">
-                          <div className="font-bold text-[#211B17] flex items-center gap-1.5">
+                          <div className="font-bold text-[color:var(--crm-text-primary)] flex items-center gap-1.5">
                             {req.employeeName}
                             {isSelf && (
                               <span className="text-[10px] font-bold px-1.5 py-0.2 bg-blue-100 text-blue-800 rounded">
@@ -749,20 +749,20 @@ export default function LeaveManagementPage() {
                               </span>
                             )}
                           </div>
-                          <div className="text-[11px] text-[#70665F]">{req.department}</div>
+                          <div className="text-[11px] text-[color:var(--crm-text-secondary)]">{req.department}</div>
                         </td>
-                        <td className="py-3.5 px-4 font-semibold text-[#544B45]">
+                        <td className="py-3.5 px-4 font-semibold text-[color:var(--crm-text-secondary)]">
                           {req.leaveName}
                         </td>
                         <td className="py-3.5 px-4">
-                          <div className="font-mono text-xs font-semibold text-[#211B17]">
+                          <div className="font-mono text-xs font-semibold text-[color:var(--crm-text-primary)]">
                             {req.fromDate} to {req.toDate}
                           </div>
                           <div className="text-[11px] text-emerald-700 font-bold mt-0.5">
                             {req.numberOfDays} Day(s) {req.isHalfDay ? `(${req.halfDayType || 'Half Day'})` : ''}
                           </div>
                         </td>
-                        <td className="py-3.5 px-4 text-[#70665F] max-w-xs truncate">
+                        <td className="py-3.5 px-4 text-[color:var(--crm-text-secondary)] max-w-xs truncate">
                           &ldquo;{req.reason}&rdquo;
                         </td>
                         <td className="py-3.5 px-4">
@@ -785,7 +785,7 @@ export default function LeaveManagementPage() {
                                 className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg text-[10px] font-bold cursor-not-allowed"
                                 title="RBAC Rule: You cannot approve your own leave application"
                               >
-                                <Lock className="w-3 h-3 text-amber-700" />
+                                <Lock className="w-3 h-3 text-crm-brand-600" />
                                 <span>Self-Approval Not Permitted</span>
                               </div>
                             ) : (
@@ -807,7 +807,7 @@ export default function LeaveManagementPage() {
                               </div>
                             )
                           ) : (
-                            <span className="text-[#A89F91] text-[11px] font-semibold">Processed</span>
+                            <span className="text-[color:var(--crm-text-tertiary)] text-[11px] font-semibold">Processed</span>
                           )}
                         </td>
                       </tr>
@@ -819,19 +819,19 @@ export default function LeaveManagementPage() {
           )}
 
           {/* Table Pagination */}
-          <div className="p-3.5 bg-white border-t border-[#EBE3DB] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#70665F]">
+          <div className="p-3.5 bg-white border-t border-[color:var(--crm-border-default)] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[color:var(--crm-text-secondary)]">
             <div className="flex items-center gap-4">
               <div>
-                Showing <span className="font-bold text-[#211B17]">{filteredRequests.length === 0 ? 0 : startIndex + 1}</span> to{' '}
-                <span className="font-bold text-[#211B17]">{Math.min(startIndex + pageSize, filteredRequests.length)}</span> of{' '}
-                <span className="font-bold text-[#211B17]">{filteredRequests.length}</span> requests
+                Showing <span className="font-bold text-[color:var(--crm-text-primary)]">{filteredRequests.length === 0 ? 0 : startIndex + 1}</span> to{' '}
+                <span className="font-bold text-[color:var(--crm-text-primary)]">{Math.min(startIndex + pageSize, filteredRequests.length)}</span> of{' '}
+                <span className="font-bold text-[color:var(--crm-text-primary)]">{filteredRequests.length}</span> requests
               </div>
               <div className="flex items-center gap-1.5">
                 <span>Rows:</span>
                 <select
                   value={pageSize}
                   onChange={(e) => setPageSize(Number(e.target.value))}
-                  className="bg-[#FAF7F2] border border-[#EBE3DB] rounded px-2 py-0.5 text-xs font-semibold text-[#211B17]"
+                  className="bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded px-2 py-0.5 text-xs font-semibold text-[color:var(--crm-text-primary)]"
                 >
                   <option value="10">10</option>
                   <option value="20">20</option>
@@ -845,17 +845,17 @@ export default function LeaveManagementPage() {
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="p-1.5 rounded-lg border border-[#EBE3DB] disabled:opacity-30 hover:bg-[#FAF7F2] text-[#70665F] transition cursor-pointer"
+                className="p-1.5 rounded-lg border border-[color:var(--crm-border-default)] disabled:opacity-30 hover:bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] transition cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="font-bold text-[#211B17] px-2 font-mono">
+              <span className="font-bold text-[color:var(--crm-text-primary)] px-2 font-mono">
                 Page {currentPage} of {totalPages}
               </span>
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="p-1.5 rounded-lg border border-[#EBE3DB] disabled:opacity-30 hover:bg-[#FAF7F2] text-[#70665F] transition cursor-pointer"
+                className="p-1.5 rounded-lg border border-[color:var(--crm-border-default)] disabled:opacity-30 hover:bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] transition cursor-pointer"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -874,18 +874,18 @@ export default function LeaveManagementPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl relative my-8"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl relative my-8"
           >
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
               <div>
-                <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+                <h2 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                   <FileCheck2 className="w-5 h-5 text-emerald-600" /> Apply for Employee Leave
                 </h2>
               </div>
               <button
                 type="button"
                 onClick={closeApplyModalWithConfirm}
-                className="text-[#70665F] hover:text-[#211B17] p-1.5 rounded-lg hover:bg-[#FAF7F2] transition cursor-pointer"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1.5 rounded-lg hover:bg-[color:var(--crm-bg-app)] transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -894,7 +894,7 @@ export default function LeaveManagementPage() {
             <form onSubmit={handleApplySubmit} noValidate className="space-y-3.5 text-xs">
               {/* 1. Select Employee */}
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Select Employee <span className="text-rose-500">*</span>
                 </label>
                 <select
@@ -902,10 +902,10 @@ export default function LeaveManagementPage() {
                   value={formData.employeeId}
                   onBlur={() => handleBlur('employeeId')}
                   onChange={(e) => handleChange('employeeId', e.target.value)}
-                  className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-xs text-[#211B17] font-semibold focus:outline-none transition ${
+                  className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-xs text-[color:var(--crm-text-primary)] font-semibold focus:outline-none transition ${
                     formErrors.employeeId
                       ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                      : 'border-[#EBE3DB] focus:border-emerald-600'
+                      : 'border-[color:var(--crm-border-default)] focus:border-emerald-600'
                   }`}
                 >
                   <option value="">-- Select Staff Member --</option>
@@ -925,7 +925,7 @@ export default function LeaveManagementPage() {
 
               {/* 2. Leave Type */}
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Leave Type <span className="text-rose-500">*</span>
                 </label>
                 <select
@@ -933,10 +933,10 @@ export default function LeaveManagementPage() {
                   value={formData.leaveTypeId}
                   onBlur={() => handleBlur('leaveTypeId')}
                   onChange={(e) => handleChange('leaveTypeId', e.target.value)}
-                  className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-xs text-[#211B17] font-semibold focus:outline-none transition ${
+                  className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-xs text-[color:var(--crm-text-primary)] font-semibold focus:outline-none transition ${
                     formErrors.leaveTypeId
                       ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                      : 'border-[#EBE3DB] focus:border-emerald-600'
+                      : 'border-[color:var(--crm-border-default)] focus:border-emerald-600'
                   }`}
                 >
                   <option value="">-- Select Leave Category --</option>
@@ -956,11 +956,11 @@ export default function LeaveManagementPage() {
 
               {/* 3. Leave Duration Option */}
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Leave Duration / Half Day Option</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Leave Duration / Half Day Option</label>
                 <select
                   value={formData.durationOption}
                   onChange={(e) => setFormData({ ...formData, durationOption: e.target.value as any })}
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] font-medium focus:outline-none focus:border-emerald-600 transition"
+                  className="w-full px-3.5 py-2.5 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-xs text-[color:var(--crm-text-primary)] font-medium focus:outline-none focus:border-emerald-600 transition"
                 >
                   <option value="Full Day">Full Day (1 Day)</option>
                   <option value="First Half">First Half Leave (0.5 Day - 09:00 to 13:30)</option>
@@ -972,7 +972,7 @@ export default function LeaveManagementPage() {
               {/* 4. From Date & To Date */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     From Date <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -981,10 +981,10 @@ export default function LeaveManagementPage() {
                     value={formData.fromDate}
                     onBlur={() => handleBlur('fromDate')}
                     onChange={(e) => handleChange('fromDate', e.target.value)}
-                    className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-xs font-mono text-[#211B17] focus:outline-none transition ${
+                    className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-xs font-mono text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                       formErrors.fromDate
                         ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                        : 'border-[#EBE3DB] focus:border-emerald-600'
+                        : 'border-[color:var(--crm-border-default)] focus:border-emerald-600'
                     }`}
                   />
                   {formErrors.fromDate && (
@@ -996,7 +996,7 @@ export default function LeaveManagementPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     To Date <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -1005,10 +1005,10 @@ export default function LeaveManagementPage() {
                     value={formData.toDate}
                     onBlur={() => handleBlur('toDate')}
                     onChange={(e) => handleChange('toDate', e.target.value)}
-                    className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-xs font-mono text-[#211B17] focus:outline-none transition ${
+                    className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-xs font-mono text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                       formErrors.toDate
                         ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                        : 'border-[#EBE3DB] focus:border-emerald-600'
+                        : 'border-[color:var(--crm-border-default)] focus:border-emerald-600'
                     }`}
                   />
                   {formErrors.toDate && (
@@ -1021,14 +1021,14 @@ export default function LeaveManagementPage() {
               </div>
 
               {/* Calculated Total Days */}
-              <div className="bg-[#FAF7F2] p-3 rounded-xl border border-[#EBE3DB] flex items-center justify-between text-xs">
-                <span className="text-[#544B45] font-semibold">Total Days Requested:</span>
+              <div className="bg-[color:var(--crm-bg-app)] p-3 rounded-xl border border-[color:var(--crm-border-default)] flex items-center justify-between text-xs">
+                <span className="text-[color:var(--crm-text-secondary)] font-semibold">Total Days Requested:</span>
                 <span className="font-bold text-emerald-800 text-sm font-mono">{calculatedDays} Day(s)</span>
               </div>
 
               {/* 5. Reason for Leave */}
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Reason for Leave <span className="text-rose-500">*</span>
                 </label>
                 <textarea
@@ -1038,10 +1038,10 @@ export default function LeaveManagementPage() {
                   value={formData.reason}
                   onBlur={() => handleBlur('reason')}
                   onChange={(e) => handleChange('reason', e.target.value)}
-                  className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-xs text-[#211B17] focus:outline-none transition ${
+                  className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                     formErrors.reason
                       ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                      : 'border-[#EBE3DB] focus:border-emerald-600'
+                      : 'border-[color:var(--crm-border-default)] focus:border-emerald-600'
                   }`}
                 />
                 {formErrors.reason && (
@@ -1053,11 +1053,11 @@ export default function LeaveManagementPage() {
               </div>
 
               {/* Modal Buttons */}
-              <div className="pt-3 border-t border-[#EBE3DB] flex justify-end gap-2.5">
+              <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={closeApplyModalWithConfirm}
-                  className="px-4 py-2 bg-[#FAF7F2] border border-[#EBE3DB] text-[#544B45] font-semibold rounded-xl hover:bg-[#EBE3DB] transition cursor-pointer"
+                  className="px-4 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold rounded-xl hover:bg-[color:var(--crm-border-default)] transition cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1076,17 +1076,17 @@ export default function LeaveManagementPage() {
       {/* Admin: Add New Leave Type Modal */}
       {showAddTypeModal && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
               <div>
-                <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
-                  <Layers className="w-5 h-5 text-amber-600" /> Add New Leave Type (Admin Policy)
+                <h2 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
+                  <Layers className="w-5 h-5 text-crm-brand-600" /> Add New Leave Type (Admin Policy)
                 </h2>
-                <p className="text-[11px] text-[#70665F]">Create custom company leave rules & yearly quotas</p>
+                <p className="text-[11px] text-[color:var(--crm-text-secondary)]">Create custom company leave rules & yearly quotas</p>
               </div>
               <button
                 onClick={() => setShowAddTypeModal(false)}
-                className="text-[#70665F] hover:text-[#211B17] cursor-pointer"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1095,37 +1095,37 @@ export default function LeaveManagementPage() {
             <form onSubmit={handleCreateLeaveType} className="space-y-3.5 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
-                  <label className="block text-[#544B45] font-semibold mb-1">Leave Name</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Leave Name</label>
                   <input
                     type="text"
                     placeholder="e.g. Festival Leave, Marriage Leave"
                     value={newTypeData.leaveName}
                     onChange={(e) => setNewTypeData({ ...newTypeData, leaveName: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-xl text-[#211B17] focus:outline-none focus:border-amber-600"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Leave Code (2-4 letters)</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Leave Code (2-4 letters)</label>
                   <input
                     type="text"
                     placeholder="e.g. FL, ML"
                     value={newTypeData.leaveCode}
                     onChange={(e) => setNewTypeData({ ...newTypeData, leaveCode: e.target.value.toUpperCase() })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-xl text-[#211B17] font-mono focus:outline-none focus:border-amber-600"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] font-mono focus:outline-none focus:border-amber-600"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Annual Quota (Days/Year)</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Annual Quota (Days/Year)</label>
                   <input
                     type="number"
                     min="1"
                     value={newTypeData.annualQuota}
                     onChange={(e) => setNewTypeData({ ...newTypeData, annualQuota: Number(e.target.value) })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-xl text-[#211B17] focus:outline-none focus:border-amber-600"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600"
                     required
                   />
                 </div>
@@ -1133,28 +1133,28 @@ export default function LeaveManagementPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Monthly Accrual (Days)</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Monthly Accrual (Days)</label>
                   <input
                     type="number"
                     step="0.1"
                     value={newTypeData.monthlyAccrual}
                     onChange={(e) => setNewTypeData({ ...newTypeData, monthlyAccrual: Number(e.target.value) })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-xl text-[#211B17] focus:outline-none focus:border-amber-600"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Max Consecutive Days</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Max Consecutive Days</label>
                   <input
                     type="number"
                     value={newTypeData.maxConsecutiveDays}
                     onChange={(e) => setNewTypeData({ ...newTypeData, maxConsecutiveDays: Number(e.target.value) })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-xl text-[#211B17] focus:outline-none focus:border-amber-600"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2 pt-2 border-t border-[#EBE3DB]">
+              <div className="space-y-2 pt-2 border-t border-[color:var(--crm-border-default)]">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -1162,7 +1162,7 @@ export default function LeaveManagementPage() {
                     onChange={(e) => setNewTypeData({ ...newTypeData, halfDayAllowed: e.target.checked })}
                     className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
                   />
-                  <span className="text-[#3E2723]">Allow Half Day Applications</span>
+                  <span className="text-[color:var(--crm-text-primary)]">Allow Half Day Applications</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -1171,15 +1171,15 @@ export default function LeaveManagementPage() {
                     onChange={(e) => setNewTypeData({ ...newTypeData, carryForwardAllowed: e.target.checked })}
                     className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
                   />
-                  <span className="text-[#3E2723]">Allow Year-End Carry Forward</span>
+                  <span className="text-[color:var(--crm-text-primary)]">Allow Year-End Carry Forward</span>
                 </label>
               </div>
 
-              <div className="pt-3 border-t border-[#EBE3DB] flex justify-end gap-2.5">
+              <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setShowAddTypeModal(false)}
-                  className="px-4 py-2 bg-[#FAF7F2] border border-[#EBE3DB] text-[#544B45] font-semibold rounded-xl hover:bg-[#EBE3DB] transition cursor-pointer"
+                  className="px-4 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold rounded-xl hover:bg-[color:var(--crm-border-default)] transition cursor-pointer"
                 >
                   Cancel
                 </button>

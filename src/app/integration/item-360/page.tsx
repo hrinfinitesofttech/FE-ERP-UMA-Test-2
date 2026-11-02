@@ -56,24 +56,24 @@ export default function Item360Page() {
       const key = im.id || im.itemCode;
       if (!map.has(key) && !map.has(im.itemCode)) {
         const matchingStock = stockBalances.find((s) => s.itemId === im.id || s.itemCode === im.itemCode);
-        const currentStock = matchingStock ? Number(matchingStock.availableQuantity || matchingStock.currentStock || 0) : Number(im.currentStock || 0);
+        const currentStock = matchingStock ? Number(matchingStock.availableQty || matchingStock.currentQuantity || 0) : Number(im.currentStock || 0);
         const unitCost = Number(im.standardCost ?? (im as any).defaultPurchaseRate ?? 0);
-        const matchingSupplier = suppliers.find((s) => s.id === (im as any).primarySupplierId);
+        const matchingSupplier = suppliers.find((s) => s.id === im.preferredSupplierId);
 
         map.set(key, {
           id: im.id || key,
           code: im.itemCode,
           name: im.itemName,
-          category: im.categoryName || im.category || 'Raw Material',
-          uom: im.uomName || im.uom || 'Nos',
+          category: im.category || '—',
+          uom: im.uom || '—',
           stock: currentStock,
-          reserved: matchingStock ? Number(matchingStock.allocatedQuantity || 0) : 0,
+          reserved: matchingStock ? Number(matchingStock.allocatedQty || matchingStock.reservedQty || 0) : 0,
           available: currentStock,
           unitCost,
           valuation: currentStock * unitCost,
-          warehouse: (im as any).defaultWarehouse || 'Main Warehouse',
-          supplier: matchingSupplier?.supplierName || 'Approved Industrial Vendor',
-          reorderLevel: Number(im.reorderLevel || 10),
+          warehouse: matchingStock?.warehouseName || '—',
+          supplier: im.preferredSupplierName || matchingSupplier?.supplierName || matchingSupplier?.name || '—',
+          reorderLevel: Number((im as any).reorderLevel ?? im.minimumStock ?? 0),
         });
       }
     });
@@ -116,17 +116,17 @@ export default function Item360Page() {
   }
 
   return (
-    <div className="p-4 sm:p-6 space-y-5 bg-[#FAF7F2] text-[#544B45] font-sans pb-12">
+    <div className="p-4 sm:p-6 space-y-5 bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] font-sans pb-12">
       {/* Top Header Card */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#EBE3DB] shadow-xs">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200/60 flex items-center justify-center flex-shrink-0">
+          <div className="w-11 h-11 rounded-2xl bg-crm-brand-50 text-crm-brand-700 border border-crm-brand-100 flex items-center justify-center flex-shrink-0">
             <Box className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-black text-[#211B17] tracking-tight">{currentItem.name}</h1>
-            <p className="text-xs text-[#70665F] font-medium mt-0.5">
-              Item Code: <span className="text-[#75401F] font-bold font-mono">{currentItem.code}</span> • Category: {currentItem.category}
+            <h1 className="text-xl sm:text-2xl font-black text-[color:var(--crm-text-primary)] tracking-tight">{currentItem.name}</h1>
+            <p className="text-xs text-[color:var(--crm-text-secondary)] font-medium mt-0.5">
+              Item Code: <span className="text-[color:var(--crm-brand-700)] font-bold font-mono">{currentItem.code}</span> • Category: {currentItem.category}
             </p>
           </div>
         </div>
@@ -137,7 +137,7 @@ export default function Item360Page() {
             <select
               value={currentItem.id}
               onChange={(e) => setSelectedItemId(e.target.value)}
-              className="w-full bg-[#FAF7F2] hover:bg-white text-xs text-[#211B17] font-bold px-3 py-2.5 rounded-xl border border-[#D5CAC0] focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer min-h-[40px]"
+              className="w-full bg-[color:var(--crm-bg-app)] hover:bg-white text-xs text-[color:var(--crm-text-primary)] font-bold px-3 py-2.5 rounded-xl border border-[color:var(--crm-border-strong)] focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer min-h-[40px]"
             >
               {allItems.map((i) => (
                 <option key={i.id} value={i.id}>
@@ -149,7 +149,7 @@ export default function Item360Page() {
 
           <Link
             href="/store/items"
-            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-[#FAF7F2] border border-[#D5CAC0] text-[#4A3B32] text-xs font-bold transition shadow-2xs min-h-[40px] whitespace-nowrap"
+            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-strong)] text-[color:var(--crm-text-primary)] text-xs font-bold transition shadow-2xs min-h-[40px] whitespace-nowrap"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Manage Items</span>
@@ -159,62 +159,62 @@ export default function Item360Page() {
 
       {/* Metric KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 bg-white border border-[#E7DED5] rounded-2xl shadow-2xs space-y-1">
-          <span className="text-[10px] uppercase font-mono text-[#70665F] block font-semibold">Total Stock</span>
-          <div className="text-xl font-bold font-mono text-[#211B17]">
+        <div className="p-4 bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-2xs space-y-1">
+          <span className="text-[10px] uppercase font-mono text-[color:var(--crm-text-secondary)] block font-semibold">Total Stock</span>
+          <div className="text-xl font-bold font-mono text-[color:var(--crm-text-primary)]">
             {currentItem.stock?.toLocaleString()} {currentItem.uom}
           </div>
-          <span className="text-[10px] text-[#8C7A6F] block">On-hand in warehouse</span>
+          <span className="text-[10px] text-[color:var(--crm-text-tertiary)] block">On-hand in warehouse</span>
         </div>
 
-        <div className="p-4 bg-white border border-[#E7DED5] rounded-2xl shadow-2xs space-y-1">
-          <span className="text-[10px] uppercase font-mono text-[#70665F] block font-semibold">Allocated / Reserved</span>
+        <div className="p-4 bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-2xs space-y-1">
+          <span className="text-[10px] uppercase font-mono text-[color:var(--crm-text-secondary)] block font-semibold">Allocated / Reserved</span>
           <div className="text-xl font-bold font-mono text-amber-700">
             {currentItem.reserved?.toLocaleString()} {currentItem.uom}
           </div>
           <span className="text-[10px] text-amber-700 block">Committed to active jobs</span>
         </div>
 
-        <div className="p-4 bg-white border border-[#E7DED5] rounded-2xl shadow-2xs space-y-1">
-          <span className="text-[10px] uppercase font-mono text-[#70665F] block font-semibold">Free Available</span>
+        <div className="p-4 bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-2xs space-y-1">
+          <span className="text-[10px] uppercase font-mono text-[color:var(--crm-text-secondary)] block font-semibold">Free Available</span>
           <div className="text-xl font-bold font-mono text-emerald-700">
             {currentItem.available?.toLocaleString()} {currentItem.uom}
           </div>
           <span className="text-[10px] text-emerald-700 block">Available for issue</span>
         </div>
 
-        <div className="p-4 bg-white border border-[#E7DED5] rounded-2xl shadow-2xs space-y-1">
-          <span className="text-[10px] uppercase font-mono text-[#70665F] block font-semibold">Inventory Valuation</span>
-          <div className="text-xl font-bold font-mono text-[#75401F]">
+        <div className="p-4 bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-2xs space-y-1">
+          <span className="text-[10px] uppercase font-mono text-[color:var(--crm-text-secondary)] block font-semibold">Inventory Valuation</span>
+          <div className="text-xl font-bold font-mono text-[color:var(--crm-brand-700)]">
             ₹ {currentItem.valuation > 0 ? currentItem.valuation.toLocaleString('en-IN') : '—'}
           </div>
-          <span className="text-[10px] text-[#8C7A6F] block">At standard valuation</span>
+          <span className="text-[10px] text-[color:var(--crm-text-tertiary)] block">At standard valuation</span>
         </div>
       </div>
 
       {/* Storage & Supplier Profile */}
-      <div className="p-5 sm:p-6 bg-white border border-[#E7DED5] rounded-2xl shadow-xs space-y-4 text-xs">
-        <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2 pb-3 border-b border-[#F2ECE4]">
-          <Building className="w-4 h-4 text-[#75401F]" />
+      <div className="p-5 sm:p-6 bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-xs space-y-4 text-xs">
+        <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2 pb-3 border-b border-[color:var(--crm-surface-subtle)]">
+          <Building className="w-4 h-4 text-[color:var(--crm-brand-700)]" />
           <span>Storage Location &amp; Supplier Mapping</span>
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-3 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB]">
-            <span className="text-[10px] text-[#70665F] uppercase font-semibold block">Primary Warehouse</span>
-            <strong className="text-xs text-[#211B17] mt-0.5 block">{currentItem.warehouse}</strong>
+          <div className="p-3 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)]">
+            <span className="text-[10px] text-[color:var(--crm-text-secondary)] uppercase font-semibold block">Primary Warehouse</span>
+            <strong className="text-xs text-[color:var(--crm-text-primary)] mt-0.5 block">{currentItem.warehouse}</strong>
           </div>
-          <div className="p-3 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB]">
-            <span className="text-[10px] text-[#70665F] uppercase font-semibold block">Default Supplier</span>
-            <strong className="text-xs text-[#211B17] mt-0.5 block truncate" title={currentItem.supplier}>{currentItem.supplier}</strong>
+          <div className="p-3 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)]">
+            <span className="text-[10px] text-[color:var(--crm-text-secondary)] uppercase font-semibold block">Default Supplier</span>
+            <strong className="text-xs text-[color:var(--crm-text-primary)] mt-0.5 block truncate" title={currentItem.supplier}>{currentItem.supplier}</strong>
           </div>
-          <div className="p-3 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB]">
-            <span className="text-[10px] text-[#70665F] uppercase font-semibold block">Standard Purchase Rate</span>
+          <div className="p-3 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)]">
+            <span className="text-[10px] text-[color:var(--crm-text-secondary)] uppercase font-semibold block">Standard Purchase Rate</span>
             <strong className="text-xs text-emerald-700 font-mono mt-0.5 block">
               {currentItem.unitCost > 0 ? `₹ ${currentItem.unitCost.toLocaleString('en-IN')} / ${currentItem.uom}` : '—'}
             </strong>
           </div>
-          <div className="p-3 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB]">
-            <span className="text-[10px] text-[#70665F] uppercase font-semibold block">Reorder Threshold</span>
+          <div className="p-3 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)]">
+            <span className="text-[10px] text-[color:var(--crm-text-secondary)] uppercase font-semibold block">Reorder Threshold</span>
             <strong className="text-xs text-amber-800 font-mono mt-0.5 block">
               {currentItem.reorderLevel} {currentItem.uom}
             </strong>

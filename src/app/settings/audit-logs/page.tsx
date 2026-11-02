@@ -79,7 +79,7 @@ export default function AuditLogsPage() {
       key: 'recordId',
       header: 'Target Record ID',
       cell: (log) => (
-        <span className="font-mono font-bold text-[#7C3AED]">{log.recordId}</span>
+        <span className="font-mono font-bold text-[color:var(--crm-brand-600)]">{log.recordId}</span>
       ),
     },
     {

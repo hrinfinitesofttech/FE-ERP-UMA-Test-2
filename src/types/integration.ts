@@ -93,6 +93,7 @@ export interface Job360TabStore {
   materialReturnedCount: number;
   scrapGeneratedCost: number;
   stockShortageItemsCount: number;
+  issuedValue?: number;
   materials: {
     itemCode: string;
     itemName: string;

@@ -30,17 +30,17 @@ export default function AlertCenterPage() {
   const filteredAlerts = centralAlerts.filter((alt) => selectedModule === 'all' || alt.module === selectedModule);
 
   return (
-    <div className="p-6 space-y-6 bg-[#FAF7F2]  text-[#544B45] font-sans">
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)]  text-[color:var(--crm-text-secondary)] font-sans">
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#EBE3DB] shadow-xl backdrop-blur-md">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xl backdrop-blur-md">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400">
+            <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-700">
               <AlertTriangle className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-[#211B17] tracking-tight">Central ERP Action & Alert Center</h1>
-              <p className="text-xs text-[#70665F] font-medium mt-0.5">
+              <h1 className="text-2xl font-black text-[color:var(--crm-text-primary)] tracking-tight">Central ERP Action & Alert Center</h1>
+              <p className="text-xs text-[color:var(--crm-text-secondary)] font-medium mt-0.5">
                 Real-Time Exception Monitoring, Bottleneck Detection & Operational Notifications
               </p>
             </div>
@@ -54,7 +54,7 @@ export default function AlertCenterPage() {
               key={m}
               onClick={() => setSelectedModule(m)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition capitalize ${
-                selectedModule === m ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30' : 'bg-[#FAF7F2] text-[#70665F] hover:text-white border border-[#EBE3DB]'
+                selectedModule === m ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30' : 'bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] hover:text-white border border-[color:var(--crm-border-default)]'
               }`}
             >
               {m}
@@ -64,11 +64,11 @@ export default function AlertCenterPage() {
       </div>
 
       {/* Alerts Count Bar */}
-      <div className="flex items-center justify-between p-4 bg-white border border-[#EBE3DB] rounded-xl text-xs">
-        <span className="text-[#544B45] font-medium">
-          Showing <strong className="text-amber-400">{filteredAlerts.length}</strong> active alerts across {selectedModule === 'all' ? 'all ERP departments' : `${selectedModule} module`}.
+      <div className="flex items-center justify-between p-4 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-xs">
+        <span className="text-[color:var(--crm-text-secondary)] font-medium">
+          Showing <strong className="text-amber-700">{filteredAlerts.length}</strong> active alerts across {selectedModule === 'all' ? 'all ERP departments' : `${selectedModule} module`}.
         </span>
-        <span className="text-[10px] text-[#70665F] font-mono">Auto-refreshed live</span>
+        <span className="text-[10px] text-[color:var(--crm-text-secondary)] font-mono">Auto-refreshed live</span>
       </div>
 
       {/* Alert Items List */}
@@ -81,7 +81,7 @@ export default function AlertCenterPage() {
                 ? 'bg-rose-50/80 border-rose-200 hover:border-rose-300'
                 : alt.severity === 'Warning'
                 ? 'bg-amber-50/80 border-amber-200 hover:border-amber-300'
-                : 'bg-white border-[#E7DED5] hover:border-[#D5C7B8]'
+                : 'bg-white border-[color:var(--crm-border-default)] hover:border-[#BAC2D3]'
             }`}
           >
             <div className="flex items-start gap-4">
@@ -98,7 +98,7 @@ export default function AlertCenterPage() {
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-white text-crm-brand-700 border border-[#E7DED5]">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-white text-crm-brand-700 border border-[color:var(--crm-border-default)]">
                     {alt.module}
                   </span>
                   <span
@@ -110,10 +110,10 @@ export default function AlertCenterPage() {
                   >
                     {alt.severity} Priority
                   </span>
-                  <span className="text-[10px] font-mono text-[#70665F]">{alt.timestamp}</span>
+                  <span className="text-[10px] font-mono text-[color:var(--crm-text-secondary)]">{alt.timestamp}</span>
                 </div>
-                <h3 className="text-sm font-bold text-[#211B17]">{alt.title}</h3>
-                <p className="text-xs text-[#544B45]">{alt.description}</p>
+                <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)]">{alt.title}</h3>
+                <p className="text-xs text-[color:var(--crm-text-secondary)]">{alt.description}</p>
                 <div className="text-[11px] text-amber-800 font-semibold pt-1">
                   Required Action: <span className="underline">{alt.actionRequired}</span>
                 </div>
@@ -124,7 +124,7 @@ export default function AlertCenterPage() {
             <div className="flex items-center gap-3 flex-shrink-0">
               <button
                 onClick={() => dismissCentralAlert(alt.id)}
-                className="px-3 py-1.5 text-xs text-[#70665F] hover:text-[#544B45] hover:bg-[#FAF7F2] rounded-lg transition"
+                className="px-3 py-1.5 text-xs text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] rounded-lg transition"
               >
                 Dismiss
               </button>

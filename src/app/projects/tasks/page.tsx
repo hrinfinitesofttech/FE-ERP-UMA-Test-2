@@ -367,7 +367,7 @@ export default function TaskManagementPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] pb-20">
+    <div className="min-h-screen bg-[color:var(--crm-bg-app)] pb-20">
       {/* Top Banner Notifications */}
       {bannerSuccess && (
         <div className="bg-emerald-50 border-b border-emerald-200 px-4 py-3 sticky top-0 z-40 transition-all flex items-center justify-between shadow-sm">
@@ -396,18 +396,18 @@ export default function TaskManagementPage() {
       {/* Main Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
         {/* Header Breadcrumb & Title */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-[#EBE3DB]">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-[color:var(--crm-border-default)]">
           <div>
-            <div className="flex items-center gap-2 text-xs text-[#70665F] mb-1 font-medium">
+            <div className="flex items-center gap-2 text-xs text-[color:var(--crm-text-secondary)] mb-1 font-medium">
               <Link href="/projects/dashboard" className="hover:text-crm-brand-700">Project Management</Link>
               <span>/</span>
-              <span className="text-[#211B17] font-semibold">Task Management</span>
+              <span className="text-[color:var(--crm-text-primary)] font-semibold">Task Management</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-[#211B17] tracking-tight flex items-center gap-2.5">
+            <h1 className="text-xl sm:text-2xl font-bold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2.5">
               <CheckSquare className="w-6 h-6 text-crm-brand-700" />
               Department Task Master
             </h1>
-            <p className="text-xs text-[#70665F] mt-0.5">
+            <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">
               Create, organize and maintain department-wise operational tasks (Cutting, Bending, Welding, Design, Store, Accounts) for auto-populating in Project Planning.
             </p>
           </div>
@@ -416,12 +416,12 @@ export default function TaskManagementPage() {
           <div className="flex flex-wrap items-center gap-2.5">
             <Link
               href="/projects/planning"
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-[#4A3B32] bg-white border border-[#EBE3DB] rounded-lg hover:bg-[#F3ECE4] transition-all shadow-sm"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-[color:var(--crm-text-primary)] bg-white border border-[color:var(--crm-border-default)] rounded-lg hover:bg-[color:var(--crm-surface-subtle)] transition-all shadow-sm"
               title="Open Project Planning to test created tasks"
             >
               <FolderKanban className="w-3.5 h-3.5 text-crm-brand-700" />
               <span>Go to Project Planning</span>
-              <ArrowRight className="w-3 h-3 text-[#8D7B70]" />
+              <ArrowRight className="w-3 h-3 text-[color:var(--crm-text-tertiary)]" />
             </Link>
 
             <button
@@ -436,68 +436,68 @@ export default function TaskManagementPage() {
 
         {/* Quick Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <div className="bg-white p-3.5 rounded-xl border border-[#EBE3DB] shadow-xs">
-            <div className="flex items-center justify-between text-[#70665F] text-[11px] font-medium mb-1">
+          <div className="bg-white p-3.5 rounded-xl border border-[color:var(--crm-border-default)] shadow-xs">
+            <div className="flex items-center justify-between text-[color:var(--crm-text-secondary)] text-[11px] font-medium mb-1">
               <span>Total Master Tasks</span>
               <Layers className="w-4 h-4 text-crm-brand-700" />
             </div>
-            <div className="text-2xl font-bold text-[#211B17]">{masterTasks.length}</div>
+            <div className="text-2xl font-bold text-[color:var(--crm-text-primary)]">{masterTasks.length}</div>
             <div className="text-[10px] text-emerald-700 mt-1 font-medium flex items-center gap-1">
               <Check className="w-2.5 h-2.5" />
               <span>Stored in Central DB</span>
             </div>
           </div>
 
-          <div className="bg-white p-3.5 rounded-xl border border-[#EBE3DB] shadow-xs">
-            <div className="flex items-center justify-between text-[#70665F] text-[11px] font-medium mb-1">
+          <div className="bg-white p-3.5 rounded-xl border border-[color:var(--crm-border-default)] shadow-xs">
+            <div className="flex items-center justify-between text-[color:var(--crm-text-secondary)] text-[11px] font-medium mb-1">
               <span>Departments Active</span>
               <Building className="w-4 h-4 text-blue-600" />
             </div>
-            <div className="text-2xl font-bold text-[#211B17]">{Object.keys(deptStats).length}</div>
-            <div className="text-[10px] text-[#70665F] mt-1">From Foundation Master</div>
+            <div className="text-2xl font-bold text-[color:var(--crm-text-primary)]">{Object.keys(deptStats).length}</div>
+            <div className="text-[10px] text-[color:var(--crm-text-secondary)] mt-1">From Foundation Master</div>
           </div>
 
-          <div className="bg-white p-3.5 rounded-xl border border-[#EBE3DB] shadow-xs">
-            <div className="flex items-center justify-between text-[#70665F] text-[11px] font-medium mb-1">
+          <div className="bg-white p-3.5 rounded-xl border border-[color:var(--crm-border-default)] shadow-xs">
+            <div className="flex items-center justify-between text-[color:var(--crm-text-secondary)] text-[11px] font-medium mb-1">
               <span>Production Tasks</span>
-              <CheckSquare className="w-4 h-4 text-amber-600" />
+              <CheckSquare className="w-4 h-4 text-crm-brand-600" />
             </div>
-            <div className="text-2xl font-bold text-[#211B17]">{deptStats['Production'] || deptStats['Fabrication'] || 0}</div>
+            <div className="text-2xl font-bold text-[color:var(--crm-text-primary)]">{deptStats['Production'] || deptStats['Fabrication'] || 0}</div>
             <div className="text-[10px] text-amber-700 mt-1 font-medium">Cutting, Bending, Welding, etc.</div>
           </div>
 
-          <div className="bg-white p-3.5 rounded-xl border border-[#EBE3DB] shadow-xs">
-            <div className="flex items-center justify-between text-[#70665F] text-[11px] font-medium mb-1">
+          <div className="bg-white p-3.5 rounded-xl border border-[color:var(--crm-border-default)] shadow-xs">
+            <div className="flex items-center justify-between text-[color:var(--crm-text-secondary)] text-[11px] font-medium mb-1">
               <span>Avg Task Duration</span>
               <Clock className="w-4 h-4 text-purple-600" />
             </div>
-            <div className="text-2xl font-bold text-[#211B17]">
+            <div className="text-2xl font-bold text-[color:var(--crm-text-primary)]">
               {masterTasks.length > 0
                 ? (masterTasks.reduce((acc, t) => acc + (t.estimatedDays || 1), 0) / masterTasks.length).toFixed(1)
                 : 0}{' '}
-              <span className="text-xs font-normal text-[#70665F]">Days</span>
+              <span className="text-xs font-normal text-[color:var(--crm-text-secondary)]">Days</span>
             </div>
-            <div className="text-[10px] text-[#70665F] mt-1">Per operation cycle</div>
+            <div className="text-[10px] text-[color:var(--crm-text-secondary)] mt-1">Per operation cycle</div>
           </div>
         </div>
 
         {/* Search, Filter Bar and Department Tabs */}
-        <div className="bg-white rounded-xl border border-[#EBE3DB] p-4 shadow-xs space-y-3.5">
+        <div className="bg-white rounded-xl border border-[color:var(--crm-border-default)] p-4 shadow-xs space-y-3.5">
           {/* Top row: search + status */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="relative flex-1 max-w-md">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8D7B70]" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--crm-text-tertiary)]" />
               <input
                 type="text"
                 placeholder="Search by task name, code (PROD-CUT), description..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 text-xs bg-[#FAF8F5] border border-[#EBE3DB] rounded-lg focus:outline-none focus:ring-1 focus:ring-crm-brand-700 text-[#211B17] placeholder:text-[#8D7B70]"
+                className="w-full pl-9 pr-3 py-1.5 text-xs bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg focus:outline-none focus:ring-1 focus:ring-crm-brand-700 text-[color:var(--crm-text-primary)] placeholder:text-[color:var(--crm-text-tertiary)]"
               />
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8D7B70] hover:text-[#211B17]"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[color:var(--crm-text-tertiary)] hover:text-[color:var(--crm-text-primary)]"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -505,11 +505,11 @@ export default function TaskManagementPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-[11px] text-[#70665F] font-semibold">Status:</span>
+              <span className="text-[11px] text-[color:var(--crm-text-secondary)] font-semibold">Status:</span>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="px-2.5 py-1.5 text-xs bg-[#FAF8F5] border border-[#EBE3DB] rounded-lg text-[#211B17] font-medium focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                className="px-2.5 py-1.5 text-xs bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)] font-medium focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
               >
                 <option value="all">All Status</option>
                 <option value="active">Active Only</option>
@@ -519,8 +519,8 @@ export default function TaskManagementPage() {
           </div>
 
           {/* Department Quick Filter Tabs */}
-          <div className="border-t border-[#EBE3DB] pt-3">
-            <div className="text-[11px] font-bold text-[#70665F] mb-2 uppercase tracking-wider flex items-center gap-1.5">
+          <div className="border-t border-[color:var(--crm-border-default)] pt-3">
+            <div className="text-[11px] font-bold text-[color:var(--crm-text-secondary)] mb-2 uppercase tracking-wider flex items-center gap-1.5">
               <Building className="w-3.5 h-3.5 text-crm-brand-700" />
               <span>Select Department Filter:</span>
             </div>
@@ -531,7 +531,7 @@ export default function TaskManagementPage() {
                   'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border',
                   selectedDeptFilter === 'all'
                     ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white border-crm-brand-700 shadow-xs'
-                    : 'bg-[#FAF8F5] text-[#4A3B32] border-[#EBE3DB] hover:bg-[#F3ECE4]'
+                    : 'bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)] border-[color:var(--crm-border-default)] hover:bg-[color:var(--crm-surface-subtle)]'
                 )}
               >
                 All Departments ({masterTasks.length})
@@ -548,14 +548,14 @@ export default function TaskManagementPage() {
                       'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border flex items-center gap-1.5',
                       isSelected
                         ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white border-crm-brand-700 shadow-xs'
-                        : 'bg-[#FAF8F5] text-[#4A3B32] border-[#EBE3DB] hover:bg-[#F3ECE4]'
+                        : 'bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)] border-[color:var(--crm-border-default)] hover:bg-[color:var(--crm-surface-subtle)]'
                     )}
                   >
                     <span>{dept.name}</span>
                     <span
                       className={cn(
                         'px-1.5 py-0.2 rounded-full text-[10px] font-mono',
-                        isSelected ? 'bg-white/20 text-white' : 'bg-[#EFE8DF] text-crm-brand-700 font-bold'
+                        isSelected ? 'bg-white/20 text-white' : 'bg-[color:var(--crm-surface-subtle)] text-crm-brand-700 font-bold'
                       )}
                     >
                       {count}
@@ -568,9 +568,9 @@ export default function TaskManagementPage() {
         </div>
 
         {/* Tasks List Table */}
-        <div className="bg-white rounded-xl border border-[#EBE3DB] shadow-xs overflow-hidden">
-          <div className="px-4 py-3 bg-[#FAF8F5] border-b border-[#EBE3DB] flex items-center justify-between">
-            <div className="text-xs font-bold text-[#211B17] flex items-center gap-2">
+        <div className="bg-white rounded-xl border border-[color:var(--crm-border-default)] shadow-xs overflow-hidden">
+          <div className="px-4 py-3 bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] flex items-center justify-between">
+            <div className="text-xs font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
               <span>Configured Master Tasks</span>
               <span className="px-2 py-0.5 rounded-full bg-crm-brand-100/60 text-crm-brand-800 text-[10px] font-bold">
                 {filteredTasks.length} of {masterTasks.length} tasks
@@ -590,9 +590,9 @@ export default function TaskManagementPage() {
 
           {filteredTasks.length === 0 ? (
             <div className="p-12 text-center space-y-3">
-              <CheckSquare className="w-10 h-10 text-[#8D7B70] mx-auto opacity-50" />
-              <div className="text-sm font-bold text-[#211B17]">No tasks found</div>
-              <p className="text-xs text-[#70665F] max-w-sm mx-auto">
+              <CheckSquare className="w-10 h-10 text-[color:var(--crm-text-tertiary)] mx-auto opacity-50" />
+              <div className="text-sm font-bold text-[color:var(--crm-text-primary)]">No tasks found</div>
+              <p className="text-xs text-[color:var(--crm-text-secondary)] max-w-sm mx-auto">
                 No tasks match your current filter or department. Click below to add tasks for this department using the multi-line builder.
               </p>
               <button
@@ -605,8 +605,8 @@ export default function TaskManagementPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-[#211B17]">
-                <thead className="bg-[#FAF8F5]/80 text-[#70665F] text-[11px] font-bold uppercase tracking-wider border-b border-[#EBE3DB]">
+              <table className="w-full text-left text-xs text-[color:var(--crm-text-primary)]">
+                <thead className="bg-[#F4F6FA]/80 text-[color:var(--crm-text-secondary)] text-[11px] font-bold uppercase tracking-wider border-b border-[color:var(--crm-border-default)]">
                   <tr>
                     <th className="py-2.5 px-3">#</th>
                     <th className="py-2.5 px-3">Task Code</th>
@@ -617,19 +617,19 @@ export default function TaskManagementPage() {
                     <th className="py-2.5 px-3 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#EBE3DB]">
+                <tbody className="divide-y divide-[color:var(--crm-border-default)]">
                   {filteredTasks.map((task, idx) => (
-                    <tr key={task.id} className="hover:bg-[#FAF8F5]/60 transition-colors">
-                      <td className="py-2.5 px-3 text-[#8D7B70] font-mono text-[11px]">{idx + 1}</td>
+                    <tr key={task.id} className="hover:bg-[#F4F6FA]/60 transition-colors">
+                      <td className="py-2.5 px-3 text-[color:var(--crm-text-tertiary)] font-mono text-[11px]">{idx + 1}</td>
                       <td className="py-2.5 px-3">
-                        <span className="font-mono text-[11px] font-bold text-[#211B17] bg-[#FAF8F5] px-2 py-0.5 rounded border border-[#EBE3DB]">
+                        <span className="font-mono text-[11px] font-bold text-[color:var(--crm-text-primary)] bg-[color:var(--crm-bg-app)] px-2 py-0.5 rounded border border-[color:var(--crm-border-default)]">
                           {task.taskCode || `TSK-${task.id.slice(-4)}`}
                         </span>
                       </td>
                       <td className="py-2.5 px-4">
-                        <div className="font-semibold text-[#211B17] text-xs">{task.taskName}</div>
+                        <div className="font-semibold text-[color:var(--crm-text-primary)] text-xs">{task.taskName}</div>
                         {task.description && (
-                          <div className="text-[11px] text-[#70665F] line-clamp-1 mt-0.5">{task.description}</div>
+                          <div className="text-[11px] text-[color:var(--crm-text-secondary)] line-clamp-1 mt-0.5">{task.description}</div>
                         )}
                       </td>
                       <td className="py-2.5 px-3">
@@ -644,10 +644,10 @@ export default function TaskManagementPage() {
                         </span>
                       </td>
                       <td className="py-2.5 px-3">
-                        <div className="flex items-center gap-1.5 text-xs font-semibold text-[#211B17]">
-                          <Clock className="w-3.5 h-3.5 text-[#8D7B70]" />
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-[color:var(--crm-text-primary)]">
+                          <Clock className="w-3.5 h-3.5 text-[color:var(--crm-text-tertiary)]" />
                           <span>{task.estimatedDays || 1} Days</span>
-                          <span className="text-[10px] text-[#8D7B70] font-normal">
+                          <span className="text-[10px] text-[color:var(--crm-text-tertiary)] font-normal">
                             ({(task as any).estimatedHours || (task.estimatedDays || 1) * 8}h)
                           </span>
                         </div>
@@ -675,14 +675,14 @@ export default function TaskManagementPage() {
                         <div className="inline-flex items-center gap-1.5">
                           <button
                             onClick={() => handleOpenEdit(task)}
-                            className="p-1 text-[#8D7B70] hover:text-crm-brand-700 hover:bg-[#FAF8F5] rounded transition-colors"
+                            className="p-1 text-[color:var(--crm-text-tertiary)] hover:text-crm-brand-700 hover:bg-[color:var(--crm-bg-app)] rounded transition-colors"
                             title="Edit Task"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => setTaskToDelete(task)}
-                            className="p-1 text-[#8D7B70] hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
+                            className="p-1 text-[color:var(--crm-text-tertiary)] hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
                             title="Delete Task"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -701,21 +701,21 @@ export default function TaskManagementPage() {
       {/* MULTI-TASK LINE BUILDER MODAL */}
       {showMultiModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden my-auto">
+          <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden my-auto">
             {/* Modal Header */}
-            <div className="px-5 py-4 border-b border-[#EBE3DB] bg-[#FAF8F5] flex items-center justify-between">
+            <div className="px-5 py-4 border-b border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)] flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2">
                   <CheckSquare className="w-5 h-5 text-crm-brand-700" />
-                  <h2 className="text-base font-bold text-[#211B17]">Add Department Tasks (Multi-Line Builder)</h2>
+                  <h2 className="text-base font-bold text-[color:var(--crm-text-primary)]">Add Department Tasks (Multi-Line Builder)</h2>
                 </div>
-                <p className="text-xs text-[#70665F] mt-0.5">
+                <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">
                   Select department, then add multiple tasks using &quot;+ Add Line&quot;. All tasks will be saved together in the database.
                 </p>
               </div>
               <button
                 onClick={() => setShowMultiModal(false)}
-                className="p-1.5 text-[#8D7B70] hover:text-[#211B17] hover:bg-[#EFE8DF] rounded-lg transition-colors"
+                className="p-1.5 text-[color:var(--crm-text-tertiary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)] rounded-lg transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -724,11 +724,11 @@ export default function TaskManagementPage() {
             {/* Modal Form Content */}
             <form onSubmit={handleSaveBatchTasks} className="flex-1 overflow-y-auto p-5 space-y-5">
               {/* Step 1: Department Selection (from Foundation & Admin) */}
-              <div className="bg-[#FAF8F5] border border-[#EBE3DB] p-4 rounded-xl space-y-3">
+              <div className="bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] p-4 rounded-xl space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex-1">
-                    <label className="block text-xs font-bold text-[#211B17] mb-1">
-                      1. Select Department * <span className="font-normal text-[#70665F]">(From Foundation & Admin)</span>
+                    <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1">
+                      1. Select Department * <span className="font-normal text-[color:var(--crm-text-secondary)]">(From Foundation & Admin)</span>
                     </label>
                     <select
                       value={batchDept}
@@ -738,7 +738,7 @@ export default function TaskManagementPage() {
                         const matched = availableDepartments.find((d) => d.name === val);
                         setBatchDeptId(matched?.id || '');
                       }}
-                      className="w-full sm:max-w-md px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-xs font-bold text-[#211B17] focus:outline-none focus:ring-1 focus:ring-crm-brand-700 shadow-2xs"
+                      className="w-full sm:max-w-md px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs font-bold text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-1 focus:ring-crm-brand-700 shadow-2xs"
                       required
                     >
                       <option value="">-- Choose Department --</option>
@@ -764,15 +764,15 @@ export default function TaskManagementPage() {
                   </div>
                 </div>
 
-                <p className="text-[11px] text-[#70665F]">
-                  Selected Department: <strong className="text-[#211B17]">{batchDept || 'None'}</strong>. When you add lines below, all tasks will automatically belong to this department.
+                <p className="text-[11px] text-[color:var(--crm-text-secondary)]">
+                  Selected Department: <strong className="text-[color:var(--crm-text-primary)]">{batchDept || 'None'}</strong>. When you add lines below, all tasks will automatically belong to this department.
                 </p>
               </div>
 
               {/* Step 2: Multi-line Tasks Table */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="block text-xs font-bold text-[#211B17]">
+                  <label className="block text-xs font-bold text-[color:var(--crm-text-primary)]">
                     2. Add Tasks for {batchDept || 'Department'} ({taskRows.length} Lines)
                   </label>
                   <button
@@ -785,10 +785,10 @@ export default function TaskManagementPage() {
                   </button>
                 </div>
 
-                <div className="border border-[#EBE3DB] rounded-xl overflow-hidden shadow-2xs">
+                <div className="border border-[color:var(--crm-border-default)] rounded-xl overflow-hidden shadow-2xs">
                   <div className="overflow-x-auto max-h-[350px]">
                     <table className="w-full text-left text-xs">
-                      <thead className="bg-[#FAF8F5] text-[#70665F] text-[10.5px] font-bold uppercase tracking-wider sticky top-0 border-b border-[#EBE3DB] z-10">
+                      <thead className="bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] text-[10.5px] font-bold uppercase tracking-wider sticky top-0 border-b border-[color:var(--crm-border-default)] z-10">
                         <tr>
                           <th className="py-2 px-2.5 w-10 text-center">#</th>
                           <th className="py-2 px-2.5 w-32">Task Code</th>
@@ -799,10 +799,10 @@ export default function TaskManagementPage() {
                           <th className="py-2 px-2 w-10 text-center">Action</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#EBE3DB] bg-white">
+                      <tbody className="divide-y divide-[color:var(--crm-border-default)] bg-white">
                         {taskRows.map((row, idx) => (
-                          <tr key={row.tempId} className="hover:bg-[#FAF8F5]/50">
-                            <td className="py-2 px-2.5 text-center text-[#8D7B70] font-mono text-[11px]">
+                          <tr key={row.tempId} className="hover:bg-[#F4F6FA]/50">
+                            <td className="py-2 px-2.5 text-center text-[color:var(--crm-text-tertiary)] font-mono text-[11px]">
                               {idx + 1}
                             </td>
                             <td className="py-2 px-2.5">
@@ -811,7 +811,7 @@ export default function TaskManagementPage() {
                                 placeholder={`e.g. ${batchDept.slice(0, 3).toUpperCase()}-${String(idx + 1).padStart(2, '0')}`}
                                 value={row.taskCode}
                                 onChange={(e) => handleUpdateLine(row.tempId, 'taskCode', e.target.value)}
-                                className="w-full px-2 py-1 bg-white border border-[#EBE3DB] rounded text-xs font-mono text-[#211B17] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                                className="w-full px-2 py-1 bg-white border border-[color:var(--crm-border-default)] rounded text-xs font-mono text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                               />
                             </td>
                             <td className="py-2 px-3">
@@ -820,7 +820,7 @@ export default function TaskManagementPage() {
                                 placeholder="e.g. Laser Cutting / CNC Bending / Welding / Assembly"
                                 value={row.taskName}
                                 onChange={(e) => handleUpdateLine(row.tempId, 'taskName', e.target.value)}
-                                className="w-full px-2.5 py-1 bg-white border border-[#EBE3DB] rounded text-xs font-semibold text-[#211B17] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                                className="w-full px-2.5 py-1 bg-white border border-[color:var(--crm-border-default)] rounded text-xs font-semibold text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                                 required
                               />
                             </td>
@@ -831,7 +831,7 @@ export default function TaskManagementPage() {
                                 max={365}
                                 value={row.estimatedDays}
                                 onChange={(e) => handleUpdateLine(row.tempId, 'estimatedDays', e.target.value)}
-                                className="w-full px-2 py-1 bg-white border border-[#EBE3DB] rounded text-xs text-center font-medium text-[#211B17] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                                className="w-full px-2 py-1 bg-white border border-[color:var(--crm-border-default)] rounded text-xs text-center font-medium text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                               />
                             </td>
                             <td className="py-2 px-2.5">
@@ -841,7 +841,7 @@ export default function TaskManagementPage() {
                                 step={0.5}
                                 value={row.estimatedHours}
                                 onChange={(e) => handleUpdateLine(row.tempId, 'estimatedHours', e.target.value)}
-                                className="w-full px-2 py-1 bg-white border border-[#EBE3DB] rounded text-xs text-center font-medium text-[#211B17] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                                className="w-full px-2 py-1 bg-white border border-[color:var(--crm-border-default)] rounded text-xs text-center font-medium text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                               />
                             </td>
                             <td className="py-2 px-3">
@@ -850,14 +850,14 @@ export default function TaskManagementPage() {
                                 placeholder="Specification, equipment or work instructions..."
                                 value={row.description}
                                 onChange={(e) => handleUpdateLine(row.tempId, 'description', e.target.value)}
-                                className="w-full px-2.5 py-1 bg-white border border-[#EBE3DB] rounded text-xs text-[#211B17] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                                className="w-full px-2.5 py-1 bg-white border border-[color:var(--crm-border-default)] rounded text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                               />
                             </td>
                             <td className="py-2 px-2 text-center">
                               <button
                                 type="button"
                                 onClick={() => handleRemoveLine(row.tempId)}
-                                className="p-1 text-[#8D7B70] hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
+                                className="p-1 text-[color:var(--crm-text-tertiary)] hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
                                 title="Remove line"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -880,18 +880,18 @@ export default function TaskManagementPage() {
                     <Plus className="w-4 h-4" />
                     <span>+ Add Another Task Line</span>
                   </button>
-                  <span className="text-[11px] text-[#70665F]">
+                  <span className="text-[11px] text-[color:var(--crm-text-secondary)]">
                     Total lines to save: <strong>{taskRows.filter((r) => r.taskName.trim().length > 0).length}</strong>
                   </span>
                 </div>
               </div>
 
               {/* Modal Footer Controls */}
-              <div className="pt-4 border-t border-[#EBE3DB] flex items-center justify-between">
+              <div className="pt-4 border-t border-[color:var(--crm-border-default)] flex items-center justify-between">
                 <button
                   type="button"
                   onClick={() => setShowMultiModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF8F5] rounded-lg transition-colors"
+                  className="px-4 py-2 text-xs font-semibold text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-bg-app)] rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
@@ -921,15 +921,15 @@ export default function TaskManagementPage() {
       {/* SINGLE TASK EDIT MODAL */}
       {editTask && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-2xl max-w-lg w-full overflow-hidden">
-            <div className="px-5 py-4 border-b border-[#EBE3DB] bg-[#FAF8F5] flex items-center justify-between">
+          <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] shadow-2xl max-w-lg w-full overflow-hidden">
+            <div className="px-5 py-4 border-b border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Edit2 className="w-4 h-4 text-crm-brand-700" />
-                <h2 className="text-sm font-bold text-[#211B17]">Edit Master Task</h2>
+                <h2 className="text-sm font-bold text-[color:var(--crm-text-primary)]">Edit Master Task</h2>
               </div>
               <button
                 onClick={() => setEditTask(null)}
-                className="p-1 text-[#8D7B70] hover:text-[#211B17] rounded-lg"
+                className="p-1 text-[color:var(--crm-text-tertiary)] hover:text-[color:var(--crm-text-primary)] rounded-lg"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -937,32 +937,32 @@ export default function TaskManagementPage() {
 
             <form onSubmit={handleSaveEdit} className="p-5 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-[#211B17] mb-1">Task Code</label>
+                <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1">Task Code</label>
                 <input
                   type="text"
                   value={editCode}
                   onChange={(e) => setEditCode(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-mono text-[#211B17] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                  className="w-full px-3 py-1.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs font-mono text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#211B17] mb-1">Task Name *</label>
+                <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1">Task Name *</label>
                 <input
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-semibold text-[#211B17] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                  className="w-full px-3 py-1.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs font-semibold text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#211B17] mb-1">Department *</label>
+                <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1">Department *</label>
                 <select
                   value={editDept}
                   onChange={(e) => setEditDept(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-semibold text-[#211B17] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                  className="w-full px-3 py-1.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs font-semibold text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                   required
                 >
                   {availableDepartments.map((d) => (
@@ -975,55 +975,55 @@ export default function TaskManagementPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-[#211B17] mb-1">Estimated Days</label>
+                  <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1">Estimated Days</label>
                   <input
                     type="number"
                     min={1}
                     value={editDays}
                     onChange={(e) => setEditDays(Number(e.target.value) || 1)}
-                    className="w-full px-3 py-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-medium text-[#211B17] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                    className="w-full px-3 py-1.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs font-medium text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[#211B17] mb-1">Estimated Hours</label>
+                  <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1">Estimated Hours</label>
                   <input
                     type="number"
                     min={1}
                     step={0.5}
                     value={editHours}
                     onChange={(e) => setEditHours(Number(e.target.value) || 8)}
-                    className="w-full px-3 py-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-medium text-[#211B17] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                    className="w-full px-3 py-1.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs font-medium text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#211B17] mb-1">Description / Instructions</label>
+                <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1">Description / Instructions</label>
                 <textarea
                   rows={2}
                   value={editDesc}
                   onChange={(e) => setEditDesc(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                  className="w-full px-3 py-1.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#211B17] mb-1">Status</label>
+                <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1">Status</label>
                 <select
                   value={editStatus}
                   onChange={(e) => setEditStatus(e.target.value as any)}
-                  className="w-full px-3 py-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-medium text-[#211B17] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                  className="w-full px-3 py-1.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs font-medium text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                 </select>
               </div>
 
-              <div className="pt-3 border-t border-[#EBE3DB] flex items-center justify-between">
+              <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex items-center justify-between">
                 <button
                   type="button"
                   onClick={() => setEditTask(null)}
-                  className="px-3.5 py-1.5 text-xs font-semibold text-[#70665F] hover:text-[#211B17]"
+                  className="px-3.5 py-1.5 text-xs font-semibold text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]"
                 >
                   Cancel
                 </button>
@@ -1042,21 +1042,21 @@ export default function TaskManagementPage() {
       {/* DELETE CONFIRMATION MODAL */}
       {taskToDelete && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-2xl max-w-sm w-full p-5 space-y-4">
+          <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] shadow-2xl max-w-sm w-full p-5 space-y-4">
             <div className="flex items-center gap-3 text-rose-600">
               <div className="p-2 rounded-full bg-rose-50 border border-rose-200">
                 <Trash2 className="w-5 h-5" />
               </div>
-              <h3 className="text-sm font-bold text-[#211B17]">Delete Task Confirmation</h3>
+              <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)]">Delete Task Confirmation</h3>
             </div>
-            <p className="text-xs text-[#70665F] leading-relaxed">
+            <p className="text-xs text-[color:var(--crm-text-secondary)] leading-relaxed">
               Are you sure you want to delete task <strong>&quot;{taskToDelete.taskName}&quot;</strong> ({taskToDelete.department})? This action will remove it from the central database.
             </p>
             <div className="pt-2 flex items-center justify-end gap-2.5">
               <button
                 type="button"
                 onClick={() => setTaskToDelete(null)}
-                className="px-3 py-1.5 text-xs font-semibold text-[#70665F] hover:text-[#211B17] rounded-lg"
+                className="px-3 py-1.5 text-xs font-semibold text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] rounded-lg"
               >
                 Cancel
               </button>

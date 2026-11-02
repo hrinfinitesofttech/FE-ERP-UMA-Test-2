@@ -12,7 +12,7 @@ export default function AccountingIndexPage() {
 
   return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="flex items-center gap-3 text-[#70665F]">
+      <div className="flex items-center gap-3 text-[color:var(--crm-text-secondary)]">
         <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
         <span className="text-sm font-medium">Loading Accounting & Finance Dashboard...</span>
       </div>

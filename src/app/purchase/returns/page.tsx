@@ -96,7 +96,7 @@ export default function PurchaseReturnsPage() {
       onCodeClick: (r: PurchaseReturn) =>
         toast.info(`Purchase Return: ${r.returnNumber}\nSupplier: ${r.supplierName}\nPO Ref: ${r.poNumber}\nDebit Note: ${r.debitNoteNumber}\nReason: ${r.reasonForReturn || 'N/A'}`),
       cell: (r: PurchaseReturn) => (
-        <span className="font-semibold text-[#7C3AED] hover:underline cursor-pointer">{r.returnNumber}</span>
+        <span className="font-semibold text-[color:var(--crm-brand-600)] hover:underline cursor-pointer">{r.returnNumber}</span>
       ),
     },
     {
@@ -192,21 +192,21 @@ export default function PurchaseReturnsPage() {
       {/* CREATE RETURN MODAL */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
-            <div className="p-5 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between">
-              <h2 className="text-lg font-black text-[#211B17]">Create Purchase Return & Debit Note</h2>
-              <button onClick={() => setShowAddModal(false)} className="text-[#70665F] hover:text-[#211B17]">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
+            <div className="p-5 bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] flex items-center justify-between">
+              <h2 className="text-lg font-black text-[color:var(--crm-text-primary)]">Create Purchase Return & Debit Note</h2>
+              <button onClick={() => setShowAddModal(false)} className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleCreateReturnSubmit} className="p-6 space-y-4 text-xs">
               <div>
-                <label className="block text-[#70665F] mb-1">Select Purchase Order *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] mb-1">Select Purchase Order *</label>
                 <select
                   value={selectedPoId}
                   onChange={(e) => setSelectedPoId(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] p-2 rounded-xl text-[color:var(--crm-text-primary)]"
                   required
                 >
                   <option value="">-- Select Purchase Order --</option>
@@ -218,20 +218,20 @@ export default function PurchaseReturnsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[#70665F] mb-1">Return Date</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1">Return Date</label>
                   <input
                     type="date"
                     value={newReturnDate}
                     onChange={(e) => setNewReturnDate(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] font-mono"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] p-2 rounded-xl text-[color:var(--crm-text-primary)] font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#70665F] mb-1">Action Requested</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1">Action Requested</label>
                   <select
                     value={newActionType}
                     onChange={(e) => setNewActionType(e.target.value as any)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17]"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] p-2 rounded-xl text-[color:var(--crm-text-primary)]"
                   >
                     <option value="Debit Note">Debit Note Issue</option>
                     <option value="Replacement">Replacement Material Required</option>
@@ -241,20 +241,20 @@ export default function PurchaseReturnsPage() {
               </div>
 
               <div>
-                <label className="block text-[#70665F] mb-1">QC Rejection Reason</label>
+                <label className="block text-[color:var(--crm-text-secondary)] mb-1">QC Rejection Reason</label>
                 <textarea
                   value={newReason}
                   onChange={(e) => setNewReason(e.target.value)}
                   placeholder="e.g. QC Inspection Failure - Dimensional Out of Tolerance"
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] p-2 rounded-xl text-[#211B17] h-20"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] p-2 rounded-xl text-[color:var(--crm-text-primary)] h-20"
                 />
               </div>
 
-              <div className="pt-4 flex justify-end gap-2 border-t border-[#EBE3DB]">
-                <button type="button" onClick={() => setShowAddModal(false)} className="px-4 py-2 bg-[#FAF7F2] text-[#211B17] rounded-xl">
+              <div className="pt-4 flex justify-end gap-2 border-t border-[color:var(--crm-border-default)]">
+                <button type="button" onClick={() => setShowAddModal(false)} className="px-4 py-2 bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)] rounded-xl">
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-[#211B17] font-bold rounded-xl">
+                <button type="submit" className="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-[color:var(--crm-text-primary)] font-bold rounded-xl">
                   Issue Purchase Return & Debit Note
                 </button>
               </div>

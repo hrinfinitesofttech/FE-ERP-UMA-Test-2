@@ -242,7 +242,7 @@ export default function EarlyCheckoutPage() {
   const rejectedCount = earlyCheckoutRequests.filter((r) => r.status === 'Rejected').length;
 
   return (
-    <div className="p-6 space-y-6 bg-white min-h-screen text-[#211B17]">
+    <div className="p-6 space-y-6 bg-white min-h-screen text-[color:var(--crm-text-primary)]">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-3 bg-emerald-600 text-white rounded-xl shadow-2xl border border-emerald-400 animate-bounce">
@@ -255,19 +255,19 @@ export default function EarlyCheckoutPage() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-5">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-100 text-orange-800 border border-orange-200">
               Module 9: HR & Attendance
             </span>
-            <span className="text-xs text-[#70665F]">Real-time Database & Gate Security Sync</span>
+            <span className="text-xs text-[color:var(--crm-text-secondary)]">Real-time Database & Gate Security Sync</span>
           </div>
-          <h1 className="text-2xl font-black text-[#211B17] tracking-tight flex items-center gap-2 mt-1">
-            <History className="w-7 h-7 text-orange-600" />
+          <h1 className="text-2xl font-black text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2 mt-1">
+            <History className="w-7 h-7 text-crm-brand-600" />
             Early Checkout Permission Requests & Gate Passes
           </h1>
-          <p className="text-xs text-[#70665F] mt-1">
+          <p className="text-xs text-[color:var(--crm-text-secondary)] mt-1">
             Pre-Approval Gate Passes for Early Shift Checkout, Official Site Visits & Half-Day Deduction Audits
           </p>
         </div>
@@ -281,57 +281,57 @@ export default function EarlyCheckoutPage() {
 
       {/* KPI Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-[#EBE3DB] rounded-xl p-4 shadow-sm hover:shadow transition">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-4 shadow-sm hover:shadow transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#70665F]">Total Gate Passes</span>
-            <History className="w-5 h-5 text-[#8D7B68]" />
+            <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)]">Total Gate Passes</span>
+            <History className="w-5 h-5 text-[#607095]" />
           </div>
-          <div className="text-2xl font-black text-[#211B17] mt-2">{totalCount}</div>
-          <div className="text-xs text-[#70665F] mt-1">Total requests logged</div>
+          <div className="text-2xl font-black text-[color:var(--crm-text-primary)] mt-2">{totalCount}</div>
+          <div className="text-xs text-[color:var(--crm-text-secondary)] mt-1">Total requests logged</div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] rounded-xl p-4 shadow-sm hover:shadow transition">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-4 shadow-sm hover:shadow transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#70665F]">Pending Approvals</span>
-            <Clock className="w-5 h-5 text-amber-500" />
+            <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)]">Pending Approvals</span>
+            <Clock className="w-5 h-5 text-crm-brand-600" />
           </div>
           <div className="text-2xl font-black text-amber-600 mt-2">{pendingCount}</div>
-          <div className="text-xs text-[#70665F] mt-1">Awaiting manager signoff</div>
+          <div className="text-xs text-[color:var(--crm-text-secondary)] mt-1">Awaiting manager signoff</div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] rounded-xl p-4 shadow-sm hover:shadow transition">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-4 shadow-sm hover:shadow transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#70665F]">Approved Passes</span>
+            <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)]">Approved Passes</span>
             <CheckCircle2 className="w-5 h-5 text-emerald-600" />
           </div>
           <div className="text-2xl font-black text-emerald-600 mt-2">{approvedCount}</div>
-          <div className="text-xs text-[#70665F] mt-1">Authorized for gate exit</div>
+          <div className="text-xs text-[color:var(--crm-text-secondary)] mt-1">Authorized for gate exit</div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] rounded-xl p-4 shadow-sm hover:shadow transition">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-4 shadow-sm hover:shadow transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#70665F]">Rejected Passes</span>
+            <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)]">Rejected Passes</span>
             <XCircle className="w-5 h-5 text-rose-600" />
           </div>
           <div className="text-2xl font-black text-rose-600 mt-2">{rejectedCount}</div>
-          <div className="text-xs text-[#70665F] mt-1">Declined requests</div>
+          <div className="text-xs text-[color:var(--crm-text-secondary)] mt-1">Declined requests</div>
         </div>
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="bg-white border border-[#EBE3DB] rounded-xl p-4 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-4 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-[#70665F] absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[color:var(--crm-text-secondary)] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by Employee, ID, Req No, Reason..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:ring-2 focus:ring-orange-500/30"
+            className="w-full pl-9 pr-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-2 focus:ring-orange-500/30"
           />
         </div>
 
-        <div className="flex items-center gap-1 bg-[#FAF7F2] p-1 rounded-lg border border-[#EBE3DB] text-xs">
+        <div className="flex items-center gap-1 bg-[color:var(--crm-bg-app)] p-1 rounded-lg border border-[color:var(--crm-border-default)] text-xs">
           {(['All', 'Pending', 'Approved', 'Rejected'] as const).map((st) => (
             <button
               key={st}
@@ -339,7 +339,7 @@ export default function EarlyCheckoutPage() {
               className={`px-3 py-1 rounded-md font-semibold transition ${
                 statusFilter === st
                   ? 'bg-orange-600 text-white shadow-sm'
-                  : 'text-[#70665F] hover:text-[#211B17]'
+                  : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]'
               }`}
             >
               {st}
@@ -349,11 +349,11 @@ export default function EarlyCheckoutPage() {
       </div>
 
       {/* Early Checkout Requests Table */}
-      <div className="bg-white border border-[#EBE3DB] rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[11px] font-bold text-[#70665F] uppercase tracking-wider">
+              <tr className="bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] text-[11px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">
                 <th className="p-3.5">Req No</th>
                 <th className="p-3.5">Employee Name & ID</th>
                 <th className="p-3.5">Date & Shift</th>
@@ -363,44 +363,44 @@ export default function EarlyCheckoutPage() {
                 <th className="p-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EBE3DB] text-[#211B17]">
+            <tbody className="divide-y divide-[color:var(--crm-border-default)] text-[color:var(--crm-text-primary)]">
               {filteredRequests.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-[#70665F]">
-                    <History className="w-10 h-10 text-[#70665F]/40 mx-auto mb-2" />
+                  <td colSpan={7} className="p-8 text-center text-[color:var(--crm-text-secondary)]">
+                    <History className="w-10 h-10 text-[#475467]/40 mx-auto mb-2" />
                     <p className="font-semibold">No early checkout records found matching your filters.</p>
-                    <p className="text-xs text-[#70665F]/80 mt-1">Click "Request Early Checkout" above to submit a new gate pass request.</p>
+                    <p className="text-xs text-[#475467]/80 mt-1">Click "Request Early Checkout" above to submit a new gate pass request.</p>
                   </td>
                 </tr>
               ) : (
                 filteredRequests.map((req) => (
-                  <tr key={req.id} className="hover:bg-[#FAF7F2]/60 transition">
+                  <tr key={req.id} className="hover:bg-[#F4F6FA]/60 transition">
                     <td className="p-3.5 font-mono font-bold text-orange-600">{req.requestNumber}</td>
                     <td className="p-3.5">
-                      <div className="font-bold text-[#211B17] flex items-center gap-1.5">
-                        <User className="w-3.5 h-3.5 text-[#70665F]" />
+                      <div className="font-bold text-[color:var(--crm-text-primary)] flex items-center gap-1.5">
+                        <User className="w-3.5 h-3.5 text-[color:var(--crm-text-secondary)]" />
                         {req.employeeName}
                       </div>
-                      <div className="text-[11px] text-[#70665F] font-mono pl-5">ID: {req.employeeId}</div>
+                      <div className="text-[11px] text-[color:var(--crm-text-secondary)] font-mono pl-5">ID: {req.employeeId}</div>
                     </td>
                     <td className="p-3.5">
-                      <div className="font-semibold text-[#211B17] flex items-center gap-1">
-                        <Calendar className="w-3 h-3 text-[#70665F]" />
+                      <div className="font-semibold text-[color:var(--crm-text-primary)] flex items-center gap-1">
+                        <Calendar className="w-3 h-3 text-[color:var(--crm-text-secondary)]" />
                         {req.date}
                       </div>
-                      <div className="text-[11px] text-[#70665F] flex items-center gap-1 mt-0.5">
-                        <Building2 className="w-3 h-3 text-[#70665F]" />
+                      <div className="text-[11px] text-[color:var(--crm-text-secondary)] flex items-center gap-1 mt-0.5">
+                        <Building2 className="w-3 h-3 text-[color:var(--crm-text-secondary)]" />
                         {req.shiftName}
                       </div>
                     </td>
                     <td className="p-3.5 font-mono">
-                      <div className="text-[#70665F]">Shift End: {req.expectedCheckout}</div>
+                      <div className="text-[color:var(--crm-text-secondary)]">Shift End: {req.expectedCheckout}</div>
                       <div className="text-orange-600 font-extrabold flex items-center gap-1 mt-0.5">
                         <LogOut className="w-3.5 h-3.5" /> Early Exit: {req.requestedCheckout}
                       </div>
                     </td>
                     <td className="p-3.5 max-w-xs">
-                      <p className="line-clamp-2 text-[#544B45] text-[11px] italic">
+                      <p className="line-clamp-2 text-[color:var(--crm-text-secondary)] text-[11px] italic">
                         "{req.reason}"
                       </p>
                     </td>
@@ -426,7 +426,7 @@ export default function EarlyCheckoutPage() {
                         <button
                           onClick={() => setViewingRequest(req)}
                           title="View Details"
-                          className="p-1.5 text-[#70665F] hover:text-[#211B17] hover:bg-[#EBE3DB]/40 rounded transition cursor-pointer"
+                          className="p-1.5 text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[#E2E7EF]/40 rounded transition cursor-pointer"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
@@ -497,14 +497,14 @@ export default function EarlyCheckoutPage() {
       {/* ================= MODAL 1: REQUEST EARLY CHECKOUT ================= */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150 my-8">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <h2 className="text-lg font-black text-[#211B17] flex items-center gap-2">
-                <History className="w-5 h-5 text-orange-600" /> Request Early Checkout Permission
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150 my-8">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <h2 className="text-lg font-black text-[color:var(--crm-text-primary)] flex items-center gap-2">
+                <History className="w-5 h-5 text-crm-brand-600" /> Request Early Checkout Permission
               </h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-[#70665F] hover:text-[#211B17] p-1 rounded-lg hover:bg-stone-100"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1 rounded-lg hover:bg-stone-100"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -513,7 +513,7 @@ export default function EarlyCheckoutPage() {
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
               {/* Employee Selection */}
               <div>
-                <label className="block font-bold text-[#211B17] mb-1">
+                <label className="block font-bold text-[color:var(--crm-text-primary)] mb-1">
                   Select Employee <span className="text-rose-600">*</span>
                 </label>
                 <select
@@ -523,8 +523,8 @@ export default function EarlyCheckoutPage() {
                     if (formErrors.employeeId) setFormErrors({ ...formErrors, employeeId: '' });
                   }}
                   className={`w-full px-3 py-2.5 bg-white border ${
-                    formErrors.employeeId ? 'border-rose-500 bg-rose-50/20 ring-1 ring-rose-500' : 'border-[#EBE3DB]'
-                  } rounded-lg text-xs text-[#211B17] focus:outline-none focus:ring-2 focus:ring-orange-500/30 font-medium`}
+                    formErrors.employeeId ? 'border-rose-500 bg-rose-50/20 ring-1 ring-rose-500' : 'border-[color:var(--crm-border-default)]'
+                  } rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-2 focus:ring-orange-500/30 font-medium`}
                 >
                   <option value="">-- Choose Employee from List --</option>
                   {employeeList.map((e) => (
@@ -543,7 +543,7 @@ export default function EarlyCheckoutPage() {
               {/* Date & Shift Name */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-[#211B17] mb-1">
+                  <label className="block font-bold text-[color:var(--crm-text-primary)] mb-1">
                     Date <span className="text-rose-600">*</span>
                   </label>
                   <input
@@ -554,8 +554,8 @@ export default function EarlyCheckoutPage() {
                       if (formErrors.date) setFormErrors({ ...formErrors, date: '' });
                     }}
                     className={`w-full px-3 py-2 bg-white border ${
-                      formErrors.date ? 'border-rose-500' : 'border-[#EBE3DB]'
-                    } rounded-lg text-xs text-[#211B17]`}
+                      formErrors.date ? 'border-rose-500' : 'border-[color:var(--crm-border-default)]'
+                    } rounded-lg text-xs text-[color:var(--crm-text-primary)]`}
                   />
                   {formErrors.date && (
                     <p className="text-rose-600 text-[11px] font-semibold mt-1">{formErrors.date}</p>
@@ -563,12 +563,12 @@ export default function EarlyCheckoutPage() {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-[#211B17] mb-1">Current Assigned Shift</label>
+                  <label className="block font-bold text-[color:var(--crm-text-primary)] mb-1">Current Assigned Shift</label>
                   <input
                     type="text"
                     value={formData.shiftName}
                     onChange={(e) => setFormData({ ...formData, shiftName: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-xs text-[#211B17]"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)]"
                   />
                 </div>
               </div>
@@ -576,18 +576,18 @@ export default function EarlyCheckoutPage() {
               {/* Expected Checkout & Requested Checkout */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-[#211B17] mb-1">Shift Standard End Time</label>
+                  <label className="block font-bold text-[color:var(--crm-text-primary)] mb-1">Shift Standard End Time</label>
                   <input
                     type="text"
                     value={formData.expectedCheckout}
                     onChange={(e) => setFormData({ ...formData, expectedCheckout: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] font-mono"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] font-mono"
                     placeholder="18:00"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-[#211B17] mb-1">
+                  <label className="block font-bold text-[color:var(--crm-text-primary)] mb-1">
                     Requested Exit Time <span className="text-rose-600">*</span>
                   </label>
                   <input
@@ -598,8 +598,8 @@ export default function EarlyCheckoutPage() {
                       if (formErrors.requestedCheckout) setFormErrors({ ...formErrors, requestedCheckout: '' });
                     }}
                     className={`w-full px-3 py-2 bg-white border ${
-                      formErrors.requestedCheckout ? 'border-rose-500' : 'border-[#EBE3DB]'
-                    } rounded-lg text-xs text-[#211B17] font-mono font-bold`}
+                      formErrors.requestedCheckout ? 'border-rose-500' : 'border-[color:var(--crm-border-default)]'
+                    } rounded-lg text-xs text-[color:var(--crm-text-primary)] font-mono font-bold`}
                     placeholder="e.g. 16:30"
                   />
                   {formErrors.requestedCheckout && (
@@ -610,7 +610,7 @@ export default function EarlyCheckoutPage() {
 
               {/* Reason */}
               <div>
-                <label className="block font-bold text-[#211B17] mb-1">
+                <label className="block font-bold text-[color:var(--crm-text-primary)] mb-1">
                   Reason for Early Departure <span className="text-rose-600">*</span>
                 </label>
                 <textarea
@@ -622,26 +622,26 @@ export default function EarlyCheckoutPage() {
                   }}
                   placeholder="e.g. Medical emergency appointment / Urgent official site visit to Client premises..."
                   className={`w-full px-3 py-2 bg-white border ${
-                    formErrors.reason ? 'border-rose-500 bg-rose-50/20 ring-1 ring-rose-500' : 'border-[#EBE3DB]'
-                  } rounded-lg text-xs text-[#211B17] focus:outline-none focus:ring-2 focus:ring-orange-500/30`}
+                    formErrors.reason ? 'border-rose-500 bg-rose-50/20 ring-1 ring-rose-500' : 'border-[color:var(--crm-border-default)]'
+                  } rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-2 focus:ring-orange-500/30`}
                 />
                 {formErrors.reason ? (
                   <p className="text-rose-600 text-[11px] font-semibold mt-1 flex items-center gap-1">
                     <AlertCircle className="w-3 h-3" /> {formErrors.reason}
                   </p>
                 ) : (
-                  <p className="text-[10px] text-[#70665F] mt-1">
+                  <p className="text-[10px] text-[color:var(--crm-text-secondary)] mt-1">
                     Approval required prior to security gate exit.
                   </p>
                 )}
               </div>
 
               {/* Form Buttons */}
-              <div className="pt-3 border-t border-[#EBE3DB] flex justify-end gap-3">
+              <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-[#544B45] font-semibold rounded-lg text-xs transition"
+                  className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-[color:var(--crm-text-secondary)] font-semibold rounded-lg text-xs transition"
                 >
                   Cancel
                 </button>
@@ -660,17 +660,17 @@ export default function EarlyCheckoutPage() {
       {/* ================= MODAL 2: EDIT EARLY CHECKOUT ================= */}
       {editingRequest && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150 my-8">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150 my-8">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
               <div>
-                <h2 className="text-lg font-black text-[#211B17] flex items-center gap-2">
+                <h2 className="text-lg font-black text-[color:var(--crm-text-primary)] flex items-center gap-2">
                   <Edit3 className="w-5 h-5 text-blue-600" /> Edit Early Checkout Request
                 </h2>
                 <p className="text-[11px] font-mono text-orange-600 font-bold">{editingRequest.requestNumber}</p>
               </div>
               <button
                 onClick={() => setEditingRequest(null)}
-                className="text-[#70665F] hover:text-[#211B17] p-1 rounded-lg hover:bg-stone-100"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1 rounded-lg hover:bg-stone-100"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -678,13 +678,13 @@ export default function EarlyCheckoutPage() {
 
             <form onSubmit={handleEditSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block font-bold text-[#211B17] mb-1">
+                <label className="block font-bold text-[color:var(--crm-text-primary)] mb-1">
                   Employee <span className="text-rose-600">*</span>
                 </label>
                 <select
                   value={editFormData.employeeId}
                   onChange={(e) => setEditFormData({ ...editFormData, employeeId: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-xs text-[#211B17]"
+                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)]"
                 >
                   {employeeList.map((e) => (
                     <option key={e.id} value={e.id}>
@@ -696,45 +696,45 @@ export default function EarlyCheckoutPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-[#211B17] mb-1">Date</label>
+                  <label className="block font-bold text-[color:var(--crm-text-primary)] mb-1">Date</label>
                   <input
                     type="date"
                     value={editFormData.date}
                     onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-xs text-[#211B17]"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)]"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-[#211B17] mb-1">Requested Checkout Time</label>
+                  <label className="block font-bold text-[color:var(--crm-text-primary)] mb-1">Requested Checkout Time</label>
                   <input
                     type="text"
                     value={editFormData.requestedCheckout}
                     onChange={(e) => setEditFormData({ ...editFormData, requestedCheckout: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] font-mono"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] font-mono"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-[#211B17] mb-1">
+                <label className="block font-bold text-[color:var(--crm-text-primary)] mb-1">
                   Reason <span className="text-rose-600">*</span>
                 </label>
                 <textarea
                   rows={3}
                   value={editFormData.reason}
                   onChange={(e) => setEditFormData({ ...editFormData, reason: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-xs text-[#211B17]"
+                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)]"
                 />
                 {editErrors.reason && (
                   <p className="text-rose-600 text-[11px] font-semibold mt-1">{editErrors.reason}</p>
                 )}
               </div>
 
-              <div className="pt-3 border-t border-[#EBE3DB] flex justify-end gap-3">
+              <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setEditingRequest(null)}
-                  className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-[#544B45] font-semibold rounded-lg text-xs transition"
+                  className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-[color:var(--crm-text-secondary)] font-semibold rounded-lg text-xs transition"
                 >
                   Cancel
                 </button>
@@ -753,75 +753,75 @@ export default function EarlyCheckoutPage() {
       {/* ================= MODAL 3: VIEW DETAILS ================= */}
       {viewingRequest && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
               <div>
-                <h2 className="text-lg font-black text-[#211B17] flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-orange-600" /> Gate Pass Request Details
+                <h2 className="text-lg font-black text-[color:var(--crm-text-primary)] flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-crm-brand-600" /> Gate Pass Request Details
                 </h2>
                 <p className="text-xs font-mono font-bold text-orange-600">{viewingRequest.requestNumber}</p>
               </div>
               <button
                 onClick={() => setViewingRequest(null)}
-                className="text-[#70665F] hover:text-[#211B17] p-1 rounded-lg hover:bg-stone-100"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1 rounded-lg hover:bg-stone-100"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs divide-y divide-[#EBE3DB]">
+            <div className="space-y-3 text-xs divide-y divide-[color:var(--crm-border-default)]">
               <div className="pt-2 grid grid-cols-2 gap-2">
                 <div>
-                  <span className="text-[#70665F] block">Employee:</span>
-                  <span className="font-bold text-[#211B17]">{viewingRequest.employeeName}</span>
+                  <span className="text-[color:var(--crm-text-secondary)] block">Employee:</span>
+                  <span className="font-bold text-[color:var(--crm-text-primary)]">{viewingRequest.employeeName}</span>
                 </div>
                 <div>
-                  <span className="text-[#70665F] block">Employee ID:</span>
-                  <span className="font-mono font-semibold text-[#211B17]">{viewingRequest.employeeId}</span>
+                  <span className="text-[color:var(--crm-text-secondary)] block">Employee ID:</span>
+                  <span className="font-mono font-semibold text-[color:var(--crm-text-primary)]">{viewingRequest.employeeId}</span>
                 </div>
               </div>
 
               <div className="pt-2 grid grid-cols-2 gap-2">
                 <div>
-                  <span className="text-[#70665F] block">Date:</span>
-                  <span className="font-semibold text-[#211B17]">{viewingRequest.date}</span>
+                  <span className="text-[color:var(--crm-text-secondary)] block">Date:</span>
+                  <span className="font-semibold text-[color:var(--crm-text-primary)]">{viewingRequest.date}</span>
                 </div>
                 <div>
-                  <span className="text-[#70665F] block">Shift:</span>
-                  <span className="font-semibold text-[#211B17]">{viewingRequest.shiftName}</span>
+                  <span className="text-[color:var(--crm-text-secondary)] block">Shift:</span>
+                  <span className="font-semibold text-[color:var(--crm-text-primary)]">{viewingRequest.shiftName}</span>
                 </div>
               </div>
 
-              <div className="pt-2 grid grid-cols-2 gap-2 bg-[#FAF7F2] p-3 rounded-lg">
+              <div className="pt-2 grid grid-cols-2 gap-2 bg-[color:var(--crm-bg-app)] p-3 rounded-lg">
                 <div>
-                  <span className="text-[#70665F] block">Standard End Time:</span>
-                  <span className="font-mono font-bold text-[#211B17]">{viewingRequest.expectedCheckout}</span>
+                  <span className="text-[color:var(--crm-text-secondary)] block">Standard End Time:</span>
+                  <span className="font-mono font-bold text-[color:var(--crm-text-primary)]">{viewingRequest.expectedCheckout}</span>
                 </div>
                 <div>
-                  <span className="text-[#70665F] block">Requested Exit:</span>
+                  <span className="text-[color:var(--crm-text-secondary)] block">Requested Exit:</span>
                   <span className="font-mono font-bold text-orange-600">{viewingRequest.requestedCheckout}</span>
                 </div>
               </div>
 
               <div className="pt-2">
-                <span className="text-[#70665F] block font-semibold">Reason:</span>
-                <p className="mt-1 text-[#211B17] italic bg-[#FAF7F2] p-2.5 rounded-lg border border-[#EBE3DB]">
+                <span className="text-[color:var(--crm-text-secondary)] block font-semibold">Reason:</span>
+                <p className="mt-1 text-[color:var(--crm-text-primary)] italic bg-[color:var(--crm-bg-app)] p-2.5 rounded-lg border border-[color:var(--crm-border-default)]">
                   "{viewingRequest.reason}"
                 </p>
               </div>
 
               <div className="pt-2 grid grid-cols-2 gap-2">
                 <div>
-                  <span className="text-[#70665F] block">Status:</span>
-                  <span className="font-bold text-[#211B17]">{viewingRequest.status}</span>
+                  <span className="text-[color:var(--crm-text-secondary)] block">Status:</span>
+                  <span className="font-bold text-[color:var(--crm-text-primary)]">{viewingRequest.status}</span>
                 </div>
               </div>
             </div>
 
-            <div className="pt-3 border-t border-[#EBE3DB] flex justify-end">
+            <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex justify-end">
               <button
                 onClick={() => setViewingRequest(null)}
-                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-[#544B45] font-semibold rounded-lg text-xs transition"
+                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-[color:var(--crm-text-secondary)] font-semibold rounded-lg text-xs transition"
               >
                 Close
               </button>
@@ -833,26 +833,26 @@ export default function EarlyCheckoutPage() {
       {/* ================= MODAL 4: REJECT CONFIRMATION ================= */}
       {rejectingRequest && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
               <h2 className="text-lg font-black text-rose-600 flex items-center gap-2">
                 <XCircle className="w-5 h-5" /> Reject Early Checkout Request
               </h2>
               <button
                 onClick={() => setRejectingRequest(null)}
-                className="text-[#70665F] hover:text-[#211B17]"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-[#544B45]">
+            <p className="text-xs text-[color:var(--crm-text-secondary)]">
               Are you sure you want to reject gate pass request <strong>{rejectingRequest.requestNumber}</strong> for{' '}
               <strong>{rejectingRequest.employeeName}</strong>?
             </p>
 
             <div>
-              <label className="block font-bold text-[#211B17] text-xs mb-1">
+              <label className="block font-bold text-[color:var(--crm-text-primary)] text-xs mb-1">
                 Reason for Rejection (Optional)
               </label>
               <textarea
@@ -860,14 +860,14 @@ export default function EarlyCheckoutPage() {
                 value={rejectRemarks}
                 onChange={(e) => setRejectRemarks(e.target.value)}
                 placeholder="e.g. Critical shift delivery requires full presence today..."
-                className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-xs text-[#211B17]"
+                className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)]"
               />
             </div>
 
-            <div className="pt-3 border-t border-[#EBE3DB] flex justify-end gap-3">
+            <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex justify-end gap-3">
               <button
                 onClick={() => setRejectingRequest(null)}
-                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-[#544B45] font-semibold rounded-lg text-xs"
+                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-[color:var(--crm-text-secondary)] font-semibold rounded-lg text-xs"
               >
                 Cancel
               </button>
@@ -885,18 +885,18 @@ export default function EarlyCheckoutPage() {
       {/* ================= MODAL 5: DELETE CONFIRMATION ================= */}
       {deletingId && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl text-center">
-            <div className="w-12 h-12 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl text-center">
+            <div className="w-12 h-12 bg-crm-brand-50 text-crm-brand-700 rounded-full flex items-center justify-center mx-auto">
               <Trash2 className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-black text-[#211B17]">Delete Early Checkout Record?</h3>
-            <p className="text-xs text-[#70665F]">
+            <h3 className="text-base font-black text-[color:var(--crm-text-primary)]">Delete Early Checkout Record?</h3>
+            <p className="text-xs text-[color:var(--crm-text-secondary)]">
               This action cannot be undone and will permanently remove this gate pass record from the system and database.
             </p>
             <div className="flex justify-center gap-3 pt-2">
               <button
                 onClick={() => setDeletingId(null)}
-                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-[#544B45] font-semibold rounded-lg text-xs"
+                className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-[color:var(--crm-text-secondary)] font-semibold rounded-lg text-xs"
               >
                 Cancel
               </button>

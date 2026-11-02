@@ -48,35 +48,35 @@ export default function SupplierLedgersPage() {
   );
 
   return (
-    <div className="p-6 space-y-6 bg-[#FAF7F2] text-[#211B17]">
-      <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-[#EBE3DB]">
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)]">
+      <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-[color:var(--crm-border-default)]">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-crm-brand-600/20 rounded-xl text-indigo-400">
+          <div className="p-2.5 bg-crm-brand-600/20 rounded-xl text-indigo-700">
             <Building className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-[#211B17]">Supplier Financial Ledgers (AP)</h1>
-            <p className="text-xs text-[#70665F] mt-0.5">Integrated with Purchase Master • Live Purchase Invoices & Payment Ledger</p>
+            <h1 className="text-xl font-bold text-[color:var(--crm-text-primary)]">Supplier Financial Ledgers (AP)</h1>
+            <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">Integrated with Purchase Master • Live Purchase Invoices & Payment Ledger</p>
           </div>
         </div>
 
         <div className="text-right">
-          <div className="text-xs text-[#70665F]">Total Supplier Payables</div>
+          <div className="text-xs text-[color:var(--crm-text-secondary)]">Total Supplier Payables</div>
           <div className="text-lg font-bold text-indigo-600 font-mono">
             ₹{totalPayables.toLocaleString('en-IN')}
           </div>
         </div>
       </div>
 
-      <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="bg-white p-4 rounded-xl border border-[color:var(--crm-border-default)] flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--crm-text-secondary)]" />
           <input
             type="text"
             placeholder="Search supplier, code or GSTIN..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-4 py-2 text-xs text-[#3E2723]"
+            className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl pl-9 pr-4 py-2 text-xs text-[color:var(--crm-text-primary)]"
           />
         </div>
 
@@ -85,8 +85,8 @@ export default function SupplierLedgersPage() {
             onClick={() => setFilterMode('with_activity')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
               filterMode === 'with_activity'
-                ? 'bg-[#3E2723] text-white shadow-xs'
-                : 'bg-[#FAF7F2] text-[#70665F] border border-[#EBE3DB] hover:bg-white'
+                ? 'bg-[color:var(--crm-text-primary)] text-white shadow-xs'
+                : 'bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] border border-[color:var(--crm-border-default)] hover:bg-white'
             }`}
           >
             With Activity ({activeCount})
@@ -95,8 +95,8 @@ export default function SupplierLedgersPage() {
             onClick={() => setFilterMode('all')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
               filterMode === 'all'
-                ? 'bg-[#3E2723] text-white shadow-xs'
-                : 'bg-[#FAF7F2] text-[#70665F] border border-[#EBE3DB] hover:bg-white'
+                ? 'bg-[color:var(--crm-text-primary)] text-white shadow-xs'
+                : 'bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] border border-[color:var(--crm-border-default)] hover:bg-white'
             }`}
           >
             All Accounts ({supplierStats.length})
@@ -105,14 +105,14 @@ export default function SupplierLedgersPage() {
       </div>
 
       {filteredSuppliers.length === 0 ? (
-        <div className="bg-white p-12 rounded-2xl border border-[#EBE3DB] text-center space-y-2">
-          <p className="font-semibold text-xs text-[#544B45]">No supplier accounts found with active transactions</p>
-          <p className="text-[11px] text-[#70665F]">
+        <div className="bg-white p-12 rounded-2xl border border-[color:var(--crm-border-default)] text-center space-y-2">
+          <p className="font-semibold text-xs text-[color:var(--crm-text-secondary)]">No supplier accounts found with active transactions</p>
+          <p className="text-[11px] text-[color:var(--crm-text-secondary)]">
             Click &quot;All Accounts&quot; to view registered suppliers with zero current balance.
           </p>
           <button
             onClick={() => setFilterMode('all')}
-            className="mt-2 px-3.5 py-1.5 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] text-xs font-bold text-[#3E2723] hover:bg-white"
+            className="mt-2 px-3.5 py-1.5 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] text-xs font-bold text-[color:var(--crm-text-primary)] hover:bg-white"
           >
             View All Accounts
           </button>
@@ -120,34 +120,34 @@ export default function SupplierLedgersPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredSuppliers.map((supp) => (
-            <div key={supp.id} className="bg-white p-5 rounded-2xl border border-[#EBE3DB] space-y-4 hover:border-crm-brand-600/40 transition">
+            <div key={supp.id} className="bg-white p-5 rounded-2xl border border-[color:var(--crm-border-default)] space-y-4 hover:border-crm-brand-600/40 transition">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-mono font-bold text-indigo-500">{supp.supplierCode || (supp as any).code}</span>
                 <span className="text-[10px] px-2 py-0.5 rounded bg-crm-brand-600/20 text-indigo-600 font-semibold">{(supp.category || (supp as any).supplierType || 'Supplier')?.toUpperCase()}</span>
               </div>
 
               <div>
-                <h3 className="text-sm font-bold text-[#211B17]">{supp.supplierName || (supp as any).name}</h3>
-                <div className="text-[11px] text-[#70665F] mt-1 flex items-center gap-1 font-mono">
+                <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)]">{supp.supplierName || (supp as any).name}</h3>
+                <div className="text-[11px] text-[color:var(--crm-text-secondary)] mt-1 flex items-center gap-1 font-mono">
                   <span>GSTIN: {supp.gstin || 'N/A'}</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs bg-[#FAF7F2]/60 p-3 rounded-xl border border-[#EBE3DB] font-mono">
+              <div className="grid grid-cols-2 gap-2 text-xs bg-[#F4F6FA]/60 p-3 rounded-xl border border-[color:var(--crm-border-default)] font-mono">
                 <div>
-                  <div className="text-[10px] text-[#70665F]">Total Invoiced</div>
-                  <div className="text-[#3E2723] font-bold">₹{supp.totalBilled.toLocaleString('en-IN')}</div>
+                  <div className="text-[10px] text-[color:var(--crm-text-secondary)]">Total Invoiced</div>
+                  <div className="text-[color:var(--crm-text-primary)] font-bold">₹{supp.totalBilled.toLocaleString('en-IN')}</div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-[#70665F]">Payable Balance</div>
+                  <div className="text-[10px] text-[color:var(--crm-text-secondary)]">Payable Balance</div>
                   <div className={`font-bold ${supp.outstanding > 0 ? 'text-indigo-600' : 'text-emerald-600'}`}>
                     ₹{supp.outstanding.toLocaleString('en-IN')}
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-[11px] pt-2 border-t border-[#EBE3DB]">
-                <div className="text-[#70665F]">Terms: {supp.paymentTerms || '30 Days'}</div>
+              <div className="flex items-center justify-between text-[11px] pt-2 border-t border-[color:var(--crm-border-default)]">
+                <div className="text-[color:var(--crm-text-secondary)]">Terms: {supp.paymentTerms || '30 Days'}</div>
                 <Link href="/accounting/payments" className="text-indigo-600 hover:underline font-semibold flex items-center gap-1">
                   <span>Pay Vendor</span>
                   <ArrowUpRight className="w-3 h-3" />

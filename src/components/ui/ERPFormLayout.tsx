@@ -147,7 +147,7 @@ export function ERPInput({
           disabled={disabled}
           placeholder={placeholder || `Enter ${label}`}
           className={cn(
-            'w-full py-2 px-3 text-xs bg-white border rounded-lg text-[#1E293B] placeholder:text-[#94A3B8] transition shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED]',
+            'w-full py-2 px-3 text-xs bg-white border rounded-lg text-[#1E293B] placeholder:text-[#94A3B8] transition shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#2A4FD6]/20 focus:border-[color:var(--crm-brand-600)]',
             prefix ? 'pl-8' : '',
             disabled ? 'bg-[#F8FAFC] text-[#94A3B8] cursor-not-allowed border-[#E2E8F0]' : 'border-[#CBD5E1]',
             error ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200' : ''
@@ -230,7 +230,7 @@ export function ERPCheckbox({
         checked={checked}
         disabled={disabled}
         onChange={(e) => onChange(e.target.checked)}
-        className="w-4 h-4 rounded text-[#7C3AED] focus:ring-[#7C3AED]/30 border-[#CBD5E1] accent-[#7C3AED] cursor-pointer"
+        className="w-4 h-4 rounded text-[color:var(--crm-brand-600)] focus:ring-[#2A4FD6]/30 border-[#CBD5E1] accent-[color:var(--crm-brand-600)] cursor-pointer"
       />
       <span>{label}</span>
     </label>
@@ -256,14 +256,14 @@ export function ERPSubTableCard({
   children,
 }: ERPSubTableCardProps) {
   return (
-    <div className="bg-[#FAF7F2]/30 border border-[#E2E8F0] rounded-xl overflow-hidden shadow-2xs">
+    <div className="bg-[#F4F6FA]/30 border border-[#E2E8F0] rounded-xl overflow-hidden shadow-2xs">
       <div className="py-2.5 px-4 bg-[#F8FAFC] border-b border-[#E2E8F0] flex items-center justify-between">
         <h3 className="text-xs font-bold text-[#1E293B]">{title}</h3>
         {onAdd && (
           <button
             type="button"
             onClick={onAdd}
-            className="text-xs font-bold text-[#7C3AED] hover:text-[#6D28D9] flex items-center gap-1 cursor-pointer transition"
+            className="text-xs font-bold text-[color:var(--crm-brand-600)] hover:text-[#6D28D9] flex items-center gap-1 cursor-pointer transition"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{addLabel}</span>
@@ -332,7 +332,7 @@ export function ERPFormLayout({
                 <span
                   className={cn(
                     isLast
-                      ? 'text-[#7C3AED] font-extrabold tracking-wide'
+                      ? 'text-[color:var(--crm-brand-600)] font-extrabold tracking-wide'
                       : 'text-[#64748B] hover:text-[#334155] transition'
                   )}
                 >
@@ -346,7 +346,7 @@ export function ERPFormLayout({
         {backHref && (
           <Link
             href={backHref}
-            className="flex items-center gap-1.5 text-xs font-semibold text-[#64748B] hover:text-[#7C3AED] transition"
+            className="flex items-center gap-1.5 text-xs font-semibold text-[#64748B] hover:text-[color:var(--crm-brand-600)] transition"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to List</span>
@@ -408,7 +408,7 @@ export function ERPFormLayout({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex items-center gap-2 px-6 py-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold rounded-lg shadow-sm transition disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-2 px-6 py-2 bg-[color:var(--crm-brand-600)] hover:bg-[#6D28D9] text-white text-xs font-bold rounded-lg shadow-sm transition disabled:opacity-50 cursor-pointer"
           >
             {isSubmitting ? (
               <>
@@ -429,7 +429,7 @@ export function ERPFormLayout({
       <button
         type="button"
         onClick={scrollToTop}
-        className="fixed bottom-20 right-6 z-40 p-3 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-full shadow-lg transition-transform hover:scale-105 cursor-pointer flex items-center justify-center"
+        className="fixed bottom-20 right-6 z-40 p-3 bg-[color:var(--crm-brand-600)] hover:bg-[#6D28D9] text-white rounded-full shadow-lg transition-transform hover:scale-105 cursor-pointer flex items-center justify-center"
         title="Scroll to Top"
       >
         <ArrowUp className="w-4 h-4 stroke-[2.5]" />

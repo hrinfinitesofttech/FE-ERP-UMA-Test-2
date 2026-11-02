@@ -112,17 +112,17 @@ export default function RoleMatrixPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white border border-[#EBE3DB] p-6 rounded-2xl shadow-xl">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white border border-[color:var(--crm-border-default)] p-6 rounded-2xl shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-crm-brand-600/10 border border-crm-brand-600/20 rounded-xl text-crm-brand-600">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-[#211B17] tracking-wide">
+              <h1 className="text-xl font-bold text-[color:var(--crm-text-primary)] tracking-wide">
                 Role & Data Scope Permission Matrix
               </h1>
-              <p className="text-xs text-[#70665F]">
+              <p className="text-xs text-[color:var(--crm-text-secondary)]">
                 Verify Role-Based Access Control (RBAC), Department Segregation & Action Scopes across 12 Roles
               </p>
             </div>
@@ -131,8 +131,8 @@ export default function RoleMatrixPage() {
       </div>
 
       {/* Simulator Section */}
-      <div className="bg-white border border-[#EBE3DB] p-6 rounded-2xl space-y-4 shadow-xl">
-        <div className="flex items-center gap-2 text-sm font-bold text-[#211B17] border-b border-[#EBE3DB] pb-3">
+      <div className="bg-white border border-[color:var(--crm-border-default)] p-6 rounded-2xl space-y-4 shadow-xl">
+        <div className="flex items-center gap-2 text-sm font-bold text-[color:var(--crm-text-primary)] border-b border-[color:var(--crm-border-default)] pb-3">
           <UserCheck className="w-4 h-4 text-crm-brand-600" />
           Interactive RBAC Permission Test Simulator
         </div>
@@ -246,19 +246,19 @@ export default function RoleMatrixPage() {
       </div>
 
       {/* Role Permission Matrix Grid */}
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xl">
-        <div className="p-4 border-b border-[#EBE3DB] flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-bold text-[#211B17]">
-            <Building className="w-4 h-4 text-indigo-400" />
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl overflow-hidden shadow-xl">
+        <div className="p-4 border-b border-[color:var(--crm-border-default)] flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm font-bold text-[color:var(--crm-text-primary)]">
+            <Building className="w-4 h-4 text-indigo-700" />
             11 ERP Modules Module Access Scope Matrix
           </div>
-          <span className="text-xs text-[#70665F]">Green check = Authorized | Red cross = Restricted</span>
+          <span className="text-xs text-[color:var(--crm-text-secondary)]">Green check = Authorized | Red cross = Restricted</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-[#FAF7F2] text-[10px] font-bold text-[#70665F] uppercase tracking-wider border-b border-[#EBE3DB]">
+              <tr className="bg-[color:var(--crm-bg-app)] text-[10px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider border-b border-[color:var(--crm-border-default)]">
                 <th className="py-3 px-4">ERP Module</th>
                 <th className="py-3 px-4 text-center">Super Admin</th>
                 <th className="py-3 px-4 text-center">Plant Dir</th>
@@ -272,23 +272,23 @@ export default function RoleMatrixPage() {
                 <th className="py-3 px-4 text-center">Service Mgr</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EBE3DB] text-[#544B45]">
+            <tbody className="divide-y divide-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)]">
               {erpModulesAccess.map((mod, idx) => (
-                <tr key={idx} className="hover:bg-[#FAF7F2]/40 transition">
-                  <td className="py-3 px-4 font-semibold text-[#211B17]">
+                <tr key={idx} className="hover:bg-[#F4F6FA]/40 transition">
+                  <td className="py-3 px-4 font-semibold text-[color:var(--crm-text-primary)]">
                     <div>{mod.name}</div>
-                    <div className="text-[10px] font-mono text-[#70665F]">{mod.route}</div>
+                    <div className="text-[10px] font-mono text-[color:var(--crm-text-secondary)]">{mod.route}</div>
                   </td>
-                  <td className="py-3 px-4 text-center">{mod.superAdmin ? <CheckCircle2 className="w-4 h-4 text-emerald-400 mx-auto" /> : <XCircle className="w-4 h-4 text-slate-600 mx-auto" />}</td>
-                  <td className="py-3 px-4 text-center">{mod.plantDir ? <CheckCircle2 className="w-4 h-4 text-emerald-400 mx-auto" /> : <XCircle className="w-4 h-4 text-slate-600 mx-auto" />}</td>
-                  <td className="py-3 px-4 text-center">{mod.sales ? <CheckCircle2 className="w-4 h-4 text-emerald-400 mx-auto" /> : <XCircle className="w-4 h-4 text-red-500/70 mx-auto" />}</td>
-                  <td className="py-3 px-4 text-center">{mod.design ? <CheckCircle2 className="w-4 h-4 text-emerald-400 mx-auto" /> : <XCircle className="w-4 h-4 text-red-500/70 mx-auto" />}</td>
-                  <td className="py-3 px-4 text-center">{mod.purchase ? <CheckCircle2 className="w-4 h-4 text-emerald-400 mx-auto" /> : <XCircle className="w-4 h-4 text-red-500/70 mx-auto" />}</td>
-                  <td className="py-3 px-4 text-center">{mod.store ? <CheckCircle2 className="w-4 h-4 text-emerald-400 mx-auto" /> : <XCircle className="w-4 h-4 text-red-500/70 mx-auto" />}</td>
-                  <td className="py-3 px-4 text-center">{mod.prod ? <CheckCircle2 className="w-4 h-4 text-emerald-400 mx-auto" /> : <XCircle className="w-4 h-4 text-red-500/70 mx-auto" />}</td>
-                  <td className="py-3 px-4 text-center">{mod.acc ? <CheckCircle2 className="w-4 h-4 text-emerald-400 mx-auto" /> : <XCircle className="w-4 h-4 text-red-500/70 mx-auto" />}</td>
-                  <td className="py-3 px-4 text-center">{mod.hr ? <CheckCircle2 className="w-4 h-4 text-emerald-400 mx-auto" /> : <XCircle className="w-4 h-4 text-red-500/70 mx-auto" />}</td>
-                  <td className="py-3 px-4 text-center">{mod.service ? <CheckCircle2 className="w-4 h-4 text-emerald-400 mx-auto" /> : <XCircle className="w-4 h-4 text-red-500/70 mx-auto" />}</td>
+                  <td className="py-3 px-4 text-center">{mod.superAdmin ? <CheckCircle2 className="w-4 h-4 text-emerald-700 mx-auto" /> : <XCircle className="w-4 h-4 text-slate-600 mx-auto" />}</td>
+                  <td className="py-3 px-4 text-center">{mod.plantDir ? <CheckCircle2 className="w-4 h-4 text-emerald-700 mx-auto" /> : <XCircle className="w-4 h-4 text-slate-600 mx-auto" />}</td>
+                  <td className="py-3 px-4 text-center">{mod.sales ? <CheckCircle2 className="w-4 h-4 text-emerald-700 mx-auto" /> : <XCircle className="w-4 h-4 text-red-500/70 mx-auto" />}</td>
+                  <td className="py-3 px-4 text-center">{mod.design ? <CheckCircle2 className="w-4 h-4 text-emerald-700 mx-auto" /> : <XCircle className="w-4 h-4 text-red-500/70 mx-auto" />}</td>
+                  <td className="py-3 px-4 text-center">{mod.purchase ? <CheckCircle2 className="w-4 h-4 text-emerald-700 mx-auto" /> : <XCircle className="w-4 h-4 text-red-500/70 mx-auto" />}</td>
+                  <td className="py-3 px-4 text-center">{mod.store ? <CheckCircle2 className="w-4 h-4 text-emerald-700 mx-auto" /> : <XCircle className="w-4 h-4 text-red-500/70 mx-auto" />}</td>
+                  <td className="py-3 px-4 text-center">{mod.prod ? <CheckCircle2 className="w-4 h-4 text-emerald-700 mx-auto" /> : <XCircle className="w-4 h-4 text-red-500/70 mx-auto" />}</td>
+                  <td className="py-3 px-4 text-center">{mod.acc ? <CheckCircle2 className="w-4 h-4 text-emerald-700 mx-auto" /> : <XCircle className="w-4 h-4 text-red-500/70 mx-auto" />}</td>
+                  <td className="py-3 px-4 text-center">{mod.hr ? <CheckCircle2 className="w-4 h-4 text-emerald-700 mx-auto" /> : <XCircle className="w-4 h-4 text-red-500/70 mx-auto" />}</td>
+                  <td className="py-3 px-4 text-center">{mod.service ? <CheckCircle2 className="w-4 h-4 text-emerald-700 mx-auto" /> : <XCircle className="w-4 h-4 text-red-500/70 mx-auto" />}</td>
                 </tr>
               ))}
             </tbody>

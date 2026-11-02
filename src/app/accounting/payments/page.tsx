@@ -212,9 +212,9 @@ function SupplierPaymentsContent() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-[#FAF7F2] text-[#211B17]">
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)]">
       {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#EBE3DB] shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
         <div className="flex items-center gap-3.5">
           <div className="p-3 bg-rose-50 text-rose-600 rounded-2xl border border-rose-200">
             <Banknote className="w-7 h-7" />
@@ -223,7 +223,7 @@ function SupplierPaymentsContent() {
             <div className="text-[11px] font-semibold tracking-wider uppercase text-slate-400 mb-0.5">
               ACCOUNTING &amp; FINANCE / ACCOUNTS PAYABLE
             </div>
-            <h1 className="text-xl font-black text-[#211B17] tracking-tight flex items-center gap-2">
+            <h1 className="text-xl font-black text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2">
               <span>Supplier Payment Vouchers</span>
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-bold border border-rose-300 font-mono">
                 {supplierPayments.length} Disbursed
@@ -245,7 +245,7 @@ function SupplierPaymentsContent() {
           </button>
           <button
             onClick={handleOpenModal}
-            className="flex items-center gap-2 bg-[#211B17] hover:bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-xs cursor-pointer active:scale-95"
+            className="flex items-center gap-2 bg-[color:var(--crm-text-primary)] hover:bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-xs cursor-pointer active:scale-95"
           >
             <Plus className="w-4 h-4 text-rose-400" />
             <span>+ Make Payment</span>
@@ -255,7 +255,7 @@ function SupplierPaymentsContent() {
 
       {/* KPI Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4.5 rounded-2xl border border-[#EBE3DB] shadow-xs space-y-1">
+        <div className="bg-white p-4.5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs space-y-1">
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Total Disbursed</span>
             <Wallet className="w-4 h-4 text-rose-600" />
@@ -266,18 +266,18 @@ function SupplierPaymentsContent() {
           <div className="text-[11px] text-slate-400">Total vendor bill payments</div>
         </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-[#EBE3DB] shadow-xs space-y-1">
+        <div className="bg-white p-4.5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs space-y-1">
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Total Vouchers</span>
             <FileSpreadsheet className="w-4 h-4 text-slate-600" />
           </div>
-          <div className="text-2xl font-black text-[#211B17] font-mono">
+          <div className="text-2xl font-black text-[color:var(--crm-text-primary)] font-mono">
             {supplierPayments.length}
           </div>
           <div className="text-[11px] text-slate-400">Payment vouchers generated</div>
         </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-[#EBE3DB] shadow-xs space-y-1">
+        <div className="bg-white p-4.5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs space-y-1">
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Source Banks</span>
             <Landmark className="w-4 h-4 text-blue-600" />
@@ -288,7 +288,7 @@ function SupplierPaymentsContent() {
           <div className="text-[11px] text-slate-400">Active bank accounts connected</div>
         </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-[#EBE3DB] shadow-xs space-y-1">
+        <div className="bg-white p-4.5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs space-y-1">
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Vendors Settled</span>
             <Building className="w-4 h-4 text-emerald-600" />
@@ -301,7 +301,7 @@ function SupplierPaymentsContent() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-3.5 rounded-2xl border border-[#EBE3DB] flex flex-col md:flex-row items-center justify-between gap-3 shadow-xs">
+      <div className="bg-white p-3.5 rounded-2xl border border-[color:var(--crm-border-default)] flex flex-col md:flex-row items-center justify-between gap-3 shadow-xs">
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -309,7 +309,7 @@ function SupplierPaymentsContent() {
             placeholder="Search payment no, supplier, UTR, bill..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-4 py-2 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-rose-500"
+            className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl pl-9 pr-4 py-2 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-rose-500"
           />
         </div>
 
@@ -331,10 +331,10 @@ function SupplierPaymentsContent() {
       </div>
 
       {/* Payment Vouchers Table */}
-      <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-700">
-            <thead className="bg-slate-50 text-slate-500 uppercase font-black text-[10px] tracking-wider border-b border-[#EBE3DB]">
+            <thead className="bg-slate-50 text-slate-500 uppercase font-black text-[10px] tracking-wider border-b border-[color:var(--crm-border-default)]">
               <tr>
                 <th className="py-3 px-4">PAYMENT NO</th>
                 <th className="py-3 px-4">DATE</th>
@@ -433,7 +433,7 @@ function SupplierPaymentsContent() {
         </div>
 
         {/* Table Footer */}
-        <div className="p-3 bg-slate-50 border-t border-[#EBE3DB] text-xs text-slate-500 flex items-center justify-between">
+        <div className="p-3 bg-slate-50 border-t border-[color:var(--crm-border-default)] text-xs text-slate-500 flex items-center justify-between">
           <span>Showing <strong>{filtered.length}</strong> of <strong>{supplierPayments.length}</strong> payment vouchers</span>
           <span className="font-mono text-[11px]">Auto-reconciled with Vendor Ledgers</span>
         </div>
@@ -442,8 +442,8 @@ function SupplierPaymentsContent() {
       {/* MAKE PAYMENT MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
-            <div className="bg-[#211B17] text-white p-4.5 flex items-center justify-between">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+            <div className="bg-[color:var(--crm-text-primary)] text-white p-4.5 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Banknote className="w-5 h-5 text-rose-400" />
                 <h3 className="text-sm font-bold">Record Supplier Payment Voucher</h3>

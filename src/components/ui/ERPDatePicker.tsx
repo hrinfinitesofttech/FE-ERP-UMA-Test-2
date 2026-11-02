@@ -301,7 +301,7 @@ export function ERPDatePicker({
       {label && (
         <label
           htmlFor={id}
-          className="block text-xs font-semibold text-[#544B45] mb-1 tracking-tight"
+          className="block text-xs font-semibold text-[color:var(--crm-text-secondary)] mb-1 tracking-tight"
         >
           {label}
           {required && <span className="text-rose-500 ml-0.5">*</span>}
@@ -320,11 +320,11 @@ export function ERPDatePicker({
           }
         }}
         className={cn(
-          'w-full flex items-center justify-between gap-2 bg-white border border-[#E5DDD4] rounded-lg transition-all duration-150 cursor-pointer select-none shadow-xs group',
+          'w-full flex items-center justify-between gap-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg transition-all duration-150 cursor-pointer select-none shadow-xs group',
           sizeClasses[size],
           isOpen
             ? 'border-crm-brand-700 ring-2 ring-crm-brand-700/20 bg-[#FDFCFB]'
-            : 'hover:border-[#C4B7AA] hover:bg-[#FAF7F2]/50',
+            : 'hover:border-[#A7B1C7] hover:bg-[#F4F6FA]/50',
           disabled && 'opacity-60 cursor-not-allowed bg-slate-100 border-slate-200',
           buttonClassName
         )}
@@ -333,15 +333,15 @@ export function ERPDatePicker({
           <CalendarIcon
             className={cn(
               'w-3.5 h-3.5 shrink-0 transition-colors',
-              value ? 'text-crm-brand-700' : 'text-[#8D7B70] group-hover:text-crm-brand-700'
+              value ? 'text-crm-brand-700' : 'text-[color:var(--crm-text-tertiary)] group-hover:text-crm-brand-700'
             )}
           />
           {value ? (
-            <span className="font-semibold text-[#211B17] font-mono tracking-tight truncate whitespace-nowrap">
+            <span className="font-semibold text-[color:var(--crm-text-primary)] font-mono tracking-tight truncate whitespace-nowrap">
               {formatDisplayDate(value)}
             </span>
           ) : (
-            <span className="text-[#8D7B70] text-xs truncate whitespace-nowrap">{placeholder}</span>
+            <span className="text-[color:var(--crm-text-tertiary)] text-xs truncate whitespace-nowrap">{placeholder}</span>
           )}
         </div>
 
@@ -351,14 +351,14 @@ export function ERPDatePicker({
               type="button"
               onClick={handleClear}
               title="Clear date"
-              className="p-0.5 text-[#A89F91] hover:text-[#544B45] hover:bg-slate-200/60 rounded transition cursor-pointer"
+              className="p-0.5 text-[color:var(--crm-text-tertiary)] hover:text-[color:var(--crm-text-secondary)] hover:bg-slate-200/60 rounded transition cursor-pointer"
             >
               <X className="w-3 h-3" />
             </button>
           )}
           <ChevronDown
             className={cn(
-              'w-3 h-3 text-[#A89F91] transition-transform duration-200',
+              'w-3 h-3 text-[color:var(--crm-text-tertiary)] transition-transform duration-200',
               isOpen && 'rotate-180 text-crm-brand-700'
             )}
           />
@@ -373,13 +373,13 @@ export function ERPDatePicker({
         <div
           ref={popoverRef}
           className={cn(
-            'absolute z-50 mt-1.5 bg-white border border-[#E5DDD4] rounded-2xl shadow-2xl p-4 w-[320px] max-w-[92vw] text-xs font-sans animate-in fade-in zoom-in-95 duration-150',
+            'absolute z-50 mt-1.5 bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-2xl p-4 w-[320px] max-w-[92vw] text-xs font-sans animate-in fade-in zoom-in-95 duration-150',
             align === 'right' ? 'right-0' : 'left-0',
             popoverClassName
           )}
         >
           {/* Header Bar */}
-          <div className="flex items-center justify-between pb-3 mb-2 border-b border-[#F0EAE1]">
+          <div className="flex items-center justify-between pb-3 mb-2 border-b border-[#E2E6EF]">
             {/* Month & Year Navigation / Quick Select */}
             <div className="flex items-center gap-1.5">
               <button
@@ -387,10 +387,10 @@ export function ERPDatePicker({
                 onClick={() =>
                   setSelectorMode(selectorMode === 'months' ? 'days' : 'months')
                 }
-                className="px-2 py-1 rounded-lg font-bold text-sm text-[#211B17] hover:bg-[#FAF7F2] hover:text-crm-brand-800 transition flex items-center gap-1 cursor-pointer"
+                className="px-2 py-1 rounded-lg font-bold text-sm text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-bg-app)] hover:text-crm-brand-800 transition flex items-center gap-1 cursor-pointer"
               >
                 <span>{MONTH_NAMES[viewDate.getMonth()]}</span>
-                <ChevronDown className="w-3 h-3 text-[#8D7B70]" />
+                <ChevronDown className="w-3 h-3 text-[color:var(--crm-text-tertiary)]" />
               </button>
 
               <button
@@ -398,10 +398,10 @@ export function ERPDatePicker({
                 onClick={() =>
                   setSelectorMode(selectorMode === 'years' ? 'days' : 'years')
                 }
-                className="px-2 py-1 rounded-lg font-bold text-sm font-mono text-[#544B45] hover:bg-[#FAF7F2] hover:text-crm-brand-800 transition flex items-center gap-1 cursor-pointer"
+                className="px-2 py-1 rounded-lg font-bold text-sm font-mono text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] hover:text-crm-brand-800 transition flex items-center gap-1 cursor-pointer"
               >
                 <span>{viewDate.getFullYear()}</span>
-                <ChevronDown className="w-3 h-3 text-[#8D7B70]" />
+                <ChevronDown className="w-3 h-3 text-[color:var(--crm-text-tertiary)]" />
               </button>
             </div>
 
@@ -411,7 +411,7 @@ export function ERPDatePicker({
                 type="button"
                 onClick={handlePrevMonth}
                 title="Previous Month"
-                className="p-1.5 text-[#70665F] hover:text-crm-brand-800 hover:bg-[#FAF7F2] rounded-lg border border-transparent hover:border-[#E5DDD4] transition cursor-pointer"
+                className="p-1.5 text-[color:var(--crm-text-secondary)] hover:text-crm-brand-800 hover:bg-[color:var(--crm-bg-app)] rounded-lg border border-transparent hover:border-[color:var(--crm-border-default)] transition cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -419,7 +419,7 @@ export function ERPDatePicker({
                 type="button"
                 onClick={handleNextMonth}
                 title="Next Month"
-                className="p-1.5 text-[#70665F] hover:text-crm-brand-800 hover:bg-[#FAF7F2] rounded-lg border border-transparent hover:border-[#E5DDD4] transition cursor-pointer"
+                className="p-1.5 text-[color:var(--crm-text-secondary)] hover:text-crm-brand-800 hover:bg-[color:var(--crm-bg-app)] rounded-lg border border-transparent hover:border-[color:var(--crm-border-default)] transition cursor-pointer"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -443,7 +443,7 @@ export function ERPDatePicker({
                       'py-2 px-1 text-xs font-semibold rounded-xl transition text-center cursor-pointer',
                       isSelected
                         ? 'bg-crm-brand-700 text-white font-bold shadow-xs'
-                        : 'text-[#4A3B32] hover:bg-[#FAF7F2] hover:text-crm-brand-800'
+                        : 'text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-bg-app)] hover:text-crm-brand-800'
                     )}
                   >
                     {m.slice(0, 3)}
@@ -470,7 +470,7 @@ export function ERPDatePicker({
                       'py-2 px-1 text-xs font-mono font-semibold rounded-xl transition text-center cursor-pointer',
                       isSelected
                         ? 'bg-crm-brand-700 text-white font-bold shadow-xs'
-                        : 'text-[#4A3B32] hover:bg-[#FAF7F2] hover:text-crm-brand-800'
+                        : 'text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-bg-app)] hover:text-crm-brand-800'
                     )}
                   >
                     {yr}
@@ -490,7 +490,7 @@ export function ERPDatePicker({
                     key={wd}
                     className={cn(
                       'text-[10px] font-bold font-mono py-1 select-none uppercase tracking-wider',
-                      i === 0 ? 'text-amber-700' : 'text-[#8D7B70]'
+                      i === 0 ? 'text-amber-700' : 'text-[color:var(--crm-text-tertiary)]'
                     )}
                   >
                     {wd}
@@ -520,8 +520,8 @@ export function ERPDatePicker({
                           ? 'border border-crm-brand-600/60 font-bold text-crm-brand-800 bg-amber-50/50'
                           : // Current month vs other month
                           cell.isCurrentMonth
-                          ? 'text-[#211B17] hover:bg-[#FAF7F2] hover:text-crm-brand-800'
-                          : 'text-[#C4B7AA] hover:bg-slate-50'
+                          ? 'text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-bg-app)] hover:text-crm-brand-800'
+                          : 'text-[#A7B1C7] hover:bg-slate-50'
                       )}
                     >
                       <span>{cell.dayNumber}</span>
@@ -552,26 +552,26 @@ export function ERPDatePicker({
 
           {/* Quick Shortcuts Bar (Today, Tomorrow, +3d, Clear) */}
           {showShortcuts && (
-            <div className="mt-3 pt-2.5 border-t border-[#F0EAE1] flex items-center justify-between gap-1 text-[11px]">
+            <div className="mt-3 pt-2.5 border-t border-[#E2E6EF] flex items-center justify-between gap-1 text-[11px]">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <button
                   type="button"
                   onClick={() => applyPreset(0)}
-                  className="px-2 py-0.5 rounded-md font-semibold bg-[#FAF7F2] hover:bg-[#F2ECE3] text-crm-brand-800 border border-[#E5DDD4] transition cursor-pointer"
+                  className="px-2 py-0.5 rounded-md font-semibold bg-[color:var(--crm-bg-app)] hover:bg-[#E4E8F1] text-crm-brand-800 border border-[color:var(--crm-border-default)] transition cursor-pointer"
                 >
                   Today
                 </button>
                 <button
                   type="button"
                   onClick={() => applyPreset(1)}
-                  className="px-2 py-0.5 rounded-md font-semibold bg-[#FAF7F2] hover:bg-[#F2ECE3] text-crm-brand-800 border border-[#E5DDD4] transition cursor-pointer"
+                  className="px-2 py-0.5 rounded-md font-semibold bg-[color:var(--crm-bg-app)] hover:bg-[#E4E8F1] text-crm-brand-800 border border-[color:var(--crm-border-default)] transition cursor-pointer"
                 >
                   Tomorrow
                 </button>
                 <button
                   type="button"
                   onClick={() => applyPreset(7)}
-                  className="px-2 py-0.5 rounded-md font-semibold bg-[#FAF7F2] hover:bg-[#F2ECE3] text-crm-brand-800 border border-[#E5DDD4] transition cursor-pointer"
+                  className="px-2 py-0.5 rounded-md font-semibold bg-[color:var(--crm-bg-app)] hover:bg-[#E4E8F1] text-crm-brand-800 border border-[color:var(--crm-border-default)] transition cursor-pointer"
                 >
                   +1 Wk
                 </button>
@@ -581,7 +581,7 @@ export function ERPDatePicker({
                 <button
                   type="button"
                   onClick={handleClear}
-                  className="px-2 py-0.5 text-[#8D7B70] hover:text-rose-600 font-medium transition cursor-pointer"
+                  className="px-2 py-0.5 text-[color:var(--crm-text-tertiary)] hover:text-rose-600 font-medium transition cursor-pointer"
                 >
                   Clear
                 </button>

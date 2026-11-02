@@ -57,7 +57,7 @@ const CATEGORY_COLORS: Record<PackagingItemCategory, { bg: string; text: string;
 function PackagingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { projectJobs, productionCompletions, customers } = useERP();
+  const { currentUser, projectJobs, productionCompletions, customers } = useERP();
 
   const [packagingSlips, setPackagingSlips] = useState<PackagingSlipDoc[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -128,7 +128,7 @@ function PackagingPageContent() {
   const [formCustomerAddress, setFormCustomerAddress] = useState('');
   const [formDestinationCity, setFormDestinationCity] = useState('');
   const [formProductName, setFormProductName] = useState('');
-  const [formPackedBy, setFormPackedBy] = useState('Ramesh Patel (Packing Supervisor)');
+  const [formPackedBy, setFormPackedBy] = useState(currentUser?.name || '');
   const [formVerifiedBy, setFormVerifiedBy] = useState('Hardik Vaghela (QC Inspector)');
   const [formStatus, setFormStatus] = useState<PackagingSlipDoc['status']>('Packed & Verified');
   const [formRemarks, setFormRemarks] = useState('');
@@ -657,22 +657,22 @@ function PackagingPageContent() {
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
       {/* Breadcrumb & Navigation */}
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-[#8D7B70]">
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-[color:var(--crm-text-tertiary)]">
         <div className="flex items-center gap-2">
-          <Link href="/production/dashboard" className="hover:text-[#3E2723] transition-colors">
+          <Link href="/production/dashboard" className="hover:text-[color:var(--crm-text-primary)] transition-colors">
             Production & Shop Floor
           </Link>
           <span>/</span>
-          <Link href="/production/completion" className="hover:text-[#3E2723] transition-colors">
+          <Link href="/production/completion" className="hover:text-[color:var(--crm-text-primary)] transition-colors">
             Completion & QC Clearance
           </Link>
           <span>/</span>
-          <span className="font-semibold text-[#3E2723]">Dispatch & Packaging</span>
+          <span className="font-semibold text-[color:var(--crm-text-primary)]">Dispatch & Packaging</span>
         </div>
         <div className="flex items-center gap-2">
           <Link
             href="/production/completion"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E5DCD3] bg-white text-[#5D4E43] hover:bg-[#F8F5F1] transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[color:var(--crm-border-default)] bg-white text-[color:var(--crm-text-secondary)] hover:bg-[#F8F5F1] transition-all"
           >
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
             <span>← Previous: QC Clearance</span>
@@ -681,29 +681,29 @@ function PackagingPageContent() {
             href="/production/dispatch"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-900 font-semibold hover:bg-amber-100 transition-all"
           >
-            <Truck className="w-3.5 h-3.5 text-amber-700" />
+            <Truck className="w-3.5 h-3.5 text-crm-brand-600" />
             <span>Next: Delivery Challan →</span>
           </Link>
         </div>
       </div>
 
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E5DCD3] pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-5">
         <div>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-900 shadow-sm">
-              <Package className="w-5 h-5 text-amber-800" />
+            <div className="w-10 h-10 rounded-xl bg-crm-brand-50 border border-crm-brand-100 flex items-center justify-center text-crm-brand-700 shadow-sm">
+              <Package className="w-5 h-5 text-crm-brand-600" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
                   MODULE 6.6
                 </span>
-                <h1 className="text-xl sm:text-2xl font-bold text-[#3E2723]">
+                <h1 className="text-xl sm:text-2xl font-bold text-[color:var(--crm-text-primary)]">
                   Dispatch & Packaging
                 </h1>
               </div>
-              <p className="text-xs sm:text-sm text-[#7D6B5E] mt-0.5">
+              <p className="text-xs sm:text-sm text-[#556486] mt-0.5">
                 Add completed equipment, extra hardware, nuts, bolts, accessories and spares to packages before issuing Delivery Challan.
               </p>
             </div>
@@ -713,7 +713,7 @@ function PackagingPageContent() {
         <div className="flex items-center gap-2">
           <button
             onClick={handleOpenCreate}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#3E2723] hover:bg-[#2E1D19] text-white text-xs sm:text-sm font-semibold shadow-md shadow-[#3E2723]/20 transition-all hover:scale-[1.02]"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[color:var(--crm-text-primary)] hover:bg-[#1C202B] text-white text-xs sm:text-sm font-semibold shadow-md shadow-[#0F172A]/20 transition-all hover:scale-[1.02]"
           >
             <Plus className="w-4 h-4" />
             <span>New Packaging Order</span>
@@ -723,13 +723,13 @@ function PackagingPageContent() {
 
       {/* KPI Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="p-4 rounded-xl border border-[#E5DCD3] bg-white shadow-sm">
+        <div className="p-4 rounded-xl border border-[color:var(--crm-border-default)] bg-white shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-[#7D6B5E]">Total Packing Orders</span>
-            <Package className="w-4 h-4 text-[#8D7B70]" />
+            <span className="text-xs font-medium text-[#556486]">Total Packing Orders</span>
+            <Package className="w-4 h-4 text-[color:var(--crm-text-tertiary)]" />
           </div>
-          <div className="text-2xl font-bold text-[#3E2723] mt-2">{stats.total}</div>
-          <div className="text-[11px] text-[#8D7B70] mt-1">Across all completed projects</div>
+          <div className="text-2xl font-bold text-[color:var(--crm-text-primary)] mt-2">{stats.total}</div>
+          <div className="text-[11px] text-[color:var(--crm-text-tertiary)] mt-1">Across all completed projects</div>
         </div>
 
         <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/50 shadow-sm">
@@ -753,7 +753,7 @@ function PackagingPageContent() {
         <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/50 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-amber-900">Dispatched to Site</span>
-            <Truck className="w-4 h-4 text-amber-700" />
+            <Truck className="w-4 h-4 text-crm-brand-600" />
           </div>
           <div className="text-2xl font-bold text-amber-900 mt-2">{stats.dispatched}</div>
           <div className="text-[11px] text-amber-700 mt-1">Challan issued & loaded</div>
@@ -761,15 +761,15 @@ function PackagingPageContent() {
       </div>
 
       {/* Search and Filters */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-xl border border-[#E5DCD3] bg-white">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-xl border border-[color:var(--crm-border-default)] bg-white">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-[#8D7B70] absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[color:var(--crm-text-tertiary)] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by Slip #, Project #, Job #, Customer, Equipment..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-lg border border-[#E5DCD3] text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#3E2723]/20 focus:border-[#3E2723]"
+            className="w-full pl-9 pr-3 py-2 rounded-lg border border-[color:var(--crm-border-default)] text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0F172A]/20 focus:border-[color:var(--crm-text-primary)]"
           />
         </div>
 
@@ -781,8 +781,8 @@ function PackagingPageContent() {
                 onClick={() => setStatusFilter(st)}
                 className={`px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition-all ${
                   statusFilter === st
-                    ? 'bg-[#3E2723] text-white shadow-sm'
-                    : 'bg-[#F8F5F1] text-[#7D6B5E] hover:bg-[#EFE8DF]'
+                    ? 'bg-[color:var(--crm-text-primary)] text-white shadow-sm'
+                    : 'bg-[#F8F5F1] text-[#556486] hover:bg-[color:var(--crm-surface-subtle)]'
                 }`}
               >
                 {st}
@@ -793,11 +793,11 @@ function PackagingPageContent() {
       </div>
 
       {/* Main Table */}
-      <div className="rounded-xl border border-[#E5DCD3] bg-white shadow-sm overflow-hidden">
+      <div className="rounded-xl border border-[color:var(--crm-border-default)] bg-white shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
             <thead>
-              <tr className="bg-[#FAF7F2] border-b border-[#E5DCD3] text-[#7D6B5E] font-semibold text-[11px] uppercase tracking-wider">
+              <tr className="bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] text-[#556486] font-semibold text-[11px] uppercase tracking-wider">
                 <th className="py-3 px-4">Packing Slip #</th>
                 <th className="py-3 px-4">Project & Job</th>
                 <th className="py-3 px-4">Customer</th>
@@ -807,20 +807,20 @@ function PackagingPageContent() {
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E5DCD3]">
+            <tbody className="divide-y divide-[color:var(--crm-border-default)]">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-[#8D7B70]">
+                  <td colSpan={7} className="text-center py-12 text-[color:var(--crm-text-tertiary)]">
                     <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-crm-brand-700 mb-2"></div>
-                    <p className="text-sm font-medium text-[#5D4E43]">Loading Packaging Slips from database...</p>
+                    <p className="text-sm font-medium text-[color:var(--crm-text-secondary)]">Loading Packaging Slips from database...</p>
                   </td>
                 </tr>
               ) : filteredSlips.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-[#8D7B70]">
-                    <Package className="w-10 h-10 mx-auto text-[#B5A496] mb-2 opacity-60" />
-                    <p className="font-semibold text-sm text-[#5D4E43]">No Packaging Orders Found</p>
-                    <p className="text-xs text-[#8D7B70] mt-1">
+                  <td colSpan={7} className="text-center py-12 text-[color:var(--crm-text-tertiary)]">
+                    <Package className="w-10 h-10 mx-auto text-[#929EB9] mb-2 opacity-60" />
+                    <p className="font-semibold text-sm text-[color:var(--crm-text-secondary)]">No Packaging Orders Found</p>
+                    <p className="text-xs text-[color:var(--crm-text-tertiary)] mt-1">
                       Click &quot;New Packaging Order&quot; or transfer a completed project from QC Clearance.
                     </p>
                   </td>
@@ -829,24 +829,24 @@ function PackagingPageContent() {
                 filteredSlips.map((slip) => {
                   const extraItemsCount = slip.items ? slip.items.filter((i) => i.category !== 'Main Equipment').length : 0;
                   return (
-                    <tr key={slip.id} className="hover:bg-[#FAF7F2]/60 transition-colors">
-                      <td className="py-3 px-4 font-mono font-bold text-[#3E2723]">
+                    <tr key={slip.id} className="hover:bg-[#F4F6FA]/60 transition-colors">
+                      <td className="py-3 px-4 font-mono font-bold text-[color:var(--crm-text-primary)]">
                         <div>{slip.packingSlipNo}</div>
-                        <div className="text-[11px] font-normal text-[#8D7B70]">{formatDate(slip.date)}</div>
+                        <div className="text-[11px] font-normal text-[color:var(--crm-text-tertiary)]">{formatDate(slip.date)}</div>
                       </td>
 
                       <td className="py-3 px-4">
-                        <div className="font-semibold text-[#3E2723]">{slip.projectNumber || 'Standard Job'}</div>
-                        <div className="text-[11px] text-[#7D6B5E] font-mono">{slip.jobNumber || '-'}</div>
+                        <div className="font-semibold text-[color:var(--crm-text-primary)]">{slip.projectNumber || 'Standard Job'}</div>
+                        <div className="text-[11px] text-[#556486] font-mono">{slip.jobNumber || '-'}</div>
                       </td>
 
                       <td className="py-3 px-4">
-                        <div className="font-semibold text-[#3E2723]">{slip.customerName}</div>
-                        <div className="text-[11px] text-[#8D7B70]">{slip.destinationCity || 'Gujarat'}</div>
+                        <div className="font-semibold text-[color:var(--crm-text-primary)]">{slip.customerName}</div>
+                        <div className="text-[11px] text-[color:var(--crm-text-tertiary)]">{slip.destinationCity || 'Gujarat'}</div>
                       </td>
 
                       <td className="py-3 px-4">
-                        <div className="font-medium text-[#3E2723] line-clamp-1">{slip.productName}</div>
+                        <div className="font-medium text-[color:var(--crm-text-primary)] line-clamp-1">{slip.productName}</div>
                         <div className="flex flex-wrap items-center gap-1.5 mt-1">
                           <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-medium">
                             1 Main Eqpt
@@ -860,10 +860,10 @@ function PackagingPageContent() {
                       </td>
 
                       <td className="py-3 px-4">
-                        <div className="font-semibold text-[#3E2723]">
+                        <div className="font-semibold text-[color:var(--crm-text-primary)]">
                           {slip.totalPackages} {slip.totalPackages === 1 ? 'Package' : 'Packages'}
                         </div>
-                        <div className="text-[11px] text-[#7D6B5E]">{slip.totalGrossWeightKg} Kg Gross Wt</div>
+                        <div className="text-[11px] text-[#556486]">{slip.totalGrossWeightKg} Kg Gross Wt</div>
                       </td>
 
                       <td className="py-3 px-4">
@@ -886,7 +886,7 @@ function PackagingPageContent() {
                           <button
                             onClick={() => setViewingSlip(slip)}
                             title="View & Print Packing Slip"
-                            className="p-1.5 rounded-lg border border-[#E5DCD3] hover:bg-[#F3ECE4] text-[#5D4E43] transition-colors"
+                            className="p-1.5 rounded-lg border border-[color:var(--crm-border-default)] hover:bg-[color:var(--crm-surface-subtle)] text-[color:var(--crm-text-secondary)] transition-colors"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
@@ -903,7 +903,7 @@ function PackagingPageContent() {
                           <button
                             onClick={() => handleOpenEdit(slip)}
                             title="Edit"
-                            className="p-1.5 rounded-lg border border-[#E5DCD3] hover:bg-[#F3ECE4] text-[#5D4E43] transition-colors"
+                            className="p-1.5 rounded-lg border border-[color:var(--crm-border-default)] hover:bg-[color:var(--crm-surface-subtle)] text-[color:var(--crm-text-secondary)] transition-colors"
                           >
                             <Edit className="w-4 h-4" />
                           </button>
@@ -931,25 +931,25 @@ function PackagingPageContent() {
       {/* ========================================================================= */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl shadow-2xl border border-[#E5DCD3] w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-2xl border border-[color:var(--crm-border-default)] w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5DCD3] bg-[#FAF7F2]">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)]">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-900">
+                <div className="w-9 h-9 rounded-xl bg-crm-brand-50 border border-crm-brand-100 flex items-center justify-center text-crm-brand-700">
                   <Package className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base sm:text-lg font-bold text-[#3E2723]">
+                  <h2 className="text-base sm:text-lg font-bold text-[color:var(--crm-text-primary)]">
                     {editingSlipId ? 'Edit Packaging Slip' : 'New Packaging Slip & Item Checklist'}
                   </h2>
-                  <p className="text-xs text-[#7D6B5E]">
+                  <p className="text-xs text-[#556486]">
                     Package equipment and add extra hardware, loose items, nuts &amp; bolts before Delivery Challan.
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setShowModal(false)}
-                className="p-1.5 rounded-lg text-[#8D7B70] hover:bg-[#EFE8DF] transition-colors"
+                className="p-1.5 rounded-lg text-[color:var(--crm-text-tertiary)] hover:bg-[color:var(--crm-surface-subtle)] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -958,19 +958,19 @@ function PackagingPageContent() {
             {/* Modal Body */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {/* Top Section: Link Project & Details */}
-              <div className="p-4 rounded-xl border border-[#E5DCD3] bg-[#FAF7F2]/60 space-y-4">
+              <div className="p-4 rounded-xl border border-[color:var(--crm-border-default)] bg-[#F4F6FA]/60 space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#7D6B5E]">
-                    <Layers className="w-3.5 h-3.5 text-amber-800" />
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#556486]">
+                    <Layers className="w-3.5 h-3.5 text-crm-brand-600" />
                     <span>Project & Customer Information</span>
                   </div>
                   {projectJobs.length > 0 && (
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-[#8D7B70]">Auto-fill from Project:</span>
+                      <span className="text-xs text-[color:var(--crm-text-tertiary)]">Auto-fill from Project:</span>
                       <select
                         onChange={(e) => handleSelectProject(e.target.value)}
                         value={formProjectId}
-                        className="px-2.5 py-1 rounded-lg border border-[#E5DCD3] text-xs font-semibold bg-white text-[#3E2723]"
+                        className="px-2.5 py-1 rounded-lg border border-[color:var(--crm-border-default)] text-xs font-semibold bg-white text-[color:var(--crm-text-primary)]"
                       >
                         <option value="">-- Select Completed Project --</option>
                         {projectJobs.map((p) => (
@@ -985,77 +985,77 @@ function PackagingPageContent() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
                   <div>
-                    <label className="block font-semibold text-[#5D4E43] mb-1">Packing Slip #</label>
+                    <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Packing Slip #</label>
                     <input
                       type="text"
                       value={formSlipNo}
                       onChange={(e) => setFormSlipNo(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-[#E5DCD3] font-mono font-bold bg-white"
+                      className="w-full px-3 py-2 rounded-lg border border-[color:var(--crm-border-default)] font-mono font-bold bg-white"
                       placeholder="PKG-2026-001"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-[#5D4E43] mb-1">Date</label>
+                    <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Date</label>
                     <input
                       type="date"
                       value={formDate}
                       onChange={(e) => setFormDate(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-[#E5DCD3] bg-white"
+                      className="w-full px-3 py-2 rounded-lg border border-[color:var(--crm-border-default)] bg-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-[#5D4E43] mb-1">Project Number</label>
+                    <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Project Number</label>
                     <input
                       type="text"
                       value={formProjectNumber}
                       onChange={(e) => setFormProjectNumber(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-[#E5DCD3] font-mono bg-white"
+                      className="w-full px-3 py-2 rounded-lg border border-[color:var(--crm-border-default)] font-mono bg-white"
                       placeholder="PRJ-2026-0001"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-[#5D4E43] mb-1">Job Number</label>
+                    <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Job Number</label>
                     <input
                       type="text"
                       value={formJobNumber}
                       onChange={(e) => setFormJobNumber(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-[#E5DCD3] font-mono bg-white"
+                      className="w-full px-3 py-2 rounded-lg border border-[color:var(--crm-border-default)] font-mono bg-white"
                       placeholder="UTF-26-101"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-[#5D4E43] mb-1">Customer Name *</label>
+                    <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Customer Name *</label>
                     <input
                       type="text"
                       value={formCustomerName}
                       onChange={(e) => setFormCustomerName(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-[#E5DCD3] bg-white font-medium"
+                      className="w-full px-3 py-2 rounded-lg border border-[color:var(--crm-border-default)] bg-white font-medium"
                       placeholder="e.g. Ananth Chem"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-[#5D4E43] mb-1">Destination City</label>
+                    <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Destination City</label>
                     <input
                       type="text"
                       value={formDestinationCity}
                       onChange={(e) => setFormDestinationCity(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-[#E5DCD3] bg-white"
+                      className="w-full px-3 py-2 rounded-lg border border-[color:var(--crm-border-default)] bg-white"
                       placeholder="e.g. Jhagadia / Kadi"
                     />
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block font-semibold text-[#5D4E43] mb-1">Equipment / Product Name *</label>
+                    <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Equipment / Product Name *</label>
                     <input
                       type="text"
                       value={formProductName}
                       onChange={(e) => setFormProductName(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-[#E5DCD3] bg-white font-medium"
+                      className="w-full px-3 py-2 rounded-lg border border-[color:var(--crm-border-default)] bg-white font-medium"
                       placeholder="e.g. SS304 Chemical Storage Tank 50KL"
                     />
                   </div>
@@ -1063,14 +1063,14 @@ function PackagingPageContent() {
               </div>
 
               {/* Package Boxes / Crates Configuration */}
-              <div className="p-4 rounded-xl border border-[#E5DCD3] bg-white space-y-3">
+              <div className="p-4 rounded-xl border border-[color:var(--crm-border-default)] bg-white space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#7D6B5E] flex items-center gap-1.5">
-                      <Box className="w-3.5 h-3.5 text-amber-800" />
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#556486] flex items-center gap-1.5">
+                      <Box className="w-3.5 h-3.5 text-crm-brand-600" />
                       <span>Packages / Boxes Breakdown ({formBoxes.length} Packages)</span>
                     </h3>
-                    <p className="text-[11px] text-[#8D7B70]">
+                    <p className="text-[11px] text-[color:var(--crm-text-tertiary)]">
                       Specify crate or box types, dimensions, and weights for transportation.
                     </p>
                   </div>
@@ -1087,24 +1087,24 @@ function PackagingPageContent() {
                   {formBoxes.map((box, idx) => (
                     <div
                       key={box.id}
-                      className="p-3 rounded-lg border border-[#E5DCD3] bg-[#FAF7F2]/50 grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs items-center"
+                      className="p-3 rounded-lg border border-[color:var(--crm-border-default)] bg-[#F4F6FA]/50 grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs items-center"
                     >
                       <div className="sm:col-span-3">
-                        <label className="block text-[10px] font-semibold text-[#7D6B5E] mb-0.5">Package Number</label>
+                        <label className="block text-[10px] font-semibold text-[#556486] mb-0.5">Package Number</label>
                         <input
                           type="text"
                           value={box.boxNumber}
                           onChange={(e) => handleUpdateBox(box.id, 'boxNumber', e.target.value)}
-                          className="w-full px-2.5 py-1.5 rounded border border-[#E5DCD3] font-semibold bg-white"
+                          className="w-full px-2.5 py-1.5 rounded border border-[color:var(--crm-border-default)] font-semibold bg-white"
                         />
                       </div>
 
                       <div className="sm:col-span-3">
-                        <label className="block text-[10px] font-semibold text-[#7D6B5E] mb-0.5">Package Type</label>
+                        <label className="block text-[10px] font-semibold text-[#556486] mb-0.5">Package Type</label>
                         <select
                           value={box.packageType}
                           onChange={(e) => handleUpdateBox(box.id, 'packageType', e.target.value)}
-                          className="w-full px-2.5 py-1.5 rounded border border-[#E5DCD3] bg-white"
+                          className="w-full px-2.5 py-1.5 rounded border border-[color:var(--crm-border-default)] bg-white"
                         >
                           <option value="Heavy Duty Wooden Crate">Heavy Duty Wooden Crate</option>
                           <option value="Heavy Wooden Skid">Heavy Wooden Skid</option>
@@ -1117,23 +1117,23 @@ function PackagingPageContent() {
                       </div>
 
                       <div className="sm:col-span-3">
-                        <label className="block text-[10px] font-semibold text-[#7D6B5E] mb-0.5">Dimensions (L x W x H)</label>
+                        <label className="block text-[10px] font-semibold text-[#556486] mb-0.5">Dimensions (L x W x H)</label>
                         <input
                           type="text"
                           value={box.dimensions || ''}
                           onChange={(e) => handleUpdateBox(box.id, 'dimensions', e.target.value)}
                           placeholder="e.g. 120 x 80 x 90 cm"
-                          className="w-full px-2.5 py-1.5 rounded border border-[#E5DCD3] bg-white font-mono"
+                          className="w-full px-2.5 py-1.5 rounded border border-[color:var(--crm-border-default)] bg-white font-mono"
                         />
                       </div>
 
                       <div className="sm:col-span-2">
-                        <label className="block text-[10px] font-semibold text-[#7D6B5E] mb-0.5">Gross Wt (Kg)</label>
+                        <label className="block text-[10px] font-semibold text-[#556486] mb-0.5">Gross Wt (Kg)</label>
                         <input
                           type="number"
                           value={box.grossWeightKg || 0}
                           onChange={(e) => handleUpdateBox(box.id, 'grossWeightKg', parseFloat(e.target.value) || 0)}
-                          className="w-full px-2.5 py-1.5 rounded border border-[#E5DCD3] bg-white font-semibold"
+                          className="w-full px-2.5 py-1.5 rounded border border-[color:var(--crm-border-default)] bg-white font-semibold"
                         />
                       </div>
 
@@ -1152,7 +1152,7 @@ function PackagingPageContent() {
                   ))}
                 </div>
 
-                <div className="flex items-center justify-between pt-2 px-1 text-xs font-semibold text-[#5D4E43]">
+                <div className="flex items-center justify-between pt-2 px-1 text-xs font-semibold text-[color:var(--crm-text-secondary)]">
                   <span>Total Packages: {formBoxes.length}</span>
                   <span className="text-amber-900 font-bold">Total Gross Weight: {totalGrossWeight} Kg</span>
                 </div>
@@ -1163,16 +1163,16 @@ function PackagingPageContent() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-200/60 pb-3">
                   <div>
                     <h3 className="text-xs font-bold uppercase tracking-wider text-amber-950 flex items-center gap-1.5">
-                      <Wrench className="w-4 h-4 text-amber-800" />
+                      <Wrench className="w-4 h-4 text-crm-brand-600" />
                       <span>Items Packed (Main Equipment + Extra Nuts, Bolts &amp; Spares)</span>
                     </h3>
-                    <p className="text-[11px] text-[#7D6B5E]">
+                    <p className="text-[11px] text-[#556486]">
                       Add nuts, bolts, gaskets, foundation bolts, and spare parts into packages.
                     </p>
                   </div>
                   <button
                     onClick={handleAddCustomItem}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#3E2723] hover:bg-[#2E1D19] text-white text-xs font-semibold transition-colors shadow-sm self-start sm:self-auto"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[color:var(--crm-text-primary)] hover:bg-[#1C202B] text-white text-xs font-semibold transition-colors shadow-sm self-start sm:self-auto"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>+ Add Custom Item</span>
@@ -1181,7 +1181,7 @@ function PackagingPageContent() {
 
                 {/* Quick Add Presets for Nuts, Bolts, Spares */}
                 <div className="space-y-1.5">
-                  <span className="text-[11px] font-bold text-[#7D6B5E] block">
+                  <span className="text-[11px] font-bold text-[#556486] block">
                     ⚡ 1-Click Quick Add Extra Hardware Presets:
                   </span>
                   <div className="flex flex-wrap gap-1.5">
@@ -1284,10 +1284,10 @@ function PackagingPageContent() {
                 </div>
 
                 {/* Items List Table */}
-                <div className="overflow-x-auto rounded-lg border border-[#E5DCD3] bg-white">
+                <div className="overflow-x-auto rounded-lg border border-[color:var(--crm-border-default)] bg-white">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="bg-[#FAF7F2] border-b border-[#E5DCD3] text-[#7D6B5E] font-semibold text-[10px] uppercase">
+                      <tr className="bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] text-[#556486] font-semibold text-[10px] uppercase">
                         <th className="py-2.5 px-3 w-8">#</th>
                         <th className="py-2.5 px-3 w-40">Category</th>
                         <th className="py-2.5 px-3">Item Description / Particulars *</th>
@@ -1298,12 +1298,12 @@ function PackagingPageContent() {
                         <th className="py-2.5 px-3 w-8 text-right"></th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#E5DCD3]">
+                    <tbody className="divide-y divide-[color:var(--crm-border-default)]">
                       {formItems.map((item, idx) => {
                         const catStyle = CATEGORY_COLORS[item.category] || CATEGORY_COLORS['Other Accessories'];
                         return (
-                          <tr key={item.id} className="hover:bg-[#FAF7F2]/50">
-                            <td className="py-2.5 px-3 font-mono font-bold text-[#8D7B70]">{idx + 1}</td>
+                          <tr key={item.id} className="hover:bg-[#F4F6FA]/50">
+                            <td className="py-2.5 px-3 font-mono font-bold text-[color:var(--crm-text-tertiary)]">{idx + 1}</td>
 
                             <td className="py-2.5 px-3">
                               <select
@@ -1329,7 +1329,7 @@ function PackagingPageContent() {
                                 value={item.particulars}
                                 onChange={(e) => handleUpdateItem(item.id, 'particulars', e.target.value)}
                                 placeholder="e.g. M16 Bolts with Nuts & Washers (Grade 8.8)"
-                                className="w-full px-2.5 py-1.5 rounded border border-[#E5DCD3] font-medium"
+                                className="w-full px-2.5 py-1.5 rounded border border-[color:var(--crm-border-default)] font-medium"
                               />
                             </td>
 
@@ -1338,7 +1338,7 @@ function PackagingPageContent() {
                                 type="number"
                                 value={item.quantity}
                                 onChange={(e) => handleUpdateItem(item.id, 'quantity', e.target.value)}
-                                className="w-full px-2 py-1.5 rounded border border-[#E5DCD3] font-bold"
+                                className="w-full px-2 py-1.5 rounded border border-[color:var(--crm-border-default)] font-bold"
                               />
                             </td>
 
@@ -1346,7 +1346,7 @@ function PackagingPageContent() {
                               <select
                                 value={item.unit}
                                 onChange={(e) => handleUpdateItem(item.id, 'unit', e.target.value)}
-                                className="w-full px-2 py-1.5 rounded border border-[#E5DCD3]"
+                                className="w-full px-2 py-1.5 rounded border border-[color:var(--crm-border-default)]"
                               >
                                 <option value="Nos">Nos</option>
                                 <option value="Sets">Sets</option>
@@ -1361,7 +1361,7 @@ function PackagingPageContent() {
                               <select
                                 value={item.boxNo || ''}
                                 onChange={(e) => handleUpdateItem(item.id, 'boxNo', e.target.value)}
-                                className="w-full px-2 py-1.5 rounded border border-[#E5DCD3] text-[11px]"
+                                className="w-full px-2 py-1.5 rounded border border-[color:var(--crm-border-default)] text-[11px]"
                               >
                                 {formBoxes.map((b) => (
                                   <option key={b.id} value={b.boxNumber}>
@@ -1376,7 +1376,7 @@ function PackagingPageContent() {
                                 type="number"
                                 value={item.itemWeightKg || 0}
                                 onChange={(e) => handleUpdateItem(item.id, 'itemWeightKg', parseFloat(e.target.value) || 0)}
-                                className="w-full px-2 py-1.5 rounded border border-[#E5DCD3]"
+                                className="w-full px-2 py-1.5 rounded border border-[color:var(--crm-border-default)]"
                               />
                             </td>
 
@@ -1400,31 +1400,31 @@ function PackagingPageContent() {
               {/* Status and Sign-offs */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div>
-                  <label className="block font-semibold text-[#5D4E43] mb-1">Packing Supervisor</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Packing Supervisor</label>
                   <input
                     type="text"
                     value={formPackedBy}
                     onChange={(e) => setFormPackedBy(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-[#E5DCD3]"
+                    className="w-full px-3 py-2 rounded-lg border border-[color:var(--crm-border-default)]"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-[#5D4E43] mb-1">Quality Inspection Verification</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Quality Inspection Verification</label>
                   <input
                     type="text"
                     value={formVerifiedBy}
                     onChange={(e) => setFormVerifiedBy(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-[#E5DCD3]"
+                    className="w-full px-3 py-2 rounded-lg border border-[color:var(--crm-border-default)]"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-[#5D4E43] mb-1">Packaging Status</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Packaging Status</label>
                   <select
                     value={formStatus}
                     onChange={(e) => setFormStatus(e.target.value as any)}
-                    className="w-full px-3 py-2 rounded-lg border border-[#E5DCD3] font-semibold bg-white"
+                    className="w-full px-3 py-2 rounded-lg border border-[color:var(--crm-border-default)] font-semibold bg-white"
                   >
                     <option value="Draft">Draft</option>
                     <option value="Packing in Progress">Packing in Progress</option>
@@ -1435,21 +1435,21 @@ function PackagingPageContent() {
                 </div>
 
                 <div className="sm:col-span-3">
-                  <label className="block font-semibold text-[#5D4E43] mb-1">Packaging &amp; Handling Remarks</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Packaging &amp; Handling Remarks</label>
                   <input
                     type="text"
                     value={formRemarks}
                     onChange={(e) => setFormRemarks(e.target.value)}
                     placeholder="e.g. Center of gravity marked. Loose hardware packed in Box 2. Handle with crane."
-                    className="w-full px-3 py-2 rounded-lg border border-[#E5DCD3]"
+                    className="w-full px-3 py-2 rounded-lg border border-[color:var(--crm-border-default)]"
                   />
                 </div>
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-t border-[#E5DCD3] bg-[#FAF7F2]">
-              <div className="text-xs text-[#7D6B5E]">
+            <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-t border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)]">
+              <div className="text-xs text-[#556486]">
                 {formItems.length} items packed across {formBoxes.length} packages ({totalGrossWeight} Kg Gross)
               </div>
 
@@ -1457,7 +1457,7 @@ function PackagingPageContent() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-xl border border-[#E5DCD3] bg-white text-[#5D4E43] font-medium text-xs hover:bg-[#F8F5F1] transition-colors"
+                  className="px-4 py-2 rounded-xl border border-[color:var(--crm-border-default)] bg-white text-[color:var(--crm-text-secondary)] font-medium text-xs hover:bg-[#F8F5F1] transition-colors"
                 >
                   Cancel
                 </button>
@@ -1465,7 +1465,7 @@ function PackagingPageContent() {
                 <button
                   type="button"
                   onClick={handleSavePackaging}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#3E2723] hover:bg-[#2E1D19] text-white font-semibold text-xs transition-colors shadow-sm"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[color:var(--crm-text-primary)] hover:bg-[#1C202B] text-white font-semibold text-xs transition-colors shadow-sm"
                 >
                   <Save className="w-4 h-4" />
                   <span>Save Packaging Slip</span>
@@ -1481,12 +1481,12 @@ function PackagingPageContent() {
       {/* ========================================================================= */}
       {viewingSlip && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl shadow-2xl border border-[#E5DCD3] w-full max-w-4xl max-h-[95vh] flex flex-col overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-2xl border border-[color:var(--crm-border-default)] w-full max-w-4xl max-h-[95vh] flex flex-col overflow-hidden">
             {/* View Header with Print Actions */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5DCD3] bg-[#FAF7F2]">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)]">
               <div className="flex items-center gap-2">
-                <Package className="w-5 h-5 text-amber-800" />
-                <h3 className="text-base font-bold text-[#3E2723]">
+                <Package className="w-5 h-5 text-crm-brand-600" />
+                <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">
                   Packing Slip / Packing List: {viewingSlip.packingSlipNo}
                 </h3>
               </div>
@@ -1494,7 +1494,7 @@ function PackagingPageContent() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => printContent('printable-packing-slip', { title: `Packing_Slip_${viewingSlip.packingSlipNo}` })}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#3E2723] text-white text-xs font-semibold shadow-sm hover:bg-[#2E1D19] transition-colors"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[color:var(--crm-text-primary)] text-white text-xs font-semibold shadow-sm hover:bg-[#1C202B] transition-colors"
                 >
                   <Printer className="w-4 h-4" />
                   <span>Print Packing List</span>
@@ -1510,7 +1510,7 @@ function PackagingPageContent() {
 
                 <button
                   onClick={() => setViewingSlip(null)}
-                  className="p-2 text-[#8D7B70] hover:bg-[#EFE8DF] rounded-xl transition-colors"
+                  className="p-2 text-[color:var(--crm-text-tertiary)] hover:bg-[color:var(--crm-surface-subtle)] rounded-xl transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1528,7 +1528,7 @@ function PackagingPageContent() {
                   <div className="flex items-center justify-center gap-3 mb-1">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src="/uma-mark.png" alt="Uma Techno Fab" className="w-10 h-10 object-contain shrink-0" />
-                    <div className="text-2xl font-black tracking-wider text-[#18417D]">UMA TECHNO FAB</div>
+                    <div className="text-2xl font-black tracking-wider text-[#1F3FB0]">UMA TECHNO FAB</div>
                   </div>
                   <div className="text-xs font-medium text-stone-600">
                     Manufacturers of Heavy Industrial Equipment, Pressure Vessels, Reaction Tanks &amp; Turnkey Projects
@@ -1697,7 +1697,7 @@ function PackagingPageContent() {
 
 export default function PackagingPage() {
   return (
-    <Suspense fallback={<div className="p-6 text-sm text-[#8D7B70]">Loading Packaging &amp; Dispatch...</div>}>
+    <Suspense fallback={<div className="p-6 text-sm text-[color:var(--crm-text-tertiary)]">Loading Packaging &amp; Dispatch...</div>}>
       <PackagingPageContent />
     </Suspense>
   );

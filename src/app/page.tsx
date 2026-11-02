@@ -370,8 +370,8 @@ export default function DashboardPage() {
   const qualityMetrics = useMemo(() => {
     if (!qcInspections || qcInspections.length === 0) return null;
     const passed = qcInspections.filter((qc) => {
-      const st = String(qc.status || (qc as any).inspectionStatus || '').toLowerCase();
-      return st === 'passed' || st === 'approved' || st === 'accepted';
+      const st = String(qc.qcResult || '').toLowerCase();
+      return st === 'pass' || st === 'passed' || st === 'approved' || st === 'accepted';
     }).length;
     const rate = Math.round((passed / qcInspections.length) * 100);
     return { rate, passed, total: qcInspections.length };
@@ -472,34 +472,48 @@ export default function DashboardPage() {
     };
   }, [jobsData]);
 
-  // Visual Pipeline & Monthly Revenue Trend Data (Responsive Recharts)
+  // Monthly order inflow vs completed orders — computed from real Sales Orders (last 6 months)
   const monthlyPipelineData = useMemo(() => {
-    const baseValue = activeBacklog > 0 ? activeBacklog : 1850000;
-    return [
-      { month: 'May 26', orders: Math.round(baseValue * 0.45), delivered: Math.round(baseValue * 0.40), target: Math.round(baseValue * 0.50) },
-      { month: 'Jun 26', orders: Math.round(baseValue * 0.65), delivered: Math.round(baseValue * 0.55), target: Math.round(baseValue * 0.70) },
-      { month: 'Jul 26', orders: Math.round(baseValue * 0.55), delivered: Math.round(baseValue * 0.50), target: Math.round(baseValue * 0.65) },
-      { month: 'Aug 26', orders: Math.round(baseValue * 0.85), delivered: Math.round(baseValue * 0.75), target: Math.round(baseValue * 0.80) },
-      { month: 'Sep 26', orders: Math.round(baseValue * 0.75), delivered: Math.round(baseValue * 0.70), target: Math.round(baseValue * 0.85) },
-      { month: 'Oct 26 (Live)', orders: baseValue, delivered: Math.round(baseValue * 0.82), target: Math.round(baseValue * 1.1) },
-    ];
-  }, [activeBacklog]);
+    const now = new Date();
+    const months = Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+      return { key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, month: d.toLocaleString('en-IN', { month: 'short', year: '2-digit' }), orders: 0, delivered: 0 };
+    });
+    const bucket = (dateStr?: string) => months.find((m) => (dateStr || '').slice(0, 7) === m.key);
+    (salesOrders || []).forEach((so: any) => {
+      if (so.status === 'cancelled' || so.status === 'draft') return;
+      const value = Number(so.orderValue ?? so.grandTotal ?? 0) || 0;
+      const inflow = bucket(so.orderDate);
+      if (inflow) inflow.orders += value;
+      if (so.status === 'completed') {
+        const done = bucket(so.deliveryDate || so.orderDate);
+        if (done) done.delivered += value;
+      }
+    });
+    return months;
+  }, [salesOrders]);
 
-  // Stage Distribution Donut Data
+  // Stage Distribution Donut Data (real counts only)
   const stageDistributionData = useMemo(() => {
-    const total = activeFloorCount || 1;
-    const plan = inPlanningCount || (activeFloorCount > 0 ? 1 : 0);
-    const fab = inFabCount || (activeFloorCount > 1 ? 1 : 0);
-    const qc = inQcCount || 0;
-    const dispatch = readyDispatchCount || 0;
-
-    return [
-      { name: 'Planning & Engineering BOM', value: Math.max(1, plan), color: '#D97706', pct: Math.round((Math.max(1, plan) / total) * 100) },
-      { name: 'Fabrication & Welding Bays', value: Math.max(1, fab), color: '#0284C7', pct: Math.round((Math.max(1, fab) / total) * 100) },
-      { name: 'NDT & Hydro Testing (QC)', value: Math.max(1, qc), color: '#7E22CE', pct: Math.round((Math.max(1, qc) / total) * 100) },
-      { name: 'Finished & Ready for Dispatch', value: Math.max(1, dispatch), color: '#059669', pct: Math.round((Math.max(1, dispatch) / total) * 100) },
+    const rows = [
+      { name: 'Planning & BOM', value: inPlanningCount || 0, color: '#2A4FD6' },
+      { name: 'Fabrication & Welding', value: inFabCount || 0, color: '#0E9AC0' },
+      { name: 'QC & Testing', value: inQcCount || 0, color: '#D68A22' },
+      { name: 'Ready for Dispatch', value: readyDispatchCount || 0, color: '#169B62' },
     ];
-  }, [activeFloorCount, inPlanningCount, inFabCount, inQcCount, readyDispatchCount]);
+    const total = rows.reduce((sum, r) => sum + r.value, 0);
+    return rows.map((r) => ({ ...r, pct: total > 0 ? Math.round((r.value / total) * 100) : 0 }));
+  }, [inPlanningCount, inFabCount, inQcCount, readyDispatchCount]);
+  const stageTotal = stageDistributionData.reduce((sum, r) => sum + r.value, 0);
+  const flowTotals = monthlyPipelineData.reduce((t, m) => ({ orders: t.orders + m.orders, delivered: t.delivered + m.delivered }), { orders: 0, delivered: 0 });
+  const hasFlowData = flowTotals.orders > 0 || flowTotals.delivered > 0;
+  const fmtInrCompact = (n: number) => {
+    if (!n) return '₹0';
+    if (n >= 10000000) return '₹' + (n / 10000000).toFixed(2).replace(/\.?0+$/, '') + ' Cr';
+    if (n >= 100000) return '₹' + (n / 100000).toFixed(2).replace(/\.?0+$/, '') + ' L';
+    if (n >= 1000) return '₹' + (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+    return '₹' + Math.round(n);
+  };
 
   if (!mounted) {
     return null;
@@ -529,7 +543,7 @@ export default function DashboardPage() {
       {/* ========================================================================= */}
       {/* 1. EXECUTIVE COMMAND HEADER & CONTEXT BAR                                */}
       {/* ========================================================================= */}
-      <div className="bg-white/95 backdrop-blur-md border border-[#E7DED5] rounded-2xl px-4 py-3 sm:px-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3.5">
+      <div className="bg-white/95 backdrop-blur-md border border-[color:var(--crm-border-default)] rounded-2xl px-4 py-3 sm:px-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3.5">
         <div className="flex items-center gap-3">
           <div className="relative flex items-center justify-center">
             <span className="w-3 h-3 rounded-full bg-emerald-500 animate-ping absolute opacity-75" />
@@ -537,15 +551,12 @@ export default function DashboardPage() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs sm:text-sm font-extrabold text-[#211B17] tracking-tight">
+              <span className="text-xs sm:text-sm font-extrabold text-[color:var(--crm-text-primary)] tracking-tight">
                 UMA TECHNO FAB
               </span>
-              <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200/80 text-[10px] font-bold font-mono uppercase tracking-wider">
-                Industrial MTO ERP
-              </span>
             </div>
-            <p className="text-[11px] text-[#70665F] hidden sm:block">
-              Logged in as <strong className="text-[#211B17]">{currentUser?.name || currentUser?.username}</strong> • {currentUser?.designation || currentUser?.roleName || 'Executive Admin'}
+            <p className="text-[11px] text-[color:var(--crm-text-secondary)] hidden sm:block">
+              Logged in as <strong className="text-[color:var(--crm-text-primary)]">{currentUser?.name || currentUser?.username}</strong> • {currentUser?.designation || currentUser?.roleName || 'Executive Admin'}
             </p>
           </div>
         </div>
@@ -554,14 +565,14 @@ export default function DashboardPage() {
         <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap justify-between md:justify-end">
           {/* View Switcher Pill */}
           {isSuperAdminOrAdmin && (
-            <div className="flex items-center bg-[#F7F2EC] p-1 rounded-xl border border-[#E4DBD0]">
+            <div className="flex items-center bg-[#F7F2EC] p-1 rounded-xl border border-[color:var(--crm-border-default)]">
               <button
                 onClick={() => setViewMode('executive')}
                 className={cn(
                   'px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer',
                   viewMode === 'executive'
-                    ? 'bg-[#75401F] text-white shadow-xs'
-                    : 'text-[#6E5D53] hover:text-[#211B17]'
+                    ? 'bg-[color:var(--crm-brand-700)] text-white shadow-xs'
+                    : 'text-[#4B5876] hover:text-[color:var(--crm-text-primary)]'
                 )}
               >
                 <Factory className="w-3.5 h-3.5" />
@@ -572,8 +583,8 @@ export default function DashboardPage() {
                 className={cn(
                   'px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer',
                   viewMode === 'employee'
-                    ? 'bg-[#75401F] text-white shadow-xs'
-                    : 'text-[#6E5D53] hover:text-[#211B17]'
+                    ? 'bg-[color:var(--crm-brand-700)] text-white shadow-xs'
+                    : 'text-[#4B5876] hover:text-[color:var(--crm-text-primary)]'
                 )}
               >
                 <User className="w-3.5 h-3.5" />
@@ -586,9 +597,9 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2">
             <Link
               href="/crm/leads"
-              className="px-3 py-1.5 rounded-xl bg-white hover:bg-[#FAF7F2] border border-[#D5CAC0] text-[#4A3B32] text-xs font-bold transition shadow-2xs flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl bg-white hover:bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-strong)] text-[color:var(--crm-text-primary)] text-xs font-bold transition shadow-2xs flex items-center gap-1.5"
             >
-              <Zap className="w-3.5 h-3.5 text-amber-600" />
+              <Zap className="w-3.5 h-3.5 text-crm-brand-600" />
               <span className="hidden sm:inline">New</span> Lead
             </Link>
             <Link
@@ -607,121 +618,67 @@ export default function DashboardPage() {
       {/* ========================================================================= */}
       {viewMode === 'executive' ? (
         <div className="space-y-4 md:space-y-6">
-          {/* A. LUXURY EXECUTIVE HERO BANNER */}
-          <div className="relative overflow-hidden rounded-3xl bg-white border border-[#E7DED5] p-6 sm:p-7 shadow-xs text-[#211B17]">
-            {/* Subtle Warm Amber Gradient Accent */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-amber-100/40 via-transparent to-transparent pointer-events-none rounded-tr-3xl" />
-            
-            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-              <div className="space-y-3 max-w-2xl">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-800 text-[11px] font-mono font-bold tracking-wider uppercase">
-                    <CircleDot className="w-2.5 h-2.5 animate-pulse text-amber-600" />
-                    Commercial Operations &amp; 360° Job Traceability
-                  </span>
-                  <span className="px-2.5 py-1 rounded-full bg-[#FAF7F2] text-[#70665F] text-[10.5px] font-semibold border border-[#E7DED5]">
-                    ISO 9001:2015 Verified
-                  </span>
-                </div>
-
-                <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-black tracking-tight leading-tight text-[#211B17]">
-                  Heavy Fabrication &amp; Process Equipment Operations
+          {/* A. WELCOME + QUICK ACTIONS (live data only) */}
+          <div className="rounded-2xl bg-white border border-[color:var(--crm-border-default)] p-5 sm:p-6 shadow-xs text-[color:var(--crm-text-primary)]">
+            <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
+              <div className="space-y-1">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[color:var(--crm-text-primary)]">
+                  Welcome back, {(currentUser?.name || currentUser?.username || 'there').split(' ')[0]}
                 </h1>
-                <p className="text-xs sm:text-sm text-[#70665F] leading-relaxed max-w-xl">
-                  Unified orchestrator for Customer Enquiries, Multi-Revision Engineering BOMs, Approved Customer POs, and Shop Floor Fabrication Milestones.
-                </p>
-
-                {/* Telemetry Strip */}
-                {/* Telemetry Strip */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-4 border-t border-[#EBE3DB] text-xs">
-                  <div>
-                    <span className="text-[10px] uppercase font-mono text-[#70665F] block font-semibold">Live Backlog</span>
-                    <strong className="text-base font-bold font-mono text-[#211B17] tracking-tight" suppressHydrationWarning>
-                      {activeBacklog > 0 ? `₹ ${activeBacklog.toLocaleString('en-IN')}` : '₹ —'}
-                    </strong>
-                  </div>
-                  <div>
-                    <span className="text-[10px] uppercase font-mono text-[#70665F] block font-semibold">Active Bay WIP</span>
-                    <strong className="text-base font-bold font-mono text-[#211B17] tracking-tight">
-                      {activeFloorCount > 0 ? `${activeFloorCount} ${activeFloorCount === 1 ? 'Job' : 'Equipment'}` : '—'}
-                    </strong>
-                  </div>
-                  <div>
-                    <span className="text-[10px] uppercase font-mono text-[#70665F] block font-semibold">QA Pass Rate</span>
-                    <strong className="text-base font-bold font-mono text-emerald-700 tracking-tight">
-                      {qualityMetrics ? `${qualityMetrics.rate}% Pass` : '—'}
-                    </strong>
-                  </div>
-                  <div>
-                    <span className="text-[10px] uppercase font-mono text-[#70665F] block font-semibold">Production Health</span>
-                    {productionHealth === 'Optimal' ? (
-                      <strong className="text-base font-bold text-emerald-700 flex items-center gap-1.5 tracking-tight">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                        Optimal
-                      </strong>
-                    ) : productionHealth.includes('Delayed') ? (
-                      <strong className="text-base font-bold text-amber-700 flex items-center gap-1.5 tracking-tight">
-                        <span className="w-2 h-2 rounded-full bg-amber-500" />
-                        {productionHealth}
-                      </strong>
-                    ) : (
-                      <strong className="text-base font-bold text-[#70665F] tracking-tight">
-                        —
-                      </strong>
-                    )}
-                  </div>
-                </div>
+                <p className="text-sm text-[color:var(--crm-text-secondary)]">Here is what is happening across your factory today.</p>
               </div>
 
-              {/* Right Side Visual Telemetry Panel */}
-              <div className="w-full lg:w-96 rounded-2xl bg-[#FAF7F2] border border-[#E7DED5] p-5 space-y-3.5 shadow-2xs">
-                <div className="flex items-center justify-between pb-3 border-b border-[#EBE3DB]">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 flex items-center justify-center font-bold">
-                      <Gauge className="w-4 h-4 text-amber-700" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-[#211B17]">Fabrication Shop Floor</div>
-                      <div className="text-[10px] text-[#70665F] font-mono">BAYS 1-4 ACTIVE SYNC</div>
-                    </div>
-                  </div>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    Live Telemetry
-                  </span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-8 gap-y-3 text-sm">
+                <div>
+                  <span className="text-xs text-[color:var(--crm-text-secondary)] block">Open order value</span>
+                  <strong className="text-base font-semibold text-[color:var(--crm-text-primary)]" suppressHydrationWarning>
+                    {activeBacklog > 0 ? `₹ ${activeBacklog.toLocaleString('en-IN')}` : '—'}
+                  </strong>
                 </div>
-
-                <div className="space-y-2 text-xs">
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#E7DED5] shadow-2xs">
-                    <span className="text-[#211B17] text-[11px] font-medium flex items-center gap-2">
-                      <HardHat className="w-3.5 h-3.5 text-amber-600" />
-                      Bay 1: CNC Cutting &amp; Rolling
-                    </span>
-                    <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">READY</span>
-                  </div>
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#E7DED5] shadow-2xs">
-                    <span className="text-[#211B17] text-[11px] font-medium flex items-center gap-2">
-                      <Wrench className="w-3.5 h-3.5 text-sky-600" />
-                      Bay 2: SAW / TIG Welding
-                    </span>
-                    <span className="text-[10px] font-mono font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">IN PROGRESS</span>
-                  </div>
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#E7DED5] shadow-2xs">
-                    <span className="text-[#211B17] text-[11px] font-medium flex items-center gap-2">
-                      <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
-                      Bay 3: Hydro Test &amp; NDT
-                    </span>
-                    <span className="text-[10px] font-mono font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">CLEARED</span>
-                  </div>
+                <div>
+                  <span className="text-xs text-[color:var(--crm-text-secondary)] block">Jobs on shop floor</span>
+                  <strong className="text-base font-semibold text-[color:var(--crm-text-primary)]">{activeFloorCount > 0 ? activeFloorCount : '—'}</strong>
                 </div>
+                <div>
+                  <span className="text-xs text-[color:var(--crm-text-secondary)] block">QC pass rate</span>
+                  <strong className="text-base font-semibold text-emerald-700">{qualityMetrics ? `${qualityMetrics.rate}%` : '—'}</strong>
+                </div>
+                <div>
+                  <span className="text-xs text-[color:var(--crm-text-secondary)] block">Production status</span>
+                  <strong
+                    className={cn(
+                      'text-base font-semibold',
+                      productionHealth === 'Optimal' ? 'text-emerald-700' : productionHealth.includes('Delayed') ? 'text-amber-700' : 'text-[color:var(--crm-text-secondary)]'
+                    )}
+                  >
+                    {productionHealth === 'Optimal' || productionHealth.includes('Delayed') ? productionHealth : '—'}
+                  </strong>
+                </div>
+              </div>
+            </div>
 
-                <Link
-                  href="/integration/traceability"
-                  prefetch={false}
-                  className="w-full py-2.5 bg-crm-brand-700 hover:bg-crm-brand-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer active:scale-95"
-                >
-                  <span>Open 360° Traceability Suite</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
+            <div className="mt-5 pt-5 border-t border-[color:var(--crm-border-default)]">
+              <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] block mb-2.5">Quick actions</span>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { href: '/crm/leads', label: 'New Lead' },
+                  { href: '/crm/quotations', label: 'Quotations' },
+                  { href: '/crm/customer-po', label: 'Customer POs' },
+                  { href: '/projects/planning', label: 'Project Planning' },
+                  { href: '/purchase/requests', label: 'Purchase Requests' },
+                  { href: '/store/material-issue', label: 'Material Issue' },
+                  { href: '/production/work-orders', label: 'Work Orders' },
+                  { href: '/integration/job-360', label: 'Job 360°' },
+                ].map((a) => (
+                  <Link
+                    key={a.href}
+                    href={a.href}
+                    prefetch={false}
+                    className="px-3.5 py-2 rounded-lg bg-[color:var(--crm-bg-app)] hover:bg-[#E0E5EF] border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-primary)] text-sm font-medium transition"
+                  >
+                    {a.label}
+                  </Link>
+                ))}
               </div>
             </div>
           </div>
@@ -729,36 +686,36 @@ export default function DashboardPage() {
           {/* B. HIGH-IMPACT METRIC KPI CARDS */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Card 1: Active Order Backlog */}
-            <div className="group relative overflow-hidden bg-white border border-[#E7DED5] hover:border-amber-400/60 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+            <div className="group relative overflow-hidden bg-white border border-[color:var(--crm-border-default)] hover:border-amber-400/60 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between">
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1">
-                  <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider block">
+                  <span className="text-[11px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">
                     Active Order Backlog
                   </span>
-                  <div className="text-2xl font-black text-[#211B17] font-mono tracking-tight" suppressHydrationWarning>
+                  <div className="text-2xl font-black text-[color:var(--crm-text-primary)] font-mono tracking-tight" suppressHydrationWarning>
                     {activeBacklog > 0 ? `₹ ${activeBacklog.toLocaleString('en-IN')}` : '₹ —'}
                   </div>
                 </div>
-                <div className="w-11 h-11 rounded-2xl bg-amber-50 text-amber-700 border border-amber-200/60 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                <div className="w-11 h-11 rounded-2xl bg-crm-brand-50 text-crm-brand-700 border border-crm-brand-100 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
                   <FileText className="w-5 h-5" />
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-[#F2ECE4] space-y-2">
+              <div className="mt-4 pt-3 border-t border-[color:var(--crm-surface-subtle)] space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-emerald-700 font-bold flex items-center gap-1">
                     <FileCheck className="w-3.5 h-3.5" />
                     <span>{openOrdersCount > 0 ? `${openOrdersCount} Active Orders` : '—'}</span>
                   </span>
-                  <span className="text-[#70665F] font-semibold text-[11px]">
+                  <span className="text-[color:var(--crm-text-secondary)] font-semibold text-[11px]">
                     {salesOrders.length > 0 ? `${salesOrders.length} Sales Orders` : '—'}
                   </span>
                 </div>
                 {/* Pipeline Attainment Meter */}
-                <div className="w-full bg-[#EAE2D8] rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-gradient-to-r from-amber-500 to-amber-700 h-1.5 rounded-full" style={{ width: activeBacklog > 0 ? '100%' : '0%' }} />
+                <div className="w-full bg-[#D8DDEA] rounded-full h-1.5 overflow-hidden">
+                  <div className="bg-gradient-to-r from-crm-brand-500 to-crm-brand-700 h-1.5 rounded-full" style={{ width: activeBacklog > 0 ? '100%' : '0%' }} />
                 </div>
-                <div className="text-[10px] text-[#8C7A6F] flex items-center justify-between font-mono">
+                <div className="text-[10px] text-[color:var(--crm-text-tertiary)] flex items-center justify-between font-mono">
                   <span>Open Pipeline</span>
                   <span>{openOrdersCount > 0 ? `${openQuotations.length} Quotes • ${openCustomerPOs.length} POs` : '—'}</span>
                 </div>
@@ -766,35 +723,35 @@ export default function DashboardPage() {
             </div>
 
             {/* Card 2: Shop Floor Equipment & WIP */}
-            <div className="group relative overflow-hidden bg-white border border-[#E7DED5] hover:border-sky-400/60 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+            <div className="group relative overflow-hidden bg-white border border-[color:var(--crm-border-default)] hover:border-sky-400/60 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between">
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1">
-                  <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider block">
+                  <span className="text-[11px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">
                     Shop Floor WIP
                   </span>
-                  <div className="text-2xl font-black text-[#211B17] font-mono tracking-tight">
+                  <div className="text-2xl font-black text-[color:var(--crm-text-primary)] font-mono tracking-tight">
                     {activeFloorCount > 0 ? `${activeFloorCount} ${activeFloorCount === 1 ? 'Job' : 'Equipment'}` : '—'}
                   </div>
                 </div>
-                <div className="w-11 h-11 rounded-2xl bg-sky-50 text-sky-700 border border-sky-200/60 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                <div className="w-11 h-11 rounded-2xl bg-crm-brand-50 text-crm-brand-700 border border-crm-brand-100 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
                   <Factory className="w-5 h-5" />
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-[#F2ECE4] space-y-2">
+              <div className="mt-4 pt-3 border-t border-[color:var(--crm-surface-subtle)] space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-sky-700 font-bold flex items-center gap-1">
                     <Activity className="w-3.5 h-3.5" />
                     <span>{inFabCount > 0 ? `${inFabCount} in Fabrication` : '—'}</span>
                   </span>
-                  <span className="text-[#70665F] font-semibold text-[11px]">
+                  <span className="text-[color:var(--crm-text-secondary)] font-semibold text-[11px]">
                     {inPlanningCount > 0 ? `${inPlanningCount} in Engineering` : '—'}
                   </span>
                 </div>
-                <div className="w-full bg-[#EAE2D8] rounded-full h-1.5 overflow-hidden">
+                <div className="w-full bg-[#D8DDEA] rounded-full h-1.5 overflow-hidden">
                   <div className="bg-gradient-to-r from-sky-500 to-blue-600 h-1.5 rounded-full" style={{ width: `${bayCapacityPercent ?? 0}%` }} />
                 </div>
-                <div className="text-[10px] text-[#8C7A6F] flex items-center justify-between font-mono">
+                <div className="text-[10px] text-[color:var(--crm-text-tertiary)] flex items-center justify-between font-mono">
                   <span>Bay Capacity Utilization</span>
                   <span>{bayCapacityPercent !== null ? `${bayCapacityPercent}% Capacity` : 'Available'}</span>
                 </div>
@@ -802,33 +759,33 @@ export default function DashboardPage() {
             </div>
 
             {/* Card 3: Priority Expedites & Delivery Watchlist */}
-            <div className="group relative overflow-hidden bg-white border border-[#E7DED5] hover:border-rose-400/60 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+            <div className="group relative overflow-hidden bg-white border border-[color:var(--crm-border-default)] hover:border-rose-400/60 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between">
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1">
-                  <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider block">
+                  <span className="text-[11px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">
                     Expedite Watchlist
                   </span>
                   <div className="text-2xl font-black text-[#D9383A] font-mono tracking-tight">
                     {highPriorityJobs.length > 0 ? `${highPriorityJobs.length} Urgent Jobs` : '—'}
                   </div>
                 </div>
-                <div className="w-11 h-11 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                <div className="w-11 h-11 rounded-2xl bg-crm-brand-50 text-crm-brand-700 border border-crm-brand-100 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
                   <AlertTriangle className="w-5 h-5" />
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-[#F2ECE4] space-y-2">
+              <div className="mt-4 pt-3 border-t border-[color:var(--crm-surface-subtle)] space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-rose-700 font-bold flex items-center gap-1">
                     <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
                     <span>{highPriorityJobs.length > 0 ? `${highPriorityJobs.length} Priority` : '—'}</span>
                   </span>
                   <span className="text-amber-700 font-semibold text-[11px] flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-amber-600" />
+                    <Clock className="w-3.5 h-3.5 text-crm-brand-600" />
                     <span>{delayedJobs.length > 0 ? `${delayedJobs.length} Delayed` : '0 Delayed'}</span>
                   </span>
                 </div>
-                <div className="w-full bg-[#EAE2D8] rounded-full h-1.5 overflow-hidden">
+                <div className="w-full bg-[#D8DDEA] rounded-full h-1.5 overflow-hidden">
                   <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 h-1.5 rounded-full" style={{ width: `${slaComplianceRate ?? 0}%` }} />
                 </div>
                 <div className="text-[10px] text-emerald-700 font-bold flex items-center justify-between font-mono">
@@ -839,35 +796,35 @@ export default function DashboardPage() {
             </div>
 
             {/* Card 4: Quality & ISO 9001 Compliance */}
-            <div className="group relative overflow-hidden bg-white border border-[#E7DED5] hover:border-emerald-400/60 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+            <div className="group relative overflow-hidden bg-white border border-[color:var(--crm-border-default)] hover:border-emerald-400/60 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between">
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1">
-                  <span className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider block">
+                  <span className="text-[11px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">
                     Quality & Compliance
                   </span>
                   <div className="text-2xl font-black text-[#169B62] font-mono tracking-tight">
                     {qualityMetrics ? `${qualityMetrics.rate}% Pass` : '—'}
                   </div>
                 </div>
-                <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200/60 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                <div className="w-11 h-11 rounded-2xl bg-crm-brand-50 text-crm-brand-700 border border-crm-brand-100 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-[#F2ECE4] space-y-2">
+              <div className="mt-4 pt-3 border-t border-[color:var(--crm-surface-subtle)] space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-emerald-700 font-bold flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                     <span>{qualityMetrics ? `${qualityMetrics.passed} Passed` : '—'}</span>
                   </span>
-                  <span className="text-[#70665F] font-semibold text-[11px]">
+                  <span className="text-[color:var(--crm-text-secondary)] font-semibold text-[11px]">
                     {qualityMetrics ? `${qualityMetrics.total - qualityMetrics.passed} Holds` : 'No QC records'}
                   </span>
                 </div>
-                <div className="w-full bg-[#EAE2D8] rounded-full h-1.5 overflow-hidden">
+                <div className="w-full bg-[#D8DDEA] rounded-full h-1.5 overflow-hidden">
                   <div className="bg-gradient-to-r from-emerald-500 to-teal-600 h-1.5 rounded-full" style={{ width: `${qualityMetrics ? qualityMetrics.rate : 0}%` }} />
                 </div>
-                <div className="text-[10px] text-[#8C7A6F] flex items-center justify-between font-mono">
+                <div className="text-[10px] text-[color:var(--crm-text-tertiary)] flex items-center justify-between font-mono">
                   <span>ASME Sec VIII / ISO</span>
                   <span>{qualityMetrics ? 'Inspected Standard' : '—'}</span>
                 </div>
@@ -875,182 +832,169 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* C. BRAND NEW INTERACTIVE CHARTS SECTION (Recharts Visual Analytics) */}
+          {/* C. ANALYTICS: order flow + shop-floor stage mix (live data) */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
-            {/* Chart 1: Revenue Velocity & Order Flow (2 Cols) */}
-            <div className="lg:col-span-2 bg-white border border-[#E7DED5] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F2ECE4]">
+            {/* Chart 1: Order inflow vs completed orders */}
+            <div className="lg:col-span-2 bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                 <div>
-                  <h3 className="text-sm sm:text-base font-extrabold text-[#211B17] flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4 text-amber-700" />
-                    Commercial Booking vs Delivery Execution
-                  </h3>
-                  <p className="text-xs text-[#70665F]">
-                    Monthly order intake vs equipment milestones dispatched
-                  </p>
+                  <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">Orders: booked vs completed</h3>
+                  <p className="text-sm text-[color:var(--crm-text-secondary)] mt-0.5">Last 6 months, by order value</p>
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-3 text-xs font-semibold">
-                    <span className="flex items-center gap-1.5 text-amber-700">
-                      <span className="w-2.5 h-2.5 rounded-full bg-amber-600" />
-                      Order Inflow
-                    </span>
-                    <span className="flex items-center gap-1.5 text-emerald-700">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
-                      Dispatched
-                    </span>
+                <div className="flex items-center gap-6">
+                  <div>
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-[color:var(--crm-text-secondary)]">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#2A4FD6]" /> Booked
+                    </div>
+                    <div className="text-lg font-bold text-[color:var(--crm-text-primary)] mt-0.5">{fmtInrCompact(flowTotals.orders)}</div>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-[color:var(--crm-text-secondary)]">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#169B62]" /> Completed
+                    </div>
+                    <div className="text-lg font-bold text-[color:var(--crm-text-primary)] mt-0.5">{fmtInrCompact(flowTotals.delivered)}</div>
                   </div>
                 </div>
               </div>
 
-              {/* Area Chart Container */}
-              <div className="h-64 sm:h-72 w-full pt-2">
+              {!hasFlowData ? (
+                <div className="flex-1 min-h-[18rem] mt-4 rounded-xl border border-dashed border-[color:var(--crm-border-strong)] bg-[color:var(--crm-bg-app)] flex flex-col items-center justify-center text-center px-6">
+                  <div className="w-14 h-14 rounded-2xl bg-crm-brand-50 flex items-center justify-center mb-3">
+                    <BarChart3 className="w-7 h-7 text-crm-brand-600" />
+                  </div>
+                  <p className="text-base font-semibold text-[color:var(--crm-text-primary)]">No orders in the last 6 months</p>
+                  <p className="text-sm text-[color:var(--crm-text-secondary)] mt-1 max-w-sm">
+                    Once sales orders are confirmed, monthly booked and completed values will be charted here.
+                  </p>
+                  <Link
+                    href="/crm/customer-po"
+                    className="mt-4 px-4 py-2 rounded-lg bg-crm-brand-700 hover:bg-crm-brand-800 text-white text-sm font-semibold transition"
+                  >
+                    Go to Customer POs
+                  </Link>
+                </div>
+              ) : (
+              <div className="relative flex-1 min-h-[18rem] mt-4">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={monthlyPipelineData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                  <AreaChart data={monthlyPipelineData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                     <defs>
-                      <linearGradient id="orderGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#D97706" stopOpacity={0.25} />
-                        <stop offset="95%" stopColor="#D97706" stopOpacity={0.0} />
+                      <linearGradient id="gradBooked" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#2A4FD6" stopOpacity={0.28} />
+                        <stop offset="100%" stopColor="#2A4FD6" stopOpacity={0.02} />
                       </linearGradient>
-                      <linearGradient id="deliveredGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#059669" stopOpacity={0.25} />
-                        <stop offset="95%" stopColor="#059669" stopOpacity={0.0} />
+                      <linearGradient id="gradDone" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#169B62" stopOpacity={0.25} />
+                        <stop offset="100%" stopColor="#169B62" stopOpacity={0.02} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F2ECE4" />
-                    <XAxis
-                      dataKey="month"
-                      tick={{ fill: '#70665F', fontSize: 11, fontWeight: 600 }}
-                      axisLine={{ stroke: '#E7DED5' }}
-                      tickLine={false}
-                    />
+                    <CartesianGrid vertical={false} stroke="#E2E7EF" strokeDasharray="4 4" />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#7A8699', fontSize: 12 }} dy={8} />
                     <YAxis
-                      tick={{ fill: '#70665F', fontSize: 10, fontFamily: 'monospace' }}
                       axisLine={false}
                       tickLine={false}
-                      tickFormatter={(v) => `₹${(v / 100000).toFixed(0)}L`}
+                      width={56}
+                      tick={{ fill: '#7A8699', fontSize: 12 }}
+                      tickFormatter={(v) => fmtInrCompact(Number(v))}
+                      domain={hasFlowData ? [0, 'auto'] : [0, 100]}
+                      tickCount={5}
                     />
                     <Tooltip
-                      formatter={(val: any) => [`₹ ${Number(val).toLocaleString('en-IN')}`, 'Amount']}
-                      contentStyle={{
-                        backgroundColor: '#FFFFFF',
-                        borderColor: '#E7DED5',
-                        borderRadius: '12px',
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                        fontSize: '12px',
-                        fontWeight: '600',
-                      }}
+                      cursor={{ stroke: '#CBD3E0', strokeWidth: 1 }}
+                      content={({ active, payload, label }: any) =>
+                        active && payload?.length ? (
+                          <div className="rounded-xl border border-[color:var(--crm-border-default)] bg-white px-3.5 py-2.5 shadow-lg text-sm">
+                            <div className="font-semibold text-[color:var(--crm-text-primary)] mb-1.5">{label}</div>
+                            {payload.map((p: any) => (
+                              <div key={p.dataKey} className="flex items-center justify-between gap-6">
+                                <span className="flex items-center gap-1.5 text-[color:var(--crm-text-secondary)]">
+                                  <span className="w-2 h-2 rounded-full" style={{ background: p.color }} />
+                                  {p.dataKey === 'orders' ? 'Booked' : 'Completed'}
+                                </span>
+                                <span className="font-semibold text-[color:var(--crm-text-primary)]">{fmtInrCompact(Number(p.value))}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : null
+                      }
                     />
-                    <Area
-                      type="monotone"
-                      dataKey="orders"
-                      stroke="#D97706"
-                      strokeWidth={2.5}
-                      fillOpacity={1}
-                      fill="url(#orderGrad)"
-                      name="Order Inflow"
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="delivered"
-                      stroke="#059669"
-                      strokeWidth={2.5}
-                      fillOpacity={1}
-                      fill="url(#deliveredGrad)"
-                      name="Dispatched"
-                    />
+                    <Area type="monotone" dataKey="orders" stroke="#2A4FD6" strokeWidth={2.5} fill="url(#gradBooked)" dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }} />
+                    <Area type="monotone" dataKey="delivered" stroke="#169B62" strokeWidth={2.5} fill="url(#gradDone)" dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }} />
                   </AreaChart>
                 </ResponsiveContainer>
-              </div>
 
-              {/* Bottom Insight Strip */}
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[#F2ECE4] text-center text-xs">
-                <div className="bg-[#FAF7F2] p-2 rounded-xl border border-[#EBE3DB]">
-                  <span className="text-[10px] text-[#70665F] block">Avg Delivery Velocity</span>
-                  <span className="font-bold text-[#211B17]">42 Days / MTO Unit</span>
-                </div>
-                <div className="bg-[#FAF7F2] p-2 rounded-xl border border-[#EBE3DB]">
-                  <span className="text-[10px] text-[#70665F] block">Production Yield</span>
-                  <span className="font-bold text-emerald-700">99.2% Standard</span>
-                </div>
-                <div className="bg-[#FAF7F2] p-2 rounded-xl border border-[#EBE3DB]">
-                  <span className="text-[10px] text-[#70665F] block">Cost Accuracy</span>
-                  <span className="font-bold text-[#211B17]">96.8% to Estimate</span>
-                </div>
               </div>
+              )}
             </div>
 
-            {/* Chart 2: Stage Distribution Donut (1 Col) */}
-            <div className="bg-white border border-[#E7DED5] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between pb-3 border-b border-[#F2ECE4]">
-                  <div>
-                    <h3 className="text-sm font-extrabold text-[#211B17] flex items-center gap-2">
-                      <PieChartIcon className="w-4 h-4 text-sky-700" />
-                      Fabrication Stage Distribution
-                    </h3>
-                    <p className="text-[11px] text-[#70665F]">
-                      Active Equipment by Manufacturing Milestone
-                    </p>
-                  </div>
-                  <span className="text-xs font-mono font-bold bg-[#FAF7F2] px-2 py-0.5 rounded border border-[#EBE3DB]">
-                    {activeFloorCount} Total
-                  </span>
+            {/* Chart 2: Shop-floor stage distribution */}
+            <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">Jobs by stage</h3>
+                  <p className="text-sm text-[color:var(--crm-text-secondary)] mt-0.5">Active equipment on the shop floor</p>
                 </div>
+                <span className="px-2.5 py-1 rounded-full bg-[color:var(--crm-surface-subtle)] text-xs font-semibold text-[color:var(--crm-text-secondary)] whitespace-nowrap">
+                  {stageTotal} active
+                </span>
+              </div>
 
-                {/* Donut Chart with Centered Total */}
-                <div className="h-48 w-full relative mt-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={stageDistributionData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={50}
-                        outerRadius={75}
-                        paddingAngle={3}
-                        dataKey="value"
-                      >
-                        {stageDistributionData.map((entry, index) => (
-                          <Cell key={`donut-cell-${index}`} fill={entry.color} stroke="#FFFFFF" strokeWidth={2} />
-                        ))}
-                      </Pie>
+              <div className="relative h-52 mt-3">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={stageTotal > 0 ? stageDistributionData : [{ name: 'No active jobs', value: 1, color: '#E2E7EF', pct: 0 }]}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={66}
+                      outerRadius={90}
+                      paddingAngle={stageTotal > 0 ? 3 : 0}
+                      cornerRadius={stageTotal > 0 ? 6 : 0}
+                      dataKey="value"
+                      stroke="none"
+                      isAnimationActive={stageTotal > 0}
+                    >
+                      {(stageTotal > 0 ? stageDistributionData : [{ name: 'No active jobs', value: 1, color: '#E2E7EF', pct: 0 }]).map((entry, index) => (
+                        <Cell key={`donut-cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    {stageTotal > 0 && (
                       <Tooltip
-                        formatter={(val: any, name: any) => [`${val} Units`, name]}
-                        contentStyle={{
-                          backgroundColor: '#FFFFFF',
-                          borderColor: '#E7DED5',
-                          borderRadius: '10px',
-                          fontSize: '11px',
-                          fontWeight: '600',
-                        }}
+                        content={({ active, payload }: any) =>
+                          active && payload?.length ? (
+                            <div className="rounded-xl border border-[color:var(--crm-border-default)] bg-white px-3 py-2 shadow-lg text-sm">
+                              <span className="font-semibold text-[color:var(--crm-text-primary)]">{payload[0].name}</span>
+                              <span className="text-[color:var(--crm-text-secondary)]"> · {payload[0].value} job(s)</span>
+                            </div>
+                          ) : null
+                        }
                       />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  {/* Center Text */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-lg font-black text-[#211B17] font-mono leading-none">
-                      {activeFloorCount}
-                    </span>
-                    <span className="text-[9px] font-bold text-[#70665F] uppercase tracking-wider mt-0.5">
-                      Units Active
-                    </span>
-                  </div>
+                    )}
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-3xl font-bold text-[color:var(--crm-text-primary)] leading-none">{stageTotal}</span>
+                  <span className="text-xs font-medium text-[color:var(--crm-text-secondary)] mt-1">
+                    {stageTotal === 0 ? 'No active jobs' : stageTotal === 1 ? 'Active job' : 'Active jobs'}
+                  </span>
                 </div>
               </div>
 
-              {/* Stage Legends */}
-              <div className="space-y-1.5 pt-2 border-t border-[#F2ECE4]">
+              <div className="mt-4 space-y-3">
                 {stageDistributionData.map((item, idx) => (
-                  <div key={idx} className="flex items-center justify-between text-xs py-0.5">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
-                      <span className="text-[#3E2723] font-semibold text-[11px] truncate">{item.name}</span>
+                  <div key={idx}>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-2 text-[color:var(--crm-text-primary)] font-medium min-w-0">
+                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+                        <span className="truncate">{item.name}</span>
+                      </span>
+                      <span className="font-semibold text-[color:var(--crm-text-primary)] ml-2 flex-shrink-0">
+                        {item.value}
+                        <span className="text-[color:var(--crm-text-tertiary)] font-normal"> · {item.pct}%</span>
+                      </span>
                     </div>
-                    <span className="font-mono font-bold text-[#211B17] text-[11px] ml-2 flex-shrink-0">
-                      {item.value} ({item.pct}%)
-                    </span>
+                    <div className="h-1.5 rounded-full bg-[color:var(--crm-surface-subtle)] mt-1.5 overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${item.pct}%`, backgroundColor: item.color }} />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1058,67 +1002,67 @@ export default function DashboardPage() {
           </div>
 
           {/* D. DEPARTMENT OPERATIONAL TICKER STRIP */}
-          <div className="bg-gradient-to-r from-[#FAF3EA] via-[#F8EDE0] to-[#F1DFC9] border border-[#E9DFD3] rounded-2xl p-4 shadow-2xs">
+          <div className="bg-gradient-to-r from-[color:var(--crm-brand-50)] via-[#EDF1FA] to-[#E3EAF8] border border-[#D4DAE8] rounded-2xl p-4 shadow-2xs">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <Flame className="w-4 h-4 text-amber-700" />
-                <span className="text-xs font-bold uppercase tracking-wider text-[#3E2723]">
+                <Flame className="w-4 h-4 text-crm-brand-600" />
+                <span className="text-xs font-bold uppercase tracking-wider text-[color:var(--crm-text-primary)]">
                   Department Velocity Pipeline:
                 </span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 flex-1 md:max-w-4xl text-xs">
-                <Link href="/crm/enquiries" className="bg-white/80 hover:bg-white p-2 rounded-xl border border-[#E7DED5] transition flex items-center justify-between">
+                <Link href="/crm/enquiries" className="bg-white/80 hover:bg-white p-2 rounded-xl border border-[color:var(--crm-border-default)] transition flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] text-[#70665F] block">1. Commercial</span>
-                    <strong className="text-[11px] text-[#211B17]">Active Leads</strong>
+                    <span className="text-[10px] text-[color:var(--crm-text-secondary)] block">1. Commercial</span>
+                    <strong className="text-[11px] text-[color:var(--crm-text-primary)]">Active Leads</strong>
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-[#8D827A]" />
+                  <ChevronRight className="w-3.5 h-3.5 text-[color:var(--crm-text-tertiary)]" />
                 </Link>
-                <Link href="/designer/bom" className="bg-white/80 hover:bg-white p-2 rounded-xl border border-[#E7DED5] transition flex items-center justify-between">
+                <Link href="/designer/bom" className="bg-white/80 hover:bg-white p-2 rounded-xl border border-[color:var(--crm-border-default)] transition flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] text-[#70665F] block">2. Engineering</span>
-                    <strong className="text-[11px] text-[#211B17]">CAD & BOMs</strong>
+                    <span className="text-[10px] text-[color:var(--crm-text-secondary)] block">2. Engineering</span>
+                    <strong className="text-[11px] text-[color:var(--crm-text-primary)]">CAD & BOMs</strong>
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-[#8D827A]" />
+                  <ChevronRight className="w-3.5 h-3.5 text-[color:var(--crm-text-tertiary)]" />
                 </Link>
-                <Link href="/store/stock" prefetch={false} className="bg-white/80 hover:bg-white p-2 rounded-xl border border-[#E7DED5] transition flex items-center justify-between">
+                <Link href="/store/stock" prefetch={false} className="bg-white/80 hover:bg-white p-2 rounded-xl border border-[color:var(--crm-border-default)] transition flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] text-[#70665F] block">3. Materials</span>
-                    <strong className="text-[11px] text-[#211B17]">Stock Matrix</strong>
+                    <span className="text-[10px] text-[color:var(--crm-text-secondary)] block">3. Materials</span>
+                    <strong className="text-[11px] text-[color:var(--crm-text-primary)]">Stock Matrix</strong>
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-[#8D827A]" />
+                  <ChevronRight className="w-3.5 h-3.5 text-[color:var(--crm-text-tertiary)]" />
                 </Link>
-                <Link href="/production/planning" className="bg-white/80 hover:bg-white p-2 rounded-xl border border-[#E7DED5] transition flex items-center justify-between">
+                <Link href="/production/planning" className="bg-white/80 hover:bg-white p-2 rounded-xl border border-[color:var(--crm-border-default)] transition flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] text-[#70665F] block">4. Fabrication</span>
-                    <strong className="text-[11px] text-[#211B17]">Shop Bays</strong>
+                    <span className="text-[10px] text-[color:var(--crm-text-secondary)] block">4. Fabrication</span>
+                    <strong className="text-[11px] text-[color:var(--crm-text-primary)]">Shop Bays</strong>
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-[#8D827A]" />
+                  <ChevronRight className="w-3.5 h-3.5 text-[color:var(--crm-text-tertiary)]" />
                 </Link>
-                <Link href="/dispatch/gate-pass" prefetch={false} className="bg-white/80 hover:bg-white p-2 rounded-xl border border-[#E7DED5] transition flex items-center justify-between col-span-2 sm:col-span-1">
+                <Link href="/dispatch/gate-pass" prefetch={false} className="bg-white/80 hover:bg-white p-2 rounded-xl border border-[color:var(--crm-border-default)] transition flex items-center justify-between col-span-2 sm:col-span-1">
                   <div>
-                    <span className="text-[10px] text-[#70665F] block">5. Logistics</span>
-                    <strong className="text-[11px] text-[#211B17]">Gate Passes</strong>
+                    <span className="text-[10px] text-[color:var(--crm-text-secondary)] block">5. Logistics</span>
+                    <strong className="text-[11px] text-[color:var(--crm-text-primary)]">Gate Passes</strong>
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-[#8D827A]" />
+                  <ChevronRight className="w-3.5 h-3.5 text-[color:var(--crm-text-tertiary)]" />
                 </Link>
               </div>
             </div>
           </div>
 
           {/* E. REDESIGNED PRODUCTION STAGE JOBS TABLE */}
-          <div className="bg-white border border-[#E7DED5] rounded-3xl shadow-xs overflow-hidden">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-3xl shadow-xs overflow-hidden">
             {/* Table Control Header */}
-            <div className="p-5 sm:p-6 border-b border-[#E7DED5] space-y-4">
+            <div className="p-5 sm:p-6 border-b border-[color:var(--crm-border-default)] space-y-4">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <h3 className="text-base sm:text-lg font-black text-[#211B17] tracking-tight">
+                    <h3 className="text-base sm:text-lg font-black text-[color:var(--crm-text-primary)] tracking-tight">
                       Production Stage Jobs (Live API Pipeline)
                     </h3>
                   </div>
-                  <p className="text-xs text-[#70665F] mt-0.5">
+                  <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">
                     Real-time synchronization across MTO equipment fabrication milestones
                   </p>
                 </div>
@@ -1126,19 +1070,19 @@ export default function DashboardPage() {
                 {/* Search & Actions */}
                 <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
                   <div className="relative w-full sm:w-72">
-                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8D827A]" />
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--crm-text-tertiary)]" />
                     <input
                       type="text"
                       placeholder="Search Job ID, Customer, Equipment..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-3 py-2 text-xs text-[#211B17] placeholder-[#8D827A] focus:outline-none focus:ring-2 focus:ring-crm-brand-700/20 focus:border-crm-brand-700 transition"
+                      className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl pl-9 pr-3 py-2 text-xs text-[color:var(--crm-text-primary)] placeholder-[color:var(--crm-text-tertiary)] focus:outline-none focus:ring-2 focus:ring-crm-brand-700/20 focus:border-crm-brand-700 transition"
                     />
                     {searchQuery && (
                       <button
                         type="button"
                         onClick={() => setSearchQuery('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-[#8D827A] hover:text-[#211B17] transition"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-[color:var(--crm-text-tertiary)] hover:text-[color:var(--crm-text-primary)] transition"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -1147,7 +1091,7 @@ export default function DashboardPage() {
 
                   <Link
                     href="/integration/traceability"
-                    className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#FAF7F2] border border-[#D5CAC0] text-[#4A3B32] text-xs font-bold transition shadow-2xs flex items-center gap-1.5 flex-shrink-0"
+                    className="px-3.5 py-2 rounded-xl bg-white hover:bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-strong)] text-[color:var(--crm-text-primary)] text-xs font-bold transition shadow-2xs flex items-center gap-1.5 flex-shrink-0"
                   >
                     <Layers className="w-3.5 h-3.5 text-crm-brand-700" />
                     <span>360° Matrix</span>
@@ -1170,15 +1114,15 @@ export default function DashboardPage() {
                     className={cn(
                       'px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer border',
                       stageFilter === tab.id
-                        ? 'bg-[#75401F] text-white border-[#75401F] shadow-xs'
-                        : 'bg-[#FAF7F2] text-[#6E5D53] border-[#EBE3DB] hover:bg-[#F3ECE4] hover:text-[#211B17]'
+                        ? 'bg-[color:var(--crm-brand-700)] text-white border-[color:var(--crm-brand-700)] shadow-xs'
+                        : 'bg-[color:var(--crm-bg-app)] text-[#4B5876] border-[color:var(--crm-border-default)] hover:bg-[color:var(--crm-surface-subtle)] hover:text-[color:var(--crm-text-primary)]'
                     )}
                   >
                     <span>{tab.label}</span>
                     <span
                       className={cn(
                         'px-1.5 py-0.2 rounded-md text-[10px] font-mono font-bold',
-                        stageFilter === tab.id ? 'bg-white/20 text-white' : 'bg-white text-[#70665F] border border-[#E0D7CC]'
+                        stageFilter === tab.id ? 'bg-white/20 text-white' : 'bg-white text-[color:var(--crm-text-secondary)] border border-[#CDD2DF]'
                       )}
                     >
                       {tab.count}
@@ -1191,7 +1135,7 @@ export default function DashboardPage() {
             {/* Table Body */}
             <div className="overflow-x-auto w-full">
               <table className="min-w-full w-full text-left text-xs whitespace-nowrap">
-                <thead className="bg-[#FAF7F2] text-[#70665F] font-bold border-b border-[#EBE3DB] uppercase tracking-wider text-[10px] font-mono whitespace-nowrap">
+                <thead className="bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] font-bold border-b border-[color:var(--crm-border-default)] uppercase tracking-wider text-[10px] font-mono whitespace-nowrap">
                   <tr>
                     <th className="py-3 px-4 whitespace-nowrap">Job ID</th>
                     <th className="py-3 px-4 whitespace-nowrap">Customer & PO Reference</th>
@@ -1203,15 +1147,15 @@ export default function DashboardPage() {
                     <th className="py-3 px-4 text-right whitespace-nowrap">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#F2ECE4] whitespace-nowrap">
+                <tbody className="divide-y divide-[color:var(--crm-surface-subtle)] whitespace-nowrap">
                   {filteredJobs.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="py-12 text-center text-[#70665F]">
-                        <div className="w-12 h-12 rounded-2xl bg-[#FAF7F2] border border-[#E7DED5] flex items-center justify-center mx-auto mb-3 text-[#8D827A]">
+                      <td colSpan={8} className="py-12 text-center text-[color:var(--crm-text-secondary)]">
+                        <div className="w-12 h-12 rounded-2xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] flex items-center justify-center mx-auto mb-3 text-[color:var(--crm-text-tertiary)]">
                           <Box className="w-6 h-6" />
                         </div>
-                        <div className="font-bold text-sm text-[#211B17]">No active jobs found</div>
-                        <p className="text-xs text-[#8D827A] mt-1">
+                        <div className="font-bold text-sm text-[color:var(--crm-text-primary)]">No active jobs found</div>
+                        <p className="text-xs text-[color:var(--crm-text-tertiary)] mt-1">
                           No fabrication jobs match the stage filter &quot;{stageFilter}&quot; or search query.
                         </p>
                         <button
@@ -1219,7 +1163,7 @@ export default function DashboardPage() {
                             setStageFilter('All');
                             setSearchQuery('');
                           }}
-                          className="mt-3 px-3 py-1.5 bg-[#FAF7F2] hover:bg-white border border-[#D5CAC0] rounded-lg text-xs font-bold text-[#4A3B32] transition"
+                          className="mt-3 px-3 py-1.5 bg-[color:var(--crm-bg-app)] hover:bg-white border border-[color:var(--crm-border-strong)] rounded-lg text-xs font-bold text-[color:var(--crm-text-primary)] transition"
                         >
                           Clear Filters
                         </button>
@@ -1229,7 +1173,7 @@ export default function DashboardPage() {
                     filteredJobs.map((job) => (
                       <tr
                         key={job.id}
-                        className="hover:bg-[#FAF7F2]/80 transition-colors group"
+                        className="hover:bg-[#F4F6FA]/80 transition-colors group"
                       >
                         <td className="py-3.5 px-4 whitespace-nowrap">
                           <button
@@ -1239,37 +1183,37 @@ export default function DashboardPage() {
                             <span>{job.id}</span>
                             <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                           </button>
-                          <span className="text-[10px] text-[#8C7A6F] font-mono block whitespace-nowrap">MTO Machine</span>
+                          <span className="text-[10px] text-[color:var(--crm-text-tertiary)] font-mono block whitespace-nowrap">MTO Machine</span>
                         </td>
                         <td className="py-3.5 px-4 whitespace-nowrap">
-                          <div className="font-bold text-[#211B17] whitespace-nowrap">{job.customer}</div>
-                          <div className="text-[10px] text-[#70665F] font-mono mt-0.5 inline-block px-1.5 py-0.5 rounded bg-[#FAF7F2] border border-[#EBE3DB] whitespace-nowrap">
+                          <div className="font-bold text-[color:var(--crm-text-primary)] whitespace-nowrap">{job.customer}</div>
+                          <div className="text-[10px] text-[color:var(--crm-text-secondary)] font-mono mt-0.5 inline-block px-1.5 py-0.5 rounded bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] whitespace-nowrap">
                             {job.poRef}
                           </div>
                         </td>
                         <td className="py-3.5 px-4 whitespace-nowrap">
-                          <div className="font-medium text-[#211B17] flex items-center gap-1.5 whitespace-nowrap">
-                            <Box className="w-3.5 h-3.5 text-amber-700 flex-shrink-0" />
+                          <div className="font-medium text-[color:var(--crm-text-primary)] flex items-center gap-1.5 whitespace-nowrap">
+                            <Box className="w-3.5 h-3.5 text-crm-brand-600 flex-shrink-0" />
                             <span>{job.equipment}</span>
                           </div>
                         </td>
-                        <td className="py-3.5 px-4 font-mono font-bold text-[#211B17] text-xs whitespace-nowrap">
+                        <td className="py-3.5 px-4 font-mono font-bold text-[color:var(--crm-text-primary)] text-xs whitespace-nowrap">
                           {job.value}
                         </td>
                         <td className="py-3.5 px-4 whitespace-nowrap">
-                          <div className="flex items-center gap-1.5 text-[#544B45] font-medium text-xs whitespace-nowrap">
-                            <Calendar className="w-3.5 h-3.5 text-[#8D827A]" />
+                          <div className="flex items-center gap-1.5 text-[color:var(--crm-text-secondary)] font-medium text-xs whitespace-nowrap">
+                            <Calendar className="w-3.5 h-3.5 text-[color:var(--crm-text-tertiary)]" />
                             <span>{job.dispatch}</span>
                           </div>
                         </td>
                         <td className="py-3.5 px-4 whitespace-nowrap min-w-[150px]">
-                          <div className="flex items-center justify-between text-[10px] font-mono text-[#70665F] mb-1 whitespace-nowrap">
+                          <div className="flex items-center justify-between text-[10px] font-mono text-[color:var(--crm-text-secondary)] mb-1 whitespace-nowrap">
                             <span>Stage Completed</span>
-                            <span className="font-bold text-[#211B17]">{job.progress}%</span>
+                            <span className="font-bold text-[color:var(--crm-text-primary)]">{job.progress}%</span>
                           </div>
-                          <div className="w-full bg-[#EAE2D8] rounded-full h-1.5 overflow-hidden">
+                          <div className="w-full bg-[#D8DDEA] rounded-full h-1.5 overflow-hidden">
                             <div
-                              className="bg-gradient-to-r from-amber-500 via-sky-500 to-emerald-500 h-1.5 rounded-full transition-all duration-300"
+                              className="bg-gradient-to-r from-crm-brand-500 via-sky-500 to-emerald-500 h-1.5 rounded-full transition-all duration-300"
                               style={{ width: `${job.progress}%` }}
                             />
                           </div>
@@ -1288,7 +1232,7 @@ export default function DashboardPage() {
                         <td className="py-3.5 px-4 text-right whitespace-nowrap">
                           <button
                             onClick={() => handleOpenTraceability(job)}
-                            className="px-2.5 py-1 rounded-lg bg-white hover:bg-crm-brand-50 border border-[#E0D7CC] text-crm-brand-700 hover:text-crm-brand-800 text-[11px] font-bold transition shadow-2xs inline-flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1 rounded-lg bg-white hover:bg-crm-brand-50 border border-[#CDD2DF] text-crm-brand-700 hover:text-crm-brand-800 text-[11px] font-bold transition shadow-2xs inline-flex items-center gap-1 cursor-pointer"
                           >
                             <Eye className="w-3 h-3" />
                             <span>360° Trace</span>
@@ -1302,12 +1246,12 @@ export default function DashboardPage() {
             </div>
 
             {/* Table Footer with Summary Stats */}
-            <div className="p-4 bg-[#FAF7F2] border-t border-[#EBE3DB] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#70665F]">
+            <div className="p-4 bg-[color:var(--crm-bg-app)] border-t border-[color:var(--crm-border-default)] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[color:var(--crm-text-secondary)]">
               <div className="flex items-center gap-2">
                 <span>Showing <strong>{filteredJobs.length}</strong> of <strong>{jobsData.length}</strong> active jobs in pipeline</span>
               </div>
               <div className="flex items-center gap-4 font-mono text-[11px]">
-                <span>Total Filtered Value: <strong className="text-[#211B17]">₹ {filteredJobs.reduce((sum, j) => sum + j.numericValue, 0).toLocaleString('en-IN')}</strong></span>
+                <span>Total Filtered Value: <strong className="text-[color:var(--crm-text-primary)]">₹ {filteredJobs.reduce((sum, j) => sum + j.numericValue, 0).toLocaleString('en-IN')}</strong></span>
                 <Link
                   href="/projects/planning"
                   className="text-crm-brand-700 hover:underline font-bold inline-flex items-center gap-1"
@@ -1324,11 +1268,11 @@ export default function DashboardPage() {
         /* ========================================================================= */
         <div className="space-y-4 md:space-y-6">
           {/* Welcome Banner & Identity Card */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#FAF3EA] via-[#F8EDE0] to-[#F1DFC9] border border-[#E9DFD3] p-6 sm:p-7 shadow-xs">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[color:var(--crm-brand-50)] via-[#EDF1FA] to-[#E3EAF8] border border-[#D4DAE8] p-6 sm:p-7 shadow-xs">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5 relative z-10">
               <div className="space-y-2 max-w-2xl">
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-extrabold text-[#9C6538] tracking-widest uppercase font-mono">
+                  <span className="text-[11px] font-extrabold text-[color:var(--crm-brand-600)] tracking-widest uppercase font-mono">
                     {currentUser?.departmentName || currentUser?.department || 'Department Staff'}
                   </span>
                   <span className="px-2.5 py-0.5 rounded-full bg-crm-brand-100 text-crm-brand-800 text-[10px] font-bold border border-crm-brand-200">
@@ -1339,20 +1283,20 @@ export default function DashboardPage() {
                       : 'EMPLOYEE'}
                   </span>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#211B17] tracking-tight leading-snug">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight leading-snug">
                   {greeting}, {currentUser?.firstName || currentUser?.name || 'Team Member'}!
                 </h1>
-                <p className="text-xs text-[#6F6156] leading-relaxed">
-                  Designation: <span className="font-semibold text-[#211B17]">{currentUser?.designation || currentUser?.roleName || 'Staff Member'}</span> • Location: <span className="font-semibold text-[#211B17]">{currentUser?.workLocation || 'Main Plant & Works'}</span> • ID: <span className="font-mono font-bold text-crm-brand-700">{currentUser?.id || 'EMP-101'}</span>
+                <p className="text-xs text-[#4D5A78] leading-relaxed">
+                  Designation: <span className="font-semibold text-[color:var(--crm-text-primary)]">{currentUser?.designation || currentUser?.roleName || 'Staff Member'}</span> • Location: <span className="font-semibold text-[color:var(--crm-text-primary)]">{currentUser?.workLocation || 'Main Plant & Works'}</span> • ID: <span className="font-mono font-bold text-crm-brand-700">{currentUser?.id || 'EMP-101'}</span>
                 </p>
               </div>
 
               {/* Live Digital Clock Widget */}
-              <div className="bg-white/90 backdrop-blur-md border border-[#E7DED5] rounded-2xl px-5 py-3.5 shadow-xs text-right min-w-[210px]">
-                <div className="text-[11px] font-bold text-[#8C7A6F] uppercase tracking-wider">
+              <div className="bg-white/90 backdrop-blur-md border border-[color:var(--crm-border-default)] rounded-2xl px-5 py-3.5 shadow-xs text-right min-w-[210px]">
+                <div className="text-[11px] font-bold text-[color:var(--crm-text-tertiary)] uppercase tracking-wider">
                   {todayFormatted}
                 </div>
-                <div className="text-2xl sm:text-3xl font-black text-[#211B17] font-mono tracking-tight mt-0.5">
+                <div className="text-2xl sm:text-3xl font-black text-[color:var(--crm-text-primary)] font-mono tracking-tight mt-0.5">
                   {currentTime || '09:00:00 AM'}
                 </div>
                 <div className="text-[10px] font-semibold text-emerald-700 flex items-center justify-end gap-1.5 mt-1">
@@ -1387,16 +1331,16 @@ export default function DashboardPage() {
           {/* Interactive Attendance & Leave Center */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Widget 1: Live Web Punch */}
-            <div className="bg-white border border-[#E7DED5] rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+            <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-5 shadow-xs flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between pb-3 border-b border-[#F2ECE4]">
+                <div className="flex items-center justify-between pb-3 border-b border-[color:var(--crm-surface-subtle)]">
                   <div className="flex items-center gap-2.5">
                     <div className="w-9 h-9 rounded-xl bg-crm-brand-50 text-crm-brand-700 border border-crm-brand-200/60 flex items-center justify-center font-bold">
                       <Clock className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-xs font-bold text-[#211B17]">Daily Web Punch</h3>
-                      <p className="text-[10px] text-[#8C7A6F]">Shift: 09:00 AM - 06:00 PM</p>
+                      <h3 className="text-xs font-bold text-[color:var(--crm-text-primary)]">Daily Web Punch</h3>
+                      <p className="text-[10px] text-[color:var(--crm-text-tertiary)]">Shift: 09:00 AM - 06:00 PM</p>
                     </div>
                   </div>
                   <span
@@ -1418,15 +1362,15 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 my-4">
-                  <div className="bg-[#FAF7F2] p-3 rounded-xl border border-[#EBE3DB]">
-                    <span className="text-[10px] text-[#8C7A6F] block font-medium">In Time</span>
-                    <span className="text-sm font-bold font-mono text-[#211B17]">
+                  <div className="bg-[color:var(--crm-bg-app)] p-3 rounded-xl border border-[color:var(--crm-border-default)]">
+                    <span className="text-[10px] text-[color:var(--crm-text-tertiary)] block font-medium">In Time</span>
+                    <span className="text-sm font-bold font-mono text-[color:var(--crm-text-primary)]">
                       {todayAttendance?.checkIn || '--:--'}
                     </span>
                   </div>
-                  <div className="bg-[#FAF7F2] p-3 rounded-xl border border-[#EBE3DB]">
-                    <span className="text-[10px] text-[#8C7A6F] block font-medium">Out Time</span>
-                    <span className="text-sm font-bold font-mono text-[#211B17]">
+                  <div className="bg-[color:var(--crm-bg-app)] p-3 rounded-xl border border-[color:var(--crm-border-default)]">
+                    <span className="text-[10px] text-[color:var(--crm-text-tertiary)] block font-medium">Out Time</span>
+                    <span className="text-sm font-bold font-mono text-[color:var(--crm-text-primary)]">
                       {todayAttendance?.checkOut || '--:--'}
                     </span>
                   </div>
@@ -1470,38 +1414,38 @@ export default function DashboardPage() {
             </div>
 
             {/* Widget 2: Monthly Attendance & Hours */}
-            <div className="bg-white border border-[#E7DED5] rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+            <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-5 shadow-xs flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between pb-3 border-b border-[#F2ECE4]">
+                <div className="flex items-center justify-between pb-3 border-b border-[color:var(--crm-surface-subtle)]">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 border border-amber-200/60 flex items-center justify-center font-bold">
+                    <div className="w-9 h-9 rounded-xl bg-crm-brand-50 text-crm-brand-700 border border-crm-brand-100 flex items-center justify-center font-bold">
                       <Calendar className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-xs font-bold text-[#211B17]">Monthly Attendance</h3>
-                      <p className="text-[10px] text-[#8C7A6F]">{dashboardData?.monthlySummary?.month || 'Current Month'}</p>
+                      <h3 className="text-xs font-bold text-[color:var(--crm-text-primary)]">Monthly Attendance</h3>
+                      <p className="text-[10px] text-[color:var(--crm-text-tertiary)]">{dashboardData?.monthlySummary?.month || 'Current Month'}</p>
                     </div>
                   </div>
-                  <span className="text-xs font-mono font-bold text-[#211B17] bg-[#FAF7F2] px-2 py-0.5 rounded border border-[#EBE3DB]">
+                  <span className="text-xs font-mono font-bold text-[color:var(--crm-text-primary)] bg-[color:var(--crm-bg-app)] px-2 py-0.5 rounded border border-[color:var(--crm-border-default)]">
                     {dashboardData?.monthlySummary?.attendanceRate ? `${dashboardData.monthlySummary.attendanceRate}%` : '100% Rate'}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2.5 my-4">
-                  <div className="bg-[#FAF7F2] p-2.5 rounded-xl border border-[#EBE3DB] text-center">
-                    <span className="text-[10px] text-[#8C7A6F] block">Present</span>
+                  <div className="bg-[color:var(--crm-bg-app)] p-2.5 rounded-xl border border-[color:var(--crm-border-default)] text-center">
+                    <span className="text-[10px] text-[color:var(--crm-text-tertiary)] block">Present</span>
                     <span className="text-sm font-black text-emerald-700 font-mono">
                       {dashboardData?.monthlySummary?.presentDays !== undefined ? `${dashboardData.monthlySummary.presentDays}d` : '0 Days'}
                     </span>
                   </div>
-                  <div className="bg-[#FAF7F2] p-2.5 rounded-xl border border-[#EBE3DB] text-center">
-                    <span className="text-[10px] text-[#8C7A6F] block">Late</span>
+                  <div className="bg-[color:var(--crm-bg-app)] p-2.5 rounded-xl border border-[color:var(--crm-border-default)] text-center">
+                    <span className="text-[10px] text-[color:var(--crm-text-tertiary)] block">Late</span>
                     <span className="text-sm font-black text-amber-700 font-mono">
                       {dashboardData?.monthlySummary?.lateDays !== undefined ? `${dashboardData.monthlySummary.lateDays}d` : '0 Days'}
                     </span>
                   </div>
-                  <div className="bg-[#FAF7F2] p-2.5 rounded-xl border border-[#EBE3DB] text-center">
-                    <span className="text-[10px] text-[#8C7A6F] block">Total Hours</span>
+                  <div className="bg-[color:var(--crm-bg-app)] p-2.5 rounded-xl border border-[color:var(--crm-border-default)] text-center">
+                    <span className="text-[10px] text-[color:var(--crm-text-tertiary)] block">Total Hours</span>
                     <span className="text-sm font-black text-crm-brand-700 font-mono">
                       {dashboardData?.monthlySummary?.totalHours !== undefined ? `${dashboardData.monthlySummary.totalHours}h` : '0.0h'}
                     </span>
@@ -1509,8 +1453,8 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-[#F2ECE4] flex items-center justify-between text-xs">
-                <span className="text-[#8C7A6F]">Total Working Days: 26</span>
+              <div className="pt-2 border-t border-[color:var(--crm-surface-subtle)] flex items-center justify-between text-xs">
+                <span className="text-[color:var(--crm-text-tertiary)]">Total Working Days: 26</span>
                 <Link href="/hr/regularization" className="text-crm-brand-700 font-bold hover:underline">
                   Regularize Punch
                 </Link>
@@ -1518,16 +1462,16 @@ export default function DashboardPage() {
             </div>
 
             {/* Widget 3: Leave Balances & Fast Apply */}
-            <div className="bg-white border border-[#E7DED5] rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+            <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-5 shadow-xs flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between pb-3 border-b border-[#F2ECE4]">
+                <div className="flex items-center justify-between pb-3 border-b border-[color:var(--crm-surface-subtle)]">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/60 flex items-center justify-center font-bold">
+                    <div className="w-9 h-9 rounded-xl bg-crm-brand-50 text-crm-brand-700 border border-crm-brand-100 flex items-center justify-center font-bold">
                       <Sparkles className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-xs font-bold text-[#211B17]">Leave Balances</h3>
-                      <p className="text-[10px] text-[#8C7A6F]">Annual Entitlement FY 26-27</p>
+                      <h3 className="text-xs font-bold text-[color:var(--crm-text-primary)]">Leave Balances</h3>
+                      <p className="text-[10px] text-[color:var(--crm-text-tertiary)]">Annual Entitlement FY 26-27</p>
                     </div>
                   </div>
                   <Link
@@ -1547,9 +1491,9 @@ export default function DashboardPage() {
                         { leaveCode: 'EL', leaveName: 'Earned', availableBalance: 18 },
                       ]
                   ).map((b: any, idx: number) => (
-                    <div key={b.id || idx} className="bg-[#FAF7F2] p-2.5 rounded-xl border border-[#EBE3DB] text-center">
-                      <span className="text-[10px] text-[#8C7A6F] block truncate">{b.leaveCode || b.leave_code}</span>
-                      <span className="text-sm font-black text-[#211B17] font-mono">
+                    <div key={b.id || idx} className="bg-[color:var(--crm-bg-app)] p-2.5 rounded-xl border border-[color:var(--crm-border-default)] text-center">
+                      <span className="text-[10px] text-[color:var(--crm-text-tertiary)] block truncate">{b.leaveCode || b.leave_code}</span>
+                      <span className="text-sm font-black text-[color:var(--crm-text-primary)] font-mono">
                         {b.availableBalance !== undefined ? b.availableBalance : b.available_balance} Left
                       </span>
                     </div>
@@ -1557,8 +1501,8 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-[#F2ECE4] flex items-center justify-between text-xs">
-                <span className="text-[#8C7A6F]">
+              <div className="pt-2 border-t border-[color:var(--crm-surface-subtle)] flex items-center justify-between text-xs">
+                <span className="text-[color:var(--crm-text-tertiary)]">
                   Pending Approval: {dashboardData?.pendingLeaves ? dashboardData.pendingLeaves.length : 0}
                 </span>
                 <Link href="/hr/leaves" className="text-crm-brand-700 font-bold hover:underline">
@@ -1569,14 +1513,14 @@ export default function DashboardPage() {
           </div>
 
           {/* Assigned Department Tasks & Workflow Items */}
-          <div className="bg-white border border-[#E7DED5] rounded-3xl p-5 sm:p-6 shadow-xs">
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-[#F2ECE4]">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-3xl p-5 sm:p-6 shadow-xs">
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-[color:var(--crm-surface-subtle)]">
               <div>
-                <h2 className="text-sm sm:text-base font-bold text-[#211B17] flex items-center gap-2">
+                <h2 className="text-sm sm:text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                   <CheckSquare className="w-4 h-4 text-crm-brand-700" />
                   My Assigned Tasks & Action Items
                 </h2>
-                <p className="text-xs text-[#8C7A6F]">
+                <p className="text-xs text-[color:var(--crm-text-tertiary)]">
                   Department responsibilities assigned to you from live ERP projects
                 </p>
               </div>
@@ -1589,9 +1533,9 @@ export default function DashboardPage() {
             </div>
 
             {myAssignedTasks.length === 0 ? (
-              <div className="py-10 text-center text-xs text-[#8C7A6F] bg-[#FAF7F2] rounded-2xl border border-[#EBE3DB]">
+              <div className="py-10 text-center text-xs text-[color:var(--crm-text-tertiary)] bg-[color:var(--crm-bg-app)] rounded-2xl border border-[color:var(--crm-border-default)]">
                 <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
-                <div className="font-bold text-[#211B17]">All caught up! No pending tasks assigned.</div>
+                <div className="font-bold text-[color:var(--crm-text-primary)]">All caught up! No pending tasks assigned.</div>
                 <p className="text-[11px] mt-0.5">
                   Tasks assigned to your profile by your manager will show up here automatically.
                 </p>
@@ -1601,11 +1545,11 @@ export default function DashboardPage() {
                 {myAssignedTasks.map((t: any) => (
                   <div
                     key={t.id}
-                    className="p-4 rounded-2xl border border-[#E7DED5] bg-[#FAF7F2]/60 hover:bg-white transition-all flex flex-col justify-between gap-3 shadow-2xs"
+                    className="p-4 rounded-2xl border border-[color:var(--crm-border-default)] bg-[#F4F6FA]/60 hover:bg-white transition-all flex flex-col justify-between gap-3 shadow-2xs"
                   >
                     <div>
                       <div className="flex items-center justify-between gap-2 mb-1.5">
-                        <span className="text-[10px] font-mono font-bold text-[#9C6538] uppercase">
+                        <span className="text-[10px] font-mono font-bold text-[color:var(--crm-brand-600)] uppercase">
                           {t.projectNumber || 'JOB-TASK'}
                         </span>
                         <span
@@ -1621,20 +1565,20 @@ export default function DashboardPage() {
                           {t.priority || 'NORMAL'}
                         </span>
                       </div>
-                      <h4 className="text-xs font-bold text-[#211B17] line-clamp-1">
+                      <h4 className="text-xs font-bold text-[color:var(--crm-text-primary)] line-clamp-1">
                         {t.taskName || t.title}
                       </h4>
-                      <p className="text-[10px] text-[#70665F] mt-0.5 line-clamp-2">
+                      <p className="text-[10px] text-[color:var(--crm-text-secondary)] mt-0.5 line-clamp-2">
                         {t.description || 'Execution in progress per department milestone requirements.'}
                       </p>
                     </div>
 
-                    <div className="space-y-2 pt-2 border-t border-[#EBE3DB]">
-                      <div className="flex items-center justify-between text-[10px] text-[#70665F]">
-                        <span>Due: <strong className="text-[#211B17]">{t.dueDate || 'TBD'}</strong></span>
-                        <span className="font-mono font-bold text-[#211B17]">{t.progressPercent || 0}%</span>
+                    <div className="space-y-2 pt-2 border-t border-[color:var(--crm-border-default)]">
+                      <div className="flex items-center justify-between text-[10px] text-[color:var(--crm-text-secondary)]">
+                        <span>Due: <strong className="text-[color:var(--crm-text-primary)]">{t.dueDate || 'TBD'}</strong></span>
+                        <span className="font-mono font-bold text-[color:var(--crm-text-primary)]">{t.progressPercent || 0}%</span>
                       </div>
-                      <div className="w-full bg-[#E5DDD0] h-1.5 rounded-full overflow-hidden">
+                      <div className="w-full bg-[#D0D6E5] h-1.5 rounded-full overflow-hidden">
                         <div
                           className="bg-crm-brand-700 h-1.5 rounded-full transition-all"
                           style={{ width: `${t.progressPercent || 0}%` }}
@@ -1649,7 +1593,7 @@ export default function DashboardPage() {
                               key={pct}
                               disabled={updatingTaskId === t.id}
                               onClick={() => handleUpdateTaskProgress(t.id, pct)}
-                              className="px-2 py-0.5 text-[9px] font-bold rounded bg-white hover:bg-slate-100 border border-[#E0D7CC] text-[#544B45] cursor-pointer"
+                              className="px-2 py-0.5 text-[9px] font-bold rounded bg-white hover:bg-slate-100 border border-[#CDD2DF] text-[color:var(--crm-text-secondary)] cursor-pointer"
                             >
                               {pct}%
                             </button>
@@ -1671,8 +1615,8 @@ export default function DashboardPage() {
           </div>
 
           {/* Department Quick Launch Center */}
-          <div className="bg-white border border-[#E7DED5] rounded-3xl p-5 sm:p-6 shadow-xs">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-[#70665F] mb-3 flex items-center gap-2">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-3xl p-5 sm:p-6 shadow-xs">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[color:var(--crm-text-secondary)] mb-3 flex items-center gap-2">
               <Zap className="w-4 h-4 text-crm-brand-700" />
               Authorized Module Shortcuts & Quick Actions
             </h2>
@@ -1691,7 +1635,7 @@ export default function DashboardPage() {
                 <Link
                   key={sc.module || idx}
                   href={sc.href}
-                  className="p-3.5 rounded-2xl bg-[#FAF7F2] hover:bg-[#F3ECE4] border border-[#EBE3DB] text-center transition group shadow-2xs"
+                  className="p-3.5 rounded-2xl bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-surface-subtle)] border border-[color:var(--crm-border-default)] text-center transition group shadow-2xs"
                 >
                   <div className="w-10 h-10 mx-auto rounded-xl bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center font-bold mb-2 group-hover:scale-105 transition-transform">
                     {sc.icon === 'Play' ? <Play className="w-4 h-4" /> :
@@ -1703,8 +1647,8 @@ export default function DashboardPage() {
                      sc.icon === 'Landmark' ? <Landmark className="w-4 h-4" /> :
                      <Factory className="w-4 h-4" />}
                   </div>
-                  <div className="text-xs font-bold text-[#211B17] truncate">{sc.label}</div>
-                  <div className="text-[10px] text-[#8C7A6F] capitalize">{sc.module}</div>
+                  <div className="text-xs font-bold text-[color:var(--crm-text-primary)] truncate">{sc.label}</div>
+                  <div className="text-[10px] text-[color:var(--crm-text-tertiary)] capitalize">{sc.module}</div>
                 </Link>
               ))}
             </div>

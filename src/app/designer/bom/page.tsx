@@ -869,7 +869,7 @@ export default function MasterBOMPage() {
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px] border border-amber-300">
-              <Clock className="w-3 h-3 text-amber-600" />
+              <Clock className="w-3 h-3 text-crm-brand-600" />
               <span>DRAFT</span>
             </span>
           )}
@@ -908,7 +908,7 @@ export default function MasterBOMPage() {
 
   if (!mounted) {
     return (
-      <div className="p-8 text-center text-sm font-semibold text-[#70665F]">
+      <div className="p-8 text-center text-sm font-semibold text-[color:var(--crm-text-secondary)]">
         Loading Master Bill of Materials (BOM)...
       </div>
     );
@@ -919,19 +919,19 @@ export default function MasterBOMPage() {
       {/* ======================================================================= */}
       {/* 1. TOP HEADER & NAVIGATION BAR                                           */}
       {/* ======================================================================= */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-[#EBE3DB]">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-[color:var(--crm-border-default)]">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 font-mono text-[10px] font-bold">
               MODULE 3.8
             </span>
-            <span className="text-xs text-[#70665F] font-bold">Designer & Engineering</span>
+            <span className="text-xs text-[color:var(--crm-text-secondary)] font-bold">Designer & Engineering</span>
           </div>
-          <h1 className="text-2xl font-black text-[#211B17] tracking-tight flex items-center gap-2.5">
-            <FileSpreadsheet className="w-7 h-7 text-amber-600" />
+          <h1 className="text-2xl font-black text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2.5">
+            <FileSpreadsheet className="w-7 h-7 text-crm-brand-600" />
             <span>Master Bill of Materials (BOM)</span>
           </h1>
-          <p className="text-xs text-[#70665F] mt-0.5">
+          <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">
             Project-Centric Material Specifications, Part Hierarchy & Production Procurement Routing
           </p>
         </div>
@@ -939,16 +939,16 @@ export default function MasterBOMPage() {
         {/* View Switcher & Primary Action Buttons */}
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Toggle between Projects Directory and BOM Items View */}
-          <div className="flex items-center bg-[#FAF7F2] p-1 rounded-xl border border-[#EBE3DB]">
+          <div className="flex items-center bg-[color:var(--crm-bg-app)] p-1 rounded-xl border border-[color:var(--crm-border-default)]">
             <button
               onClick={() => setViewMode('projects')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                 viewMode === 'projects'
-                  ? 'bg-white text-[#211B17] shadow-xs border border-[#EBE3DB]'
-                  : 'text-[#70665F] hover:text-[#211B17]'
+                  ? 'bg-white text-[color:var(--crm-text-primary)] shadow-xs border border-[color:var(--crm-border-default)]'
+                  : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]'
               }`}
             >
-              <FolderKanban className="w-3.5 h-3.5 text-amber-600" />
+              <FolderKanban className="w-3.5 h-3.5 text-crm-brand-600" />
               <span>Projects Directory ({projectsWithBOM.length})</span>
             </button>
 
@@ -957,11 +957,11 @@ export default function MasterBOMPage() {
                 onClick={() => setViewMode('detail')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                   viewMode === 'detail'
-                    ? 'bg-white text-[#211B17] shadow-xs border border-[#EBE3DB]'
-                    : 'text-[#70665F] hover:text-[#211B17]'
+                    ? 'bg-white text-[color:var(--crm-text-primary)] shadow-xs border border-[color:var(--crm-border-default)]'
+                    : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]'
                 }`}
               >
-                <Layers className="w-3.5 h-3.5 text-amber-600" />
+                <Layers className="w-3.5 h-3.5 text-crm-brand-600" />
                 <span>BOM Items ({activeBOM.items?.length || 0})</span>
               </button>
             )}
@@ -970,7 +970,7 @@ export default function MasterBOMPage() {
           {/* Create New Project BOM Button */}
           <button
             onClick={() => handleOpenCreateModal()}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:brightness-110 text-white text-xs font-bold shadow-md shadow-amber-600/25 transition cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-crm-brand-700 to-crm-brand-700 hover:brightness-110 text-white text-xs font-bold shadow-md shadow-amber-600/25 transition cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Create New Project BOM</span>
@@ -981,7 +981,7 @@ export default function MasterBOMPage() {
             <button
               onClick={() => exportBOMToExcel(activeBOM, activeProject)}
               title="Download Master BOM as formatted Excel/CSV file"
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-[#FAF7F2] text-emerald-800 border border-emerald-300 text-xs font-bold transition shadow-xs cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-[color:var(--crm-bg-app)] text-emerald-800 border border-emerald-300 text-xs font-bold transition shadow-xs cursor-pointer"
             >
               <Download className="w-4 h-4 text-emerald-600" />
               <span>Export BOM Excel</span>
@@ -1056,15 +1056,15 @@ export default function MasterBOMPage() {
       {viewMode === 'detail' && activeBOM && (
         <div className="space-y-5 animate-in fade-in duration-150">
           {/* Back Button & Project Context Banner */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 shadow-xs">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-crm-brand-50 to-crm-brand-50 border border-amber-200 shadow-xs">
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => setViewMode('projects')}
-                className="px-3 py-2 rounded-xl bg-white hover:bg-[#FAF7F2] text-[#211B17] font-bold text-xs border border-[#EBE3DB] flex items-center gap-1.5 transition shadow-2xs cursor-pointer"
+                className="px-3 py-2 rounded-xl bg-white hover:bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)] font-bold text-xs border border-[color:var(--crm-border-default)] flex items-center gap-1.5 transition shadow-2xs cursor-pointer"
                 title="Return to Projects List"
               >
-                <ArrowLeft className="w-4 h-4 text-amber-700" />
+                <ArrowLeft className="w-4 h-4 text-crm-brand-600" />
                 <span>← All Projects List</span>
               </button>
 
@@ -1073,16 +1073,16 @@ export default function MasterBOMPage() {
                   <span className="font-mono text-xs font-bold text-amber-800">
                     {activeProject?.projectNumber || activeBOM.projectId || 'PRJ-2026'}
                   </span>
-                  <span className="text-[#70665F]">•</span>
-                  <span className="font-bold text-xs text-[#211B17]">
+                  <span className="text-[color:var(--crm-text-secondary)]">•</span>
+                  <span className="font-bold text-xs text-[color:var(--crm-text-primary)]">
                     Job: {activeProject?.jobNumber || activeBOM.jobNumber}
                   </span>
                 </div>
-                <h2 className="text-lg font-extrabold text-[#211B17] tracking-tight">
+                <h2 className="text-lg font-extrabold text-[color:var(--crm-text-primary)] tracking-tight">
                   {activeProject?.productName || activeProject?.projectName || activeBOM.machineName || activeBOM.bomName}
                 </h2>
-                <p className="text-[11px] text-[#70665F]">
-                  Customer: <span className="font-semibold text-[#3E2723]">{activeProject?.customerName || 'N/A'}</span>
+                <p className="text-[11px] text-[color:var(--crm-text-secondary)]">
+                  Customer: <span className="font-semibold text-[color:var(--crm-text-primary)]">{activeProject?.customerName || 'N/A'}</span>
                 </p>
               </div>
             </div>
@@ -1090,12 +1090,12 @@ export default function MasterBOMPage() {
             {/* Quick Switch Dropdown */}
             <div className="flex items-center gap-2 shrink-0">
               <div className="text-right hidden md:block">
-                <span className="text-[10px] text-[#70665F] font-bold uppercase block">Switch Project BOM:</span>
+                <span className="text-[10px] text-[color:var(--crm-text-secondary)] font-bold uppercase block">Switch Project BOM:</span>
               </div>
               <select
                 value={selectedJobNumber}
                 onChange={(e) => setSelectedJobNumber(e.target.value)}
-                className="bg-white border border-[#EBE3DB] rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-amber-500 shadow-2xs cursor-pointer"
+                className="bg-white border border-[color:var(--crm-border-default)] rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-500 shadow-2xs cursor-pointer"
               >
                 {boms.map((b) => {
                   const mProj =
@@ -1114,12 +1114,12 @@ export default function MasterBOMPage() {
           </div>
 
           {/* BOM Summary KPIs */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 rounded-2xl bg-white border border-[#EBE3DB] shadow-sm">
-            <div className="bg-[#FAF7F2] p-3.5 rounded-xl border border-[#EBE3DB]">
-              <span className="text-[10px] text-[#70665F] block font-bold uppercase tracking-wider">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 rounded-2xl bg-white border border-[color:var(--crm-border-default)] shadow-sm">
+            <div className="bg-[color:var(--crm-bg-app)] p-3.5 rounded-xl border border-[color:var(--crm-border-default)]">
+              <span className="text-[10px] text-[color:var(--crm-text-secondary)] block font-bold uppercase tracking-wider">
                 MASTER BOM NUMBER
               </span>
-              <span className="font-mono text-lg font-black text-[#211B17]">
+              <span className="font-mono text-lg font-black text-[color:var(--crm-text-primary)]">
                 {activeBOM.bomNumber}
               </span>
               <span className="text-[11px] text-amber-800 block font-mono font-semibold">
@@ -1127,61 +1127,61 @@ export default function MasterBOMPage() {
               </span>
             </div>
 
-            <div className="bg-[#FAF7F2] p-3.5 rounded-xl border border-[#EBE3DB]">
-              <span className="text-[10px] text-[#70665F] block font-bold uppercase tracking-wider">
+            <div className="bg-[color:var(--crm-bg-app)] p-3.5 rounded-xl border border-[color:var(--crm-border-default)]">
+              <span className="text-[10px] text-[color:var(--crm-text-secondary)] block font-bold uppercase tracking-wider">
                 TOTAL BOM COMPONENTS
               </span>
-              <span className="font-mono text-xl font-black text-[#211B17]">
+              <span className="font-mono text-xl font-black text-[color:var(--crm-text-primary)]">
                 {activeBOM.items?.length || 0} Items
               </span>
-              <span className="text-[10px] text-[#70665F] block">
+              <span className="text-[10px] text-[color:var(--crm-text-secondary)] block">
                 Itemized Bill of Materials
               </span>
             </div>
 
-            <div className="bg-[#FAF7F2] p-3.5 rounded-xl border border-[#EBE3DB]">
-              <span className="text-[10px] text-[#70665F] block font-bold uppercase tracking-wider">
+            <div className="bg-[color:var(--crm-bg-app)] p-3.5 rounded-xl border border-[color:var(--crm-border-default)]">
+              <span className="text-[10px] text-[color:var(--crm-text-secondary)] block font-bold uppercase tracking-wider">
                 ESTIMATED TOTAL BOM COST
               </span>
               <span className="font-mono text-xl font-black text-emerald-700">
                 ₹ {totalBOMCost.toLocaleString('en-IN')}
               </span>
-              <span className="text-[10px] text-[#70665F] block">
+              <span className="text-[10px] text-[color:var(--crm-text-secondary)] block">
                 Calculated for Production
               </span>
             </div>
 
-            <div className="bg-[#FAF7F2] p-3.5 rounded-xl border border-[#EBE3DB] flex items-center justify-between">
+            <div className="bg-[color:var(--crm-bg-app)] p-3.5 rounded-xl border border-[color:var(--crm-border-default)] flex items-center justify-between">
               <div>
-                <span className="text-[10px] text-[#70665F] block font-bold uppercase tracking-wider">
+                <span className="text-[10px] text-[color:var(--crm-text-secondary)] block font-bold uppercase tracking-wider">
                   APPROVAL STATUS
                 </span>
                 <span className="font-bold text-xs uppercase text-amber-700">
                   {activeBOM.approvalStatus || (activeBOM.isLocked ? 'approved' : 'draft')}
                 </span>
-                <span className="text-[10px] text-[#70665F] block">
+                <span className="text-[10px] text-[color:var(--crm-text-secondary)] block">
                   By: {activeBOM.approvedBy || 'Engineering Lead'}
                 </span>
               </div>
               {activeBOM.isLocked ? (
                 <Lock className="w-6 h-6 text-emerald-600" />
               ) : (
-                <Unlock className="w-6 h-6 text-amber-600" />
+                <Unlock className="w-6 h-6 text-crm-brand-600" />
               )}
             </div>
           </div>
 
           {/* BOM Material Table Control Bar */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-[#EBE3DB] shadow-xs">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-[color:var(--crm-border-default)] shadow-xs">
             {/* Search Input */}
             <div className="flex-1 w-full relative">
-              <Search className="w-4 h-4 text-[#70665F] absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-[color:var(--crm-text-secondary)] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search Material, Part #, Item Name, Specification..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] placeholder-[#70665F] focus:outline-none focus:border-amber-500"
+                className="w-full pl-9 pr-4 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs text-[color:var(--crm-text-primary)] placeholder-[color:var(--crm-text-secondary)] focus:outline-none focus:border-amber-500"
               />
             </div>
 
@@ -1190,7 +1190,7 @@ export default function MasterBOMPage() {
               <select
                 value={itemTypeFilter}
                 onChange={(e) => setItemTypeFilter(e.target.value)}
-                className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-semibold text-[#211B17] focus:outline-none"
+                className="bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-xs font-semibold text-[color:var(--crm-text-primary)] focus:outline-none"
               >
                 <option value="all">All Processes (P.)</option>
                 <option value="C">C - Cutting Laser & Plasma</option>
@@ -1236,18 +1236,18 @@ export default function MasterBOMPage() {
           </div>
 
           {/* UMA TECHNO FAB Production Job Card Header & Process Legend */}
-          <div className="bg-gradient-to-r from-amber-50 via-white to-amber-50 border border-amber-200 rounded-2xl p-3 px-4 mb-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="bg-gradient-to-r from-crm-brand-50 via-white to-crm-brand-50 border border-amber-200 rounded-2xl p-3 px-4 mb-3 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2.5">
               <span className="font-mono font-extrabold text-[10px] bg-amber-900 text-amber-50 px-2 py-0.5 rounded">
                 DOC NO: F-PRO 04
               </span>
-              <span className="font-extrabold text-[#211B17] uppercase tracking-wide text-xs">
+              <span className="font-extrabold text-[color:var(--crm-text-primary)] uppercase tracking-wide text-xs">
                 PRODUCTION REPORT (JOB CARD)
               </span>
             </div>
             {/* Process Legend */}
             <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-semibold">
-              <span className="text-[#70665F] font-bold uppercase mr-1">PROCESS LEGEND:</span>
+              <span className="text-[color:var(--crm-text-secondary)] font-bold uppercase mr-1">PROCESS LEGEND:</span>
               <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-900 px-2 py-0.5 rounded border border-amber-300 font-mono">
                 <strong>C</strong>: Cutting Laser & Plasma
               </span>
@@ -1267,11 +1267,11 @@ export default function MasterBOMPage() {
           </div>
 
           {/* Material Items Table (Exact Job Card Columns) */}
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-sm">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[10px] font-bold text-[#70665F] uppercase tracking-wider">
+                  <tr className="bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] text-[10px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">
                     <th className="p-3 text-center w-12">SR. NO</th>
                     <th className="p-3 w-28">BOM CODE</th>
                     <th className="p-3">DISCRIPTION</th>
@@ -1284,10 +1284,10 @@ export default function MasterBOMPage() {
                     <th className="p-3 text-center w-28">ACTIONS</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#EBE3DB]">
+                <tbody className="divide-y divide-[color:var(--crm-border-default)]">
                   {filteredBOMItems.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="p-8 text-center text-[#70665F]">
+                      <td colSpan={10} className="p-8 text-center text-[color:var(--crm-text-secondary)]">
                         <p className="font-semibold text-sm">No BOM items found.</p>
                         {!activeBOM.isLocked && (
                           <button
@@ -1311,9 +1311,9 @@ export default function MasterBOMPage() {
                       const remark = item.remarks || '-';
 
                       return (
-                        <tr key={item.id || idx} className="hover:bg-[#FAF7F2]/80 transition">
+                        <tr key={item.id || idx} className="hover:bg-[#F4F6FA]/80 transition">
                           {/* SR. NO */}
-                          <td className="p-3 text-center font-mono text-[#70665F] font-bold">
+                          <td className="p-3 text-center font-mono text-[color:var(--crm-text-secondary)] font-bold">
                             {idx + 1}
                           </td>
 
@@ -1324,7 +1324,7 @@ export default function MasterBOMPage() {
 
                           {/* DISCRIPTION */}
                           <td className="p-3">
-                            <span className="font-bold text-[#211B17] block">
+                            <span className="font-bold text-[color:var(--crm-text-primary)] block">
                               {desc}
                             </span>
                           </td>
@@ -1335,14 +1335,14 @@ export default function MasterBOMPage() {
                           </td>
 
                           {/* THK */}
-                          <td className="p-3 text-center font-mono font-bold text-[#211B17]">
+                          <td className="p-3 text-center font-mono font-bold text-[color:var(--crm-text-primary)]">
                             <span className="px-2 py-0.5 rounded bg-amber-50/70 border border-amber-200 text-amber-900 text-[11px]">
                               {thk}
                             </span>
                           </td>
 
                           {/* SIZE */}
-                          <td className="p-3 font-mono text-xs text-[#211B17]">
+                          <td className="p-3 font-mono text-xs text-[color:var(--crm-text-primary)]">
                             {size}
                           </td>
 
@@ -1354,12 +1354,12 @@ export default function MasterBOMPage() {
                           </td>
 
                           {/* QTY */}
-                          <td className="p-3 text-center font-mono font-black text-xs text-[#211B17]">
+                          <td className="p-3 text-center font-mono font-black text-xs text-[color:var(--crm-text-primary)]">
                             {qty}
                           </td>
 
                           {/* REMARK */}
-                          <td className="p-3 text-[#70665F] text-xs">
+                          <td className="p-3 text-[color:var(--crm-text-secondary)] text-xs">
                             {remark}
                           </td>
 
@@ -1421,24 +1421,24 @@ export default function MasterBOMPage() {
           onClick={() => setIsCreateBOMModalOpen(false)}
         >
           <div
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl p-6 text-xs max-h-[92vh] flex flex-col"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-4xl overflow-hidden shadow-2xl p-6 text-xs max-h-[92vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-start justify-between border-b border-[#EBE3DB] pb-3 shrink-0">
+            <div className="flex items-start justify-between border-b border-[color:var(--crm-border-default)] pb-3 shrink-0">
               <div>
-                <h3 className="text-lg font-black text-[#211B17] flex items-center gap-2">
-                  <FileSpreadsheet className="w-5 h-5 text-amber-600" />
+                <h3 className="text-lg font-black text-[color:var(--crm-text-primary)] flex items-center gap-2">
+                  <FileSpreadsheet className="w-5 h-5 text-crm-brand-600" />
                   <span>Create New Project Master BOM</span>
                 </h3>
-                <p className="text-[11px] text-[#70665F] mt-0.5">
+                <p className="text-[11px] text-[color:var(--crm-text-secondary)] mt-0.5">
                   Select Project, Define Master BOM Details & Add Required Material Component Lines
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsCreateBOMModalOpen(false)}
-                className="p-1.5 rounded-xl hover:bg-[#FAF7F2] text-[#70665F] hover:text-[#211B17] transition cursor-pointer"
+                className="p-1.5 rounded-xl hover:bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1447,23 +1447,23 @@ export default function MasterBOMPage() {
             {/* Modal Form Body */}
             <form onSubmit={handleSubmitNewBOM} className="flex-1 overflow-y-auto space-y-4 py-3">
               {/* Step 1: Select Project */}
-              <div className="p-4 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] space-y-3">
+              <div className="p-4 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="font-extrabold text-[#211B17] text-xs flex items-center gap-1.5">
-                    <FolderKanban className="w-4 h-4 text-amber-700" />
+                  <span className="font-extrabold text-[color:var(--crm-text-primary)] text-xs flex items-center gap-1.5">
+                    <FolderKanban className="w-4 h-4 text-crm-brand-600" />
                     <span>Step 1: Select Target Project</span>
                   </span>
                   <span className="text-[10px] text-amber-800 font-semibold font-mono">Required</span>
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                  <label className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] block mb-1">
                     Choose From Registered ERP Projects:
                   </label>
                   <select
                     value={createSelectedProjectId}
                     onChange={(e) => handleSelectCreateProject(e.target.value)}
-                    className="w-full bg-white border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
+                    className="w-full bg-white border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-xs font-bold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-500"
                     required
                   >
                     <option value="">-- Select Project / Equipment --</option>
@@ -1481,9 +1481,9 @@ export default function MasterBOMPage() {
                 </div>
 
                 {createProjectName && (
-                  <div className="p-3 bg-white border border-[#EBE3DB] rounded-xl text-xs flex items-center justify-between flex-wrap gap-2 text-[#70665F]">
+                  <div className="p-3 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-xs flex items-center justify-between flex-wrap gap-2 text-[color:var(--crm-text-secondary)]">
                     <div>
-                      <span className="font-bold text-[#211B17] text-sm block">{createProjectName}</span>
+                      <span className="font-bold text-[color:var(--crm-text-primary)] text-sm block">{createProjectName}</span>
                       <span>Customer: <strong>{createCustomerName || 'N/A'}</strong></span>
                       {createJobNumber && <span className="ml-3 font-mono">Job: <strong>{createJobNumber}</strong></span>}
                     </div>
@@ -1495,11 +1495,11 @@ export default function MasterBOMPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-extrabold text-[#211B17] text-xs flex items-center gap-1.5">
-                      <Boxes className="w-4 h-4 text-amber-700" />
+                    <h4 className="font-extrabold text-[color:var(--crm-text-primary)] text-xs flex items-center gap-1.5">
+                      <Boxes className="w-4 h-4 text-crm-brand-600" />
                       <span>Step 2: Add BOM Required Materials & Components ({createMaterialLines.length})</span>
                     </h4>
-                    <p className="text-[11px] text-[#70665F]">
+                    <p className="text-[11px] text-[color:var(--crm-text-secondary)]">
                       Define all raw material plates, bought-out items, and sub-assemblies for this project
                     </p>
                   </div>
@@ -1509,15 +1509,15 @@ export default function MasterBOMPage() {
                     onClick={handleAddCreateMaterialLine}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs transition cursor-pointer shadow-2xs"
                   >
-                    <Plus className="w-3.5 h-3.5 text-amber-700" />
+                    <Plus className="w-3.5 h-3.5 text-crm-brand-600" />
                     <span>Add Material Line</span>
                   </button>
                 </div>
 
                 {/* Material Lines Form Table (Job Card Columns) */}
-                <div className="border border-[#EBE3DB] rounded-xl overflow-x-auto">
+                <div className="border border-[color:var(--crm-border-default)] rounded-xl overflow-x-auto">
                   <table className="w-full text-left text-xs min-w-[700px]">
-                    <thead className="bg-[#FAF7F2] text-[10px] font-bold text-[#70665F] uppercase border-b border-[#EBE3DB]">
+                    <thead className="bg-[color:var(--crm-bg-app)] text-[10px] font-bold text-[color:var(--crm-text-secondary)] uppercase border-b border-[color:var(--crm-border-default)]">
                       <tr>
                         <th className="p-2 w-10 text-center">SR. NO</th>
                         <th className="p-2">DISCRIPTION</th>
@@ -1530,11 +1530,11 @@ export default function MasterBOMPage() {
                         <th className="p-2 w-10 text-center"></th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#EBE3DB] bg-white">
+                    <tbody className="divide-y divide-[color:var(--crm-border-default)] bg-white">
                       {createMaterialLines.map((line, idx) => (
-                        <tr key={line.id} className="hover:bg-[#FAF7F2]/50">
+                        <tr key={line.id} className="hover:bg-[#F4F6FA]/50">
                           {/* SR. NO */}
-                          <td className="p-2 text-center font-mono font-bold text-[#70665F]">
+                          <td className="p-2 text-center font-mono font-bold text-[color:var(--crm-text-secondary)]">
                             {idx + 1}
                           </td>
 
@@ -1548,7 +1548,7 @@ export default function MasterBOMPage() {
                                 handleUpdateCreateLine(line.id, 'material', e.target.value);
                               }}
                               placeholder="e.g. TANK SHELL, TOP CONE..."
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs text-[#211B17] font-semibold focus:outline-none focus:border-amber-500"
+                              className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-2 py-1 text-xs text-[color:var(--crm-text-primary)] font-semibold focus:outline-none focus:border-amber-500"
                               required
                             />
                           </td>
@@ -1558,7 +1558,7 @@ export default function MasterBOMPage() {
                             <select
                               value={line.pCode || 'C'}
                               onChange={(e: any) => handleUpdateCreateLine(line.id, 'pCode', e.target.value)}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-1.5 py-1 text-[11px] font-mono font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
+                              className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-1.5 py-1 text-[11px] font-mono font-bold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-500"
                             >
                               <option value="C">C (Cutting)</option>
                               <option value="B">B (Bending)</option>
@@ -1575,7 +1575,7 @@ export default function MasterBOMPage() {
                               value={line.thk}
                               onChange={(e) => handleUpdateCreateLine(line.id, 'thk', e.target.value)}
                               placeholder="5, 4 THK, 8"
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-mono text-center text-[#211B17] focus:outline-none focus:border-amber-500"
+                              className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-2 py-1 text-xs font-mono text-center text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-500"
                             />
                           </td>
 
@@ -1586,7 +1586,7 @@ export default function MasterBOMPage() {
                               value={line.size}
                               onChange={(e) => handleUpdateCreateLine(line.id, 'size', e.target.value)}
                               placeholder="7868 X 5500 LG"
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-mono text-[#211B17] focus:outline-none focus:border-amber-500"
+                              className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-2 py-1 text-xs font-mono text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-500"
                             />
                           </td>
 
@@ -1597,7 +1597,7 @@ export default function MasterBOMPage() {
                               value={line.mat}
                               onChange={(e) => handleUpdateCreateLine(line.id, 'mat', e.target.value)}
                               placeholder="SS 316, M.S"
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs font-mono font-bold text-center text-slate-800 focus:outline-none focus:border-amber-500"
+                              className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-2 py-1 text-xs font-mono font-bold text-center text-slate-800 focus:outline-none focus:border-amber-500"
                             />
                           </td>
 
@@ -1609,7 +1609,7 @@ export default function MasterBOMPage() {
                               step="1"
                               value={line.quantity}
                               onChange={(e) => handleUpdateCreateLine(line.id, 'quantity', Number(e.target.value))}
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-1.5 py-1 text-xs font-mono font-bold text-center text-[#211B17] focus:outline-none focus:border-amber-500"
+                              className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-1.5 py-1 text-xs font-mono font-bold text-center text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-500"
                               required
                             />
                           </td>
@@ -1621,7 +1621,7 @@ export default function MasterBOMPage() {
                               value={line.remarks}
                               onChange={(e) => handleUpdateCreateLine(line.id, 'remarks', e.target.value)}
                               placeholder="Optional remark"
-                              className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2 py-1 text-xs text-[#211B17] focus:outline-none focus:border-amber-500"
+                              className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-2 py-1 text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-500"
                             />
                           </td>
 
@@ -1647,7 +1647,7 @@ export default function MasterBOMPage() {
                     onClick={handleAddCreateMaterialLine}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-amber-300 text-amber-900 font-bold text-xs hover:bg-amber-100 transition cursor-pointer"
                   >
-                    <Plus className="w-3.5 h-3.5 text-amber-700" />
+                    <Plus className="w-3.5 h-3.5 text-crm-brand-600" />
                     <span>Add Material Line</span>
                   </button>
 
@@ -1661,18 +1661,18 @@ export default function MasterBOMPage() {
               </div>
 
               {/* Modal Footer / Submit */}
-              <div className="border-t border-[#EBE3DB] pt-3 flex items-center justify-between shrink-0">
+              <div className="border-t border-[color:var(--crm-border-default)] pt-3 flex items-center justify-between shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsCreateBOMModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-white hover:bg-[#FAF7F2] border border-[#EBE3DB] text-[#70665F] font-bold text-xs"
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-bold text-xs"
                 >
                   Cancel
                 </button>
 
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:brightness-110 text-white font-extrabold text-xs shadow-md shadow-amber-600/30 transition flex items-center gap-2 cursor-pointer"
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-crm-brand-700 to-crm-brand-700 hover:brightness-110 text-white font-extrabold text-xs shadow-md shadow-amber-600/30 transition flex items-center gap-2 cursor-pointer"
                 >
                   <Check className="w-4 h-4" />
                   <span>Save & Create Project BOM</span>
@@ -1692,18 +1692,18 @@ export default function MasterBOMPage() {
           onClick={() => setIsAddItemModalOpen(false)}
         >
           <div
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl space-y-4 p-6 text-xs max-h-[92vh] overflow-y-auto"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl space-y-4 p-6 text-xs max-h-[92vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <h3 className="text-base font-extrabold text-[#211B17] flex items-center gap-2">
-                <Boxes className="w-5 h-5 text-amber-600" />
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <h3 className="text-base font-extrabold text-[color:var(--crm-text-primary)] flex items-center gap-2">
+                <Boxes className="w-5 h-5 text-crm-brand-600" />
                 <span>{editingItemId ? 'Edit Material Line Item' : 'Add Material Component to BOM'}</span>
               </h3>
               <button
                 type="button"
                 onClick={() => setIsAddItemModalOpen(false)}
-                className="p-1 rounded-lg hover:bg-[#FAF7F2] text-[#70665F]"
+                className="p-1 rounded-lg hover:bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)]"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1713,7 +1713,7 @@ export default function MasterBOMPage() {
               {/* Row 1: BOM Code & Process (P.) */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="sm:col-span-2">
-                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                  <label className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] block mb-1">
                     BOM CODE / PART NUMBER:
                   </label>
                   <input
@@ -1721,19 +1721,19 @@ export default function MasterBOMPage() {
                     value={partNumber}
                     onChange={(e) => setPartNumber(e.target.value)}
                     placeholder="e.g. UTF-26-01 or PRT-01"
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-bold text-amber-900 focus:outline-none focus:border-amber-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-xs font-mono font-bold text-amber-900 focus:outline-none focus:border-amber-500"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                  <label className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] block mb-1">
                     P. (PROCESS CODE):
                   </label>
                   <select
                     value={pCode}
                     onChange={(e: any) => setPCode(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-2.5 py-2 text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-2.5 py-2 text-xs font-mono font-bold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-500"
                   >
                     <option value="C">C - Cutting Laser & Plasma</option>
                     <option value="B">B - Bending</option>
@@ -1746,7 +1746,7 @@ export default function MasterBOMPage() {
 
               {/* Row 2: DISCRIPTION */}
               <div>
-                <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                <label className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] block mb-1">
                   DESCRIPTION / PART NAME:
                 </label>
                 <input
@@ -1754,7 +1754,7 @@ export default function MasterBOMPage() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="e.g. TANK SHELL, TOP CONE, BASE PLATE, FLANGE, PIPE..."
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-xs font-bold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-500"
                   required
                 />
               </div>
@@ -1762,7 +1762,7 @@ export default function MasterBOMPage() {
               {/* Row 3: THK, SIZE, MAT */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                  <label className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] block mb-1">
                     THK (THICKNESS):
                   </label>
                   <input
@@ -1770,12 +1770,12 @@ export default function MasterBOMPage() {
                     value={thk}
                     onChange={(e) => setThk(e.target.value)}
                     placeholder="e.g. 5, 4 THK, 8, 14, SCH 10, STD"
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-500"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                  <label className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] block mb-1">
                     SIZE / DIMENSIONS:
                   </label>
                   <input
@@ -1783,12 +1783,12 @@ export default function MasterBOMPage() {
                     value={size}
                     onChange={(e) => setSize(e.target.value)}
                     placeholder="e.g. 7868 X 5500 LG, 600 DIA, OD 2540 MM"
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono text-[#211B17] focus:outline-none focus:border-amber-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-xs font-mono text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-500"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                  <label className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] block mb-1">
                     MAT (MATERIAL GRADE):
                   </label>
                   <input
@@ -1796,7 +1796,7 @@ export default function MasterBOMPage() {
                     value={mat}
                     onChange={(e) => setMat(e.target.value)}
                     placeholder="e.g. SS 316, SS CLD, M.S, SS 304"
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[#211B17] focus:outline-none focus:border-amber-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-500"
                   />
                 </div>
               </div>
@@ -1804,7 +1804,7 @@ export default function MasterBOMPage() {
               {/* Row 4: QTY & REMARK */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                  <label className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] block mb-1">
                     QTY (QUANTITY):
                   </label>
                   <input
@@ -1813,13 +1813,13 @@ export default function MasterBOMPage() {
                     step="1"
                     value={quantity}
                     onChange={(e) => setQuantity(Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-mono font-black text-[#211B17] focus:outline-none focus:border-amber-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-xs font-mono font-black text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-500"
                     required
                   />
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="text-[10px] font-bold text-[#70665F] block mb-1">
+                  <label className="text-[10px] font-bold text-[color:var(--crm-text-secondary)] block mb-1">
                     REMARK / NOTES:
                   </label>
                   <input
@@ -1827,17 +1827,17 @@ export default function MasterBOMPage() {
                     value={remarks}
                     onChange={(e) => setRemarks(e.target.value)}
                     placeholder="Optional remark or notes"
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] focus:outline-none focus:border-amber-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-500"
                   />
                 </div>
               </div>
 
               {/* Modal Footer */}
-              <div className="flex items-center justify-between border-t border-[#EBE3DB] pt-3 mt-2">
+              <div className="flex items-center justify-between border-t border-[color:var(--crm-border-default)] pt-3 mt-2">
                 <button
                   type="button"
                   onClick={() => setIsAddItemModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-white hover:bg-[#FAF7F2] border border-[#EBE3DB] text-[#70665F] font-bold"
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-bold"
                 >
                   Cancel
                 </button>

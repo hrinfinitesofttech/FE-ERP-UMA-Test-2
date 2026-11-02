@@ -148,15 +148,15 @@ function CustomerPOFormContent() {
         <ArrowLeft className="w-3.5 h-3.5" /> Back to Customer Purchase Orders
       </Link>
 
-      <div className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl p-6 shadow-sm space-y-6">
+      <div className="bg-white dark:bg-white border border-slate-200 dark:border-[color:var(--crm-border-default)] rounded-2xl p-6 shadow-sm space-y-6">
         {/* Header Title */}
-        <div className="border-b border-slate-100 dark:border-[#EBE3DB] pb-4 flex items-center justify-between">
+        <div className="border-b border-slate-100 dark:border-[color:var(--crm-border-default)] pb-4 flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-slate-900 dark:text-[#211B17] flex items-center gap-2">
+            <h1 className="text-lg font-bold text-slate-900 dark:text-[color:var(--crm-text-primary)] flex items-center gap-2">
               <Briefcase className="w-5 h-5 text-crm-brand-700" />
               Register Customer Purchase Order (Inward PO)
             </h1>
-            <p className="text-[#70665F] mt-0.5">
+            <p className="text-[color:var(--crm-text-secondary)] mt-0.5">
               Record accepted client purchase order, link formal sales quotation, and capture confirmed order value.
             </p>
           </div>
@@ -167,7 +167,7 @@ function CustomerPOFormContent() {
 
         {/* Linked Quotation Autofill Banner */}
         {matchedQuotation && (
-          <div className="p-3.5 bg-gradient-to-r from-purple-50 via-[#FAF7F2] to-emerald-50 border border-purple-200 rounded-xl flex items-center justify-between text-slate-800 shadow-xs">
+          <div className="p-3.5 bg-gradient-to-r from-purple-50 via-[color:var(--crm-bg-app)] to-emerald-50 border border-purple-200 rounded-xl flex items-center justify-between text-slate-800 shadow-xs">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-lg bg-purple-700 text-white flex items-center justify-center font-bold text-xs shadow-xs">
                 <Sparkles className="w-4 h-4" />
@@ -176,13 +176,13 @@ function CustomerPOFormContent() {
                 <span className="font-bold text-slate-900 block text-xs">
                   Auto-filled from Quotation: <span className="font-mono text-purple-800 font-extrabold">{matchedQuotation.quotationNumber}</span> ({latestRev?.revisionNumber || 'Rev-00'}) — {matchedQuotation.customerName}
                 </span>
-                <span className="text-[11px] text-[#70665F]">
+                <span className="text-[11px] text-[color:var(--crm-text-secondary)]">
                   Equipment Scope: <strong className="text-slate-800">{latestRev?.items?.[0]?.productName || matchedQuotation.latestSummary?.machineProduct}</strong> • Contact: {matchedQuotation.contactPerson}
                 </span>
               </div>
             </div>
             <div className="text-right">
-              <span className="text-[10px] uppercase font-bold text-[#70665F] block">Quotation Value</span>
+              <span className="text-[10px] uppercase font-bold text-[color:var(--crm-text-secondary)] block">Quotation Value</span>
               <span className="font-mono font-bold text-emerald-700 text-xs">
                 {formatCurrency(latestRev?.grandTotal || matchedQuotation.latestSummary?.grandTotal || 0)}
               </span>
@@ -192,8 +192,8 @@ function CustomerPOFormContent() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* QUOTATION SELECTOR */}
-          <div className="p-4 bg-slate-50 dark:bg-[#FAF7F2]/50 border border-slate-200 dark:border-[#EBE3DB] rounded-xl space-y-2">
-            <label className="block text-slate-700 dark:text-[#544B45] font-bold">
+          <div className="p-4 bg-slate-50 dark:bg-[#F4F6FA]/50 border border-slate-200 dark:border-[color:var(--crm-border-default)] rounded-xl space-y-2">
+            <label className="block text-slate-700 dark:text-[color:var(--crm-text-secondary)] font-bold">
               Link Commercial Quotation (Recommended)
             </label>
             <select
@@ -213,7 +213,7 @@ function CustomerPOFormContent() {
                 );
               })}
             </select>
-            <p className="text-[11px] text-[#70665F]">
+            <p className="text-[11px] text-[color:var(--crm-text-secondary)]">
               Selecting a quotation will automatically populate customer details, line items, and confirmed total amount.
             </p>
           </div>
@@ -221,7 +221,7 @@ function CustomerPOFormContent() {
           {/* PO MANDATORY DETAILS */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-slate-700 dark:text-[#544B45] font-bold mb-1">
+              <label className="block text-slate-700 dark:text-[color:var(--crm-text-secondary)] font-bold mb-1">
                 Customer PO Number *
               </label>
               <input
@@ -230,12 +230,12 @@ function CustomerPOFormContent() {
                 value={poNumber}
                 onChange={(e) => setPoNumber(e.target.value)}
                 placeholder="e.g. PO/ADC/2026/894"
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-mono font-bold text-slate-900 text-xs"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-[color:var(--crm-bg-app)] border rounded-lg font-mono font-bold text-slate-900 text-xs"
               />
             </div>
 
             <div>
-              <label className="block text-slate-700 dark:text-[#544B45] font-bold mb-1">
+              <label className="block text-slate-700 dark:text-[color:var(--crm-text-secondary)] font-bold mb-1">
                 PO Date *
               </label>
               <input
@@ -243,12 +243,12 @@ function CustomerPOFormContent() {
                 required
                 value={poDate}
                 onChange={(e) => setPoDate(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg text-xs"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-[color:var(--crm-bg-app)] border rounded-lg text-xs"
               />
             </div>
 
             <div>
-              <label className="block text-slate-700 dark:text-[#544B45] font-bold mb-1">
+              <label className="block text-slate-700 dark:text-[color:var(--crm-text-secondary)] font-bold mb-1">
                 Confirmed PO Amount (₹ Incl. Taxes) *
               </label>
               <div className="relative">
@@ -259,18 +259,18 @@ function CustomerPOFormContent() {
                   min={0}
                   value={poAmount}
                   onChange={(e) => setPoAmount(e.target.value)}
-                  className="w-full pl-8 pr-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg font-mono font-bold text-emerald-700 text-xs"
+                  className="w-full pl-8 pr-3 py-2 bg-slate-50 dark:bg-[color:var(--crm-bg-app)] border rounded-lg font-mono font-bold text-emerald-700 text-xs"
                 />
               </div>
             </div>
           </div>
 
           {/* ATTACH CUSTOMER PO DOCUMENT */}
-          <div className="pt-2 border-t border-slate-100 dark:border-[#EBE3DB]">
-            <label className="block text-slate-700 dark:text-[#544B45] font-bold mb-1">
+          <div className="pt-2 border-t border-slate-100 dark:border-[color:var(--crm-border-default)]">
+            <label className="block text-slate-700 dark:text-[color:var(--crm-text-secondary)] font-bold mb-1">
               Attach Customer PO Document (PDF / Scan)
             </label>
-            <div className="p-4 border-2 border-dashed border-[#E7DED5] rounded-xl text-center bg-slate-50/50 dark:bg-[#FAF7F2]/40 space-y-2">
+            <div className="p-4 border-2 border-dashed border-[color:var(--crm-border-default)] rounded-xl text-center bg-slate-50/50 dark:bg-[#F4F6FA]/40 space-y-2">
               <Upload className="w-5 h-5 mx-auto text-slate-400" />
               <span className="block text-slate-600 font-semibold text-xs">
                 {attachedFileName ? (
@@ -297,7 +297,7 @@ function CustomerPOFormContent() {
           </div>
 
           {/* ACTION BUTTONS */}
-          <div className="pt-4 flex justify-end gap-3 border-t border-slate-100 dark:border-[#EBE3DB]">
+          <div className="pt-4 flex justify-end gap-3 border-t border-slate-100 dark:border-[color:var(--crm-border-default)]">
             <Link
               href="/crm/customer-po"
               className="px-4 py-2 border rounded-lg hover:bg-slate-100 font-semibold text-xs"
@@ -319,7 +319,7 @@ function CustomerPOFormContent() {
 
 export default function NewCustomerPOPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-xs text-[#70665F]">Loading Customer PO registration form...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-xs text-[color:var(--crm-text-secondary)]">Loading Customer PO registration form...</div>}>
       <CustomerPOFormContent />
     </Suspense>
   );

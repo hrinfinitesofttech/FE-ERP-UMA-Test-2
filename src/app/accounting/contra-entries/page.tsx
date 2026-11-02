@@ -6,7 +6,7 @@ import { RotateCcw, Plus, Search, Landmark, Coins, ArrowRightLeft, Trash2, Check
 import { toast } from '../../../context/ToastContext';
 
 export default function ContraEntriesPage() {
-  const { contraEntries, addContraEntry, deleteContraEntry, bankAccounts, chartOfAccounts } = useERP();
+  const { currentUser, contraEntries, addContraEntry, deleteContraEntry, bankAccounts, chartOfAccounts } = useERP();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -112,7 +112,7 @@ export default function ContraEntriesPage() {
       referenceNumber: referenceNumber || `TRF-${Math.floor(100000 + Math.random() * 900000)}`,
       narration: narration || 'Contra Bank/Cash Transfer',
       status: 'Posted',
-      createdBy: 'Rajesh Patel (Accounts)',
+      createdBy: currentUser?.name || currentUser?.username || '',
     });
 
     toast.success('Contra Voucher Created', `Transfer of ₹${Number(amount).toLocaleString()} posted.`);
@@ -134,16 +134,16 @@ export default function ContraEntriesPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-white text-[#211B17]">
+    <div className="p-6 space-y-6 bg-white text-[color:var(--crm-text-primary)]">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-4">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-crm-brand-50 rounded-2xl text-crm-brand-700 border border-crm-brand-100">
             <RotateCcw className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight">Contra Vouchers (Bank & Cash Transfers)</h1>
-            <p className="text-xs text-[#70665F] mt-0.5">Double-entry Contra Transfers: Bank-to-Bank, Cash Deposits & Cash Withdrawals</p>
+            <h1 className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight">Contra Vouchers (Bank & Cash Transfers)</h1>
+            <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">Double-entry Contra Transfers: Bank-to-Bank, Cash Deposits & Cash Withdrawals</p>
           </div>
         </div>
 
@@ -158,10 +158,10 @@ export default function ContraEntriesPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-[#EBE3DB] flex items-center justify-between">
+        <div className="p-4 bg-[color:var(--crm-bg-app)] rounded-2xl border border-[color:var(--crm-border-default)] flex items-center justify-between">
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-[#70665F]">Total Contra Volume</div>
-            <div className="text-xl font-extrabold text-[#211B17] mt-1">₹{totalTransferVolume.toLocaleString()}</div>
+            <div className="text-[11px] font-bold uppercase tracking-wider text-[color:var(--crm-text-secondary)]">Total Contra Volume</div>
+            <div className="text-xl font-extrabold text-[color:var(--crm-text-primary)] mt-1">₹{totalTransferVolume.toLocaleString()}</div>
             <div className="text-[10px] text-emerald-600 font-semibold mt-0.5">{contraEntries.length} Recorded Vouchers</div>
           </div>
           <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100">
@@ -169,10 +169,10 @@ export default function ContraEntriesPage() {
           </div>
         </div>
 
-        <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-[#EBE3DB] flex items-center justify-between">
+        <div className="p-4 bg-[color:var(--crm-bg-app)] rounded-2xl border border-[color:var(--crm-border-default)] flex items-center justify-between">
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-[#70665F]">Bank-to-Bank Transfers</div>
-            <div className="text-xl font-extrabold text-[#211B17] mt-1">{bankToBankCount} Entries</div>
+            <div className="text-[11px] font-bold uppercase tracking-wider text-[color:var(--crm-text-secondary)]">Bank-to-Bank Transfers</div>
+            <div className="text-xl font-extrabold text-[color:var(--crm-text-primary)] mt-1">{bankToBankCount} Entries</div>
             <div className="text-[10px] text-crm-brand-600 font-semibold mt-0.5">Inter-bank liquidity balancing</div>
           </div>
           <div className="p-3 bg-crm-brand-50 text-crm-brand-700 rounded-xl border border-crm-brand-100">
@@ -180,10 +180,10 @@ export default function ContraEntriesPage() {
           </div>
         </div>
 
-        <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-[#EBE3DB] flex items-center justify-between">
+        <div className="p-4 bg-[color:var(--crm-bg-app)] rounded-2xl border border-[color:var(--crm-border-default)] flex items-center justify-between">
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-[#70665F]">Cash Withdrawals & Deposits</div>
-            <div className="text-xl font-extrabold text-[#211B17] mt-1">{cashMovementCount} Entries</div>
+            <div className="text-[11px] font-bold uppercase tracking-wider text-[color:var(--crm-text-secondary)]">Cash Withdrawals & Deposits</div>
+            <div className="text-xl font-extrabold text-[color:var(--crm-text-primary)] mt-1">{cashMovementCount} Entries</div>
             <div className="text-[10px] text-amber-600 font-semibold mt-0.5">Petty cash vault replenishment</div>
           </div>
           <div className="p-3 bg-amber-50 text-amber-600 rounded-xl border border-amber-100">
@@ -193,27 +193,27 @@ export default function ContraEntriesPage() {
       </div>
 
       {/* Filter / Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] flex items-center justify-between gap-4">
+      <div className="bg-white p-4 rounded-xl border border-[color:var(--crm-border-default)] flex items-center justify-between gap-4">
         <div className="relative w-full max-w-md">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--crm-text-secondary)]" />
           <input
             type="text"
             placeholder="Search contra no, source/destination bank, reference..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-4 py-2 text-xs text-[#211B17] font-medium"
+            className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl pl-9 pr-4 py-2 text-xs text-[color:var(--crm-text-primary)] font-medium"
           />
         </div>
-        <div className="text-xs text-[#70665F] font-semibold">
-          Showing <span className="font-bold text-[#211B17]">{filtered.length}</span> of {contraEntries.length} vouchers
+        <div className="text-xs text-[color:var(--crm-text-secondary)] font-semibold">
+          Showing <span className="font-bold text-[color:var(--crm-text-primary)]">{filtered.length}</span> of {contraEntries.length} vouchers
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden shadow-sm">
+      <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-[#544B45]">
-            <thead className="bg-[#FAF7F2] text-[#70665F] uppercase font-bold text-[10px] tracking-wider border-b border-[#EBE3DB]">
+          <table className="w-full text-left text-xs text-[color:var(--crm-text-secondary)]">
+            <thead className="bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] uppercase font-bold text-[10px] tracking-wider border-b border-[color:var(--crm-border-default)]">
               <tr>
                 <th className="py-3.5 px-4">Contra No</th>
                 <th className="py-3.5 px-4">Date</th>
@@ -226,26 +226,26 @@ export default function ContraEntriesPage() {
                 <th className="py-3.5 px-4 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EBE3DB]">
+            <tbody className="divide-y divide-[color:var(--crm-border-default)]">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-8 text-center text-[#70665F]">
+                  <td colSpan={9} className="py-8 text-center text-[color:var(--crm-text-secondary)]">
                     No contra vouchers found. Click <span className="font-bold text-crm-brand-700">"Create Contra Voucher"</span> to record your first bank/cash transfer.
                   </td>
                 </tr>
               ) : (
                 filtered.map((c) => (
-                  <tr key={c.id} className="hover:bg-[#FAF7F2]/50 transition">
+                  <tr key={c.id} className="hover:bg-[#F4F6FA]/50 transition">
                     <td className="py-3 px-4 font-bold font-mono text-crm-brand-700">{c.contraNumber}</td>
-                    <td className="py-3 px-4 text-[#70665F]">{c.contraDate || c.date || '—'}</td>
+                    <td className="py-3 px-4 text-[color:var(--crm-text-secondary)]">{c.contraDate || c.date || '—'}</td>
                     <td className="py-3 px-4">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FAF7F2] border border-[#EBE3DB] text-[#211B17]">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-primary)]">
                         {c.contraType?.replace(/_/g, ' ')}
                       </span>
                     </td>
-                    <td className="py-3 px-4 font-semibold text-[#211B17]">{c.fromAccountName}</td>
-                    <td className="py-3 px-4 font-semibold text-[#211B17]">{c.toAccountName}</td>
-                    <td className="py-3 px-4 font-mono text-[#70665F]">{c.referenceNumber || '—'}</td>
+                    <td className="py-3 px-4 font-semibold text-[color:var(--crm-text-primary)]">{c.fromAccountName}</td>
+                    <td className="py-3 px-4 font-semibold text-[color:var(--crm-text-primary)]">{c.toAccountName}</td>
+                    <td className="py-3 px-4 font-mono text-[color:var(--crm-text-secondary)]">{c.referenceNumber || '—'}</td>
                     <td className="py-3 px-4 text-right font-bold font-mono text-emerald-600">₹{Number(c.amount)?.toLocaleString()}</td>
                     <td className="py-3 px-4 text-center">
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -272,16 +272,16 @@ export default function ContraEntriesPage() {
       {/* CREATE CONTRA MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <h3 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <h3 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                 <RotateCcw className="w-5 h-5 text-crm-brand-700" />
                 Create Contra Voucher
               </h3>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] transition"
+                className="p-1 rounded-lg text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-bg-app)] transition"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -289,11 +289,11 @@ export default function ContraEntriesPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">Transfer Type *</label>
+                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Transfer Type *</label>
                 <select
                   value={contraType}
                   onChange={(e) => handleTypeChange(e.target.value as any)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] font-medium"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-medium"
                 >
                   <option value="Bank_to_Bank">Bank to Bank Transfer (Inter-Bank Fund Transfer)</option>
                   <option value="Bank_to_Cash">Bank Cash Withdrawal (Bank → Cash Vault)</option>
@@ -303,11 +303,11 @@ export default function ContraEntriesPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">From Account (Source Outflow) *</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">From Account (Source Outflow) *</label>
                   <select
                     value={fromAccountId}
                     onChange={(e) => setFromAccountId(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] font-medium"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-medium"
                   >
                     {availableAccounts.map((b) => (
                       <option key={b.id} value={b.id}>
@@ -318,11 +318,11 @@ export default function ContraEntriesPage() {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">To Account (Destination Inflow) *</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">To Account (Destination Inflow) *</label>
                   <select
                     value={toAccountId}
                     onChange={(e) => setToAccountId(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] font-medium"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-medium"
                   >
                     {availableAccounts.map((b) => (
                       <option key={b.id} value={b.id}>
@@ -335,7 +335,7 @@ export default function ContraEntriesPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Transfer Amount (₹) *</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Transfer Amount (₹) *</label>
                   <input
                     type="number"
                     required
@@ -344,38 +344,38 @@ export default function ContraEntriesPage() {
                     placeholder="e.g. 50000"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] font-mono font-bold"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono font-bold"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Ref / Cheque / UTR No *</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Ref / Cheque / UTR No *</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. TRF-994102 or CHQ-449102"
                     value={referenceNumber}
                     onChange={(e) => setReferenceNumber(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] font-mono font-medium"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono font-medium"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">Narration / Remarks</label>
+                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Narration / Remarks</label>
                 <input
                   type="text"
                   placeholder="e.g. Inter-bank liquidity transfer for supplier payments"
                   value={narration}
                   onChange={(e) => setNarration(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17]"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)]"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] hover:bg-slate-200 text-[#544B45] font-semibold"
+                  className="px-4 py-2 rounded-xl bg-[color:var(--crm-bg-app)] hover:bg-slate-200 text-[color:var(--crm-text-secondary)] font-semibold"
                 >
                   Cancel
                 </button>

@@ -57,7 +57,65 @@ export interface ThemeDefinition {
   };
 }
 
-// 1. Warm Industrial (Default Uma Techno Fab)
+// 0. UMA Premium (new default): deep royal blue, clean cool-grey neutrals, warm orange accent from the logo
+export const umaPremium: ThemeDefinition = {
+  id: 'umaPremium',
+  name: 'UMA Premium',
+  description: 'Deep royal blue with clean neutrals and a warm orange accent',
+  isDark: false,
+  palette: {
+    primary: '#1F3FB0',
+    accent: '#EA6A1F',
+    bg: '#F4F6FA',
+    card: '#FFFFFF',
+    text: '#0F172A',
+  },
+  crmVars: {
+    '--crm-brand-50': '#EFF4FF',
+    '--crm-brand-100': '#DBE6FE',
+    '--crm-brand-200': '#BFD2FE',
+    '--crm-brand-300': '#93B4FD',
+    '--crm-brand-400': '#608CFA',
+    '--crm-brand-500': '#3B68F0',
+    '--crm-brand-600': '#2A4FD6',
+    '--crm-brand-700': '#1F3FB0',
+    '--crm-brand-800': '#1B3489',
+    '--crm-brand-900': '#172B6B',
+    '--crm-bg-app': '#F4F6FA',
+    '--crm-bg-sidebar': '#FFFFFF',
+    '--crm-surface-card': '#FFFFFF',
+    '--crm-surface-subtle': '#EEF1F7',
+    '--crm-text-primary': '#0F172A',
+    '--crm-text-secondary': '#475467',
+    '--crm-text-tertiary': '#7A8699',
+    '--crm-text-inverse': '#FFFFFF',
+    '--crm-border-default': '#E2E7EF',
+    '--crm-border-strong': '#CBD3E0',
+    '--crm-status-info': '#0E7FB8',
+    '--crm-status-info-soft': '#DDF1FA',
+    '--crm-status-success': '#169B62',
+    '--crm-status-success-soft': '#DFF6EA',
+    '--crm-status-warning': '#D68A22',
+    '--crm-status-warning-soft': '#FFF0D8',
+    '--crm-status-danger': '#D94C64',
+    '--crm-status-danger-soft': '#FDE5EA',
+    '--crm-status-inspection': '#6D5BD0',
+    '--crm-status-inspection-soft': '#ECE9FB',
+  },
+  colors: {
+    primary: { DEFAULT: '#1F3FB0', hover: '#1B3489', light: '#DBE6FE', contrast: '#FFFFFF' },
+    accent: { DEFAULT: '#EA6A1F', bg: '#FFF1E6' },
+    info: { DEFAULT: '#0E7FB8', bg: '#DDF1FA', text: '#0E7FB8' },
+    success: { DEFAULT: '#169B62', bg: '#DFF6EA', text: '#169B62' },
+    danger: { DEFAULT: '#D94C64', bg: '#FDE5EA', text: '#D94C64' },
+    purple: { DEFAULT: '#6D5BD0', bg: '#ECE9FB', text: '#6D5BD0' },
+    background: { app: '#F4F6FA', surface: '#FFFFFF', sidebar: '#FFFFFF' },
+    border: '#E2E7EF',
+    text: { primary: '#0F172A', secondary: '#475467', muted: '#7A8699', inverse: '#FFFFFF' },
+  },
+};
+
+// 1. Warm Industrial (previous default, still available)
 export const warmIndustrial: ThemeDefinition = {
   id: 'warmIndustrial',
   name: 'Warm Industrial',
@@ -695,10 +753,11 @@ export const titaniumGraphite: ThemeDefinition = {
 };
 
 // Aliases for full backwards compatibility
-export const umaTechnoFab = warmIndustrial;
+export const umaTechnoFab = umaPremium;
 export type ThemeTokens = typeof warmIndustrial;
 
 export const themes: Record<string, ThemeDefinition> = {
+  umaPremium,
   warmIndustrial,
   umaTechnoFab,
   corporateBlue,
@@ -710,6 +769,7 @@ export const themes: Record<string, ThemeDefinition> = {
 };
 
 export const availableThemesList: ThemeDefinition[] = [
+  umaPremium,
   warmIndustrial,
   corporateBlue,
   emeraldGreen,
@@ -719,11 +779,11 @@ export const availableThemesList: ThemeDefinition[] = [
   titaniumGraphite,
 ];
 
-export const defaultThemeId = 'warmIndustrial';
+export const defaultThemeId = 'umaPremium';
 
 export function getTheme(themeId?: string | null): ThemeDefinition {
-  if (!themeId) return warmIndustrial;
-  return themes[themeId] || warmIndustrial;
+  if (!themeId) return umaPremium;
+  return themes[themeId] || umaPremium;
 }
 
 export const crmTheme = {
@@ -735,7 +795,7 @@ export const crmTheme = {
   semantic: warmIndustrial.colors,
   typography: {
     fontFamily: {
-      sans: '"Manrope", "Inter", "Segoe UI", sans-serif',
+      sans: '"Inter", "Segoe UI", sans-serif',
     },
     fontWeight: { regular: 400, medium: 500, semibold: 600, bold: 700, extrabold: 800 },
   },
@@ -833,8 +893,8 @@ export interface DesignStudioConfig {
 }
 
 export const DEFAULT_DESIGN_CONFIG: DesignStudioConfig = {
-  themeId: 'warmIndustrial',
-  fontFamily: 'Outfit',
+  themeId: 'umaPremium',
+  fontFamily: 'Inter',
   headingColor: '',
   textColor: '',
   cardRadius: 'smooth',
@@ -859,14 +919,14 @@ export interface DesignPreset {
 export const SIGNATURE_DESIGN_PRESETS: DesignPreset[] = [
   {
     id: 'luxury-industrial',
-    name: 'Luxury Industrial',
-    subtitle: 'Warm Terracotta, Smooth 18px Cards, Deep Soft Shadows',
+    name: 'UMA Premium',
+    subtitle: 'Royal Blue, Clean Neutrals, Smooth Cards, Soft Shadows',
     badge: 'UMA Default',
     config: {
-      themeId: 'warmIndustrial',
-      fontFamily: 'Outfit',
-      headingColor: '#3E2723',
-      textColor: '#211B17',
+      themeId: 'umaPremium',
+      fontFamily: 'Inter',
+      headingColor: '#0F172A',
+      textColor: '#0F172A',
       cardRadius: 'smooth',
       cardBorderWidth: '1',
       cardShadow: 'soft',
@@ -874,8 +934,8 @@ export const SIGNATURE_DESIGN_PRESETS: DesignPreset[] = [
       inputStyle: 'rounded',
       buttonVariant: 'gradient',
       customCardBg: '#FFFFFF',
-      customCardBorder: '#E7DED5',
-      headerGradient: true,
+      customCardBorder: '#E2E7EF',
+      headerGradient: false,
     },
   },
   {
@@ -927,7 +987,7 @@ export const SIGNATURE_DESIGN_PRESETS: DesignPreset[] = [
     badge: 'Modern Clean',
     config: {
       themeId: 'corporateBlue',
-      fontFamily: 'Plus Jakarta Sans',
+      fontFamily: 'Inter',
       headingColor: '#0F172A',
       textColor: '#334155',
       cardRadius: 'rounded',
@@ -979,7 +1039,7 @@ export function getRecommendedDesignForTheme(themeId: string): DesignStudioConfi
     case 'emeraldGreen':
       return {
         themeId: 'emeraldGreen',
-        fontFamily: 'Plus Jakarta Sans',
+        fontFamily: 'Inter',
         headingColor: '#064E3B',
         textColor: '#0F172A',
         cardRadius: 'rounded',
@@ -992,7 +1052,7 @@ export function getRecommendedDesignForTheme(themeId: string): DesignStudioConfi
     case 'corporateBlue':
       return {
         themeId: 'corporateBlue',
-        fontFamily: 'Plus Jakarta Sans',
+        fontFamily: 'Inter',
         headingColor: '#0C4A6E',
         textColor: '#0F172A',
         cardRadius: 'rounded',
@@ -1030,10 +1090,10 @@ export function getRecommendedDesignForTheme(themeId: string): DesignStudioConfi
       };
     default:
       return {
-        themeId: 'warmIndustrial',
-        fontFamily: 'Outfit',
-        headingColor: '#211B17',
-        textColor: '#211B17',
+        themeId: 'umaPremium',
+        fontFamily: 'Inter',
+        headingColor: '#0F172A',
+        textColor: '#0F172A',
         cardRadius: 'smooth',
         cardBorderWidth: '1',
         cardShadow: 'soft',

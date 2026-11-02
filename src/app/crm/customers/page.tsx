@@ -49,7 +49,7 @@ function CustomerMasterListContent() {
       cell: (c) => (
         <button
           onClick={() => handleEdit(c)}
-          className="text-[#75401F] hover:text-[#5C3218] hover:underline font-bold font-mono text-xs cursor-pointer text-left"
+          className="text-[color:var(--crm-brand-700)] hover:text-[#1B3489] hover:underline font-bold font-mono text-xs cursor-pointer text-left"
         >
           {c.customerCode || c.id}
         </button>
@@ -185,7 +185,7 @@ function CustomerMasterListContent() {
 
 export default function CustomerMasterListPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-xs text-[#70665F]">Loading Customer Master...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-xs text-[color:var(--crm-text-secondary)]">Loading Customer Master...</div>}>
       <CustomerMasterListContent />
     </Suspense>
   );

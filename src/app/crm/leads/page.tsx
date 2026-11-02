@@ -5,7 +5,7 @@ import { CRMMasterHub } from '../../../components/crm/CRMMasterHub';
 
 export default function LeadsListPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-xs text-[#70665F]">Loading CRM Master Hub...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-xs text-[color:var(--crm-text-secondary)]">Loading CRM Master Hub...</div>}>
       <CRMMasterHub defaultTab="leads" />
     </Suspense>
   );

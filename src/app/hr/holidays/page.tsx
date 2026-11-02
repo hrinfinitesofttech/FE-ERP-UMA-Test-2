@@ -398,7 +398,7 @@ export default function HolidayCalendarPage() {
   }, [filteredHolidays]);
 
   return (
-    <div className="p-6 space-y-6 bg-[#FDFBF9] min-h-screen text-[#211B17]">
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)] min-h-screen text-[color:var(--crm-text-primary)]">
       {/* Toast Notification */}
       {successToast && (
         <div className="fixed top-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
@@ -408,22 +408,22 @@ export default function HolidayCalendarPage() {
       )}
 
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2.5">
+          <h1 className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2.5">
             <div className="p-2 bg-amber-500/10 rounded-lg text-amber-700">
               <PartyPopper className="w-6 h-6" />
             </div>
             Company & Financial Year Holiday Calendar (FY 2026-27)
           </h1>
-          <p className="text-sm text-[#70665F] mt-1">
+          <p className="text-sm text-[color:var(--crm-text-secondary)] mt-1">
             Statutory Public Holidays, Plant Maintenance Shutdowns, Festive Observances & Departmental Schedules
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={handleRefresh}
-            className="flex items-center gap-1.5 px-3 py-2 bg-white border border-[#EBE3DB] hover:bg-[#F5EFEB] text-[#544B45] font-semibold text-xs rounded-lg transition shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-2 bg-white border border-[color:var(--crm-border-default)] hover:bg-[#F5EFEB] text-[color:var(--crm-text-secondary)] font-semibold text-xs rounded-lg transition shadow-sm"
             title="Reload holiday records"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
@@ -456,47 +456,47 @@ export default function HolidayCalendarPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-4 shadow-sm flex items-center gap-4">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-4 shadow-sm flex items-center gap-4">
           <div className="p-3 bg-amber-50 text-amber-700 rounded-xl">
             <Calendar className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-2xl font-black text-[#211B17]">{totalHolidays}</div>
-            <div className="text-xs font-semibold text-[#70665F]">Total Annual Holidays</div>
+            <div className="text-2xl font-black text-[color:var(--crm-text-primary)]">{totalHolidays}</div>
+            <div className="text-xs font-semibold text-[color:var(--crm-text-secondary)]">Total Annual Holidays</div>
           </div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-4 shadow-sm flex items-center gap-4">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-4 shadow-sm flex items-center gap-4">
           <div className="p-3 bg-emerald-50 text-emerald-700 rounded-xl">
             <Sun className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-2xl font-black text-[#211B17]">{publicCount}</div>
-            <div className="text-xs font-semibold text-[#70665F]">Public & Festival Holidays</div>
+            <div className="text-2xl font-black text-[color:var(--crm-text-primary)]">{publicCount}</div>
+            <div className="text-xs font-semibold text-[color:var(--crm-text-secondary)]">Public & Festival Holidays</div>
           </div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-4 shadow-sm flex items-center gap-4">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-4 shadow-sm flex items-center gap-4">
           <div className="p-3 bg-purple-50 text-purple-700 rounded-xl">
             <Star className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-2xl font-black text-[#211B17]">{optionalCount}</div>
-            <div className="text-xs font-semibold text-[#70665F]">Optional / Choice Offs</div>
+            <div className="text-2xl font-black text-[color:var(--crm-text-primary)]">{optionalCount}</div>
+            <div className="text-xs font-semibold text-[color:var(--crm-text-secondary)]">Optional / Choice Offs</div>
           </div>
         </div>
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="bg-white border border-[#EBE3DB] rounded-xl p-3.5 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-3">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-3.5 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-3">
         <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 text-[#A89F91] absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[color:var(--crm-text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search holiday name, date (YYYY-MM-DD), notes..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-[#FDFBF9] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-amber-600 focus:bg-white transition"
+            className="w-full pl-9 pr-4 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600 focus:bg-white transition"
           />
         </div>
 
@@ -504,7 +504,7 @@ export default function HolidayCalendarPage() {
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="px-3 py-2 bg-[#FDFBF9] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-amber-600"
+            className="px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600"
           >
             <option value="all">All Holiday Types</option>
             <option value="Public Holiday">Public Holiday</option>
@@ -516,7 +516,7 @@ export default function HolidayCalendarPage() {
           <select
             value={monthFilter}
             onChange={(e) => setMonthFilter(e.target.value)}
-            className="px-3 py-2 bg-[#FDFBF9] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-amber-600"
+            className="px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600"
           >
             <option value="all">All Months</option>
             <option value="1">January</option>
@@ -536,7 +536,7 @@ export default function HolidayCalendarPage() {
           <select
             value={deptFilter}
             onChange={(e) => setDeptFilter(e.target.value)}
-            className="px-3 py-2 bg-[#FDFBF9] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-amber-600"
+            className="px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600"
           >
             <option value="all">All Departments</option>
             {DEPARTMENT_OPTIONS.filter((d) => d !== 'All Departments').map((d) => (
@@ -546,24 +546,24 @@ export default function HolidayCalendarPage() {
             ))}
           </select>
 
-          <div className="flex items-center border border-[#EBE3DB] rounded-lg p-0.5 bg-[#FAF7F2]">
+          <div className="flex items-center border border-[color:var(--crm-border-default)] rounded-lg p-0.5 bg-[color:var(--crm-bg-app)]">
             <button
               onClick={() => setViewMode('calendar')}
-              className={`p-1.5 rounded-md transition ${viewMode === 'calendar' ? 'bg-white text-amber-700 shadow-xs' : 'text-[#70665F]'}`}
+              className={`p-1.5 rounded-md transition ${viewMode === 'calendar' ? 'bg-white text-amber-700 shadow-xs' : 'text-[color:var(--crm-text-secondary)]'}`}
               title="Interactive Calendar View"
             >
               <CalendarDays className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode('cards')}
-              className={`p-1.5 rounded-md transition ${viewMode === 'cards' ? 'bg-white text-amber-700 shadow-xs' : 'text-[#70665F]'}`}
+              className={`p-1.5 rounded-md transition ${viewMode === 'cards' ? 'bg-white text-amber-700 shadow-xs' : 'text-[color:var(--crm-text-secondary)]'}`}
               title="Card View"
             >
               <LayoutGrid className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode('table')}
-              className={`p-1.5 rounded-md transition ${viewMode === 'table' ? 'bg-white text-amber-700 shadow-xs' : 'text-[#70665F]'}`}
+              className={`p-1.5 rounded-md transition ${viewMode === 'table' ? 'bg-white text-amber-700 shadow-xs' : 'text-[color:var(--crm-text-secondary)]'}`}
               title="Table View"
             >
               <List className="w-4 h-4" />
@@ -574,9 +574,9 @@ export default function HolidayCalendarPage() {
 
       {/* Holiday Content: Calendar / Cards / Table */}
       {isLoading ? (
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-12 text-center shadow-sm">
-          <RefreshCw className="w-8 h-8 text-amber-600 animate-spin mx-auto mb-3" />
-          <p className="text-sm font-semibold text-[#544B45]">Loading holidays...</p>
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-12 text-center shadow-sm">
+          <RefreshCw className="w-8 h-8 text-crm-brand-600 animate-spin mx-auto mb-3" />
+          <p className="text-sm font-semibold text-[color:var(--crm-text-secondary)]">Loading holidays...</p>
         </div>
       ) : viewMode === 'calendar' ? (
         <ERPCalendarView
@@ -601,10 +601,10 @@ export default function HolidayCalendarPage() {
           ]}
         />
       ) : filteredHolidays.length === 0 ? (
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-12 text-center space-y-3 shadow-sm">
-          <Calendar className="w-12 h-12 text-[#A89F91] mx-auto" />
-          <h3 className="text-base font-bold text-[#211B17]">No holidays found</h3>
-          <p className="text-xs text-[#70665F] max-w-md mx-auto">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-12 text-center space-y-3 shadow-sm">
+          <Calendar className="w-12 h-12 text-[color:var(--crm-text-tertiary)] mx-auto" />
+          <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">No holidays found</h3>
+          <p className="text-xs text-[color:var(--crm-text-secondary)] max-w-md mx-auto">
             {searchTerm || typeFilter !== 'all' || monthFilter !== 'all' || deptFilter !== 'all'
               ? 'No holiday records match your search criteria.'
               : 'No holidays have been configured for this financial year. Click "+ Add Holiday Entry" to create one.'}
@@ -623,7 +623,7 @@ export default function HolidayCalendarPage() {
               return (
                 <div
                   key={hol.id}
-                  className="bg-white border border-[#EBE3DB] rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-md hover:border-amber-300 transition duration-200 flex flex-col justify-between"
+                  className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-md hover:border-amber-300 transition duration-200 flex flex-col justify-between"
                 >
                   <div className="space-y-3">
                     <div className="flex items-start justify-between gap-3">
@@ -633,13 +633,13 @@ export default function HolidayCalendarPage() {
                           <span className="text-[10px] uppercase tracking-wider">{monthStr}</span>
                         </div>
                         <div>
-                          <h3 className="text-sm font-bold text-[#211B17] leading-snug">
+                          <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] leading-snug">
                             {hol.holidayName || (hol as any).name}
                           </h3>
                           <div className="text-xs font-semibold text-amber-800 flex items-center gap-1 mt-0.5">
                             <Clock className="w-3.5 h-3.5" />
                             <span>{dayName}</span>
-                            <span className="text-[#A89F91] font-mono font-normal">({hDate})</span>
+                            <span className="text-[color:var(--crm-text-tertiary)] font-mono font-normal">({hDate})</span>
                           </div>
                         </div>
                       </div>
@@ -657,9 +657,9 @@ export default function HolidayCalendarPage() {
                       </span>
                     </div>
 
-                    <div className="bg-[#FAF7F2] p-3 rounded-xl border border-[#EBE3DB] space-y-1.5 text-xs">
-                      <div className="flex items-center gap-1.5 text-[#544B45]">
-                        <Building2 className="w-3.5 h-3.5 text-[#70665F] shrink-0" />
+                    <div className="bg-[color:var(--crm-bg-app)] p-3 rounded-xl border border-[color:var(--crm-border-default)] space-y-1.5 text-xs">
+                      <div className="flex items-center gap-1.5 text-[color:var(--crm-text-secondary)]">
+                        <Building2 className="w-3.5 h-3.5 text-[color:var(--crm-text-secondary)] shrink-0" />
                         <span className="truncate">
                           {hol.applicableDepartments && Array.isArray(hol.applicableDepartments) && hol.applicableDepartments.length > 0
                             ? hol.applicableDepartments.join(', ')
@@ -667,28 +667,28 @@ export default function HolidayCalendarPage() {
                         </span>
                       </div>
                       {hol.description && (
-                        <p className="text-[11px] text-[#70665F] line-clamp-2 italic">
+                        <p className="text-[11px] text-[color:var(--crm-text-secondary)] line-clamp-2 italic">
                           &ldquo;{hol.description}&rdquo;
                         </p>
                       )}
                     </div>
                   </div>
 
-                  <div className="pt-3 border-t border-[#EBE3DB]/60 flex items-center justify-between text-xs">
-                    <span className="font-mono text-[10px] text-[#70665F] bg-[#FAF7F2] px-2 py-0.5 rounded">
+                  <div className="pt-3 border-t border-[#E2E7EF]/60 flex items-center justify-between text-xs">
+                    <span className="font-mono text-[10px] text-[color:var(--crm-text-secondary)] bg-[color:var(--crm-bg-app)] px-2 py-0.5 rounded">
                       {hol.financialYear || 'FY 2026-27'}
                     </span>
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => handleOpenEditModal(hol)}
-                        className="p-1.5 text-[#70665F] hover:text-amber-700 hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                        className="p-1.5 text-[color:var(--crm-text-secondary)] hover:text-amber-700 hover:bg-amber-50 rounded-lg transition cursor-pointer"
                         title="Edit holiday"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => setDeleteConfirmHoliday(hol)}
-                        className="p-1.5 text-[#70665F] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                        className="p-1.5 text-[color:var(--crm-text-secondary)] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
                         title="Delete holiday"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -701,19 +701,19 @@ export default function HolidayCalendarPage() {
           </div>
 
           {/* Cards Pagination */}
-          <div className="p-3.5 bg-white rounded-xl border border-[#EBE3DB] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#70665F]">
+          <div className="p-3.5 bg-white rounded-xl border border-[color:var(--crm-border-default)] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[color:var(--crm-text-secondary)]">
             <div className="flex items-center gap-4">
               <div>
-                Showing <span className="font-bold text-[#211B17]">{startIndex + 1}</span> to{' '}
-                <span className="font-bold text-[#211B17]">{Math.min(startIndex + pageSize, filteredHolidays.length)}</span> of{' '}
-                <span className="font-bold text-[#211B17]">{filteredHolidays.length}</span> holidays
+                Showing <span className="font-bold text-[color:var(--crm-text-primary)]">{startIndex + 1}</span> to{' '}
+                <span className="font-bold text-[color:var(--crm-text-primary)]">{Math.min(startIndex + pageSize, filteredHolidays.length)}</span> of{' '}
+                <span className="font-bold text-[color:var(--crm-text-primary)]">{filteredHolidays.length}</span> holidays
               </div>
               <div className="flex items-center gap-1.5">
                 <span>Show:</span>
                 <select
                   value={pageSize}
                   onChange={(e) => setPageSize(Number(e.target.value))}
-                  className="bg-[#FAF7F2] border border-[#EBE3DB] rounded px-2 py-0.5 text-xs font-semibold text-[#211B17]"
+                  className="bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded px-2 py-0.5 text-xs font-semibold text-[color:var(--crm-text-primary)]"
                 >
                   <option value="6">6 per page</option>
                   <option value="12">12 per page</option>
@@ -726,17 +726,17 @@ export default function HolidayCalendarPage() {
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="p-1.5 rounded-lg border border-[#EBE3DB] disabled:opacity-30 hover:bg-[#FAF7F2] text-[#70665F] transition cursor-pointer"
+                className="p-1.5 rounded-lg border border-[color:var(--crm-border-default)] disabled:opacity-30 hover:bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] transition cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="font-bold text-[#211B17] px-2 font-mono">
+              <span className="font-bold text-[color:var(--crm-text-primary)] px-2 font-mono">
                 Page {currentPage} of {totalPages}
               </span>
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="p-1.5 rounded-lg border border-[#EBE3DB] disabled:opacity-30 hover:bg-[#FAF7F2] text-[#70665F] transition cursor-pointer"
+                className="p-1.5 rounded-lg border border-[color:var(--crm-border-default)] disabled:opacity-30 hover:bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] transition cursor-pointer"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -745,11 +745,11 @@ export default function HolidayCalendarPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-sm">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[#70665F] font-semibold uppercase text-[11px] tracking-wider">
+                  <tr className="bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold uppercase text-[11px] tracking-wider">
                     <th className="py-3.5 px-4">Date</th>
                     <th className="py-3.5 px-4">Holiday Name</th>
                     <th className="py-3.5 px-4">Type</th>
@@ -759,13 +759,13 @@ export default function HolidayCalendarPage() {
                     <th className="py-3.5 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#EBE3DB]/60 text-[#211B17]">
+                <tbody className="divide-y divide-[#E2E7EF]/60 text-[color:var(--crm-text-primary)]">
                   {paginatedHolidays.map((hol) => (
-                    <tr key={hol.id} className="hover:bg-[#FAF7F2]/60 transition">
+                    <tr key={hol.id} className="hover:bg-[#F4F6FA]/60 transition">
                       <td className="py-3.5 px-4 font-mono font-bold text-amber-800">
                         {hol.holidayDate || hol.date}
                       </td>
-                      <td className="py-3.5 px-4 font-bold text-[#211B17]">
+                      <td className="py-3.5 px-4 font-bold text-[color:var(--crm-text-primary)]">
                         {hol.holidayName || (hol as any).name}
                       </td>
                       <td className="py-3.5 px-4">
@@ -781,29 +781,29 @@ export default function HolidayCalendarPage() {
                           {hol.holidayType || 'Public Holiday'}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-[#544B45]">
+                      <td className="py-3.5 px-4 text-[color:var(--crm-text-secondary)]">
                         {hol.applicableDepartments && Array.isArray(hol.applicableDepartments) && hol.applicableDepartments.length > 0
                           ? hol.applicableDepartments.join(', ')
                           : 'All Departments'}
                       </td>
-                      <td className="py-3.5 px-4 font-mono text-[#70665F]">
+                      <td className="py-3.5 px-4 font-mono text-[color:var(--crm-text-secondary)]">
                         {hol.financialYear || 'FY 2026-27'}
                       </td>
-                      <td className="py-3.5 px-4 text-[#70665F] max-w-xs truncate">
+                      <td className="py-3.5 px-4 text-[color:var(--crm-text-secondary)] max-w-xs truncate">
                         {hol.description || '-'}
                       </td>
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => handleOpenEditModal(hol)}
-                            className="p-1.5 text-[#70665F] hover:text-amber-700 hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                            className="p-1.5 text-[color:var(--crm-text-secondary)] hover:text-amber-700 hover:bg-amber-50 rounded-lg transition cursor-pointer"
                             title="Edit holiday"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => setDeleteConfirmHoliday(hol)}
-                            className="p-1.5 text-[#70665F] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                            className="p-1.5 text-[color:var(--crm-text-secondary)] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
                             title="Delete holiday"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -818,19 +818,19 @@ export default function HolidayCalendarPage() {
           </div>
 
           {/* Table Pagination */}
-          <div className="p-3.5 bg-white rounded-xl border border-[#EBE3DB] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#70665F]">
+          <div className="p-3.5 bg-white rounded-xl border border-[color:var(--crm-border-default)] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[color:var(--crm-text-secondary)]">
             <div className="flex items-center gap-4">
               <div>
-                Showing <span className="font-bold text-[#211B17]">{startIndex + 1}</span> to{' '}
-                <span className="font-bold text-[#211B17]">{Math.min(startIndex + pageSize, filteredHolidays.length)}</span> of{' '}
-                <span className="font-bold text-[#211B17]">{filteredHolidays.length}</span> records
+                Showing <span className="font-bold text-[color:var(--crm-text-primary)]">{startIndex + 1}</span> to{' '}
+                <span className="font-bold text-[color:var(--crm-text-primary)]">{Math.min(startIndex + pageSize, filteredHolidays.length)}</span> of{' '}
+                <span className="font-bold text-[color:var(--crm-text-primary)]">{filteredHolidays.length}</span> records
               </div>
               <div className="flex items-center gap-1.5">
                 <span>Rows:</span>
                 <select
                   value={pageSize}
                   onChange={(e) => setPageSize(Number(e.target.value))}
-                  className="bg-[#FAF7F2] border border-[#EBE3DB] rounded px-2 py-0.5 text-xs font-semibold text-[#211B17]"
+                  className="bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded px-2 py-0.5 text-xs font-semibold text-[color:var(--crm-text-primary)]"
                 >
                   <option value="6">6</option>
                   <option value="12">12</option>
@@ -844,17 +844,17 @@ export default function HolidayCalendarPage() {
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="p-1.5 rounded-lg border border-[#EBE3DB] disabled:opacity-30 hover:bg-[#FAF7F2] text-[#70665F] transition cursor-pointer"
+                className="p-1.5 rounded-lg border border-[color:var(--crm-border-default)] disabled:opacity-30 hover:bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] transition cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="font-bold text-[#211B17] px-2 font-mono">
+              <span className="font-bold text-[color:var(--crm-text-primary)] px-2 font-mono">
                 Page {currentPage} of {totalPages}
               </span>
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="p-1.5 rounded-lg border border-[#EBE3DB] disabled:opacity-30 hover:bg-[#FAF7F2] text-[#70665F] transition cursor-pointer"
+                className="p-1.5 rounded-lg border border-[color:var(--crm-border-default)] disabled:opacity-30 hover:bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] transition cursor-pointer"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -873,18 +873,18 @@ export default function HolidayCalendarPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl relative my-8"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl relative my-8"
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <h3 className="text-base font-bold text-[#211B17] flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-amber-600" />
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <h3 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-crm-brand-600" />
                 {editingHoliday ? `Edit Holiday (${editingHoliday.id})` : 'Add Holiday Entry'}
               </h3>
               <button
                 type="button"
                 onClick={closeModalWithConfirm}
-                className="text-[#70665F] hover:text-[#211B17] p-1.5 rounded-lg hover:bg-[#F5EFEB] transition cursor-pointer"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1.5 rounded-lg hover:bg-[#F5EFEB] transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -894,7 +894,7 @@ export default function HolidayCalendarPage() {
             <form onSubmit={handleSubmit} noValidate className="space-y-3.5 text-xs">
               {/* 1. Holiday Name */}
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Holiday Name <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -904,10 +904,10 @@ export default function HolidayCalendarPage() {
                   value={formData.holidayName}
                   onBlur={() => handleBlur('holidayName')}
                   onChange={(e) => handleChange('holidayName', e.target.value)}
-                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition ${
+                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                     formErrors.holidayName
                       ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                      : 'border-[#EBE3DB] focus:border-amber-600'
+                      : 'border-[color:var(--crm-border-default)] focus:border-amber-600'
                   }`}
                 />
                 {formErrors.holidayName && (
@@ -921,7 +921,7 @@ export default function HolidayCalendarPage() {
               {/* 2. Holiday Date & Holiday Type */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     Holiday Date <span className="text-rose-500">*</span>
                   </label>
                   <ERPDatePicker
@@ -942,13 +942,13 @@ export default function HolidayCalendarPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     Holiday Type <span className="text-rose-500">*</span>
                   </label>
                   <select
                     value={formData.holidayType}
                     onChange={(e) => handleChange('holidayType', e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-white border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-amber-600 transition"
+                    className="w-full px-3.5 py-2.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600 transition"
                   >
                     <option value="Public Holiday">Public Holiday</option>
                     <option value="Festival">Festival</option>
@@ -961,22 +961,22 @@ export default function HolidayCalendarPage() {
               {/* 3. Financial Year & Optional Choice */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Financial Year</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Financial Year</label>
                   <input
                     type="text"
                     value={formData.financialYear}
                     onChange={(e) => handleChange('financialYear', e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-white border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-amber-600 transition"
+                    className="w-full px-3.5 py-2.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600 transition"
                   />
                 </div>
 
                 <div className="flex items-center sm:pt-6">
-                  <label className="flex items-center gap-2 cursor-pointer text-[#544B45] font-medium">
+                  <label className="flex items-center gap-2 cursor-pointer text-[color:var(--crm-text-secondary)] font-medium">
                     <input
                       type="checkbox"
                       checked={formData.isOptional}
                       onChange={(e) => handleChange('isOptional', e.target.checked)}
-                      className="rounded text-amber-600 focus:ring-amber-500 w-4 h-4 border-[#EBE3DB]"
+                      className="rounded text-amber-600 focus:ring-amber-500 w-4 h-4 border-[color:var(--crm-border-default)]"
                     />
                     <span>Is Optional / Choice Holiday</span>
                   </label>
@@ -985,8 +985,8 @@ export default function HolidayCalendarPage() {
 
               {/* 4. Applicable Departments with Instant Selection */}
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Applicable Departments</label>
-                <div className="flex flex-wrap gap-1.5 p-2.5 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Applicable Departments</label>
+                <div className="flex flex-wrap gap-1.5 p-2.5 bg-[color:var(--crm-bg-app)] rounded-xl border border-[color:var(--crm-border-default)]">
                   {DEPARTMENT_OPTIONS.map((dept) => {
                     const isSelected = formData.applicableDepartments.includes(dept);
                     return (
@@ -997,7 +997,7 @@ export default function HolidayCalendarPage() {
                         className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
                           isSelected
                             ? 'bg-amber-600 text-white shadow-xs'
-                            : 'bg-white text-[#544B45] border border-[#EBE3DB] hover:bg-[#F5EFEB]'
+                            : 'bg-white text-[color:var(--crm-text-secondary)] border border-[color:var(--crm-border-default)] hover:bg-[#F5EFEB]'
                         }`}
                       >
                         {dept}
@@ -1009,22 +1009,22 @@ export default function HolidayCalendarPage() {
 
               {/* 5. Description / Notes */}
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Description / Notes</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Description / Notes</label>
                 <textarea
                   rows={2}
                   placeholder="Optional details or instructions..."
                   value={formData.description}
                   onChange={(e) => handleChange('description', e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-amber-600 transition"
+                  className="w-full px-3.5 py-2.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600 transition"
                 />
               </div>
 
               {/* Modal Buttons */}
-              <div className="pt-3 border-t border-[#EBE3DB] flex items-center justify-end gap-3">
+              <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={closeModalWithConfirm}
-                  className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold text-xs rounded-lg transition cursor-pointer"
+                  className="px-4 py-2 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold text-xs rounded-lg transition cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1051,29 +1051,29 @@ export default function HolidayCalendarPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl"
           >
             <div className="flex items-center gap-3">
               <div className="p-3 bg-rose-100 text-rose-600 rounded-xl">
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-[#211B17]">Delete Holiday Entry</h3>
-                <p className="text-xs text-[#70665F]">
+                <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">Delete Holiday Entry</h3>
+                <p className="text-xs text-[color:var(--crm-text-secondary)]">
                   {deleteConfirmHoliday.id} • {deleteConfirmHoliday.holidayName || (deleteConfirmHoliday as any).name}
                 </p>
               </div>
             </div>
 
-            <p className="text-sm text-[#544B45] leading-relaxed">
+            <p className="text-sm text-[color:var(--crm-text-secondary)] leading-relaxed">
               Are you sure you want to delete holiday <strong>{deleteConfirmHoliday.holidayName || (deleteConfirmHoliday as any).name}</strong> on {deleteConfirmHoliday.holidayDate || deleteConfirmHoliday.date}?
             </p>
 
-            <div className="pt-3 border-t border-[#EBE3DB] flex items-center justify-end gap-3 text-xs">
+            <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-3 text-xs">
               <button
                 type="button"
                 onClick={() => setDeleteConfirmHoliday(null)}
-                className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold rounded-lg transition cursor-pointer"
+                className="px-4 py-2 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold rounded-lg transition cursor-pointer"
               >
                 Cancel
               </button>

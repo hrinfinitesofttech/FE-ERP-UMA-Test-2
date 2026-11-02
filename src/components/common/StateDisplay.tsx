@@ -50,16 +50,16 @@ export function LoadingState({
   }
 
   return (
-    <div className={`p-8 sm:p-12 text-center bg-white rounded-2xl border border-[#E7DED5] shadow-xs space-y-4 ${className}`}>
+    <div className={`p-8 sm:p-12 text-center bg-white rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs space-y-4 ${className}`}>
       <div className="flex flex-col items-center justify-center gap-3">
         <div className="relative flex items-center justify-center">
-          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-[#75401F]">
-            <Loader2 className="w-6 h-6 animate-spin text-[#75401F]" />
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-[color:var(--crm-brand-700)]">
+            <Loader2 className="w-6 h-6 animate-spin text-[color:var(--crm-brand-700)]" />
           </div>
         </div>
         <div className="space-y-1">
-          <h3 className="font-bold text-[#211B17] text-sm tracking-tight">{message}</h3>
-          <p className="text-[11px] text-[#70665F]">
+          <h3 className="font-bold text-[color:var(--crm-text-primary)] text-sm tracking-tight">{message}</h3>
+          <p className="text-[11px] text-[color:var(--crm-text-secondary)]">
             Fetching records... ({elapsed}s elapsed)
           </p>
         </div>
@@ -94,14 +94,14 @@ export function EmptyState({
   className = '',
 }: EmptyStateProps) {
   return (
-    <div className={`p-8 sm:p-12 text-center bg-white rounded-2xl border border-[#E7DED5] shadow-xs space-y-4 ${className}`}>
-      <div className="w-12 h-12 rounded-2xl bg-[#FAF7F2] border border-[#EBE3DB] text-[#70665F] flex items-center justify-center mx-auto shadow-2xs">
+    <div className={`p-8 sm:p-12 text-center bg-white rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs space-y-4 ${className}`}>
+      <div className="w-12 h-12 rounded-2xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] flex items-center justify-center mx-auto shadow-2xs">
         <Icon className="w-6 h-6" />
       </div>
 
       <div className="space-y-1 max-w-sm mx-auto">
-        <h3 className="font-bold text-[#211B17] text-sm tracking-tight">{title}</h3>
-        <p className="text-xs text-[#70665F] leading-relaxed">{message}</p>
+        <h3 className="font-bold text-[color:var(--crm-text-primary)] text-sm tracking-tight">{title}</h3>
+        <p className="text-xs text-[color:var(--crm-text-secondary)] leading-relaxed">{message}</p>
       </div>
 
       {(actionLabel && (actionHref || onAction)) && (
@@ -156,12 +156,12 @@ export function ErrorState({
 
   return (
     <div className={`p-8 sm:p-12 text-center bg-white rounded-2xl border border-rose-200 shadow-xs space-y-4 ${className}`}>
-      <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto shadow-2xs">
+      <div className="w-12 h-12 rounded-2xl bg-crm-brand-50 border border-crm-brand-100 text-crm-brand-700 flex items-center justify-center mx-auto shadow-2xs">
         <AlertCircle className="w-6 h-6" />
       </div>
 
       <div className="space-y-1 max-w-sm mx-auto">
-        <h3 className="font-bold text-[#211B17] text-sm tracking-tight">{title}</h3>
+        <h3 className="font-bold text-[color:var(--crm-text-primary)] text-sm tracking-tight">{title}</h3>
         <p className="text-xs text-rose-700 leading-relaxed">{message}</p>
       </div>
 
@@ -170,7 +170,7 @@ export function ErrorState({
           <button
             onClick={handleRetry}
             disabled={retrying}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#75401F] hover:bg-[#5C3218] text-white text-xs font-bold transition shadow-xs cursor-pointer min-h-[40px] disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[color:var(--crm-brand-700)] hover:bg-[#1B3489] text-white text-xs font-bold transition shadow-xs cursor-pointer min-h-[40px] disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${retrying ? 'animate-spin' : ''}`} />
             <span>{retrying ? 'Retrying...' : 'Retry Now'}</span>

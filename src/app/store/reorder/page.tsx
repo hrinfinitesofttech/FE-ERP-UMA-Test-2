@@ -61,59 +61,59 @@ export default function ReorderPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-[#FAF7F2] text-[#544B45] ">
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] ">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xl">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-md bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-mono font-semibold">
+            <span className="px-2.5 py-0.5 rounded-md bg-red-500/20 text-red-700 border border-red-500/30 text-xs font-mono font-semibold">
               REORDER ALERTS
             </span>
-            <h1 className="text-2xl font-black text-[#211B17] tracking-tight">Low Stock & Auto-Reorder Engine</h1>
+            <h1 className="text-2xl font-black text-[color:var(--crm-text-primary)] tracking-tight">Low Stock & Auto-Reorder Engine</h1>
           </div>
-          <p className="text-[#70665F] text-xs mt-1">
-            Automated reorder point trigger when <code className="font-mono text-red-400 font-bold bg-[#FAF7F2] px-1.5 py-0.5 rounded">Usable Stock ≤ Reorder Level</code> with 1-Click Purchase Requisition (PR) generation.
+          <p className="text-[color:var(--crm-text-secondary)] text-xs mt-1">
+            Automated reorder point trigger when <code className="font-mono text-red-700 font-bold bg-[color:var(--crm-bg-app)] px-1.5 py-0.5 rounded">Usable Stock ≤ Reorder Level</code> with 1-Click Purchase Requisition (PR) generation.
           </p>
         </div>
       </div>
 
       {/* Filter */}
-      <div className="flex items-center justify-between bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB]">
+      <div className="flex items-center justify-between bg-[color:var(--crm-bg-app)] p-4 rounded-xl border border-[color:var(--crm-border-default)]">
         <div className="relative w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--crm-text-secondary)]" />
           <input
             type="text"
             placeholder="Search low stock item code or name..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] placeholder-slate-400 focus:outline-none focus:border-red-500"
+            className="w-full pl-9 pr-4 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs text-[color:var(--crm-text-primary)] placeholder-slate-400 focus:outline-none focus:border-red-500"
           />
         </div>
-        <div className="text-xs text-[#70665F] font-mono">
-          Low Stock Items: <span className="text-red-400 font-extrabold text-sm">{lowStockItems.length}</span>
+        <div className="text-xs text-[color:var(--crm-text-secondary)] font-mono">
+          Low Stock Items: <span className="text-red-700 font-extrabold text-sm">{lowStockItems.length}</span>
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden shadow-xl">
+      <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-[#544B45]">
-            <thead className="bg-[#FAF7F2]/90 text-[#70665F] font-mono text-[11px] uppercase tracking-wider border-b border-[#EBE3DB]">
+          <table className="w-full text-left text-xs text-[color:var(--crm-text-secondary)]">
+            <thead className="bg-[#F4F6FA]/90 text-[color:var(--crm-text-secondary)] font-mono text-[11px] uppercase tracking-wider border-b border-[color:var(--crm-border-default)]">
               <tr>
                 <th className="p-3.5">Item Code & Name</th>
                 <th className="p-3.5">Category</th>
-                <th className="p-3.5 text-right font-mono text-emerald-400">Usable Stock Qty</th>
-                <th className="p-3.5 text-right font-mono text-red-400">Reorder Level</th>
+                <th className="p-3.5 text-right font-mono text-emerald-700">Usable Stock Qty</th>
+                <th className="p-3.5 text-right font-mono text-red-700">Reorder Level</th>
                 <th className="p-3.5 text-right font-mono">Safety Stock</th>
                 <th className="p-3.5 text-right font-mono text-crm-brand-500">Suggested PR Qty</th>
-                <th className="p-3.5 text-right font-mono text-[#211B17]">Estimated Cost (₹)</th>
+                <th className="p-3.5 text-right font-mono text-[color:var(--crm-text-primary)]">Estimated Cost (₹)</th>
                 <th className="p-3.5 text-center">1-Click Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EBE3DB]">
+            <tbody className="divide-y divide-[color:var(--crm-border-default)]">
               {lowStockItems.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-6 text-center text-[#70665F]">
+                  <td colSpan={8} className="p-6 text-center text-[color:var(--crm-text-secondary)]">
                     <CheckCircle className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
                     All stock levels are optimal above safety reorder thresholds!
                   </td>
@@ -127,39 +127,39 @@ export default function ReorderPage() {
                   const isGenerated = generatedPRs.includes(item.id);
 
                   return (
-                    <tr key={item.id} className="hover:bg-[#FAF7F2]/40 transition">
+                    <tr key={item.id} className="hover:bg-[#F4F6FA]/40 transition">
                       <td className="p-3.5 font-medium">
-                        <div className="font-bold text-[#211B17] text-xs">{item.itemCode}</div>
-                        <div className="text-[11px] text-[#70665F] mt-0.5">{item.itemName}</div>
+                        <div className="font-bold text-[color:var(--crm-text-primary)] text-xs">{item.itemCode}</div>
+                        <div className="text-[11px] text-[color:var(--crm-text-secondary)] mt-0.5">{item.itemName}</div>
                       </td>
-                      <td className="p-3.5 text-[#544B45]">{item.category}</td>
-                      <td className="p-3.5 text-right font-mono font-black text-rose-400 text-sm">
+                      <td className="p-3.5 text-[color:var(--crm-text-secondary)]">{item.category}</td>
+                      <td className="p-3.5 text-right font-mono font-black text-rose-700 text-sm">
                         {usable?.toLocaleString('en-IN')} {item.uom}
                       </td>
-                      <td className="p-3.5 text-right font-mono font-bold text-amber-400">
+                      <td className="p-3.5 text-right font-mono font-bold text-amber-700">
                         {item.reorderLevel?.toLocaleString('en-IN')} {item.uom}
                       </td>
-                      <td className="p-3.5 text-right font-mono text-[#70665F]">
+                      <td className="p-3.5 text-right font-mono text-[color:var(--crm-text-secondary)]">
                         {item.safetyStock?.toLocaleString('en-IN')} {item.uom}
                       </td>
                       <td className="p-3.5 text-right font-mono font-bold text-crm-brand-500 text-sm">
                         {suggested?.toLocaleString('en-IN')} {item.uom}
                       </td>
-                      <td className="p-3.5 text-right font-mono font-bold text-[#211B17]">
+                      <td className="p-3.5 text-right font-mono font-bold text-[color:var(--crm-text-primary)]">
                         ₹{estCost?.toLocaleString('en-IN')}
                       </td>
                       <td className="p-3.5 text-center">
                         {isGenerated ? (
-                          <span className="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold flex items-center gap-1 justify-center">
+                          <span className="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-700 border border-emerald-500/30 text-xs font-bold flex items-center gap-1 justify-center">
                             <CheckCircle className="w-3.5 h-3.5" />
                             PR Created
                           </span>
                         ) : (
                           <button
                             onClick={() => handleGeneratePR(item)}
-                            className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-red-600 to-rose-600 text-[#211B17] text-xs font-bold shadow-md shadow-red-600/30 hover:brightness-110 transition flex items-center gap-1 mx-auto"
+                            className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-red-600 to-rose-600 text-[color:var(--crm-text-primary)] text-xs font-bold shadow-md shadow-red-600/30 hover:brightness-110 transition flex items-center gap-1 mx-auto"
                           >
-                            <Zap className="w-3.5 h-3.5 text-yellow-300" />
+                            <Zap className="w-3.5 h-3.5 text-crm-brand-600" />
                             Generate PR
                           </button>
                         )}

@@ -94,8 +94,8 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
         const raw = status ? String(status) : 'planning';
         return {
           label: raw.replace(/_/g, ' ').toUpperCase(),
-          bg: 'bg-[#F3ECE4] text-[#70665F] border-[#E7DED5]',
-          dot: 'bg-[#8D827A]',
+          bg: 'bg-[color:var(--crm-surface-subtle)] text-[color:var(--crm-text-secondary)] border-[color:var(--crm-border-default)]',
+          dot: 'bg-[color:var(--crm-text-tertiary)]',
         };
       }
     }

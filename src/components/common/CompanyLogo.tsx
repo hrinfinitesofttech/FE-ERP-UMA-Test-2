@@ -44,7 +44,7 @@ export function CompanyLogo({
         />
         {showTagline && (
           <div className="leading-tight truncate">
-            <span className="font-extrabold text-[#18417D] tracking-wide text-xs block">
+            <span className="font-extrabold text-[#1F3FB0] tracking-wide text-xs block">
               UMA TECHNO FAB
             </span>
             <span className="text-[10px] text-[#F37A20] font-semibold tracking-tight block">
@@ -59,7 +59,7 @@ export function CompanyLogo({
   if (variant === 'badge') {
     return (
       <div
-        className={`inline-flex items-center justify-center p-2 rounded-2xl bg-white/95 border border-[#E7DED5] shadow-xs backdrop-blur-xs ${className}`}
+        className={`inline-flex items-center justify-center p-2 rounded-2xl bg-white/95 border border-[color:var(--crm-border-default)] shadow-xs backdrop-blur-xs ${className}`}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img

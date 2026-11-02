@@ -294,7 +294,7 @@ export default function ShiftManagementPage() {
   }, [shiftMasters, searchTerm]);
 
   return (
-    <div className="p-6 space-y-6 bg-[#FDFBF9] min-h-screen text-[#211B17]">
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)] min-h-screen text-[color:var(--crm-text-primary)]">
       {/* Toast Notification */}
       {successToast && (
         <div className="fixed top-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
@@ -304,22 +304,22 @@ export default function ShiftManagementPage() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2.5">
+          <h1 className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2.5">
             <div className="p-2 bg-sky-500/10 rounded-lg text-sky-700">
               <Layers className="w-6 h-6" />
             </div>
             Shift Master Management
           </h1>
-          <p className="text-sm text-[#70665F] mt-1">
+          <p className="text-sm text-[color:var(--crm-text-secondary)] mt-1">
             Manufacturing Plant Shift Timings, Grace Period Rules, Overtime Multipliers & Weekly Off Configuration
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={handleRefresh}
-            className="flex items-center gap-1.5 px-3 py-2 bg-white border border-[#EBE3DB] hover:bg-[#F5EFEB] text-[#544B45] font-semibold text-xs rounded-lg transition shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-2 bg-white border border-[color:var(--crm-border-default)] hover:bg-[#F5EFEB] text-[color:var(--crm-text-secondary)] font-semibold text-xs rounded-lg transition shadow-sm"
             title="Reload shift records"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
@@ -351,30 +351,30 @@ export default function ShiftManagementPage() {
       )}
 
       {/* Search Bar */}
-      <div className="bg-white border border-[#EBE3DB] rounded-xl p-3.5 shadow-sm">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-3.5 shadow-sm">
         <div className="relative">
-          <Search className="w-4 h-4 text-[#A89F91] absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[color:var(--crm-text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search shifts by name, timing, or weekly off..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-[#FDFBF9] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-sky-600 focus:bg-white transition"
+            className="w-full pl-9 pr-4 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-sky-600 focus:bg-white transition"
           />
         </div>
       </div>
 
       {/* Shift Cards Grid */}
       {isLoading ? (
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-12 text-center">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-12 text-center">
           <RefreshCw className="w-8 h-8 text-sky-600 animate-spin mx-auto mb-3" />
-          <p className="text-sm font-semibold text-[#544B45]">Loading shift records...</p>
+          <p className="text-sm font-semibold text-[color:var(--crm-text-secondary)]">Loading shift records...</p>
         </div>
       ) : filteredShifts.length === 0 ? (
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-12 text-center space-y-3 shadow-sm">
-          <Layers className="w-12 h-12 text-[#A89F91] mx-auto" />
-          <h3 className="text-base font-bold text-[#211B17]">No shift masters found</h3>
-          <p className="text-xs text-[#70665F] max-w-md mx-auto">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-12 text-center space-y-3 shadow-sm">
+          <Layers className="w-12 h-12 text-[color:var(--crm-text-tertiary)] mx-auto" />
+          <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">No shift masters found</h3>
+          <p className="text-xs text-[color:var(--crm-text-secondary)] max-w-md mx-auto">
             {searchTerm
               ? 'No shifts match your search criteria. Try a different query.'
               : 'No manufacturing shifts have been configured yet. Click "+ Define New Shift" to create one.'}
@@ -385,9 +385,9 @@ export default function ShiftManagementPage() {
           {filteredShifts.map((shift) => (
             <div
               key={shift.id}
-              className="bg-white border border-[#EBE3DB] rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-md hover:border-sky-300 transition duration-200"
+              className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-md hover:border-sky-300 transition duration-200"
             >
-              <div className="flex items-center justify-between border-b border-[#EBE3DB]/60 pb-3">
+              <div className="flex items-center justify-between border-b border-[#E2E7EF]/60 pb-3">
                 <span className="font-mono text-xs font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
                   {shift.id}
                 </span>
@@ -397,14 +397,14 @@ export default function ShiftManagementPage() {
                   </span>
                   <button
                     onClick={() => handleOpenEditModal(shift)}
-                    className="p-1.5 text-[#70665F] hover:text-sky-700 hover:bg-sky-50 rounded-lg transition"
+                    className="p-1.5 text-[color:var(--crm-text-secondary)] hover:text-sky-700 hover:bg-sky-50 rounded-lg transition"
                     title="Edit shift"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDeleteRecord(shift)}
-                    className="p-1.5 text-[#70665F] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                    className="p-1.5 text-[color:var(--crm-text-secondary)] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
                     title="Delete shift"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -413,30 +413,30 @@ export default function ShiftManagementPage() {
               </div>
 
               <div>
-                <h3 className="text-base font-bold text-[#211B17]">{shift.shiftName}</h3>
+                <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">{shift.shiftName}</h3>
                 <div className="text-base font-extrabold text-sky-700 mt-1 flex items-center gap-2 font-mono">
-                  <Clock className="w-4 h-4 text-[#70665F]" /> {shift.startTime} — {shift.endTime}
+                  <Clock className="w-4 h-4 text-[color:var(--crm-text-secondary)]" /> {shift.startTime} — {shift.endTime}
                 </div>
               </div>
 
-              <div className="bg-[#FAF7F2] p-3.5 rounded-xl border border-[#EBE3DB] space-y-2 text-xs">
+              <div className="bg-[color:var(--crm-bg-app)] p-3.5 rounded-xl border border-[color:var(--crm-border-default)] space-y-2 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-[#70665F]">Grace Period:</span>
+                  <span className="text-[color:var(--crm-text-secondary)]">Grace Period:</span>
                   <span className="font-bold text-amber-700">{shift.gracePeriodMinutes} Mins</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#70665F]">Lunch / Tea Break:</span>
-                  <span className="font-bold text-[#3E2723]">{shift.breakDurationMinutes} Mins</span>
+                  <span className="text-[color:var(--crm-text-secondary)]">Lunch / Tea Break:</span>
+                  <span className="font-bold text-[color:var(--crm-text-primary)]">{shift.breakDurationMinutes} Mins</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#70665F]">Weekly Off:</span>
+                  <span className="text-[color:var(--crm-text-secondary)]">Weekly Off:</span>
                   <span className="font-bold text-sky-700">{shift.weeklyOff || 'Sunday'}</span>
                 </div>
               </div>
 
-              <div className="space-y-1 text-[11px] text-[#544B45]">
-                <div><strong className="text-[#70665F]">Late Rule:</strong> {shift.lateRule}</div>
-                <div><strong className="text-[#70665F]">Overtime:</strong> {shift.overtimeRule}</div>
+              <div className="space-y-1 text-[11px] text-[color:var(--crm-text-secondary)]">
+                <div><strong className="text-[color:var(--crm-text-secondary)]">Late Rule:</strong> {shift.lateRule}</div>
+                <div><strong className="text-[color:var(--crm-text-secondary)]">Overtime:</strong> {shift.overtimeRule}</div>
               </div>
             </div>
           ))}
@@ -453,19 +453,19 @@ export default function ShiftManagementPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl relative my-8"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl relative my-8"
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3.5">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3.5">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-sky-500/10 rounded-lg text-sky-700">
                   <Layers className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-[#211B17]">
+                  <h2 className="text-lg font-bold text-[color:var(--crm-text-primary)]">
                     {editingId ? 'Edit Shift Master' : 'Configure Shift Master'}
                   </h2>
-                  <p className="text-xs text-[#70665F]">
+                  <p className="text-xs text-[color:var(--crm-text-secondary)]">
                     Define plant shift operational hours, grace margins and overtime logic
                   </p>
                 </div>
@@ -473,7 +473,7 @@ export default function ShiftManagementPage() {
               <button
                 type="button"
                 onClick={closeModalWithConfirm}
-                className="text-[#70665F] hover:text-[#211B17] p-1.5 rounded-lg hover:bg-[#F5EFEB] transition"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1.5 rounded-lg hover:bg-[#F5EFEB] transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -483,7 +483,7 @@ export default function ShiftManagementPage() {
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
               {/* 1. Shift Name */}
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Shift Name <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -492,10 +492,10 @@ export default function ShiftManagementPage() {
                   value={formData.shiftName}
                   onBlur={() => handleBlur('shiftName')}
                   onChange={(e) => handleChange('shiftName', e.target.value)}
-                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition ${
+                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                     formErrors.shiftName
                       ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                      : 'border-[#EBE3DB] focus:border-sky-600'
+                      : 'border-[color:var(--crm-border-default)] focus:border-sky-600'
                   }`}
                 />
                 {formErrors.shiftName && (
@@ -509,7 +509,7 @@ export default function ShiftManagementPage() {
               {/* 2. Start Time & End Time */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     Start Time <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -517,10 +517,10 @@ export default function ShiftManagementPage() {
                     value={formData.startTime}
                     onBlur={() => handleBlur('startTime')}
                     onChange={(e) => handleChange('startTime', e.target.value)}
-                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs font-mono text-[#211B17] focus:outline-none transition ${
+                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs font-mono text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                       formErrors.startTime
                         ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                        : 'border-[#EBE3DB] focus:border-sky-600'
+                        : 'border-[color:var(--crm-border-default)] focus:border-sky-600'
                     }`}
                   />
                   {formErrors.startTime && (
@@ -532,7 +532,7 @@ export default function ShiftManagementPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     End Time <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -540,10 +540,10 @@ export default function ShiftManagementPage() {
                     value={formData.endTime}
                     onBlur={() => handleBlur('endTime')}
                     onChange={(e) => handleChange('endTime', e.target.value)}
-                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs font-mono text-[#211B17] focus:outline-none transition ${
+                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs font-mono text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                       formErrors.endTime
                         ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                        : 'border-[#EBE3DB] focus:border-sky-600'
+                        : 'border-[color:var(--crm-border-default)] focus:border-sky-600'
                     }`}
                   />
                   {formErrors.endTime && (
@@ -558,7 +558,7 @@ export default function ShiftManagementPage() {
               {/* 3. Grace Period & Break Duration */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     Grace Period (Mins) <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -567,10 +567,10 @@ export default function ShiftManagementPage() {
                     value={formData.gracePeriodMinutes}
                     onBlur={() => handleBlur('gracePeriodMinutes')}
                     onChange={(e) => handleChange('gracePeriodMinutes', e.target.value)}
-                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition ${
+                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                       formErrors.gracePeriodMinutes
                         ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                        : 'border-[#EBE3DB] focus:border-sky-600'
+                        : 'border-[color:var(--crm-border-default)] focus:border-sky-600'
                     }`}
                   />
                   {formErrors.gracePeriodMinutes && (
@@ -582,7 +582,7 @@ export default function ShiftManagementPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     Break Duration (Mins) <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -591,10 +591,10 @@ export default function ShiftManagementPage() {
                     value={formData.breakDurationMinutes}
                     onBlur={() => handleBlur('breakDurationMinutes')}
                     onChange={(e) => handleChange('breakDurationMinutes', e.target.value)}
-                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition ${
+                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                       formErrors.breakDurationMinutes
                         ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                        : 'border-[#EBE3DB] focus:border-sky-600'
+                        : 'border-[color:var(--crm-border-default)] focus:border-sky-600'
                     }`}
                   />
                   {formErrors.breakDurationMinutes && (
@@ -608,11 +608,11 @@ export default function ShiftManagementPage() {
 
               {/* 4. Weekly Off */}
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Weekly Off</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Weekly Off</label>
                 <select
                   value={formData.weeklyOff}
                   onChange={(e) => handleChange('weeklyOff', e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-sky-600 transition"
+                  className="w-full px-3.5 py-2.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-sky-600 transition"
                 >
                   {WEEKLY_OFF_DAYS.map((day) => (
                     <option key={day} value={day}>
@@ -623,11 +623,11 @@ export default function ShiftManagementPage() {
               </div>
 
               {/* Form Buttons */}
-              <div className="pt-4 border-t border-[#EBE3DB] flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={closeModalWithConfirm}
-                  className="px-4 py-2.5 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold text-xs rounded-lg transition"
+                  className="px-4 py-2.5 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold text-xs rounded-lg transition"
                 >
                   Cancel
                 </button>
@@ -654,27 +654,27 @@ export default function ShiftManagementPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl"
           >
             <div className="flex items-center gap-3">
               <div className="p-3 bg-rose-100 text-rose-600 rounded-xl">
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-[#211B17]">Delete Shift Master</h3>
-                <p className="text-xs text-[#70665F]">{deleteConfirmShift.id} - {deleteConfirmShift.shiftName}</p>
+                <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">Delete Shift Master</h3>
+                <p className="text-xs text-[color:var(--crm-text-secondary)]">{deleteConfirmShift.id} - {deleteConfirmShift.shiftName}</p>
               </div>
             </div>
 
-            <p className="text-sm text-[#544B45] leading-relaxed">
+            <p className="text-sm text-[color:var(--crm-text-secondary)] leading-relaxed">
               Are you sure you want to delete shift <strong>{deleteConfirmShift.shiftName}</strong>? This action will remove the shift definition from the master database.
             </p>
 
-            <div className="pt-3 border-t border-[#EBE3DB] flex items-center justify-end gap-3 text-xs">
+            <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-3 text-xs">
               <button
                 type="button"
                 onClick={() => setDeleteConfirmShift(null)}
-                className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold rounded-lg transition"
+                className="px-4 py-2 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold rounded-lg transition"
               >
                 Cancel
               </button>

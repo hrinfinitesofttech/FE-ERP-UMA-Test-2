@@ -275,12 +275,12 @@ export default function CustomerPOPage() {
       cell: (po) => (
         <button
           onClick={() => setViewingPO(po)}
-          className="font-mono font-bold text-[#3E2723] hover:text-amber-800 bg-[#FAF7F2] hover:bg-[#EBE3DB] px-2.5 py-1 rounded-lg border border-[#E8DFD3] text-xs whitespace-nowrap inline-flex items-center gap-1.5 transition text-left cursor-pointer"
+          className="font-mono font-bold text-[color:var(--crm-text-primary)] hover:text-amber-800 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] px-2.5 py-1 rounded-lg border border-[#D3D9E8] text-xs whitespace-nowrap inline-flex items-center gap-1.5 transition text-left cursor-pointer"
         >
           <span>{po.poNumber}</span>
           {(po.attachments?.length || po.attachmentUrl) && (
             <span title="Has attachments">
-              <Paperclip className="w-3 h-3 text-amber-700" />
+              <Paperclip className="w-3 h-3 text-crm-brand-600" />
             </span>
           )}
         </button>
@@ -339,7 +339,7 @@ export default function CustomerPOPage() {
           <button
             type="button"
             onClick={() => setViewingPO(po)}
-            className="p-1.5 text-slate-700 hover:text-[#3E2723] hover:bg-[#EFE8DF] rounded-lg transition border border-transparent hover:border-[#D7CCC8] cursor-pointer"
+            className="p-1.5 text-slate-700 hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)] rounded-lg transition border border-transparent hover:border-[#C5CBDA] cursor-pointer"
             title="View Details"
           >
             <Eye className="w-4 h-4" />
@@ -404,7 +404,7 @@ export default function CustomerPOPage() {
             {/* Header */}
             <div className="px-6 py-4 border-b border-stone-200 flex items-center justify-between bg-stone-50">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-[#3E2723] text-white rounded-xl">
+                <div className="p-2 bg-[color:var(--crm-text-primary)] text-white rounded-xl">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
@@ -546,7 +546,7 @@ export default function CustomerPOPage() {
                           {att.type === 'image' || att.url?.startsWith('data:image/') ? (
                             <img src={att.url} alt={att.name} className="w-8 h-8 rounded-lg object-cover border border-stone-200" />
                           ) : (
-                            <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                            <div className="w-8 h-8 rounded-lg bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center shrink-0">
                               <FileText className="w-4 h-4" />
                             </div>
                           )}
@@ -590,7 +590,7 @@ export default function CustomerPOPage() {
               <button
                 type="button"
                 onClick={() => setViewingPO(null)}
-                className="px-4 py-2 rounded-xl bg-[#3E2723] text-white hover:bg-[#2E1D19] font-semibold text-xs transition"
+                className="px-4 py-2 rounded-xl bg-[color:var(--crm-text-primary)] text-white hover:bg-[#1C202B] font-semibold text-xs transition"
               >
                 Close
               </button>
@@ -852,7 +852,7 @@ export default function CustomerPOPage() {
                           {f.type === 'image' || f.url?.startsWith('data:image/') ? (
                             <img src={f.url} alt={f.name} className="w-8 h-8 rounded-lg object-cover border border-stone-200 shrink-0" />
                           ) : (
-                            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+                            <div className="w-8 h-8 rounded-lg bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center shrink-0">
                               <FileText className="w-4 h-4" />
                             </div>
                           )}
@@ -918,7 +918,7 @@ export default function CustomerPOPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-stone-200 overflow-hidden">
             <div className="p-6 text-center space-y-3">
-              <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+              <div className="w-12 h-12 rounded-full bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center mx-auto">
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <h3 className="font-bold text-base text-stone-900">Delete Customer Purchase Order?</h3>

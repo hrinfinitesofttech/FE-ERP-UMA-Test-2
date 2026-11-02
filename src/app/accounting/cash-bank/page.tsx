@@ -284,16 +284,16 @@ export default function CashBankPage() {
   }, [customerReceipts, supplierPayments, expenseEntries, contraEntries]);
 
   return (
-    <div className="p-6 space-y-6 bg-slate-50 min-h-screen text-[#211B17]">
+    <div className="p-6 space-y-6 bg-slate-50 min-h-screen text-[color:var(--crm-text-primary)]">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#EBE3DB] shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-sm">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-teal-50 rounded-2xl text-teal-600 border border-teal-100">
             <Landmark className="w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-[#211B17] tracking-tight">Cash &amp; Bank Accounts Master</h1>
-            <p className="text-xs text-[#70665F] mt-0.5">
+            <h1 className="text-2xl font-black text-[color:var(--crm-text-primary)] tracking-tight">Cash &amp; Bank Accounts Master</h1>
+            <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">
               Manage Bank Accounts, Petty Cash Vaults, Live General Ledger Balances &amp; Real-time Cashflow
             </p>
           </div>
@@ -301,7 +301,7 @@ export default function CashBankPage() {
 
         <div className="flex flex-wrap items-center gap-4">
           <div className="text-right">
-            <div className="text-xs font-semibold text-[#70665F]">Total Treasury Liquidity</div>
+            <div className="text-xs font-semibold text-[color:var(--crm-text-secondary)]">Total Treasury Liquidity</div>
             <div className="text-2xl font-black text-teal-700 font-mono">₹{metrics.totalLiquidity.toLocaleString()}</div>
           </div>
 
@@ -317,9 +317,9 @@ export default function CashBankPage() {
 
       {/* KPI Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-4 border border-[#EBE3DB] shadow-sm flex items-center justify-between">
+        <div className="bg-white rounded-xl p-4 border border-[color:var(--crm-border-default)] shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-[#70665F]">Bank Balances</p>
+            <p className="text-xs font-semibold text-[color:var(--crm-text-secondary)]">Bank Balances</p>
             <p className="text-xl font-bold text-gray-900 mt-1 font-mono">₹{metrics.bankTotal.toLocaleString()}</p>
             <p className="text-[11px] text-teal-600 font-medium mt-0.5">{bankAccounts.filter(b => b.accountType !== 'Cash').length} Accounts</p>
           </div>
@@ -328,9 +328,9 @@ export default function CashBankPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 border border-[#EBE3DB] shadow-sm flex items-center justify-between">
+        <div className="bg-white rounded-xl p-4 border border-[color:var(--crm-border-default)] shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-[#70665F]">Petty Cash Vaults</p>
+            <p className="text-xs font-semibold text-[color:var(--crm-text-secondary)]">Petty Cash Vaults</p>
             <p className="text-xl font-bold text-gray-900 mt-1 font-mono">₹{metrics.cashTotal.toLocaleString()}</p>
             <p className="text-[11px] text-amber-600 font-medium mt-0.5">{bankAccounts.filter(b => b.accountType === 'Cash').length} Registers</p>
           </div>
@@ -339,9 +339,9 @@ export default function CashBankPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 border border-[#EBE3DB] shadow-sm flex items-center justify-between">
+        <div className="bg-white rounded-xl p-4 border border-[color:var(--crm-border-default)] shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-[#70665F]">Operating Inflow</p>
+            <p className="text-xs font-semibold text-[color:var(--crm-text-secondary)]">Operating Inflow</p>
             <p className="text-xl font-bold text-emerald-600 mt-1 font-mono">+₹{metrics.totalReceiptsInflow.toLocaleString()}</p>
             <p className="text-[11px] text-gray-500 mt-0.5">From Customer Receipts</p>
           </div>
@@ -350,9 +350,9 @@ export default function CashBankPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 border border-[#EBE3DB] shadow-sm flex items-center justify-between">
+        <div className="bg-white rounded-xl p-4 border border-[color:var(--crm-border-default)] shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-[#70665F]">Operating Outflow</p>
+            <p className="text-xs font-semibold text-[color:var(--crm-text-secondary)]">Operating Outflow</p>
             <p className="text-xl font-bold text-rose-600 mt-1 font-mono">-₹{metrics.totalOutflow.toLocaleString()}</p>
             <p className="text-[11px] text-gray-500 mt-0.5">Payments &amp; Expenses</p>
           </div>
@@ -370,7 +370,7 @@ export default function CashBankPage() {
             className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition ${
               activeTab === 'accounts'
                 ? 'border-teal-600 text-teal-700 bg-white rounded-t-lg'
-                : 'border-transparent text-[#70665F] hover:text-gray-900'
+                : 'border-transparent text-[color:var(--crm-text-secondary)] hover:text-gray-900'
             }`}
           >
             <Building2 className="w-4 h-4" />
@@ -382,7 +382,7 @@ export default function CashBankPage() {
             className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition ${
               activeTab === 'cashflow'
                 ? 'border-teal-600 text-teal-700 bg-white rounded-t-lg'
-                : 'border-transparent text-[#70665F] hover:text-gray-900'
+                : 'border-transparent text-[color:var(--crm-text-secondary)] hover:text-gray-900'
             }`}
           >
             <FileSpreadsheet className="w-4 h-4" />
@@ -394,7 +394,7 @@ export default function CashBankPage() {
             className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition ${
               activeTab === 'transactions'
                 ? 'border-teal-600 text-teal-700 bg-white rounded-t-lg'
-                : 'border-transparent text-[#70665F] hover:text-gray-900'
+                : 'border-transparent text-[color:var(--crm-text-secondary)] hover:text-gray-900'
             }`}
           >
             <ArrowLeftRight className="w-4 h-4" />
@@ -432,7 +432,7 @@ export default function CashBankPage() {
       {activeTab === 'accounts' && (
         <div className="space-y-4">
           {/* Filters Bar */}
-          <div className="flex flex-col sm:flex-row gap-3 items-center justify-between bg-white p-3 rounded-xl border border-[#EBE3DB] shadow-sm">
+          <div className="flex flex-col sm:flex-row gap-3 items-center justify-between bg-white p-3 rounded-xl border border-[color:var(--crm-border-default)] shadow-sm">
             <div className="relative w-full sm:w-80">
               <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
@@ -472,11 +472,11 @@ export default function CashBankPage() {
 
           {/* Table View */}
           {viewMode === 'table' ? (
-            <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
-                    <tr className="bg-slate-50/80 border-b border-gray-200 text-[#70665F] uppercase font-bold tracking-wider">
+                    <tr className="bg-slate-50/80 border-b border-gray-200 text-[color:var(--crm-text-secondary)] uppercase font-bold tracking-wider">
                       <th className="py-3.5 px-4">GL Code</th>
                       <th className="py-3.5 px-4">Bank / Account Name</th>
                       <th className="py-3.5 px-4">Account Number</th>
@@ -579,7 +579,7 @@ export default function CashBankPage() {
               {filteredAccounts.map((b) => (
                 <div
                   key={b.id}
-                  className="bg-white p-6 rounded-2xl border border-[#EBE3DB] space-y-4 hover:border-teal-300 transition-all shadow-sm hover:shadow-md"
+                  className="bg-white p-6 rounded-2xl border border-[color:var(--crm-border-default)] space-y-4 hover:border-teal-300 transition-all shadow-sm hover:shadow-md"
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-mono font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
@@ -597,7 +597,7 @@ export default function CashBankPage() {
                   </div>
 
                   <div>
-                    <h3 className="text-base font-bold text-[#211B17]">{b.bankName}</h3>
+                    <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">{b.bankName}</h3>
                     {b.accountName && b.accountName !== b.bankName && (
                       <p className="text-xs text-gray-500 mt-0.5">{b.accountName}</p>
                     )}
@@ -610,19 +610,19 @@ export default function CashBankPage() {
                         {copiedId === b.id ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                       </button>
                     </div>
-                    <p className="text-[11px] text-[#70665F] mt-1">
+                    <p className="text-[11px] text-[color:var(--crm-text-secondary)] mt-1">
                       IFSC: <span className="font-mono">{b.ifscCode || 'N/A'}</span> • Branch: {b.branchName || b.branch || '-'}
                     </p>
                   </div>
 
-                  <div className="p-4 bg-slate-50 rounded-xl border border-[#EBE3DB] flex items-center justify-between">
-                    <span className="text-xs text-[#70665F] font-semibold">Current Ledger Balance</span>
+                  <div className="p-4 bg-slate-50 rounded-xl border border-[color:var(--crm-border-default)] flex items-center justify-between">
+                    <span className="text-xs text-[color:var(--crm-text-secondary)] font-semibold">Current Ledger Balance</span>
                     <span className="text-lg font-bold text-teal-700 font-mono">
                       ₹{Number(b.currentBalance || b.openingBalance || 0).toLocaleString()}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] text-[#70665F] border-t border-[#EBE3DB] pt-3">
+                  <div className="flex items-center justify-between text-[11px] text-[color:var(--crm-text-secondary)] border-t border-[color:var(--crm-border-default)] pt-3">
                     <span>Opening: ₹{Number(b.openingBalance || 0).toLocaleString()}</span>
                     <div className="flex items-center gap-2">
                       <button
@@ -723,7 +723,7 @@ export default function CashBankPage() {
           </div>
 
           {/* Cashflow Breakdown by Bank Account Table */}
-          <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-sm p-5 space-y-4">
+          <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] shadow-sm p-5 space-y-4">
             <h3 className="text-sm font-bold text-gray-900">Treasury Liquidity Allocation by Account</h3>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs divide-y divide-gray-200">
@@ -759,7 +759,7 @@ export default function CashBankPage() {
 
       {/* TAB 3: TRANSACTIONS & RUNNING LEDGER */}
       {activeTab === 'transactions' && (
-        <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] shadow-sm overflow-hidden">
           <div className="p-4 border-b border-gray-100 flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
               <ArrowLeftRight className="w-4 h-4 text-teal-600" />
@@ -834,9 +834,9 @@ export default function CashBankPage() {
       {/* Add Bank Account Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <h3 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <h3 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                 <Landmark className="w-5 h-5 text-teal-600" /> Register Bank Account / Cash Vault
               </h3>
               <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-600">
@@ -948,7 +948,7 @@ export default function CashBankPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
@@ -971,9 +971,9 @@ export default function CashBankPage() {
       {/* Edit Bank Account Modal */}
       {editingAccount && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <h3 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <h3 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                 <Edit2 className="w-5 h-5 text-teal-600" /> Edit Bank Account ({editingAccount.id})
               </h3>
               <button onClick={() => setEditingAccount(null)} className="text-gray-400 hover:text-gray-600">
@@ -1087,7 +1087,7 @@ export default function CashBankPage() {
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setEditingAccount(null)}

@@ -162,7 +162,7 @@ export default function EditItemMasterPage() {
         <p className="text-sm font-semibold text-[#64748B]">Item record not found.</p>
         <button
           onClick={() => router.push('/store/items')}
-          className="mt-3 px-4 py-2 bg-[#7C3AED] text-white text-xs font-bold rounded-lg"
+          className="mt-3 px-4 py-2 bg-[color:var(--crm-brand-600)] text-white text-xs font-bold rounded-lg"
         >
           Back to Item Master
         </button>

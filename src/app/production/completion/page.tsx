@@ -111,43 +111,6 @@ const DEFAULT_INSPECTION_ROWS: InProcessInspectionRow[] = [
   },
 ];
 
-// Initial mock completions for demonstration if storage is empty
-const INITIAL_MOCK_COMPLETIONS: ProductionCompletion[] = [
-  {
-    id: 'COMP-2026-001',
-    completionNumber: 'QC-2026-001',
-    completionDate: '2026-05-08',
-    jobId: 'PRJ-2026-001',
-    jobNumber: 'UTF-26-46 B',
-    workOrderNumber: 'UTF-26-46 B',
-    customerName: 'Ananth Chem',
-    productName: '25 KL Vertical Tank',
-    completedQuantity: 1,
-    rejectedQuantity: 0,
-    reworkQuantity: 0,
-    scrapQuantity: 0,
-    completedBy: 'Rohit (QC Inspector)',
-    qcStatus: 'Passed',
-    docNo: 'F - QAS - 02',
-    inspectionBy: 'Rohit',
-    remarks: 'Normal storage water - No Leakage observed. Primer paint applied on MS plates.',
-    inspectionRows: DEFAULT_INSPECTION_ROWS,
-    inspectionReport: {
-      docNo: 'F - QAS - 02',
-      reportTitle: 'In process cum final inspection report',
-      companyName: 'UMA TECHNO FAB',
-      customerName: 'Ananth Chem',
-      item: '25 KL Vertical Tank',
-      workOrderOrJobNo: 'UTF-26-46 B',
-      qty: '1 Nos',
-      date: '2026-05-08',
-      inspectionRows: DEFAULT_INSPECTION_ROWS,
-      inspectionBy: 'Rohit',
-      finalStatus: 'Approved',
-    },
-  },
-];
-
 function ProductionCompletionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -167,8 +130,19 @@ function ProductionCompletionContent() {
         if (saved) return JSON.parse(saved);
       } catch (_) {}
     }
-    return productionCompletions && productionCompletions.length > 0 ? productionCompletions : INITIAL_MOCK_COMPLETIONS;
+    return productionCompletions && productionCompletions.length > 0 ? productionCompletions : [];
   });
+
+  // Server records are the source of truth; keep local-only inspection detail (rows/report) when ids match
+  useEffect(() => {
+    if (!productionCompletions || productionCompletions.length === 0) return;
+    setCompletions((prev) => {
+      const localById = new Map(prev.map((p) => [p.completionNumber, p]));
+      const merged = productionCompletions.map((srv) => ({ ...localById.get(srv.completionNumber), ...srv }));
+      const serverNumbers = new Set(productionCompletions.map((p) => p.completionNumber));
+      return [...merged, ...prev.filter((p) => !serverNumbers.has(p.completionNumber))];
+    });
+  }, [productionCompletions]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -202,7 +176,7 @@ function ProductionCompletionContent() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'Passed' | 'Failed' | 'Pending'>('all');
 
   // Form Fields for Full Page QC Inspection Entry (Doc no.: F - QAS - 02)
-  const [formCustomerName, setFormCustomerName] = useState('Ananth Chem');
+  const [formCustomerName, setFormCustomerName] = useState('');
   const [formItem, setFormItem] = useState('25 KL Vertical Tank');
   const [formWorkOrderNo, setFormWorkOrderNo] = useState('UTF-26-46 B');
   const [formQty, setFormQty] = useState('1 Nos');
@@ -383,7 +357,7 @@ function ProductionCompletionContent() {
     <div className="space-y-4">
       {/* Toast Alert */}
       {toastMessage && (
-        <div className="fixed top-5 right-5 z-50 bg-[#211B17] text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-[#EBE3DB]/20 text-xs animate-in slide-in-from-top-2 duration-200">
+        <div className="fixed top-5 right-5 z-50 bg-[color:var(--crm-text-primary)] text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-[#E2E7EF]/20 text-xs animate-in slide-in-from-top-2 duration-200">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
           <span className="font-semibold">{toastMessage}</span>
         </div>
@@ -422,7 +396,7 @@ function ProductionCompletionContent() {
           {/* Form Container (Full Width & Spacious Card) */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             {/* Report Document Header (Exact reproduction of letterhead) */}
-            <div className="bg-[#211B17] text-white p-5 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="bg-[color:var(--crm-text-primary)] text-white p-5 flex flex-col md:flex-row md:items-center justify-between gap-3">
               <div className="flex items-center gap-3.5">
                 <div className="w-11 h-11 rounded-xl bg-amber-600 text-white flex items-center justify-center font-bold font-serif text-lg flex-shrink-0">
                   UMA
@@ -450,9 +424,9 @@ function ProductionCompletionContent() {
             {/* Form */}
             <form onSubmit={handleSaveInspectionReport} className="p-6 space-y-6 text-xs">
               {/* Quick Fill from Existing Projects Dropdown */}
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-4 rounded-xl border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="bg-gradient-to-r from-crm-brand-50 to-crm-brand-50 p-4 rounded-xl border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <Sparkles className="w-5 h-5 text-amber-600 flex-shrink-0" />
+                  <Sparkles className="w-5 h-5 text-crm-brand-600 flex-shrink-0" />
                   <div>
                     <span className="font-bold text-slate-900 block text-xs">
                       Quick Fill from Active Manufacturing Projects:
@@ -466,7 +440,7 @@ function ProductionCompletionContent() {
                   onChange={(e) => {
                     if (e.target.value) handleSelectProject(e.target.value);
                   }}
-                  className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-amber-500 text-[#211B17] min-w-[260px]"
+                  className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-amber-500 text-[color:var(--crm-text-primary)] min-w-[260px]"
                 >
                   <option value="">-- Choose Existing Project to Pre-fill --</option>
                   {projectJobs.map((p) => (
@@ -792,7 +766,7 @@ function ProductionCompletionContent() {
               <div className="text-[11px] font-semibold tracking-wider uppercase text-slate-400 mb-0.5">
                 DASHBOARD / PRODUCTION &amp; SHOP FLOOR / COMPLETION &amp; QC CLEARANCE
               </div>
-              <h1 className="text-2xl font-black text-[#211B17] tracking-tight flex items-center gap-2">
+              <h1 className="text-2xl font-black text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2">
                 <ShieldCheck className="w-6 h-6 text-emerald-600" />
                 <span>In Process Cum Final Inspection &amp; QC Clearance</span>
                 <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-bold border border-emerald-300 font-mono">
@@ -817,14 +791,14 @@ function ProductionCompletionContent() {
                 href="/production/dispatch"
                 className="px-3.5 py-2 bg-amber-50 border border-amber-200 hover:bg-amber-100 text-amber-900 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-xs"
               >
-                <Truck className="w-3.5 h-3.5 text-amber-700" />
+                <Truck className="w-3.5 h-3.5 text-crm-brand-600" />
                 <span>Delivery Challans</span>
               </Link>
               <Link
                 href="/production/planning"
-                className="px-3.5 py-2 bg-white border border-[#EBE3DB] hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-xs"
+                className="px-3.5 py-2 bg-white border border-[color:var(--crm-border-default)] hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-xs"
               >
-                <Factory className="w-3.5 h-3.5 text-amber-600" />
+                <Factory className="w-3.5 h-3.5 text-crm-brand-600" />
                 <span>Production Planning</span>
               </Link>
             </div>
@@ -837,7 +811,7 @@ function ProductionCompletionContent() {
                 <span className="text-[11px] font-semibold uppercase tracking-wider">Total QC Reports</span>
                 <FileText className="w-4 h-4 text-slate-600" />
               </div>
-              <div className="text-2xl font-black text-[#211B17]">{completions.length}</div>
+              <div className="text-2xl font-black text-[color:var(--crm-text-primary)]">{completions.length}</div>
               <div className="text-[11px] text-slate-500">Inspection Reports Logged</div>
             </div>
 
@@ -855,9 +829,9 @@ function ProductionCompletionContent() {
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-1">
               <div className="flex items-center justify-between text-amber-600">
                 <span className="text-[11px] font-semibold uppercase tracking-wider">QC Standard Form</span>
-                <Award className="w-4 h-4 text-amber-600" />
+                <Award className="w-4 h-4 text-crm-brand-600" />
               </div>
-              <div className="text-xl font-mono font-black text-[#211B17]">F - QAS - 02</div>
+              <div className="text-xl font-mono font-black text-[color:var(--crm-text-primary)]">F - QAS - 02</div>
               <div className="text-[11px] text-slate-500">UMA TECHNO FAB Standard</div>
             </div>
 
@@ -880,7 +854,7 @@ function ProductionCompletionContent() {
                 placeholder="Search by QC #, Job #, Customer, Equipment..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-[#211B17]"
+                className="w-full pl-9 pr-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-[color:var(--crm-text-primary)]"
               />
             </div>
 
@@ -892,7 +866,7 @@ function ProductionCompletionContent() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="px-3 py-1.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-[#211B17]"
+                className="px-3 py-1.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-[color:var(--crm-text-primary)]"
               >
                 <option value="all">All Statuses ({completions.length})</option>
                 <option value="Passed">Passed / Cleared</option>
@@ -1048,7 +1022,7 @@ function ProductionCompletionContent() {
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 overflow-y-auto animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl shadow-2xl border-2 border-black w-full max-w-4xl overflow-hidden my-4 print:m-0 print:border-none print:shadow-none">
             {/* Action Bar (Hidden in Print) */}
-            <div className="bg-[#211B17] text-white p-3.5 flex items-center justify-between print:hidden">
+            <div className="bg-[color:var(--crm-text-primary)] text-white p-3.5 flex items-center justify-between print:hidden">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
                 <span className="font-bold text-xs">Official Inspection Certificate Preview</span>

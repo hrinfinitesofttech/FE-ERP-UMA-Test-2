@@ -10,22 +10,22 @@ export default function PayslipsPage() {
   const [selectedRecord, setSelectedRecord] = useState(payrollRecords[0]);
 
   return (
-    <div className="p-6 space-y-6 bg-white text-[#211B17] ">
+    <div className="p-6 space-y-6 bg-white text-[color:var(--crm-text-primary)] ">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-4 print:hidden">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-4 print:hidden">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2">
             <FileText className="w-7 h-7 text-crm-brand-500" />
             Official PDF Payslip Generator & Self-Service
           </h1>
-          <p className="text-sm text-[#70665F] mt-1">
+          <p className="text-sm text-[color:var(--crm-text-secondary)] mt-1">
             Printable Employee Salary Slip with Statutory PF/ESI/PT Breakdown & Company Letterhead
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => printContent('printable-salary-payslip', { title: selectedRecord ? `Payslip_${selectedRecord.employeeName.replace(/\s+/g, '_')}_${selectedRecord.monthYear}` : 'Salary_Payslip' })}
-            className="flex items-center gap-2 px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-[#211B17] font-semibold text-sm rounded-lg shadow-md transition"
+            className="flex items-center gap-2 px-4 py-2 bg-crm-brand-700 hover:bg-crm-brand-600 text-[color:var(--crm-text-primary)] font-semibold text-sm rounded-lg shadow-md transition"
           >
             <Printer className="w-4 h-4" /> Print / Save PDF Payslip
           </button>
@@ -33,15 +33,15 @@ export default function PayslipsPage() {
       </div>
 
       {/* Select Record Bar */}
-      <div className="bg-white/80 border border-[#EBE3DB]/60 rounded-xl p-4 flex items-center gap-4 print:hidden">
-        <label className="text-xs font-bold text-[#70665F] uppercase tracking-wider">Select Employee Payslip:</label>
+      <div className="bg-white/80 border border-[#E2E7EF]/60 rounded-xl p-4 flex items-center gap-4 print:hidden">
+        <label className="text-xs font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">Select Employee Payslip:</label>
         <select
           value={selectedRecord?.id}
           onChange={(e) => {
             const found = payrollRecords.find((p) => p.id === e.target.value);
             if (found) setSelectedRecord(found);
           }}
-          className="bg-white border border-[#EBE3DB] rounded-lg px-3 py-2 text-sm text-[#211B17] focus:outline-none focus:border-crm-brand-600"
+          className="bg-white border border-[color:var(--crm-border-default)] rounded-lg px-3 py-2 text-sm text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-600"
         >
           {payrollRecords.map((p) => (
             <option key={p.id} value={p.id}>
@@ -55,12 +55,12 @@ export default function PayslipsPage() {
       {selectedRecord && (
         <div id="printable-salary-payslip" className="bg-white text-slate-900 rounded-2xl p-8 max-w-4xl mx-auto shadow-2xl space-y-6 print:p-0 print:shadow-none">
           {/* Company Letterhead */}
-          <div className="flex justify-between items-start border-b-2 border-[#EBE3DB] pb-4">
+          <div className="flex justify-between items-start border-b-2 border-[color:var(--crm-border-default)] pb-4">
             <div className="flex items-start gap-3.5">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/uma-mark.png" alt="Uma Techno Fab" className="w-12 h-12 object-contain shrink-0 mt-0.5" />
               <div>
-                <h2 className="text-2xl font-black text-[#18417D] tracking-tight">{company.companyName || 'UMA TECHNO FAB PVT. LTD.'}</h2>
+                <h2 className="text-2xl font-black text-[#1F3FB0] tracking-tight">{company.companyName || 'UMA TECHNO FAB PVT. LTD.'}</h2>
                 <p className="text-xs text-slate-600 font-medium">GIDC Vatva Industrial Estate, Phase 3, Ahmedabad, Gujarat - 382445</p>
                 <p className="text-xs text-slate-600 font-medium">GSTIN: 24AAACU1234F1Z9 | Corporate CIN: U28910GJ2020PTC112233</p>
               </div>
@@ -76,14 +76,14 @@ export default function PayslipsPage() {
 
           {/* Employee & Statutory Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-100 p-4 rounded-xl text-xs border border-slate-300">
-            <div><span className="text-[#70665F] block font-semibold">Employee ID:</span><span className="font-bold text-slate-900">{selectedRecord.employeeId}</span></div>
-            <div><span className="text-[#70665F] block font-semibold">Employee Name:</span><span className="font-bold text-slate-900">{selectedRecord.employeeName}</span></div>
-            <div><span className="text-[#70665F] block font-semibold">Department:</span><span className="font-bold text-slate-900">{selectedRecord.department}</span></div>
-            <div><span className="text-[#70665F] block font-semibold">Designation:</span><span className="font-bold text-slate-900">{selectedRecord.designation}</span></div>
-            <div><span className="text-[#70665F] block font-semibold">Working Days:</span><span className="font-bold text-slate-900">{selectedRecord.workingDays} Days</span></div>
-            <div><span className="text-[#70665F] block font-semibold">Paid Present Days:</span><span className="font-bold text-slate-900">{selectedRecord.presentDays} Days</span></div>
-            <div><span className="text-[#70665F] block font-semibold">PF UAN No:</span><span className="font-bold text-slate-900 font-mono">100998877665</span></div>
-            <div><span className="text-[#70665F] block font-semibold">Bank A/C No:</span><span className="font-bold text-slate-900 font-mono">XXXX-XXXX-9901</span></div>
+            <div><span className="text-[color:var(--crm-text-secondary)] block font-semibold">Employee ID:</span><span className="font-bold text-slate-900">{selectedRecord.employeeId}</span></div>
+            <div><span className="text-[color:var(--crm-text-secondary)] block font-semibold">Employee Name:</span><span className="font-bold text-slate-900">{selectedRecord.employeeName}</span></div>
+            <div><span className="text-[color:var(--crm-text-secondary)] block font-semibold">Department:</span><span className="font-bold text-slate-900">{selectedRecord.department}</span></div>
+            <div><span className="text-[color:var(--crm-text-secondary)] block font-semibold">Designation:</span><span className="font-bold text-slate-900">{selectedRecord.designation}</span></div>
+            <div><span className="text-[color:var(--crm-text-secondary)] block font-semibold">Working Days:</span><span className="font-bold text-slate-900">{selectedRecord.workingDays} Days</span></div>
+            <div><span className="text-[color:var(--crm-text-secondary)] block font-semibold">Paid Present Days:</span><span className="font-bold text-slate-900">{selectedRecord.presentDays} Days</span></div>
+            <div><span className="text-[color:var(--crm-text-secondary)] block font-semibold">PF UAN No:</span><span className="font-bold text-slate-900 font-mono">100998877665</span></div>
+            <div><span className="text-[color:var(--crm-text-secondary)] block font-semibold">Bank A/C No:</span><span className="font-bold text-slate-900 font-mono">XXXX-XXXX-9901</span></div>
           </div>
 
           {/* Earnings vs Deductions Table */}

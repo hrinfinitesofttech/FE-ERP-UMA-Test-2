@@ -162,7 +162,7 @@ export default function QuotationsListPage() {
             ) : (
               <button
                 onClick={() => router.push(`/crm/customer-po/new?quotationId=${encodeURIComponent(q.id)}`)}
-                className="p-1.5 bg-[#3E2723] hover:bg-[#2A1810] text-white rounded text-xs font-bold inline-flex items-center justify-center transition shadow-xs cursor-pointer active:scale-95"
+                className="p-1.5 bg-[color:var(--crm-text-primary)] hover:bg-[#171A23] text-white rounded text-xs font-bold inline-flex items-center justify-center transition shadow-xs cursor-pointer active:scale-95"
                 title="Register Customer PO for this Quotation"
               >
                 <Briefcase className="w-3.5 h-3.5" />

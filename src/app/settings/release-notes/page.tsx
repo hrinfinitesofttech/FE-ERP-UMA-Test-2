@@ -48,7 +48,7 @@ export default function ReleaseNotesPage() {
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white border border-[#EBE3DB] p-6 rounded-2xl shadow-xl">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white border border-[color:var(--crm-border-default)] p-6 rounded-2xl shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-crm-brand-600/10 border border-crm-brand-600/20 rounded-xl text-crm-brand-500">
@@ -56,14 +56,14 @@ export default function ReleaseNotesPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-[#211B17] tracking-wide">
+                <h1 className="text-xl font-bold text-[color:var(--crm-text-primary)] tracking-wide">
                   Release Management & Production Go-Live
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
                   v1.0.0-GOLD-PROD
                 </span>
               </div>
-              <p className="text-xs text-[#70665F]">
+              <p className="text-xs text-[color:var(--crm-text-secondary)]">
                 Uma Techno Fab Manufacturing ERP — Full System Release Verification & Acceptability Matrix
               </p>
             </div>
@@ -72,7 +72,7 @@ export default function ReleaseNotesPage() {
 
         <button
           onClick={() => setGoLiveModalOpen(true)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-crm-brand-700 to-crm-brand-700 hover:from-crm-brand-600 hover:to-crm-brand-600 text-[#211B17] rounded-xl text-xs font-bold transition shadow-lg shadow-crm-brand-700/20"
+          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-crm-brand-700 to-crm-brand-700 hover:from-crm-brand-600 hover:to-crm-brand-600 text-[color:var(--crm-text-primary)] rounded-xl text-xs font-bold transition shadow-lg shadow-crm-brand-700/20"
         >
           <Rocket className="w-4 h-4" />
           Production Go-Live Gatekeeper Sign-Off ({passedCount}/{totalCount})
@@ -82,29 +82,29 @@ export default function ReleaseNotesPage() {
       {/* Go-Live Banner Status */}
       {goLiveSuccess ? (
         <div className="bg-gradient-to-r from-emerald-950 via-slate-900 to-slate-950 border border-emerald-500/40 p-6 rounded-2xl shadow-2xl space-y-3 text-center">
-          <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full bg-crm-brand-50 text-crm-brand-700 mx-auto flex items-center justify-center">
             <Award className="w-7 h-7" />
           </div>
           <h2 className="text-xl font-extrabold text-emerald-400 tracking-wider">
             UMA TECHNO FAB MANUFACTURING ERP IS LIVE IN PRODUCTION
           </h2>
-          <p className="text-xs text-[#544B45] max-w-2xl mx-auto">
+          <p className="text-xs text-[color:var(--crm-text-secondary)] max-w-2xl mx-auto">
             All 11 Core Modules have been audited, validated, verified and approved. The system is 100% operational for daily business transactions, job tracking, and financial ledgers.
           </p>
         </div>
       ) : (
-        <div className="bg-white border border-[#EBE3DB] p-5 rounded-2xl flex items-center justify-between gap-4">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-5 rounded-2xl flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <ShieldCheck className="w-6 h-6 text-emerald-400 flex-shrink-0" />
             <div>
-              <div className="text-xs font-bold text-[#211B17]">Go-Live Acceptance Criteria Readiness</div>
-              <div className="text-[11px] text-[#70665F]">
+              <div className="text-xs font-bold text-[color:var(--crm-text-primary)]">Go-Live Acceptance Criteria Readiness</div>
+              <div className="text-[11px] text-[color:var(--crm-text-secondary)]">
                 {passedCount} of {totalCount} verification gates approved. {isReadyForGoLive ? 'System is 100% ready for Go-Live!' : 'Complete remaining checks below.'}
               </div>
             </div>
           </div>
 
-          <div className="w-48 bg-[#FAF7F2] rounded-full h-2.5 overflow-hidden">
+          <div className="w-48 bg-[color:var(--crm-bg-app)] rounded-full h-2.5 overflow-hidden">
             <div
               className="bg-emerald-500 h-2.5 transition-all duration-300 rounded-full"
               style={{ width: `${(passedCount / totalCount) * 100}%` }}
@@ -114,22 +114,22 @@ export default function ReleaseNotesPage() {
       )}
 
       {/* Release Notes Documentation for all 11 Modules */}
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl p-6 space-y-6 shadow-xl">
-        <div className="flex items-center gap-2 text-sm font-bold text-[#211B17] border-b border-[#EBE3DB] pb-3">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-6 space-y-6 shadow-xl">
+        <div className="flex items-center gap-2 text-sm font-bold text-[color:var(--crm-text-primary)] border-b border-[color:var(--crm-border-default)] pb-3">
           <Sparkles className="w-4 h-4 text-crm-brand-500" />
           Complete ERP Version Release Specifications (Modules 1 to 11)
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {moduleReleases.map((rel, idx) => (
-            <div key={idx} className="bg-[#FAF7F2] border border-[#EBE3DB] p-4 rounded-xl space-y-2">
+            <div key={idx} className="bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] p-4 rounded-xl space-y-2">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-xs text-[#211B17]">{rel.module}</span>
+                <span className="font-bold text-xs text-[color:var(--crm-text-primary)]">{rel.module}</span>
                 <span className="text-[10px] font-mono text-crm-brand-500 bg-crm-brand-600/10 px-2 py-0.5 rounded border border-crm-brand-600/20">
                   {rel.version}
                 </span>
               </div>
-              <ul className="space-y-1 text-[11px] text-[#70665F]">
+              <ul className="space-y-1 text-[11px] text-[color:var(--crm-text-secondary)]">
                 {rel.items.map((it, i) => (
                   <li key={i} className="flex items-start gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 mt-0.5" />
@@ -145,16 +145,16 @@ export default function ReleaseNotesPage() {
       {/* Go Live Gatekeeper Modal */}
       {goLiveModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <div className="font-bold text-[#211B17] text-sm flex items-center gap-2">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <div className="font-bold text-[color:var(--crm-text-primary)] text-sm flex items-center gap-2">
                 <Rocket className="w-4 h-4 text-crm-brand-500" />
                 Production Go-Live Gatekeeper Sign-Off Checklist
               </div>
               <button
                 type="button"
                 onClick={() => setGoLiveModalOpen(false)}
-                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] transition"
+                className="p-1 rounded-lg text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-bg-app)] transition"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -165,7 +165,7 @@ export default function ReleaseNotesPage() {
                 <div
                   key={item.id}
                   onClick={() => toggleGoLiveItem(item.id)}
-                  className="flex items-center justify-between p-3 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] hover:border-[#EBE3DB] cursor-pointer transition"
+                  className="flex items-center justify-between p-3 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] hover:border-[color:var(--crm-border-default)] cursor-pointer transition"
                 >
                   <div className="flex items-center gap-3">
                     <CheckCircle2
@@ -175,15 +175,15 @@ export default function ReleaseNotesPage() {
                       )}
                     />
                     <div>
-                      <div className="text-xs font-semibold text-[#211B17]">{item.criteria}</div>
-                      <div className="text-[10px] text-[#70665F]">Module: {item.module} | Verified By: {item.verifiedBy}</div>
+                      <div className="text-xs font-semibold text-[color:var(--crm-text-primary)]">{item.criteria}</div>
+                      <div className="text-[10px] text-[color:var(--crm-text-secondary)]">Module: {item.module} | Verified By: {item.verifiedBy}</div>
                     </div>
                   </div>
 
                   <span
                     className={cn(
                       'px-2.5 py-0.5 rounded text-[10px] font-bold',
-                      item.status === 'Pass' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-[#FAF7F2] text-[#70665F]'
+                      item.status === 'Pass' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)]'
                     )}
                   >
                     {item.status}
@@ -192,14 +192,14 @@ export default function ReleaseNotesPage() {
               ))}
             </div>
 
-            <div className="flex items-center justify-between border-t border-[#EBE3DB] pt-4">
-              <div className="text-xs text-[#70665F]">
+            <div className="flex items-center justify-between border-t border-[color:var(--crm-border-default)] pt-4">
+              <div className="text-xs text-[color:var(--crm-text-secondary)]">
                 {passedCount} / {totalCount} Criteria Approved
               </div>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setGoLiveModalOpen(false)}
-                  className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#FAF7F2] text-[#544B45] rounded-xl text-xs font-semibold"
+                  className="px-4 py-2 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] rounded-xl text-xs font-semibold"
                 >
                   Close
                 </button>

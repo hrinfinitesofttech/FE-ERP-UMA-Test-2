@@ -193,18 +193,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // If session is still loading from browser storage, or user is unauthenticated, render splash screen
   if (!isMounted || !isAuthReady || !isAuthenticated) {
     return (
-      <div className="min-h-screen w-screen bg-[#FAF7F2] flex flex-col items-center justify-center font-sans antialiased">
+      <div className="min-h-screen w-screen bg-[color:var(--crm-bg-app)] flex flex-col items-center justify-center font-sans antialiased">
         <div className="flex flex-col items-center gap-3">
           <div className="relative flex items-center justify-center">
-            <div className="w-20 h-20 rounded-3xl bg-white border border-[#E7DED5] shadow-xl p-3 flex items-center justify-center">
+            <div className="w-20 h-20 rounded-3xl bg-white border border-[color:var(--crm-border-default)] shadow-xl p-3 flex items-center justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/uma-mark.png" alt="Uma Techno Fab" className="w-full h-full object-contain animate-pulse" />
             </div>
-            <div className="absolute -inset-1.5 rounded-[26px] border-2 border-[#18417D]/30 border-t-[#F37A20] animate-spin" />
+            <div className="absolute -inset-1.5 rounded-[26px] border-2 border-[#1F3FB0]/30 border-t-[#F37A20] animate-spin" />
           </div>
           <div className="text-center space-y-0.5">
-            <h3 className="font-extrabold text-[#18417D] tracking-wide text-xs">UMA TECHNO FAB</h3>
-            <p className="text-[11px] font-semibold text-[#75401F] tracking-wide">
+            <h3 className="font-extrabold text-[#1F3FB0] tracking-wide text-xs">UMA TECHNO FAB</h3>
+            <p className="text-[11px] font-semibold text-[color:var(--crm-brand-700)] tracking-wide">
               {!isAuthReady ? 'Verifying secure session...' : !isAuthenticated ? 'Redirecting to Login...' : 'Initializing Enterprise Workspace...'}
             </p>
           </div>
@@ -217,9 +217,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const primaryHref = getPrimaryHref(currentUser);
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-[var(--crm-bg-app,#F4EFEA)] text-[var(--crm-text-primary,#211B17)] font-sans antialiased p-0 sm:p-2 md:p-3 flex flex-col">
+    <div className="h-screen w-screen overflow-hidden bg-[var(--crm-bg-app,#F4EFEA)] text-[var(--crm-text-primary,#0F172A)] font-sans antialiased p-0 sm:p-2 md:p-3 flex flex-col">
       {/* Outer Luxury Floating Canvas Frame */}
-      <div className="flex-1 flex overflow-hidden h-full bg-[var(--crm-surface-card,#FFFFFF)] rounded-none sm:rounded-2xl md:rounded-3xl border-0 sm:border border-[var(--crm-border-default,#E6DDD2)] shadow-[0_10px_35px_rgba(62,39,35,0.06)] relative w-full">
+      <div className="flex-1 flex overflow-hidden h-full bg-[var(--crm-surface-card,#FFFFFF)] rounded-none sm:rounded-2xl md:rounded-3xl border-0 sm:border border-[var(--crm-border-default,#D2D8E7)] shadow-[0_10px_35px_rgba(62,39,35,0.06)] relative w-full">
         {/* Mobile Backdrop Overlay (< 1024px) */}
         {sidebarMobileOpen && (
           <div
@@ -246,16 +246,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <div className="w-16 h-16 rounded-3xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center mb-4 shadow-sm">
                   <ShieldAlert className="w-8 h-8" />
                 </div>
-                <h2 className="text-xl font-extrabold text-[#211B17] mb-2">
+                <h2 className="text-xl font-extrabold text-[color:var(--crm-text-primary)] mb-2">
                   Access Restricted
                 </h2>
-                <p className="text-sm text-[#70665F] max-w-md mb-6 leading-relaxed">
+                <p className="text-sm text-[color:var(--crm-text-secondary)] max-w-md mb-6 leading-relaxed">
                   Your account does not have permission to access this page (<code className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-mono text-xs">{pathname}</code>). You can only access modules assigned to your role.
                 </p>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => router.back()}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#D5CAC0] bg-white text-xs font-bold text-[#4A3B32] hover:bg-[#FAF7F2] transition shadow-xs cursor-pointer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[color:var(--crm-border-strong)] bg-white text-xs font-bold text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-bg-app)] transition shadow-xs cursor-pointer"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Go Back</span>

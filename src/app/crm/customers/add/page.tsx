@@ -382,17 +382,17 @@ function CreateCustomerMasterContent() {
       errorSummary={errorSummary}
     >
       {/* --- LEAD SELECTION & AUTOFILL HEADER CARD --- */}
-      <div className="bg-gradient-to-r from-[#FAF3EA] via-[#F8EDE0] to-[#F1DFC9] border border-[#E9DFD3] rounded-2xl p-5 shadow-xs space-y-3">
+      <div className="bg-gradient-to-r from-[color:var(--crm-brand-50)] via-[#EDF1FA] to-[#E3EAF8] border border-[#D4DAE8] rounded-2xl p-5 shadow-xs space-y-3">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-[#75401F] text-white flex items-center justify-center font-bold shadow-xs">
-              <Sparkles className="w-4 h-4 text-amber-200" />
+            <div className="w-8 h-8 rounded-xl bg-[color:var(--crm-brand-700)] text-white flex items-center justify-center font-bold shadow-xs">
+              <Sparkles className="w-4 h-4 text-crm-brand-600" />
             </div>
             <div>
-              <h3 className="text-sm font-extrabold text-[#211B17] tracking-tight">
+              <h3 className="text-sm font-extrabold text-[color:var(--crm-text-primary)] tracking-tight">
                 Autofill from Existing Sales Lead
               </h3>
-              <p className="text-xs text-[#70665F]">
+              <p className="text-xs text-[color:var(--crm-text-secondary)]">
                 Select a lead to automatically populate company, contact, address, and requirement details.
               </p>
             </div>
@@ -407,13 +407,13 @@ function CreateCustomerMasterContent() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
           <div className="md:col-span-2">
-            <label className="block text-xs font-bold text-[#4A3B32] mb-1">
+            <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1">
               Select Lead to Convert
             </label>
             <select
               value={selectedLeadId}
               onChange={(e) => handleLeadSelect(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-white border border-[#E7DED5] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-[#75401F] focus:ring-2 focus:ring-[#75401F]/15 transition cursor-pointer"
+              className="w-full px-3.5 py-2.5 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-[color:var(--crm-brand-700)] focus:ring-2 focus:ring-[#1F3FB0]/15 transition cursor-pointer"
             >
               <option value="">-- Choose a Sales Lead to Auto-fill (or enter manually below) --</option>
               {leads.map((l) => (
@@ -435,7 +435,7 @@ function CreateCustomerMasterContent() {
                 <span>Clear Selection</span>
               </button>
             ) : (
-              <div className="text-[11px] text-[#8D827A] italic py-2">
+              <div className="text-[11px] text-[color:var(--crm-text-tertiary)] italic py-2">
                 Tip: Selecting a lead instantly copies phone, address, and contact details.
               </div>
             )}
@@ -742,9 +742,9 @@ function CreateCustomerMasterContent() {
         <div className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Billing Address Card */}
-            <div className="p-4 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl space-y-3">
-              <span className="text-xs font-bold text-[#211B17] flex items-center gap-1.5">
-                <Building2 className="w-4 h-4 text-[#75401F]" />
+            <div className="p-4 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl space-y-3">
+              <span className="text-xs font-bold text-[color:var(--crm-text-primary)] flex items-center gap-1.5">
+                <Building2 className="w-4 h-4 text-[color:var(--crm-brand-700)]" />
                 Registered Billing Address
               </span>
               <textarea
@@ -752,7 +752,7 @@ function CreateCustomerMasterContent() {
                 value={formData.billingAddress}
                 onChange={(e) => setFormData({ ...formData, billingAddress: e.target.value })}
                 placeholder="Plot No., Industrial Area, Street Name..."
-                className="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#7C3AED]"
+                className="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[color:var(--crm-brand-600)]"
               />
               <div className="grid grid-cols-3 gap-2">
                 <input
@@ -780,16 +780,16 @@ function CreateCustomerMasterContent() {
             </div>
 
             {/* Shipping Address Card */}
-            <div className="p-4 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl space-y-3">
+            <div className="p-4 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#211B17] flex items-center gap-1.5">
-                  <Truck className="w-4 h-4 text-[#75401F]" />
+                <span className="text-xs font-bold text-[color:var(--crm-text-primary)] flex items-center gap-1.5">
+                  <Truck className="w-4 h-4 text-[color:var(--crm-brand-700)]" />
                   Shipping / Site Delivery Address
                 </span>
                 <button
                   type="button"
                   onClick={handleCopyBillingToShipping}
-                  className="text-[11px] font-bold text-[#75401F] hover:text-[#5C3218] flex items-center gap-1 bg-white px-2 py-0.5 rounded border border-[#E7DED5] cursor-pointer"
+                  className="text-[11px] font-bold text-[color:var(--crm-brand-700)] hover:text-[#1B3489] flex items-center gap-1 bg-white px-2 py-0.5 rounded border border-[color:var(--crm-border-default)] cursor-pointer"
                 >
                   <Copy className="w-3 h-3" />
                   <span>Same as Billing</span>
@@ -800,7 +800,7 @@ function CreateCustomerMasterContent() {
                 value={formData.shippingAddress}
                 onChange={(e) => setFormData({ ...formData, shippingAddress: e.target.value })}
                 placeholder="Plant site, Delivery Gate No., Project Site address..."
-                className="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#7C3AED]"
+                className="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[color:var(--crm-brand-600)]"
               />
               <div className="pt-1">
                 <input
@@ -915,7 +915,7 @@ function CreateCustomerMasterContent() {
               value={formData.inspectionRequirements}
               onChange={(e) => setFormData({ ...formData, inspectionRequirements: e.target.value })}
               placeholder="e.g. Third-Party Inspection required: TUV / BVQI / Lloyd's / IBR / ASME. Radiography test, Hydro-testing witnessed by client."
-              className="w-full py-2 px-3 text-xs bg-white border border-[#CBD5E1] rounded-lg text-[#1E293B] focus:outline-none focus:border-[#7C3AED]"
+              className="w-full py-2 px-3 text-xs bg-white border border-[#CBD5E1] rounded-lg text-[#1E293B] focus:outline-none focus:border-[color:var(--crm-brand-600)]"
             />
           </div>
 
@@ -928,7 +928,7 @@ function CreateCustomerMasterContent() {
               value={formData.specialInstructions}
               onChange={(e) => setFormData({ ...formData, specialInstructions: e.target.value })}
               placeholder="e.g. Seaworthy wooden box packaging, Nitrogen purging before dispatch, pickling & passivation required, specific primer paint shade."
-              className="w-full py-2 px-3 text-xs bg-white border border-[#CBD5E1] rounded-lg text-[#1E293B] focus:outline-none focus:border-[#7C3AED]"
+              className="w-full py-2 px-3 text-xs bg-white border border-[#CBD5E1] rounded-lg text-[#1E293B] focus:outline-none focus:border-[color:var(--crm-brand-600)]"
             />
           </div>
         </div>
@@ -994,7 +994,7 @@ function CreateCustomerMasterContent() {
               <button
                 type="button"
                 onClick={handleAddAddress}
-                className="px-4 py-2 text-xs font-bold bg-[#75401F] hover:bg-[#5C3218] text-white rounded-lg transition"
+                className="px-4 py-2 text-xs font-bold bg-[color:var(--crm-brand-700)] hover:bg-[#1B3489] text-white rounded-lg transition"
               >
                 Add Address
               </button>
@@ -1056,7 +1056,7 @@ function CreateCustomerMasterContent() {
               <button
                 type="button"
                 onClick={handleAddContact}
-                className="px-4 py-2 text-xs font-bold bg-[#75401F] hover:bg-[#5C3218] text-white rounded-lg transition"
+                className="px-4 py-2 text-xs font-bold bg-[color:var(--crm-brand-700)] hover:bg-[#1B3489] text-white rounded-lg transition"
               >
                 Add Contact
               </button>
@@ -1070,7 +1070,7 @@ function CreateCustomerMasterContent() {
 
 export default function CreateCustomerMasterPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-xs text-[#70665F]">Loading Customer Master Form...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-xs text-[color:var(--crm-text-secondary)]">Loading Customer Master Form...</div>}>
       <CreateCustomerMasterContent />
     </Suspense>
   );

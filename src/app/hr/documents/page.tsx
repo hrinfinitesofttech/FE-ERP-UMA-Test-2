@@ -332,15 +332,15 @@ export default function EmployeeDocumentsPage() {
   const rejectedCount = employeeDocuments.filter((d) => d.verificationStatus === 'Rejected').length;
 
   return (
-    <div className="p-6 space-y-6 bg-white text-[#211B17]">
+    <div className="p-6 space-y-6 bg-white text-[color:var(--crm-text-primary)]">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2">
             <FileText className="w-7 h-7 text-crm-brand-700" />
             Centralized Employee Document Management
           </h1>
-          <p className="text-sm text-[#70665F] mt-1">
+          <p className="text-sm text-[color:var(--crm-text-secondary)] mt-1">
             Verification Repository for Aadhaar, PAN, Degrees, Experience Letters & Expiry Alerts
           </p>
         </div>
@@ -356,25 +356,25 @@ export default function EmployeeDocumentsPage() {
 
       {/* KPI Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-[#EBE3DB]">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-[#70665F]">Total Documents</div>
-          <div className="text-2xl font-black text-[#211B17] mt-1">{employeeDocuments.length}</div>
-          <div className="text-[10px] text-[#70665F] mt-0.5">Across all departments</div>
+        <div className="p-4 bg-[color:var(--crm-bg-app)] rounded-2xl border border-[color:var(--crm-border-default)]">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-[color:var(--crm-text-secondary)]">Total Documents</div>
+          <div className="text-2xl font-black text-[color:var(--crm-text-primary)] mt-1">{employeeDocuments.length}</div>
+          <div className="text-[10px] text-[color:var(--crm-text-secondary)] mt-0.5">Across all departments</div>
         </div>
 
-        <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-[#EBE3DB]">
+        <div className="p-4 bg-[color:var(--crm-bg-app)] rounded-2xl border border-[color:var(--crm-border-default)]">
           <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Verified</div>
           <div className="text-2xl font-black text-emerald-600 mt-1">{verifiedCount}</div>
           <div className="text-[10px] text-emerald-700 font-semibold mt-0.5">Compliance approved</div>
         </div>
 
-        <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-[#EBE3DB]">
+        <div className="p-4 bg-[color:var(--crm-bg-app)] rounded-2xl border border-[color:var(--crm-border-default)]">
           <div className="text-[11px] font-bold uppercase tracking-wider text-amber-700">Pending Review</div>
           <div className="text-2xl font-black text-amber-600 mt-1">{pendingCount}</div>
           <div className="text-[10px] text-amber-700 font-semibold mt-0.5">Awaiting HR verification</div>
         </div>
 
-        <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-[#EBE3DB]">
+        <div className="p-4 bg-[color:var(--crm-bg-app)] rounded-2xl border border-[color:var(--crm-border-default)]">
           <div className="text-[11px] font-bold uppercase tracking-wider text-rose-700">Rejected / Expired</div>
           <div className="text-2xl font-black text-rose-600 mt-1">{rejectedCount}</div>
           <div className="text-[10px] text-rose-700 font-semibold mt-0.5">Requires re-submission</div>
@@ -382,23 +382,23 @@ export default function EmployeeDocumentsPage() {
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="bg-white border border-[#EBE3DB] rounded-xl p-4 flex flex-col sm:flex-row gap-4 justify-between items-center shadow-sm">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-4 flex flex-col sm:flex-row gap-4 justify-between items-center shadow-sm">
         <div className="relative w-full sm:w-96">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--crm-text-secondary)]" />
           <input
             type="text"
             placeholder="Search employee, document no, type or remarks..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-crm-brand-600 font-medium"
+            className="w-full pl-9 pr-4 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-600 font-medium"
           />
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <Filter className="w-4 h-4 text-[#70665F]" />
+          <Filter className="w-4 h-4 text-[color:var(--crm-text-secondary)]" />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs text-[#211B17] font-semibold focus:outline-none focus:border-crm-brand-600"
+            className="bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-xs text-[color:var(--crm-text-primary)] font-semibold focus:outline-none focus:border-crm-brand-600"
           >
             <option value="ALL">All Verification Statuses</option>
             <option value="Verified">Verified Only</option>
@@ -409,10 +409,10 @@ export default function EmployeeDocumentsPage() {
       </div>
 
       {/* Documents Table */}
-      <div className="bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden shadow-sm">
+      <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-[#544B45]">
-            <thead className="bg-[#FAF7F2] text-[#70665F] font-mono text-[11px] uppercase tracking-wider border-b border-[#EBE3DB]">
+          <table className="w-full text-left text-xs text-[color:var(--crm-text-secondary)]">
+            <thead className="bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] font-mono text-[11px] uppercase tracking-wider border-b border-[color:var(--crm-border-default)]">
               <tr>
                 <th className="p-3.5">Employee Name</th>
                 <th className="p-3.5">Document Type</th>
@@ -422,10 +422,10 @@ export default function EmployeeDocumentsPage() {
                 <th className="p-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EBE3DB]">
+            <tbody className="divide-y divide-[color:var(--crm-border-default)]">
               {filteredDocs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-[#70665F]">
+                  <td colSpan={6} className="p-8 text-center text-[color:var(--crm-text-secondary)]">
                     No employee documents match the selected filters. Click &quot;Upload Document&quot; to add records.
                   </td>
                 </tr>
@@ -441,22 +441,22 @@ export default function EmployeeDocumentsPage() {
                       : doc.documentNumber;
 
                   return (
-                    <tr key={doc.id} className="hover:bg-[#FAF7F2]/60 transition">
-                      <td className="p-3.5 font-bold text-[#211B17]">
+                    <tr key={doc.id} className="hover:bg-[#F4F6FA]/60 transition">
+                      <td className="p-3.5 font-bold text-[color:var(--crm-text-primary)]">
                         <div>{doc.employeeName}</div>
-                        <div className="text-[10px] text-[#70665F] font-mono">{doc.employeeId}</div>
+                        <div className="text-[10px] text-[color:var(--crm-text-secondary)] font-mono">{doc.employeeId}</div>
                       </td>
                       <td className="p-3.5">
-                        <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-[#FAF7F2] border border-[#EBE3DB] text-[#544B45]">
+                        <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)]">
                           {doc.documentType}
                         </span>
                       </td>
-                      <td className="p-3.5 font-mono font-bold text-[#211B17]">
+                      <td className="p-3.5 font-mono font-bold text-[color:var(--crm-text-primary)]">
                         {displayDocNumber}
                       </td>
-                      <td className="p-3.5 text-[#544B45]">
+                      <td className="p-3.5 text-[color:var(--crm-text-secondary)]">
                         <div>Issued: {doc.issueDate || '2026-01-01'}</div>
-                        <div className="text-[10px] text-[#70665F]">
+                        <div className="text-[10px] text-[color:var(--crm-text-secondary)]">
                           {doc.expiryDate ? `Expires: ${doc.expiryDate}` : 'Lifetime Valid'}
                         </div>
                       </td>
@@ -475,7 +475,7 @@ export default function EmployeeDocumentsPage() {
                           ) : isRejected ? (
                             <XCircle className="w-3 h-3 text-rose-600" />
                           ) : (
-                            <Clock className="w-3 h-3 text-amber-600" />
+                            <Clock className="w-3 h-3 text-crm-brand-600" />
                           )}
                           {doc.verificationStatus}
                         </span>
@@ -537,24 +537,24 @@ export default function EmployeeDocumentsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl"
           >
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-rose-50 text-rose-600 border border-rose-200">
                 <Trash2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-[#211B17]">Delete Document?</h3>
-                <p className="text-xs text-[#70665F] mt-0.5">
+                <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)]">Delete Document?</h3>
+                <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">
                   Are you sure you want to remove {deleteConfirmDoc.documentType} ({deleteConfirmDoc.documentNumber})?
                 </p>
               </div>
             </div>
-            <div className="flex justify-end gap-2 pt-2 border-t border-[#EBE3DB]">
+            <div className="flex justify-end gap-2 pt-2 border-t border-[color:var(--crm-border-default)]">
               <button
                 type="button"
                 onClick={() => setDeleteConfirmDoc(null)}
-                className="px-3.5 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200 text-xs font-semibold"
+                className="px-3.5 py-2 rounded-xl bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] hover:bg-slate-200 text-xs font-semibold"
               >
                 Cancel
               </button>
@@ -578,16 +578,16 @@ export default function EmployeeDocumentsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto"
           >
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <h2 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                 <Upload className="w-5 h-5 text-crm-brand-700" /> Upload Employee Document
               </h2>
               <button
                 type="button"
                 onClick={closeUploadModalWithConfirm}
-                className="text-[#70665F] hover:text-[#211B17] cursor-pointer"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -595,12 +595,12 @@ export default function EmployeeDocumentsPage() {
 
             <form onSubmit={handleUploadSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">Select Employee *</label>
+                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Select Employee *</label>
                 <select
                   required
                   value={formData.employeeId}
                   onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] font-medium focus:outline-none focus:border-crm-brand-600"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] font-medium focus:outline-none focus:border-crm-brand-600"
                 >
                   {employeeList.map((e) => (
                     <option key={e.id} value={e.id}>
@@ -614,7 +614,7 @@ export default function EmployeeDocumentsPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">Document Type *</label>
+                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Document Type *</label>
                 {documentTypesList.length === 0 ? (
                   <p className="text-[11px] text-rose-600 font-semibold p-2 bg-rose-50 rounded-lg">
                     The document types could not be loaded. Please try again.
@@ -633,7 +633,7 @@ export default function EmployeeDocumentsPage() {
                       });
                       setFormErrors({});
                     }}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] font-medium focus:outline-none focus:border-crm-brand-600"
+                    className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] font-medium focus:outline-none focus:border-crm-brand-600"
                   >
                     {documentTypesList.map((dt) => {
                       const isAlreadyUploaded =
@@ -655,9 +655,9 @@ export default function EmployeeDocumentsPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">
                     Document Number *
-                    <span className="text-[10px] text-[#70665F] font-normal ml-1">
+                    <span className="text-[10px] text-[color:var(--crm-text-secondary)] font-normal ml-1">
                       ({formData.documentType === 'Aadhaar' ? '12 digits with auto-spacing' : formData.documentType === 'PAN' ? '10 alphanumeric' : 'Max 25 chars'})
                     </span>
                   </label>
@@ -674,8 +674,8 @@ export default function EmployeeDocumentsPage() {
                     }
                     value={formData.documentNumber}
                     onChange={handleDocumentNumberChange}
-                    className={`w-full px-3 py-2 bg-[#FAF7F2] border rounded-xl text-[#211B17] font-mono font-medium focus:outline-none ${
-                      formErrors.documentNumber ? 'border-rose-500 bg-rose-50/20' : 'border-[#EBE3DB] focus:border-crm-brand-600'
+                    className={`w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border rounded-xl text-[color:var(--crm-text-primary)] font-mono font-medium focus:outline-none ${
+                      formErrors.documentNumber ? 'border-rose-500 bg-rose-50/20' : 'border-[color:var(--crm-border-default)] focus:border-crm-brand-600'
                     }`}
                   />
                   {formErrors.documentNumber && (
@@ -683,16 +683,16 @@ export default function EmployeeDocumentsPage() {
                   )}
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#544B45] mb-1">Expiry Date</label>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Expiry Date</label>
                   {['Medical Fitness', 'Driving License', 'Passport', 'Visa / Work Permit', 'Insurance Policy', 'Contract / Agreement'].includes(formData.documentType) ? (
                     <input
                       type="date"
                       value={formData.expiryDate}
                       onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
-                      className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17] focus:outline-none focus:border-crm-brand-600"
+                      className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-600"
                     />
                   ) : (
-                    <div className="w-full px-3 py-2 bg-[#F3ECE4]/70 border border-[#EBE3DB] rounded-xl text-[11px] text-[#70665F] font-semibold flex items-center gap-1.5 h-[38px]">
+                    <div className="w-full px-3 py-2 bg-[#EEF1F7]/70 border border-[color:var(--crm-border-default)] rounded-xl text-[11px] text-[color:var(--crm-text-secondary)] font-semibold flex items-center gap-1.5 h-[38px]">
                       <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                       <span>Lifetime / No Expiry Applicable</span>
                     </div>
@@ -711,7 +711,7 @@ export default function EmployeeDocumentsPage() {
 
               {/* Interactive File Upload Box */}
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">File Attachment *</label>
+                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">File Attachment *</label>
                 <div
                   onClick={() => fileInputRef.current?.click()}
                   onDragOver={handleDragOver}
@@ -724,7 +724,7 @@ export default function EmployeeDocumentsPage() {
                       ? 'border-emerald-500 bg-emerald-50/50'
                       : formErrors.file
                       ? 'border-rose-500 bg-rose-50/30'
-                      : 'border-[#EBE3DB] bg-[#FAF7F2] hover:border-crm-brand-500 hover:bg-white'
+                      : 'border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)] hover:border-crm-brand-500 hover:bg-white'
                   }`}
                 >
                   {selectedFileName ? (
@@ -733,8 +733,8 @@ export default function EmployeeDocumentsPage() {
                         <CheckCircle2 className="w-5 h-5" />
                       </div>
                       <div className="text-left">
-                        <div className="font-bold text-[#211B17] text-xs">{selectedFileName}</div>
-                        <div className="text-[10px] text-[#70665F]">{selectedFileSize} • Ready to upload</div>
+                        <div className="font-bold text-[color:var(--crm-text-primary)] text-xs">{selectedFileName}</div>
+                        <div className="text-[10px] text-[color:var(--crm-text-secondary)]">{selectedFileSize} • Ready to upload</div>
                       </div>
                       <button
                         type="button"
@@ -754,10 +754,10 @@ export default function EmployeeDocumentsPage() {
                   ) : (
                     <div>
                       <Upload className="w-7 h-7 text-crm-brand-700 mx-auto mb-1.5" />
-                      <span className="text-[#211B17] font-bold block text-xs">
+                      <span className="text-[color:var(--crm-text-primary)] font-bold block text-xs">
                         Click to browse file or Drag & Drop here
                       </span>
-                      <p className="text-[11px] text-[#70665F] mt-1 font-medium">
+                      <p className="text-[11px] text-[color:var(--crm-text-secondary)] mt-1 font-medium">
                         Maximum file size: 5 MB. Allowed file types: PDF, JPG, PNG, DOC, DOCX.
                       </p>
                     </div>
@@ -769,21 +769,21 @@ export default function EmployeeDocumentsPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-[#544B45] mb-1">Remarks / Notes</label>
+                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Remarks / Notes</label>
                 <input
                   type="text"
                   placeholder="Optional verification notes or tags..."
                   value={formData.remarks}
                   onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-[#211B17]"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)]"
                 />
               </div>
 
-              <div className="pt-3 border-t border-[#EBE3DB] flex justify-end gap-2">
+              <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={closeUploadModalWithConfirm}
-                  className="px-4 py-2 bg-[#FAF7F2] hover:bg-slate-200 text-[#544B45] font-semibold rounded-xl cursor-pointer"
+                  className="px-4 py-2 bg-[color:var(--crm-bg-app)] hover:bg-slate-200 text-[color:var(--crm-text-secondary)] font-semibold rounded-xl cursor-pointer"
                 >
                   Cancel
                 </button>

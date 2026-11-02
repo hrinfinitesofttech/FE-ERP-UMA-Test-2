@@ -93,7 +93,7 @@ export function EmployeeProfileModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
         {/* Header Banner */}
         <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-crm-brand-900 text-white p-6 relative">
           <button
@@ -104,7 +104,7 @@ export function EmployeeProfileModal({
           </button>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-crm-brand-600 to-amber-500 text-white font-extrabold text-2xl flex items-center justify-center shadow-lg border-2 border-white/20 flex-shrink-0">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-crm-brand-600 to-crm-brand-500 text-white font-extrabold text-2xl flex items-center justify-center shadow-lg border-2 border-white/20 flex-shrink-0">
               {employee.firstName ? employee.firstName.slice(0, 1).toUpperCase() : employee.username?.slice(0, 1).toUpperCase() || 'U'}
               {employee.lastName ? employee.lastName.slice(0, 1).toUpperCase() : ''}
             </div>
@@ -134,7 +134,7 @@ export function EmployeeProfileModal({
                 <span>{employee.designation || 'Staff Member'}</span>
                 <span>•</span>
                 <span className="flex items-center gap-1">
-                  <Building className="w-3.5 h-3.5 text-amber-400" />
+                  <Building className="w-3.5 h-3.5 text-crm-brand-600" />
                   {employee.departmentName || employee.department || 'General'}
                 </span>
               </div>
@@ -144,7 +144,7 @@ export function EmployeeProfileModal({
           {/* Department Transfer / Review Banner */}
           {employee.permissionsReviewRequired && (
             <div className="mt-4 p-3 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-200 text-xs flex items-center gap-2.5">
-              <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 animate-pulse" />
+              <AlertTriangle className="w-5 h-5 text-crm-brand-600 flex-shrink-0 animate-pulse" />
               <div>
                 <p className="font-bold text-amber-300">Permissions Review Required</p>
                 <p className="text-[11px] text-amber-200/90">
@@ -160,14 +160,14 @@ export function EmployeeProfileModal({
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-[#EBE3DB] bg-[#FAF7F2] px-6 text-xs font-bold">
+        <div className="flex border-b border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)] px-6 text-xs font-bold">
           <button
             onClick={() => setActiveTab('overview')}
             className={cn(
               'py-3 px-4 border-b-2 flex items-center gap-2 transition',
               activeTab === 'overview'
                 ? 'border-crm-brand-700 text-crm-brand-700 font-extrabold bg-white'
-                : 'border-transparent text-[#70665F] hover:text-[#211B17]'
+                : 'border-transparent text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]'
             )}
           >
             <User className="w-4 h-4" /> Personal & Contact
@@ -178,7 +178,7 @@ export function EmployeeProfileModal({
               'py-3 px-4 border-b-2 flex items-center gap-2 transition',
               activeTab === 'employment'
                 ? 'border-crm-brand-700 text-crm-brand-700 font-extrabold bg-white'
-                : 'border-transparent text-[#70665F] hover:text-[#211B17]'
+                : 'border-transparent text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]'
             )}
           >
             <Briefcase className="w-4 h-4" /> Employment Details
@@ -189,7 +189,7 @@ export function EmployeeProfileModal({
               'py-3 px-4 border-b-2 flex items-center gap-2 transition',
               activeTab === 'access'
                 ? 'border-crm-brand-700 text-crm-brand-700 font-extrabold bg-white'
-                : 'border-transparent text-[#70665F] hover:text-[#211B17]'
+                : 'border-transparent text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]'
             )}
           >
             <Shield className="w-4 h-4" /> RBAC & Permissions
@@ -201,57 +201,57 @@ export function EmployeeProfileModal({
           {activeTab === 'overview' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] space-y-3">
-                  <h4 className="font-bold text-[#211B17] uppercase tracking-wider text-[11px] flex items-center gap-2">
+                <div className="p-4 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] space-y-3">
+                  <h4 className="font-bold text-[color:var(--crm-text-primary)] uppercase tracking-wider text-[11px] flex items-center gap-2">
                     <User className="w-4 h-4 text-crm-brand-700" /> Identity Information
                   </h4>
                   <div className="space-y-2">
                     <div>
-                      <span className="text-[#70665F] text-[11px] block">Full Name</span>
+                      <span className="text-[color:var(--crm-text-secondary)] text-[11px] block">Full Name</span>
                       <span className="font-semibold text-slate-800 text-sm">{fullName}</span>
                     </div>
                     <div>
-                      <span className="text-[#70665F] text-[11px] block">System Username</span>
+                      <span className="text-[color:var(--crm-text-secondary)] text-[11px] block">System Username</span>
                       <span className="font-mono font-bold text-crm-brand-800">@{employee.username}</span>
                     </div>
                     <div>
-                      <span className="text-[#70665F] text-[11px] block">Gender</span>
+                      <span className="text-[color:var(--crm-text-secondary)] text-[11px] block">Gender</span>
                       <span className="font-medium text-slate-800 capitalize">{employee.gender || 'Not specified'}</span>
                     </div>
                     <div>
-                      <span className="text-[#70665F] text-[11px] block">Date of Birth</span>
+                      <span className="text-[color:var(--crm-text-secondary)] text-[11px] block">Date of Birth</span>
                       <span className="font-medium text-slate-800">{employee.dob || 'Not provided'}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] space-y-3">
-                  <h4 className="font-bold text-[#211B17] uppercase tracking-wider text-[11px] flex items-center gap-2">
+                <div className="p-4 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] space-y-3">
+                  <h4 className="font-bold text-[color:var(--crm-text-primary)] uppercase tracking-wider text-[11px] flex items-center gap-2">
                     <Phone className="w-4 h-4 text-crm-brand-700" /> Contact Channels
                   </h4>
                   <div className="space-y-2">
                     <div>
-                      <span className="text-[#70665F] text-[11px] block">Email Address</span>
+                      <span className="text-[color:var(--crm-text-secondary)] text-[11px] block">Email Address</span>
                       <span className="font-semibold text-slate-800 flex items-center gap-1.5 mt-0.5">
-                        <Mail className="w-3.5 h-3.5 text-[#70665F]" />
+                        <Mail className="w-3.5 h-3.5 text-[color:var(--crm-text-secondary)]" />
                         {employee.email || 'None'}
                       </span>
                     </div>
                     <div>
-                      <span className="text-[#70665F] text-[11px] block">Mobile / WhatsApp</span>
+                      <span className="text-[color:var(--crm-text-secondary)] text-[11px] block">Mobile / WhatsApp</span>
                       <span className="font-semibold text-slate-800 flex items-center gap-1.5 mt-0.5">
-                        <Phone className="w-3.5 h-3.5 text-[#70665F]" />
+                        <Phone className="w-3.5 h-3.5 text-[color:var(--crm-text-secondary)]" />
                         {employee.mobile || employee.phone || 'None'}
                       </span>
                     </div>
                     <div>
-                      <span className="text-[#70665F] text-[11px] block">Emergency Contact</span>
+                      <span className="text-[color:var(--crm-text-secondary)] text-[11px] block">Emergency Contact</span>
                       <span className="font-medium text-slate-800">{employee.emergencyContact || 'None recorded'}</span>
                     </div>
                     <div>
-                      <span className="text-[#70665F] text-[11px] block">Residential Address</span>
+                      <span className="text-[color:var(--crm-text-secondary)] text-[11px] block">Residential Address</span>
                       <span className="font-medium text-slate-800 flex items-start gap-1.5 mt-0.5">
-                        <MapPin className="w-3.5 h-3.5 text-[#70665F] flex-shrink-0 mt-0.5" />
+                        <MapPin className="w-3.5 h-3.5 text-[color:var(--crm-text-secondary)] flex-shrink-0 mt-0.5" />
                         {employee.address || 'Not specified'}
                       </span>
                     </div>
@@ -265,13 +265,13 @@ export function EmployeeProfileModal({
                   <h4 className="font-bold text-slate-800 text-xs flex items-center gap-2">
                     <Lock className="w-4 h-4 text-slate-600" /> Account Security & Credentials
                   </h4>
-                  <p className="text-[#70665F] text-[11px]">
+                  <p className="text-[color:var(--crm-text-secondary)] text-[11px]">
                     Last login recorded:{' '}
                     <span className="font-semibold text-slate-700">{employee.lastLogin || 'Never logged in'}</span>
                   </p>
                   {employee.forcePasswordChange && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[10px] mt-1">
-                      <AlertTriangle className="w-3 h-3 text-amber-600" /> Password reset required on next login
+                      <AlertTriangle className="w-3 h-3 text-crm-brand-600" /> Password reset required on next login
                     </span>
                   )}
                 </div>
@@ -291,47 +291,47 @@ export function EmployeeProfileModal({
           {activeTab === 'employment' && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] space-y-2">
-                  <span className="text-[#70665F] text-[11px] block">Assigned Department</span>
+                <div className="p-4 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] space-y-2">
+                  <span className="text-[color:var(--crm-text-secondary)] text-[11px] block">Assigned Department</span>
                   <span className="font-bold text-slate-900 text-sm flex items-center gap-2">
                     <Building className="w-4 h-4 text-crm-brand-700" />
                     {employee.departmentName || employee.department || 'General'}
                   </span>
                 </div>
 
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] space-y-2">
-                  <span className="text-[#70665F] text-[11px] block">Designation</span>
+                <div className="p-4 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] space-y-2">
+                  <span className="text-[color:var(--crm-text-secondary)] text-[11px] block">Designation</span>
                   <span className="font-bold text-slate-900 text-sm flex items-center gap-2">
                     <Briefcase className="w-4 h-4 text-crm-brand-700" />
                     {employee.designation || 'Staff Member'}
                   </span>
                 </div>
 
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] space-y-2">
-                  <span className="text-[#70665F] text-[11px] block">Reporting Manager</span>
+                <div className="p-4 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] space-y-2">
+                  <span className="text-[color:var(--crm-text-secondary)] text-[11px] block">Reporting Manager</span>
                   <span className="font-bold text-slate-900 text-sm flex items-center gap-2">
                     <User className="w-4 h-4 text-crm-brand-700" />
                     {employee.reportingManagerName || 'None (Direct / Head)'}
                   </span>
                 </div>
 
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] space-y-2">
-                  <span className="text-[#70665F] text-[11px] block">Joining Date</span>
+                <div className="p-4 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] space-y-2">
+                  <span className="text-[color:var(--crm-text-secondary)] text-[11px] block">Joining Date</span>
                   <span className="font-bold text-slate-900 text-sm flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-crm-brand-700" />
                     {employee.joiningDate || employee.joinedDate || 'Not recorded'}
                   </span>
                 </div>
 
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] space-y-2">
-                  <span className="text-[#70665F] text-[11px] block">Employment Type</span>
+                <div className="p-4 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] space-y-2">
+                  <span className="text-[color:var(--crm-text-secondary)] text-[11px] block">Employment Type</span>
                   <span className="font-bold text-slate-900 capitalize">
                     {employee.employmentType ? employee.employmentType.replace('_', ' ') : 'Full Time'}
                   </span>
                 </div>
 
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] space-y-2">
-                  <span className="text-[#70665F] text-[11px] block">Branch & Work Location</span>
+                <div className="p-4 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] space-y-2">
+                  <span className="text-[color:var(--crm-text-secondary)] text-[11px] block">Branch & Work Location</span>
                   <span className="font-bold text-slate-900 flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-crm-brand-700" />
                     {employee.workLocation || 'Main Plant / Head Office'}
@@ -380,8 +380,8 @@ export function EmployeeProfileModal({
               </div>
 
               {/* Special Permissions / Capabilities */}
-              <div className="p-4 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] space-y-3">
-                <h4 className="font-bold text-[#211B17] uppercase tracking-wider text-[11px] flex items-center gap-2">
+              <div className="p-4 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] space-y-3">
+                <h4 className="font-bold text-[color:var(--crm-text-primary)] uppercase tracking-wider text-[11px] flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-crm-brand-700" /> Operational Privileges
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
@@ -476,9 +476,9 @@ export function EmployeeProfileModal({
               )}
 
               {/* Assigned ERP Modules */}
-              <div className="p-4 rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] space-y-3">
+              <div className="p-4 rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] space-y-3">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-[#211B17] uppercase tracking-wider text-[11px] flex items-center gap-2">
+                  <h4 className="font-bold text-[color:var(--crm-text-primary)] uppercase tracking-wider text-[11px] flex items-center gap-2">
                     <Layers className="w-4 h-4 text-crm-brand-700" /> Authorized ERP Modules (
                     {assignedModules.length})
                   </h4>
@@ -521,7 +521,7 @@ export function EmployeeProfileModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 bg-[#FAF7F2] border-t border-[#EBE3DB] flex flex-wrap items-center justify-between gap-3">
+        <div className="p-4 bg-[color:var(--crm-bg-app)] border-t border-[color:var(--crm-border-default)] flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             {onToggleStatus && (
               <button
@@ -567,7 +567,7 @@ export function EmployeeProfileModal({
 
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-[#EBE3DB] bg-white hover:bg-gray-100 text-[#544B45] text-xs font-bold transition"
+              className="px-4 py-2 rounded-xl border border-[color:var(--crm-border-default)] bg-white hover:bg-gray-100 text-[color:var(--crm-text-secondary)] text-xs font-bold transition"
             >
               Close
             </button>

@@ -290,15 +290,15 @@ export default function EmployeeOnboardingPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-[#FDFBF9] min-h-screen text-[#211B17]">
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)] min-h-screen text-[color:var(--crm-text-primary)]">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2">
             <UserPlus className="w-7 h-7 text-crm-brand-700" />
             Employee Onboarding Workflow
           </h1>
-          <p className="text-sm text-[#70665F] mt-1">
+          <p className="text-sm text-[color:var(--crm-text-secondary)] mt-1">
             Complete 10-Step Joining Execution: Offer → Verification → Creation → Role → Shift → Payroll Structure
           </p>
         </div>
@@ -339,33 +339,33 @@ export default function EmployeeOnboardingPage() {
 
       {/* KPI Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#70665F]">Total Onboardings</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-[color:var(--crm-text-secondary)]">Total Onboardings</span>
             <Users className="w-5 h-5 text-crm-brand-600" />
           </div>
-          <div className="text-2xl font-extrabold text-[#211B17] mt-2">{stats.total}</div>
+          <div className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] mt-2">{stats.total}</div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#70665F]">In Progress</span>
-            <Clock className="w-5 h-5 text-amber-500" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-[color:var(--crm-text-secondary)]">In Progress</span>
+            <Clock className="w-5 h-5 text-crm-brand-600" />
           </div>
           <div className="text-2xl font-extrabold text-amber-600 mt-2">{stats.inProgress}</div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#70665F]">Completed & Active</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-[color:var(--crm-text-secondary)]">Completed & Active</span>
             <CheckCircle2 className="w-5 h-5 text-emerald-600" />
           </div>
           <div className="text-2xl font-extrabold text-emerald-600 mt-2">{stats.completed}</div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#70665F]">Completion Rate</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-[color:var(--crm-text-secondary)]">Completion Rate</span>
             <ShieldCheck className="w-5 h-5 text-crm-brand-600" />
           </div>
           <div className="text-2xl font-extrabold text-crm-brand-700 mt-2">{stats.rate}%</div>
@@ -373,35 +373,35 @@ export default function EmployeeOnboardingPage() {
       </div>
 
       {/* 10-Step Onboarding Pipeline Visualization */}
-      <div className="bg-white border border-[#EBE3DB] rounded-xl p-5 space-y-3 shadow-sm">
-        <h3 className="text-xs font-bold text-[#70665F] uppercase tracking-wider">Standard Onboarding Lifecycle Stages</h3>
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-5 space-y-3 shadow-sm">
+        <h3 className="text-xs font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">Standard Onboarding Lifecycle Stages</h3>
         <div className="grid grid-cols-2 sm:grid-cols-5 md:grid-cols-10 gap-2 text-center">
           {onboardingSteps.map((step, idx) => (
-            <div key={idx} className="p-2.5 bg-[#FAF7F5] border border-[#EBE3DB] rounded-lg space-y-1.5 hover:border-crm-brand-300 transition">
+            <div key={idx} className="p-2.5 bg-[#FAF7F5] border border-[color:var(--crm-border-default)] rounded-lg space-y-1.5 hover:border-crm-brand-300 transition">
               <span className="w-5 h-5 rounded-full bg-crm-brand-100 text-crm-brand-800 font-bold text-[10px] inline-flex items-center justify-center">
                 {idx + 1}
               </span>
-              <div className="text-[11px] font-semibold text-[#3E2723] leading-tight">{step}</div>
+              <div className="text-[11px] font-semibold text-[color:var(--crm-text-primary)] leading-tight">{step}</div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white border border-[#EBE3DB] rounded-xl p-4 flex flex-col sm:flex-row gap-4 justify-between items-center shadow-sm">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-4 flex flex-col sm:flex-row gap-4 justify-between items-center shadow-sm">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--crm-text-secondary)]" />
           <input
             type="text"
             placeholder="Search candidate, department, designation..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-[#FAF7F5] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-crm-brand-600 font-medium"
+            className="w-full pl-9 pr-4 py-2 bg-[#FAF7F5] border border-[color:var(--crm-border-default)] rounded-xl text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-600 font-medium"
           />
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-[#70665F]">Status:</span>
+          <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)]">Status:</span>
           {['All', 'In Progress', 'Completed'].map((st) => (
             <button
               key={st}
@@ -409,7 +409,7 @@ export default function EmployeeOnboardingPage() {
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                 statusFilter === st
                   ? 'bg-crm-brand-700 text-white'
-                  : 'bg-[#FAF7F5] text-[#544B45] hover:bg-[#EBE3DB]'
+                  : 'bg-[#FAF7F5] text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-border-default)]'
               }`}
             >
               {st}
@@ -421,10 +421,10 @@ export default function EmployeeOnboardingPage() {
       {/* Onboarding List */}
       <div className="space-y-4">
         {filteredOnboardings.length === 0 ? (
-          <div className="p-12 text-center bg-white rounded-xl border border-[#EBE3DB] shadow-sm">
-            <UserPlus className="w-12 h-12 text-[#70665F] mx-auto mb-3 opacity-40" />
-            <h3 className="text-base font-bold text-[#211B17]">No onboarding records found</h3>
-            <p className="text-xs text-[#70665F] mt-1">
+          <div className="p-12 text-center bg-white rounded-xl border border-[color:var(--crm-border-default)] shadow-sm">
+            <UserPlus className="w-12 h-12 text-[color:var(--crm-text-secondary)] mx-auto mb-3 opacity-40" />
+            <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">No onboarding records found</h3>
+            <p className="text-xs text-[color:var(--crm-text-secondary)] mt-1">
               Click &quot;+ Initiate New Onboarding&quot; to begin a candidate workflow.
             </p>
           </div>
@@ -438,17 +438,17 @@ export default function EmployeeOnboardingPage() {
             return (
               <div
                 key={item.id}
-                className="bg-white border border-[#EBE3DB] rounded-xl p-5 space-y-4 shadow-sm hover:border-crm-brand-300 transition"
+                className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-5 space-y-4 shadow-sm hover:border-crm-brand-300 transition"
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EBE3DB] pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[color:var(--crm-border-default)] pb-3">
                   <div className="flex items-center gap-3">
                     <span className="px-2.5 py-1 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-mono font-bold rounded-md">
                       {item.id}
                     </span>
-                    <span className="text-xs font-mono text-[#70665F] bg-[#FAF7F5] px-2 py-0.5 rounded border border-[#EBE3DB]">
+                    <span className="text-xs font-mono text-[color:var(--crm-text-secondary)] bg-[#FAF7F5] px-2 py-0.5 rounded border border-[color:var(--crm-border-default)]">
                       ID: {item.candidateId}
                     </span>
-                    <h2 className="text-lg font-bold text-[#211B17]">{item.candidateName}</h2>
+                    <h2 className="text-lg font-bold text-[color:var(--crm-text-primary)]">{item.candidateName}</h2>
                     <span
                       className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                         isCompleted
@@ -482,40 +482,40 @@ export default function EmployeeOnboardingPage() {
                 {/* Candidate Info Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 text-xs">
                   <div>
-                    <span className="text-[#70665F] block font-semibold">Dept:</span>
-                    <span className="text-[#211B17] font-bold">{item.department}</span>
+                    <span className="text-[color:var(--crm-text-secondary)] block font-semibold">Dept:</span>
+                    <span className="text-[color:var(--crm-text-primary)] font-bold">{item.department}</span>
                   </div>
                   <div>
-                    <span className="text-[#70665F] block font-semibold">Designation:</span>
-                    <span className="text-[#211B17] font-bold">{item.designation}</span>
+                    <span className="text-[color:var(--crm-text-secondary)] block font-semibold">Designation:</span>
+                    <span className="text-[color:var(--crm-text-primary)] font-bold">{item.designation}</span>
                   </div>
                   <div>
-                    <span className="text-[#70665F] block font-semibold">Joining:</span>
-                    <span className="text-[#211B17] font-mono">{item.joiningDate}</span>
+                    <span className="text-[color:var(--crm-text-secondary)] block font-semibold">Joining:</span>
+                    <span className="text-[color:var(--crm-text-primary)] font-mono">{item.joiningDate}</span>
                   </div>
                   <div>
-                    <span className="text-[#70665F] block font-semibold">Offered CTC:</span>
+                    <span className="text-[color:var(--crm-text-secondary)] block font-semibold">Offered CTC:</span>
                     <span className="text-emerald-700 font-bold font-mono">₹{Number(item.offeredCTC || 480000).toLocaleString('en-IN')}</span>
                   </div>
                   <div className="truncate">
-                    <span className="text-[#70665F] block font-semibold">Email:</span>
-                    <span className="text-[#544B45] truncate block">{item.email}</span>
+                    <span className="text-[color:var(--crm-text-secondary)] block font-semibold">Email:</span>
+                    <span className="text-[color:var(--crm-text-secondary)] truncate block">{item.email}</span>
                   </div>
                   <div>
-                    <span className="text-[#70665F] block font-semibold">Mobile:</span>
-                    <span className="text-[#544B45] font-mono">{item.mobile}</span>
+                    <span className="text-[color:var(--crm-text-secondary)] block font-semibold">Mobile:</span>
+                    <span className="text-[color:var(--crm-text-secondary)] font-mono">{item.mobile}</span>
                   </div>
                 </div>
 
                 {/* Progress Bar */}
                 <div className="space-y-1.5">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="font-semibold text-[#70665F]">
+                    <span className="font-semibold text-[color:var(--crm-text-secondary)]">
                       Checklist Progress ({completedCount}/{checklist.length} items completed)
                     </span>
                     <span className="font-bold text-crm-brand-800">{progressPercent}%</span>
                   </div>
-                  <div className="w-full bg-[#EBE3DB] h-2 rounded-full overflow-hidden">
+                  <div className="w-full bg-[color:var(--crm-border-default)] h-2 rounded-full overflow-hidden">
                     <div
                       className="bg-crm-brand-700 h-full transition-all duration-300"
                       style={{ width: `${progressPercent}%` }}
@@ -524,8 +524,8 @@ export default function EmployeeOnboardingPage() {
                 </div>
 
                 {/* Checklist Tasks Interactive Badges */}
-                <div className="space-y-2 pt-1 border-t border-[#EBE3DB]">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#70665F]">
+                <div className="space-y-2 pt-1 border-t border-[color:var(--crm-border-default)]">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[color:var(--crm-text-secondary)]">
                     Mandatory Joining Checklist (Click to toggle)
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
@@ -543,7 +543,7 @@ export default function EmployeeOnboardingPage() {
                           {task.completed ? (
                             <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                           ) : (
-                            <Clock className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                            <Clock className="w-4 h-4 text-crm-brand-600 flex-shrink-0" />
                           )}
                           <span className="font-semibold">{task.task}</span>
                         </div>
@@ -568,24 +568,24 @@ export default function EmployeeOnboardingPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl"
           >
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-rose-50 text-rose-600 border border-rose-200">
                 <Trash2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-[#211B17]">Delete Onboarding Record?</h3>
-                <p className="text-xs text-[#70665F] mt-0.5">
+                <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)]">Delete Onboarding Record?</h3>
+                <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">
                   Are you sure you want to remove this employee onboarding workflow?
                 </p>
               </div>
             </div>
-            <div className="flex justify-end gap-2 pt-2 border-t border-[#EBE3DB]">
+            <div className="flex justify-end gap-2 pt-2 border-t border-[color:var(--crm-border-default)]">
               <button
                 type="button"
                 onClick={() => setDeleteConfirmId(null)}
-                className="px-3.5 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] hover:bg-slate-200 text-xs font-semibold"
+                className="px-3.5 py-2 rounded-xl bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] hover:bg-slate-200 text-xs font-semibold"
               >
                 Cancel
               </button>
@@ -609,16 +609,16 @@ export default function EmployeeOnboardingPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto"
           >
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
-              <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <h2 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                 <UserPlus className="w-5 h-5 text-crm-brand-700" /> Initiate Employee Onboarding
               </h2>
               <button
                 type="button"
                 onClick={closeModalWithConfirm}
-                className="text-[#70665F] hover:text-[#211B17] cursor-pointer"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -626,13 +626,13 @@ export default function EmployeeOnboardingPage() {
 
             <form onSubmit={handleCreateOnboarding} noValidate className="space-y-4 text-xs">
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Select Existing Employee from Master *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Select Existing Employee from Master *</label>
                 <select
                   required
                   value={selectedEmployeeId}
                   onChange={(e) => handleSelectEmployee(e.target.value)}
-                  className={`w-full px-3 py-2 bg-white border rounded-xl text-[#211B17] font-medium focus:outline-none ${
-                    formErrors.employee ? 'border-rose-500 bg-rose-50/20' : 'border-[#EBE3DB] focus:border-crm-brand-500'
+                  className={`w-full px-3 py-2 bg-white border rounded-xl text-[color:var(--crm-text-primary)] font-medium focus:outline-none ${
+                    formErrors.employee ? 'border-rose-500 bg-rose-50/20' : 'border-[color:var(--crm-border-default)] focus:border-crm-brand-500'
                   }`}
                 >
                   <option value="">-- Choose Employee from Employee Master --</option>
@@ -659,30 +659,30 @@ export default function EmployeeOnboardingPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Email</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Email</label>
                   <input
                     type="email"
                     readOnly
                     placeholder="Auto-populated from Master"
                     value={formData.email}
-                    className="w-full px-3 py-2 bg-[#FAF7F5] border border-[#EBE3DB] rounded-xl text-[#544B45]"
+                    className="w-full px-3 py-2 bg-[#FAF7F5] border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-secondary)]"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Mobile Number</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Mobile Number</label>
                   <input
                     type="text"
                     readOnly
                     placeholder="Auto-populated from Master"
                     value={formData.mobile}
-                    className="w-full px-3 py-2 bg-[#FAF7F5] border border-[#EBE3DB] rounded-xl text-[#544B45]"
+                    className="w-full px-3 py-2 bg-[#FAF7F5] border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-secondary)]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Joining Date *</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Joining Date *</label>
                   <input
                     type="date"
                     required
@@ -691,8 +691,8 @@ export default function EmployeeOnboardingPage() {
                       setFormData({ ...formData, joiningDate: e.target.value });
                       if (formErrors.joiningDate) setFormErrors((prev) => ({ ...prev, joiningDate: '' }));
                     }}
-                    className={`w-full px-3 py-2 bg-white border rounded-xl text-[#211B17] focus:outline-none ${
-                      formErrors.joiningDate ? 'border-rose-500 bg-rose-50/20' : 'border-[#EBE3DB] focus:border-crm-brand-500'
+                    className={`w-full px-3 py-2 bg-white border rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none ${
+                      formErrors.joiningDate ? 'border-rose-500 bg-rose-50/20' : 'border-[color:var(--crm-border-default)] focus:border-crm-brand-500'
                     }`}
                   />
                   {formErrors.joiningDate && (
@@ -702,23 +702,23 @@ export default function EmployeeOnboardingPage() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Offered CTC (₹ / Annum)</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Offered CTC (₹ / Annum)</label>
                   <input
                     type="number"
                     value={formData.offeredCTC}
                     onChange={(e) => setFormData({ ...formData, offeredCTC: Number(e.target.value) })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-xl text-[#211B17] focus:outline-none focus:border-crm-brand-500 font-mono"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500 font-mono"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Department</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Department</label>
                   <select
                     value={formData.department}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-xl text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500"
                   >
                     {(departments || []).map((d) => {
                       const name = d.departmentName || (d as any).name || 'Department';
@@ -731,11 +731,11 @@ export default function EmployeeOnboardingPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Designation</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Designation</label>
                   <select
                     value={formData.designation}
                     onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-xl text-[#211B17] focus:outline-none focus:border-crm-brand-500"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500"
                   >
                     {(designations || []).map((desg) => {
                       const name = desg.designationName || (desg as any).name || 'Role';
@@ -752,7 +752,7 @@ export default function EmployeeOnboardingPage() {
               {/* Mandatory Searchable Reporting Manager Dropdown (Excludes Self) */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     Reporting Manager *
                   </label>
                   <select
@@ -762,8 +762,8 @@ export default function EmployeeOnboardingPage() {
                       setFormData({ ...formData, reportingManager: e.target.value });
                       if (formErrors.reportingManager) setFormErrors((prev) => ({ ...prev, reportingManager: '' }));
                     }}
-                    className={`w-full px-3 py-2 bg-white border rounded-xl text-[#211B17] focus:outline-none ${
-                      formErrors.reportingManager ? 'border-rose-500 bg-rose-50/20' : 'border-[#EBE3DB] focus:border-crm-brand-500'
+                    className={`w-full px-3 py-2 bg-white border rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none ${
+                      formErrors.reportingManager ? 'border-rose-500 bg-rose-50/20' : 'border-[color:var(--crm-border-default)] focus:border-crm-brand-500'
                     }`}
                   >
                     <option value="">-- Select Active Manager --</option>
@@ -786,11 +786,11 @@ export default function EmployeeOnboardingPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Assigned Shift</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Assigned Shift</label>
                   <select
                     value={formData.shift}
                     onChange={(e) => setFormData({ ...formData, shift: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-xl text-[#211B17] focus:outline-none focus:border-crm-brand-500 font-medium"
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] focus:outline-none focus:border-crm-brand-500 font-medium"
                   >
                     {((shiftMasters && shiftMasters.length > 0)
                       ? shiftMasters
@@ -812,11 +812,11 @@ export default function EmployeeOnboardingPage() {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-[#EBE3DB] flex justify-end gap-3">
+              <div className="pt-4 border-t border-[color:var(--crm-border-default)] flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={closeModalWithConfirm}
-                  className="px-4 py-2 bg-[#FAF7F5] hover:bg-[#EBE3DB] text-[#544B45] font-semibold rounded-xl transition cursor-pointer"
+                  className="px-4 py-2 bg-[#FAF7F5] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold rounded-xl transition cursor-pointer"
                 >
                   Cancel
                 </button>

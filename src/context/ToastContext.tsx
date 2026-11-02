@@ -177,7 +177,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 isSuccess && 'bg-emerald-50/95 border-emerald-200 text-emerald-950',
                 isError && 'bg-rose-50/95 border-rose-200 text-rose-950',
                 isWarning && 'bg-amber-50/95 border-amber-200 text-amber-950',
-                isInfo && 'bg-[#FAF7F2]/95 border-[#E6DDD2] text-[#211B17]'
+                isInfo && 'bg-[#F4F6FA]/95 border-[#D2D8E7] text-[color:var(--crm-text-primary)]'
               )}
             >
               <div

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTheme } from './ClientThemeProvider';
 import {
   Palette,
@@ -92,7 +93,7 @@ export function ThemeSwitcher() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  const activeColor = mounted ? currentTheme.palette.primary : '#75401F';
+  const activeColor = mounted ? currentTheme.palette.primary : '#1F3FB0';
   const displayName = mounted ? currentTheme.name.split(' ')[0] : 'Theme';
 
   const handleApplyRecommended = () => {
@@ -112,7 +113,7 @@ export function ThemeSwitcher() {
         ref={buttonRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[var(--crm-border-default,#EDE5DC)] bg-[var(--crm-surface-card,#FFFFFF)] hover:bg-[var(--crm-surface-subtle,#FAF7F2)] text-[var(--crm-text-secondary,#6E5D53)] hover:text-[var(--crm-text-primary,#211B17)] transition-all cursor-pointer shadow-2xs group"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[var(--crm-border-default,#DDE1EC)] bg-[var(--crm-surface-card,#FFFFFF)] hover:bg-[var(--crm-surface-subtle,#F4F6FA)] text-[var(--crm-text-secondary,#4B5876)] hover:text-[var(--crm-text-primary,#0F172A)] transition-all cursor-pointer shadow-2xs group"
         title="Open Theme & Design Studio"
         aria-label="Open Theme & Design Studio"
       >
@@ -127,23 +128,23 @@ export function ThemeSwitcher() {
         </div>
         <span
           suppressHydrationWarning
-          className="text-xs font-bold hidden sm:inline text-[var(--crm-text-primary,#211B17)]"
+          className="text-xs font-bold hidden sm:inline text-[var(--crm-text-primary,#0F172A)]"
         >
           {displayName} Studio
         </span>
       </button>
 
       {/* FULL DESIGN STUDIO MODAL */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
+      {isOpen && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
           <div
             ref={panelRef}
-            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border-2 border-[#E7DED5] dark:border-slate-800 w-full max-w-4xl overflow-hidden flex flex-col max-h-[92vh] text-slate-900 dark:text-slate-100 animate-in zoom-in-95 duration-150"
+            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border-2 border-[color:var(--crm-border-default)] dark:border-slate-800 w-full max-w-4xl overflow-hidden flex flex-col max-h-[92vh] text-slate-900 dark:text-slate-100 animate-in zoom-in-95 duration-150"
           >
             {/* STUDIO HEADER */}
-            <div className="bg-[#211B17] text-white p-4 sm:p-5 flex items-center justify-between border-b border-black">
+            <div className="bg-[color:var(--crm-text-primary)] text-white p-4 sm:p-5 flex items-center justify-between border-b border-black">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 text-white flex items-center justify-center shadow-md">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-crm-brand-500 to-crm-brand-700 text-white flex items-center justify-center shadow-md">
                   <Palette className="w-5 h-5" />
                 </div>
                 <div>
@@ -180,9 +181,9 @@ export function ThemeSwitcher() {
             </div>
 
             {/* 1-CLICK SIGNATURE DESIGN PRESETS QUICK-SELECT */}
-            <div className="bg-gradient-to-r from-amber-500/10 via-amber-600/10 to-orange-500/10 dark:from-amber-950/40 dark:to-orange-950/40 border-b border-amber-200/80 dark:border-amber-900/50 p-2.5 sm:px-4 flex items-center justify-between gap-3 overflow-x-auto">
+            <div className="bg-gradient-to-r from-crm-brand-500 via-crm-brand-700 to-crm-brand-500 dark:from-crm-brand-700 dark:to-crm-brand-700 border-b border-amber-200/80 dark:border-amber-900/50 p-2.5 sm:px-4 flex items-center justify-between gap-3 overflow-x-auto">
               <div className="flex items-center gap-2 flex-shrink-0">
-                <Sparkles className="w-4 h-4 text-amber-600 animate-pulse" />
+                <Sparkles className="w-4 h-4 text-crm-brand-600 animate-pulse" />
                 <span className="text-[11px] font-black uppercase tracking-wider text-amber-950 dark:text-amber-200">
                   1-Click Signature Presets:
                 </span>
@@ -288,7 +289,7 @@ export function ThemeSwitcher() {
                         onClick={handleApplyRecommended}
                         className="px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-[11px] font-bold flex items-center gap-1 cursor-pointer transition shadow-2xs"
                       >
-                        <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                        <Sparkles className="w-3.5 h-3.5 text-crm-brand-600" />
                         <span>Auto-Pair Recommended Font</span>
                       </button>
                     </div>
@@ -426,7 +427,7 @@ export function ThemeSwitcher() {
                           <div className="flex items-center gap-2">
                             <input
                               type="color"
-                              value={designConfig.headingColor || '#211B17'}
+                              value={designConfig.headingColor || '#0F172A'}
                               onChange={(e) => updateDesignConfig({ headingColor: e.target.value })}
                               className="w-8 h-8 rounded-lg cursor-pointer border border-slate-300 p-0"
                             />
@@ -447,7 +448,7 @@ export function ThemeSwitcher() {
                           <div className="flex items-center gap-2">
                             <input
                               type="color"
-                              value={designConfig.textColor || '#211B17'}
+                              value={designConfig.textColor || '#0F172A'}
                               onChange={(e) => updateDesignConfig({ textColor: e.target.value })}
                               className="w-8 h-8 rounded-lg cursor-pointer border border-slate-300 p-0"
                             />
@@ -608,7 +609,7 @@ export function ThemeSwitcher() {
                     <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-slate-800 dark:text-slate-200 text-xs flex items-center gap-1.5">
-                          <SlidersHorizontal className="w-3.5 h-3.5 text-amber-600" />
+                          <SlidersHorizontal className="w-3.5 h-3.5 text-crm-brand-600" />
                           <span>Custom Card Background &amp; Border Color</span>
                         </span>
                         {(designConfig.customCardBg || designConfig.customCardBorder) && (
@@ -647,7 +648,7 @@ export function ThemeSwitcher() {
                         <div className="flex items-center gap-1.5 pt-1">
                           {[
                             { name: 'Pure White', color: '#FFFFFF' },
-                            { name: 'Warm Cream', color: '#FAF7F2' },
+                            { name: 'Warm Cream', color: '#F4F6FA' },
                             { name: 'Slate Mist', color: '#F8FAFC' },
                             { name: 'Ice Cyan', color: '#F0F9FF' },
                             { name: 'Midnight Dark', color: '#0F172A' },
@@ -678,14 +679,14 @@ export function ThemeSwitcher() {
                         <div className="flex items-center gap-2">
                           <input
                             type="color"
-                            value={designConfig.customCardBorder || '#E7DED5'}
+                            value={designConfig.customCardBorder || '#E2E7EF'}
                             onChange={(e) => updateDesignConfig({ customCardBorder: e.target.value })}
                             className="w-8 h-8 rounded-lg cursor-pointer border border-slate-300 p-0 flex-shrink-0"
                             title="Choose Custom Border Color"
                           />
                           <input
                             type="text"
-                            placeholder="Default Border (#E7DED5)"
+                            placeholder="Default Border (#E2E7EF)"
                             value={designConfig.customCardBorder || ''}
                             onChange={(e) => updateDesignConfig({ customCardBorder: e.target.value })}
                             className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-xs font-mono"
@@ -694,7 +695,7 @@ export function ThemeSwitcher() {
                         {/* Quick Swatches */}
                         <div className="flex items-center gap-1.5 pt-1">
                           {[
-                            { name: 'Warm Terracotta', color: '#E7DED5' },
+                            { name: 'Warm Terracotta', color: '#E2E7EF' },
                             { name: 'Slate Gray', color: '#CBD5E1' },
                             { name: 'Steel Blue', color: '#94A3B8' },
                             { name: 'Cyan Neon', color: '#38BDF8' },
@@ -782,7 +783,7 @@ export function ThemeSwitcher() {
                             <div className="flex items-center justify-between">
                               <span>{i.label}</span>
                               {designConfig.inputStyle === i.id && (
-                                <Check className="w-3.5 h-3.5 text-amber-600 stroke-[3]" />
+                                <Check className="w-3.5 h-3.5 text-crm-brand-600 stroke-[3]" />
                               )}
                             </div>
                             <div className="text-[10px] font-normal text-slate-400 mt-1">{i.desc}</div>
@@ -816,7 +817,7 @@ export function ThemeSwitcher() {
                             <div className="flex items-center justify-between">
                               <span>{bv.label}</span>
                               {designConfig.buttonVariant === bv.id && (
-                                <Check className="w-3.5 h-3.5 text-amber-600 stroke-[3]" />
+                                <Check className="w-3.5 h-3.5 text-crm-brand-600 stroke-[3]" />
                               )}
                             </div>
                             <div className="text-[10px] font-normal text-slate-400 mt-1">{bv.desc}</div>
@@ -833,7 +834,7 @@ export function ThemeSwitcher() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                      <Eye className="w-3.5 h-3.5 text-amber-600" />
+                      <Eye className="w-3.5 h-3.5 text-crm-brand-600" />
                       <span>Live Design Preview</span>
                     </span>
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-mono font-bold">
@@ -1025,7 +1026,7 @@ export function ThemeSwitcher() {
 
                 {/* Info Note */}
                 <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 p-3 rounded-2xl flex items-start gap-2.5 text-amber-900 dark:text-amber-200 text-xs">
-                  <Sparkles className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <Sparkles className="w-4 h-4 text-crm-brand-600 flex-shrink-0 mt-0.5" />
                   <p className="text-[11px] leading-relaxed">
                     તમે અહીં જે પણ બદલાવ કરશો તે સમગ્ર ERP ની અંદર તમામ પેજીસ (પેકિંગ, ડિસ્પેચ, એકાઉન્ટિંગ, સ્ટોર, HR) પર એકસાથે ગ્લોબલ લાગુ થશે.
                   </p>
@@ -1055,7 +1056,8 @@ export function ThemeSwitcher() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

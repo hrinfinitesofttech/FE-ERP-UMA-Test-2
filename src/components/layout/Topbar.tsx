@@ -96,12 +96,12 @@ export function Topbar() {
   };
 
   return (
-    <header className="h-16 bg-[var(--crm-bg-app,#FCFAF7)] border-b border-[var(--crm-border-default,#EDE5DC)] px-3 sm:px-6 flex items-center justify-between gap-2 sm:gap-4 z-20 sticky top-0 flex-shrink-0 transition-all">
+    <header className="h-16 bg-[var(--crm-bg-app,#FCFAF7)] border-b border-[var(--crm-border-default,#DDE1EC)] px-3 sm:px-6 flex items-center justify-between gap-2 sm:gap-4 z-20 sticky top-0 flex-shrink-0 transition-all">
       {/* Left: Mobile Toggle & Global Search Bar */}
       <div className="flex items-center gap-2 sm:gap-3 flex-1 max-w-xl min-w-0">
         <button
           onClick={() => setSidebarMobileOpen(!sidebarMobileOpen)}
-          className="min-w-[40px] min-h-[40px] flex items-center justify-center p-2 rounded-xl text-[#6E5D53] hover:bg-[#F3EDE4] lg:hidden transition cursor-pointer flex-shrink-0"
+          className="min-w-[40px] min-h-[40px] flex items-center justify-center p-2 rounded-xl text-[#4B5876] hover:bg-[#E6E9F1] lg:hidden transition cursor-pointer flex-shrink-0"
           aria-label="Toggle navigation drawer"
         >
           <Menu className="w-5 h-5" />
@@ -110,14 +110,14 @@ export function Topbar() {
         {/* Global Search Button Trigger (Ctrl+K) */}
         <button
           onClick={() => setIsSearchOpen(true)}
-          className="flex items-center gap-2 px-3 sm:px-4 py-2 min-h-[40px] w-full bg-[#FAF7F2] hover:bg-white border border-[#E5DDD0] rounded-full text-xs text-[#8C7D72] transition-all text-left group shadow-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-crm-brand-700/20 truncate"
+          className="flex items-center gap-2 px-3 sm:px-4 py-2 min-h-[40px] w-full bg-[color:var(--crm-bg-app)] hover:bg-white border border-[#D0D6E5] rounded-full text-xs text-[#63749B] transition-all text-left group shadow-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-crm-brand-700/20 truncate"
         >
-          <Search className="w-4 h-4 flex-shrink-0 text-[#8C7D72] group-hover:text-crm-brand-700 transition-colors" />
+          <Search className="w-4 h-4 flex-shrink-0 text-[#63749B] group-hover:text-crm-brand-700 transition-colors" />
           <span className="flex-1 truncate text-xs font-medium">
             <span className="hidden sm:inline">Search all pages, modules, jobs, leads, stock, PO...</span>
             <span className="sm:hidden">Search ERP...</span>
           </span>
-          <kbd className="hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-mono font-bold text-[#75401F] bg-[#FAF0E6] border border-[#E5DDD0] rounded-md shadow-2xs">
+          <kbd className="hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-mono font-bold text-[color:var(--crm-brand-700)] bg-[#F1F4FA] border border-[#D0D6E5] rounded-md shadow-2xs">
             Ctrl K
           </kbd>
         </button>
@@ -146,10 +146,10 @@ export function Topbar() {
               setShowRoleMenu(false);
               setShowUserMenu(false);
             }}
-            className="min-w-[40px] min-h-[40px] flex items-center justify-center p-2 rounded-xl text-[#6E5D53] hover:bg-[#F3EDE4] relative border border-[#E5DDD0] transition cursor-pointer"
+            className="min-w-[40px] min-h-[40px] flex items-center justify-center p-2 rounded-xl text-[#4B5876] hover:bg-[#E6E9F1] relative border border-[#D0D6E5] transition cursor-pointer"
             title="System Notifications"
           >
-            <Bell className="w-4 h-4 text-[#6E5D53]" />
+            <Bell className="w-4 h-4 text-[#4B5876]" />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#D9383A] text-white font-black rounded-full text-[9px] flex items-center justify-center shadow-xs animate-bounce">
                 {unreadCount}
@@ -158,12 +158,12 @@ export function Topbar() {
           </button>
 
           {showNotificationMenu && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-[#EDE5DC] overflow-hidden z-50 text-xs animate-in fade-in duration-150">
+            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-[#DDE1EC] overflow-hidden z-50 text-xs animate-in fade-in duration-150">
               {/* Header */}
-              <div className="p-3.5 bg-[#FAF7F2] border-b border-[#EDE5DC] flex items-center justify-between">
+              <div className="p-3.5 bg-[color:var(--crm-bg-app)] border-b border-[#DDE1EC] flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Bell className="w-4 h-4 text-crm-brand-700" />
-                  <span className="font-bold text-[#211B17]">
+                  <span className="font-bold text-[color:var(--crm-text-primary)]">
                     Notifications {unreadCount > 0 ? `(${unreadCount} new)` : `(${notifications.length})`}
                   </span>
                 </div>
@@ -180,7 +180,7 @@ export function Topbar() {
               </div>
 
               {/* Sound & Voice Settings Bar */}
-              <div className="px-3.5 py-2 bg-[#F6F1EA] border-b border-[#EDE5DC] flex items-center justify-between gap-2 text-[11px]">
+              <div className="px-3.5 py-2 bg-[#EBEEF5] border-b border-[#DDE1EC] flex items-center justify-between gap-2 text-[11px]">
                 <div className="flex items-center gap-2 sm:gap-3">
                   {/* Sound Toggle */}
                   <button
@@ -213,16 +213,16 @@ export function Topbar() {
                 <button
                   type="button"
                   onClick={testNotificationSound}
-                  className="px-2.5 py-1 bg-white border border-[#D5C7B8] hover:bg-[#FAF7F2] text-slate-700 font-bold rounded-lg text-[10px] transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                  className="px-2.5 py-1 bg-white border border-[#BAC2D3] hover:bg-[color:var(--crm-bg-app)] text-slate-700 font-bold rounded-lg text-[10px] transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
                   title="Test Sound & Voice"
                 >
-                  <Volume2 className="w-3 h-3 text-[#75401F]" />
+                  <Volume2 className="w-3 h-3 text-[color:var(--crm-brand-700)]" />
                   <span>Test</span>
                 </button>
               </div>
 
               {/* Notification List */}
-              <div className="max-h-80 overflow-y-auto divide-y divide-[#EDE5DC]">
+              <div className="max-h-80 overflow-y-auto divide-y divide-[#DDE1EC]">
                 {notifications.length === 0 ? (
                   <div className="p-8 text-center text-slate-400">
                     <Bell className="w-6 h-6 mx-auto mb-2 text-slate-300" />
@@ -269,7 +269,7 @@ export function Topbar() {
                       <div
                         key={notif.id}
                         onClick={() => handleNotifClick(notif)}
-                        className={`p-3.5 hover:bg-[#FAF7F2] cursor-pointer transition flex items-start gap-3 ${
+                        className={`p-3.5 hover:bg-[color:var(--crm-bg-app)] cursor-pointer transition flex items-start gap-3 ${
                           !notif.isRead ? 'bg-[#FCF5ED]' : 'bg-white'
                         }`}
                       >
@@ -278,7 +278,7 @@ export function Topbar() {
                         </div>
                         <div className="space-y-0.5 flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">
-                            <span className={`font-bold truncate text-xs ${!notif.isRead ? 'text-[#211B17]' : 'text-slate-700'}`}>
+                            <span className={`font-bold truncate text-xs ${!notif.isRead ? 'text-[color:var(--crm-text-primary)]' : 'text-slate-700'}`}>
                               {cleanTitle || notif.title}
                             </span>
                             {!notif.isRead && (
@@ -299,7 +299,7 @@ export function Topbar() {
               </div>
 
               {/* Footer: View All Link */}
-              <div className="p-2.5 bg-[#FAF7F2] border-t border-[#EDE5DC] text-center">
+              <div className="p-2.5 bg-[color:var(--crm-bg-app)] border-t border-[#DDE1EC] text-center">
                 <Link
                   href="/notifications"
                   onClick={() => setShowNotificationMenu(false)}
@@ -321,7 +321,7 @@ export function Topbar() {
               setShowRoleMenu(false);
               setShowNotificationMenu(false);
             }}
-            className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-[#F3EDE4] transition cursor-pointer min-h-[40px]"
+            className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-[#E6E9F1] transition cursor-pointer min-h-[40px]"
           >
             <div
               suppressHydrationWarning
@@ -330,7 +330,7 @@ export function Topbar() {
               {((currentUser.firstName?.[0] || currentUser.username?.[0] || 'U') + (currentUser.lastName?.[0] || ''))}
             </div>
             <div className="text-left hidden md:block">
-              <div suppressHydrationWarning className="font-bold text-[#211B17] text-xs leading-tight">
+              <div suppressHydrationWarning className="font-bold text-[color:var(--crm-text-primary)] text-xs leading-tight">
                 {currentUser.name || `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.username || 'Admin User'}
               </div>
               <div suppressHydrationWarning className="text-[10px] text-crm-brand-600 leading-tight font-bold">

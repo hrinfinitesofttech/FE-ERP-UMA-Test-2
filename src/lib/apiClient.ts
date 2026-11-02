@@ -351,7 +351,7 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
     d.name = d.name || 'Main Warehouse';
   } else if (ep.includes('/qc-inspections')) {
     d.grnId = d.grnId || d.grn_id || 'GRN-001';
-    d.grnNumber = d.grnNumber || d.grn_number || 'GRN-2026-0001';
+    d.grnNumber = d.grnNumber || d.grn_number || d.id || '';
     d.date = d.date || d.inspectionDate || nowStr;
   } else if (ep.includes('/material-issues')) {
     d.id = d.id || d.issueNumber || d.issue_number || `ISS-2026-${Date.now().toString().slice(-4)}`;
@@ -403,7 +403,7 @@ function normalizePayload(endpoint: string, body: any, method = 'POST'): any {
     d.department = d.department || 'Production';
     d.returned_by = d.returned_by || d.returnedBy || 'Shop Floor Supervisor';
     d.returnedBy = d.returned_by;
-    d.received_by = d.received_by || d.receivedBy || 'Hitesh Rawal (Store Incharge)';
+    d.received_by = d.received_by || d.receivedBy || '';
     d.receivedBy = d.received_by;
     d.warehouse_id = d.warehouse_id || d.warehouseId || 'WH-001';
     d.warehouseId = d.warehouse_id;

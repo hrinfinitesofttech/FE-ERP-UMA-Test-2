@@ -653,18 +653,18 @@ export default function DesignJobsPage() {
   return (
     <div className="space-y-4">
       {/* Top Header Card */}
-      <div className="bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white p-5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full bg-crm-brand-100 text-crm-brand-800 border border-crm-brand-200 text-[11px] font-mono font-bold">
               MODULE 3.1
             </span>
-            <h1 className="text-2xl font-black text-[#211B17] tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl font-black text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2">
               <Palette className="w-7 h-7 text-crm-brand-600" />
               Design Jobs & Engineering
             </h1>
           </div>
-          <p className="text-xs text-[#70665F] mt-1">
+          <p className="text-xs text-[color:var(--crm-text-secondary)] mt-1">
             Auto-linked from Project Planning. Designers upload drawing images/CAD files and mark tasks completed.
           </p>
         </div>

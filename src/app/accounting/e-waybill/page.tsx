@@ -271,9 +271,9 @@ function EWayBillPageContent() {
   }, [ewayBills, searchTerm, statusFilter]);
 
   return (
-    <div className="p-6 space-y-6 bg-[#FAF7F2] text-[#211B17]">
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)]">
       {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#EBE3DB] shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
         <div className="flex items-center gap-3.5">
           <div className="p-3 bg-sky-50 text-sky-600 rounded-2xl border border-sky-200">
             <Truck className="w-7 h-7" />
@@ -282,7 +282,7 @@ function EWayBillPageContent() {
             <div className="text-[11px] font-semibold tracking-wider uppercase text-slate-400 mb-0.5">
               ACCOUNTING &amp; GST COMPLIANCE / E-WAY BILL SYSTEM
             </div>
-            <h1 className="text-xl font-black text-[#211B17] tracking-tight flex items-center gap-2">
+            <h1 className="text-xl font-black text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2">
               <span>Electronic Way Bill Portal (E-Way Bill)</span>
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 font-bold border border-sky-300 font-mono">
                 Rule 138 GST
@@ -296,7 +296,7 @@ function EWayBillPageContent() {
 
         <button
           onClick={handleOpenModal}
-          className="flex items-center gap-2 bg-[#211B17] hover:bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-xs cursor-pointer active:scale-95"
+          className="flex items-center gap-2 bg-[color:var(--crm-text-primary)] hover:bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-xs cursor-pointer active:scale-95"
         >
           <Plus className="w-4 h-4 text-sky-400" />
           <span>+ Generate E-Way Bill</span>
@@ -305,7 +305,7 @@ function EWayBillPageContent() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4.5 rounded-2xl border border-[#EBE3DB] shadow-xs space-y-1">
+        <div className="bg-white p-4.5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs space-y-1">
           <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
             Total E-Way Bills
           </div>
@@ -315,7 +315,7 @@ function EWayBillPageContent() {
           <div className="text-[10px] text-slate-400">Total bills registered</div>
         </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-[#EBE3DB] shadow-xs space-y-1">
+        <div className="bg-white p-4.5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs space-y-1">
           <div className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider">
             Active Consignments
           </div>
@@ -325,7 +325,7 @@ function EWayBillPageContent() {
           <div className="text-[10px] text-slate-400">Currently in-transit</div>
         </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-[#EBE3DB] shadow-xs space-y-1">
+        <div className="bg-white p-4.5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs space-y-1">
           <div className="text-[11px] font-semibold text-sky-600 uppercase tracking-wider">
             Eligible Invoices
           </div>
@@ -335,7 +335,7 @@ function EWayBillPageContent() {
           <div className="text-[10px] text-slate-400">Invoices &gt; ₹50,000 threshold</div>
         </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-[#EBE3DB] shadow-xs space-y-1">
+        <div className="bg-white p-4.5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs space-y-1">
           <div className="text-[11px] font-semibold text-purple-600 uppercase tracking-wider">
             Dispatched Value
           </div>
@@ -347,7 +347,7 @@ function EWayBillPageContent() {
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="bg-white p-3.5 rounded-2xl border border-[#EBE3DB] flex flex-col md:flex-row items-center justify-between gap-3 shadow-xs">
+      <div className="bg-white p-3.5 rounded-2xl border border-[color:var(--crm-border-default)] flex flex-col md:flex-row items-center justify-between gap-3 shadow-xs">
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -355,7 +355,7 @@ function EWayBillPageContent() {
             placeholder="Search E-Way Bill no, invoice, vehicle..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-4 py-2 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-sky-500"
+            className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl pl-9 pr-4 py-2 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-sky-500"
           />
         </div>
 
@@ -377,10 +377,10 @@ function EWayBillPageContent() {
       </div>
 
       {/* E-Way Bills Table */}
-      <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-700">
-            <thead className="bg-slate-50 text-slate-500 uppercase font-black text-[10px] tracking-wider border-b border-[#EBE3DB]">
+            <thead className="bg-slate-50 text-slate-500 uppercase font-black text-[10px] tracking-wider border-b border-[color:var(--crm-border-default)]">
               <tr>
                 <th className="py-3 px-4">E-WAY BILL NO</th>
                 <th className="py-3 px-4">DOC (INVOICE / CHALLAN)</th>
@@ -487,8 +487,8 @@ function EWayBillPageContent() {
       {/* GENERATE E-WAY BILL MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
-            <div className="bg-[#211B17] text-white p-4.5 flex items-center justify-between">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+            <div className="bg-[color:var(--crm-text-primary)] text-white p-4.5 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Truck className="w-5 h-5 text-sky-400" />
                 <h3 className="text-sm font-bold">Generate New E-Way Bill (Part A &amp; B)</h3>

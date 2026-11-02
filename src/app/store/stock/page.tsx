@@ -115,7 +115,7 @@ export default function StockMatrixPage() {
         cell: (row) => (
           <Link
             href={`/store/items/${row.id}`}
-            className="font-mono font-bold text-xs text-[#18417D] hover:underline"
+            className="font-mono font-bold text-xs text-[#1F3FB0] hover:underline"
           >
             {row.itemCode}
           </Link>
@@ -126,7 +126,7 @@ export default function StockMatrixPage() {
         header: 'Material / Description',
         cell: (row) => (
           <div className="space-y-0.5">
-            <div className="font-bold text-xs text-[#211B17]">{row.itemName}</div>
+            <div className="font-bold text-xs text-[color:var(--crm-text-primary)]">{row.itemName}</div>
             <span className="text-[10px] text-slate-500 uppercase font-mono px-1.5 py-0.5 bg-slate-100 rounded">
               {row.category}
             </span>
@@ -182,7 +182,7 @@ export default function StockMatrixPage() {
         header: 'Inventory Value',
         cell: (row) => (
           <div className="font-mono text-xs space-y-0.5">
-            <div className="font-bold text-[#211B17]">{formatCurrency(row.totalValuation)}</div>
+            <div className="font-bold text-[color:var(--crm-text-primary)]">{formatCurrency(row.totalValuation)}</div>
             <div className="text-[10px] text-slate-400">@ {formatCurrency(row.standardCost)}/{row.uom}</div>
           </div>
         ),

@@ -694,48 +694,48 @@ function PurchaseOrdersHubContent() {
 
   if (!mounted) {
     return (
-      <div className="p-8 text-center text-xs text-[#70665F]">
+      <div className="p-8 text-center text-xs text-[color:var(--crm-text-secondary)]">
         Loading Purchase Orders & Approvals Command Center...
       </div>
     );
   }
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 bg-[#FAF7F2] min-h-screen text-[#3E2723]">
+    <div className="p-4 sm:p-6 space-y-6 bg-[color:var(--crm-bg-app)] min-h-screen text-[color:var(--crm-text-primary)]">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-5 right-5 z-50 bg-[#211B17] text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-bold animate-in slide-in-from-top-2">
+        <div className="fixed top-5 right-5 z-50 bg-[color:var(--crm-text-primary)] text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-bold animate-in slide-in-from-top-2">
           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Main Header */}
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-2.5 py-0.5 rounded-md bg-crm-brand-100 text-crm-brand-800 font-mono text-[11px] font-bold border border-crm-brand-300">
               MODULE 4 • PURCHASE
             </span>
-            <span className="text-xs text-[#70665F] font-semibold">Orders, Approvals & Expediting Command Center</span>
+            <span className="text-xs text-[color:var(--crm-text-secondary)] font-semibold">Orders, Approvals & Expediting Command Center</span>
           </div>
-          <h1 className="text-2xl font-black text-[#211B17] tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-black text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2">
             <ShoppingCart className="w-6 h-6 text-crm-brand-700" />
             Purchase Orders & Approvals Hub
           </h1>
-          <p className="text-xs text-[#70665F] mt-1">
+          <p className="text-xs text-[color:var(--crm-text-secondary)] mt-1">
             Official purchase orders release, 3-tier management approval control matrix, and supplier expediting tracker.
           </p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center gap-1.5 bg-[#FAF7F2] p-1.5 rounded-xl border border-[#EBE3DB]">
+        <div className="flex items-center gap-1.5 bg-[color:var(--crm-bg-app)] p-1.5 rounded-xl border border-[color:var(--crm-border-default)]">
           <button
             onClick={() => setActiveTab('orders')}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'orders'
                 ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-xs'
-                : 'text-[#6E5D53] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+                : 'text-[#4B5876] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)]'
             }`}
           >
             <ShoppingCart className="w-4 h-4" />
@@ -750,7 +750,7 @@ function PurchaseOrdersHubContent() {
             className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'approvals'
                 ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-xs'
-                : 'text-[#6E5D53] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+                : 'text-[#4B5876] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)]'
             }`}
           >
             <ShieldCheck className="w-4 h-4" />
@@ -767,7 +767,7 @@ function PurchaseOrdersHubContent() {
             className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'followup'
                 ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-xs'
-                : 'text-[#6E5D53] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+                : 'text-[#4B5876] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)]'
             }`}
           >
             <Truck className="w-4 h-4" />
@@ -781,35 +781,35 @@ function PurchaseOrdersHubContent() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
-          <div className="flex items-center justify-between text-xs text-[#70665F]">
+        <div className="bg-white p-4 rounded-xl border border-[color:var(--crm-border-default)] shadow-xs">
+          <div className="flex items-center justify-between text-xs text-[color:var(--crm-text-secondary)]">
             <span>Total Issued POs</span>
             <ShoppingCart className="w-4 h-4 text-crm-brand-700" />
           </div>
-          <div className="text-xl font-black text-[#211B17] mt-1">{purchaseOrders.length}</div>
+          <div className="text-xl font-black text-[color:var(--crm-text-primary)] mt-1">{purchaseOrders.length}</div>
           <div className="text-[10px] text-emerald-700 font-semibold mt-0.5">Procurement Orders</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
-          <div className="flex items-center justify-between text-xs text-[#70665F]">
+        <div className="bg-white p-4 rounded-xl border border-[color:var(--crm-border-default)] shadow-xs">
+          <div className="flex items-center justify-between text-xs text-[color:var(--crm-text-secondary)]">
             <span>Pending Approvals</span>
-            <Clock className="w-4 h-4 text-amber-500" />
+            <Clock className="w-4 h-4 text-crm-brand-600" />
           </div>
           <div className="text-xl font-black text-amber-600 mt-1">{pendingPOs.length}</div>
           <div className="text-[10px] text-amber-700 font-semibold mt-0.5">Awaiting Director Sign-off</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
-          <div className="flex items-center justify-between text-xs text-[#70665F]">
+        <div className="bg-white p-4 rounded-xl border border-[color:var(--crm-border-default)] shadow-xs">
+          <div className="flex items-center justify-between text-xs text-[color:var(--crm-text-secondary)]">
             <span>Total Committed Value</span>
             <IndianRupee className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="text-xl font-black text-[#211B17] mt-1">{formatCurrency(totalPOValue)}</div>
-          <div className="text-[10px] text-[#70665F] mt-0.5">Total Value Across All POs</div>
+          <div className="text-xl font-black text-[color:var(--crm-text-primary)] mt-1">{formatCurrency(totalPOValue)}</div>
+          <div className="text-[10px] text-[color:var(--crm-text-secondary)] mt-0.5">Total Value Across All POs</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
-          <div className="flex items-center justify-between text-xs text-[#70665F]">
+        <div className="bg-white p-4 rounded-xl border border-[color:var(--crm-border-default)] shadow-xs">
+          <div className="flex items-center justify-between text-xs text-[color:var(--crm-text-secondary)]">
             <span>Active Follow-up Logs</span>
             <Truck className="w-4 h-4 text-sky-600" />
           </div>
@@ -1035,15 +1035,15 @@ function PurchaseOrdersHubContent() {
       {activeTab === 'approvals' && (
         <div className="space-y-4 animate-in fade-in duration-150">
           {/* Header matrix indicator */}
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="bg-gradient-to-r from-crm-brand-50 to-crm-brand-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-amber-700" />
-                <h3 className="font-extrabold text-sm text-[#211B17]">
+                <ShieldCheck className="w-5 h-5 text-crm-brand-600" />
+                <h3 className="font-extrabold text-sm text-[color:var(--crm-text-primary)]">
                   3-Tier Management Approval Control Matrix
                 </h3>
               </div>
-              <p className="text-xs text-[#70665F] mt-0.5">
+              <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">
                 Executive Creation → Department Manager Review → Commercial Director Final Authorization.
               </p>
             </div>
@@ -1054,7 +1054,7 @@ function PurchaseOrdersHubContent() {
                 className={`px-3 py-1.5 rounded-lg font-bold transition ${
                   approvalTab === 'pending'
                     ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-xs'
-                    : 'text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]'
+                    : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-bg-app)]'
                 }`}
               >
                 Pending Approvals ({pendingPOs.length})
@@ -1064,7 +1064,7 @@ function PurchaseOrdersHubContent() {
                 className={`px-3 py-1.5 rounded-lg font-bold transition ${
                   approvalTab === 'revisions'
                     ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-xs'
-                    : 'text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]'
+                    : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-bg-app)]'
                 }`}
               >
                 Revision Audit Logs ({poRevisions.length})
@@ -1079,7 +1079,7 @@ function PurchaseOrdersHubContent() {
                   {pendingPOs.map((po) => (
                     <div
                       key={po.id}
-                      className="bg-white border border-[#EBE3DB] rounded-2xl p-5 shadow-xs space-y-3 flex flex-col justify-between"
+                      className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-5 shadow-xs space-y-3 flex flex-col justify-between"
                     >
                       <div>
                         <div className="flex items-start justify-between">
@@ -1087,40 +1087,40 @@ function PurchaseOrdersHubContent() {
                             <span className="font-mono text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
                               {po.poNumber}
                             </span>
-                            <h4 className="text-sm font-extrabold text-[#211B17] mt-1.5">{po.supplierName}</h4>
+                            <h4 className="text-sm font-extrabold text-[color:var(--crm-text-primary)] mt-1.5">{po.supplierName}</h4>
                           </div>
                           <div className="text-right">
-                            <span className="text-[10px] text-[#8D7B70]">Total Value:</span>
+                            <span className="text-[10px] text-[color:var(--crm-text-tertiary)]">Total Value:</span>
                             <div className="text-base font-black text-emerald-700 font-mono">
                               {formatCurrency(po.grandTotal)}
                             </div>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-[#EBE3DB] text-xs">
+                        <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-[color:var(--crm-border-default)] text-xs">
                           <div>
-                            <span className="text-[#8D7B70]">Project Reference:</span>
-                            <div className="font-bold text-[#211B17]">{po.projectId || po.jobNumber || po.jobId}</div>
+                            <span className="text-[color:var(--crm-text-tertiary)]">Project Reference:</span>
+                            <div className="font-bold text-[color:var(--crm-text-primary)]">{po.projectId || po.jobNumber || po.jobId}</div>
                           </div>
                           <div>
-                            <span className="text-[#8D7B70]">Required Delivery:</span>
-                            <div className="font-bold text-[#211B17]">{po.expectedDeliveryDate || 'Within 10 Days'}</div>
+                            <span className="text-[color:var(--crm-text-tertiary)]">Required Delivery:</span>
+                            <div className="font-bold text-[color:var(--crm-text-primary)]">{po.expectedDeliveryDate || 'Within 10 Days'}</div>
                           </div>
                           <div>
-                            <span className="text-[#8D7B70]">Payment Terms:</span>
-                            <div className="font-semibold text-[#211B17]">{po.paymentTerms || '30 Days Credit'}</div>
+                            <span className="text-[color:var(--crm-text-tertiary)]">Payment Terms:</span>
+                            <div className="font-semibold text-[color:var(--crm-text-primary)]">{po.paymentTerms || '30 Days Credit'}</div>
                           </div>
                           <div>
-                            <span className="text-[#8D7B70]">Line Items:</span>
-                            <div className="font-semibold text-[#211B17]">{po.items?.length || 1} Products</div>
+                            <span className="text-[color:var(--crm-text-tertiary)]">Line Items:</span>
+                            <div className="font-semibold text-[color:var(--crm-text-primary)]">{po.items?.length || 1} Products</div>
                           </div>
                         </div>
                       </div>
 
-                      <div className="pt-3 border-t border-[#EBE3DB] flex items-center justify-between">
+                      <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex items-center justify-between">
                         <button
                           onClick={() => setViewPO(po)}
-                          className="text-xs font-bold text-[#70665F] hover:text-[#211B17] flex items-center gap-1"
+                          className="text-xs font-bold text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] flex items-center gap-1"
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>View Full PO</span>
@@ -1137,25 +1137,25 @@ function PurchaseOrdersHubContent() {
                   ))}
                 </div>
               ) : (
-                <div className="bg-white border border-[#EBE3DB] rounded-2xl p-8 text-center text-[#70665F] space-y-2">
+                <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-8 text-center text-[color:var(--crm-text-secondary)] space-y-2">
                   <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
-                  <div className="font-bold text-sm text-[#211B17]">All Purchase Orders Approved</div>
+                  <div className="font-bold text-sm text-[color:var(--crm-text-primary)]">All Purchase Orders Approved</div>
                   <p className="text-xs">There are no purchase orders awaiting authorization at this moment.</p>
                 </div>
               )}
             </div>
           ) : (
             /* Revisions Tab */
-            <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xs">
-              <div className="p-3.5 bg-[#F8F4EE] border-b border-[#EBE3DB]">
-                <h4 className="font-bold text-xs text-[#211B17] flex items-center gap-1.5">
+            <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl overflow-hidden shadow-xs">
+              <div className="p-3.5 bg-[#F8F4EE] border-b border-[color:var(--crm-border-default)]">
+                <h4 className="font-bold text-xs text-[color:var(--crm-text-primary)] flex items-center gap-1.5">
                   <History className="w-4 h-4 text-crm-brand-700" />
                   Immutable Purchase Order Revision History
                 </h4>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[#544B45] font-bold">
+                  <thead className="bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-bold">
                     <tr>
                       <th className="py-3 px-3.5">PO Number</th>
                       <th className="py-3 px-3 text-center">Revision #</th>
@@ -1165,15 +1165,15 @@ function PurchaseOrdersHubContent() {
                       <th className="py-3 px-3.5 text-right">Revised Grand Total</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#EBE3DB]">
+                  <tbody className="divide-y divide-[color:var(--crm-border-default)]">
                     {poRevisions.length > 0 ? (
                       poRevisions.map((rev) => (
-                        <tr key={rev.id} className="hover:bg-[#FAF7F2] transition">
-                          <td className="py-3 px-3.5 font-mono font-bold text-[#211B17]">{rev.poNumber}</td>
+                        <tr key={rev.id} className="hover:bg-[color:var(--crm-bg-app)] transition">
+                          <td className="py-3 px-3.5 font-mono font-bold text-[color:var(--crm-text-primary)]">{rev.poNumber}</td>
                           <td className="py-3 px-3 text-center font-bold text-amber-700">Rev {rev.revisionNumber}</td>
-                          <td className="py-3 px-3 text-[#70665F]">{rev.revisionDate || rev.revisedDate}</td>
-                          <td className="py-3 px-3 font-semibold text-[#211B17]">{rev.revisedBy}</td>
-                          <td className="py-3 px-3 text-[#544B45]">{rev.reasonForRevision || rev.reason}</td>
+                          <td className="py-3 px-3 text-[color:var(--crm-text-secondary)]">{rev.revisionDate || rev.revisedDate}</td>
+                          <td className="py-3 px-3 font-semibold text-[color:var(--crm-text-primary)]">{rev.revisedBy}</td>
+                          <td className="py-3 px-3 text-[color:var(--crm-text-secondary)]">{rev.reasonForRevision || rev.reason}</td>
                           <td className="py-3 px-3.5 text-right font-mono font-black text-emerald-700">
                             {formatCurrency(rev.revisedGrandTotal || rev.newGrandTotal || 0)}
                           </td>
@@ -1181,7 +1181,7 @@ function PurchaseOrdersHubContent() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={6} className="py-8 text-center text-[#70665F]">
+                        <td colSpan={6} className="py-8 text-center text-[color:var(--crm-text-secondary)]">
                           No revisions have been recorded yet. All POs are on original revision 0.
                         </td>
                       </tr>
@@ -1199,13 +1199,13 @@ function PurchaseOrdersHubContent() {
       {/* ========================================================= */}
       {activeTab === 'followup' && (
         <div className="space-y-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 className="text-sm font-extrabold text-[#211B17] flex items-center gap-1.5">
+              <h3 className="text-sm font-extrabold text-[color:var(--crm-text-primary)] flex items-center gap-1.5">
                 <Truck className="w-4 h-4 text-sky-600" />
                 Supplier Delivery Expediting & Follow-up Logs
               </h3>
-              <p className="text-xs text-[#70665F] mt-0.5">
+              <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">
                 Proactive vendor tracking, commitment dates, logistics contacts, and delay risk logging.
               </p>
             </div>
@@ -1220,10 +1220,10 @@ function PurchaseOrdersHubContent() {
           </div>
 
           {/* Follow-up Table */}
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl overflow-hidden shadow-xs">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#F8F4EE] border-b border-[#EBE3DB] text-[#544B45] font-bold">
+                <thead className="bg-[#F8F4EE] border-b border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-bold">
                   <tr>
                     <th className="py-3 px-3.5">PO Number</th>
                     <th className="py-3 px-3">Supplier Name</th>
@@ -1235,20 +1235,20 @@ function PurchaseOrdersHubContent() {
                     <th className="py-3 px-3.5">Remarks / Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#EBE3DB]">
+                <tbody className="divide-y divide-[color:var(--crm-border-default)]">
                   {purchaseFollowUps.length > 0 ? (
                     purchaseFollowUps.map((fu) => (
-                      <tr key={fu.id} className="hover:bg-[#FAF7F2] transition">
-                        <td className="py-3 px-3.5 font-mono font-bold text-[#211B17]">{fu.poNumber}</td>
-                        <td className="py-3 px-3 font-semibold text-[#211B17]">{fu.supplierName}</td>
-                        <td className="py-3 px-3 text-[#70665F]">{fu.followUpDate}</td>
-                        <td className="py-3 px-3 font-medium text-[#211B17]">{fu.contactedPerson}</td>
+                      <tr key={fu.id} className="hover:bg-[color:var(--crm-bg-app)] transition">
+                        <td className="py-3 px-3.5 font-mono font-bold text-[color:var(--crm-text-primary)]">{fu.poNumber}</td>
+                        <td className="py-3 px-3 font-semibold text-[color:var(--crm-text-primary)]">{fu.supplierName}</td>
+                        <td className="py-3 px-3 text-[color:var(--crm-text-secondary)]">{fu.followUpDate}</td>
+                        <td className="py-3 px-3 font-medium text-[color:var(--crm-text-primary)]">{fu.contactedPerson}</td>
                         <td className="py-3 px-3 text-center">
-                          <span className="px-2 py-0.5 rounded bg-[#FAF7F2] border border-[#EBE3DB] font-semibold text-[10px]">
+                          <span className="px-2 py-0.5 rounded bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] font-semibold text-[10px]">
                             {fu.communicationChannel || fu.mode || 'Phone'}
                           </span>
                         </td>
-                        <td className="py-3 px-3 text-center font-bold text-[#211B17]">
+                        <td className="py-3 px-3 text-center font-bold text-[color:var(--crm-text-primary)]">
                           {fu.supplierCommitmentDate || fu.expectedDelivery || 'On Schedule'}
                         </td>
                         <td className="py-3 px-3 text-center">
@@ -1264,12 +1264,12 @@ function PurchaseOrdersHubContent() {
                             {fu.delayRisk || 'Normal'}
                           </span>
                         </td>
-                        <td className="py-3 px-3.5 text-[#544B45]">{fu.remarks}</td>
+                        <td className="py-3 px-3.5 text-[color:var(--crm-text-secondary)]">{fu.remarks}</td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={8} className="py-8 text-center text-[#70665F]">
+                      <td colSpan={8} className="py-8 text-center text-[color:var(--crm-text-secondary)]">
                         No expediting logs recorded yet. Click &quot;Log Supplier Follow-up&quot; to track supplier deliveries.
                       </td>
                     </tr>
@@ -1286,31 +1286,31 @@ function PurchaseOrdersHubContent() {
       {/* ========================================================= */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#EBE3DB] bg-[#FAF7F2]">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)]">
               <div className="flex items-center gap-2">
                 <ShoppingCart className="w-5 h-5 text-crm-brand-700" />
-                <h3 className="text-base font-black text-[#211B17]">Create Purchase Order (PO)</h3>
+                <h3 className="text-base font-black text-[color:var(--crm-text-primary)]">Create Purchase Order (PO)</h3>
               </div>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#EFE8DF] transition"
+                className="p-1 rounded-lg text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)] transition"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Mode Switcher */}
-            <div className="px-6 py-3 border-b border-[#EBE3DB] bg-white">
-              <div className="flex items-center gap-2 bg-[#FAF7F2] p-1 rounded-xl border border-[#EBE3DB] text-xs max-w-md mx-auto">
+            <div className="px-6 py-3 border-b border-[color:var(--crm-border-default)] bg-white">
+              <div className="flex items-center gap-2 bg-[color:var(--crm-bg-app)] p-1 rounded-xl border border-[color:var(--crm-border-default)] text-xs max-w-md mx-auto">
                 <button
                   type="button"
                   onClick={() => setCreateMode('from_quotation')}
                   className={`flex-1 py-1.5 rounded-lg font-bold transition ${
                     createMode === 'from_quotation'
                       ? 'bg-crm-brand-700 text-white shadow-xs'
-                      : 'text-[#70665F] hover:text-[#211B17]'
+                      : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]'
                   }`}
                 >
                   From Approved Quotation ({supplierQuotations.length})
@@ -1321,7 +1321,7 @@ function PurchaseOrdersHubContent() {
                   className={`flex-1 py-1.5 rounded-lg font-bold transition ${
                     createMode === 'direct'
                       ? 'bg-crm-brand-700 text-white shadow-xs'
-                      : 'text-[#70665F] hover:text-[#211B17]'
+                      : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]'
                   }`}
                 >
                   Direct Manual Entry
@@ -1333,11 +1333,11 @@ function PurchaseOrdersHubContent() {
               {createMode === 'from_quotation' ? (
                 <div className="space-y-4">
                   <div>
-                    <label className="font-bold text-[#544B45] block mb-1">Select Supplier Quotation *</label>
+                    <label className="font-bold text-[color:var(--crm-text-secondary)] block mb-1">Select Supplier Quotation *</label>
                     <select
                       value={selectedQuoteId}
                       onChange={(e) => setSelectedQuoteId(e.target.value)}
-                      className="w-full p-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                      className="w-full p-2.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                     >
                       {supplierQuotations.map((sq) => (
                         <option key={sq.id} value={sq.id}>
@@ -1351,29 +1351,29 @@ function PurchaseOrdersHubContent() {
                     const q = supplierQuotations.find((sq) => sq.id === selectedQuoteId);
                     if (!q) return null;
                     return (
-                      <div className="bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl p-4 space-y-3">
+                      <div className="bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl p-4 space-y-3">
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                           <div>
-                            <span className="text-[#8D7B70] block">Supplier:</span>
-                            <span className="font-bold text-[#211B17]">{q.supplierName}</span>
+                            <span className="text-[color:var(--crm-text-tertiary)] block">Supplier:</span>
+                            <span className="font-bold text-[color:var(--crm-text-primary)]">{q.supplierName}</span>
                           </div>
                           <div>
-                            <span className="text-[#8D7B70] block">Quotation Ref:</span>
-                            <span className="font-bold text-[#211B17] font-mono">{q.supplierQuotationRef || q.quotationNumber}</span>
+                            <span className="text-[color:var(--crm-text-tertiary)] block">Quotation Ref:</span>
+                            <span className="font-bold text-[color:var(--crm-text-primary)] font-mono">{q.supplierQuotationRef || q.quotationNumber}</span>
                           </div>
                           <div>
-                            <span className="text-[#8D7B70] block">Linked RFQ:</span>
+                            <span className="text-[color:var(--crm-text-tertiary)] block">Linked RFQ:</span>
                             <span className="font-bold text-sky-700 font-mono">{q.rfqNumber || 'DIRECT'}</span>
                           </div>
                           <div>
-                            <span className="text-[#8D7B70] block">Total Items:</span>
-                            <span className="font-bold text-[#211B17]">{q.items?.length || 0} Materials</span>
+                            <span className="text-[color:var(--crm-text-tertiary)] block">Total Items:</span>
+                            <span className="font-bold text-[color:var(--crm-text-primary)]">{q.items?.length || 0} Materials</span>
                           </div>
                         </div>
 
-                        <div className="border border-[#EBE3DB] rounded-xl overflow-hidden bg-white">
+                        <div className="border border-[color:var(--crm-border-default)] rounded-xl overflow-hidden bg-white">
                           <table className="w-full text-left text-xs">
-                            <thead className="bg-[#FAF7F2] border-b border-[#EBE3DB] font-bold text-[#544B45]">
+                            <thead className="bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] font-bold text-[color:var(--crm-text-secondary)]">
                               <tr>
                                 <th className="py-2 px-3">Item / Description</th>
                                 <th className="py-2 px-3">Specification</th>
@@ -1382,22 +1382,22 @@ function PurchaseOrdersHubContent() {
                                 <th className="py-2 px-3 text-right">Total</th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-[#EBE3DB]">
+                            <tbody className="divide-y divide-[color:var(--crm-border-default)]">
                               {(q.items || []).map((it, idx) => (
                                 <tr key={idx}>
-                                  <td className="py-2 px-3 font-bold text-[#211B17]">{it.itemName}</td>
-                                  <td className="py-2 px-3 text-[#70665F]">{it.specification || '-'}</td>
+                                  <td className="py-2 px-3 font-bold text-[color:var(--crm-text-primary)]">{it.itemName}</td>
+                                  <td className="py-2 px-3 text-[color:var(--crm-text-secondary)]">{it.specification || '-'}</td>
                                   <td className="py-2 px-3 text-center font-mono">{it.quotedQuantity || it.quantity || 1} {it.unit || 'KG'}</td>
                                   <td className="py-2 px-3 text-right font-mono text-emerald-800 font-bold">{formatCurrency(it.unitPrice)}</td>
-                                  <td className="py-2 px-3 text-right font-mono font-bold text-[#211B17]">{formatCurrency(it.totalPrice || 0)}</td>
+                                  <td className="py-2 px-3 text-right font-mono font-bold text-[color:var(--crm-text-primary)]">{formatCurrency(it.totalPrice || 0)}</td>
                                 </tr>
                               ))}
                             </tbody>
                           </table>
                         </div>
 
-                        <div className="flex justify-between items-center pt-2 border-t border-[#EBE3DB]">
-                          <span className="font-bold text-[#544B45]">Grand Total (incl. Taxes & Charges):</span>
+                        <div className="flex justify-between items-center pt-2 border-t border-[color:var(--crm-border-default)]">
+                          <span className="font-bold text-[color:var(--crm-text-secondary)]">Grand Total (incl. Taxes & Charges):</span>
                           <span className="text-base font-black text-emerald-800 font-mono">{formatCurrency(q.grandTotal)}</span>
                         </div>
                       </div>
@@ -1406,30 +1406,30 @@ function PurchaseOrdersHubContent() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                      <label className="font-bold text-[#544B45] block mb-1">Delivery Due Date</label>
+                      <label className="font-bold text-[color:var(--crm-text-secondary)] block mb-1">Delivery Due Date</label>
                       <input
                         type="date"
                         value={newDeliveryDate}
                         onChange={(e) => setNewDeliveryDate(e.target.value)}
-                        className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
+                        className="w-full p-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label className="font-bold text-[#544B45] block mb-1">Payment Terms</label>
+                      <label className="font-bold text-[color:var(--crm-text-secondary)] block mb-1">Payment Terms</label>
                       <input
                         type="text"
                         value={newPaymentTerms}
                         onChange={(e) => setNewPaymentTerms(e.target.value)}
-                        className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
+                        className="w-full p-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label className="font-bold text-[#544B45] block mb-1">Delivery Terms</label>
+                      <label className="font-bold text-[color:var(--crm-text-secondary)] block mb-1">Delivery Terms</label>
                       <input
                         type="text"
                         value={newDeliveryTerms}
                         onChange={(e) => setNewDeliveryTerms(e.target.value)}
-                        className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
+                        className="w-full p-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold focus:outline-none"
                       />
                     </div>
                   </div>
@@ -1440,13 +1440,13 @@ function PurchaseOrdersHubContent() {
                   {/* Top Row: Link RFQ, Supplier, Quote Ref, Linked Project */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                     <div>
-                      <label className="block text-xs font-bold text-[#544B45] mb-1">
+                      <label className="block text-xs font-bold text-[color:var(--crm-text-secondary)] mb-1">
                         Link RFQ / Purchase Request
                       </label>
                       <select
                         value={selectedRfqId}
                         onChange={(e) => handleSelectRfqForDirect(e.target.value)}
-                        className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                        className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                       >
                         <option value="">-- Direct PO (No RFQ) --</option>
                         {rfqs?.map((rfq) => (
@@ -1458,14 +1458,14 @@ function PurchaseOrdersHubContent() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-[#544B45] mb-1">
+                      <label className="block text-xs font-bold text-[color:var(--crm-text-secondary)] mb-1">
                         Select Supplier / Vendor *
                       </label>
                       <select
                         required
                         value={selectedSupplierId}
                         onChange={(e) => setSelectedSupplierId(e.target.value)}
-                        className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                        className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                       >
                         <option value="">-- Choose Supplier --</option>
                         {suppliers.map((s) => (
@@ -1477,7 +1477,7 @@ function PurchaseOrdersHubContent() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-[#544B45] mb-1">
+                      <label className="block text-xs font-bold text-[color:var(--crm-text-secondary)] mb-1">
                         Vendor Quote Reference No *
                       </label>
                       <input
@@ -1485,18 +1485,18 @@ function PurchaseOrdersHubContent() {
                         value={quotationRef}
                         onChange={(e) => setQuotationRef(e.target.value)}
                         placeholder="e.g. QTN-2026-904"
-                        className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                        className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-[#544B45] mb-1">
+                      <label className="block text-xs font-bold text-[color:var(--crm-text-secondary)] mb-1">
                         Linked Project
                       </label>
                       <select
                         value={directJobId}
                         onChange={(e) => setDirectJobId(e.target.value)}
-                        className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                        className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                       >
                         <option value="">-- Choose Project --</option>
                         {(projectJobs || []).map((p) => (
@@ -1511,21 +1511,21 @@ function PurchaseOrdersHubContent() {
                   {/* Line Items Table */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-extrabold text-[#211B17] uppercase tracking-wider">
+                      <h4 className="text-xs font-extrabold text-[color:var(--crm-text-primary)] uppercase tracking-wider">
                         PO Material Items & Rates
                       </h4>
                       <button
                         type="button"
                         onClick={handleAddDirectItem}
-                        className="px-2.5 py-1 bg-[#FAF7F2] hover:bg-[#EFE8DF] text-crm-brand-700 text-xs font-bold rounded-lg border border-[#EBE3DB] flex items-center gap-1 transition shadow-2xs cursor-pointer"
+                        className="px-2.5 py-1 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-surface-subtle)] text-crm-brand-700 text-xs font-bold rounded-lg border border-[color:var(--crm-border-default)] flex items-center gap-1 transition shadow-2xs cursor-pointer"
                       >
                         <Plus className="w-3.5 h-3.5" /> Add Material Line
                       </button>
                     </div>
 
-                    <div className="border border-[#EBE3DB] rounded-xl overflow-x-auto">
+                    <div className="border border-[color:var(--crm-border-default)] rounded-xl overflow-x-auto">
                       <table className="w-full text-left text-xs min-w-[700px]">
-                        <thead className="bg-[#FAF7F2] border-b border-[#EBE3DB] text-[#544B45] font-bold">
+                        <thead className="bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-bold">
                           <tr>
                             <th className="py-2 px-3 w-10">#</th>
                             <th className="py-2 px-3">Item Name / Material</th>
@@ -1537,10 +1537,10 @@ function PurchaseOrdersHubContent() {
                             <th className="py-2 px-3 w-12 text-center"></th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#EBE3DB]">
+                        <tbody className="divide-y divide-[color:var(--crm-border-default)]">
                           {directItems.map((it, idx) => (
                             <tr key={it.id || idx}>
-                              <td className="py-2 px-3 font-mono text-[#8D7B70]">{idx + 1}</td>
+                              <td className="py-2 px-3 font-mono text-[color:var(--crm-text-tertiary)]">{idx + 1}</td>
                               <td className="py-2 px-3">
                                 <input
                                   type="text"
@@ -1548,7 +1548,7 @@ function PurchaseOrdersHubContent() {
                                   value={it.itemName}
                                   onChange={(e) => updateDirectItem(idx, 'itemName', e.target.value)}
                                   placeholder="e.g. SS 316 L HR PLATE"
-                                  className="w-full p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-semibold focus:outline-none"
+                                  className="w-full p-1.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs font-semibold focus:outline-none"
                                 />
                               </td>
                               <td className="py-2 px-3">
@@ -1557,7 +1557,7 @@ function PurchaseOrdersHubContent() {
                                   value={it.specification}
                                   onChange={(e) => updateDirectItem(idx, 'specification', e.target.value)}
                                   placeholder="12MM THK - Jindal Make"
-                                  className="w-full p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs focus:outline-none"
+                                  className="w-full p-1.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs focus:outline-none"
                                 />
                               </td>
                               <td className="py-2 px-3">
@@ -1567,7 +1567,7 @@ function PurchaseOrdersHubContent() {
                                     updateDirectItem(idx, 'unit', e.target.value);
                                     updateDirectItem(idx, 'unitOfMeasure', e.target.value);
                                   }}
-                                  className="w-full p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-semibold focus:outline-none text-center"
+                                  className="w-full p-1.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs font-semibold focus:outline-none text-center"
                                 >
                                   <option value="KG">KG</option>
                                   <option value="NOS">NOS</option>
@@ -1589,7 +1589,7 @@ function PurchaseOrdersHubContent() {
                                     updateDirectItem(idx, 'orderedQuantity', isNaN(val) ? 0 : val);
                                   }}
                                   placeholder="0"
-                                  className="w-full p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-mono text-right focus:outline-none"
+                                  className="w-full p-1.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs font-mono text-right focus:outline-none"
                                 />
                               </td>
                               <td className="py-2 px-3">
@@ -1604,10 +1604,10 @@ function PurchaseOrdersHubContent() {
                                     updateDirectItem(idx, 'unitPrice', isNaN(val) ? 0 : val);
                                   }}
                                   placeholder="0"
-                                  className="w-full p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-mono text-right font-bold text-emerald-800 focus:outline-none"
+                                  className="w-full p-1.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs font-mono text-right font-bold text-emerald-800 focus:outline-none"
                                 />
                               </td>
-                              <td className="py-2 px-3 text-right font-mono font-bold text-[#211B17]">
+                              <td className="py-2 px-3 text-right font-mono font-bold text-[color:var(--crm-text-primary)]">
                                 {formatCurrency(it.totalPrice || 0)}
                               </td>
                               <td className="py-2 px-3 text-center">
@@ -1629,23 +1629,23 @@ function PurchaseOrdersHubContent() {
                   </div>
 
                   {/* Additional Charges / Terms & Summary */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[color:var(--crm-bg-app)] p-4 rounded-xl border border-[color:var(--crm-border-default)]">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <h5 className="text-xs font-extrabold text-[#211B17] uppercase tracking-wider">
+                        <h5 className="text-xs font-extrabold text-[color:var(--crm-text-primary)] uppercase tracking-wider">
                           Additional Charges
                         </h5>
                         <button
                           type="button"
                           onClick={handleAddDirectCharge}
-                          className="px-2.5 py-1 bg-white hover:bg-[#EFE8DF] text-crm-brand-700 text-xs font-bold rounded-lg border border-[#EBE3DB] flex items-center gap-1 transition shadow-2xs cursor-pointer"
+                          className="px-2.5 py-1 bg-white hover:bg-[color:var(--crm-surface-subtle)] text-crm-brand-700 text-xs font-bold rounded-lg border border-[color:var(--crm-border-default)] flex items-center gap-1 transition shadow-2xs cursor-pointer"
                         >
                           <Plus className="w-3.5 h-3.5" /> Add Additional Charge
                         </button>
                       </div>
 
                       {directAdditionalCharges.length === 0 ? (
-                        <div className="py-3 px-3 bg-white/70 border border-dashed border-[#D5C7B8] rounded-xl text-center text-xs text-[#8D7B70]">
+                        <div className="py-3 px-3 bg-white/70 border border-dashed border-[#BAC2D3] rounded-xl text-center text-xs text-[color:var(--crm-text-tertiary)]">
                           No additional charges added. Click <span className="font-bold text-crm-brand-700">+ Add Additional Charge</span> to add Delivery, Packaging, etc.
                         </div>
                       ) : (
@@ -1653,7 +1653,7 @@ function PurchaseOrdersHubContent() {
                           {directAdditionalCharges.map((charge) => (
                             <div
                               key={charge.id}
-                              className="flex items-center gap-2 bg-white p-2 rounded-xl border border-[#EBE3DB]"
+                              className="flex items-center gap-2 bg-white p-2 rounded-xl border border-[color:var(--crm-border-default)]"
                             >
                               <div className="flex-1">
                                 <input
@@ -1663,7 +1663,7 @@ function PurchaseOrdersHubContent() {
                                     handleDirectChargeChange(charge.id, 'name', e.target.value)
                                   }
                                   placeholder="Charge Name (e.g. Delivery / Packaging)"
-                                  className="w-full p-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                                  className="w-full p-1.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                                 />
                               </div>
                               <div className="w-28">
@@ -1678,7 +1678,7 @@ function PurchaseOrdersHubContent() {
                                     handleDirectChargeChange(charge.id, 'amount', isNaN(val) ? 0 : val);
                                   }}
                                   placeholder="0"
-                                  className="w-full p-1.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg text-xs font-mono font-bold text-right text-emerald-800 focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                                  className="w-full p-1.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs font-mono font-bold text-right text-emerald-800 focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
                                 />
                               </div>
                               <button
@@ -1696,38 +1696,38 @@ function PurchaseOrdersHubContent() {
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <div>
-                          <label className="text-[#8D7B70] block mb-1">Delivery Terms</label>
+                          <label className="text-[color:var(--crm-text-tertiary)] block mb-1">Delivery Terms</label>
                           <input
                             type="text"
                             value={newDeliveryTerms}
                             onChange={(e) => setNewDeliveryTerms(e.target.value)}
                             placeholder="e.g. FOR Rajpur Works"
-                            className="w-full p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs"
+                            className="w-full p-1.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs"
                           />
                         </div>
                         <div>
-                          <label className="text-[#8D7B70] block mb-1">Delivery Due Date</label>
+                          <label className="text-[color:var(--crm-text-tertiary)] block mb-1">Delivery Due Date</label>
                           <input
                             type="date"
                             value={newDeliveryDate}
                             onChange={(e) => setNewDeliveryDate(e.target.value)}
-                            className="w-full p-1.5 bg-white border border-[#EBE3DB] rounded-lg text-xs font-semibold"
+                            className="w-full p-1.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs font-semibold"
                           />
                         </div>
                       </div>
                     </div>
 
                     {/* Calculation Summary */}
-                    <div className="space-y-1.5 text-xs text-right border-l border-[#EBE3DB] pl-4">
-                      <div className="flex justify-between text-[#8D7B70]">
+                    <div className="space-y-1.5 text-xs text-right border-l border-[color:var(--crm-border-default)] pl-4">
+                      <div className="flex justify-between text-[color:var(--crm-text-tertiary)]">
                         <span>Material Subtotal:</span>
-                        <span className="font-mono font-bold text-[#211B17]">
+                        <span className="font-mono font-bold text-[color:var(--crm-text-primary)]">
                           {formatCurrency(directSubTotal)}
                         </span>
                       </div>
-                      <div className="flex justify-between text-[#8D7B70]">
+                      <div className="flex justify-between text-[color:var(--crm-text-tertiary)]">
                         <span>GST (18%):</span>
-                        <span className="font-mono text-[#211B17]">
+                        <span className="font-mono text-[color:var(--crm-text-primary)]">
                           {formatCurrency(directTaxTotal)}
                         </span>
                       </div>
@@ -1735,16 +1735,16 @@ function PurchaseOrdersHubContent() {
                         const amt = Number(c.amount) || 0;
                         if (amt <= 0 && !c.name.trim()) return null;
                         return (
-                          <div key={c.id} className="flex justify-between text-[#8D7B70]">
+                          <div key={c.id} className="flex justify-between text-[color:var(--crm-text-tertiary)]">
                             <span className="truncate pr-2">{c.name || 'Additional Charge'}:</span>
-                            <span className="font-mono text-[#211B17]">
+                            <span className="font-mono text-[color:var(--crm-text-primary)]">
                               {formatCurrency(amt)}
                             </span>
                           </div>
                         );
                       })}
-                      <div className="pt-2 border-t border-[#EBE3DB] flex justify-between items-center">
-                        <span className="font-black text-sm text-[#211B17]">Grand Total:</span>
+                      <div className="pt-2 border-t border-[color:var(--crm-border-default)] flex justify-between items-center">
+                        <span className="font-black text-sm text-[color:var(--crm-text-primary)]">Grand Total:</span>
                         <span className="font-black text-base text-emerald-800 font-mono">
                           {formatCurrency(directGrandTotal)}
                         </span>
@@ -1755,11 +1755,11 @@ function PurchaseOrdersHubContent() {
               )}
 
               {/* Modal Footer Actions */}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 border border-[#EBE3DB] text-[#211B17] font-bold text-xs rounded-xl hover:bg-[#FAF7F2] transition"
+                  className="px-4 py-2 border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-primary)] font-bold text-xs rounded-xl hover:bg-[color:var(--crm-bg-app)] transition"
                 >
                   Cancel
                 </button>
@@ -1780,11 +1780,11 @@ function PurchaseOrdersHubContent() {
       {/* ========================================================= */}
       {viewPO && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 animate-in fade-in duration-150 print:static print:p-0 print:bg-white print:overflow-visible print:block">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-4xl w-full max-h-[96vh] overflow-hidden shadow-2xl flex flex-col print:static print:max-h-none print:overflow-visible print:border-none print:shadow-none print:w-full print:block">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl max-w-4xl w-full max-h-[96vh] overflow-hidden shadow-2xl flex flex-col print:static print:max-h-none print:overflow-visible print:border-none print:shadow-none print:w-full print:block">
             {/* Top Toolbar */}
-            <div className="flex items-center justify-between px-6 py-3 border-b border-[#EBE3DB] bg-[#FAF7F2] print:hidden">
+            <div className="flex items-center justify-between px-6 py-3 border-b border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)] print:hidden">
               <div className="flex items-center gap-3">
-                <span className="text-xs font-black text-[#211B17] font-mono tracking-wider">
+                <span className="text-xs font-black text-[color:var(--crm-text-primary)] font-mono tracking-wider">
                   OFFICIAL PURCHASE ORDER: {viewPO.poNumber}
                 </span>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
@@ -1796,7 +1796,7 @@ function PurchaseOrdersHubContent() {
                 <button
                   type="button"
                   onClick={() => printContent('printable-purchase-order', { title: `PO_${viewPO.poNumber}` })}
-                  className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#EFE8DF] text-[#211B17] font-bold text-xs rounded-xl border border-[#EBE3DB] flex items-center gap-1.5 transition cursor-pointer"
+                  className="px-3 py-1.5 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-surface-subtle)] text-[color:var(--crm-text-primary)] font-bold text-xs rounded-xl border border-[color:var(--crm-border-default)] flex items-center gap-1.5 transition cursor-pointer"
                   title="Print to PDF / Paper"
                 >
                   <Printer className="w-3.5 h-3.5 text-crm-brand-700" />
@@ -1828,7 +1828,7 @@ function PurchaseOrdersHubContent() {
                 <button
                   type="button"
                   onClick={() => setViewPO(null)}
-                  className="p-1.5 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#EFE8DF] transition cursor-pointer"
+                  className="p-1.5 rounded-lg text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)] transition cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -2114,10 +2114,10 @@ function PurchaseOrdersHubContent() {
             </div>
 
             {/* Modal Bottom Close */}
-            <div className="flex items-center justify-end px-6 py-3 border-t border-[#EBE3DB] bg-[#FAF7F2] print:hidden">
+            <div className="flex items-center justify-end px-6 py-3 border-t border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)] print:hidden">
               <button
                 onClick={() => setViewPO(null)}
-                className="px-4 py-2 bg-white border border-[#EBE3DB] text-[#211B17] font-bold text-xs rounded-xl hover:bg-[#FAF7F2] transition"
+                className="px-4 py-2 bg-white border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-primary)] font-bold text-xs rounded-xl hover:bg-[color:var(--crm-bg-app)] transition"
               >
                 Close
               </button>
@@ -2131,15 +2131,15 @@ function PurchaseOrdersHubContent() {
       {/* ========================================================= */}
       {showAddFollowupModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-md w-full overflow-hidden shadow-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl max-w-md w-full overflow-hidden shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
               <div className="flex items-center gap-2">
                 <Truck className="w-5 h-5 text-sky-600" />
-                <h3 className="text-base font-black text-[#211B17]">Log Supplier Follow-up</h3>
+                <h3 className="text-base font-black text-[color:var(--crm-text-primary)]">Log Supplier Follow-up</h3>
               </div>
               <button
                 onClick={() => setShowAddFollowupModal(false)}
-                className="p-1 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2]"
+                className="p-1 rounded-lg text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-bg-app)]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2147,11 +2147,11 @@ function PurchaseOrdersHubContent() {
 
             <form onSubmit={handleAddFollowupSubmit} className="space-y-3 text-xs">
               <div>
-                <label className="font-bold text-[#544B45] block mb-1">Select Purchase Order *</label>
+                <label className="font-bold text-[color:var(--crm-text-secondary)] block mb-1">Select Purchase Order *</label>
                 <select
                   value={selectedFollowupPoId}
                   onChange={(e) => setSelectedFollowupPoId(e.target.value)}
-                  className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
+                  className="w-full p-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold focus:outline-none"
                 >
                   {purchaseOrders.map((po) => (
                     <option key={po.id} value={po.id}>
@@ -2163,21 +2163,21 @@ function PurchaseOrdersHubContent() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="font-bold text-[#544B45] block mb-1">Contact Person</label>
+                  <label className="font-bold text-[color:var(--crm-text-secondary)] block mb-1">Contact Person</label>
                   <input
                     type="text"
                     value={newContactedPerson}
                     onChange={(e) => setNewContactedPerson(e.target.value)}
                     placeholder="e.g. Sales / Dispatch Mgr"
-                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium focus:outline-none"
+                    className="w-full p-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-medium focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="font-bold text-[#544B45] block mb-1">Channel</label>
+                  <label className="font-bold text-[color:var(--crm-text-secondary)] block mb-1">Channel</label>
                   <select
                     value={newCommChannel}
                     onChange={(e) => setNewCommChannel(e.target.value as any)}
-                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
+                    className="w-full p-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold focus:outline-none"
                   >
                     <option value="Phone">Phone Call</option>
                     <option value="WhatsApp">WhatsApp</option>
@@ -2189,20 +2189,20 @@ function PurchaseOrdersHubContent() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="font-bold text-[#544B45] block mb-1">Commitment Date</label>
+                  <label className="font-bold text-[color:var(--crm-text-secondary)] block mb-1">Commitment Date</label>
                   <input
                     type="date"
                     value={newCommitmentDate}
                     onChange={(e) => setNewCommitmentDate(e.target.value)}
-                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium focus:outline-none"
+                    className="w-full p-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-medium focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="font-bold text-[#544B45] block mb-1">Delay Risk</label>
+                  <label className="font-bold text-[color:var(--crm-text-secondary)] block mb-1">Delay Risk</label>
                   <select
                     value={newDelayRisk}
                     onChange={(e) => setNewDelayRisk(e.target.value as any)}
-                    className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold focus:outline-none"
+                    className="w-full p-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold focus:outline-none"
                   >
                     <option value="Low">Low (On Schedule)</option>
                     <option value="Medium">Medium (3-5 Days)</option>
@@ -2213,21 +2213,21 @@ function PurchaseOrdersHubContent() {
               </div>
 
               <div>
-                <label className="font-bold text-[#544B45] block mb-1">Remarks / Minutes</label>
+                <label className="font-bold text-[color:var(--crm-text-secondary)] block mb-1">Remarks / Minutes</label>
                 <textarea
                   rows={2}
                   value={newRemarks}
                   onChange={(e) => setNewRemarks(e.target.value)}
                   placeholder="Details of discussion, dispatch LR number, or fabrication status..."
-                  className="w-full p-2 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-medium focus:outline-none"
+                  className="w-full p-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-medium focus:outline-none"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#EBE3DB]">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setShowAddFollowupModal(false)}
-                  className="px-4 py-2 bg-white border border-[#EBE3DB] text-[#211B17] font-bold text-xs rounded-xl hover:bg-[#FAF7F2]"
+                  className="px-4 py-2 bg-white border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-primary)] font-bold text-xs rounded-xl hover:bg-[color:var(--crm-bg-app)]"
                 >
                   Cancel
                 </button>
@@ -2246,20 +2246,20 @@ function PurchaseOrdersHubContent() {
       {/* Delete Confirmation */}
       {deleteConfirmId && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl p-5 space-y-4 text-center">
-            <div className="w-12 h-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl p-5 space-y-4 text-center">
+            <div className="w-12 h-12 rounded-xl bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center mx-auto">
               <Trash2 className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-base font-black text-[#211B17]">Delete Purchase Order?</h3>
-              <p className="text-xs text-[#70665F] mt-1">
+              <h3 className="text-base font-black text-[color:var(--crm-text-primary)]">Delete Purchase Order?</h3>
+              <p className="text-xs text-[color:var(--crm-text-secondary)] mt-1">
                 Are you sure you want to delete this purchase order? This action cannot be undone.
               </p>
             </div>
             <div className="flex items-center justify-center gap-2 pt-2">
               <button
                 onClick={() => setDeleteConfirmId(null)}
-                className="px-4 py-2 bg-white border border-[#EBE3DB] text-[#211B17] font-bold text-xs rounded-xl hover:bg-[#FAF7F2]"
+                className="px-4 py-2 bg-white border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-primary)] font-bold text-xs rounded-xl hover:bg-[color:var(--crm-bg-app)]"
               >
                 Cancel
               </button>
@@ -2285,17 +2285,17 @@ function PurchaseOrdersHubContent() {
           : ((emailTargetPO as any).po_number || (emailTargetPO.id && String(emailTargetPO.id).startsWith('PO-') ? String(emailTargetPO.id) : `PO-${emailTargetPO.id || '2026-0001'}`));
         return (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-[#2C241F] rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-xl border border-[#E7DED5]">
-              <div className="flex items-center justify-between border-b border-[#E7DED5] pb-3">
+            <div className="bg-white dark:bg-[#1D222E] rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-xl border border-[color:var(--crm-border-default)]">
+              <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+                  <div className="w-8 h-8 rounded-lg bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center font-bold">
                     <Mail className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm text-[#211B17] dark:text-white">
+                    <h3 className="font-bold text-sm text-[color:var(--crm-text-primary)] dark:text-white">
                       Send Official Purchase Order (PO)
                     </h3>
-                    <p className="text-[11px] text-[#70665F]">
+                    <p className="text-[11px] text-[color:var(--crm-text-secondary)]">
                       Dispatches formal Purchase Order with attached official engineering PO PDF.
                     </p>
                   </div>
@@ -2303,7 +2303,7 @@ function PurchaseOrdersHubContent() {
                 <button
                   type="button"
                   onClick={() => setShowPOEmailModal(false)}
-                  className="text-[#70665F] hover:text-[#211B17] text-lg font-bold p-1 cursor-pointer"
+                  className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] text-lg font-bold p-1 cursor-pointer"
                 >
                   ✕
                 </button>
@@ -2316,14 +2316,14 @@ function PurchaseOrdersHubContent() {
                 }}
                 className="space-y-4 text-xs"
               >
-                <div className="p-3 bg-[#FAF7F2] dark:bg-[#1f1915] rounded-xl border border-[#E7DED5] space-y-2">
+                <div className="p-3 bg-[color:var(--crm-bg-app)] dark:bg-[#1f1915] rounded-xl border border-[color:var(--crm-border-default)] space-y-2">
                   <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-[#70665F]">Supplier / Vendor:</span>
-                    <strong className="text-[#211B17] dark:text-white font-bold uppercase">{vendorName}</strong>
+                    <span className="text-[color:var(--crm-text-secondary)]">Supplier / Vendor:</span>
+                    <strong className="text-[color:var(--crm-text-primary)] dark:text-white font-bold uppercase">{vendorName}</strong>
                   </div>
                   {/* Select / Switch Supplier from Master */}
-                  <div className="flex justify-between items-center text-[11px] pt-1.5 border-t border-[#E7DED5]/60">
-                    <span className="text-[#70665F]">Select / Change Vendor:</span>
+                  <div className="flex justify-between items-center text-[11px] pt-1.5 border-t border-[#E2E7EF]/60">
+                    <span className="text-[color:var(--crm-text-secondary)]">Select / Change Vendor:</span>
                     <select
                       value={supp?.id || emailTargetPO.supplierId || ''}
                       onChange={(e) => {
@@ -2338,7 +2338,7 @@ function PurchaseOrdersHubContent() {
                           });
                         }
                       }}
-                      className="bg-white dark:bg-[#2C241F] border border-[#E7DED5] rounded px-2 py-1 text-xs text-[#211B17] dark:text-white font-semibold cursor-pointer max-w-[260px]"
+                      className="bg-white dark:bg-[#1D222E] border border-[color:var(--crm-border-default)] rounded px-2 py-1 text-xs text-[color:var(--crm-text-primary)] dark:text-white font-semibold cursor-pointer max-w-[260px]"
                     >
                       <option value="">-- Choose Vendor from Master --</option>
                       {suppliers.map((s) => (
@@ -2349,25 +2349,25 @@ function PurchaseOrdersHubContent() {
                     </select>
                   </div>
                   <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-[#70665F]">PO Reference:</span>
+                    <span className="text-[color:var(--crm-text-secondary)]">PO Reference:</span>
                     <span className="font-mono font-bold text-emerald-700">{modalPoNumber}</span>
                   </div>
                   <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-[#70665F]">Project / Job:</span>
+                    <span className="text-[color:var(--crm-text-secondary)]">Project / Job:</span>
                     <span className="font-mono text-slate-700 dark:text-slate-300">{emailTargetPO.projectId || emailTargetPO.jobNumber || 'General'}</span>
                   </div>
                   <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-[#70665F]">Order Total Value:</span>
+                    <span className="text-[color:var(--crm-text-secondary)]">Order Total Value:</span>
                     <strong className="font-mono text-emerald-800 dark:text-emerald-400">₹{Number(emailTargetPO.grandTotal || 0).toLocaleString('en-IN')}</strong>
                   </div>
                   <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-[#70665F]">PDF Attachment:</span>
+                    <span className="text-[color:var(--crm-text-secondary)]">PDF Attachment:</span>
                     <span className="font-mono text-slate-700 dark:text-slate-300">Official_Purchase_Order_{modalPoNumber}.pdf</span>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1 flex items-center justify-between">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1 flex items-center justify-between">
                     <span>Recipient Supplier / Vendor Email ID <span className="text-rose-500">*</span></span>
                     {resolvedVendorEmail && poTargetEmail === resolvedVendorEmail && (
                       <span className="text-[10px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded border border-emerald-200">
@@ -2376,27 +2376,27 @@ function PurchaseOrdersHubContent() {
                     )}
                   </label>
                   <div className="relative">
-                    <Mail className="w-4 h-4 text-[#70665F] absolute left-3 top-2.5" />
+                    <Mail className="w-4 h-4 text-[color:var(--crm-text-secondary)] absolute left-3 top-2.5" />
                     <input
                       type="email"
                       required
                       value={poTargetEmail}
                       onChange={(e) => setPoTargetEmail(e.target.value)}
                       placeholder="Enter supplier email address"
-                      className="w-full pl-9 pr-3 py-2 bg-[#FAF7F2] dark:bg-[#1f1915] border border-[#E7DED5] rounded-lg font-mono text-sm font-semibold text-[#211B17] dark:text-white focus:outline-none focus:border-emerald-600"
+                      className="w-full pl-9 pr-3 py-2 bg-[color:var(--crm-bg-app)] dark:bg-[#1f1915] border border-[color:var(--crm-border-default)] rounded-lg font-mono text-sm font-semibold text-[color:var(--crm-text-primary)] dark:text-white focus:outline-none focus:border-emerald-600"
                     />
                   </div>
-                  <p className="text-[10px] text-[#70665F] mt-1">
+                  <p className="text-[10px] text-[color:var(--crm-text-secondary)] mt-1">
                     The official Purchase Order and formatted material specifications will be dispatched to this email address.
                   </p>
                 </div>
 
-                <div className="flex justify-end gap-2 pt-2 border-t border-[#E7DED5]">
+                <div className="flex justify-end gap-2 pt-2 border-t border-[color:var(--crm-border-default)]">
                   <button
                     type="button"
                     onClick={() => setShowPOEmailModal(false)}
                     disabled={isSendingPOEmail}
-                    className="px-4 py-2 border border-[#E7DED5] rounded-lg font-semibold text-[#544B45] hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                    className="px-4 py-2 border border-[color:var(--crm-border-default)] rounded-lg font-semibold text-[color:var(--crm-text-secondary)] hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -2431,7 +2431,7 @@ export default function PurchaseOrderPage() {
   return (
     <Suspense
       fallback={
-        <div className="p-8 text-center text-xs text-[#70665F]">
+        <div className="p-8 text-center text-xs text-[color:var(--crm-text-secondary)]">
           Loading Purchase Orders & Approvals Command Center...
         </div>
       }

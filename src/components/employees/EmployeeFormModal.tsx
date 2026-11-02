@@ -370,7 +370,7 @@ export function EmployeeFormModal({
           {/* Department Transfer Notice */}
           {isDepartmentChanged && (
             <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-amber-900 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+              <AlertCircle className="w-4 h-4 text-crm-brand-600 flex-shrink-0" />
               <div>
                 <strong>Department Transfer Warning:</strong> Changing this employee from <em>{employeeToEdit?.departmentName}</em> to <em>{selectedDepartment?.name}</em> will automatically reset department custom permissions and set the <code>permissions_review_required</code> flag.
               </div>

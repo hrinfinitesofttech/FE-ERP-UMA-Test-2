@@ -263,13 +263,13 @@ export default function UsersPage() {
       },
       cell: (emp: Employee) => (
         <div>
-          <span className="font-mono font-semibold text-[#7C3AED] hover:underline cursor-pointer block">{emp.id}</span>
+          <span className="font-mono font-semibold text-[color:var(--crm-brand-600)] hover:underline cursor-pointer block">{emp.id}</span>
           {emp.permissionsReviewRequired && (
             <span
               title="Transferred department: review permissions"
               className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[9px] font-extrabold mt-0.5 border border-amber-300"
             >
-              <AlertTriangle className="w-2.5 h-2.5 text-amber-600" /> Review
+              <AlertTriangle className="w-2.5 h-2.5 text-crm-brand-600" /> Review
             </span>
           )}
           {Array.isArray(emp.explicitRestrictions) && emp.explicitRestrictions.length > 0 && (
@@ -294,7 +294,7 @@ export default function UsersPage() {
         const lastInitial = emp.lastName ? String(emp.lastName).charAt(0).toUpperCase() : '';
         return (
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-purple-100 text-[#7C3AED] font-bold text-xs flex items-center justify-center border border-purple-200 flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-purple-100 text-[color:var(--crm-brand-600)] font-bold text-xs flex items-center justify-center border border-purple-200 flex-shrink-0">
               {firstInitial}{lastInitial}
             </div>
             <div>
@@ -622,12 +622,12 @@ export default function UsersPage() {
   return (
     <div className="space-y-4">
       {/* Top Header & Action Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-xs">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-[color:var(--crm-border-default)] shadow-xs">
         <div>
-          <h1 className="text-lg font-bold text-[#211B17] flex items-center gap-2">
+          <h1 className="text-lg font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
             <User className="w-5 h-5 text-crm-brand-700" /> Employee & Staff Management
           </h1>
-          <p className="text-xs text-[#70665F]">
+          <p className="text-xs text-[color:var(--crm-text-secondary)]">
             Central directory for staff identity, organization hierarchy, credentials, and granular ERP permissions.
           </p>
         </div>
@@ -637,7 +637,7 @@ export default function UsersPage() {
             onClick={handleManualRefresh}
             disabled={isRefreshing}
             title="Synchronize employees from backend"
-            className="p-2 border border-[#EBE3DB] rounded-xl hover:bg-[#FAF7F2] text-[#544B45] text-xs font-semibold transition flex items-center gap-1.5"
+            className="p-2 border border-[color:var(--crm-border-default)] rounded-xl hover:bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] text-xs font-semibold transition flex items-center gap-1.5"
           >
             <RefreshCw className={cn('w-4 h-4 text-crm-brand-700', isRefreshing && 'animate-spin')} />
             <span className="hidden sm:inline">Sync</span>
@@ -658,8 +658,8 @@ export default function UsersPage() {
 
       {/* KPI Stats Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-3.5 bg-white rounded-xl border border-[#EBE3DB] shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-xs text-[#70665F]">
+        <div className="p-3.5 bg-white rounded-xl border border-[color:var(--crm-border-default)] shadow-2xs space-y-1">
+          <div className="flex items-center justify-between text-xs text-[color:var(--crm-text-secondary)]">
             <span>Total Staff</span>
             <Users className="w-4 h-4 text-crm-brand-700" />
           </div>
@@ -667,7 +667,7 @@ export default function UsersPage() {
           <span className="text-[10px] text-slate-500">Registered records</span>
         </div>
 
-        <div className="p-3.5 bg-white rounded-xl border border-[#EBE3DB] shadow-2xs space-y-1">
+        <div className="p-3.5 bg-white rounded-xl border border-[color:var(--crm-border-default)] shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-xs text-emerald-700">
             <span>Active Accounts</span>
             <CheckCircle className="w-4 h-4 text-emerald-600" />
@@ -676,7 +676,7 @@ export default function UsersPage() {
           <span className="text-[10px] text-emerald-600 font-medium">Authorized to login</span>
         </div>
 
-        <div className="p-3.5 bg-white rounded-xl border border-[#EBE3DB] shadow-2xs space-y-1">
+        <div className="p-3.5 bg-white rounded-xl border border-[color:var(--crm-border-default)] shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-xs text-rose-700">
             <span>Inactive Accounts</span>
             <XCircle className="w-4 h-4 text-rose-600" />
@@ -693,7 +693,7 @@ export default function UsersPage() {
               ? filterReviewRequiredOnly
                 ? 'bg-amber-100 border-amber-400 ring-2 ring-amber-400/30'
                 : 'bg-amber-50 border-amber-300 hover:bg-amber-100/60'
-              : 'bg-white border-[#EBE3DB]'
+              : 'bg-white border-[color:var(--crm-border-default)]'
           )}
         >
           <div className="flex items-center justify-between text-xs text-amber-800">
@@ -711,7 +711,7 @@ export default function UsersPage() {
       {reviewRequiredCount > 0 && !filterReviewRequiredOnly && (
         <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shadow-2xs">
           <div className="flex items-center gap-2.5">
-            <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 animate-pulse" />
+            <AlertTriangle className="w-5 h-5 text-crm-brand-600 flex-shrink-0 animate-pulse" />
             <div>
               <span className="font-bold">Permissions Review Required: </span>
               <span>
@@ -912,7 +912,7 @@ export default function UsersPage() {
       {/* SENSITIVE ACTION CONFIRMATION MODAL: ACTIVATE / DEACTIVATE */}
       {confirmStatusModalEmp && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
             <div className="flex items-center gap-3">
               <div
                 className={cn(
@@ -929,18 +929,18 @@ export default function UsersPage() {
                 )}
               </div>
               <div>
-                <h3 className="text-base font-bold text-[#211B17]">
+                <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">
                   {confirmStatusModalEmp.status === 'active' || confirmStatusModalEmp.isActive
                     ? 'Confirm Account Deactivation'
                     : 'Confirm Account Reactivation'}
                 </h3>
-                <p className="text-xs text-[#70665F]">
+                <p className="text-xs text-[color:var(--crm-text-secondary)]">
                   Employee ID: <span className="font-mono font-bold text-slate-800">{confirmStatusModalEmp.id}</span>
                 </p>
               </div>
             </div>
 
-            <p className="text-xs text-[#544B45] leading-relaxed">
+            <p className="text-xs text-[color:var(--crm-text-secondary)] leading-relaxed">
               {confirmStatusModalEmp.status === 'active' || confirmStatusModalEmp.isActive ? (
                 <>
                   Are you sure you want to deactivate{' '}
@@ -960,12 +960,12 @@ export default function UsersPage() {
               )}
             </p>
 
-            <div className="pt-3 border-t border-[#EBE3DB] flex items-center justify-end gap-2.5">
+            <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-2.5">
               <button
                 type="button"
                 disabled={isTogglingStatus}
                 onClick={() => setConfirmStatusModalEmp(null)}
-                className="px-4 py-2 bg-[#FAF7F5] hover:bg-[#EBE3DB] text-[#544B45] font-semibold rounded-lg text-xs transition"
+                className="px-4 py-2 bg-[#FAF7F5] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold rounded-lg text-xs transition"
               >
                 Cancel
               </button>
@@ -998,14 +998,14 @@ export default function UsersPage() {
       {/* PERMANENT DELETE CONFIRMATION MODAL */}
       {confirmDeleteModalEmp && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center font-bold flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center font-bold flex-shrink-0">
                 <Trash2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-[#211B17]">Delete Employee Record</h3>
-                <p className="text-xs text-[#70665F]">
+                <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">Delete Employee Record</h3>
+                <p className="text-xs text-[color:var(--crm-text-secondary)]">
                   Employee ID: <span className="font-mono font-bold text-slate-800">{confirmDeleteModalEmp.id}</span>
                 </p>
               </div>
@@ -1025,12 +1025,12 @@ export default function UsersPage() {
               </p>
             </div>
 
-            <div className="pt-3 border-t border-[#EBE3DB] flex items-center justify-end gap-2.5">
+            <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-2.5">
               <button
                 type="button"
                 disabled={isDeletingEmp}
                 onClick={() => setConfirmDeleteModalEmp(null)}
-                className="px-4 py-2 bg-[#FAF7F5] hover:bg-[#EBE3DB] text-[#544B45] font-semibold rounded-lg text-xs transition"
+                className="px-4 py-2 bg-[#FAF7F5] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold rounded-lg text-xs transition"
               >
                 Cancel
               </button>
@@ -1058,20 +1058,20 @@ export default function UsersPage() {
       {/* PASSWORD RESET MODAL */}
       {resetModalEmployee && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-[#EBE3DB]">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-[color:var(--crm-border-default)]">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                <div className="w-8 h-8 rounded-full bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center font-bold">
                   <KeyRound className="w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold text-[#211B17]">Reset Employee Password</h2>
-                  <p className="text-[11px] text-[#70665F]">
+                  <h2 className="text-sm font-bold text-[color:var(--crm-text-primary)]">Reset Employee Password</h2>
+                  <p className="text-[11px] text-[color:var(--crm-text-secondary)]">
                     {resetModalEmployee.firstName} {resetModalEmployee.lastName} ({resetModalEmployee.id})
                   </p>
                 </div>
               </div>
-              <button onClick={() => setResetModalEmployee(null)} className="text-[#70665F] hover:text-[#211B17] p-1">
+              <button onClick={() => setResetModalEmployee(null)} className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1084,18 +1084,18 @@ export default function UsersPage() {
 
             <form onSubmit={handleSavePasswordReset} className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Username / System Account</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Username / System Account</label>
                 <input
                   type="text"
                   disabled
                   value={`@${resetModalEmployee.username || resetModalEmployee.id}`}
-                  className="w-full px-3 py-2 bg-gray-100 border border-[#EBE3DB] rounded-lg text-[#70665F] font-mono text-xs cursor-not-allowed"
+                  className="w-full px-3 py-2 bg-gray-100 border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-secondary)] font-mono text-xs cursor-not-allowed"
                 />
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-[#544B45] font-semibold">New Password *</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold">New Password *</label>
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
@@ -1125,14 +1125,14 @@ export default function UsersPage() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Enter new password..."
-                    className="w-full pl-3 pr-20 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17] font-mono text-xs focus:outline-none focus:border-crm-brand-500"
+                    className="w-full pl-3 pr-20 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)] font-mono text-xs focus:outline-none focus:border-crm-brand-500"
                   />
                   <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
                     <button
                       type="button"
                       onClick={handleCopyPassword}
                       title="Copy to clipboard"
-                      className="p-1 text-gray-400 hover:text-[#211B17] rounded"
+                      className="p-1 text-gray-400 hover:text-[color:var(--crm-text-primary)] rounded"
                     >
                       {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
@@ -1140,7 +1140,7 @@ export default function UsersPage() {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       title={showPassword ? 'Hide password' : 'Show password'}
-                      className="p-1 text-gray-400 hover:text-[#211B17] rounded"
+                      className="p-1 text-gray-400 hover:text-[color:var(--crm-text-primary)] rounded"
                     >
                       {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     </button>
@@ -1149,22 +1149,22 @@ export default function UsersPage() {
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Confirm New Password *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Confirm New Password *</label>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Re-type new password..."
-                  className="w-full px-3 py-2 bg-white border border-[#EBE3DB] rounded-lg text-[#211B17] font-mono text-xs focus:outline-none focus:border-crm-brand-500"
+                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-[color:var(--crm-text-primary)] font-mono text-xs focus:outline-none focus:border-crm-brand-500"
                 />
               </div>
 
-              <div className="pt-3 border-t border-[#EBE3DB] flex items-center justify-end gap-2.5">
+              <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setResetModalEmployee(null)}
-                  className="px-4 py-2 bg-[#FAF7F5] hover:bg-[#EBE3DB] text-[#544B45] font-semibold rounded-lg transition"
+                  className="px-4 py-2 bg-[#FAF7F5] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold rounded-lg transition"
                 >
                   Cancel
                 </button>

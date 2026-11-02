@@ -186,7 +186,7 @@ function NewLeadForm() {
       <div>
         <Link
           href={expoIdParam ? `/crm/exhibitions?view=${encodeURIComponent(expoIdParam)}` : '/crm/leads'}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#70665F] hover:text-[#211B17] transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>{expoIdParam ? 'Back to Exhibition' : 'Back to Leads'}</span>
@@ -194,17 +194,17 @@ function NewLeadForm() {
       </div>
 
       {/* Main Form Container Matching erp-test-1.vercel.app */}
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl p-6 sm:p-8 shadow-xs space-y-8">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-6 sm:p-8 shadow-xs space-y-8">
         {/* Header */}
-        <div className="flex items-start gap-3 border-b border-[#EBE3DB] pb-6">
-          <div className="w-10 h-10 rounded-xl bg-[#FAF3EA] border border-[#E7DED5] flex items-center justify-center text-[#8C5229] shrink-0 mt-0.5">
+        <div className="flex items-start gap-3 border-b border-[color:var(--crm-border-default)] pb-6">
+          <div className="w-10 h-10 rounded-xl bg-[color:var(--crm-brand-50)] border border-[color:var(--crm-border-default)] flex items-center justify-center text-[#47536E] shrink-0 mt-0.5">
             <UserPlus className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-[#211B17] tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight">
               New Customer Lead Registration
             </h1>
-            <p className="text-xs text-[#70665F] mt-1 leading-relaxed">
+            <p className="text-xs text-[color:var(--crm-text-secondary)] mt-1 leading-relaxed">
               Capture prospective customer details (Company Name, Person Name, Mobile Number, Email, and Address).
             </p>
           </div>
@@ -238,10 +238,10 @@ function NewLeadForm() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-[#FAF3EA] border border-[#E7DED5] text-[#8C5229] font-bold text-[11px] flex items-center justify-center">
+              <span className="w-5 h-5 rounded-full bg-[color:var(--crm-brand-50)] border border-[color:var(--crm-border-default)] text-[#47536E] font-bold text-[11px] flex items-center justify-center">
                 1
               </span>
-              <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
+              <h2 className="text-sm font-bold text-[color:var(--crm-text-primary)] tracking-wide">
                 Customer Lead Information
               </h2>
             </div>
@@ -249,11 +249,11 @@ function NewLeadForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Field 1: Company Name */}
               <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+                <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1.5">
                   Company Name <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#A89F91]">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[color:var(--crm-text-tertiary)]">
                     <Building2 className="w-4 h-4" />
                   </div>
                   <input
@@ -263,10 +263,10 @@ function NewLeadForm() {
                     onChange={(e) => handleInputChange('companyName', e.target.value)}
                     onBlur={() => handleBlur('companyName')}
                     placeholder="e.g. Industrial Enterprises Ltd."
-                    className={`w-full pl-9 pr-3.5 py-2.5 bg-[#FAF7F2] border rounded-xl text-xs font-medium text-[#211B17] placeholder:text-[#A89F91] focus:outline-none focus:ring-2 focus:ring-[#75401F]/20 transition ${
+                    className={`w-full pl-9 pr-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border rounded-xl text-xs font-medium text-[color:var(--crm-text-primary)] placeholder:text-[color:var(--crm-text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[#1F3FB0]/20 transition ${
                       touched.companyName && errors.companyName
                         ? 'border-rose-400 bg-rose-50/20'
-                        : 'border-[#EBE3DB] focus:border-[#75401F]'
+                        : 'border-[color:var(--crm-border-default)] focus:border-[color:var(--crm-brand-700)]'
                     }`}
                   />
                 </div>
@@ -277,11 +277,11 @@ function NewLeadForm() {
 
               {/* Field 2: Person Name (Contact Person) */}
               <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+                <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1.5">
                   Person Name (Contact Person) <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#A89F91]">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[color:var(--crm-text-tertiary)]">
                     <User className="w-4 h-4" />
                   </div>
                   <input
@@ -291,10 +291,10 @@ function NewLeadForm() {
                     onChange={(e) => handleInputChange('contactPerson', e.target.value)}
                     onBlur={() => handleBlur('contactPerson')}
                     placeholder="e.g. Harish Trivedi"
-                    className={`w-full pl-9 pr-3.5 py-2.5 bg-[#FAF7F2] border rounded-xl text-xs font-medium text-[#211B17] placeholder:text-[#A89F91] focus:outline-none focus:ring-2 focus:ring-[#75401F]/20 transition ${
+                    className={`w-full pl-9 pr-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border rounded-xl text-xs font-medium text-[color:var(--crm-text-primary)] placeholder:text-[color:var(--crm-text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[#1F3FB0]/20 transition ${
                       touched.contactPerson && errors.contactPerson
                         ? 'border-rose-400 bg-rose-50/20'
-                        : 'border-[#EBE3DB] focus:border-[#75401F]'
+                        : 'border-[color:var(--crm-border-default)] focus:border-[color:var(--crm-brand-700)]'
                     }`}
                   />
                 </div>
@@ -305,11 +305,11 @@ function NewLeadForm() {
 
               {/* Field 3: Number (Mobile Contact) */}
               <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+                <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1.5">
                   Number (Mobile Contact) <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative flex">
-                  <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-[#EBE3DB] bg-[#F5ECE1] text-[#70665F] font-mono font-bold text-xs">
+                  <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-[color:var(--crm-border-default)] bg-[#E5E9F1] text-[color:var(--crm-text-secondary)] font-mono font-bold text-xs">
                     +91
                   </span>
                   <input
@@ -320,10 +320,10 @@ function NewLeadForm() {
                     onChange={(e) => handleInputChange('mobile', e.target.value)}
                     onBlur={() => handleBlur('mobile')}
                     placeholder="9825012345"
-                    className={`w-full px-3.5 py-2.5 bg-[#FAF7F2] border rounded-r-xl text-xs font-mono font-bold text-[#211B17] placeholder:text-[#A89F91] focus:outline-none focus:ring-2 focus:ring-[#75401F]/20 transition ${
+                    className={`w-full px-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border rounded-r-xl text-xs font-mono font-bold text-[color:var(--crm-text-primary)] placeholder:text-[color:var(--crm-text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[#1F3FB0]/20 transition ${
                       touched.mobile && errors.mobile
                         ? 'border-rose-400 bg-rose-50/20'
-                        : 'border-[#EBE3DB] focus:border-[#75401F]'
+                        : 'border-[color:var(--crm-border-default)] focus:border-[color:var(--crm-brand-700)]'
                     }`}
                   />
                 </div>
@@ -334,11 +334,11 @@ function NewLeadForm() {
 
               {/* Field 4: Email Address */}
               <div>
-                <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+                <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1.5">
                   Email Address <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#A89F91]">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[color:var(--crm-text-tertiary)]">
                     <Mail className="w-4 h-4" />
                   </div>
                   <input
@@ -348,10 +348,10 @@ function NewLeadForm() {
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     onBlur={() => handleBlur('email')}
                     placeholder="name@company.com"
-                    className={`w-full pl-9 pr-3.5 py-2.5 bg-[#FAF7F2] border rounded-xl text-xs font-medium text-[#211B17] placeholder:text-[#A89F91] focus:outline-none focus:ring-2 focus:ring-[#75401F]/20 transition ${
+                    className={`w-full pl-9 pr-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border rounded-xl text-xs font-medium text-[color:var(--crm-text-primary)] placeholder:text-[color:var(--crm-text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[#1F3FB0]/20 transition ${
                       touched.email && errors.email
                         ? 'border-rose-400 bg-rose-50/20'
-                        : 'border-[#EBE3DB] focus:border-[#75401F]'
+                        : 'border-[color:var(--crm-border-default)] focus:border-[color:var(--crm-brand-700)]'
                     }`}
                   />
                 </div>
@@ -363,11 +363,11 @@ function NewLeadForm() {
 
             {/* Field 5: Address */}
             <div>
-              <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+              <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1.5">
                 Address <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
-                <div className="absolute top-3 left-3 flex items-center pointer-events-none text-[#A89F91]">
+                <div className="absolute top-3 left-3 flex items-center pointer-events-none text-[color:var(--crm-text-tertiary)]">
                   <MapPin className="w-4 h-4" />
                 </div>
                 <textarea
@@ -377,10 +377,10 @@ function NewLeadForm() {
                   onChange={(e) => handleInputChange('address', e.target.value)}
                   onBlur={() => handleBlur('address')}
                   placeholder="e.g. Plot No. 42, GIDC Industrial Estate, Makarpura, Vadodara, Gujarat - 390010"
-                  className={`w-full pl-9 pr-3.5 py-2.5 bg-[#FAF7F2] border rounded-xl text-xs font-medium text-[#211B17] placeholder:text-[#A89F91] focus:outline-none focus:ring-2 focus:ring-[#75401F]/20 transition ${
+                  className={`w-full pl-9 pr-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border rounded-xl text-xs font-medium text-[color:var(--crm-text-primary)] placeholder:text-[color:var(--crm-text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[#1F3FB0]/20 transition ${
                     touched.address && errors.address
                       ? 'border-rose-400 bg-rose-50/20'
-                      : 'border-[#EBE3DB] focus:border-[#75401F]'
+                      : 'border-[color:var(--crm-border-default)] focus:border-[color:var(--crm-brand-700)]'
                   }`}
                 />
               </div>
@@ -391,17 +391,17 @@ function NewLeadForm() {
           </div>
 
           {/* Form Action Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#EBE3DB]">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[color:var(--crm-border-default)]">
             <Link
               href="/crm/leads"
-              className="px-4 py-2.5 border border-[#EBE3DB] hover:bg-[#FAF7F2] text-[#4A3B32] rounded-xl font-bold text-xs transition"
+              className="px-4 py-2.5 border border-[color:var(--crm-border-default)] hover:bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)] rounded-xl font-bold text-xs transition"
             >
               Cancel
             </Link>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-2.5 bg-[#3E2723] hover:bg-[#2C1810] text-white rounded-xl font-bold text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
+              className="px-6 py-2.5 bg-[color:var(--crm-text-primary)] hover:bg-[#171B25] text-white rounded-xl font-bold text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>

@@ -117,13 +117,13 @@ export default function NewUserPage() {
         <ArrowLeft className="w-3.5 h-3.5" /> Back to Employee Directory
       </Link>
 
-      <div className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl p-6 shadow-sm space-y-6">
-        <div className="border-b border-slate-100 dark:border-[#EBE3DB] pb-4">
-          <h1 className="text-lg font-bold text-slate-900 dark:text-[#211B17] flex items-center gap-2">
+      <div className="bg-white dark:bg-white border border-slate-200 dark:border-[color:var(--crm-border-default)] rounded-2xl p-6 shadow-sm space-y-6">
+        <div className="border-b border-slate-100 dark:border-[color:var(--crm-border-default)] pb-4">
+          <h1 className="text-lg font-bold text-slate-900 dark:text-[color:var(--crm-text-primary)] flex items-center gap-2">
             <UserPlus className="w-5 h-5 text-crm-brand-700" />
             New Employee Registration
           </h1>
-          <p className="text-[#70665F] mt-0.5">
+          <p className="text-[color:var(--crm-text-secondary)] mt-0.5">
             Fill in personal, organizational and access control details to onboard an employee.
           </p>
         </div>
@@ -131,13 +131,13 @@ export default function NewUserPage() {
         <form onSubmit={handleSubmit} noValidate className="space-y-6">
           {/* SECTION 1: BASIC INFO */}
           <div className="space-y-3">
-            <h3 className="font-bold text-sm text-slate-800 dark:text-[#544B45] flex items-center gap-2">
+            <h3 className="font-bold text-sm text-slate-800 dark:text-[color:var(--crm-text-secondary)] flex items-center gap-2">
               <span className="w-5 h-5 rounded-full bg-crm-brand- text-crm-brand- flex items-center justify-center text-[10px]">1</span>
               Basic Personal Information
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">First Name (Letters only, max 50) *</label>
+                <label className="block text-slate-700 dark:text-[color:var(--crm-text-secondary)] font-semibold mb-1">First Name (Letters only, max 50) *</label>
                 <input
                   type="text"
                   required
@@ -149,8 +149,8 @@ export default function NewUserPage() {
                     if (errors.firstName) setErrors(prev => ({ ...prev, firstName: '' }));
                   }}
                   placeholder="e.g. Ramesh"
-                  className={`w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg text-slate-900 dark:text-[#211B17] ${
-                    errors.firstName ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[#EBE3DB]'
+                  className={`w-full px-3 py-2 bg-slate-50 dark:bg-[color:var(--crm-bg-app)] border rounded-lg text-slate-900 dark:text-[color:var(--crm-text-primary)] ${
+                    errors.firstName ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[color:var(--crm-border-default)]'
                   }`}
                 />
                 {errors.firstName && (
@@ -160,7 +160,7 @@ export default function NewUserPage() {
                 )}
               </div>
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Last Name (Letters only, max 50) *</label>
+                <label className="block text-slate-700 dark:text-[color:var(--crm-text-secondary)] font-semibold mb-1">Last Name (Letters only, max 50) *</label>
                 <input
                   type="text"
                   required
@@ -172,8 +172,8 @@ export default function NewUserPage() {
                     if (errors.lastName) setErrors(prev => ({ ...prev, lastName: '' }));
                   }}
                   placeholder="e.g. Patel"
-                  className={`w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg text-slate-900 dark:text-[#211B17] ${
-                    errors.lastName ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[#EBE3DB]'
+                  className={`w-full px-3 py-2 bg-slate-50 dark:bg-[color:var(--crm-bg-app)] border rounded-lg text-slate-900 dark:text-[color:var(--crm-text-primary)] ${
+                    errors.lastName ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[color:var(--crm-border-default)]'
                   }`}
                 />
                 {errors.lastName && (
@@ -198,7 +198,7 @@ export default function NewUserPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Mobile Number (10 Digits) *</label>
+                <label className="block text-slate-700 dark:text-[color:var(--crm-text-secondary)] font-semibold mb-1">Mobile Number (10 Digits) *</label>
                 <input
                   type="tel"
                   inputMode="numeric"
@@ -211,8 +211,8 @@ export default function NewUserPage() {
                     if (errors.mobile) setErrors(prev => ({ ...prev, mobile: '' }));
                   }}
                   placeholder="9825012345"
-                  className={`w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg text-slate-900 dark:text-[#211B17] font-mono ${
-                    errors.mobile ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[#EBE3DB]'
+                  className={`w-full px-3 py-2 bg-slate-50 dark:bg-[color:var(--crm-bg-app)] border rounded-lg text-slate-900 dark:text-[color:var(--crm-text-primary)] font-mono ${
+                    errors.mobile ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[color:var(--crm-border-default)]'
                   }`}
                 />
                 {errors.mobile && (
@@ -222,7 +222,7 @@ export default function NewUserPage() {
                 )}
               </div>
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Email Address *</label>
+                <label className="block text-slate-700 dark:text-[color:var(--crm-text-secondary)] font-semibold mb-1">Email Address *</label>
                 <input
                   type="email"
                   required
@@ -232,8 +232,8 @@ export default function NewUserPage() {
                     if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
                   }}
                   placeholder="name@umatechnofab.com"
-                  className={`w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border rounded-lg text-slate-900 dark:text-[#211B17] ${
-                    errors.email ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[#EBE3DB]'
+                  className={`w-full px-3 py-2 bg-slate-50 dark:bg-[color:var(--crm-bg-app)] border rounded-lg text-slate-900 dark:text-[color:var(--crm-text-primary)] ${
+                    errors.email ? 'border-rose-500 ring-1 ring-rose-500/20' : 'border-slate-200 dark:border-[color:var(--crm-border-default)]'
                   }`}
                 />
                 {errors.email && (
@@ -261,20 +261,20 @@ export default function NewUserPage() {
             </div>
 
             <div>
-              <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Residential Address</label>
+              <label className="block text-slate-700 dark:text-[color:var(--crm-text-secondary)] font-semibold mb-1">Residential Address</label>
               <input
                 type="text"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 placeholder="Residential Address, City, Pincode"
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-[color:var(--crm-bg-app)] border border-slate-200 dark:border-[color:var(--crm-border-default)] rounded-lg text-slate-900 dark:text-[color:var(--crm-text-primary)]"
               />
             </div>
           </div>
 
           {/* SECTION 2: ORGANIZATION HIERARCHY */}
-          <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-[#EBE3DB]">
-            <h3 className="font-bold text-sm text-slate-800 dark:text-[#544B45] flex items-center gap-2">
+          <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-[color:var(--crm-border-default)]">
+            <h3 className="font-bold text-sm text-slate-800 dark:text-[color:var(--crm-text-secondary)] flex items-center gap-2">
               <span className="w-5 h-5 rounded-full bg-crm-brand- text-crm-brand- flex items-center justify-center text-[10px]">2</span>
               Organization & Role Assignment
             </h3>
@@ -294,14 +294,14 @@ export default function NewUserPage() {
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Designation *</label>
+                <label className="block text-slate-700 dark:text-[color:var(--crm-text-secondary)] font-semibold mb-1">Designation *</label>
                 <input
                   type="text"
                   required
                   value={formData.designation}
                   onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
                   placeholder="e.g. Sales Executive / Quality Inspector"
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[color:var(--crm-bg-app)] border border-slate-200 dark:border-[color:var(--crm-border-default)] rounded-lg text-slate-900 dark:text-[color:var(--crm-text-primary)]"
                 />
               </div>
 
@@ -361,37 +361,37 @@ export default function NewUserPage() {
           </div>
 
           {/* SECTION 3: LOGIN CREDENTIALS */}
-          <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-[#EBE3DB]">
-            <h3 className="font-bold text-sm text-slate-800 dark:text-[#544B45] flex items-center gap-2">
+          <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-[color:var(--crm-border-default)]">
+            <h3 className="font-bold text-sm text-slate-800 dark:text-[color:var(--crm-text-secondary)] flex items-center gap-2">
               <span className="w-5 h-5 rounded-full bg-crm-brand- text-crm-brand- flex items-center justify-center text-[10px]">3</span>
               Login Credentials
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">System Username *</label>
+                <label className="block text-slate-700 dark:text-[color:var(--crm-text-secondary)] font-semibold mb-1">System Username *</label>
                 <input
                   type="text"
                   required
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   placeholder="e.g. ramesh.sales"
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17] font-mono"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[color:var(--crm-bg-app)] border border-slate-200 dark:border-[color:var(--crm-border-default)] rounded-lg text-slate-900 dark:text-[color:var(--crm-text-primary)] font-mono"
                 />
               </div>
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Initial Password</label>
+                <label className="block text-slate-700 dark:text-[color:var(--crm-text-secondary)] font-semibold mb-1">Initial Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full pl-3 pr-10 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-slate-200 dark:border-[#EBE3DB] rounded-lg text-slate-900 dark:text-[#211B17]"
+                    className="w-full pl-3 pr-10 py-2 bg-slate-50 dark:bg-[color:var(--crm-bg-app)] border border-slate-200 dark:border-[color:var(--crm-border-default)] rounded-lg text-slate-900 dark:text-[color:var(--crm-text-primary)]"
                   />
                   <button
                     type="button"
                     tabIndex={-1}
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8D827A] hover:text-[#211B17] p-1 cursor-pointer transition"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[color:var(--crm-text-tertiary)] hover:text-[color:var(--crm-text-primary)] p-1 cursor-pointer transition"
                     title={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4 text-crm-brand-700" /> : <Eye className="w-4 h-4" />}
@@ -401,7 +401,7 @@ export default function NewUserPage() {
             </div>
 
             <div className="pt-2">
-              <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-[#544B45]">
+              <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-[color:var(--crm-text-secondary)]">
                 <input
                   type="checkbox"
                   checked={formData.isFamilyMember}
@@ -413,10 +413,10 @@ export default function NewUserPage() {
             </div>
           </div>
 
-          <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-[#EBE3DB]">
+          <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-[color:var(--crm-border-default)]">
             <Link
               href="/users"
-              className="px-4 py-2 border border-slate-200 dark:border-[#EBE3DB] text-slate-600 dark:text-[#544B45] rounded-lg hover:bg-slate-100 font-semibold"
+              className="px-4 py-2 border border-slate-200 dark:border-[color:var(--crm-border-default)] text-slate-600 dark:text-[color:var(--crm-text-secondary)] rounded-lg hover:bg-slate-100 font-semibold"
             >
               Cancel
             </Link>

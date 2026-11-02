@@ -11,7 +11,7 @@ export default function DesignApprovalPage() {
   }, [router]);
 
   return (
-    <div className="p-8 text-center text-sm text-[#70665F]">
+    <div className="p-8 text-center text-sm text-[color:var(--crm-text-secondary)]">
       Redirecting to Design Jobs...
     </div>
   );

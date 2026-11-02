@@ -444,7 +444,7 @@ function FollowUpFormContent() {
       <div>
         <Link
           href="/crm/follow-ups"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#70665F] hover:text-[#211B17] transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Follow-ups Register</span>
@@ -452,33 +452,33 @@ function FollowUpFormContent() {
       </div>
 
       {/* Main Container */}
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
         {/* Header with Title and 2-Step Stepper */}
-        <div className="border-b border-[#EBE3DB] pb-6 space-y-4">
+        <div className="border-b border-[color:var(--crm-border-default)] pb-6 space-y-4">
           <div className="flex items-start justify-between flex-wrap gap-4">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-700 shrink-0 mt-0.5">
+              <div className="w-10 h-10 rounded-xl bg-crm-brand-50 border border-crm-brand-100 flex items-center justify-center text-crm-brand-700 shrink-0 mt-0.5">
                 <PhoneCall className="w-5 h-5" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-extrabold text-[#211B17] tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight">
                   Schedule Client Follow-up
                 </h1>
-                <p className="text-xs text-[#70665F] mt-1 leading-relaxed">
+                <p className="text-xs text-[color:var(--crm-text-secondary)] mt-1 leading-relaxed">
                   2-Slide Form: Save Slide 1 directly for scheduling, and add Slide 2 notes later after the discussion.
                 </p>
               </div>
             </div>
 
             {/* Stepper Pill Indicators */}
-            <div className="flex items-center gap-2 bg-[#FAF7F2] p-1.5 rounded-xl border border-[#EBE3DB]">
+            <div className="flex items-center gap-2 bg-[color:var(--crm-bg-app)] p-1.5 rounded-xl border border-[color:var(--crm-border-default)]">
               <button
                 type="button"
                 onClick={() => setCurrentStep(1)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
                   currentStep === 1
                     ? 'bg-purple-700 text-white shadow-2xs'
-                    : 'text-[#70665F] hover:text-[#211B17]'
+                    : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]'
                 }`}
               >
                 <span className="w-4 h-4 rounded-full bg-white/20 text-center text-[10px] flex items-center justify-center">
@@ -493,7 +493,7 @@ function FollowUpFormContent() {
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
                   currentStep === 2
                     ? 'bg-purple-700 text-white shadow-2xs'
-                    : 'text-[#70665F] hover:text-[#211B17]'
+                    : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]'
                 }`}
               >
                 <span className="w-4 h-4 rounded-full bg-white/20 text-center text-[10px] flex items-center justify-center">
@@ -525,13 +525,13 @@ function FollowUpFormContent() {
                   <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
                     1
                   </span>
-                  <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
+                  <h2 className="text-sm font-bold text-[color:var(--crm-text-primary)] tracking-wide">
                     Select Customer / Lead / Technical Enquiry
                   </h2>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1.5">
+                  <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1.5 flex items-center gap-1.5">
                     <Building2 className="w-3.5 h-3.5 text-purple-700" />
                     <span>Select Customer / Lead <span className="text-rose-500">*</span></span>
                   </label>
@@ -539,7 +539,7 @@ function FollowUpFormContent() {
                     required
                     value={selectedRecordKey}
                     onChange={(e) => handleRecordSelect(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-purple-600 transition"
+                    className="w-full px-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-purple-600 transition"
                   >
                     <option value="">-- Select Customer / Lead / Inquiry --</option>
                     {leads.length > 0 && (
@@ -601,25 +601,25 @@ function FollowUpFormContent() {
               </div>
 
               {/* Channel, Date & Time (Clock) */}
-              <div className="space-y-3 pt-3 border-t border-[#EBE3DB]">
+              <div className="space-y-3 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <div className="flex items-center gap-2">
                   <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
                     2
                   </span>
-                  <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
+                  <h2 className="text-sm font-bold text-[color:var(--crm-text-primary)] tracking-wide">
                     Channel, Date & Time
                   </h2>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+                    <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1.5">
                       Channel
                     </label>
                     <select
                       value={followUpType}
                       onChange={(e) => setFollowUpType(e.target.value as any)}
-                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-purple-600 transition"
+                      className="w-full px-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-purple-600 transition"
                     >
                       <option value="call">Phone Call</option>
                       <option value="whatsapp">WhatsApp Message</option>
@@ -630,7 +630,7 @@ function FollowUpFormContent() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
+                    <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1.5 flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5 text-purple-700" />
                       <span>Scheduled Date <span className="text-rose-500">*</span></span>
                     </label>
@@ -640,12 +640,12 @@ function FollowUpFormContent() {
                       min={todayStr}
                       value={scheduledDate}
                       onChange={(e) => setScheduledDate(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-mono text-[#211B17] focus:outline-none focus:border-purple-600"
+                      className="w-full px-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-mono text-[color:var(--crm-text-primary)] focus:outline-none focus:border-purple-600"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5 flex items-center gap-1">
+                    <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1.5 flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5 text-purple-700" />
                       <span>Time (Clock) <span className="text-rose-500">*</span></span>
                     </label>
@@ -654,17 +654,17 @@ function FollowUpFormContent() {
                       required
                       value={scheduledTime}
                       onChange={(e) => setScheduledTime(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-mono text-[#211B17] focus:outline-none focus:border-purple-600 cursor-pointer"
+                      className="w-full px-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-mono text-[color:var(--crm-text-primary)] focus:outline-none focus:border-purple-600 cursor-pointer"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Step 1 Actions */}
-              <div className="flex items-center justify-between pt-6 border-t border-[#EBE3DB] flex-wrap gap-3">
+              <div className="flex items-center justify-between pt-6 border-t border-[color:var(--crm-border-default)] flex-wrap gap-3">
                 <Link
                   href="/crm/follow-ups"
-                  className="px-5 py-2.5 border border-[#EBE3DB] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs"
+                  className="px-5 py-2.5 border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] rounded-xl font-bold transition text-xs"
                 >
                   Cancel
                 </Link>
@@ -701,10 +701,10 @@ function FollowUpFormContent() {
           {currentStep === 2 && (
             <div className="space-y-6 animate-in fade-in duration-200">
               {/* Quick Summary Banner of Step 1 */}
-              <div className="p-3 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl flex items-center justify-between flex-wrap gap-2 text-xs">
+              <div className="p-3 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl flex items-center justify-between flex-wrap gap-2 text-xs">
                 <div>
-                  <span className="text-[#70665F]">Customer / Item: </span>
-                  <strong className="text-[#211B17]">{selectedEntityInfo?.name}</strong>
+                  <span className="text-[color:var(--crm-text-secondary)]">Customer / Item: </span>
+                  <strong className="text-[color:var(--crm-text-primary)]">{selectedEntityInfo?.name}</strong>
                   {productItem && <span className="text-purple-700 ml-1.5 font-bold">({productItem})</span>}
                 </div>
                 <div className="flex items-center gap-2 font-mono text-xs">
@@ -726,20 +726,20 @@ function FollowUpFormContent() {
                   <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
                     3
                   </span>
-                  <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
+                  <h2 className="text-sm font-bold text-[color:var(--crm-text-primary)] tracking-wide">
                     Client Status & Discussion Notes
                   </h2>
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+                    <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1.5">
                       Client Status <span className="text-rose-500">*</span>
                     </label>
                     <select
                       value={interestStatus}
                       onChange={(e) => setInterestStatus(e.target.value as any)}
-                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs font-semibold text-[#211B17] focus:outline-none focus:border-purple-600"
+                      className="w-full px-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-purple-600"
                     >
                       <option value="interested">Interested</option>
                       <option value="in_discussion">In Discussion / Follow-up Needed</option>
@@ -748,7 +748,7 @@ function FollowUpFormContent() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-[#4A3B32] mb-1.5">
+                    <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1.5">
                       Notes / Instructions
                     </label>
                     <textarea
@@ -756,20 +756,20 @@ function FollowUpFormContent() {
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder="Customer requirements, special conditions, discussion summary..."
-                      className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl text-xs text-[#211B17] focus:outline-none focus:border-purple-600 leading-relaxed"
+                      className="w-full px-3.5 py-2.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-purple-600 leading-relaxed"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Next Follow-up Section (With explicit Add button, Clear default) */}
-              <div className="space-y-3 pt-3 border-t border-[#EBE3DB]">
+              <div className="space-y-3 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-2">
                     <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-bold text-[11px] flex items-center justify-center">
                       4
                     </span>
-                    <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
+                    <h2 className="text-sm font-bold text-[color:var(--crm-text-primary)] tracking-wide">
                       Next Follow-up
                     </h2>
                   </div>
@@ -791,7 +791,7 @@ function FollowUpFormContent() {
                 </div>
 
                 {!hasScheduleNext ? (
-                  <div className="p-3 bg-[#FAF7F2] border border-dashed border-[#EBE3DB] rounded-xl text-xs text-[#70665F] flex items-center justify-between">
+                  <div className="p-3 bg-[color:var(--crm-bg-app)] border border-dashed border-[color:var(--crm-border-default)] rounded-xl text-xs text-[color:var(--crm-text-secondary)] flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <CalendarPlus className="w-4 h-4 text-purple-600 shrink-0" />
                       <span>Next follow-up is not scheduled. Click above if you want to set an upcoming date & time.</span>
@@ -821,7 +821,7 @@ function FollowUpFormContent() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div>
                         <div className="flex items-center justify-between mb-1">
-                          <label className="text-xs font-bold text-[#4A3B32]">
+                          <label className="text-xs font-bold text-[color:var(--crm-text-primary)]">
                             Next Date <span className="text-rose-500">*</span>
                           </label>
                           <div className="flex items-center gap-1">
@@ -865,19 +865,19 @@ function FollowUpFormContent() {
                           required={hasScheduleNext}
                           value={nextFollowUpDate}
                           onChange={(e) => setNextFollowUpDate(e.target.value)}
-                          className="w-full px-3 py-2 bg-white border border-purple-200 rounded-xl text-xs font-mono text-[#211B17]"
+                          className="w-full px-3 py-2 bg-white border border-purple-200 rounded-xl text-xs font-mono text-[color:var(--crm-text-primary)]"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-xs font-bold text-[#4A3B32] mb-1">
+                        <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1">
                           Next Time (Clock)
                         </label>
                         <input
                           type="time"
                           value={nextFollowUpTime}
                           onChange={(e) => setNextFollowUpTime(e.target.value)}
-                          className="w-full px-3 py-2 bg-white border border-purple-200 rounded-xl text-xs font-mono text-[#211B17] cursor-pointer"
+                          className="w-full px-3 py-2 bg-white border border-purple-200 rounded-xl text-xs font-mono text-[color:var(--crm-text-primary)] cursor-pointer"
                         />
                       </div>
                     </div>
@@ -886,13 +886,13 @@ function FollowUpFormContent() {
               </div>
 
               {/* Site Visit Section */}
-              <div className="space-y-3 pt-3 border-t border-[#EBE3DB]">
+              <div className="space-y-3 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-2">
                     <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px] flex items-center justify-center">
                       5
                     </span>
-                    <h2 className="text-sm font-bold text-[#211B17] tracking-wide">
+                    <h2 className="text-sm font-bold text-[color:var(--crm-text-primary)] tracking-wide">
                       Site Visit Required?
                     </h2>
                   </div>
@@ -916,7 +916,7 @@ function FollowUpFormContent() {
                 </div>
 
                 {!hasScheduleVisit ? (
-                  <div className="p-3 bg-[#FAF7F2] border border-dashed border-[#EBE3DB] rounded-xl text-xs text-[#70665F] flex items-center justify-between">
+                  <div className="p-3 bg-[color:var(--crm-bg-app)] border border-dashed border-[color:var(--crm-border-default)] rounded-xl text-xs text-[color:var(--crm-text-secondary)] flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Compass className="w-4 h-4 text-emerald-600 shrink-0" />
                       <span>If the customer requested an in-person site inspection, you can schedule it here.</span>
@@ -941,7 +941,7 @@ function FollowUpFormContent() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-bold text-[#4A3B32] mb-1">
+                        <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1">
                           Planned Visit Date <span className="text-rose-500">*</span>
                         </label>
                         <input
@@ -950,24 +950,24 @@ function FollowUpFormContent() {
                           min={todayStr}
                           value={visitDate}
                           onChange={(e) => setVisitDate(e.target.value)}
-                          className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs font-mono text-[#211B17]"
+                          className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs font-mono text-[color:var(--crm-text-primary)]"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-xs font-bold text-[#4A3B32] mb-1">
+                        <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1">
                           Visit Time (Clock)
                         </label>
                         <input
                           type="time"
                           value={visitTime}
                           onChange={(e) => setVisitTime(e.target.value)}
-                          className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs font-mono text-[#211B17] cursor-pointer"
+                          className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs font-mono text-[color:var(--crm-text-primary)] cursor-pointer"
                         />
                       </div>
 
                       <div className="md:col-span-2">
-                        <label className="block text-xs font-bold text-[#4A3B32] mb-1">
+                        <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1">
                           Site / Factory Location & Address
                         </label>
                         <input
@@ -975,12 +975,12 @@ function FollowUpFormContent() {
                           value={visitLocation}
                           onChange={(e) => setVisitLocation(e.target.value)}
                           placeholder="e.g. Plot 42, GIDC Phase 2, Vatva, Ahmedabad"
-                          className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs text-[#211B17]"
+                          className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs text-[color:var(--crm-text-primary)]"
                         />
                       </div>
 
                       <div className="md:col-span-2">
-                        <label className="block text-xs font-bold text-[#4A3B32] mb-1">
+                        <label className="block text-xs font-bold text-[color:var(--crm-text-primary)] mb-1">
                           Site Inspection Purpose
                         </label>
                         <input
@@ -988,7 +988,7 @@ function FollowUpFormContent() {
                           value={visitPurpose}
                           onChange={(e) => setVisitPurpose(e.target.value)}
                           placeholder="e.g. Reactor layout verification and nozzle orientation measurements"
-                          className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs text-[#211B17]"
+                          className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs text-[color:var(--crm-text-primary)]"
                         />
                       </div>
                     </div>
@@ -997,11 +997,11 @@ function FollowUpFormContent() {
               </div>
 
               {/* Form Navigation Actions */}
-              <div className="flex items-center justify-between pt-6 border-t border-[#EBE3DB]">
+              <div className="flex items-center justify-between pt-6 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setCurrentStep(1)}
-                  className="px-5 py-2.5 border border-[#EBE3DB] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs flex items-center gap-1.5 cursor-pointer"
+                  className="px-5 py-2.5 border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] rounded-xl font-bold transition text-xs flex items-center gap-1.5 cursor-pointer"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   <span>← Back to Slide 1</span>
@@ -1010,7 +1010,7 @@ function FollowUpFormContent() {
                 <div className="flex items-center gap-2">
                   <Link
                     href="/crm/follow-ups"
-                    className="px-4 py-2.5 border border-[#EBE3DB] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs"
+                    className="px-4 py-2.5 border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] rounded-xl font-bold transition text-xs"
                   >
                     Cancel
                   </Link>
@@ -1034,7 +1034,7 @@ function FollowUpFormContent() {
 
 export default function NewFollowUpPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-xs text-[#70665F]">Loading Follow-up Form...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-xs text-[color:var(--crm-text-secondary)]">Loading Follow-up Form...</div>}>
       <FollowUpFormContent />
     </Suspense>
   );

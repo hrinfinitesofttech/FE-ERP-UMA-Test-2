@@ -102,7 +102,7 @@ export function ERPModal({
         id={id}
         onClick={(e) => e.stopPropagation()}
         className={cn(
-          'erp-modal-dialog relative w-full bg-white border border-[#E7DED5] rounded-2xl md:rounded-3xl shadow-2xl flex flex-col my-auto max-h-[92dvh] overflow-hidden animate-in zoom-in-95 duration-150',
+          'erp-modal-dialog relative w-full bg-white border border-[color:var(--crm-border-default)] rounded-2xl md:rounded-3xl shadow-2xl flex flex-col my-auto max-h-[92dvh] overflow-hidden animate-in zoom-in-95 duration-150',
           SIZE_CLASSES[size] || 'max-w-3xl',
           className
         )}
@@ -111,20 +111,20 @@ export function ERPModal({
         {(title || showCloseButton) && (
           <div
             className={cn(
-              'px-5 sm:px-6 py-4 border-b border-[#E7DED5] bg-gradient-to-r from-[#FAF7F2] via-[#FAF3EA] to-[#F8EDE0] flex items-center justify-between gap-4 flex-shrink-0',
+              'px-5 sm:px-6 py-4 border-b border-[color:var(--crm-border-default)] bg-gradient-to-r from-[color:var(--crm-bg-app)] via-[color:var(--crm-brand-50)] to-[#EDF1FA] flex items-center justify-between gap-4 flex-shrink-0',
               headerClassName
             )}
           >
             <div className="flex items-center gap-3 min-w-0">
               {icon && (
-                <div className="w-10 h-10 rounded-xl bg-white border border-[#E5DDD0] text-crm-brand-700 flex items-center justify-center shadow-xs flex-shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-white border border-[#D0D6E5] text-crm-brand-700 flex items-center justify-center shadow-xs flex-shrink-0">
                   {icon}
                 </div>
               )}
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   {typeof title === 'string' ? (
-                    <h3 className="text-base font-extrabold text-[#211B17] tracking-tight truncate">
+                    <h3 className="text-base font-extrabold text-[color:var(--crm-text-primary)] tracking-tight truncate">
                       {title}
                     </h3>
                   ) : (
@@ -133,7 +133,7 @@ export function ERPModal({
                   {badge}
                 </div>
                 {subtitle && (
-                  <p className="text-xs text-[#70665F] mt-0.5 truncate">
+                  <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5 truncate">
                     {subtitle}
                   </p>
                 )}
@@ -144,7 +144,7 @@ export function ERPModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="p-1.5 sm:p-2 rounded-xl text-[#70665F] hover:text-[#211B17] hover:bg-white border border-transparent hover:border-[#E7DED5] transition cursor-pointer flex-shrink-0"
+                className="p-1.5 sm:p-2 rounded-xl text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-white border border-transparent hover:border-[color:var(--crm-border-default)] transition cursor-pointer flex-shrink-0"
                 title="Close modal (Esc)"
               >
                 <X className="w-5 h-5" />
@@ -156,7 +156,7 @@ export function ERPModal({
         {/* Scrollable Body */}
         <div
           className={cn(
-            'flex-1 overflow-y-auto p-5 sm:p-6 text-xs text-[#211B17] scrollbar-thin',
+            'flex-1 overflow-y-auto p-5 sm:p-6 text-xs text-[color:var(--crm-text-primary)] scrollbar-thin',
             bodyClassName
           )}
         >
@@ -165,7 +165,7 @@ export function ERPModal({
 
         {/* Optional Sticky Footer */}
         {footer && (
-          <div className="px-5 sm:px-6 py-3.5 bg-[#FAF7F2] border-t border-[#E7DED5] flex items-center justify-end gap-3 flex-shrink-0">
+          <div className="px-5 sm:px-6 py-3.5 bg-[color:var(--crm-bg-app)] border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-3 flex-shrink-0">
             {footer}
           </div>
         )}

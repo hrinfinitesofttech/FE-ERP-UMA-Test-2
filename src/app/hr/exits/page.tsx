@@ -293,7 +293,7 @@ export default function ResignationExitPage() {
   }, [employeeExits, searchTerm, statusFilter]);
 
   return (
-    <div className="p-6 space-y-6 bg-[#FDFBF9] min-h-screen text-[#211B17]">
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)] min-h-screen text-[color:var(--crm-text-primary)]">
       {/* Toast Notification */}
       {successToast && (
         <div className="fixed top-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
@@ -303,15 +303,15 @@ export default function ResignationExitPage() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EBE3DB] pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#211B17] tracking-tight flex items-center gap-2.5">
+          <h1 className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2.5">
             <div className="p-2 bg-red-500/10 rounded-lg text-red-600">
               <LogOut className="w-6 h-6" />
             </div>
             Resignation & Employee Exit Management
           </h1>
-          <p className="text-sm text-[#70665F] mt-1">
+          <p className="text-sm text-[color:var(--crm-text-secondary)] mt-1">
             Notice Period Tracking, Handover & 4-Department Clearance Workflow (Dept | Asset | HR | Accounts)
           </p>
         </div>
@@ -325,68 +325,68 @@ export default function ResignationExitPage() {
 
       {/* Stats Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm flex items-center justify-between">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold text-[#70665F] uppercase tracking-wider block">
+            <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">
               Active Exit Cases
             </span>
-            <span className="text-2xl font-black text-[#211B17]">
+            <span className="text-2xl font-black text-[color:var(--crm-text-primary)]">
               {employeeExits.filter((e) => e.status !== 'Settlement Done').length}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600">
+          <div className="w-10 h-10 rounded-xl bg-crm-brand-50 flex items-center justify-center text-crm-brand-700">
             <Clock className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm flex items-center justify-between">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold text-[#70665F] uppercase tracking-wider block">
+            <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">
               Fully Cleared Exits
             </span>
             <span className="text-2xl font-black text-emerald-600">
               {employeeExits.filter((e) => e.status === 'Cleared' || e.status === 'Settlement Done').length}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+          <div className="w-10 h-10 rounded-xl bg-crm-brand-50 flex items-center justify-center text-crm-brand-700">
             <CheckCircle2 className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white border border-[#EBE3DB] p-4 rounded-xl shadow-sm flex items-center justify-between">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold text-[#70665F] uppercase tracking-wider block">
+            <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider block">
               Total Staff Registered
             </span>
-            <span className="text-2xl font-black text-[#211B17]">
+            <span className="text-2xl font-black text-[color:var(--crm-text-primary)]">
               {availableEmployees.length}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600">
+          <div className="w-10 h-10 rounded-xl bg-crm-brand-50 flex items-center justify-center text-crm-brand-700">
             <UserCheck className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white border border-[#EBE3DB] rounded-xl p-3.5 shadow-sm flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-3.5 shadow-sm flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-[#A89F91] absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[color:var(--crm-text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by Employee name, ID, or department..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-[#FDFBF9] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-red-600 focus:bg-white transition"
+            className="w-full pl-9 pr-4 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-red-600 focus:bg-white transition"
           />
         </div>
 
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-[#70665F]" />
+          <Filter className="w-4 h-4 text-[color:var(--crm-text-secondary)]" />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-[#FDFBF9] border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-red-600"
+            className="px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-red-600"
           >
             <option value="ALL">All Statuses</option>
             <option value="Notice Period">Notice Period</option>
@@ -398,10 +398,10 @@ export default function ResignationExitPage() {
 
       {/* Exit List */}
       {filteredExits.length === 0 ? (
-        <div className="bg-white border border-[#EBE3DB] rounded-2xl p-12 text-center space-y-3 shadow-sm">
-          <LogOut className="w-12 h-12 text-[#A89F91] mx-auto" />
-          <h3 className="text-base font-bold text-[#211B17]">No resignation records found</h3>
-          <p className="text-xs text-[#70665F] max-w-md mx-auto">
+        <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-12 text-center space-y-3 shadow-sm">
+          <LogOut className="w-12 h-12 text-[color:var(--crm-text-tertiary)] mx-auto" />
+          <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">No resignation records found</h3>
+          <p className="text-xs text-[color:var(--crm-text-secondary)] max-w-md mx-auto">
             {searchTerm || statusFilter !== 'ALL'
               ? 'No resignation records match your filter criteria.'
               : 'No resignation requests logged yet. Click "+ Log Resignation Request" to record one.'}
@@ -416,22 +416,22 @@ export default function ResignationExitPage() {
             return (
               <div
                 key={exit.id}
-                className="bg-white border border-[#EBE3DB] hover:border-red-300 rounded-2xl p-6 space-y-4 shadow-sm hover:shadow-md transition duration-200"
+                className="bg-white border border-[color:var(--crm-border-default)] hover:border-red-300 rounded-2xl p-6 space-y-4 shadow-sm hover:shadow-md transition duration-200"
               >
                 {/* Header Row: ID, Name, Status, Action Buttons */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EBE3DB]/60 pb-3.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E7EF]/60 pb-3.5">
                   <div>
                     <div className="flex items-center gap-3">
                       <span className="font-mono text-xs font-bold text-red-700 bg-red-50 px-2.5 py-1 rounded-md border border-red-200">
                         {exit.id}
                       </span>
-                      <h3 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+                      <h3 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                         {displayName}
-                        <span className="text-xs font-normal text-[#70665F]">({exit.employeeId})</span>
+                        <span className="text-xs font-normal text-[color:var(--crm-text-secondary)]">({exit.employeeId})</span>
                       </h3>
                     </div>
-                    <div className="text-xs text-[#70665F] mt-1">
-                      Dept: <span className="text-[#211B17] font-semibold">{exit.department}</span> | Designation: {exit.designation}
+                    <div className="text-xs text-[color:var(--crm-text-secondary)] mt-1">
+                      Dept: <span className="text-[color:var(--crm-text-primary)] font-semibold">{exit.department}</span> | Designation: {exit.designation}
                     </div>
                   </div>
 
@@ -446,23 +446,23 @@ export default function ResignationExitPage() {
                       {exit.status === 'Cleared' || exit.status === 'Settlement Done' ? (
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                       ) : (
-                        <Clock className="w-3.5 h-3.5 text-amber-600" />
+                        <Clock className="w-3.5 h-3.5 text-crm-brand-600" />
                       )}
                       {exit.status}
                     </span>
 
                     {/* Edit & Delete Action Buttons */}
-                    <div className="flex items-center gap-1 border-l border-[#EBE3DB] pl-3">
+                    <div className="flex items-center gap-1 border-l border-[color:var(--crm-border-default)] pl-3">
                       <button
                         onClick={() => handleOpenEditModal(exit)}
-                        className="p-1.5 text-[#544B45] hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                        className="p-1.5 text-[color:var(--crm-text-secondary)] hover:text-red-600 hover:bg-red-50 rounded-lg transition"
                         title="Edit resignation details"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteRecord(exit)}
-                        className="p-1.5 text-[#544B45] hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                        className="p-1.5 text-[color:var(--crm-text-secondary)] hover:text-red-600 hover:bg-red-50 rounded-lg transition"
                         title="Delete / Cancel resignation entry"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -472,22 +472,22 @@ export default function ResignationExitPage() {
                 </div>
 
                 {/* Timeline & Parameters Snapshot */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB] text-xs">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-[color:var(--crm-bg-app)] p-4 rounded-xl border border-[color:var(--crm-border-default)] text-xs">
                   <div>
-                    <span className="text-[#70665F] block text-[11px]">Resignation Date</span>
-                    <span className="text-[#211B17] font-semibold">{exit.resignationDate}</span>
+                    <span className="text-[color:var(--crm-text-secondary)] block text-[11px]">Resignation Date</span>
+                    <span className="text-[color:var(--crm-text-primary)] font-semibold">{exit.resignationDate}</span>
                   </div>
                   <div>
-                    <span className="text-[#70665F] block text-[11px]">Last Working Date</span>
+                    <span className="text-[color:var(--crm-text-secondary)] block text-[11px]">Last Working Date</span>
                     <span className="text-amber-800 font-bold">{exit.lastWorkingDate}</span>
                   </div>
                   <div>
-                    <span className="text-[#70665F] block text-[11px]">Notice Period</span>
-                    <span className="text-[#211B17] font-semibold">{exit.noticePeriodDays || 30} Days</span>
+                    <span className="text-[color:var(--crm-text-secondary)] block text-[11px]">Notice Period</span>
+                    <span className="text-[color:var(--crm-text-primary)] font-semibold">{exit.noticePeriodDays || 30} Days</span>
                   </div>
                   <div>
-                    <span className="text-[#70665F] block text-[11px]">Reason for Leaving</span>
-                    <span className="text-[#544B45] font-medium italic truncate block">
+                    <span className="text-[color:var(--crm-text-secondary)] block text-[11px]">Reason for Leaving</span>
+                    <span className="text-[color:var(--crm-text-secondary)] font-medium italic truncate block">
                       &quot;{exit.reason}&quot;
                     </span>
                   </div>
@@ -495,15 +495,15 @@ export default function ResignationExitPage() {
 
                 {/* 4-Department Clearance Matrix */}
                 <div className="space-y-2">
-                  <h4 className="text-[11px] font-bold text-[#70665F] uppercase tracking-wider">
+                  <h4 className="text-[11px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">
                     Inter-Department Clearance Matrix (Click checkbox to verify)
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                     {/* Dept Head */}
-                    <div className="p-3 bg-white rounded-xl border border-[#EBE3DB] flex items-center justify-between text-xs shadow-sm">
+                    <div className="p-3 bg-white rounded-xl border border-[color:var(--crm-border-default)] flex items-center justify-between text-xs shadow-sm">
                       <div>
-                        <div className="font-semibold text-[#211B17]">Department Head</div>
-                        <div className="text-[10px] text-[#70665F]">Handover Completed</div>
+                        <div className="font-semibold text-[color:var(--crm-text-primary)]">Department Head</div>
+                        <div className="text-[10px] text-[color:var(--crm-text-secondary)]">Handover Completed</div>
                       </div>
                       <button
                         type="button"
@@ -511,7 +511,7 @@ export default function ResignationExitPage() {
                         className={`p-1.5 rounded-lg border transition ${
                           exit.departmentClearance
                             ? 'bg-emerald-600 text-white border-emerald-600'
-                            : 'bg-[#FAF7F2] text-[#A89F91] border-[#EBE3DB] hover:text-[#544B45]'
+                            : 'bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-tertiary)] border-[color:var(--crm-border-default)] hover:text-[color:var(--crm-text-secondary)]'
                         }`}
                       >
                         <CheckCircle2 className="w-4 h-4" />
@@ -519,10 +519,10 @@ export default function ResignationExitPage() {
                     </div>
 
                     {/* Store / Assets */}
-                    <div className="p-3 bg-white rounded-xl border border-[#EBE3DB] flex items-center justify-between text-xs shadow-sm">
+                    <div className="p-3 bg-white rounded-xl border border-[color:var(--crm-border-default)] flex items-center justify-between text-xs shadow-sm">
                       <div>
-                        <div className="font-semibold text-[#211B17]">Store / Asset Return</div>
-                        <div className="text-[10px] text-[#70665F]">Tools, Laptop, ID</div>
+                        <div className="font-semibold text-[color:var(--crm-text-primary)]">Store / Asset Return</div>
+                        <div className="text-[10px] text-[color:var(--crm-text-secondary)]">Tools, Laptop, ID</div>
                       </div>
                       <button
                         type="button"
@@ -530,7 +530,7 @@ export default function ResignationExitPage() {
                         className={`p-1.5 rounded-lg border transition ${
                           exit.assetReturnClearance
                             ? 'bg-emerald-600 text-white border-emerald-600'
-                            : 'bg-[#FAF7F2] text-[#A89F91] border-[#EBE3DB] hover:text-[#544B45]'
+                            : 'bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-tertiary)] border-[color:var(--crm-border-default)] hover:text-[color:var(--crm-text-secondary)]'
                         }`}
                       >
                         <CheckCircle2 className="w-4 h-4" />
@@ -538,10 +538,10 @@ export default function ResignationExitPage() {
                     </div>
 
                     {/* HR */}
-                    <div className="p-3 bg-white rounded-xl border border-[#EBE3DB] flex items-center justify-between text-xs shadow-sm">
+                    <div className="p-3 bg-white rounded-xl border border-[color:var(--crm-border-default)] flex items-center justify-between text-xs shadow-sm">
                       <div>
-                        <div className="font-semibold text-[#211B17]">HR Clearance</div>
-                        <div className="text-[10px] text-[#70665F]">Exit Interview & Feedback</div>
+                        <div className="font-semibold text-[color:var(--crm-text-primary)]">HR Clearance</div>
+                        <div className="text-[10px] text-[color:var(--crm-text-secondary)]">Exit Interview & Feedback</div>
                       </div>
                       <button
                         type="button"
@@ -549,7 +549,7 @@ export default function ResignationExitPage() {
                         className={`p-1.5 rounded-lg border transition ${
                           exit.hrClearance
                             ? 'bg-emerald-600 text-white border-emerald-600'
-                            : 'bg-[#FAF7F2] text-[#A89F91] border-[#EBE3DB] hover:text-[#544B45]'
+                            : 'bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-tertiary)] border-[color:var(--crm-border-default)] hover:text-[color:var(--crm-text-secondary)]'
                         }`}
                       >
                         <CheckCircle2 className="w-4 h-4" />
@@ -557,10 +557,10 @@ export default function ResignationExitPage() {
                     </div>
 
                     {/* Accounts */}
-                    <div className="p-3 bg-white rounded-xl border border-[#EBE3DB] flex items-center justify-between text-xs shadow-sm">
+                    <div className="p-3 bg-white rounded-xl border border-[color:var(--crm-border-default)] flex items-center justify-between text-xs shadow-sm">
                       <div>
-                        <div className="font-semibold text-[#211B17]">Accounts Clearance</div>
-                        <div className="text-[10px] text-[#70665F]">Advances & Dues Recovery</div>
+                        <div className="font-semibold text-[color:var(--crm-text-primary)]">Accounts Clearance</div>
+                        <div className="text-[10px] text-[color:var(--crm-text-secondary)]">Advances & Dues Recovery</div>
                       </div>
                       <button
                         type="button"
@@ -568,7 +568,7 @@ export default function ResignationExitPage() {
                         className={`p-1.5 rounded-lg border transition ${
                           exit.accountsClearance
                             ? 'bg-emerald-600 text-white border-emerald-600'
-                            : 'bg-[#FAF7F2] text-[#A89F91] border-[#EBE3DB] hover:text-[#544B45]'
+                            : 'bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-tertiary)] border-[color:var(--crm-border-default)] hover:text-[color:var(--crm-text-secondary)]'
                         }`}
                       >
                         <CheckCircle2 className="w-4 h-4" />
@@ -592,19 +592,19 @@ export default function ResignationExitPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl relative my-8"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl relative my-8"
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3.5">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3.5">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-red-500/10 rounded-lg text-red-600">
                   <LogOut className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-[#211B17]">
+                  <h2 className="text-lg font-bold text-[color:var(--crm-text-primary)]">
                     {editingId ? 'Edit Resignation / Exit Entry' : 'Submit Resignation / Exit Entry'}
                   </h2>
-                  <p className="text-xs text-[#70665F]">
+                  <p className="text-xs text-[color:var(--crm-text-secondary)]">
                     {editingId ? 'Update resignation timeline or reason' : 'Initiate formal employee notice period and clearance workflow'}
                   </p>
                 </div>
@@ -612,7 +612,7 @@ export default function ResignationExitPage() {
               <button
                 type="button"
                 onClick={closeModalWithConfirm}
-                className="text-[#70665F] hover:text-[#211B17] p-1.5 rounded-lg hover:bg-[#F5EFEB] transition"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1.5 rounded-lg hover:bg-[#F5EFEB] transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -622,17 +622,17 @@ export default function ResignationExitPage() {
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
               {/* 1. Select Employee */}
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Select Employee <span className="text-rose-500">*</span>
                 </label>
                 <select
                   value={formData.employeeId}
                   disabled={editingId !== null}
                   onChange={(e) => handleEmployeeChange(e.target.value)}
-                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition disabled:bg-gray-100 ${
+                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition disabled:bg-gray-100 ${
                     formErrors.employeeId
                       ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                      : 'border-[#EBE3DB] focus:border-red-600'
+                      : 'border-[color:var(--crm-border-default)] focus:border-red-600'
                   }`}
                 >
                   <option value="">-- Choose Employee from Master --</option>
@@ -653,17 +653,17 @@ export default function ResignationExitPage() {
               {/* 2. Resignation Date & Last Working Day */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     Resignation Date <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="date"
                     value={formData.resignationDate}
                     onChange={(e) => handleDateChange('resignation', e.target.value)}
-                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition ${
+                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                       formErrors.resignationDate
                         ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                        : 'border-[#EBE3DB] focus:border-red-600'
+                        : 'border-[color:var(--crm-border-default)] focus:border-red-600'
                     }`}
                   />
                   {formErrors.resignationDate && (
@@ -675,7 +675,7 @@ export default function ResignationExitPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                     Last Working Day <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -683,10 +683,10 @@ export default function ResignationExitPage() {
                     value={formData.lastWorkingDate}
                     min={formData.resignationDate}
                     onChange={(e) => handleDateChange('lwd', e.target.value)}
-                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition ${
+                    className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                       formErrors.lastWorkingDate
                         ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                        : 'border-[#EBE3DB] focus:border-red-600'
+                        : 'border-[color:var(--crm-border-default)] focus:border-red-600'
                     }`}
                   />
                   {formErrors.lastWorkingDate && (
@@ -699,14 +699,14 @@ export default function ResignationExitPage() {
               </div>
 
               {/* Notice Period Snapshot */}
-              <div className="p-3 bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl flex items-center justify-between text-xs">
-                <span className="text-[#70665F]">Calculated Notice Period:</span>
-                <strong className="text-[#211B17]">{formData.noticePeriodDays || 0} Days</strong>
+              <div className="p-3 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl flex items-center justify-between text-xs">
+                <span className="text-[color:var(--crm-text-secondary)]">Calculated Notice Period:</span>
+                <strong className="text-[color:var(--crm-text-primary)]">{formData.noticePeriodDays || 0} Days</strong>
               </div>
 
               {/* 3. Reason for Leaving */}
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Reason for Leaving <span className="text-rose-500">*</span>
                 </label>
                 <textarea
@@ -723,10 +723,10 @@ export default function ResignationExitPage() {
                       });
                     }
                   }}
-                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[#211B17] focus:outline-none transition ${
+                  className={`w-full px-3.5 py-2.5 bg-white border rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none transition ${
                     formErrors.reason
                       ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500'
-                      : 'border-[#EBE3DB] focus:border-red-600'
+                      : 'border-[color:var(--crm-border-default)] focus:border-red-600'
                   }`}
                 />
                 {formErrors.reason && (
@@ -739,7 +739,7 @@ export default function ResignationExitPage() {
 
               {/* 4. Exit Interview Notes */}
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">
                   Exit Interview Notes (Optional)
                 </label>
                 <textarea
@@ -747,16 +747,16 @@ export default function ResignationExitPage() {
                   placeholder="Notes from initial discussion or exit interview regarding department feedback..."
                   value={formData.exitInterviewNotes}
                   onChange={(e) => setFormData({ ...formData, exitInterviewNotes: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#EBE3DB] rounded-lg text-xs text-[#211B17] focus:outline-none focus:border-red-600 transition"
+                  className="w-full px-3.5 py-2.5 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-red-600 transition"
                 />
               </div>
 
               {/* Form Buttons */}
-              <div className="pt-4 border-t border-[#EBE3DB] flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={closeModalWithConfirm}
-                  className="px-4 py-2.5 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold text-xs rounded-lg transition"
+                  className="px-4 py-2.5 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold text-xs rounded-lg transition"
                 >
                   Cancel
                 </button>
@@ -783,27 +783,27 @@ export default function ResignationExitPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl"
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl"
           >
             <div className="flex items-center gap-3">
               <div className="p-3 bg-red-100 text-red-600 rounded-xl">
                 <ShieldAlert className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-[#211B17]">Cancel Resignation Record</h3>
-                <p className="text-xs text-[#70665F]">Order ID: {deleteConfirmExit.id}</p>
+                <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">Cancel Resignation Record</h3>
+                <p className="text-xs text-[color:var(--crm-text-secondary)]">Order ID: {deleteConfirmExit.id}</p>
               </div>
             </div>
 
-            <p className="text-sm text-[#544B45] leading-relaxed">
+            <p className="text-sm text-[color:var(--crm-text-secondary)] leading-relaxed">
               Are you sure you want to delete this resignation record? Cancelling this resignation will remove the exit entry for <strong>{deleteConfirmExit.employeeName}</strong> and restore their active employee status.
             </p>
 
-            <div className="pt-3 border-t border-[#EBE3DB] flex items-center justify-end gap-3 text-xs">
+            <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-3 text-xs">
               <button
                 type="button"
                 onClick={() => setDeleteConfirmExit(null)}
-                className="px-4 py-2 bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#544B45] font-semibold rounded-lg transition"
+                className="px-4 py-2 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold rounded-lg transition"
               >
                 Keep Record
               </button>

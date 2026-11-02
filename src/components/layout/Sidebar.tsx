@@ -237,7 +237,7 @@ export function Sidebar() {
       'flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all group relative',
       active
         ? 'bg-crm-brand-700 text-white shadow-xs font-semibold hover:bg-crm-brand-800 hover:text-white [&_svg]:!text-white [&_span]:!text-white'
-        : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+        : 'text-[color:var(--crm-text-primary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)]'
     );
   };
 
@@ -247,34 +247,34 @@ export function Sidebar() {
       'flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11.5px] font-medium transition-all group relative',
       active
         ? 'bg-crm-brand-700 text-white font-medium shadow-xs hover:bg-crm-brand-800 hover:text-white [&_svg]:!text-white [&_span:not(.font-mono)]:!text-white [&_span.font-mono]:!bg-white/20 [&_span.font-mono]:!text-white [&_span.font-mono]:!border-white/30'
-        : 'text-[#6E5D53] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+        : 'text-[#4B5876] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)]'
     );
   };
 
   return (
     <aside
       className={cn(
-        'bg-[var(--crm-bg-sidebar,#FAF7F2)] text-[var(--crm-text-primary,#3E2723)] border-r border-[var(--crm-border-default,#EBE3DB)] flex flex-col h-full transition-transform lg:transition-all duration-300 select-none shadow-xl lg:shadow-xs',
+        'bg-[var(--crm-bg-sidebar,#F4F6FA)] text-[var(--crm-text-primary,#0F172A)] border-r border-[var(--crm-border-default,#E2E7EF)] flex flex-col h-full transition-transform lg:transition-all duration-300 select-none shadow-xl lg:shadow-xs',
         'fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] lg:static lg:h-full lg:max-w-none lg:z-30',
         sidebarMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
         sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'
       )}
     >
       {/* Brand Header */}
-      <div className="h-16 flex items-center justify-between px-3.5 border-b border-[var(--crm-border-default,#EBE3DB)] bg-[var(--crm-bg-sidebar,#FAF7F2)] flex-shrink-0">
+      <div className="h-16 flex items-center justify-between px-3.5 border-b border-[var(--crm-border-default,#E2E7EF)] bg-[var(--crm-bg-sidebar,#F4F6FA)] flex-shrink-0">
         {!sidebarCollapsed ? (
           <Link
             href="/"
             onClick={() => setSidebarMobileOpen(false)}
             className="flex items-center gap-2.5 overflow-hidden group"
           >
-            <div className="w-9 h-9 rounded-xl bg-white border border-[#E7DED5] p-1 flex items-center justify-center shadow-xs flex-shrink-0 group-hover:scale-105 transition-transform">
+            <div className="w-9 h-9 rounded-xl bg-white border border-[color:var(--crm-border-default)] p-1 flex items-center justify-center shadow-xs flex-shrink-0 group-hover:scale-105 transition-transform">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/uma-mark.png" alt="Uma Techno Fab" className="w-full h-full object-contain select-none" />
             </div>
             <div className="leading-tight truncate">
               <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-[#18417D] tracking-wide text-xs">UMA TECHNO FAB</span>
+                <span className="font-extrabold text-[#1F3FB0] tracking-wide text-xs">UMA TECHNO FAB</span>
               </div>
               <span className="text-[10px] text-[#F37A20] font-semibold tracking-tight block">
                 Manufacturing ERP
@@ -286,7 +286,7 @@ export function Sidebar() {
             href="/"
             onClick={() => setSidebarMobileOpen(false)}
             title="UMA Techno Fab"
-            className="mx-auto w-10 h-10 rounded-xl bg-white border border-[#E7DED5] p-1.5 flex items-center justify-center shadow-xs hover:scale-105 transition-transform"
+            className="mx-auto w-10 h-10 rounded-xl bg-white border border-[color:var(--crm-border-default)] p-1.5 flex items-center justify-center shadow-xs hover:scale-105 transition-transform"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/uma-mark.png" alt="Uma Techno Fab" className="w-full h-full object-contain select-none" />
@@ -296,7 +296,7 @@ export function Sidebar() {
         {/* Mobile Close Button (< 1024px) */}
         <button
           onClick={() => setSidebarMobileOpen(false)}
-          className="p-2 rounded-lg text-[#8D7B70] hover:text-[#3E2723] hover:bg-[#F3ECE4] lg:hidden flex transition min-w-[40px] min-h-[40px] items-center justify-center cursor-pointer"
+          className="p-2 rounded-lg text-[color:var(--crm-text-tertiary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)] lg:hidden flex transition min-w-[40px] min-h-[40px] items-center justify-center cursor-pointer"
           aria-label="Close navigation drawer"
         >
           <X className="w-5 h-5" />
@@ -305,7 +305,7 @@ export function Sidebar() {
         {/* Desktop Collapse Toggle (>= 1024px) */}
         <button
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="p-1.5 rounded-lg text-[#8D7B70] hover:text-[#3E2723] hover:bg-[#F3ECE4] hidden lg:flex transition cursor-pointer"
+          className="p-1.5 rounded-lg text-[color:var(--crm-text-tertiary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)] hidden lg:flex transition cursor-pointer"
         >
           {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
@@ -327,7 +327,7 @@ export function Sidebar() {
             'flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all group relative',
             isActive('/')
               ? 'bg-crm-brand-700 text-white shadow-xs hover:bg-crm-brand-800 hover:text-white [&_svg]:!text-white'
-              : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+              : 'text-[color:var(--crm-text-primary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)]'
           )}
         >
           <LayoutDashboard className={cn('w-4 h-4 flex-shrink-0', isActive('/') ? 'text-white' : 'text-crm-brand-700')} />
@@ -336,7 +336,7 @@ export function Sidebar() {
 
         {/* Employee Self-Service Quick Section (Attendance, Leaves, Assigned Tasks) */}
         {!isSuperAdmin && (
-          <div className="py-1 px-1 mb-2 bg-[#F5EFE6] rounded-xl border border-[#E8DFD3] space-y-0.5">
+          <div className="py-1 px-1 mb-2 bg-[#E8EBF3] rounded-xl border border-[#D3D9E8] space-y-0.5">
             {!sidebarCollapsed && (
               <div className="px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-crm-brand-800 flex items-center justify-between">
                 <span>My Workspace</span>
@@ -365,8 +365,8 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 crmOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
-                  : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+                  ? 'text-[color:var(--crm-text-primary)] bg-[#EEF1F7]/60 hover:bg-[color:var(--crm-surface-subtle)]'
+                  : 'text-[color:var(--crm-text-primary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)]'
               )}
             >
               <div className="flex items-center gap-2.5">
@@ -375,7 +375,7 @@ export function Sidebar() {
               </div>
               <ChevronDown
                 className={cn(
-                  'w-3.5 h-3.5 text-[#9E8E82] transition-transform duration-200',
+                  'w-3.5 h-3.5 text-[color:var(--crm-text-tertiary)] transition-transform duration-200',
                   crmOpen ? 'rotate-0' : '-rotate-90'
                 )}
               />
@@ -383,29 +383,31 @@ export function Sidebar() {
           )}
 
           {(crmOpen || sidebarCollapsed) && (
-            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[#E5DCD3] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
+            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
               <Link href="/crm" className={subNavItemClass('/crm')}>
-                <TrendingUp className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <TrendingUp className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>CRM Dashboard</span>}
               </Link>
               <Link href="/crm/leads" className={subNavItemClass('/crm/leads')}>
-                <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Leads</span>
-                    <span suppressHydrationWarning className="px-1.5 py-0.2 rounded-full bg-crm-brand-100 text-crm-brand-800 font-mono text-[9px] font-bold border border-crm-brand-200">
-                      {leads.length}
-                    </span>
+                    {leads.length > 0 && (
+                      <span suppressHydrationWarning className="px-1.5 py-0.2 rounded-full bg-crm-brand-100 text-crm-brand-800 text-[10px] font-bold border border-crm-brand-200">
+                        {leads.length}
+                      </span>
+                    )}
                   </div>
                 )}
               </Link>
               <Link href="/crm/enquiries" className={subNavItemClass('/crm/enquiries')}>
-                <ClipboardList className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <ClipboardList className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Inquiries</span>
                     {enquiries.length > 0 && (
-                      <span suppressHydrationWarning className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                      <span suppressHydrationWarning className="px-1.5 py-0.2 rounded-full bg-[color:var(--crm-surface-subtle)] text-crm-brand-700 font-mono text-[9px] font-bold border border-[color:var(--crm-border-default)]">
                         {enquiries.length}
                       </span>
                     )}
@@ -413,12 +415,12 @@ export function Sidebar() {
                 )}
               </Link>
               <Link href="/crm/customers" className={subNavItemClass('/crm/customers')}>
-                <Building className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Building className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Customers</span>
                     {customers && customers.length > 0 && (
-                      <span suppressHydrationWarning className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                      <span suppressHydrationWarning className="px-1.5 py-0.2 rounded-full bg-[color:var(--crm-surface-subtle)] text-crm-brand-700 font-mono text-[9px] font-bold border border-[color:var(--crm-border-default)]">
                         {customers.length}
                       </span>
                     )}
@@ -426,24 +428,24 @@ export function Sidebar() {
                 )}
               </Link>
               <Link href="/crm/follow-ups" className={subNavItemClass('/crm/follow-ups')}>
-                <PhoneCall className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <PhoneCall className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Follow-ups (Today)</span>}
               </Link>
               <Link href="/crm/visits" className={subNavItemClass('/crm/visits')}>
-                <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Site Visits</span>}
               </Link>
               <Link href="/crm/exhibitions" className={subNavItemClass('/crm/exhibitions')}>
-                <Calendar className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Calendar className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Exhibitions / Expo</span>}
               </Link>
               <Link href="/crm/quotations" className={subNavItemClass('/crm/quotations')}>
-                <FileCheck2 className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <FileCheck2 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Quotations & Rev</span>
                     {quotations.length > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="px-1.5 py-0.2 rounded-full bg-[color:var(--crm-surface-subtle)] text-crm-brand-700 font-mono text-[9px] font-bold border border-[color:var(--crm-border-default)]">
                       {quotations.length}
                     </span>
                   )}
@@ -451,7 +453,7 @@ export function Sidebar() {
                 )}
               </Link>
               <Link href="/crm/customer-po" className={subNavItemClass('/crm/customer-po')}>
-                <FileCheck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <FileCheck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Customer POs</span>}
               </Link>
             </div>
@@ -468,8 +470,8 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 projectOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
-                  : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+                  ? 'text-[color:var(--crm-text-primary)] bg-[#EEF1F7]/60 hover:bg-[color:var(--crm-surface-subtle)]'
+                  : 'text-[color:var(--crm-text-primary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)]'
               )}
             >
               <div className="flex items-center gap-2.5">
@@ -478,7 +480,7 @@ export function Sidebar() {
               </div>
               <ChevronDown
                 className={cn(
-                  'w-3.5 h-3.5 text-[#9E8E82] transition-transform duration-200',
+                  'w-3.5 h-3.5 text-[color:var(--crm-text-tertiary)] transition-transform duration-200',
                   projectOpen ? 'rotate-0' : '-rotate-90'
                 )}
               />
@@ -486,32 +488,32 @@ export function Sidebar() {
           )}
 
           {(projectOpen || sidebarCollapsed) && (
-            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[#E5DCD3] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
+            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
               <Link href="/projects/dashboard" className={subNavItemClass('/projects/dashboard')}>
-                <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Dashboard</span>}
               </Link>
               <Link href="/projects/list" className={subNavItemClass('/projects/list')}>
-                <FolderKanban className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <FolderKanban className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Projects</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="px-1.5 py-0.2 rounded-full bg-[color:var(--crm-surface-subtle)] text-crm-brand-700 font-mono text-[9px] font-bold border border-[color:var(--crm-border-default)]">
                       {isProjectsLoading && projectJobs.length === 0 ? '...' : projectJobs.length}
                     </span>
                   </div>
                 )}
               </Link>
               <Link href="/projects/planning" className={subNavItemClass('/projects/planning')}>
-                <Workflow className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Workflow className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Project Planning</span>}
               </Link>
               <Link href="/projects/tasks" className={subNavItemClass('/projects/tasks')}>
-                <CheckSquare className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <CheckSquare className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Task Management</span>
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="px-1.5 py-0.2 rounded-full bg-[color:var(--crm-surface-subtle)] text-crm-brand-700 font-mono text-[9px] font-bold border border-[color:var(--crm-border-default)]">
                       {masterTasks.length}
                     </span>
                   </div>
@@ -531,8 +533,8 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 designerOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
-                  : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+                  ? 'text-[color:var(--crm-text-primary)] bg-[#EEF1F7]/60 hover:bg-[color:var(--crm-surface-subtle)]'
+                  : 'text-[color:var(--crm-text-primary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)]'
               )}
             >
               <div className="flex items-center gap-2.5">
@@ -541,7 +543,7 @@ export function Sidebar() {
               </div>
               <ChevronDown
                 className={cn(
-                  'w-3.5 h-3.5 text-[#9E8E82] transition-transform duration-200',
+                  'w-3.5 h-3.5 text-[color:var(--crm-text-tertiary)] transition-transform duration-200',
                   designerOpen ? 'rotate-0' : '-rotate-90'
                 )}
               />
@@ -549,14 +551,14 @@ export function Sidebar() {
           )}
 
           {(designerOpen || sidebarCollapsed) && (
-            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[#E5DCD3] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
+            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
               <Link href="/designer/jobs" className={subNavItemClass('/designer/jobs')}>
-                <Compass className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Compass className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Design Jobs</span>
                     {designJobs.length > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="px-1.5 py-0.2 rounded-full bg-[color:var(--crm-surface-subtle)] text-crm-brand-700 font-mono text-[9px] font-bold border border-[color:var(--crm-border-default)]">
                       {designJobs.length}
                     </span>
                   )}
@@ -564,7 +566,7 @@ export function Sidebar() {
                 )}
               </Link>
               <Link href="/designer/bom" className={subNavItemClass('/designer/bom')}>
-                <FileSpreadsheet className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <FileSpreadsheet className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>BOM</span>}
               </Link>
             </div>
@@ -581,8 +583,8 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 purchaseOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
-                  : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+                  ? 'text-[color:var(--crm-text-primary)] bg-[#EEF1F7]/60 hover:bg-[color:var(--crm-surface-subtle)]'
+                  : 'text-[color:var(--crm-text-primary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)]'
               )}
             >
               <div className="flex items-center gap-2.5">
@@ -591,7 +593,7 @@ export function Sidebar() {
               </div>
               <ChevronDown
                 className={cn(
-                  'w-3.5 h-3.5 text-[#9E8E82] transition-transform duration-200',
+                  'w-3.5 h-3.5 text-[color:var(--crm-text-tertiary)] transition-transform duration-200',
                   purchaseOpen ? 'rotate-0' : '-rotate-90'
                 )}
               />
@@ -599,18 +601,18 @@ export function Sidebar() {
           )}
 
           {(purchaseOpen || sidebarCollapsed) && (
-            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[#E5DCD3] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
+            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
               <Link href="/purchase/dashboard" className={subNavItemClass('/purchase/dashboard')}>
-                <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Purchase Dashboard</span>}
               </Link>
               <Link href="/purchase/requisition" className={subNavItemClass('/purchase/requisition')}>
-                <FileText className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <FileText className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Material Requisition</span>
                     {purchaseRequisitions.length > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="px-1.5 py-0.2 rounded-full bg-[color:var(--crm-surface-subtle)] text-crm-brand-700 font-mono text-[9px] font-bold border border-[color:var(--crm-border-default)]">
                       {purchaseRequisitions.length}
                     </span>
                   )}
@@ -618,12 +620,12 @@ export function Sidebar() {
                 )}
               </Link>
               <Link href="/purchase/requests" className={subNavItemClass('/purchase/requests')}>
-                <Send className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Send className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Purchase Requests (REQUIRE)</span>
                     {rfqs && rfqs.length > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="px-1.5 py-0.2 rounded-full bg-[color:var(--crm-surface-subtle)] text-crm-brand-700 font-mono text-[9px] font-bold border border-[color:var(--crm-border-default)]">
                       {rfqs.length}
                     </span>
                   )}
@@ -631,12 +633,12 @@ export function Sidebar() {
                 )}
               </Link>
               <Link href="/purchase/quotations" className={subNavItemClass('/purchase/quotations')}>
-                <FileCheck2 className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <FileCheck2 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Supplier Quotations</span>
                     {supplierQuotations && supplierQuotations.length > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="px-1.5 py-0.2 rounded-full bg-[color:var(--crm-surface-subtle)] text-crm-brand-700 font-mono text-[9px] font-bold border border-[color:var(--crm-border-default)]">
                       {supplierQuotations.length}
                     </span>
                   )}
@@ -644,12 +646,12 @@ export function Sidebar() {
                 )}
               </Link>
               <Link href="/purchase/po" className={subNavItemClass('/purchase/po')}>
-                <ShoppingBag className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <ShoppingBag className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Purchase Orders & Approvals</span>
                     {purchaseOrders.length > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="px-1.5 py-0.2 rounded-full bg-[color:var(--crm-surface-subtle)] text-crm-brand-700 font-mono text-[9px] font-bold border border-[color:var(--crm-border-default)]">
                       {purchaseOrders.length}
                     </span>
                   )}
@@ -657,11 +659,11 @@ export function Sidebar() {
                 )}
               </Link>
               <Link href="/purchase/suppliers" className={subNavItemClass('/purchase/suppliers')}>
-                <Building className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Building className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Supplier Master</span>}
               </Link>
               <Link href="/purchase/returns" className={subNavItemClass('/purchase/returns')}>
-                <CornerUpLeft className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <CornerUpLeft className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Purchase Returns</span>}
               </Link>
 
@@ -679,8 +681,8 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 storeOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
-                  : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+                  ? 'text-[color:var(--crm-text-primary)] bg-[#EEF1F7]/60 hover:bg-[color:var(--crm-surface-subtle)]'
+                  : 'text-[color:var(--crm-text-primary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)]'
               )}
             >
               <div className="flex items-center gap-2.5">
@@ -689,7 +691,7 @@ export function Sidebar() {
               </div>
               <ChevronDown
                 className={cn(
-                  'w-3.5 h-3.5 text-[#9E8E82] transition-transform duration-200',
+                  'w-3.5 h-3.5 text-[color:var(--crm-text-tertiary)] transition-transform duration-200',
                   storeOpen ? 'rotate-0' : '-rotate-90'
                 )}
               />
@@ -697,18 +699,18 @@ export function Sidebar() {
           )}
 
           {(storeOpen || sidebarCollapsed) && (
-            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[#E5DCD3] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
+            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
               <Link href="/store/dashboard" className={subNavItemClass('/store/dashboard')}>
-                <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Store Dashboard</span>}
               </Link>
               <Link href="/store/items" className={subNavItemClass('/store/items')}>
-                <Package className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Package className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Item / Material Master</span>
                     {itemMasters.length > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="px-1.5 py-0.2 rounded-full bg-[color:var(--crm-surface-subtle)] text-crm-brand-700 font-mono text-[9px] font-bold border border-[color:var(--crm-border-default)]">
                       {itemMasters.length}
                     </span>
                   )}
@@ -716,20 +718,20 @@ export function Sidebar() {
                 )}
               </Link>
               <Link href="/store/categories" className={subNavItemClass('/store/categories')}>
-                <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Item Categories</span>}
               </Link>
               <Link href="/store/uom" className={subNavItemClass('/store/uom')}>
-                <Scale className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Scale className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Units of Measurement</span>}
               </Link>
               <Link href="/store/grn" className={subNavItemClass('/store/grn')}>
-                <PackageCheck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <PackageCheck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Goods Receipt / GRN</span>
                     {goodsReceipts.length > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full bg-[#EFE8DF] text-crm-brand-700 font-mono text-[9px] font-bold border border-[#E5DCD3]">
+                    <span className="px-1.5 py-0.2 rounded-full bg-[color:var(--crm-surface-subtle)] text-crm-brand-700 font-mono text-[9px] font-bold border border-[color:var(--crm-border-default)]">
                       {goodsReceipts.length}
                     </span>
                   )}
@@ -737,7 +739,7 @@ export function Sidebar() {
                 )}
               </Link>
               <Link href="/store/bom-verification" className={subNavItemClass('/store/bom-verification')}>
-                <FileSpreadsheet className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <FileSpreadsheet className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>BOM Material Verify</span>
@@ -748,19 +750,19 @@ export function Sidebar() {
                 )}
               </Link>
               <Link href="/store/material-issue" className={subNavItemClass('/store/material-issue')}>
-                <Truck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Truck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Material Issue</span>}
               </Link>
               <Link href="/store/material-return" className={subNavItemClass('/store/material-return')}>
-                <CornerUpLeft className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <CornerUpLeft className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Material Return</span>}
               </Link>
               <Link href="/store/scrap" className={subNavItemClass('/store/scrap')}>
-                <Trash2 className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Trash2 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Scrap & Rejection</span>}
               </Link>
               <Link href="/store/reorder" className={subNavItemClass('/store/reorder')}>
-                <Boxes className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Boxes className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Low Stock / Reorder</span>}
               </Link>
 
@@ -778,8 +780,8 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 productionOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
-                  : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+                  ? 'text-[color:var(--crm-text-primary)] bg-[#EEF1F7]/60 hover:bg-[color:var(--crm-surface-subtle)]'
+                  : 'text-[color:var(--crm-text-primary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)]'
               )}
             >
               <div className="flex items-center gap-2.5">
@@ -788,7 +790,7 @@ export function Sidebar() {
               </div>
               <ChevronDown
                 className={cn(
-                  'w-3.5 h-3.5 text-[#9E8E82] transition-transform duration-200',
+                  'w-3.5 h-3.5 text-[color:var(--crm-text-tertiary)] transition-transform duration-200',
                   productionOpen ? 'rotate-0' : '-rotate-90'
                 )}
               />
@@ -796,13 +798,13 @@ export function Sidebar() {
           )}
 
           {(productionOpen || sidebarCollapsed) && (
-            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[#E5DCD3] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
+            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
               <Link href="/production/dashboard" className={subNavItemClass('/production/dashboard')}>
-                <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Production Dashboard</span>}
               </Link>
               <Link href="/production/planning" className={subNavItemClass('/production/planning')}>
-                <Compass className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Compass className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && (
                   <div className="flex items-center justify-between w-full">
                     <span>Production Planning</span>
@@ -821,19 +823,19 @@ export function Sidebar() {
                 )}
               </Link>
               <Link href="/production/mrp" className={subNavItemClass('/production/mrp')}>
-                <Cpu className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Cpu className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Material Planning & Issue (MRP)</span>}
               </Link>
               <Link href="/production/completion" className={subNavItemClass('/production/completion')}>
-                <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Completion & QC Clearance</span>}
               </Link>
               <Link href="/production/packaging" className={subNavItemClass('/production/packaging')}>
-                <Package className="w-3.5 h-3.5 flex-shrink-0 text-amber-700 group-hover:text-amber-900 transition-colors" />
+                <Package className="w-3.5 h-3.5 flex-shrink-0 text-crm-brand-600 group-hover:text-crm-brand-600 transition-colors" />
                 {!sidebarCollapsed && <span>Dispatch & Packaging</span>}
               </Link>
               <Link href="/production/dispatch" className={subNavItemClass('/production/dispatch')}>
-                <Truck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Truck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Delivery Challan</span>}
               </Link>
               <Link href="/accounting/e-waybill" className={subNavItemClass('/accounting/e-waybill')}>
@@ -855,8 +857,8 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 accountingOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
-                  : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+                  ? 'text-[color:var(--crm-text-primary)] bg-[#EEF1F7]/60 hover:bg-[color:var(--crm-surface-subtle)]'
+                  : 'text-[color:var(--crm-text-primary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)]'
               )}
             >
               <div className="flex items-center gap-2.5">
@@ -865,7 +867,7 @@ export function Sidebar() {
               </div>
               <ChevronDown
                 className={cn(
-                  'w-3.5 h-3.5 text-[#9E8E82] transition-transform duration-200',
+                  'w-3.5 h-3.5 text-[color:var(--crm-text-tertiary)] transition-transform duration-200',
                   accountingOpen ? 'rotate-0' : '-rotate-90'
                 )}
               />
@@ -873,29 +875,29 @@ export function Sidebar() {
           )}
 
           {(accountingOpen || sidebarCollapsed) && (
-            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[#E5DCD3] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
+            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
               <Link href="/accounting/dashboard" className={subNavItemClass('/accounting/dashboard')}>
-                <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Accounting Dashboard</span>}
               </Link>
               <Link href="/accounting/chart-of-accounts" className={subNavItemClass('/accounting/chart-of-accounts')}>
-                <GitBranch className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <GitBranch className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Chart of Accounts</span>}
               </Link>
               <Link href="/accounting/account-groups" className={subNavItemClass('/accounting/account-groups')}>
-                <Folder className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Folder className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Account Groups</span>}
               </Link>
               <Link href="/accounting/customers" className={subNavItemClass('/accounting/customers')}>
-                <Users className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Users className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Customer Ledgers</span>}
               </Link>
               <Link href="/accounting/suppliers" className={subNavItemClass('/accounting/suppliers')}>
-                <Building className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Building className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Supplier Ledgers</span>}
               </Link>
               <Link href="/accounting/sales-invoices" className={subNavItemClass('/accounting/sales-invoices')}>
-                <Receipt className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Receipt className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Sales Invoices</span>}
               </Link>
               <Link href="/accounting/e-waybill" className={subNavItemClass('/accounting/e-waybill')}>
@@ -910,88 +912,88 @@ export function Sidebar() {
                 )}
               </Link>
               <Link href="/accounting/purchase-invoices" className={subNavItemClass('/accounting/purchase-invoices')}>
-                <FileText className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <FileText className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Purchase Invoices</span>}
               </Link>
               <Link href="/accounting/credit-notes" className={subNavItemClass('/accounting/credit-notes')}>
-                <CreditCard className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <CreditCard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Credit Notes</span>}
               </Link>
               <Link href="/accounting/debit-notes" className={subNavItemClass('/accounting/debit-notes')}>
-                <CreditCard className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <CreditCard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Debit Notes</span>}
               </Link>
               <Link href="/accounting/receipts" className={subNavItemClass('/accounting/receipts')}>
-                <Coins className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Coins className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Customer Receipts</span>}
               </Link>
               <Link href="/accounting/payments" className={subNavItemClass('/accounting/payments')}>
-                <Banknote className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Banknote className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Supplier Payments</span>}
               </Link>
               <Link href="/accounting/journal-entries" className={subNavItemClass('/accounting/journal-entries')}>
-                <FileSpreadsheet className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <FileSpreadsheet className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Journal Entries (JV)</span>}
               </Link>
               <Link href="/accounting/contra-entries" className={subNavItemClass('/accounting/contra-entries')}>
-                <RotateCcw className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <RotateCcw className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Contra Entries</span>}
               </Link>
               <Link href="/accounting/expenses" className={subNavItemClass('/accounting/expenses')}>
-                <Wallet className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Wallet className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Expense Management</span>}
               </Link>
               <Link href="/accounting/cash-bank" className={subNavItemClass('/accounting/cash-bank')}>
-                <Landmark className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Landmark className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Cash & Bank Accounts</span>}
               </Link>
               <Link href="/accounting/bank-reconciliation" className={subNavItemClass('/accounting/bank-reconciliation')}>
-                <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Bank Reconciliation</span>}
               </Link>
               <Link href="/accounting/gst" className={subNavItemClass('/accounting/gst')}>
-                <Scale className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Scale className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>GST Management</span>}
               </Link>
               <Link href="/accounting/tds" className={subNavItemClass('/accounting/tds')}>
-                <Calculator className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Calculator className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>TDS Compliance</span>}
               </Link>
               <Link href="/accounting/accounts-receivable" className={subNavItemClass('/accounting/accounts-receivable')}>
-                <TrendingUp className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <TrendingUp className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Accounts Receivable (AR)</span>}
               </Link>
               <Link href="/accounting/accounts-payable" className={subNavItemClass('/accounting/accounts-payable')}>
-                <Clock className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Clock className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Accounts Payable (AP)</span>}
               </Link>
               <Link href="/accounting/outstanding" className={subNavItemClass('/accounting/outstanding')}>
-                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Outstanding & Reminders</span>}
               </Link>
               <Link href="/accounting/job-costing" className={subNavItemClass('/accounting/job-costing')}>
-                <DollarSign className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <DollarSign className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Job-wise Costing</span>}
               </Link>
               <Link href="/accounting/project-costing" className={subNavItemClass('/accounting/project-costing')}>
-                <Briefcase className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Briefcase className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Project Financial Costing</span>}
               </Link>
               <Link href="/accounting/inventory-valuation" className={subNavItemClass('/accounting/inventory-valuation')}>
-                <Box className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Box className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Inventory Financial Valuation</span>}
               </Link>
               <Link href="/accounting/fixed-assets" className={subNavItemClass('/accounting/fixed-assets')}>
-                <Building className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Building className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Fixed Assets Master</span>}
               </Link>
               <Link href="/accounting/depreciation" className={subNavItemClass('/accounting/depreciation')}>
-                <History className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <History className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Depreciation Schedule</span>}
               </Link>
 
               <Link href="/accounting/settings" className={subNavItemClass('/accounting/settings')}>
-                <Settings className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Settings className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Accounting Settings</span>}
               </Link>
             </div>
@@ -1008,8 +1010,8 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 maintenanceOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
-                  : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+                  ? 'text-[color:var(--crm-text-primary)] bg-[#EEF1F7]/60 hover:bg-[color:var(--crm-surface-subtle)]'
+                  : 'text-[color:var(--crm-text-primary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)]'
               )}
             >
               <div className="flex items-center gap-2.5">
@@ -1018,7 +1020,7 @@ export function Sidebar() {
               </div>
               <ChevronDown
                 className={cn(
-                  'w-3.5 h-3.5 text-[#9E8E82] transition-transform duration-200',
+                  'w-3.5 h-3.5 text-[color:var(--crm-text-tertiary)] transition-transform duration-200',
                   maintenanceOpen ? 'rotate-0' : '-rotate-90'
                 )}
               />
@@ -1026,21 +1028,21 @@ export function Sidebar() {
           )}
 
           {(maintenanceOpen || sidebarCollapsed) && (
-            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[#E5DCD3] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
+            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
               <Link href="/maintenance/dashboard" className={subNavItemClass('/maintenance/dashboard')}>
-                <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Maintenance Dashboard</span>}
               </Link>
               <Link href="/maintenance/assets" className={subNavItemClass('/maintenance/assets')}>
-                <Cpu className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Cpu className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Asset / Machine Master</span>}
               </Link>
               <Link href="/maintenance/service-requests" className={subNavItemClass('/maintenance/service-requests')}>
-                <PhoneCall className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <PhoneCall className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Service Requests</span>}
               </Link>
               <Link href="/maintenance/breakdowns" className={subNavItemClass('/maintenance/breakdowns')}>
-                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Breakdown Management</span>}
               </Link>
             </div>
@@ -1057,8 +1059,8 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 hrOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
-                  : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+                  ? 'text-[color:var(--crm-text-primary)] bg-[#EEF1F7]/60 hover:bg-[color:var(--crm-surface-subtle)]'
+                  : 'text-[color:var(--crm-text-primary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)]'
               )}
             >
               <div className="flex items-center gap-2.5">
@@ -1067,7 +1069,7 @@ export function Sidebar() {
               </div>
               <ChevronDown
                 className={cn(
-                  'w-3.5 h-3.5 text-[#9E8E82] transition-transform duration-200',
+                  'w-3.5 h-3.5 text-[color:var(--crm-text-tertiary)] transition-transform duration-200',
                   hrOpen ? 'rotate-0' : '-rotate-90'
                 )}
               />
@@ -1075,129 +1077,129 @@ export function Sidebar() {
           )}
 
           {(hrOpen || sidebarCollapsed) && (
-            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[#E5DCD3] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
+            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
               {/* HR */}
               {!sidebarCollapsed && <div className="px-3 pt-1 text-[9px] font-semibold text-slate-500 uppercase tracking-wider">HR</div>}
               <Link href="/hr/dashboard" className={subNavItemClass('/hr/dashboard')}>
-                <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>1. HR Dashboard</span>}
               </Link>
               <Link href="/hr/employees" className={subNavItemClass('/hr/employees')}>
-                <UserCheck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <UserCheck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>2. Employee Master</span>}
               </Link>
               <Link href="/hr/departments" className={subNavItemClass('/hr/departments')}>
-                <Building className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Building className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>3. Departments</span>}
               </Link>
               <Link href="/hr/designations" className={subNavItemClass('/hr/designations')}>
-                <Briefcase className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Briefcase className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>4. Designations</span>}
               </Link>
               <Link href="/hr/documents" className={subNavItemClass('/hr/documents')}>
-                <FileText className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <FileText className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>5. Employee Documents</span>}
               </Link>
               <Link href="/hr/onboarding" className={subNavItemClass('/hr/onboarding')}>
-                <UserPlus className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <UserPlus className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>6. Employee Onboarding</span>}
               </Link>
               <Link href="/hr/transfers" className={subNavItemClass('/hr/transfers')}>
-                <Workflow className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Workflow className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>7. Employee Transfers</span>}
               </Link>
               <Link href="/hr/promotions" className={subNavItemClass('/hr/promotions')}>
-                <TrendingUp className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <TrendingUp className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>8. Promotion & Increment</span>}
               </Link>
               <Link href="/hr/exits" className={subNavItemClass('/hr/exits')}>
-                <History className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <History className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>9. Resignation / Exit</span>}
               </Link>
               <Link href="/hr/settlement" className={subNavItemClass('/hr/settlement')}>
-                <Calculator className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Calculator className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>10. Full & Final Settlement</span>}
               </Link>
 
               {/* Attendance */}
               {!sidebarCollapsed && <div className="px-3 pt-2 text-[9px] font-semibold text-slate-500 uppercase tracking-wider">Attendance</div>}
               <Link href="/hr/attendance" className={subNavItemClass('/hr/attendance')}>
-                <Clock className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Clock className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>11. Attendance</span>}
               </Link>
               <Link href="/hr/shifts" className={subNavItemClass('/hr/shifts')}>
-                <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>12. Shift Management</span>}
               </Link>
               <Link href="/hr/roster" className={subNavItemClass('/hr/roster')}>
-                <Calendar className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Calendar className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>13. Shift Roster</span>}
               </Link>
               <Link href="/hr/holidays" className={subNavItemClass('/hr/holidays')}>
-                <Sparkles className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Sparkles className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>14. Holiday Calendar</span>}
               </Link>
               <Link href="/hr/leaves" className={subNavItemClass('/hr/leaves')}>
-                <FileCheck2 className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <FileCheck2 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>15. Leave Management</span>}
               </Link>
               <Link href="/hr/leave-approvals" className={subNavItemClass('/hr/leave-approvals')}>
-                <CheckSquare className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <CheckSquare className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>16. Leave Approvals</span>}
               </Link>
               <Link href="/hr/wfh" className={subNavItemClass('/hr/wfh')}>
-                <Compass className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Compass className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>17. WFH / Remote Work</span>}
               </Link>
               <Link href="/hr/missed-punch" className={subNavItemClass('/hr/missed-punch')}>
-                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>18. Missed Punch</span>}
               </Link>
               <Link href="/hr/regularization" className={subNavItemClass('/hr/regularization')}>
-                <RotateCcw className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <RotateCcw className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>19. Attendance Regularization</span>}
               </Link>
               <Link href="/hr/overtime" className={subNavItemClass('/hr/overtime')}>
-                <Zap className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Zap className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>20. Overtime</span>}
               </Link>
               <Link href="/hr/early-checkout" className={subNavItemClass('/hr/early-checkout')}>
-                <History className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <History className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>21. Early Checkout</span>}
               </Link>
 
               {/* Payroll */}
               {!sidebarCollapsed && <div className="px-3 pt-2 text-[9px] font-semibold text-slate-500 uppercase tracking-wider">Payroll</div>}
               <Link href="/hr/payroll-dashboard" className={subNavItemClass('/hr/payroll-dashboard')}>
-                <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>22. Payroll Dashboard</span>}
               </Link>
               <Link href="/hr/salary-structures" className={subNavItemClass('/hr/salary-structures')}>
-                <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>23. Salary Structure</span>}
               </Link>
               <Link href="/hr/salary-components" className={subNavItemClass('/hr/salary-components')}>
-                <Calculator className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Calculator className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>24. Salary Components</span>}
               </Link>
               <Link href="/hr/monthly-payroll" className={subNavItemClass('/hr/monthly-payroll')}>
-                <Banknote className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Banknote className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>25. Monthly Payroll</span>}
               </Link>
               <Link href="/hr/payroll-approvals" className={subNavItemClass('/hr/payroll-approvals')}>
-                <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>26. Payroll Approval</span>}
               </Link>
               <Link href="/hr/advances" className={subNavItemClass('/hr/advances')}>
-                <Wallet className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Wallet className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>27. Employee Advances / Loans</span>}
               </Link>
               <Link href="/hr/reimbursements" className={subNavItemClass('/hr/reimbursements')}>
-                <Receipt className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Receipt className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>28. Reimbursements / Expenses</span>}
               </Link>
               <Link href="/hr/payslips" className={subNavItemClass('/hr/payslips')}>
-                <FileText className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <FileText className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>29. Payslips</span>}
               </Link>
 
@@ -1216,8 +1218,8 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 integrationOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
-                  : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+                  ? 'text-[color:var(--crm-text-primary)] bg-[#EEF1F7]/60 hover:bg-[color:var(--crm-surface-subtle)]'
+                  : 'text-[color:var(--crm-text-primary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)]'
               )}
             >
               <div className="flex items-center gap-2.5">
@@ -1226,7 +1228,7 @@ export function Sidebar() {
               </div>
               <ChevronDown
                 className={cn(
-                  'w-3.5 h-3.5 text-[#9E8E82] transition-transform duration-200',
+                  'w-3.5 h-3.5 text-[color:var(--crm-text-tertiary)] transition-transform duration-200',
                   integrationOpen ? 'rotate-0' : '-rotate-90'
                 )}
               />
@@ -1234,41 +1236,41 @@ export function Sidebar() {
           )}
 
           {(integrationOpen || sidebarCollapsed) && (
-            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[#E5DCD3] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
+            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
               <Link href="/integration/job-360" className={subNavItemClass('/integration/job-360')}>
-                <Compass className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Compass className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>1. Job 360° Overview</span>}
               </Link>
               <Link href="/integration/management-dashboard" className={subNavItemClass('/integration/management-dashboard')}>
-                <BarChart3 className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <BarChart3 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>2. Executive Dashboard</span>}
               </Link>
               <Link href="/integration/alert-center" className={subNavItemClass('/integration/alert-center')}>
-                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>3. Action & Alert Center</span>}
               </Link>
               <Link href="/integration/approval-center" className={subNavItemClass('/integration/approval-center')}>
-                <CheckSquare className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <CheckSquare className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>4. Approval Center</span>}
               </Link>
               <Link href="/integration/customer-360" className={subNavItemClass('/integration/customer-360')}>
-                <UserCheck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <UserCheck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>5. Customer 360°</span>}
               </Link>
               <Link href="/integration/supplier-360" className={subNavItemClass('/integration/supplier-360')}>
-                <Truck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Truck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>6. Supplier 360°</span>}
               </Link>
               <Link href="/integration/item-360" className={subNavItemClass('/integration/item-360')}>
-                <Box className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Box className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>7. Item / Material 360°</span>}
               </Link>
               <Link href="/integration/employee-360" className={subNavItemClass('/integration/employee-360')}>
-                <Users className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Users className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>8. Employee 360°</span>}
               </Link>
               <Link href="/integration/activity-log" className={subNavItemClass('/integration/activity-log')}>
-                <ActivityIcon className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <ActivityIcon className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>9. Global Activity Trail</span>}
               </Link>
 
@@ -1286,8 +1288,8 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 testingOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
-                  : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+                  ? 'text-[color:var(--crm-text-primary)] bg-[#EEF1F7]/60 hover:bg-[color:var(--crm-surface-subtle)]'
+                  : 'text-[color:var(--crm-text-primary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)]'
               )}
             >
               <div className="flex items-center gap-2.5">
@@ -1296,7 +1298,7 @@ export function Sidebar() {
               </div>
               <ChevronDown
                 className={cn(
-                  'w-3.5 h-3.5 text-[#9E8E82] transition-transform duration-200',
+                  'w-3.5 h-3.5 text-[color:var(--crm-text-tertiary)] transition-transform duration-200',
                   testingOpen ? 'rotate-0' : '-rotate-90'
                 )}
               />
@@ -1304,33 +1306,33 @@ export function Sidebar() {
           )}
 
           {(testingOpen || sidebarCollapsed) && (
-            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[#E5DCD3] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
+            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
               <Link href="/testing/uat-hub" className={subNavItemClass('/testing/uat-hub')}>
-                <FileCheck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <FileCheck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>1. ERP UAT & Test Matrix</span>}
               </Link>
               <Link href="/testing/role-matrix" className={subNavItemClass('/testing/role-matrix')}>
-                <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>2. Role & Scope Tester</span>}
               </Link>
               <Link href="/testing/bug-tracker" className={subNavItemClass('/testing/bug-tracker')}>
-                <Bug className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Bug className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>3. Internal Bug Tracker</span>}
               </Link>
               <Link href="/settings/backup-restore" className={subNavItemClass('/settings/backup-restore')}>
-                <Database className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Database className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>4. Backup & Recovery</span>}
               </Link>
               <Link href="/settings/data-import" className={subNavItemClass('/settings/data-import')}>
-                <UploadCloud className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <UploadCloud className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>5. Data Import Wizard</span>}
               </Link>
               <Link href="/settings/security-hub" className={subNavItemClass('/settings/security-hub')}>
-                <ShieldAlert className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <ShieldAlert className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>6. Security & Audit Hub</span>}
               </Link>
               <Link href="/settings/release-notes" className={subNavItemClass('/settings/release-notes')}>
-                <BookOpen className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <BookOpen className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>7. Go-Live & Release Notes</span>}
               </Link>
             </div>
@@ -1347,8 +1349,8 @@ export function Sidebar() {
               className={cn(
                 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group',
                 settingsOpen
-                  ? 'text-[#3E2723] bg-[#EFE8DF]/60 hover:bg-[#EFE8DF]'
-                  : 'text-[#4A3B32] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+                  ? 'text-[color:var(--crm-text-primary)] bg-[#EEF1F7]/60 hover:bg-[color:var(--crm-surface-subtle)]'
+                  : 'text-[color:var(--crm-text-primary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)]'
               )}
             >
               <div className="flex items-center gap-2.5">
@@ -1357,7 +1359,7 @@ export function Sidebar() {
               </div>
               <ChevronDown
                 className={cn(
-                  'w-3.5 h-3.5 text-[#9E8E82] transition-transform duration-200',
+                  'w-3.5 h-3.5 text-[color:var(--crm-text-tertiary)] transition-transform duration-200',
                   settingsOpen ? 'rotate-0' : '-rotate-90'
                 )}
               />
@@ -1365,37 +1367,37 @@ export function Sidebar() {
           )}
 
           {(settingsOpen || sidebarCollapsed) && (
-            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[#E5DCD3] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
+            <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
               <Link href="/users" className={subNavItemClass('/users')}>
-                <UserCheck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <UserCheck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Users & Employees</span>}
               </Link>
               <Link href="/departments" className={subNavItemClass('/departments')}>
-                <Building className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Building className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Departments (9 Core)</span>}
               </Link>
               <Link href="/roles" className={subNavItemClass('/roles')}>
-                <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Role Management</span>}
               </Link>
               <Link href="/permissions" className={subNavItemClass('/permissions')}>
-                <Lock className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Lock className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Permission Matrix</span>}
               </Link>
               <Link href="/settings/company" className={subNavItemClass('/settings/company')}>
-                <Settings className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Settings className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Company Profile</span>}
               </Link>
               <Link href="/settings/numbering" className={subNavItemClass('/settings/numbering')}>
-                <Hash className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Hash className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Numbering Series</span>}
               </Link>
               <Link href="/settings/audit-logs" className={subNavItemClass('/settings/audit-logs')}>
-                <History className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <History className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Audit Trail Logs</span>}
               </Link>
               <Link href="/notifications" className={subNavItemClass('/notifications')}>
-                <Bell className="w-3.5 h-3.5 flex-shrink-0 text-[#8D7B70] group-hover:text-[#3E2723] transition-colors" />
+                <Bell className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
                 {!sidebarCollapsed && <span>Notifications</span>}
               </Link>
             </div>
@@ -1405,18 +1407,18 @@ export function Sidebar() {
       </div>
 
       {/* Quality | Innovation | Partnership Card Footer */}
-      <div className="p-3 border-t border-[var(--crm-border-default,#EBE3DB)] bg-[var(--crm-bg-sidebar,#FAF7F2)] flex-shrink-0">
+      <div className="p-3 border-t border-[var(--crm-border-default,#E2E7EF)] bg-[var(--crm-bg-sidebar,#F4F6FA)] flex-shrink-0">
         {!sidebarCollapsed ? (
-          <div className="flex items-center gap-2.5 p-2 rounded-xl bg-[var(--crm-surface-card,#FFFFFF)] border border-[var(--crm-border-default,#EBE3DB)] text-[var(--crm-text-primary,#3E2723)] shadow-xs">
-            <div className="w-7 h-7 rounded-full bg-[#211B17] text-white flex items-center justify-center flex-shrink-0 font-bold text-xs shadow-xs">
+          <div className="flex items-center gap-2.5 p-2 rounded-xl bg-[var(--crm-surface-card,#FFFFFF)] border border-[var(--crm-border-default,#E2E7EF)] text-[var(--crm-text-primary,#0F172A)] shadow-xs">
+            <div className="w-7 h-7 rounded-full bg-[color:var(--crm-text-primary)] text-white flex items-center justify-center flex-shrink-0 font-bold text-xs shadow-xs">
               N
             </div>
-            <div className="text-[10px] text-[#6E5D53] font-semibold truncate tracking-tight">
+            <div className="text-[10px] text-[#4B5876] font-semibold truncate tracking-tight">
               Quality | Innovation | Partnership
             </div>
           </div>
         ) : (
-          <div className="w-8 h-8 mx-auto rounded-full bg-[#211B17] flex items-center justify-center text-white shadow-xs font-bold text-xs">
+          <div className="w-8 h-8 mx-auto rounded-full bg-[color:var(--crm-text-primary)] flex items-center justify-center text-white shadow-xs font-bold text-xs">
             N
           </div>
         )}

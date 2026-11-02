@@ -283,30 +283,30 @@ export default function PermissionsPage() {
   return (
     <div className="space-y-5 text-xs">
       {/* Top Header */}
-      <div className="bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-white p-5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="p-2 rounded-xl bg-crm-brand-700/10 text-crm-brand-700">
               <ShieldCheck className="w-5 h-5" />
             </span>
-            <h1 className="text-lg font-bold text-[#211B17]">
+            <h1 className="text-lg font-bold text-[color:var(--crm-text-primary)]">
               Role-Based Access Control (RBAC) & Employee Permissions
             </h1>
           </div>
-          <p className="text-[#70665F] mt-1">
+          <p className="text-[color:var(--crm-text-secondary)] mt-1">
             Department default module auto-assignment, configurable cross-module permissions, and granular action authority.
           </p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center bg-[#FAF7F2] p-1 rounded-xl border border-[#EBE3DB]">
+        <div className="flex items-center bg-[color:var(--crm-bg-app)] p-1 rounded-xl border border-[color:var(--crm-border-default)]">
           <button
             onClick={() => setActiveTab('employee')}
             className={cn(
               'px-4 py-2 min-h-[40px] rounded-lg font-bold text-xs transition flex items-center gap-2 cursor-pointer',
               activeTab === 'employee'
                 ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-sm'
-                : 'text-[#70665F] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+                : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)]'
             )}
           >
             <UserCheck className="w-4 h-4" />
@@ -318,7 +318,7 @@ export default function PermissionsPage() {
               'px-4 py-2 min-h-[40px] rounded-lg font-bold text-xs transition flex items-center gap-2 cursor-pointer',
               activeTab === 'roles'
                 ? 'bg-crm-brand-700 hover:bg-crm-brand-800 text-white shadow-sm'
-                : 'text-[#70665F] hover:text-[#211B17] hover:bg-[#F3ECE4]'
+                : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-surface-subtle)]'
             )}
           >
             <Sliders className="w-4 h-4" />
@@ -339,13 +339,13 @@ export default function PermissionsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
           {/* Left Column: Employee Selector */}
           <div className="lg:col-span-1 space-y-3">
-            <div className="bg-white p-4 rounded-2xl border border-[#EBE3DB] shadow-sm space-y-3">
+            <div className="bg-white p-4 rounded-2xl border border-[color:var(--crm-border-default)] shadow-sm space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-bold text-[#211B17] flex items-center gap-1.5">
+                <h3 className="font-bold text-[color:var(--crm-text-primary)] flex items-center gap-1.5">
                   <Users className="w-4 h-4 text-crm-brand-700" />
                   Select Employee
                 </h3>
-                <span className="text-[11px] text-[#70665F]">
+                <span className="text-[11px] text-[color:var(--crm-text-secondary)]">
                   {availableEmployees.length} total
                 </span>
               </div>
@@ -355,7 +355,7 @@ export default function PermissionsPage() {
                 placeholder="Search by name, ID or department..."
                 value={empSearch}
                 onChange={(e) => setEmpSearch(e.target.value)}
-                className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 min-h-[40px] text-xs text-[#211B17] placeholder:text-[#A89F91] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
+                className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 min-h-[40px] text-xs text-[color:var(--crm-text-primary)] placeholder:text-[color:var(--crm-text-tertiary)] focus:outline-none focus:ring-1 focus:ring-crm-brand-700"
               />
 
               <div className="space-y-1.5 max-h-[520px] overflow-y-auto pr-1">
@@ -372,19 +372,19 @@ export default function PermissionsPage() {
                         'w-full text-left p-2.5 rounded-xl border transition flex items-center justify-between cursor-pointer',
                         isSelected
                           ? 'bg-crm-brand-700/10 border-crm-brand-700/40 text-crm-brand-900 shadow-sm'
-                          : 'bg-[#FAF7F2]/60 border-transparent hover:bg-[#FAF7F2] text-[#3E2723]'
+                          : 'bg-[#F4F6FA]/60 border-transparent hover:bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)]'
                       )}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div className={cn(
                           'w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0',
-                          isSelected ? 'bg-crm-brand-700 text-white' : 'bg-white border border-[#EBE3DB] text-crm-brand-700'
+                          isSelected ? 'bg-crm-brand-700 text-white' : 'bg-white border border-[color:var(--crm-border-default)] text-crm-brand-700'
                         )}>
                           {empName.charAt(0)}
                         </div>
                         <div className="min-w-0">
                           <p className="font-bold truncate text-xs">{empName}</p>
-                          <p className="text-[10px] text-[#70665F] truncate">{dept} • {emp.id}</p>
+                          <p className="text-[10px] text-[color:var(--crm-text-secondary)] truncate">{dept} • {emp.id}</p>
                         </div>
                       </div>
                       {(() => {
@@ -410,18 +410,18 @@ export default function PermissionsPage() {
             {selectedEmployee ? (
               <>
                 {/* Employee Profile Header & Quick Privileges */}
-                <div className="bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-sm space-y-4">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-[#EBE3DB]">
+                <div className="bg-white p-5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-sm space-y-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-[color:var(--crm-border-default)]">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-crm-brand-600 to-crm-brand-800 text-white flex items-center justify-center font-bold text-lg shadow-sm">
                         {(selectedEmployee.name || selectedEmployee.firstName || 'U').charAt(0)}
                       </div>
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h2 className="text-base font-bold text-[#211B17]">
+                          <h2 className="text-base font-bold text-[color:var(--crm-text-primary)]">
                             {selectedEmployee.name || `${selectedEmployee.firstName || ''} ${selectedEmployee.lastName || ''}`.trim()}
                           </h2>
-                          <span className="text-xs font-mono text-[#70665F]">({selectedEmployee.id})</span>
+                          <span className="text-xs font-mono text-[color:var(--crm-text-secondary)]">({selectedEmployee.id})</span>
                           {(() => {
                             const selRole = getEmpRoleInfo(selectedEmployee);
                             return (
@@ -434,7 +434,7 @@ export default function PermissionsPage() {
                             {selectedEmployee.status || 'Active'}
                           </span>
                         </div>
-                        <p className="text-xs text-[#70665F]">
+                        <p className="text-xs text-[color:var(--crm-text-secondary)]">
                           {selectedEmployee.department || selectedEmployee.departmentName} • {selectedEmployee.designation || selectedEmployee.role || 'Specialist'} • {selectedEmployee.email}
                         </p>
                       </div>
@@ -473,7 +473,7 @@ export default function PermissionsPage() {
                           { value: 'employee', label: 'Tier 4: Department Employee (Self-Service & Workspace)' },
                         ]}
                       />
-                      <p className="text-[10px] text-[#8C7A6F] mt-1">
+                      <p className="text-[10px] text-[color:var(--crm-text-tertiary)] mt-1">
                         {empRoleType === 'super_admin' && 'Has unrestricted access to all modules, financial data, and system configurations.'}
                         {empRoleType === 'admin' && 'Can manage users, oversee departments, and access designated operational modules.'}
                         {empRoleType === 'department_manager' && 'Supervises their department team, assigns tasks, and approves attendance/leaves.'}
@@ -493,7 +493,7 @@ export default function PermissionsPage() {
                           { value: 'all', label: 'Enterprise All (Full company-wide data visibility)' },
                         ]}
                       />
-                      <p className="text-[10px] text-[#8C7A6F] mt-1">
+                      <p className="text-[10px] text-[color:var(--crm-text-tertiary)] mt-1">
                         Restricts record visibility in listings, reports, and search queries.
                       </p>
                     </div>
@@ -501,59 +501,59 @@ export default function PermissionsPage() {
 
                   {/* Operational Authorities */}
                   <div>
-                    <label className="block font-bold text-[#3E2723] mb-2">
+                    <label className="block font-bold text-[color:var(--crm-text-primary)] mb-2">
                       3. Operational Authorities & Action Privileges:
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                      <label className="flex items-center gap-2 p-2.5 min-h-[40px] rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] cursor-pointer select-none">
+                      <label className="flex items-center gap-2 p-2.5 min-h-[40px] rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] cursor-pointer select-none">
                         <input
                           type="checkbox"
                           checked={empCanAssignTasks}
                           onChange={(e) => setEmpCanAssignTasks(e.target.checked)}
                           className="rounded text-crm-brand-700 w-4 h-4 cursor-pointer"
                         />
-                        <span className="font-bold text-[#211B17]">Can Assign Tasks</span>
+                        <span className="font-bold text-[color:var(--crm-text-primary)]">Can Assign Tasks</span>
                       </label>
-                      <label className="flex items-center gap-2 p-2.5 min-h-[40px] rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] cursor-pointer select-none">
+                      <label className="flex items-center gap-2 p-2.5 min-h-[40px] rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] cursor-pointer select-none">
                         <input
                           type="checkbox"
                           checked={empCanApproveLeaves}
                           onChange={(e) => setEmpCanApproveLeaves(e.target.checked)}
                           className="rounded text-crm-brand-700 w-4 h-4 cursor-pointer"
                         />
-                        <span className="font-bold text-[#211B17]">Can Approve Leaves</span>
+                        <span className="font-bold text-[color:var(--crm-text-primary)]">Can Approve Leaves</span>
                       </label>
-                      <label className="flex items-center gap-2 p-2.5 min-h-[40px] rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] cursor-pointer select-none">
+                      <label className="flex items-center gap-2 p-2.5 min-h-[40px] rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] cursor-pointer select-none">
                         <input
                           type="checkbox"
                           checked={empCanManageAttendance}
                           onChange={(e) => setEmpCanManageAttendance(e.target.checked)}
                           className="rounded text-crm-brand-700 w-4 h-4 cursor-pointer"
                         />
-                        <span className="font-bold text-[#211B17]">Can Manage Attendance</span>
+                        <span className="font-bold text-[color:var(--crm-text-primary)]">Can Manage Attendance</span>
                       </label>
-                      <label className="flex items-center gap-2 p-2.5 min-h-[40px] rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] cursor-pointer select-none">
+                      <label className="flex items-center gap-2 p-2.5 min-h-[40px] rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] cursor-pointer select-none">
                         <input
                           type="checkbox"
                           checked={empCanExportData}
                           onChange={(e) => setEmpCanExportData(e.target.checked)}
                           className="rounded text-crm-brand-700 w-4 h-4 cursor-pointer"
                         />
-                        <span className="font-bold text-[#211B17]">Can Export Reports</span>
+                        <span className="font-bold text-[color:var(--crm-text-primary)]">Can Export Reports</span>
                       </label>
                     </div>
                   </div>
                 </div>
 
                 {/* Module Access Assignment */}
-                <div className="bg-white p-5 rounded-2xl border border-[#EBE3DB] shadow-sm space-y-3">
+                <div className="bg-white p-5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-sm space-y-3">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                     <div>
-                      <h3 className="font-bold text-[#211B17] flex items-center gap-1.5 text-sm">
+                      <h3 className="font-bold text-[color:var(--crm-text-primary)] flex items-center gap-1.5 text-sm">
                         <KeyRound className="w-4 h-4 text-crm-brand-700" />
                         4. Authorized ERP Modules ({empAssignedModules.length} of {ALL_ERP_MODULES.length} Granted)
                       </h3>
-                      <p className="text-[11px] text-[#70665F]">
+                      <p className="text-[11px] text-[color:var(--crm-text-secondary)]">
                         Controls which ERP navigation items appear in the employee sidebar.
                       </p>
                     </div>
@@ -561,14 +561,14 @@ export default function PermissionsPage() {
                       <button
                         type="button"
                         onClick={handleSelectDeptDefaults}
-                        className="px-3 py-2 min-h-[40px] rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] hover:bg-[#EBE3DB] text-crm-brand-700 font-bold text-xs transition cursor-pointer flex items-center"
+                        className="px-3 py-2 min-h-[40px] rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] hover:bg-[color:var(--crm-border-default)] text-crm-brand-700 font-bold text-xs transition cursor-pointer flex items-center"
                       >
                         Reset to Dept Defaults
                       </button>
                       <button
                         type="button"
                         onClick={handleSelectAllModules}
-                        className="px-3 py-2 min-h-[40px] rounded-xl bg-[#FAF7F2] border border-[#EBE3DB] hover:bg-[#EBE3DB] text-crm-brand-700 font-bold text-xs transition cursor-pointer flex items-center"
+                        className="px-3 py-2 min-h-[40px] rounded-xl bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] hover:bg-[color:var(--crm-border-default)] text-crm-brand-700 font-bold text-xs transition cursor-pointer flex items-center"
                       >
                         Select All Modules
                       </button>
@@ -586,7 +586,7 @@ export default function PermissionsPage() {
                             'p-3 rounded-xl border transition cursor-pointer select-none space-y-1',
                             isChecked
                               ? 'bg-crm-brand-700/10 border-crm-brand-700/40 text-crm-brand-900 shadow-sm'
-                              : 'bg-[#FAF7F2]/60 border-[#EBE3DB] hover:bg-[#FAF7F2] text-[#70665F]'
+                              : 'bg-[#F4F6FA]/60 border-[color:var(--crm-border-default)] hover:bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)]'
                           )}
                         >
                           <div className="flex items-center justify-between">
@@ -598,7 +598,7 @@ export default function PermissionsPage() {
                               className="rounded text-crm-brand-700 pointer-events-none w-4 h-4"
                             />
                           </div>
-                          <p className="text-[10px] text-[#8C7A6F] line-clamp-1">{mod.desc}</p>
+                          <p className="text-[10px] text-[color:var(--crm-text-tertiary)] line-clamp-1">{mod.desc}</p>
                         </div>
                       );
                     })}
@@ -606,14 +606,14 @@ export default function PermissionsPage() {
                 </div>
 
                 {/* Granular Permission Matrix */}
-                <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-sm overflow-hidden">
-                  <div className="p-4 bg-[#FAF7F2] border-b border-[#EBE3DB] flex items-center justify-between">
+                <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] shadow-sm overflow-hidden">
+                  <div className="p-4 bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] flex items-center justify-between">
                     <div>
-                      <h3 className="font-bold text-[#211B17] text-sm flex items-center gap-1.5">
+                      <h3 className="font-bold text-[color:var(--crm-text-primary)] text-sm flex items-center gap-1.5">
                         <Lock className="w-4 h-4 text-crm-brand-700" />
                         5. Granular Action Rights by Page & Resource
                       </h3>
-                      <p className="text-[11px] text-[#70665F]">
+                      <p className="text-[11px] text-[color:var(--crm-text-secondary)]">
                         Explicitly grant or revoke View, Create, Edit, Delete, Approve, Export and Print privileges.
                       </p>
                     </div>
@@ -630,7 +630,7 @@ export default function PermissionsPage() {
 
                   <div className="overflow-x-auto">
                     <table className="w-full text-left">
-                      <thead className="bg-[#FAF7F2]/80 text-[#544B45] font-bold border-b border-[#EBE3DB] uppercase tracking-wider text-[10px]">
+                      <thead className="bg-[#F4F6FA]/80 text-[color:var(--crm-text-secondary)] font-bold border-b border-[color:var(--crm-border-default)] uppercase tracking-wider text-[10px]">
                         <tr>
                           <th className="py-2.5 px-4">Module</th>
                           <th className="py-2.5 px-4">Page / Feature</th>
@@ -639,7 +639,7 @@ export default function PermissionsPage() {
                           ))}
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#EBE3DB]">
+                      <tbody className="divide-y divide-[color:var(--crm-border-default)]">
                         {MODULE_PAGES_LIST.map((item, idx) => {
                           const pageKey = `${item.module}-${item.page}`;
                           const isModuleAssigned = empAssignedModules.includes(item.module);
@@ -650,7 +650,7 @@ export default function PermissionsPage() {
                               key={idx}
                               className={cn(
                                 'transition',
-                                isModuleAssigned ? 'hover:bg-[#FAF7F2]/60' : 'bg-slate-50/70 opacity-60'
+                                isModuleAssigned ? 'hover:bg-[#F4F6FA]/60' : 'bg-slate-50/70 opacity-60'
                               )}
                             >
                               <td className="py-2 px-4 font-bold">
@@ -663,7 +663,7 @@ export default function PermissionsPage() {
                                   {item.moduleLabel}
                                 </span>
                               </td>
-                              <td className="py-2 px-4 font-semibold text-[#211B17]">
+                              <td className="py-2 px-4 font-semibold text-[color:var(--crm-text-primary)]">
                                 <div className="flex items-center gap-1.5">
                                   <span>{item.page}</span>
                                   {!isModuleAssigned && (
@@ -691,7 +691,7 @@ export default function PermissionsPage() {
                                         checked={Boolean(hasAccess)}
                                         disabled={isSuper}
                                         onChange={() => handleEmpPermissionToggle(pageKey, act.id)}
-                                        className="w-4 h-4 rounded text-crm-brand-700 focus:ring-crm-brand-600 border-[#EBE3DB] cursor-pointer disabled:opacity-40"
+                                        className="w-4 h-4 rounded text-crm-brand-700 focus:ring-crm-brand-600 border-[color:var(--crm-border-default)] cursor-pointer disabled:opacity-40"
                                       />
                                     </label>
                                   </td>
@@ -706,10 +706,10 @@ export default function PermissionsPage() {
                 </div>
               </>
             ) : (
-              <div className="bg-white p-12 text-center rounded-2xl border border-[#EBE3DB]">
-                <Users className="w-8 h-8 text-[#A89F91] mx-auto mb-2" />
-                <p className="text-sm font-bold text-[#211B17]">No employee selected</p>
-                <p className="text-xs text-[#70665F]">Choose an employee from the left panel to configure permissions.</p>
+              <div className="bg-white p-12 text-center rounded-2xl border border-[color:var(--crm-border-default)]">
+                <Users className="w-8 h-8 text-[color:var(--crm-text-tertiary)] mx-auto mb-2" />
+                <p className="text-sm font-bold text-[color:var(--crm-text-primary)]">No employee selected</p>
+                <p className="text-xs text-[color:var(--crm-text-secondary)]">Choose an employee from the left panel to configure permissions.</p>
               </div>
             )}
           </div>
@@ -719,12 +719,12 @@ export default function PermissionsPage() {
       {/* TAB 2: GLOBAL ROLE TEMPLATES */}
       {activeTab === 'roles' && (
         <div className="space-y-4">
-          <div className="bg-white p-5 rounded-2xl border border-[#EBE3DB] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+          <div className="bg-white p-5 rounded-2xl border border-[color:var(--crm-border-default)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
             <div>
-              <h2 className="text-sm font-bold text-[#211B17]">
+              <h2 className="text-sm font-bold text-[color:var(--crm-text-primary)]">
                 Baseline Role Templates
               </h2>
-              <p className="text-[#70665F] mt-0.5">
+              <p className="text-[color:var(--crm-text-secondary)] mt-0.5">
                 Default authorization templates applied to newly created employees based on their assigned role.
               </p>
             </div>
@@ -750,10 +750,10 @@ export default function PermissionsPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-[#EBE3DB] shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
-                <thead className="bg-[#FAF7F2] text-[#544B45] font-bold border-b border-[#EBE3DB] uppercase tracking-wider text-[10px]">
+                <thead className="bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] font-bold border-b border-[color:var(--crm-border-default)] uppercase tracking-wider text-[10px]">
                   <tr>
                     <th className="py-3 px-4">Module</th>
                     <th className="py-3 px-4">Page / Resource</th>
@@ -762,20 +762,20 @@ export default function PermissionsPage() {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#EBE3DB]">
+                <tbody className="divide-y divide-[color:var(--crm-border-default)]">
                   {MODULE_PAGES_LIST.map((item, idx) => {
                     const key = `${item.module}-${item.page}`;
                     const isSuper = currentRole?.name === 'Super Admin';
                     const isManager = currentRole?.name?.toLowerCase().includes('manager');
 
                     return (
-                      <tr key={idx} className="hover:bg-[#FAF7F2]/40 transition">
+                      <tr key={idx} className="hover:bg-[#F4F6FA]/40 transition">
                         <td className="py-2.5 px-4 font-bold">
                           <span className="px-2 py-0.5 rounded bg-crm-brand-700/10 text-crm-brand-800 border border-crm-brand-700/20 font-mono text-[10px]">
                             {item.moduleLabel}
                           </span>
                         </td>
-                        <td className="py-2.5 px-4 font-semibold text-[#211B17]">{item.page}</td>
+                        <td className="py-2.5 px-4 font-semibold text-[color:var(--crm-text-primary)]">{item.page}</td>
 
                         {ACTIONS.map((act) => {
                           const defaultChecked =
@@ -792,7 +792,7 @@ export default function PermissionsPage() {
                                   checked={checked}
                                   disabled={isSuper}
                                   onChange={() => handleRoleToggle(key, act.id)}
-                                  className="w-4 h-4 rounded text-crm-brand-700 focus:ring-crm-brand-600 border-[#EBE3DB] cursor-pointer disabled:opacity-50"
+                                  className="w-4 h-4 rounded text-crm-brand-700 focus:ring-crm-brand-600 border-[color:var(--crm-border-default)] cursor-pointer disabled:opacity-50"
                                 />
                               </label>
                             </td>

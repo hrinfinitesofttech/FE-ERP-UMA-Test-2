@@ -527,24 +527,24 @@ function MaterialIssueContent() {
 
   if (!mounted) {
     return (
-      <div className="p-6 bg-[#FAF7F2] min-h-screen text-[#544B45] flex items-center justify-center">
-        <div className="text-xs font-mono text-[#70665F]">Loading Material Issues...</div>
+      <div className="p-6 bg-[color:var(--crm-bg-app)] min-h-screen text-[color:var(--crm-text-secondary)] flex items-center justify-center">
+        <div className="text-xs font-mono text-[color:var(--crm-text-secondary)]">Loading Material Issues...</div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6 bg-[#FAF7F2] text-[#544B45]" suppressHydrationWarning>
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)]" suppressHydrationWarning>
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#EBE3DB] shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-sm">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 text-xs font-mono font-semibold">
               STORE DISPATCH & LOGISTICS
             </span>
-            <h1 className="text-2xl font-black text-[#211B17] tracking-tight">Material Issue to Production</h1>
+            <h1 className="text-2xl font-black text-[color:var(--crm-text-primary)] tracking-tight">Material Issue to Production</h1>
           </div>
-          <p className="text-[#70665F] text-xs mt-1">
+          <p className="text-[color:var(--crm-text-secondary)] text-xs mt-1">
             Store issue slips reducing inventory balances upon issuing raw materials & components to production shop floors.
           </p>
         </div>
@@ -578,10 +578,10 @@ function MaterialIssueContent() {
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-sm flex items-center justify-between">
+        <div className="bg-white p-4 rounded-xl border border-[color:var(--crm-border-default)] shadow-sm flex items-center justify-between">
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-[#70665F]">Total Slips Issued</div>
-            <div className="text-2xl font-black text-[#211B17] mt-1 font-mono">{totalIssuesCount}</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-[color:var(--crm-text-secondary)]">Total Slips Issued</div>
+            <div className="text-2xl font-black text-[color:var(--crm-text-primary)] mt-1 font-mono">{totalIssuesCount}</div>
             <div className="text-[11px] text-emerald-600 font-medium mt-0.5">Verified & Dispatched</div>
           </div>
           <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600">
@@ -589,33 +589,33 @@ function MaterialIssueContent() {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-sm flex items-center justify-between">
+        <div className="bg-white p-4 rounded-xl border border-[color:var(--crm-border-default)] shadow-sm flex items-center justify-between">
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-[#70665F]">Total Issued Value</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-[color:var(--crm-text-secondary)]">Total Issued Value</div>
             <div className="text-2xl font-black text-emerald-600 mt-1 font-mono">
               ₹{totalIssueValue.toLocaleString('en-IN')}
             </div>
-            <div className="text-[11px] text-[#70665F] mt-0.5">Raw materials & parts</div>
+            <div className="text-[11px] text-[color:var(--crm-text-secondary)] mt-0.5">Raw materials & parts</div>
           </div>
           <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600">
             <Package className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-sm flex items-center justify-between">
+        <div className="bg-white p-4 rounded-xl border border-[color:var(--crm-border-default)] shadow-sm flex items-center justify-between">
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-[#70665F]">Active Jobs Linked</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-[color:var(--crm-text-secondary)]">Active Jobs Linked</div>
             <div className="text-2xl font-black text-amber-600 mt-1 font-mono">{uniqueJobsCount}</div>
-            <div className="text-[11px] text-[#70665F] mt-0.5">Shop floor execution</div>
+            <div className="text-[11px] text-[color:var(--crm-text-secondary)] mt-0.5">Shop floor execution</div>
           </div>
           <div className="p-3 bg-amber-50 rounded-xl text-amber-600">
             <Cpu className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-[#EBE3DB] shadow-sm flex items-center justify-between">
+        <div className="bg-white p-4 rounded-xl border border-[color:var(--crm-border-default)] shadow-sm flex items-center justify-between">
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-[#70665F]">Inventory Status</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-[color:var(--crm-text-secondary)]">Inventory Status</div>
             <div className="text-2xl font-black text-sky-600 mt-1 font-mono">Real-time</div>
             <div className="text-[11px] text-sky-600 font-medium mt-0.5">Auto Stock Deductions</div>
           </div>
@@ -665,7 +665,7 @@ function MaterialIssueContent() {
               const custName = i.customerName || matchedProj?.customerName || '—';
               return (
                 <div>
-                  <span className="font-bold text-[#7C3AED] text-xs font-mono block">{projCode}</span>
+                  <span className="font-bold text-[color:var(--crm-brand-600)] text-xs font-mono block">{projCode}</span>
                   <span className="text-[11px] font-semibold text-[#1E293B]">{custName}</span>
                 </div>
               );
@@ -747,19 +747,19 @@ function MaterialIssueContent() {
       {/* Modal: Issue Material Slip */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-4xl w-full max-h-[92vh] overflow-y-auto p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl max-w-4xl w-full max-h-[92vh] overflow-y-auto p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
               <div>
-                <h2 className="text-base font-bold text-[#211B17] flex items-center gap-2">
+                <h2 className="text-base font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
                   <Truck className="w-5 h-5 text-emerald-600" />
                   Issue Material Slip to Production
                 </h2>
-                <p className="text-[11px] text-[#70665F]">Deduct raw material from store stock and allocate directly to project work order.</p>
+                <p className="text-[11px] text-[color:var(--crm-text-secondary)]">Deduct raw material from store stock and allocate directly to project work order.</p>
               </div>
               <button
                 type="button"
                 onClick={closeModal}
-                className="p-1.5 rounded-lg text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] transition"
+                className="p-1.5 rounded-lg text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-bg-app)] transition"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -769,11 +769,11 @@ function MaterialIssueContent() {
               {/* Project, Work Order & Warehouse */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Target Project *</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Target Project *</label>
                   <select
                     value={jobId}
                     onChange={(e) => handleJobChange(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-mono text-xs"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-500 font-mono text-xs"
                   >
                     {!projectJobs.some((j) => j.jobNumber === jobId || j.id === jobId) && (
                       <option value={jobId}>{jobId}</option>
@@ -787,21 +787,21 @@ function MaterialIssueContent() {
                 </div>
 
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Work Order Reference</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Work Order Reference</label>
                   <input
                     type="text"
                     value={woNo}
                     onChange={(e) => setWoNo(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-mono text-xs"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-500 font-mono text-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Issuing Warehouse / Store</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Issuing Warehouse / Store</label>
                   <select
                     value={warehouseId || selectedWh.id}
                     onChange={(e) => setWarehouseId(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-mono text-xs font-medium"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-500 font-mono text-xs font-medium"
                   >
                     {(warehouses.length > 0 ? warehouses : [defaultWarehouse]).map((wh) => (
                       <option key={`wh-opt-${wh.id}`} value={wh.id}>
@@ -816,7 +816,7 @@ function MaterialIssueContent() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="block text-[#70665F] font-semibold">BOM Number *</label>
+                    <label className="block text-[color:var(--crm-text-secondary)] font-semibold">BOM Number *</label>
                     <span className="text-[10px] text-emerald-700 font-mono font-medium">
                       {availableJobBoms.length} BOM{availableJobBoms.length !== 1 ? 's' : ''} Linked
                     </span>
@@ -824,7 +824,7 @@ function MaterialIssueContent() {
                   <select
                     value={bomNo}
                     onChange={(e) => handleBomChange(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-mono font-medium"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-500 font-mono font-medium"
                   >
                     {availableJobBoms.map((b) => {
                       const bCode = b.bomNumber || (b as any).bom_number || b.id;
@@ -845,22 +845,22 @@ function MaterialIssueContent() {
                 </div>
 
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">BOM Revision</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">BOM Revision</label>
                   <input
                     type="text"
                     value={bomRev}
                     onChange={(e) => setBomRev(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500 font-mono"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-500 font-mono"
                   />
                 </div>
               </div>
 
               {/* Multi-Item Issue Table Section */}
-              <div className="p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB] space-y-3">
+              <div className="p-4 bg-[color:var(--crm-bg-app)] rounded-xl border border-[color:var(--crm-border-default)] space-y-3">
                 {/* Header of Section */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-[#211B17] text-xs flex items-center gap-1.5">
+                    <span className="font-bold text-[color:var(--crm-text-primary)] text-xs flex items-center gap-1.5">
                       <Layers className="w-4 h-4 text-emerald-600" />
                       Items to Issue ({issueLines.length} Item{issueLines.length !== 1 ? 's' : ''} in Slip)
                     </span>
@@ -886,7 +886,7 @@ function MaterialIssueContent() {
                     <button
                       type="button"
                       onClick={() => setShowAllCatalog(!showAllCatalog)}
-                      className="text-xs text-[#70665F] underline hover:text-[#211B17] font-semibold cursor-pointer"
+                      className="text-xs text-[color:var(--crm-text-secondary)] underline hover:text-[color:var(--crm-text-primary)] font-semibold cursor-pointer"
                     >
                       {showAllCatalog ? 'Filter to Job BOM Only' : 'Show All Store Catalog'}
                     </button>
@@ -894,9 +894,9 @@ function MaterialIssueContent() {
                 </div>
 
                 {/* Table of items */}
-                <div className="border border-[#EBE3DB] rounded-xl overflow-hidden bg-white shadow-sm">
+                <div className="border border-[color:var(--crm-border-default)] rounded-xl overflow-hidden bg-white shadow-sm">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-[#F6F1EC] text-[#70665F] font-mono text-[10px] uppercase border-b border-[#EBE3DB]">
+                    <thead className="bg-[#F6F1EC] text-[color:var(--crm-text-secondary)] font-mono text-[10px] uppercase border-b border-[color:var(--crm-border-default)]">
                       <tr>
                         <th className="p-2.5 pl-3">Item to Issue *</th>
                         <th className="p-2.5 text-center w-36">Store Stock</th>
@@ -904,19 +904,19 @@ function MaterialIssueContent() {
                         <th className="p-2.5 pr-3 text-center w-14">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#EBE3DB]">
+                    <tbody className="divide-y divide-[color:var(--crm-border-default)]">
                       {issueLines.map((line) => {
                         const stockQty = getItemUsableStock(line.itemCode || line.itemId);
                         const isStockLow = stockQty < Number(line.issueQty);
 
                         return (
-                          <tr key={line.lineId} className="hover:bg-[#FAF7F2]/50 transition">
+                          <tr key={line.lineId} className="hover:bg-[#F4F6FA]/50 transition">
                             {/* Item Select */}
                             <td className="p-2 pl-3">
                               <select
                                 value={line.itemId}
                                 onChange={(e) => handleLineItemChange(line.lineId, e.target.value)}
-                                className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-[#211B17] font-medium focus:outline-none focus:border-emerald-500 text-xs"
+                                className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-2.5 py-1.5 text-[color:var(--crm-text-primary)] font-medium focus:outline-none focus:border-emerald-500 text-xs"
                               >
                                 {!jobAllocatedItems.some((i) => i.id === line.itemId || i.itemCode === line.itemCode) && (
                                   <option value={line.itemId}>
@@ -965,9 +965,9 @@ function MaterialIssueContent() {
                                   step="any"
                                   value={line.issueQty}
                                   onChange={(e) => handleLineQtyChange(line.lineId, Number(e.target.value))}
-                                  className="w-28 bg-[#FAF7F2] border border-[#EBE3DB] rounded-lg px-2.5 py-1.5 text-emerald-700 font-bold font-mono text-right focus:outline-none focus:border-emerald-500 text-xs"
+                                  className="w-28 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg px-2.5 py-1.5 text-emerald-700 font-bold font-mono text-right focus:outline-none focus:border-emerald-500 text-xs"
                                 />
-                                <span className="text-[10px] text-[#70665F] font-mono shrink-0">{line.uom}</span>
+                                <span className="text-[10px] text-[color:var(--crm-text-secondary)] font-mono shrink-0">{line.uom}</span>
                               </div>
                             </td>
 
@@ -1001,9 +1001,9 @@ function MaterialIssueContent() {
                     + Add Another Material Item
                   </button>
 
-                  <div className="flex items-center gap-4 text-xs font-medium text-[#70665F]">
+                  <div className="flex items-center gap-4 text-xs font-medium text-[color:var(--crm-text-secondary)]">
                     <div>
-                      Items: <span className="font-bold text-[#211B17] font-mono">{issueLines.length}</span>
+                      Items: <span className="font-bold text-[color:var(--crm-text-primary)] font-mono">{issueLines.length}</span>
                     </div>
                     <div>
                       Total Qty: <span className="font-bold text-emerald-700 font-mono">{totalIssueSlipQty.toLocaleString('en-IN')}</span>
@@ -1015,39 +1015,39 @@ function MaterialIssueContent() {
               {/* Requester & Store Issuer */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Requested By</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Requested By</label>
                   <input
                     type="text"
                     value={requestedBy}
                     onChange={(e) => setRequestedBy(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#70665F] font-semibold mb-1">Store Issuer</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Store Issuer</label>
                   <input
                     type="text"
                     value={issuedBy}
                     onChange={(e) => setIssuedBy(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-500"
                   />
                 </div>
               </div>
 
               {/* Remarks */}
               <div>
-                <label className="block text-[#70665F] font-semibold mb-1">Remarks / CAD Drawing Link</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Remarks / CAD Drawing Link</label>
                 <textarea
                   rows={2}
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#211B17] focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
               {/* Actions - Sticky at bottom */}
-              <div className="sticky bottom-0 -mx-6 -mb-6 bg-white/95 backdrop-blur-md p-4 px-6 border-t border-[#EBE3DB] flex items-center justify-between gap-3 shadow-md rounded-b-2xl z-20">
-                <div className="text-[11px] text-[#70665F]">
+              <div className="sticky bottom-0 -mx-6 -mb-6 bg-white/95 backdrop-blur-md p-4 px-6 border-t border-[color:var(--crm-border-default)] flex items-center justify-between gap-3 shadow-md rounded-b-2xl z-20">
+                <div className="text-[11px] text-[color:var(--crm-text-secondary)]">
                   Issuing From: <span className="font-semibold text-emerald-800 font-mono">{(selectedWh as any)?.name || (selectedWh as any)?.warehouseName || 'Main Store'}</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1055,7 +1055,7 @@ function MaterialIssueContent() {
                     type="button"
                     onClick={closeModal}
                     disabled={isSubmitting}
-                    className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] hover:bg-[#EBE3DB] text-xs font-semibold transition disabled:opacity-50 cursor-pointer"
+                    className="px-4 py-2 rounded-xl bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-border-default)] text-xs font-semibold transition disabled:opacity-50 cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -1086,19 +1086,19 @@ function MaterialIssueContent() {
       {/* Modal: View Issue Voucher */}
       {viewVoucher && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div id="printable-material-issue-slip" className="bg-white border border-[#EBE3DB] rounded-2xl max-w-3xl w-full p-6 space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+          <div id="printable-material-issue-slip" className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl max-w-3xl w-full p-6 space-y-5 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
             {/* Header */}
-            <div className="flex items-start justify-between border-b border-[#EBE3DB] pb-4">
+            <div className="flex items-start justify-between border-b border-[color:var(--crm-border-default)] pb-4">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-700 text-[10px] font-mono font-bold">
                     STORE DISPATCH VOUCHER
                   </span>
-                  <h2 className="text-lg font-black text-[#211B17]">
+                  <h2 className="text-lg font-black text-[color:var(--crm-text-primary)]">
                     {viewVoucher.issueNumber || viewVoucher.id}
                   </h2>
                 </div>
-                <p className="text-xs text-[#70665F] mt-0.5">
+                <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">
                   Issued on {viewVoucher.issueDate || '2026-10-04'} • Store to Production Transfer
                 </p>
               </div>
@@ -1106,14 +1106,14 @@ function MaterialIssueContent() {
               <div className="flex items-center gap-2 print:hidden">
                 <button
                   onClick={() => printContent('printable-material-issue-slip', { title: viewVoucher ? `Material_Issue_${viewVoucher.issueNumber}` : 'Material_Issue_Slip' })}
-                  className="p-2 rounded-xl bg-[#FAF7F2] hover:bg-emerald-50 text-[#544B45] hover:text-emerald-700 border border-[#EBE3DB] transition text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                  className="p-2 rounded-xl bg-[color:var(--crm-bg-app)] hover:bg-emerald-50 text-[color:var(--crm-text-secondary)] hover:text-emerald-700 border border-[color:var(--crm-border-default)] transition text-xs font-bold flex items-center gap-1.5 cursor-pointer"
                 >
                   <Printer className="w-4 h-4" />
                   Print Slip
                 </button>
                 <button
                   onClick={() => setViewVoucher(null)}
-                  className="p-2 rounded-xl text-[#70665F] hover:text-[#211B17] hover:bg-[#FAF7F2] transition cursor-pointer"
+                  className="p-2 rounded-xl text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-[color:var(--crm-bg-app)] transition cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1121,35 +1121,35 @@ function MaterialIssueContent() {
             </div>
 
             {/* Voucher Details Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#FAF7F2] p-4 rounded-xl border border-[#EBE3DB] text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[color:var(--crm-bg-app)] p-4 rounded-xl border border-[color:var(--crm-border-default)] text-xs">
               <div>
-                <div className="text-[10px] uppercase font-bold text-[#70665F]">Project Reference</div>
+                <div className="text-[10px] uppercase font-bold text-[color:var(--crm-text-secondary)]">Project Reference</div>
                 <div className="font-bold text-amber-700 font-mono mt-0.5">{viewVoucher.projectId || viewVoucher.jobId || '—'}</div>
               </div>
               <div>
-                <div className="text-[10px] uppercase font-bold text-[#70665F]">Work Order</div>
-                <div className="font-semibold text-[#211B17] font-mono mt-0.5">
+                <div className="text-[10px] uppercase font-bold text-[color:var(--crm-text-secondary)]">Work Order</div>
+                <div className="font-semibold text-[color:var(--crm-text-primary)] font-mono mt-0.5">
                   {viewVoucher.workOrderNumber || '—'}
                 </div>
               </div>
               <div>
-                <div className="text-[10px] uppercase font-bold text-[#70665F]">BOM Details</div>
-                <div className="font-semibold text-[#211B17] mt-0.5">
+                <div className="text-[10px] uppercase font-bold text-[color:var(--crm-text-secondary)]">BOM Details</div>
+                <div className="font-semibold text-[color:var(--crm-text-primary)] mt-0.5">
                   {viewVoucher.bomNumber || '—'} ({viewVoucher.bomRevision || 'Rev-01'})
                 </div>
               </div>
               <div>
-                <div className="text-[10px] uppercase font-bold text-[#70665F]">Production Stage</div>
-                <div className="font-semibold text-[#211B17] mt-0.5">
+                <div className="text-[10px] uppercase font-bold text-[color:var(--crm-text-secondary)]">Production Stage</div>
+                <div className="font-semibold text-[color:var(--crm-text-primary)] mt-0.5">
                   {viewVoucher.productionStage || 'Shell & Dish End Cutting'}
                 </div>
               </div>
             </div>
 
             {/* Items Table */}
-            <div className="border border-[#EBE3DB] rounded-xl overflow-hidden">
+            <div className="border border-[color:var(--crm-border-default)] rounded-xl overflow-hidden">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#FAF7F2] text-[#70665F] font-mono text-[10px] uppercase border-b border-[#EBE3DB]">
+                <thead className="bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] font-mono text-[10px] uppercase border-b border-[color:var(--crm-border-default)]">
                   <tr>
                     <th className="p-3">Item Description</th>
                     <th className="p-3">Batch / Heat No</th>
@@ -1158,31 +1158,31 @@ function MaterialIssueContent() {
                     <th className="p-3 text-right">Total Amount (₹)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#EBE3DB]">
+                <tbody className="divide-y divide-[color:var(--crm-border-default)]">
                   {Array.isArray(viewVoucher.items) && viewVoucher.items.length > 0 ? (
                     viewVoucher.items.map((item: any, idx: number) => (
                       <tr key={`voucher-item-${idx}`}>
                         <td className="p-3">
-                          <div className="font-bold text-[#211B17]">{item.itemName || item.itemCode}</div>
-                          <div className="text-[10px] text-[#70665F] font-mono">{item.itemCode}</div>
+                          <div className="font-bold text-[color:var(--crm-text-primary)]">{item.itemName || item.itemCode}</div>
+                          <div className="text-[10px] text-[color:var(--crm-text-secondary)] font-mono">{item.itemCode}</div>
                         </td>
-                        <td className="p-3 font-mono font-semibold text-[#544B45]">
-                          {item.batchLot || 'HEAT-98421'}
+                        <td className="p-3 font-mono font-semibold text-[color:var(--crm-text-secondary)]">
+                          {item.batchLot || '—'}
                         </td>
                         <td className="p-3 text-right font-mono font-bold text-emerald-700">
                           {item.issuedQuantity || item.requiredQuantity} {item.uom}
                         </td>
-                        <td className="p-3 text-right font-mono text-[#70665F]">
+                        <td className="p-3 text-right font-mono text-[color:var(--crm-text-secondary)]">
                           ₹{(item.unitPrice || 150).toLocaleString('en-IN')}
                         </td>
-                        <td className="p-3 text-right font-mono font-bold text-[#211B17]">
+                        <td className="p-3 text-right font-mono font-bold text-[color:var(--crm-text-primary)]">
                           ₹{(item.totalCost || (item.issuedQuantity || 1) * (item.unitPrice || 150)).toLocaleString('en-IN')}
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} className="p-4 text-center text-[#70665F]">
+                      <td colSpan={5} className="p-4 text-center text-[color:var(--crm-text-secondary)]">
                         Raw Material Dispatched: SS 316L Plates (3,200 Kg) - Value ₹3,200
                       </td>
                     </tr>
@@ -1192,20 +1192,20 @@ function MaterialIssueContent() {
             </div>
 
             {/* Total and Sign-off */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-[#FAF7F2] rounded-xl border border-[#EBE3DB]">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-[color:var(--crm-bg-app)] rounded-xl border border-[color:var(--crm-border-default)]">
               <div className="text-xs space-y-1">
                 <div>
-                  <span className="text-[#70665F]">Requested By:</span>{' '}
-                  <span className="font-bold text-[#211B17]">{viewVoucher.requestedBy || 'Production Head'}</span>
+                  <span className="text-[color:var(--crm-text-secondary)]">Requested By:</span>{' '}
+                  <span className="font-bold text-[color:var(--crm-text-primary)]">{viewVoucher.requestedBy || 'Production Head'}</span>
                 </div>
                 <div>
-                  <span className="text-[#70665F]">Store Issuer:</span>{' '}
-                  <span className="font-bold text-[#211B17]">{viewVoucher.issuedBy || 'Store Incharge'}</span>
+                  <span className="text-[color:var(--crm-text-secondary)]">Store Issuer:</span>{' '}
+                  <span className="font-bold text-[color:var(--crm-text-primary)]">{viewVoucher.issuedBy || 'Store Incharge'}</span>
                 </div>
               </div>
 
               <div className="text-right">
-                <div className="text-[11px] font-semibold text-[#70665F] uppercase">Grand Total Issue Value</div>
+                <div className="text-[11px] font-semibold text-[color:var(--crm-text-secondary)] uppercase">Grand Total Issue Value</div>
                 <div className="text-xl font-black text-emerald-700 font-mono">
                   ₹{Number(viewVoucher.totalIssueValue || 0).toLocaleString('en-IN')}
                 </div>
@@ -1216,7 +1216,7 @@ function MaterialIssueContent() {
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setViewVoucher(null)}
-                className="px-5 py-2 rounded-xl bg-[#FAF7F2] hover:bg-[#EBE3DB] text-[#211B17] text-xs font-semibold transition"
+                className="px-5 py-2 rounded-xl bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-primary)] text-xs font-semibold transition"
               >
                 Close Slip
               </button>
@@ -1230,7 +1230,7 @@ function MaterialIssueContent() {
 
 export default function MaterialIssuePage() {
   return (
-    <React.Suspense fallback={<div className="p-8 text-center text-xs text-[#70665F]">Loading Material Issue...</div>}>
+    <React.Suspense fallback={<div className="p-8 text-center text-xs text-[color:var(--crm-text-secondary)]">Loading Material Issue...</div>}>
       <MaterialIssueContent />
     </React.Suspense>
   );

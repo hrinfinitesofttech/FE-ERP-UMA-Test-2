@@ -82,21 +82,21 @@ export function VersionDiffViewer({
   };
 
   return (
-    <div className="bg-white dark:bg-white rounded-2xl border border-slate-200 dark:border-[#EBE3DB] shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="bg-white dark:bg-white rounded-2xl border border-slate-200 dark:border-[color:var(--crm-border-default)] shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
       {/* Top Header */}
-      <div className="px-6 py-4 border-b border-slate-200 dark:border-[#EBE3DB] bg-gradient-to-r from-slate-50 to-white dark:from-[#FAF7F2] dark:to-white flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-slate-200 dark:border-[color:var(--crm-border-default)] bg-gradient-to-r from-slate-50 to-white dark:from-[color:var(--crm-bg-app)] dark:to-white flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-crm-brand-50 border border-crm-brand-200 flex items-center justify-center text-crm-brand-700">
             <GitCompare className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-[#211B17] flex items-center gap-2">
+            <h2 className="text-base font-bold text-slate-900 dark:text-[color:var(--crm-text-primary)] flex items-center gap-2">
               {title}
               <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-mono font-normal">
                 {versions.length} versions recorded
               </span>
             </h2>
-            <p className="text-xs text-slate-500 dark:text-[#70665F]">{subtitle}</p>
+            <p className="text-xs text-slate-500 dark:text-[color:var(--crm-text-secondary)]">{subtitle}</p>
           </div>
         </div>
 
@@ -123,16 +123,16 @@ export function VersionDiffViewer({
       </div>
 
       {/* Version Selector Bar (Level 1: Macro Comparison Controls) */}
-      <div className="px-6 py-3.5 bg-slate-100/70 dark:bg-[#F5F0E9] border-b border-slate-200 dark:border-[#EBE3DB] flex flex-wrap items-center justify-between gap-4">
+      <div className="px-6 py-3.5 bg-slate-100/70 dark:bg-[#EAEDF4] border-b border-slate-200 dark:border-[color:var(--crm-border-default)] flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3 flex-wrap">
           {/* Baseline Version (A) */}
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-600 dark:text-[#70665F]">Base:</span>
+            <span className="text-xs font-semibold text-slate-600 dark:text-[color:var(--crm-text-secondary)]">Base:</span>
             <select
               value={sourceIdx}
               onChange={(e) => setSourceIdx(Number(e.target.value))}
               aria-label="Select base version"
-              className="text-xs font-medium bg-white dark:bg-white border border-slate-300 dark:border-[#D9CFC4] rounded-lg px-2.5 py-1.5 text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-crm-brand-500"
+              className="text-xs font-medium bg-white dark:bg-white border border-slate-300 dark:border-[#C4CAD9] rounded-lg px-2.5 py-1.5 text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-crm-brand-500"
             >
               {sortedVersions.map((v, idx) => (
                 <option key={v.meta.id || idx} value={idx}>
@@ -148,12 +148,12 @@ export function VersionDiffViewer({
 
           {/* Compared Target Version (B) */}
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-600 dark:text-[#70665F]">Compared To:</span>
+            <span className="text-xs font-semibold text-slate-600 dark:text-[color:var(--crm-text-secondary)]">Compared To:</span>
             <select
               value={targetIdx}
               onChange={(e) => setTargetIdx(Number(e.target.value))}
               aria-label="Select compared version"
-              className="text-xs font-medium bg-white dark:bg-white border border-slate-300 dark:border-[#D9CFC4] rounded-lg px-2.5 py-1.5 text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-crm-brand-500"
+              className="text-xs font-medium bg-white dark:bg-white border border-slate-300 dark:border-[#C4CAD9] rounded-lg px-2.5 py-1.5 text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-crm-brand-500"
             >
               {sortedVersions.map((v, idx) => (
                 <option key={v.meta.id || idx} value={idx}>
@@ -165,13 +165,13 @@ export function VersionDiffViewer({
         </div>
 
         {/* View Mode Tabs */}
-        <div className="flex items-center bg-white dark:bg-white p-1 rounded-xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm">
+        <div className="flex items-center bg-white dark:bg-white p-1 rounded-xl border border-slate-200 dark:border-[color:var(--crm-border-default)] shadow-sm">
           <button
             onClick={() => setActiveTab('UNIFIED')}
             className={`px-3 py-1 text-xs font-semibold rounded-lg transition ${
               activeTab === 'UNIFIED'
                 ? 'bg-crm-brand-700 text-white shadow'
-                : 'text-slate-600 dark:text-[#70665F] hover:bg-slate-50'
+                : 'text-slate-600 dark:text-[color:var(--crm-text-secondary)] hover:bg-slate-50'
             }`}
           >
             Unified Overview
@@ -181,7 +181,7 @@ export function VersionDiffViewer({
             className={`px-3 py-1 text-xs font-semibold rounded-lg transition flex items-center gap-1.5 ${
               activeTab === 'LINE_ITEMS'
                 ? 'bg-crm-brand-700 text-white shadow'
-                : 'text-slate-600 dark:text-[#70665F] hover:bg-slate-50'
+                : 'text-slate-600 dark:text-[color:var(--crm-text-secondary)] hover:bg-slate-50'
             }`}
           >
             Line Items ({lineItemSummary.added + lineItemSummary.removed + lineItemSummary.modified})
@@ -191,7 +191,7 @@ export function VersionDiffViewer({
             className={`px-3 py-1 text-xs font-semibold rounded-lg transition ${
               activeTab === 'FIELDS'
                 ? 'bg-crm-brand-700 text-white shadow'
-                : 'text-slate-600 dark:text-[#70665F] hover:bg-slate-50'
+                : 'text-slate-600 dark:text-[color:var(--crm-text-secondary)] hover:bg-slate-50'
             }`}
           >
             Header Fields ({fieldDiffs.length})
@@ -200,9 +200,9 @@ export function VersionDiffViewer({
       </div>
 
       {/* Level 1: Macro Financial & Delta Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 p-6 bg-slate-50/50 dark:bg-[#FAF7F2]/50 border-b border-slate-200 dark:border-[#EBE3DB]">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 p-6 bg-slate-50/50 dark:bg-[#F4F6FA]/50 border-b border-slate-200 dark:border-[color:var(--crm-border-default)]">
         {/* Net Financial Impact */}
-        <div className="bg-white dark:bg-white p-3.5 rounded-xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm">
+        <div className="bg-white dark:bg-white p-3.5 rounded-xl border border-slate-200 dark:border-[color:var(--crm-border-default)] shadow-sm">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
             Financial Impact
           </span>
@@ -237,7 +237,7 @@ export function VersionDiffViewer({
         </div>
 
         {/* Status Evolution */}
-        <div className="bg-white dark:bg-white p-3.5 rounded-xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm">
+        <div className="bg-white dark:bg-white p-3.5 rounded-xl border border-slate-200 dark:border-[color:var(--crm-border-default)] shadow-sm">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
             Status Transition
           </span>
@@ -253,7 +253,7 @@ export function VersionDiffViewer({
         </div>
 
         {/* Line Items Summary (Meso) */}
-        <div className="bg-white dark:bg-white p-3.5 rounded-xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm">
+        <div className="bg-white dark:bg-white p-3.5 rounded-xl border border-slate-200 dark:border-[color:var(--crm-border-default)] shadow-sm">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
             Line Items Diff
           </span>
@@ -271,7 +271,7 @@ export function VersionDiffViewer({
         </div>
 
         {/* Author & Timestamp (Audit Context) */}
-        <div className="bg-white dark:bg-white p-3.5 rounded-xl border border-slate-200 dark:border-[#EBE3DB] shadow-sm">
+        <div className="bg-white dark:bg-white p-3.5 rounded-xl border border-slate-200 dark:border-[color:var(--crm-border-default)] shadow-sm">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
             Revision Author
           </span>
@@ -328,9 +328,9 @@ export function VersionDiffViewer({
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
                 <Layers className="w-4 h-4 text-crm-brand-700" /> Items & Bill of Materials ({lineItems.length})
               </h3>
-              <div className="border border-slate-200 dark:border-[#EBE3DB] rounded-xl overflow-hidden shadow-sm">
+              <div className="border border-slate-200 dark:border-[color:var(--crm-border-default)] rounded-xl overflow-hidden shadow-sm">
                 <table className="w-full text-left text-xs border-collapse">
-                  <thead className="bg-slate-100 dark:bg-[#FAF7F2] text-slate-700 border-b border-slate-200 font-bold">
+                  <thead className="bg-slate-100 dark:bg-[color:var(--crm-bg-app)] text-slate-700 border-b border-slate-200 font-bold">
                     <tr>
                       <th className="p-3 w-28">Status</th>
                       <th className="p-3">Item / Description</th>
@@ -523,7 +523,7 @@ export function VersionDiffViewer({
       </div>
 
       {/* Footer Info & Milestone Tag */}
-      <div className="px-6 py-3 border-t border-slate-200 dark:border-[#EBE3DB] bg-slate-50 dark:bg-[#FAF7F2] flex items-center justify-between text-xs text-slate-500">
+      <div className="px-6 py-3 border-t border-slate-200 dark:border-[color:var(--crm-border-default)] bg-slate-50 dark:bg-[color:var(--crm-bg-app)] flex items-center justify-between text-xs text-slate-500">
         <div className="flex items-center gap-2">
           <GitCommit className="w-3.5 h-3.5 text-crm-brand-700" />
           <span>

@@ -568,7 +568,7 @@ export default function CreateVendorMasterPage() {
               <button
                 type="button"
                 onClick={handleAddAddress}
-                className="px-4 py-2 text-xs font-bold bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-lg transition shadow-xs"
+                className="px-4 py-2 text-xs font-bold bg-[color:var(--crm-brand-600)] hover:bg-[#6D28D9] text-white rounded-lg transition shadow-xs"
               >
                 Add Address
               </button>
@@ -631,7 +631,7 @@ export default function CreateVendorMasterPage() {
               <button
                 type="button"
                 onClick={handleAddContact}
-                className="px-4 py-2 text-xs font-bold bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-lg transition shadow-xs"
+                className="px-4 py-2 text-xs font-bold bg-[color:var(--crm-brand-600)] hover:bg-[#6D28D9] text-white rounded-lg transition shadow-xs"
               >
                 Add Contact
               </button>

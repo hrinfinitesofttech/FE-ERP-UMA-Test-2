@@ -291,7 +291,7 @@ function EnquiryFormContent() {
       <div>
         <Link
           href="/crm/enquiries"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#70665F] hover:text-[#211B17] transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Technical Enquiries</span>
@@ -299,17 +299,17 @@ function EnquiryFormContent() {
       </div>
 
       {/* Main Form Container */}
-      <div className="bg-white border border-[#EBE3DB] rounded-2xl p-6 sm:p-8 shadow-xs space-y-8">
+      <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-6 sm:p-8 shadow-xs space-y-8">
         {/* Header */}
-        <div className="flex items-start gap-3 border-b border-[#EBE3DB] pb-6">
-          <div className="w-10 h-10 rounded-xl bg-[#FAF3EA] border border-[#E7DED5] flex items-center justify-center text-[#8C5229] shrink-0 mt-0.5">
+        <div className="flex items-start gap-3 border-b border-[color:var(--crm-border-default)] pb-6">
+          <div className="w-10 h-10 rounded-xl bg-[color:var(--crm-brand-50)] border border-[color:var(--crm-border-default)] flex items-center justify-center text-[#47536E] shrink-0 mt-0.5">
             <FileText className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-[#211B17] tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight">
               {existingEnquiry ? `Edit Technical Enquiry (${existingEnquiry.enquiryNo || existingEnquiry.id})` : 'Register New Technical Enquiry'}
             </h1>
-            <p className="text-xs text-[#70665F] mt-1 leading-relaxed">
+            <p className="text-xs text-[color:var(--crm-text-secondary)] mt-1 leading-relaxed">
               Capture comprehensive customer RFQ requirements, technical specifications, and delivery target.
             </p>
           </div>
@@ -536,17 +536,17 @@ function EnquiryFormContent() {
           </div>
 
           {/* Form Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#EBE3DB]">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[color:var(--crm-border-default)]">
             <Link
               href="/crm/enquiries"
-              className="px-5 py-2.5 border border-[#EBE3DB] text-[#70665F] hover:bg-[#FAF7F2] rounded-xl font-bold transition text-xs"
+              className="px-5 py-2.5 border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] rounded-xl font-bold transition text-xs"
             >
               Cancel
             </Link>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-2.5 bg-[#3E2723] hover:bg-[#2C1810] text-white rounded-xl font-bold transition text-xs shadow-xs active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              className="px-6 py-2.5 bg-[color:var(--crm-text-primary)] hover:bg-[#171B25] text-white rounded-xl font-bold transition text-xs shadow-xs active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
               <span>{existingEnquiry ? 'Save Changes' : 'Create Technical Enquiry'}</span>
@@ -560,7 +560,7 @@ function EnquiryFormContent() {
 
 export default function NewEnquiryPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-xs text-[#70665F]">Loading Enquiry Form...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-xs text-[color:var(--crm-text-secondary)]">Loading Enquiry Form...</div>}>
       <EnquiryFormContent />
     </Suspense>
   );

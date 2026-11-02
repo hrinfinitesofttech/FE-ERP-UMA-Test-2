@@ -95,17 +95,17 @@ export default function StoreDashboardPage() {
   const valuationTrendData: { month: string; totalValue: number }[] = [];
 
   return (
-    <div className="space-y-5 text-xs pb-12 text-[#211B17]">
+    <div className="space-y-5 text-xs pb-12 text-[color:var(--crm-text-primary)]">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-xs backdrop-blur-md">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs backdrop-blur-md">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-md bg-sky-500/20 text-sky-400 border border-sky-500/30 text-xs font-mono font-semibold">
+            <span className="px-2.5 py-0.5 rounded-md bg-sky-500/20 text-sky-700 border border-sky-500/30 text-xs font-mono font-semibold">
               MODULE 5
             </span>
-            <h1 className="text-2xl font-bold font-mono text-[#211B17] tracking-tight">Store & Warehouse Dashboard</h1>
+            <h1 className="text-2xl font-bold font-mono text-[color:var(--crm-text-primary)] tracking-tight">Store & Warehouse Dashboard</h1>
           </div>
-          <p className="text-[#70665F] text-xs mt-1">
+          <p className="text-[color:var(--crm-text-secondary)] text-xs mt-1">
             Real-time physical inventory source of truth, GRN inward, usable stock matrix, job reservations, and store ledgers.
           </p>
         </div>
@@ -114,7 +114,7 @@ export default function StoreDashboardPage() {
           <select
             value={selectedWarehouse}
             onChange={(e) => setSelectedWarehouse(e.target.value)}
-            className="bg-white text-[#544B45] border border-[#EBE3DB] rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-sky-500"
+            className="bg-white text-[color:var(--crm-text-secondary)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:border-sky-500"
           >
             <option value="all">All Warehouses (5 Yards)</option>
             {warehouses.map((w) => (
@@ -126,7 +126,7 @@ export default function StoreDashboardPage() {
 
           <Link
             href="/store/grn"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-sky-600 to-crm-brand-700 text-[#211B17] text-xs font-bold shadow-lg shadow-sky-600/30 hover:brightness-110 transition"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-sky-600 to-crm-brand-700 text-[color:var(--crm-text-primary)] text-xs font-bold shadow-lg shadow-sky-600/30 hover:brightness-110 transition"
           >
             <Plus className="w-4 h-4" />
             New GRN
@@ -134,7 +134,7 @@ export default function StoreDashboardPage() {
 
           <Link
             href="/store/material-issue"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-[#211B17] text-xs font-bold shadow-lg shadow-emerald-600/30 hover:brightness-110 transition"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-[color:var(--crm-text-primary)] text-xs font-bold shadow-lg shadow-emerald-600/30 hover:brightness-110 transition"
           >
             <Truck className="w-4 h-4" />
             Issue Material
@@ -145,163 +145,163 @@ export default function StoreDashboardPage() {
       {/* 12 KPI Cards Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5">
         {/* Card 1 */}
-        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
-          <div className="flex items-center justify-between text-[#70665F] text-xs">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-md">
+          <div className="flex items-center justify-between text-[color:var(--crm-text-secondary)] text-xs">
             <span>Total Items</span>
             <Package className="w-4 h-4 text-crm-brand-500" />
           </div>
-          <div className="text-xl font-black text-[#211B17] mt-1.5">{totalItems}</div>
-          <div className="text-[10px] text-[#8D827A] mt-1">Master catalog items</div>
+          <div className="text-xl font-black text-[color:var(--crm-text-primary)] mt-1.5">{totalItems}</div>
+          <div className="text-[10px] text-[color:var(--crm-text-tertiary)] mt-1">Master catalog items</div>
         </div>
 
         {/* Card 2 */}
-        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
-          <div className="flex items-center justify-between text-[#70665F] text-xs">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-md">
+          <div className="flex items-center justify-between text-[color:var(--crm-text-secondary)] text-xs">
             <span>Total Stock Value</span>
-            <TrendingUp className="w-4 h-4 text-emerald-400" />
+            <TrendingUp className="w-4 h-4 text-emerald-700" />
           </div>
-          <div className="text-xl font-black text-emerald-400 mt-1.5">
+          <div className="text-xl font-black text-emerald-700 mt-1.5">
             ₹{(totalStockValue / 100000).toFixed(2)} L
           </div>
-          <div className="text-[10px] text-[#8D827A] mt-1">Physical stock valuation</div>
+          <div className="text-[10px] text-[color:var(--crm-text-tertiary)] mt-1">Physical stock valuation</div>
         </div>
 
         {/* Card 3 */}
-        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
-          <div className="flex items-center justify-between text-[#70665F] text-xs">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-md">
+          <div className="flex items-center justify-between text-[color:var(--crm-text-secondary)] text-xs">
             <span>Warehouses</span>
-            <Building className="w-4 h-4 text-indigo-400" />
+            <Building className="w-4 h-4 text-indigo-700" />
           </div>
-          <div className="text-xl font-black text-[#211B17] mt-1.5">{totalWarehousesCount}</div>
-          <div className="text-[10px] text-[#8D827A] mt-1">Active storage yards</div>
+          <div className="text-xl font-black text-[color:var(--crm-text-primary)] mt-1.5">{totalWarehousesCount}</div>
+          <div className="text-[10px] text-[color:var(--crm-text-tertiary)] mt-1">Active storage yards</div>
         </div>
 
         {/* Card 4 */}
-        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
-          <div className="flex items-center justify-between text-[#70665F] text-xs">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-md">
+          <div className="flex items-center justify-between text-[color:var(--crm-text-secondary)] text-xs">
             <span>Active Bins</span>
-            <MapPin className="w-4 h-4 text-teal-400" />
+            <MapPin className="w-4 h-4 text-teal-700" />
           </div>
-          <div className="text-xl font-black text-[#211B17] mt-1.5">{totalBinsCount}</div>
-          <div className="text-[10px] text-[#8D827A] mt-1">Rack & shelf locations</div>
+          <div className="text-xl font-black text-[color:var(--crm-text-primary)] mt-1.5">{totalBinsCount}</div>
+          <div className="text-[10px] text-[color:var(--crm-text-tertiary)] mt-1">Rack & shelf locations</div>
         </div>
 
         {/* Card 5 */}
-        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
-          <div className="flex items-center justify-between text-[#70665F] text-xs">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-md">
+          <div className="flex items-center justify-between text-[color:var(--crm-text-secondary)] text-xs">
             <span>Pending QC GRNs</span>
-            <Clock className="w-4 h-4 text-amber-400" />
+            <Clock className="w-4 h-4 text-crm-brand-600" />
           </div>
-          <div className="text-xl font-black text-amber-400 mt-1.5">{pendingQCGRNCount}</div>
-          <div className="text-[10px] text-[#8D827A] mt-1">Awaiting inspection</div>
+          <div className="text-xl font-black text-amber-700 mt-1.5">{pendingQCGRNCount}</div>
+          <div className="text-[10px] text-[color:var(--crm-text-tertiary)] mt-1">Awaiting inspection</div>
         </div>
 
         {/* Card 6 */}
-        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
-          <div className="flex items-center justify-between text-[#70665F] text-xs">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-md">
+          <div className="flex items-center justify-between text-[color:var(--crm-text-secondary)] text-xs">
             <span>Issues Today</span>
             <Truck className="w-4 h-4 text-crm-brand-500" />
           </div>
-          <div className="text-xl font-black text-[#211B17] mt-1.5">{todayIssuesCount}</div>
-          <div className="text-[10px] text-[#8D827A] mt-1">Material issue slips</div>
+          <div className="text-xl font-black text-[color:var(--crm-text-primary)] mt-1.5">{todayIssuesCount}</div>
+          <div className="text-[10px] text-[color:var(--crm-text-tertiary)] mt-1">Material issue slips</div>
         </div>
 
         {/* Card 7 */}
-        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
-          <div className="flex items-center justify-between text-[#70665F] text-xs">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-md">
+          <div className="flex items-center justify-between text-[color:var(--crm-text-secondary)] text-xs">
             <span>Reserved Stock</span>
-            <Lock className="w-4 h-4 text-rose-400" />
+            <Lock className="w-4 h-4 text-rose-700" />
           </div>
-          <div className="text-xl font-black text-rose-400 mt-1.5">
+          <div className="text-xl font-black text-rose-700 mt-1.5">
             ₹{(reservedStockValue / 100000).toFixed(2)} L
           </div>
-          <div className="text-[10px] text-[#8D827A] mt-1">Locked for active jobs</div>
+          <div className="text-[10px] text-[color:var(--crm-text-tertiary)] mt-1">Locked for active jobs</div>
         </div>
 
         {/* Card 8 */}
-        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
-          <div className="flex items-center justify-between text-[#70665F] text-xs">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-md">
+          <div className="flex items-center justify-between text-[color:var(--crm-text-secondary)] text-xs">
             <span>Usable Stock</span>
-            <Box className="w-4 h-4 text-sky-400" />
+            <Box className="w-4 h-4 text-sky-700" />
           </div>
-          <div className="text-xl font-black text-sky-400 mt-1.5">
+          <div className="text-xl font-black text-sky-700 mt-1.5">
             ₹{(usableStockValue / 100000).toFixed(2)} L
           </div>
-          <div className="text-[10px] text-[#8D827A] mt-1">Unreserved & ready</div>
+          <div className="text-[10px] text-[color:var(--crm-text-tertiary)] mt-1">Unreserved & ready</div>
         </div>
 
         {/* Card 9 */}
-        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
-          <div className="flex items-center justify-between text-[#70665F] text-xs">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-md">
+          <div className="flex items-center justify-between text-[color:var(--crm-text-secondary)] text-xs">
             <span>Low Stock Alerts</span>
             <AlertTriangle className="w-4 h-4 text-red-500" />
           </div>
-          <div className="text-xl font-black text-red-400 mt-1.5">{lowStockItemsCount}</div>
-          <div className="text-[10px] text-[#8D827A] mt-1">Below reorder level</div>
+          <div className="text-xl font-black text-red-700 mt-1.5">{lowStockItemsCount}</div>
+          <div className="text-[10px] text-[color:var(--crm-text-tertiary)] mt-1">Below reorder level</div>
         </div>
 
         {/* Card 10 */}
-        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
-          <div className="flex items-center justify-between text-[#70665F] text-xs">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-md">
+          <div className="flex items-center justify-between text-[color:var(--crm-text-secondary)] text-xs">
             <span>Adjustments</span>
             <RotateCcw className="w-4 h-4 text-crm-brand-500" />
           </div>
-          <div className="text-xl font-black text-[#211B17] mt-1.5">
+          <div className="text-xl font-black text-[color:var(--crm-text-primary)] mt-1.5">
             ₹{(monthAdjustmentsValue / 1000).toFixed(1)} K
           </div>
-          <div className="text-[10px] text-[#8D827A] mt-1">Month variance value</div>
+          <div className="text-[10px] text-[color:var(--crm-text-tertiary)] mt-1">Month variance value</div>
         </div>
 
         {/* Card 11 */}
-        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
-          <div className="flex items-center justify-between text-[#70665F] text-xs">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-md">
+          <div className="flex items-center justify-between text-[color:var(--crm-text-secondary)] text-xs">
             <span>Scrap Value</span>
-            <Trash2 className="w-4 h-4 text-yellow-500" />
+            <Trash2 className="w-4 h-4 text-crm-brand-600" />
           </div>
-          <div className="text-xl font-black text-yellow-400 mt-1.5">
+          <div className="text-xl font-black text-yellow-700 mt-1.5">
             ₹{(scrapValueTotal / 1000).toFixed(1)} K
           </div>
-          <div className="text-[10px] text-[#8D827A] mt-1">Offcuts & rejections</div>
+          <div className="text-[10px] text-[color:var(--crm-text-tertiary)] mt-1">Offcuts & rejections</div>
         </div>
 
         {/* Card 12 */}
-        <div className="bg-white border border-[#E7DED5] p-4 rounded-xl shadow-md">
-          <div className="flex items-center justify-between text-[#70665F] text-xs">
+        <div className="bg-white border border-[color:var(--crm-border-default)] p-4 rounded-xl shadow-md">
+          <div className="flex items-center justify-between text-[color:var(--crm-text-secondary)] text-xs">
             <span>Stock Accuracy</span>
-            <CheckCircle className="w-4 h-4 text-emerald-400" />
+            <CheckCircle className="w-4 h-4 text-emerald-700" />
           </div>
-          <div className="text-xl font-black text-emerald-400 mt-1.5">{stockAccuracyRate}%</div>
-          <div className="text-[10px] text-[#8D827A] mt-1">Audit reconciliation</div>
+          <div className="text-xl font-black text-emerald-700 mt-1.5">{stockAccuracyRate}%</div>
+          <div className="text-[10px] text-[color:var(--crm-text-tertiary)] mt-1">Audit reconciliation</div>
         </div>
       </div>
 
       {/* Recharts Analytics Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Chart 1: Warehouse Stock Valuation */}
-        <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-md">
+        <div className="bg-white p-5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-md">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
-              <Building className="w-4 h-4 text-indigo-400" />
+            <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
+              <Building className="w-4 h-4 text-indigo-700" />
               Warehouse Stock Valuation (₹ Lakhs)
             </h3>
-            <span className="text-[10px] text-[#70665F]">Yard Distribution</span>
+            <span className="text-[10px] text-[color:var(--crm-text-secondary)]">Yard Distribution</span>
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={warehouseValuationData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F0EBE6" />
-                <XAxis dataKey="name" stroke="#70665F" fontSize={11} />
-                <YAxis stroke="#70665F" fontSize={11} />
+                <XAxis dataKey="name" stroke="#475467" fontSize={11} />
+                <YAxis stroke="#475467" fontSize={11} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#FFFFFF',
-                    borderColor: '#E7DED5',
+                    borderColor: '#E2E7EF',
                     borderRadius: '12px',
                     fontSize: '12px',
                     boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
                   }}
-                  itemStyle={{ color: '#211B17', fontWeight: 600 }}
-                  labelStyle={{ color: '#70665F', fontWeight: 700 }}
+                  itemStyle={{ color: '#0F172A', fontWeight: 600 }}
+                  labelStyle={{ color: '#475467', fontWeight: 700 }}
                 />
                 <Bar dataKey="valuation" fill="#6366f1" radius={[6, 6, 0, 0]} name="Stock Value (₹ Lakhs)" />
               </BarChart>
@@ -310,13 +310,13 @@ export default function StoreDashboardPage() {
         </div>
 
         {/* Chart 2: Category Distribution */}
-        <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-md">
+        <div className="bg-white p-5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-md">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
-              <Box className="w-4 h-4 text-sky-400" />
+            <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
+              <Box className="w-4 h-4 text-sky-700" />
               Category Inventory Distribution (₹ Lakhs)
             </h3>
-            <span className="text-[10px] text-[#70665F]">By Value Share</span>
+            <span className="text-[10px] text-[color:var(--crm-text-secondary)]">By Value Share</span>
           </div>
           <div className="h-64 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
@@ -337,45 +337,45 @@ export default function StoreDashboardPage() {
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#FFFFFF',
-                    borderColor: '#E7DED5',
+                    borderColor: '#E2E7EF',
                     borderRadius: '12px',
                     fontSize: '12px',
                     boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
                   }}
-                  itemStyle={{ color: '#211B17', fontWeight: 600 }}
-                  labelStyle={{ color: '#70665F', fontWeight: 700 }}
+                  itemStyle={{ color: '#0F172A', fontWeight: 600 }}
+                  labelStyle={{ color: '#475467', fontWeight: 700 }}
                 />
-                <Legend wrapperStyle={{ fontSize: '11px', color: '#70665F' }} />
+                <Legend wrapperStyle={{ fontSize: '11px', color: '#475467' }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Chart 3: Daily Inward vs Issue Movement */}
-        <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-md">
+        <div className="bg-white p-5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-md">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
-              <Truck className="w-4 h-4 text-emerald-400" />
+            <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
+              <Truck className="w-4 h-4 text-emerald-700" />
               Daily GRN Inward vs Production Material Issue (₹ Lakhs)
             </h3>
-            <span className="text-[10px] text-[#70665F]">7-Day Trend</span>
+            <span className="text-[10px] text-[color:var(--crm-text-secondary)]">7-Day Trend</span>
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={dailyMovementData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F0EBE6" />
-                <XAxis dataKey="day" stroke="#70665F" fontSize={11} />
-                <YAxis stroke="#70665F" fontSize={11} />
+                <XAxis dataKey="day" stroke="#475467" fontSize={11} />
+                <YAxis stroke="#475467" fontSize={11} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#FFFFFF',
-                    borderColor: '#E7DED5',
+                    borderColor: '#E2E7EF',
                     borderRadius: '12px',
                     fontSize: '12px',
                     boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
                   }}
-                  itemStyle={{ color: '#211B17', fontWeight: 600 }}
-                  labelStyle={{ color: '#70665F', fontWeight: 700 }}
+                  itemStyle={{ color: '#0F172A', fontWeight: 600 }}
+                  labelStyle={{ color: '#475467', fontWeight: 700 }}
                 />
                 <Area type="monotone" dataKey="grnInward" stroke="#10b981" fill="#10b981" fillOpacity={0.2} name="GRN Inward" />
                 <Area type="monotone" dataKey="materialIssued" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.2} name="Material Issued" />
@@ -385,30 +385,30 @@ export default function StoreDashboardPage() {
         </div>
 
         {/* Chart 4: Fast-Moving Materials */}
-        <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-md">
+        <div className="bg-white p-5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-md">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-amber-400" />
+            <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-crm-brand-600" />
               Fast-Moving Materials Velocity (Turnover Ratio)
             </h3>
-            <span className="text-[10px] text-[#70665F]">Annual Turnover Rate</span>
+            <span className="text-[10px] text-[color:var(--crm-text-secondary)]">Annual Turnover Rate</span>
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={fastMovingData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="#F0EBE6" />
-                <XAxis type="number" stroke="#70665F" fontSize={11} />
-                <YAxis dataKey="name" type="category" stroke="#70665F" fontSize={10} width={130} />
+                <XAxis type="number" stroke="#475467" fontSize={11} />
+                <YAxis dataKey="name" type="category" stroke="#475467" fontSize={10} width={130} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#FFFFFF',
-                    borderColor: '#E7DED5',
+                    borderColor: '#E2E7EF',
                     borderRadius: '12px',
                     fontSize: '12px',
                     boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
                   }}
-                  itemStyle={{ color: '#211B17', fontWeight: 600 }}
-                  labelStyle={{ color: '#70665F', fontWeight: 700 }}
+                  itemStyle={{ color: '#0F172A', fontWeight: 600 }}
+                  labelStyle={{ color: '#475467', fontWeight: 700 }}
                 />
                 <Bar dataKey="turns" fill="#f59e0b" radius={[0, 6, 6, 0]} name="Inventory Turnover Rate" />
               </BarChart>
@@ -417,30 +417,30 @@ export default function StoreDashboardPage() {
         </div>
 
         {/* Chart 5: Job-wise Reservation vs Consumption */}
-        <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-md">
+        <div className="bg-white p-5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-md">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
-              <Lock className="w-4 h-4 text-rose-400" />
+            <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
+              <Lock className="w-4 h-4 text-rose-700" />
               Job-wise Stock Reservation vs Actual Consumption (₹ Lakhs)
             </h3>
-            <span className="text-[10px] text-[#70665F]">Job Locking</span>
+            <span className="text-[10px] text-[color:var(--crm-text-secondary)]">Job Locking</span>
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={jobReservationData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F0EBE6" />
-                <XAxis dataKey="job" stroke="#70665F" fontSize={11} />
-                <YAxis stroke="#70665F" fontSize={11} />
+                <XAxis dataKey="job" stroke="#475467" fontSize={11} />
+                <YAxis stroke="#475467" fontSize={11} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#FFFFFF',
-                    borderColor: '#E7DED5',
+                    borderColor: '#E2E7EF',
                     borderRadius: '12px',
                     fontSize: '12px',
                     boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
                   }}
-                  itemStyle={{ color: '#211B17', fontWeight: 600 }}
-                  labelStyle={{ color: '#70665F', fontWeight: 700 }}
+                  itemStyle={{ color: '#0F172A', fontWeight: 600 }}
+                  labelStyle={{ color: '#475467', fontWeight: 700 }}
                 />
                 <Bar dataKey="reservedVal" fill="#f43f5e" radius={[6, 6, 0, 0]} name="Reserved Stock Value" />
                 <Bar dataKey="consumedVal" fill="#10b981" radius={[6, 6, 0, 0]} name="Issued Consumption" />
@@ -450,30 +450,30 @@ export default function StoreDashboardPage() {
         </div>
 
         {/* Chart 6: Valuation Trend */}
-        <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-md">
+        <div className="bg-white p-5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-md">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-[#211B17] flex items-center gap-2">
+            <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] flex items-center gap-2">
               <LineChart className="w-4 h-4 text-crm-brand-500" />
               Monthly Total Stock Valuation Trend (₹ Lakhs)
             </h3>
-            <span className="text-[10px] text-[#70665F]">5-Month Trend</span>
+            <span className="text-[10px] text-[color:var(--crm-text-secondary)]">5-Month Trend</span>
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={valuationTrendData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F0EBE6" />
-                <XAxis dataKey="month" stroke="#70665F" fontSize={11} />
-                <YAxis stroke="#70665F" fontSize={11} />
+                <XAxis dataKey="month" stroke="#475467" fontSize={11} />
+                <YAxis stroke="#475467" fontSize={11} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#FFFFFF',
-                    borderColor: '#E7DED5',
+                    borderColor: '#E2E7EF',
                     borderRadius: '12px',
                     fontSize: '12px',
                     boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.08)',
                   }}
-                  itemStyle={{ color: '#211B17', fontWeight: 600 }}
-                  labelStyle={{ color: '#70665F', fontWeight: 700 }}
+                  itemStyle={{ color: '#0F172A', fontWeight: 600 }}
+                  labelStyle={{ color: '#475467', fontWeight: 700 }}
                 />
                 <Line type="monotone" dataKey="totalValue" stroke="#06b6d4" strokeWidth={3} dot={{ r: 5 }} name="Total Stock Value" />
               </LineChart>
@@ -483,52 +483,52 @@ export default function StoreDashboardPage() {
       </div>
 
       {/* Quick Access Matrix Links */}
-      <div className="bg-white p-5 rounded-2xl border border-[#E7DED5] shadow-md">
-        <h3 className="text-sm font-bold text-[#211B17] mb-3">Store Quick Operations</h3>
+      <div className="bg-white p-5 rounded-2xl border border-[color:var(--crm-border-default)] shadow-md">
+        <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] mb-3">Store Quick Operations</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
           <Link
             href="/store/items"
-            className="p-3 bg-white/60 rounded-xl border border-[#EBE3DB]/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
+            className="p-3 bg-white/60 rounded-xl border border-[#E2E7EF]/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
           >
             <Package className="w-5 h-5 text-crm-brand-500 mb-1.5 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-[#544B45]">Item Master</span>
-            <span className="text-[10px] text-[#70665F] mt-0.5">Catalog & Rates</span>
+            <span className="text-xs font-bold text-[color:var(--crm-text-secondary)]">Item Master</span>
+            <span className="text-[10px] text-[color:var(--crm-text-secondary)] mt-0.5">Catalog & Rates</span>
           </Link>
 
           <Link
             href="/store/grn"
-            className="p-3 bg-white/60 rounded-xl border border-[#EBE3DB]/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
+            className="p-3 bg-white/60 rounded-xl border border-[#E2E7EF]/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
           >
-            <Box className="w-5 h-5 text-sky-400 mb-1.5 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-[#544B45]">Goods Receipt (GRN)</span>
-            <span className="text-[10px] text-[#70665F] mt-0.5">Inward Gate Entry</span>
+            <Box className="w-5 h-5 text-sky-700 mb-1.5 group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-bold text-[color:var(--crm-text-secondary)]">Goods Receipt (GRN)</span>
+            <span className="text-[10px] text-[color:var(--crm-text-secondary)] mt-0.5">Inward Gate Entry</span>
           </Link>
 
           <Link
             href="/store/material-issue"
-            className="p-3 bg-white/60 rounded-xl border border-[#EBE3DB]/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
+            className="p-3 bg-white/60 rounded-xl border border-[#E2E7EF]/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
           >
             <Truck className="w-5 h-5 text-emerald-500 mb-1.5 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-[#544B45]">Material Issue</span>
-            <span className="text-[10px] text-[#70665F] mt-0.5">Shop Floor Voucher</span>
+            <span className="text-xs font-bold text-[color:var(--crm-text-secondary)]">Material Issue</span>
+            <span className="text-[10px] text-[color:var(--crm-text-secondary)] mt-0.5">Shop Floor Voucher</span>
           </Link>
 
           <Link
             href="/store/material-return"
-            className="p-3 bg-white/60 rounded-xl border border-[#EBE3DB]/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
+            className="p-3 bg-white/60 rounded-xl border border-[#E2E7EF]/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
           >
-            <RotateCcw className="w-5 h-5 text-indigo-400 mb-1.5 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-[#544B45]">Material Return</span>
-            <span className="text-[10px] text-[#70665F] mt-0.5">Surplus & Scrap</span>
+            <RotateCcw className="w-5 h-5 text-indigo-700 mb-1.5 group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-bold text-[color:var(--crm-text-secondary)]">Material Return</span>
+            <span className="text-[10px] text-[color:var(--crm-text-secondary)] mt-0.5">Surplus & Scrap</span>
           </Link>
 
           <Link
             href="/store/reorder"
-            className="p-3 bg-white/60 rounded-xl border border-[#EBE3DB]/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
+            className="p-3 bg-white/60 rounded-xl border border-[#E2E7EF]/50 hover:bg-white hover:border-sky-500/50 transition flex flex-col items-center text-center group"
           >
-            <AlertTriangle className="w-5 h-5 text-red-400 mb-1.5 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-[#544B45]">Low Stock Reorder</span>
-            <span className="text-[10px] text-[#70665F] mt-0.5">1-Click PR</span>
+            <AlertTriangle className="w-5 h-5 text-red-700 mb-1.5 group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-bold text-[color:var(--crm-text-secondary)]">Low Stock Reorder</span>
+            <span className="text-[10px] text-[color:var(--crm-text-secondary)] mt-0.5">1-Click PR</span>
           </Link>
         </div>
       </div>

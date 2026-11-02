@@ -237,7 +237,7 @@ export function CustomSelect({
           'w-full flex items-center justify-between gap-2 border transition-all duration-150 select-none cursor-pointer shadow-2xs group',
           sizeClasses[size],
           'bg-white border-[#CBD5E1] text-[#1E293B]',
-          'hover:bg-[#FAF7F2]/60 hover:border-[#94A3B8]',
+          'hover:bg-[#F4F6FA]/60 hover:border-[#94A3B8]',
           'focus:outline-none focus:ring-2 focus:ring-crm-brand-700/20 focus:border-crm-brand-700',
           disabled && 'opacity-60 cursor-not-allowed bg-[#F8FAFC] border-[#E2E8F0] text-[#94A3B8]',
           isOpen && 'ring-2 ring-crm-brand-700/20 border-crm-brand-700 bg-white',
@@ -325,7 +325,7 @@ export function CustomSelect({
                       opt.disabled && 'opacity-40 cursor-not-allowed hover:bg-transparent',
                       isSelected
                         ? 'bg-crm-brand-700 text-white font-bold shadow-xs'
-                        : 'text-[#334155] hover:bg-[#FAF7F2] hover:text-crm-brand-900'
+                        : 'text-[#334155] hover:bg-[color:var(--crm-bg-app)] hover:text-crm-brand-900'
                     )}
                   >
                     <div className="flex items-center gap-2 truncate min-w-0">

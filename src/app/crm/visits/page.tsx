@@ -240,7 +240,7 @@ export default function VisitsPage() {
           <div className="bg-white border border-[#E2E8F0] rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-4 animate-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-[#F1F5F9]">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#7C3AED]">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--crm-brand-600)]">
                   Site Visit Record
                 </span>
                 <h3 className="text-base font-bold text-[#1E293B]">{viewingVisit.visitNo}</h3>
@@ -317,7 +317,7 @@ export default function VisitsPage() {
               <button
                 type="button"
                 onClick={() => setViewingVisit(null)}
-                className="px-4 py-2 text-xs font-semibold bg-[#7C3AED] text-white rounded-lg shadow-xs"
+                className="px-4 py-2 text-xs font-semibold bg-[color:var(--crm-brand-600)] text-white rounded-lg shadow-xs"
               >
                 Close
               </button>

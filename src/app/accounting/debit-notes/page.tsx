@@ -5,7 +5,7 @@ import { useERP } from '../../../context/ERPContext';
 import { CreditCard, Plus, Search, FileText } from 'lucide-react';
 
 export default function DebitNotesPage() {
-  const { debitNotes, addDebitNote, suppliers, purchaseInvoices } = useERP();
+  const { currentUser, debitNotes, addDebitNote, suppliers, purchaseInvoices } = useERP();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -41,22 +41,22 @@ export default function DebitNotesPage() {
       taxAmount: numTax,
       totalAmount: numTaxable + numTax,
       status: 'Approved',
-      createdBy: 'Rajesh Patel',
+      createdBy: currentUser?.name || currentUser?.username || '',
     });
 
     setIsModalOpen(false);
   };
 
   return (
-    <div className="p-6 space-y-6 bg-[#FAF7F2]  text-[#211B17]">
-      <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-[#EBE3DB]">
+    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)]  text-[color:var(--crm-text-primary)]">
+      <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-[color:var(--crm-border-default)]">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-rose-500/20 rounded-xl text-rose-400">
             <CreditCard className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-[#211B17]">Debit Notes (Supplier Rejections / Returns)</h1>
-            <p className="text-xs text-[#70665F] mt-0.5">GST Input Adjustment Vouchers for Purchase Returns & QC Defect Debits</p>
+            <h1 className="text-xl font-bold text-[color:var(--crm-text-primary)]">Debit Notes (Supplier Rejections / Returns)</h1>
+            <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">GST Input Adjustment Vouchers for Purchase Returns & QC Defect Debits</p>
           </div>
         </div>
 
@@ -69,23 +69,23 @@ export default function DebitNotesPage() {
         </button>
       </div>
 
-      <div className="bg-white p-4 rounded-xl border border-[#EBE3DB]">
+      <div className="bg-white p-4 rounded-xl border border-[color:var(--crm-border-default)]">
         <div className="relative w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#70665F]" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--crm-text-secondary)]" />
           <input
             type="text"
             placeholder="Search DN no, supplier, invoice..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl pl-9 pr-4 py-2 text-xs text-[#3E2723]"
+            className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl pl-9 pr-4 py-2 text-xs text-[color:var(--crm-text-primary)]"
           />
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-[#EBE3DB] overflow-hidden shadow-xl">
+      <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-[#544B45]">
-            <thead className="bg-[#FAF7F2]/80 text-[#70665F] uppercase font-semibold text-[10px] tracking-wider border-b border-[#EBE3DB]">
+          <table className="w-full text-left text-xs text-[color:var(--crm-text-secondary)]">
+            <thead className="bg-[#F4F6FA]/80 text-[color:var(--crm-text-secondary)] uppercase font-semibold text-[10px] tracking-wider border-b border-[color:var(--crm-border-default)]">
               <tr>
                 <th className="py-3.5 px-4">DN Number</th>
                 <th className="py-3.5 px-4">Date</th>
@@ -98,14 +98,14 @@ export default function DebitNotesPage() {
                 <th className="py-3.5 px-4 text-center">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EBE3DB] font-mono">
+            <tbody className="divide-y divide-[color:var(--crm-border-default)] font-mono">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-xs text-[#70665F]">
+                  <td colSpan={9} className="py-12 text-center text-xs text-[color:var(--crm-text-secondary)]">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <FileText className="w-8 h-8 text-[#A8988C] opacity-50" />
-                      <p className="font-semibold text-[#544B45]">No debit notes recorded</p>
-                      <p className="text-[11px] text-[#8C7A6F]">No debit note transactions match your search criteria or none have been issued yet.</p>
+                      <FileText className="w-8 h-8 text-[color:var(--crm-text-tertiary)] opacity-50" />
+                      <p className="font-semibold text-[color:var(--crm-text-secondary)]">No debit notes recorded</p>
+                      <p className="text-[11px] text-[color:var(--crm-text-tertiary)]">No debit note transactions match your search criteria or none have been issued yet.</p>
                     </div>
                   </td>
                 </tr>
@@ -113,13 +113,13 @@ export default function DebitNotesPage() {
                 filtered.map((dn) => (
                   <tr key={dn.id} className="hover:bg-white/40 transition">
                     <td className="py-3 px-4 font-bold text-rose-400">{dn.debitNoteNumber}</td>
-                    <td className="py-3 px-4 text-[#70665F] font-sans">{dn.debitNoteDate}</td>
-                    <td className="py-3 px-4 font-sans font-semibold text-[#3E2723]">{dn.supplierName}</td>
-                    <td className="py-3 px-4 text-[#544B45]">{dn.originalInvoiceNumber}</td>
-                    <td className="py-3 px-4 font-sans text-[#70665F]">{dn.reason}</td>
-                    <td className="py-3 px-4 text-right text-[#544B45]">₹{(dn.taxableAmount || 0)?.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-[color:var(--crm-text-secondary)] font-sans">{dn.debitNoteDate}</td>
+                    <td className="py-3 px-4 font-sans font-semibold text-[color:var(--crm-text-primary)]">{dn.supplierName}</td>
+                    <td className="py-3 px-4 text-[color:var(--crm-text-secondary)]">{dn.originalInvoiceNumber}</td>
+                    <td className="py-3 px-4 font-sans text-[color:var(--crm-text-secondary)]">{dn.reason}</td>
+                    <td className="py-3 px-4 text-right text-[color:var(--crm-text-secondary)]">₹{(dn.taxableAmount || 0)?.toLocaleString()}</td>
                     <td className="py-3 px-4 text-right text-crm-brand-500">₹{(dn.taxAmount || 0)?.toLocaleString()}</td>
-                    <td className="py-3 px-4 text-right font-bold text-[#211B17]">₹{dn.totalAmount?.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-right font-bold text-[color:var(--crm-text-primary)]">₹{dn.totalAmount?.toLocaleString()}</td>
                     <td className="py-3 px-4 text-center font-sans">
                       <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-400 font-semibold">{dn.status}</span>
                     </td>
@@ -133,15 +133,15 @@ export default function DebitNotesPage() {
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl w-full max-w-md p-6 space-y-4">
-            <h3 className="text-base font-bold text-[#211B17] border-b border-[#EBE3DB] pb-3">Issue Debit Note</h3>
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-md p-6 space-y-4">
+            <h3 className="text-base font-bold text-[color:var(--crm-text-primary)] border-b border-[color:var(--crm-border-default)] pb-3">Issue Debit Note</h3>
             <form onSubmit={handleSubmit} className="space-y-3 text-xs">
               <div>
-                <label className="block text-[#70665F] mb-1">Supplier</label>
+                <label className="block text-[color:var(--crm-text-secondary)] mb-1">Supplier</label>
                 <select
                   value={supplierId}
                   onChange={(e) => setSupplierId(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723]"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)]"
                 >
                   {suppliers.map((s) => (
                     <option key={s.id} value={s.id}>
@@ -151,52 +151,52 @@ export default function DebitNotesPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-[#70665F] mb-1">Original Invoice Number</label>
+                <label className="block text-[color:var(--crm-text-secondary)] mb-1">Original Invoice Number</label>
                 <input
                   type="text"
                   required
                   value={invoiceNumber}
                   onChange={(e) => setInvoiceNumber(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono"
                 />
               </div>
               <div>
-                <label className="block text-[#70665F] mb-1">Reason</label>
+                <label className="block text-[color:var(--crm-text-secondary)] mb-1">Reason</label>
                 <input
                   type="text"
                   required
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723]"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)]"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] mb-1">Taxable Amount (₹)</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1">Taxable Amount (₹)</label>
                   <input
                     type="number"
                     placeholder="0"
                     value={taxableAmount}
                     onChange={(e) => setTaxableAmount(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#70665F] mb-1">GST Tax (₹)</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] mb-1">GST Tax (₹)</label>
                   <input
                     type="number"
                     placeholder="0"
                     value={taxAmount}
                     onChange={(e) => setTaxAmount(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-full bg-[#FAF7F2] border border-[#EBE3DB] rounded-xl px-3 py-2 text-[#3E2723] font-mono"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono"
                   />
                 </div>
               </div>
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl bg-white text-[#544B45]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[color:var(--crm-border-default)]">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl bg-white text-[color:var(--crm-text-secondary)]">
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 rounded-xl bg-emerald-600 text-[#211B17] font-semibold">
+                <button type="submit" className="px-4 py-2 rounded-xl bg-emerald-600 text-[color:var(--crm-text-primary)] font-semibold">
                   Issue Note
                 </button>
               </div>

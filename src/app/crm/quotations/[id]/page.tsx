@@ -142,7 +142,7 @@ export default function QuotationDetailPage() {
 
   if (!quotation) {
     return (
-      <div className="p-8 text-center text-[#70665F] text-xs">
+      <div className="p-8 text-center text-[color:var(--crm-text-secondary)] text-xs">
         <p>Quotation not found ({quotationId}).</p>
         <Link href="/crm/quotations" className="text-crm-brand-700 font-bold underline mt-2 block">
           Return to Quotations
@@ -285,7 +285,7 @@ export default function QuotationDetailPage() {
           <button
             onClick={handleDownloadPdf}
             disabled={isDownloadingPdf}
-            className="px-3 py-1.5 bg-[#FAF0E6] hover:bg-[#F3ECE4] text-[#75401F] border border-[#E7DED5] rounded-lg font-bold flex items-center gap-1.5 shadow-xs cursor-pointer transition active:scale-95"
+            className="px-3 py-1.5 bg-[#F1F4FA] hover:bg-[color:var(--crm-surface-subtle)] text-[color:var(--crm-brand-700)] border border-[color:var(--crm-border-default)] rounded-lg font-bold flex items-center gap-1.5 shadow-xs cursor-pointer transition active:scale-95"
             title="Download official letterhead PDF matching quotation format"
           >
             {isDownloadingPdf ? (
@@ -297,7 +297,7 @@ export default function QuotationDetailPage() {
           </button>
           <button
             onClick={() => printContent('printable-quotation-sheet', { title: `Quotation_${quotation.quotationNumber}_${currentRev.revisionNumber}` })}
-            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#FAF7F2] text-slate-700 dark:text-[#544B45] rounded-lg font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-[color:var(--crm-bg-app)] text-slate-700 dark:text-[color:var(--crm-text-secondary)] rounded-lg font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             <Printer className="w-3.5 h-3.5" />
             <span>Print Quotation Sheet</span>
@@ -321,7 +321,7 @@ export default function QuotationDetailPage() {
             ) : actionFeedback.type === 'error' ? (
               <XCircle className="w-4 h-4 text-rose-600" />
             ) : (
-              <Info className="w-4 h-4 text-amber-600" />
+              <Info className="w-4 h-4 text-crm-brand-600" />
             )}
           </div>
           <div className="flex-1 text-xs leading-relaxed">
@@ -331,7 +331,7 @@ export default function QuotationDetailPage() {
       )}
 
       {/* Top Header Card */}
-      <div className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl p-6 shadow-sm space-y-4 print:hidden">
+      <div className="bg-white dark:bg-white border border-slate-200 dark:border-[color:var(--crm-border-default)] rounded-2xl p-6 shadow-sm space-y-4 print:hidden">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
@@ -343,22 +343,22 @@ export default function QuotationDetailPage() {
               </span>
               <StatusBadge status={currentRev.status as any} />
             </div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-[#211B17] mt-1">{quotation.customerName}</h1>
-            <p className="text-[#70665F]">Contact: {quotation.contactPerson} • {quotation.contactMobile}</p>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-[color:var(--crm-text-primary)] mt-1">{quotation.customerName}</h1>
+            <p className="text-[color:var(--crm-text-secondary)]">Contact: {quotation.contactPerson} • {quotation.contactMobile}</p>
           </div>
 
-          <div className="bg-slate-50 dark:bg-[#FAF7F2] p-3.5 rounded-xl border border-slate-200 dark:border-[#EBE3DB] text-right">
-            <span className="text-[10px] text-[#70665F] font-semibold uppercase block">Grand Total Value</span>
+          <div className="bg-slate-50 dark:bg-[color:var(--crm-bg-app)] p-3.5 rounded-xl border border-slate-200 dark:border-[color:var(--crm-border-default)] text-right">
+            <span className="text-[10px] text-[color:var(--crm-text-secondary)] font-semibold uppercase block">Grand Total Value</span>
             <span className="text-lg font-black text-emerald-600 block">{formatCurrency(currentRev.grandTotal)}</span>
-            <span className="text-[10px] text-[#70665F]">Valid Until: {formatDate(quotation.validUntil)}</span>
+            <span className="text-[10px] text-[color:var(--crm-text-secondary)]">Valid Until: {formatDate(quotation.validUntil)}</span>
           </div>
         </div>
 
         {/* Action Controls Strip */}
-        <div className="pt-3 border-t border-slate-100 dark:border-[#EBE3DB] flex flex-wrap items-center justify-between gap-3">
+        <div className="pt-3 border-t border-slate-100 dark:border-[color:var(--crm-border-default)] flex flex-wrap items-center justify-between gap-3">
           {/* Revision Selector */}
           <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-600 dark:text-[#70665F]">View Revision:</span>
+            <span className="font-bold text-slate-600 dark:text-[color:var(--crm-text-secondary)]">View Revision:</span>
             <div className="flex items-center gap-1">
               {quotation.revisions.map((rev) => (
                 <button
@@ -366,8 +366,8 @@ export default function QuotationDetailPage() {
                   onClick={() => setSelectedRevNum(rev.revisionNumber)}
                   className={`px-2.5 py-1 rounded-lg font-mono font-bold text-xs transition ${
                     selectedRevNum === rev.revisionNumber
-                      ? 'bg-[#3E2723] text-white shadow-xs'
-                      : 'bg-[#FAF7F2] border border-[#E7DED5] text-[#70665F] hover:bg-[#F3ECE4]'
+                      ? 'bg-[color:var(--crm-text-primary)] text-white shadow-xs'
+                      : 'bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-surface-subtle)]'
                   }`}
                 >
                   {rev.revisionNumber}
@@ -376,7 +376,7 @@ export default function QuotationDetailPage() {
             </div>
             <button
               onClick={handleCreateNextRevision}
-              className="px-2.5 py-1 bg-[#FAF0E6] text-[#75401F] hover:bg-[#F3ECE4] rounded-lg font-bold text-xs flex items-center gap-1 border border-[#E7DED5] transition cursor-pointer"
+              className="px-2.5 py-1 bg-[#F1F4FA] text-[color:var(--crm-brand-700)] hover:bg-[color:var(--crm-surface-subtle)] rounded-lg font-bold text-xs flex items-center gap-1 border border-[color:var(--crm-border-default)] transition cursor-pointer"
             >
               <Plus className="w-3 h-3" />
               <span>Create Next Rev</span>
@@ -453,7 +453,7 @@ export default function QuotationDetailPage() {
                 setFlwPurpose(`Quotation follow-up for ${quotation.quotationNumber} (${currentRev.revisionNumber})`);
                 setShowFlwModal(true);
               }}
-              className="px-3.5 py-1.5 bg-[#FAF7F2] hover:bg-[#F3ECE4] text-[#75401F] border border-[#E7DED5] rounded-lg font-bold text-xs flex items-center gap-1.5 transition cursor-pointer active:scale-95 shadow-2xs"
+              className="px-3.5 py-1.5 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-surface-subtle)] text-[color:var(--crm-brand-700)] border border-[color:var(--crm-border-default)] rounded-lg font-bold text-xs flex items-center gap-1.5 transition cursor-pointer active:scale-95 shadow-2xs"
             >
               <PhoneCall className="w-3.5 h-3.5" />
               <span>Schedule Follow-up</span>
@@ -462,7 +462,7 @@ export default function QuotationDetailPage() {
             {currentRev.status === 'accepted' && (
               <Link
                 href="/crm/customer-po"
-                className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#F3ECE4] text-[#75401F] border border-[#E7DED5] rounded-lg font-bold text-xs flex items-center gap-1 transition"
+                className="px-3 py-1.5 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-surface-subtle)] text-[color:var(--crm-brand-700)] border border-[color:var(--crm-border-default)] rounded-lg font-bold text-xs flex items-center gap-1 transition"
               >
                 <span>View PO Register</span>
               </Link>
@@ -472,27 +472,27 @@ export default function QuotationDetailPage() {
       </div>
 
       {/* Quotation Document Sheet Preview (Formal Letterhead) */}
-      <div id="printable-quotation-sheet" className="bg-white dark:bg-white border border-slate-200 dark:border-[#EBE3DB] rounded-2xl p-6 shadow-sm space-y-6 print:border-none print:shadow-none print:p-0 print:m-0 max-w-full overflow-hidden">
+      <div id="printable-quotation-sheet" className="bg-white dark:bg-white border border-slate-200 dark:border-[color:var(--crm-border-default)] rounded-2xl p-6 shadow-sm space-y-6 print:border-none print:shadow-none print:p-0 print:m-0 max-w-full overflow-hidden">
         {/* Letterhead Header */}
-        <div className="flex justify-between items-start border-b-2 border-[#EBE3DB] dark:border-slate-100 pb-4">
+        <div className="flex justify-between items-start border-b-2 border-[color:var(--crm-border-default)] dark:border-slate-100 pb-4">
           <div>
-            <h2 className="text-lg font-black tracking-tight text-slate-900 dark:text-[#211B17]">UMA TECHNO FAB PVT. LTD.</h2>
-            <p className="text-[#70665F] text-[11px]">Plot No. 48/B, GIDC Industrial Estate, Makarpura, Vadodara - 390010</p>
-            <span className="text-[10px] text-[#70665F] font-mono">GSTIN: 24AABCU9821R1ZX • PAN: AABCU9821R</span>
+            <h2 className="text-lg font-black tracking-tight text-slate-900 dark:text-[color:var(--crm-text-primary)]">UMA TECHNO FAB PVT. LTD.</h2>
+            <p className="text-[color:var(--crm-text-secondary)] text-[11px]">Plot No. 48/B, GIDC Industrial Estate, Makarpura, Vadodara - 390010</p>
+            <span className="text-[10px] text-[color:var(--crm-text-secondary)] font-mono">GSTIN: 24AABCU9821R1ZX • PAN: AABCU9821R</span>
           </div>
           <div className="text-right">
             <span className="text-sm font-bold font-mono text-crm-brand-700 block">{quotation.quotationNumber}</span>
             <span className="font-mono text-crm-brand-800 font-bold">{currentRev.revisionNumber}</span>
-            <span className="text-[#70665F] text-[11px] block mt-0.5">Date: {formatDate(currentRev.date)}</span>
+            <span className="text-[color:var(--crm-text-secondary)] text-[11px] block mt-0.5">Date: {formatDate(currentRev.date)}</span>
           </div>
         </div>
 
         {/* Customer Box */}
-        <div className="p-3 bg-slate-50 dark:bg-[#FAF7F2]/60 rounded-xl grid grid-cols-2 gap-3 text-[11px]">
+        <div className="p-3 bg-slate-50 dark:bg-[#F4F6FA]/60 rounded-xl grid grid-cols-2 gap-3 text-[11px]">
           <div>
-            <span className="text-[#70665F] block font-semibold">Quotation Addressed To:</span>
-            <strong className="text-slate-900 dark:text-[#211B17] block text-xs">{quotation.customerName}</strong>
-            <span className="text-slate-600 dark:text-[#544B45] block">Attn: {quotation.contactPerson || linkedLead?.contactPerson || 'Purchase Head'}</span>
+            <span className="text-[color:var(--crm-text-secondary)] block font-semibold">Quotation Addressed To:</span>
+            <strong className="text-slate-900 dark:text-[color:var(--crm-text-primary)] block text-xs">{quotation.customerName}</strong>
+            <span className="text-slate-600 dark:text-[color:var(--crm-text-secondary)] block">Attn: {quotation.contactPerson || linkedLead?.contactPerson || 'Purchase Head'}</span>
             <div className="mt-0.5">
               {quotation.contactEmail || resolvedEmail ? (
                 <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-600 font-medium font-mono text-xs">
@@ -510,17 +510,17 @@ export default function QuotationDetailPage() {
             </div>
           </div>
           <div className="text-right">
-            <span className="text-[#70665F] block font-semibold">Prepared By:</span>
-            <strong className="text-slate-900 dark:text-[#211B17] block">{currentRev.preparedBy}</strong>
-            <span className="text-[#70665F] block">Validity: {formatDate(quotation.validUntil)}</span>
+            <span className="text-[color:var(--crm-text-secondary)] block font-semibold">Prepared By:</span>
+            <strong className="text-slate-900 dark:text-[color:var(--crm-text-primary)] block">{currentRev.preparedBy}</strong>
+            <span className="text-[color:var(--crm-text-secondary)] block">Validity: {formatDate(quotation.validUntil)}</span>
           </div>
         </div>
 
         {/* Items Table */}
         <div className="space-y-2 overflow-x-auto">
-          <h3 className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Bill of Quantities & Pricing</h3>
-          <table className="w-full table-fixed text-left border-collapse border border-slate-200 dark:border-[#EBE3DB]">
-            <thead className="bg-slate-100 dark:bg-[#FAF7F2] text-slate-700 dark:text-[#544B45] font-bold text-[11px]">
+          <h3 className="font-bold text-sm text-slate-800 dark:text-[color:var(--crm-text-secondary)]">Bill of Quantities & Pricing</h3>
+          <table className="w-full table-fixed text-left border-collapse border border-slate-200 dark:border-[color:var(--crm-border-default)]">
+            <thead className="bg-slate-100 dark:bg-[color:var(--crm-bg-app)] text-slate-700 dark:text-[color:var(--crm-text-secondary)] font-bold text-[11px]">
               <tr>
                 <th className="p-2 border w-10 text-center">#</th>
                 <th className="p-2 border">Equipment Description & Specifications</th>
@@ -530,12 +530,12 @@ export default function QuotationDetailPage() {
                 <th className="p-2 border w-32 text-right">Total Amount (₹)</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-[#EBE3DB] text-[11px]">
+            <tbody className="divide-y divide-slate-200 dark:divide-[color:var(--crm-border-default)] text-[11px]">
               {currentRev.items.map((item, idx) => (
                 <tr key={idx} className="align-top">
                   <td className="p-2.5 border text-center font-mono">{idx + 1}</td>
                   <td className="p-2.5 border break-words">
-                    <strong className="block text-slate-900 dark:text-[#211B17] text-xs font-bold">{item.productName}</strong>
+                    <strong className="block text-slate-900 dark:text-[color:var(--crm-text-primary)] text-xs font-bold">{item.productName}</strong>
                     {/* Render each specification point on a new line */}
                     {(() => {
                       const points = parseDescriptionPoints(item);
@@ -550,11 +550,11 @@ export default function QuotationDetailPage() {
 
                             return (
                               <div key={pIdx} className="flex items-start gap-1.5 text-[11px] leading-snug">
-                                <span className="text-[#C07039] font-bold select-none text-[12px] leading-tight shrink-0">•</span>
-                                <div className="text-slate-700 dark:text-[#544B45] break-words">
+                                <span className="text-[#617298] font-bold select-none text-[12px] leading-tight shrink-0">•</span>
+                                <div className="text-slate-700 dark:text-[color:var(--crm-text-secondary)] break-words">
                                   {label ? (
                                     <>
-                                      <strong className="text-slate-900 dark:text-[#211B17] font-semibold">{label}:</strong>{' '}
+                                      <strong className="text-slate-900 dark:text-[color:var(--crm-text-primary)] font-semibold">{label}:</strong>{' '}
                                       <span>{val}</span>
                                     </>
                                   ) : (
@@ -571,13 +571,13 @@ export default function QuotationDetailPage() {
                   <td className="p-2.5 border text-center font-mono font-bold whitespace-nowrap">{item.quantity} {item.unit}</td>
                   <td className="p-2.5 border text-right font-mono whitespace-nowrap">{formatCurrency(item.rate)}</td>
                   <td className="p-2.5 border text-right font-mono whitespace-nowrap">{item.taxPercent}%</td>
-                  <td className="p-2.5 border text-right font-mono font-bold text-slate-900 dark:text-[#211B17] whitespace-nowrap">
+                  <td className="p-2.5 border text-right font-mono font-bold text-slate-900 dark:text-[color:var(--crm-text-primary)] whitespace-nowrap">
                     {formatCurrency(item.amount)}
                   </td>
                 </tr>
               ))}
             </tbody>
-            <tfoot className="bg-slate-50 dark:bg-[#FAF7F2]/60 font-bold text-[11px]">
+            <tfoot className="bg-slate-50 dark:bg-[#F4F6FA]/60 font-bold text-[11px]">
               <tr>
                 <td colSpan={5} className="p-2 border text-right">Taxable Subtotal:</td>
                 <td className="p-2 border text-right font-mono whitespace-nowrap">{formatCurrency(currentRev.subTotal)}</td>
@@ -586,7 +586,7 @@ export default function QuotationDetailPage() {
                 <td colSpan={5} className="p-2 border text-right">Applicable GST Taxes:</td>
                 <td className="p-2 border text-right font-mono whitespace-nowrap">{formatCurrency(currentRev.taxAmount)}</td>
               </tr>
-              <tr className="bg-slate-100 dark:bg-[#FAF7F2] text-xs">
+              <tr className="bg-slate-100 dark:bg-[color:var(--crm-bg-app)] text-xs">
                 <td colSpan={5} className="p-2 border text-right font-black">Grand Total (INR):</td>
                 <td className="p-2 border text-right font-mono font-black text-emerald-600 whitespace-nowrap">
                   {formatCurrency(currentRev.grandTotal)}
@@ -606,10 +606,10 @@ export default function QuotationDetailPage() {
           if (termsArray.length === 0) return null;
 
           return (
-            <div className="space-y-2 pt-4 border-t border-slate-200 dark:border-[#EBE3DB] text-[11px]">
-              <h3 className="font-bold text-sm text-slate-800 dark:text-[#544B45]">Terms & Conditions</h3>
-              <div className="p-3.5 bg-slate-50 dark:bg-[#FAF7F2]/60 rounded-xl border border-slate-200 dark:border-[#EBE3DB]">
-                <ol className="list-decimal list-inside space-y-1.5 text-slate-700 dark:text-[#544B45]">
+            <div className="space-y-2 pt-4 border-t border-slate-200 dark:border-[color:var(--crm-border-default)] text-[11px]">
+              <h3 className="font-bold text-sm text-slate-800 dark:text-[color:var(--crm-text-secondary)]">Terms & Conditions</h3>
+              <div className="p-3.5 bg-slate-50 dark:bg-[#F4F6FA]/60 rounded-xl border border-slate-200 dark:border-[color:var(--crm-border-default)]">
+                <ol className="list-decimal list-inside space-y-1.5 text-slate-700 dark:text-[color:var(--crm-text-secondary)]">
                   {termsArray.map((t: string, idx: number) => (
                     <li key={idx} className="leading-relaxed">
                       {t}
@@ -625,63 +625,63 @@ export default function QuotationDetailPage() {
       {/* Customer PO Inward Modal */}
       {showPoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="bg-white dark:bg-white border border-[#E7DED5] rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
-            <h3 className="text-base font-bold text-slate-900 dark:text-[#211B17]">Customer PO Inward Receipt</h3>
-            <p className="text-[#70665F]">
+          <div className="bg-white dark:bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
+            <h3 className="text-base font-bold text-slate-900 dark:text-[color:var(--crm-text-primary)]">Customer PO Inward Receipt</h3>
+            <p className="text-[color:var(--crm-text-secondary)]">
               Customer has accepted {quotation.quotationNumber} ({currentRev.revisionNumber}). Record their formal purchase order.
             </p>
             <form onSubmit={handleCreateCustomerPO} className="space-y-3">
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Customer PO Number *</label>
+                <label className="block text-slate-700 dark:text-[color:var(--crm-text-secondary)] font-semibold mb-1">Customer PO Number *</label>
                 <input
                   type="text"
                   required
                   value={poNumber}
                   onChange={(e) => setPoNumber(e.target.value)}
                   placeholder="e.g. PO/ADC/2026/9999"
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-[#E7DED5] rounded-lg font-mono font-bold"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg font-mono font-bold"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">PO Date</label>
+                  <label className="block text-slate-700 dark:text-[color:var(--crm-text-secondary)] font-semibold mb-1">PO Date</label>
                   <input
                     type="date"
                     value={poDate}
                     onChange={(e) => setPoDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-[#E7DED5] rounded-lg"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Target Delivery Date</label>
+                  <label className="block text-slate-700 dark:text-[color:var(--crm-text-secondary)] font-semibold mb-1">Target Delivery Date</label>
                   <input
                     type="date"
                     value={deliveryDate}
                     onChange={(e) => setDeliveryDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-[#E7DED5] rounded-lg"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Confirmed PO Amount (₹)</label>
+                <label className="block text-slate-700 dark:text-[color:var(--crm-text-secondary)] font-semibold mb-1">Confirmed PO Amount (₹)</label>
                 <input
                   type="text"
                   disabled
                   value={formatCurrency(currentRev.grandTotal)}
-                  className="w-full px-3 py-2 bg-slate-100 dark:bg-[#FAF7F2] border border-[#E7DED5] rounded-lg font-mono font-bold text-emerald-600"
+                  className="w-full px-3 py-2 bg-slate-100 dark:bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg font-mono font-bold text-emerald-600"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-[#544B45] font-semibold mb-1">Remarks / Scope Notes</label>
+                <label className="block text-slate-700 dark:text-[color:var(--crm-text-secondary)] font-semibold mb-1">Remarks / Scope Notes</label>
                 <textarea
                   rows={2}
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
                   placeholder="Special terms, site location or instructions..."
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[#FAF7F2] border border-[#E7DED5] rounded-lg text-xs"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs"
                 />
               </div>
 
@@ -689,7 +689,7 @@ export default function QuotationDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowPoModal(false)}
-                  className="px-4 py-2 border border-[#E7DED5] rounded-lg font-semibold hover:bg-slate-50"
+                  className="px-4 py-2 border border-[color:var(--crm-border-default)] rounded-lg font-semibold hover:bg-slate-50"
                 >
                   Cancel
                 </button>
@@ -707,12 +707,12 @@ export default function QuotationDetailPage() {
       {/* Schedule Quotation Follow-up Modal */}
       {showFlwModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-white dark:bg-white border border-[#E7DED5] rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
-            <h3 className="text-base font-bold text-slate-900 dark:text-[#211B17] flex items-center gap-2">
+          <div className="bg-white dark:bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
+            <h3 className="text-base font-bold text-slate-900 dark:text-[color:var(--crm-text-primary)] flex items-center gap-2">
               <PhoneCall className="w-5 h-5 text-crm-brand-700" />
               Schedule Quotation Follow-up
             </h3>
-            <p className="text-[#70665F] text-xs">
+            <p className="text-[color:var(--crm-text-secondary)] text-xs">
               Keep track of client feedback and next steps for {quotation.quotationNumber} ({currentRev.revisionNumber}).
             </p>
 
@@ -740,26 +740,26 @@ export default function QuotationDetailPage() {
               className="space-y-3 text-xs"
             >
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Quick Date Presets</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Quick Date Presets</label>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setQuickFlwDate(2)}
-                    className="flex-1 py-1 px-2 rounded-lg bg-[#FAF7F2] hover:bg-[#F3ECE4] text-[#75401F] font-bold border border-[#E7DED5] text-center"
+                    className="flex-1 py-1 px-2 rounded-lg bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-surface-subtle)] text-[color:var(--crm-brand-700)] font-bold border border-[color:var(--crm-border-default)] text-center"
                   >
                     In 2 Days
                   </button>
                   <button
                     type="button"
                     onClick={() => setQuickFlwDate(7)}
-                    className="flex-1 py-1 px-2 rounded-lg bg-[#FAF7F2] hover:bg-[#F3ECE4] text-[#75401F] font-bold border border-[#E7DED5] text-center"
+                    className="flex-1 py-1 px-2 rounded-lg bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-surface-subtle)] text-[color:var(--crm-brand-700)] font-bold border border-[color:var(--crm-border-default)] text-center"
                   >
                     In 7 Days
                   </button>
                   <button
                     type="button"
                     onClick={() => setQuickFlwDate(15)}
-                    className="flex-1 py-1 px-2 rounded-lg bg-[#FAF7F2] hover:bg-[#F3ECE4] text-[#75401F] font-bold border border-[#E7DED5] text-center"
+                    className="flex-1 py-1 px-2 rounded-lg bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-surface-subtle)] text-[color:var(--crm-brand-700)] font-bold border border-[color:var(--crm-border-default)] text-center"
                   >
                     In 15 Days
                   </button>
@@ -768,21 +768,21 @@ export default function QuotationDetailPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Follow-up Due Date *</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Follow-up Due Date *</label>
                   <input
                     type="date"
                     required
                     value={flwDate}
                     onChange={(e) => setFlwDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-lg font-mono"
+                    className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#544B45] font-semibold mb-1">Channel</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Channel</label>
                   <select
                     value={flwChannel}
                     onChange={(e) => setFlwChannel(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-lg"
+                    className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg"
                   >
                     <option value="call">Phone Call</option>
                     <option value="whatsapp">WhatsApp</option>
@@ -793,22 +793,22 @@ export default function QuotationDetailPage() {
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1">Discussion Purpose / Next Action *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1">Discussion Purpose / Next Action *</label>
                 <input
                   type="text"
                   required
                   value={flwPurpose}
                   onChange={(e) => setFlwPurpose(e.target.value)}
                   placeholder="e.g. Call client purchase head to review Limpet jacket specs"
-                  className="w-full px-3 py-2 bg-[#FAF7F2] border border-[#E7DED5] rounded-lg font-semibold"
+                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg font-semibold"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-[#E7DED5]">
+              <div className="flex justify-end gap-2 pt-2 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setShowFlwModal(false)}
-                  className="px-4 py-2 border border-[#E7DED5] rounded-lg font-semibold text-[#544B45]"
+                  className="px-4 py-2 border border-[color:var(--crm-border-default)] rounded-lg font-semibold text-[color:var(--crm-text-secondary)]"
                 >
                   Cancel
                 </button>
@@ -826,17 +826,17 @@ export default function QuotationDetailPage() {
       {/* Quotation Send Email Modal */}
       {showEmailModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#2C241F] rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-xl border border-[#E7DED5]">
-            <div className="flex items-center justify-between border-b border-[#E7DED5] pb-3">
+          <div className="bg-white dark:bg-[#1D222E] rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-xl border border-[color:var(--crm-border-default)]">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-crm-brand-50 text-crm-brand-700 flex items-center justify-center font-bold">
                   <Mail className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm text-[#211B17] dark:text-white">
+                  <h3 className="font-bold text-sm text-[color:var(--crm-text-primary)] dark:text-white">
                     Send Commercial Quotation Proposal
                   </h3>
-                  <p className="text-[11px] text-[#70665F]">
+                  <p className="text-[11px] text-[color:var(--crm-text-secondary)]">
                     Dispatches formal quotation with attached engineering PDF.
                   </p>
                 </div>
@@ -844,7 +844,7 @@ export default function QuotationDetailPage() {
               <button
                 type="button"
                 onClick={() => setShowEmailModal(false)}
-                className="text-[#70665F] hover:text-[#211B17] text-lg font-bold p-1 cursor-pointer"
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] text-lg font-bold p-1 cursor-pointer"
               >
                 ✕
               </button>
@@ -857,23 +857,23 @@ export default function QuotationDetailPage() {
               }}
               className="space-y-4 text-xs"
             >
-              <div className="p-3 bg-[#FAF7F2] dark:bg-[#1f1915] rounded-xl border border-[#E7DED5] space-y-2">
+              <div className="p-3 bg-[color:var(--crm-bg-app)] dark:bg-[#1f1915] rounded-xl border border-[color:var(--crm-border-default)] space-y-2">
                 <div className="flex justify-between items-center text-[11px]">
-                  <span className="text-[#70665F]">Customer:</span>
-                  <strong className="text-[#211B17] dark:text-white font-bold">{quotation.customerName}</strong>
+                  <span className="text-[color:var(--crm-text-secondary)]">Customer:</span>
+                  <strong className="text-[color:var(--crm-text-primary)] dark:text-white font-bold">{quotation.customerName}</strong>
                 </div>
                 <div className="flex justify-between items-center text-[11px]">
-                  <span className="text-[#70665F]">Quotation Reference:</span>
+                  <span className="text-[color:var(--crm-text-secondary)]">Quotation Reference:</span>
                   <span className="font-mono font-bold text-crm-brand-700">{quotation.quotationNumber} ({currentRev.revisionNumber})</span>
                 </div>
                 <div className="flex justify-between items-center text-[11px]">
-                  <span className="text-[#70665F]">PDF Attachment:</span>
+                  <span className="text-[color:var(--crm-text-secondary)]">PDF Attachment:</span>
                   <span className="font-mono text-slate-700 dark:text-slate-300">Quotation_{quotation.quotationNumber}_{currentRev.revisionNumber}.pdf</span>
                 </div>
               </div>
 
               <div>
-                <label className="block text-[#544B45] font-semibold mb-1 flex items-center justify-between">
+                <label className="block text-[color:var(--crm-text-secondary)] font-semibold mb-1 flex items-center justify-between">
                   <span>Recipient Customer / Lead Email ID <span className="text-rose-500">*</span></span>
                   {linkedLead?.email && targetEmail === linkedLead.email && (
                     <span className="text-[10px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded border border-emerald-200">
@@ -882,27 +882,27 @@ export default function QuotationDetailPage() {
                   )}
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-[#70665F] absolute left-3 top-2.5" />
+                  <Mail className="w-4 h-4 text-[color:var(--crm-text-secondary)] absolute left-3 top-2.5" />
                   <input
                     type="email"
                     required
                     value={targetEmail}
                     onChange={(e) => setTargetEmail(e.target.value)}
                     placeholder="Enter customer email address"
-                    className="w-full pl-9 pr-3 py-2 bg-[#FAF7F2] dark:bg-[#1f1915] border border-[#E7DED5] rounded-lg font-mono text-sm font-semibold text-[#211B17] dark:text-white focus:outline-none focus:border-crm-brand-700"
+                    className="w-full pl-9 pr-3 py-2 bg-[color:var(--crm-bg-app)] dark:bg-[#1f1915] border border-[color:var(--crm-border-default)] rounded-lg font-mono text-sm font-semibold text-[color:var(--crm-text-primary)] dark:text-white focus:outline-none focus:border-crm-brand-700"
                   />
                 </div>
-                <p className="text-[10px] text-[#70665F] mt-1">
+                <p className="text-[10px] text-[color:var(--crm-text-secondary)] mt-1">
                   The quotation details and official generated PDF proposal will be dispatched to this email address.
                 </p>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-[#E7DED5]">
+              <div className="flex justify-end gap-2 pt-2 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setShowEmailModal(false)}
                   disabled={isSendingEmail}
-                  className="px-4 py-2 border border-[#E7DED5] rounded-lg font-semibold text-[#544B45] hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                  className="px-4 py-2 border border-[color:var(--crm-border-default)] rounded-lg font-semibold text-[color:var(--crm-text-secondary)] hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                 >
                   Cancel
                 </button>

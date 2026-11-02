@@ -11,7 +11,7 @@ import { printContent } from '@/lib/printUtils';
 
 function MaterialReturnContent() {
   const searchParams = useSearchParams();
-  const { materialReturns, addMaterialReturn, projectJobs, itemMasters, warehouses, materialIssues } = useERP();
+  const { currentUser, materialReturns, addMaterialReturn, projectJobs, itemMasters, warehouses, materialIssues } = useERP();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -295,7 +295,7 @@ function MaterialReturnContent() {
         const retDate = r.returnDate || (r as any).return_date || new Date().toISOString().split('T')[0];
         return (
           <div>
-            <div className="font-semibold text-[#7C3AED] hover:underline cursor-pointer">{retNo}</div>
+            <div className="font-semibold text-[color:var(--crm-brand-600)] hover:underline cursor-pointer">{retNo}</div>
             <div className="text-[11px] text-gray-400">{retDate}</div>
           </div>
         );
@@ -310,7 +310,7 @@ function MaterialReturnContent() {
         return (
           <div>
             <div className="font-semibold text-gray-800 flex items-center gap-1">
-              <Cpu className="w-3.5 h-3.5 text-[#7C3AED]" />
+              <Cpu className="w-3.5 h-3.5 text-[color:var(--crm-brand-600)]" />
               {jobCode}
             </div>
             <div className="text-[11px] text-gray-400">Issue: {issueSlip}</div>
@@ -370,7 +370,7 @@ function MaterialReturnContent() {
       cell: (r: MaterialReturn) => (
         <button
           onClick={() => setSelectedVoucher(r)}
-          className="p-1 hover:bg-purple-50 rounded text-gray-500 hover:text-[#7C3AED] transition cursor-pointer"
+          className="p-1 hover:bg-purple-50 rounded text-gray-500 hover:text-[color:var(--crm-brand-600)] transition cursor-pointer"
           title="View Official Return Slip"
         >
           <Eye className="w-4 h-4" />
@@ -437,7 +437,7 @@ function MaterialReturnContent() {
         warehouseId: selectedWh.id,
         warehouseName: selectedWh.warehouseName,
         returnedBy: returnedBy.trim() || 'Shop Floor Supervisor',
-        receivedBy: 'Hitesh Rawal (Store Head)',
+        receivedBy: currentUser?.name || '',
         totalReturnValue: calculatedValue,
         remarks: remarks || `Returned ${numReturnQty} ${selectedItem.uom} ${condition} material back to store stock`,
         items: [
@@ -507,20 +507,20 @@ function MaterialReturnContent() {
       {/* Add Return Slip Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-white border border-[#EBE3DB] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl text-xs max-h-[92vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[#EBE3DB] pb-3">
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl text-xs max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
               <div>
-                <h2 className="text-base font-black text-[#211B17] flex items-center gap-2">
-                  <CornerUpLeft className="w-5 h-5 text-amber-600" />
+                <h2 className="text-base font-black text-[color:var(--crm-text-primary)] flex items-center gap-2">
+                  <CornerUpLeft className="w-5 h-5 text-crm-brand-600" />
                   Return Material & Offcuts to Store
                 </h2>
-                <p className="text-[11px] text-[#70665F]">
+                <p className="text-[11px] text-[color:var(--crm-text-secondary)]">
                   Re-inwards unconsumed raw materials back into warehouse stock
                 </p>
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-[#8C827A] hover:text-[#211B17] text-base p-1 cursor-pointer"
+                className="text-[#68789E] hover:text-[color:var(--crm-text-primary)] text-base p-1 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -529,11 +529,11 @@ function MaterialReturnContent() {
             <form onSubmit={handleSubmit} className="space-y-3.5">
               {/* Project selection */}
               <div>
-                <label className="block text-[#70665F] font-bold mb-1">Target Project *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-bold mb-1">Target Project *</label>
                 <select
                   value={jobId}
                   onChange={(e) => handleJobChange(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-mono font-bold"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono font-bold"
                   required
                 >
                   <option value="">-- Select Target Project --</option>
@@ -549,12 +549,12 @@ function MaterialReturnContent() {
               {/* Material Issue Slip Reference */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] font-bold mb-1">Material Issue Ref</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-bold mb-1">Material Issue Ref</label>
                   {jobIssues.length > 0 ? (
                     <select
                       value={issueNo}
                       onChange={(e) => handleIssueChange(e.target.value)}
-                      className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-mono"
+                      className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono"
                     >
                       {jobIssues.map((iss) => (
                         <option key={iss.id} value={iss.issueNumber}>
@@ -568,29 +568,29 @@ function MaterialReturnContent() {
                       placeholder="e.g. ISS-2026-0012"
                       value={issueNo}
                       onChange={(e) => setIssueNo(e.target.value)}
-                      className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-mono"
+                      className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono"
                     />
                   )}
                 </div>
                 <div>
-                  <label className="block text-[#70665F] font-bold mb-1">Work Order Ref</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-bold mb-1">Work Order Ref</label>
                   <input
                     type="text"
                     placeholder="e.g. WO-2026-0001"
                     value={woNo}
                     onChange={(e) => setWoNo(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-mono"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-mono"
                   />
                 </div>
               </div>
 
               {/* Item Selection from Actual Issued Items */}
               <div>
-                <label className="block text-[#70665F] font-bold mb-1">Select Item to Return *</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-bold mb-1">Select Item to Return *</label>
                 <select
                   value={itemId}
                   onChange={(e) => handleItemChange(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-bold"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-bold"
                   required
                 >
                   <option value="">-- Select Item to Return --</option>
@@ -605,11 +605,11 @@ function MaterialReturnContent() {
               {/* Return Condition & Receiving Warehouse */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#70665F] font-bold mb-1">Return Condition *</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-bold mb-1">Return Condition *</label>
                   <select
                     value={condition}
                     onChange={(e) => setCondition(e.target.value as ReturnCondition)}
-                    className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-semibold"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-semibold"
                   >
                     <option value="Usable">Usable Full Material (100% Inward)</option>
                     <option value="Reusable">Reusable Offcut (Plate / Pipe Nipple)</option>
@@ -618,11 +618,11 @@ function MaterialReturnContent() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[#70665F] font-bold mb-1">Receiving Warehouse *</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-bold mb-1">Receiving Warehouse *</label>
                   <select
                     value={warehouseId}
                     onChange={(e) => setWarehouseId(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-semibold"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-semibold"
                     required
                   >
                     <option value="">-- Select Receiving Warehouse --</option>
@@ -639,14 +639,14 @@ function MaterialReturnContent() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-[#70665F] font-bold">
+                    <label className="text-[color:var(--crm-text-secondary)] font-bold">
                       Return Quantity ({selectedItem?.uom || 'Kg'}) *
                     </label>
                     {maxIssued > 0 && (
                       <button
                         type="button"
                         onClick={() => setReturnQty(maxIssued)}
-                        className="text-[10px] font-bold text-[#8B2500] hover:underline cursor-pointer bg-amber-50 hover:bg-amber-100 px-2 py-0.5 rounded border border-amber-200 transition"
+                        className="text-[10px] font-bold text-[color:var(--crm-brand-700)] hover:underline cursor-pointer bg-amber-50 hover:bg-amber-100 px-2 py-0.5 rounded border border-amber-200 transition"
                       >
                         Max: {maxIssued} {selectedItem?.uom} [Fill Max]
                       </button>
@@ -660,10 +660,10 @@ function MaterialReturnContent() {
                     step="any"
                     value={returnQty}
                     onChange={(e) => setReturnQty(e.target.value === '' ? '' : Number(e.target.value))}
-                    className={`w-full bg-[#FAF7F2] border rounded-xl px-3 py-2 text-[#8B2500] font-black text-sm font-mono focus:outline-hidden ${
+                    className={`w-full bg-[color:var(--crm-bg-app)] border rounded-xl px-3 py-2 text-[color:var(--crm-brand-700)] font-black text-sm font-mono focus:outline-hidden ${
                       isOverLimit
                         ? 'border-red-500 bg-red-50/40 text-red-700 focus:border-red-600'
-                        : 'border-[#E5DCD3] focus:border-[#8B2500]'
+                        : 'border-[color:var(--crm-border-default)] focus:border-[color:var(--crm-brand-700)]'
                     }`}
                   />
                   {isOverLimit ? (
@@ -675,7 +675,7 @@ function MaterialReturnContent() {
                     </div>
                   ) : (
                     selectedItem && (
-                      <div className="text-[10px] text-[#70665F] mt-1 flex items-center justify-between">
+                      <div className="text-[10px] text-[color:var(--crm-text-secondary)] mt-1 flex items-center justify-between">
                         <span>Rate: ₹{selectedItem.unitPrice || 185}/{selectedItem.uom || 'uom'}</span>
                         <span className="font-semibold text-emerald-800">
                           Est Value: ₹{(numReturnQty * (selectedItem.unitPrice || 185)).toLocaleString('en-IN')}
@@ -685,36 +685,36 @@ function MaterialReturnContent() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-[#70665F] font-bold mb-1">Returned By (Supervisor) *</label>
+                  <label className="block text-[color:var(--crm-text-secondary)] font-bold mb-1">Returned By (Supervisor) *</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. Raju Prajapati (Shop Floor Supervisor)"
                     value={returnedBy}
                     onChange={(e) => setReturnedBy(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17] font-semibold"
+                    className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)] font-semibold"
                   />
                 </div>
               </div>
 
               {/* Remarks */}
               <div>
-                <label className="block text-[#70665F] font-bold mb-1">Remarks / Offcut Description</label>
+                <label className="block text-[color:var(--crm-text-secondary)] font-bold mb-1">Remarks / Offcut Description</label>
                 <textarea
                   rows={2}
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
                   placeholder="e.g. Shell plate offcut 1200mm x 800mm x 25mm thickness marked with heat no"
-                  className="w-full bg-[#FAF7F2] border border-[#E5DCD3] rounded-xl px-3 py-2 text-[#211B17]"
+                  className="w-full bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl px-3 py-2 text-[color:var(--crm-text-primary)]"
                 />
               </div>
 
               {/* Action buttons */}
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#EBE3DB]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[color:var(--crm-border-default)]">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-[#FAF7F2] text-[#544B45] font-semibold cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -724,7 +724,7 @@ function MaterialReturnContent() {
                   className={`px-5 py-2.5 rounded-xl text-white font-bold shadow-xs transition active:scale-95 flex items-center gap-1.5 ${
                     isSubmitDisabled
                       ? 'bg-stone-400 cursor-not-allowed opacity-70'
-                      : 'bg-[#8B2500] hover:bg-[#701E00] cursor-pointer'
+                      : 'bg-[color:var(--crm-brand-700)] hover:bg-[#1B3489] cursor-pointer'
                   }`}
                 >
                   {isSubmitting ? (
@@ -748,47 +748,47 @@ function MaterialReturnContent() {
       {/* Official Voucher Preview Modal */}
       {selectedVoucher && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div id="printable-material-return-slip" className="bg-white border border-[#EBE3DB] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-            <div className="flex items-start justify-between border-b border-[#EBE3DB] pb-3">
+          <div id="printable-material-return-slip" className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-start justify-between border-b border-[color:var(--crm-border-default)] pb-3">
               <div>
                 <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-mono text-[10px] font-bold">
                   OFFICIAL MATERIAL RETURN SLIP
                 </span>
-                <h3 className="text-xl font-black text-[#8B2500] font-mono mt-1">
+                <h3 className="text-xl font-black text-[color:var(--crm-brand-700)] font-mono mt-1">
                   {selectedVoucher.returnNumber || selectedVoucher.id}
                 </h3>
               </div>
               <button
                 onClick={() => setSelectedVoucher(null)}
-                className="p-1 rounded-lg text-[#8C827A] hover:bg-[#FAF7F2] cursor-pointer print:hidden"
+                className="p-1 rounded-lg text-[#68789E] hover:bg-[color:var(--crm-bg-app)] cursor-pointer print:hidden"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="bg-[#FAF7F2] p-4 rounded-xl border border-[#E5DCD3] space-y-2 text-xs">
+            <div className="bg-[color:var(--crm-bg-app)] p-4 rounded-xl border border-[color:var(--crm-border-default)] space-y-2 text-xs">
               <div className="flex justify-between">
-                <span className="text-[#70665F]">Job Number:</span>
-                <span className="font-mono font-bold text-[#211B17]">{selectedVoucher.jobId}</span>
+                <span className="text-[color:var(--crm-text-secondary)]">Job Number:</span>
+                <span className="font-mono font-bold text-[color:var(--crm-text-primary)]">{selectedVoucher.jobId}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#70665F]">Material Issue Ref:</span>
-                <span className="font-mono font-bold text-[#8B2500]">{selectedVoucher.materialIssueNumber}</span>
+                <span className="text-[color:var(--crm-text-secondary)]">Material Issue Ref:</span>
+                <span className="font-mono font-bold text-[color:var(--crm-brand-700)]">{selectedVoucher.materialIssueNumber}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#70665F]">Warehouse Credited:</span>
-                <span className="font-semibold text-[#211B17]">{selectedVoucher.warehouseName}</span>
+                <span className="text-[color:var(--crm-text-secondary)]">Warehouse Credited:</span>
+                <span className="font-semibold text-[color:var(--crm-text-primary)]">{selectedVoucher.warehouseName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#70665F]">Returned By:</span>
-                <span className="font-bold text-[#211B17]">{selectedVoucher.returnedBy}</span>
+                <span className="text-[color:var(--crm-text-secondary)]">Returned By:</span>
+                <span className="font-bold text-[color:var(--crm-text-primary)]">{selectedVoucher.returnedBy}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#70665F]">Store Receiver:</span>
-                <span className="font-bold text-[#211B17]">{selectedVoucher.receivedBy}</span>
+                <span className="text-[color:var(--crm-text-secondary)]">Store Receiver:</span>
+                <span className="font-bold text-[color:var(--crm-text-primary)]">{selectedVoucher.receivedBy}</span>
               </div>
-              <div className="flex justify-between pt-2 border-t border-[#E5DCD3]">
-                <span className="font-bold text-[#211B17]">Returned Value Inwarded:</span>
+              <div className="flex justify-between pt-2 border-t border-[color:var(--crm-border-default)]">
+                <span className="font-bold text-[color:var(--crm-text-primary)]">Returned Value Inwarded:</span>
                 <span className="font-mono font-black text-emerald-800 text-base">
                   ₹{Number(selectedVoucher.totalReturnValue || 0).toLocaleString('en-IN')}
                 </span>
@@ -798,14 +798,14 @@ function MaterialReturnContent() {
             <div className="flex justify-end gap-2 pt-2 print:hidden">
               <button
                 onClick={() => printContent('printable-material-return-slip', { title: selectedVoucher ? `Material_Return_${selectedVoucher.returnNumber}` : 'Material_Return_Slip' })}
-                className="px-4 py-2 rounded-xl bg-[#FAF7F2] hover:bg-[#EFE8DF] text-[#211B17] text-xs font-bold border border-[#E5DCD3] flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-surface-subtle)] text-[color:var(--crm-text-primary)] text-xs font-bold border border-[color:var(--crm-border-default)] flex items-center gap-1.5 cursor-pointer"
               >
-                <Printer className="w-4 h-4 text-[#8B2500]" />
+                <Printer className="w-4 h-4 text-[color:var(--crm-brand-700)]" />
                 <span>Print Return Slip</span>
               </button>
               <button
                 onClick={() => setSelectedVoucher(null)}
-                className="px-4 py-2 rounded-xl bg-[#8B2500] hover:bg-[#701E00] text-white text-xs font-bold cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[color:var(--crm-brand-700)] hover:bg-[#1B3489] text-white text-xs font-bold cursor-pointer"
               >
                 Close
               </button>
@@ -821,7 +821,7 @@ export default function MaterialReturnPage() {
   return (
     <Suspense
       fallback={
-        <div className="p-8 text-center text-stone-500 font-semibold bg-[#FAF7F2] min-h-screen flex items-center justify-center">
+        <div className="p-8 text-center text-stone-500 font-semibold bg-[color:var(--crm-bg-app)] min-h-screen flex items-center justify-center">
           Loading Material Return Portal...
         </div>
       }

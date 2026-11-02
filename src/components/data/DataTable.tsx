@@ -120,19 +120,19 @@ export function DataTable<T extends Record<string, any>>({
   };
 
   return (
-    <div ref={tableContainerRef} className="bg-white rounded-xl border border-[#E7DED5] shadow-2xs overflow-hidden flex flex-col transition-all">
+    <div ref={tableContainerRef} className="bg-white rounded-xl border border-[color:var(--crm-border-default)] shadow-2xs overflow-hidden flex flex-col transition-all">
       {/* Header & Controls Toolbar */}
-      <div className="px-3.5 py-2.5 sm:py-3 border-b border-[#E7DED5] flex flex-wrap items-center justify-between gap-2.5 bg-[#FAF7F2]">
+      <div className="px-3.5 py-2.5 sm:py-3 border-b border-[color:var(--crm-border-default)] flex flex-wrap items-center justify-between gap-2.5 bg-[color:var(--crm-bg-app)]">
         {(title || subtitle || (isLoading && data.length === 0)) ? (
           <div className="shrink-0">
-            {title && <h3 className="text-xs sm:text-sm font-bold text-[#211B17] tracking-tight">{title}</h3>}
+            {title && <h3 className="text-xs sm:text-sm font-bold text-[color:var(--crm-text-primary)] tracking-tight">{title}</h3>}
             {isLoading && data.length === 0 ? (
               <p className="text-[11px] text-amber-800 flex items-center gap-1.5 mt-0.5 font-medium">
-                <Loader2 className="w-3 h-3 animate-spin text-amber-800" />
+                <Loader2 className="w-3 h-3 animate-spin text-crm-brand-600" />
                 <span>Loading live ERP records...</span>
               </p>
             ) : (
-              subtitle && <p className="text-[11px] text-[#70665F] mt-0.5">{subtitle}</p>
+              subtitle && <p className="text-[11px] text-[color:var(--crm-text-secondary)] mt-0.5">{subtitle}</p>
             )}
           </div>
         ) : null}
@@ -140,7 +140,7 @@ export function DataTable<T extends Record<string, any>>({
         <div className="flex items-center flex-wrap gap-2 w-full sm:w-auto ml-auto print:hidden">
           {/* Search Box */}
           <div className="relative w-full sm:w-56 md:w-64">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8D827A]" />
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--crm-text-tertiary)]" />
             <input
               type="text"
               value={searchQuery}
@@ -149,7 +149,7 @@ export function DataTable<T extends Record<string, any>>({
                 setCurrentPage(1);
               }}
               placeholder={searchPlaceholder}
-              className="w-full pl-8 pr-3 py-2 min-h-[40px] text-xs bg-white border border-[#E7DED5] rounded-xl text-[#211B17] placeholder:text-[#8D827A] focus:outline-none focus:border-[#75401F] transition shadow-2xs"
+              className="w-full pl-8 pr-3 py-2 min-h-[40px] text-xs bg-white border border-[color:var(--crm-border-default)] rounded-xl text-[color:var(--crm-text-primary)] placeholder:text-[color:var(--crm-text-tertiary)] focus:outline-none focus:border-[color:var(--crm-brand-700)] transition shadow-2xs"
             />
           </div>
 
@@ -160,14 +160,14 @@ export function DataTable<T extends Record<string, any>>({
             <button
               onClick={exportCSV}
               title="Export to CSV"
-              className="min-w-[40px] min-h-[40px] flex items-center justify-center p-2 text-[#70665F] hover:text-[#211B17] hover:bg-white rounded-xl border border-[#E7DED5] transition cursor-pointer shadow-2xs"
+              className="min-w-[40px] min-h-[40px] flex items-center justify-center p-2 text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-white rounded-xl border border-[color:var(--crm-border-default)] transition cursor-pointer shadow-2xs"
             >
               <Download className="w-4 h-4" />
             </button>
             <button
               onClick={handlePrint}
               title="Print Table"
-              className="min-w-[40px] min-h-[40px] flex items-center justify-center p-2 text-[#70665F] hover:text-[#211B17] hover:bg-white rounded-xl border border-[#E7DED5] transition cursor-pointer shadow-2xs"
+              className="min-w-[40px] min-h-[40px] flex items-center justify-center p-2 text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] hover:bg-white rounded-xl border border-[color:var(--crm-border-default)] transition cursor-pointer shadow-2xs"
             >
               <Printer className="w-4 h-4" />
             </button>
@@ -180,16 +180,16 @@ export function DataTable<T extends Record<string, any>>({
       {/* Table Content */}
       <div className="overflow-x-auto min-h-[240px] w-full">
         <table className="min-w-full w-full text-left text-xs whitespace-nowrap">
-          <thead className="bg-[#FAF7F2] text-[#70665F] font-bold border-b border-[#E7DED5] uppercase tracking-wider sticky top-0 z-10 text-[10px]">
+          <thead className="bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] font-bold border-b border-[color:var(--crm-border-default)] uppercase tracking-wider sticky top-0 z-10 text-[10px]">
             <tr>
               {columns.map((col, idx) => (
-                <th key={idx} className={cn('py-3.5 px-4 font-bold text-[#70665F] whitespace-nowrap select-none', col.className)}>
+                <th key={idx} className={cn('py-3.5 px-4 font-bold text-[color:var(--crm-text-secondary)] whitespace-nowrap select-none', col.className)}>
                   {col.header}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#EFE8DE]">
+          <tbody className="divide-y divide-[#DFE4EE]">
             {isLoading && paginatedData.length === 0 ? (
               Array.from({ length: 6 }).map((_, rIdx) => (
                 <tr key={`skel-row-${rIdx}`}>
@@ -205,9 +205,9 @@ export function DataTable<T extends Record<string, any>>({
               ))
             ) : paginatedData.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="text-center py-12 text-[#8D827A] whitespace-normal">
-                  <p className="font-semibold text-xs text-[#211B17]">No matching records found.</p>
-                  <p className="text-[11px] mt-1 text-[#8D827A]">Try adjusting your search criteria or filters.</p>
+                <td colSpan={columns.length} className="text-center py-12 text-[color:var(--crm-text-tertiary)] whitespace-normal">
+                  <p className="font-semibold text-xs text-[color:var(--crm-text-primary)]">No matching records found.</p>
+                  <p className="text-[11px] mt-1 text-[color:var(--crm-text-tertiary)]">Try adjusting your search criteria or filters.</p>
                 </td>
               </tr>
             ) : (
@@ -218,12 +218,12 @@ export function DataTable<T extends Record<string, any>>({
                   className={cn(
                     'transition-colors duration-150',
                     onRowClick
-                      ? 'cursor-pointer hover:bg-[#FAF7F2]'
-                      : 'hover:bg-[#FAF7F2]/80'
+                      ? 'cursor-pointer hover:bg-[color:var(--crm-bg-app)]'
+                      : 'hover:bg-[#F4F6FA]/80'
                   )}
                 >
                   {columns.map((col, colIdx) => (
-                    <td key={colIdx} className={cn('py-3 px-4 text-[#211B17] font-medium align-middle whitespace-nowrap', col.className)}>
+                    <td key={colIdx} className={cn('py-3 px-4 text-[color:var(--crm-text-primary)] font-medium align-middle whitespace-nowrap', col.className)}>
                       {col.cell ? col.cell(row) : col.accessorKey ? String(row[col.accessorKey] ?? '-') : '-'}
                     </td>
                   ))}
@@ -235,23 +235,23 @@ export function DataTable<T extends Record<string, any>>({
       </div>
 
       {/* Pagination Footer */}
-      <div className="p-3.5 border-t border-[#E7DED5] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#70665F] bg-[#FAF7F2] print:hidden">
+      <div className="p-3.5 border-t border-[color:var(--crm-border-default)] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[color:var(--crm-text-secondary)] bg-[color:var(--crm-bg-app)] print:hidden">
         <div className="flex items-center gap-4">
           {isLoading && filteredData.length === 0 ? (
-            <span className="flex items-center gap-2 text-xs text-[#70665F]">
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#75401F]" />
+            <span className="flex items-center gap-2 text-xs text-[color:var(--crm-text-secondary)]">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-[color:var(--crm-brand-700)]" />
               <span>Connecting to live cloud records...</span>
             </span>
           ) : (
             <div>
-              Showing <span className="font-bold text-[#211B17]">{filteredData.length > 0 ? startIndex + 1 : 0}</span> to{' '}
-              <span className="font-bold text-[#211B17]">{Math.min(startIndex + pageSize, filteredData.length)}</span> of{' '}
-              <span className="font-bold text-[#211B17]">{filteredData.length}</span> records
+              Showing <span className="font-bold text-[color:var(--crm-text-primary)]">{filteredData.length > 0 ? startIndex + 1 : 0}</span> to{' '}
+              <span className="font-bold text-[color:var(--crm-text-primary)]">{Math.min(startIndex + pageSize, filteredData.length)}</span> of{' '}
+              <span className="font-bold text-[color:var(--crm-text-primary)]">{filteredData.length}</span> records
             </div>
           )}
 
           {/* Rows per page selector */}
-          <div className="flex items-center gap-1.5 text-xs text-[#70665F]">
+          <div className="flex items-center gap-1.5 text-xs text-[color:var(--crm-text-secondary)]">
             <span>Rows:</span>
             <select
               value={pageSize}
@@ -259,7 +259,7 @@ export function DataTable<T extends Record<string, any>>({
                 setPageSize(Number(e.target.value));
                 setCurrentPage(1);
               }}
-              className="bg-white border border-[#E7DED5] rounded-lg px-2.5 py-1.5 min-h-[38px] text-xs font-semibold text-[#211B17] focus:outline-none focus:border-[#75401F]"
+              className="bg-white border border-[color:var(--crm-border-default)] rounded-lg px-2.5 py-1.5 min-h-[38px] text-xs font-semibold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-[color:var(--crm-brand-700)]"
             >
               {pageSizeOptions.map((opt) => (
                 <option key={opt} value={opt}>
@@ -274,17 +274,17 @@ export function DataTable<T extends Record<string, any>>({
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="min-w-[40px] min-h-[40px] flex items-center justify-center p-2 rounded-lg border border-[#E7DED5] disabled:opacity-30 hover:bg-white text-[#70665F] transition cursor-pointer"
+            className="min-w-[40px] min-h-[40px] flex items-center justify-center p-2 rounded-lg border border-[color:var(--crm-border-default)] disabled:opacity-30 hover:bg-white text-[color:var(--crm-text-secondary)] transition cursor-pointer"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className="font-bold text-[#211B17] px-2 font-mono">
+          <span className="font-bold text-[color:var(--crm-text-primary)] px-2 font-mono">
             Page {currentPage} of {totalPages}
           </span>
           <button
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="min-w-[40px] min-h-[40px] flex items-center justify-center p-2 rounded-lg border border-[#E7DED5] disabled:opacity-30 hover:bg-white text-[#70665F] transition cursor-pointer"
+            className="min-w-[40px] min-h-[40px] flex items-center justify-center p-2 rounded-lg border border-[color:var(--crm-border-default)] disabled:opacity-30 hover:bg-white text-[color:var(--crm-text-secondary)] transition cursor-pointer"
           >
             <ChevronRight className="w-4 h-4" />
           </button>

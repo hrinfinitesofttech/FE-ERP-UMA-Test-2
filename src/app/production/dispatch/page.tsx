@@ -511,8 +511,8 @@ function DispatchPageContent() {
     <div className="space-y-4">
       {/* Toast Alert */}
       {toastMessage && (
-        <div className="fixed top-5 right-5 z-50 bg-[#211B17] text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-[#EBE3DB]/20 text-xs animate-in slide-in-from-top-2 duration-200">
-          <CheckCircle2 className="w-4 h-4 text-amber-400 flex-shrink-0" />
+        <div className="fixed top-5 right-5 z-50 bg-[color:var(--crm-text-primary)] text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-[#E2E7EF]/20 text-xs animate-in slide-in-from-top-2 duration-200">
+          <CheckCircle2 className="w-4 h-4 text-crm-brand-600 flex-shrink-0" />
           <span className="font-semibold">{toastMessage}</span>
         </div>
       )}
@@ -523,8 +523,8 @@ function DispatchPageContent() {
           <div className="text-[11px] font-semibold tracking-wider uppercase text-slate-400 mb-0.5">
             DASHBOARD / PRODUCTION &amp; LOGISTICS / DISPATCH &amp; DELIVERY CHALLAN
           </div>
-          <h1 className="text-2xl font-black text-[#211B17] tracking-tight flex items-center gap-2">
-            <Truck className="w-6 h-6 text-amber-600" />
+          <h1 className="text-2xl font-black text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2">
+            <Truck className="w-6 h-6 text-crm-brand-600" />
             <span>Delivery Challan &amp; Gate-Out Pass</span>
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold border border-amber-300 font-mono">
               Official Delivery Slip
@@ -545,7 +545,7 @@ function DispatchPageContent() {
           </button>
           <Link
             href="/production/completion"
-            className="px-3.5 py-2 bg-white border border-[#EBE3DB] hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-xs"
+            className="px-3.5 py-2 bg-white border border-[color:var(--crm-border-default)] hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-xs"
           >
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
             <span>QC Clearance (F - QAS - 02)</span>
@@ -560,7 +560,7 @@ function DispatchPageContent() {
             <span className="text-[11px] font-semibold uppercase tracking-wider">Total Challans</span>
             <FileText className="w-4 h-4 text-slate-600" />
           </div>
-          <div className="text-2xl font-black text-[#211B17]">{challans.length}</div>
+          <div className="text-2xl font-black text-[color:var(--crm-text-primary)]">{challans.length}</div>
           <div className="text-[11px] text-slate-500">Challan Records Logged</div>
         </div>
 
@@ -589,9 +589,9 @@ function DispatchPageContent() {
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-1">
           <div className="flex items-center justify-between text-amber-600">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Official Slip Format</span>
-            <Award className="w-4 h-4 text-amber-600" />
+            <Award className="w-4 h-4 text-crm-brand-600" />
           </div>
-          <div className="text-lg font-mono font-black text-[#211B17]">UMA TECHNOFAB</div>
+          <div className="text-lg font-mono font-black text-[color:var(--crm-text-primary)]">UMA TECHNOFAB</div>
           <div className="text-[11px] text-slate-500">GST: 24AAEFU9027H1Z3</div>
         </div>
       </div>
@@ -605,7 +605,7 @@ function DispatchPageContent() {
             placeholder="Search by Ch. No (e.g. 547), Customer, Vehicle #..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-[#211B17]"
+            className="w-full pl-9 pr-3 py-1.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-[color:var(--crm-text-primary)]"
           />
         </div>
 
@@ -644,7 +644,7 @@ function DispatchPageContent() {
               {isLoading ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <Loader2 className="w-8 h-8 mx-auto mb-2 text-amber-500 animate-spin" />
+                    <Loader2 className="w-8 h-8 mx-auto mb-2 text-crm-brand-600 animate-spin" />
                     <p className="font-semibold text-slate-700 text-sm">Loading delivery challans from database...</p>
                     <p className="text-xs text-slate-400 mt-0.5">Please wait while we retrieve active shipments.</p>
                   </td>
@@ -806,13 +806,13 @@ function DispatchPageContent() {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl shadow-2xl border-2 border-slate-800 w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden my-auto">
             {/* Modal Header */}
-            <div className="bg-[#211B17] text-white p-4 flex items-center justify-between flex-shrink-0 z-10 border-b border-slate-800">
+            <div className="bg-[color:var(--crm-text-primary)] text-white p-4 flex items-center justify-between flex-shrink-0 z-10 border-b border-slate-800">
               <div>
                 <div className="text-[10px] text-amber-400 font-mono tracking-widest uppercase font-bold">
                   UMA TECHNOFAB — DISPATCH &amp; LOGISTICS
                 </div>
                 <h3 className="text-base font-black text-white uppercase tracking-wider font-mono flex items-center gap-2">
-                  <Truck className="w-4 h-4 text-amber-400" />
+                  <Truck className="w-4 h-4 text-crm-brand-600" />
                   <span>{editingChallanId ? 'Edit Delivery Challan' : 'Generate Delivery Challan'}</span>
                 </h3>
               </div>
@@ -838,7 +838,7 @@ function DispatchPageContent() {
               {/* Quick Fill Bar: From QC Reports or Finished Goods */}
               <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                  <Sparkles className="w-4 h-4 text-crm-brand-600 flex-shrink-0" />
                   <span className="font-bold text-slate-800">Quick Fill from QC Cleared Projects / FG:</span>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -975,7 +975,7 @@ function DispatchPageContent() {
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
                 <div className="font-black text-slate-900 uppercase text-xs tracking-wider flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
-                    <Truck className="w-3.5 h-3.5 text-amber-600" />
+                    <Truck className="w-3.5 h-3.5 text-crm-brand-600" />
                     <span>Transport, Vehicle &amp; Delivery Logistics</span>
                   </span>
                   <span className="text-[10px] text-slate-500 font-normal">
@@ -1246,9 +1246,9 @@ function DispatchPageContent() {
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl shadow-2xl border-2 border-black w-full max-w-3xl max-h-[94vh] flex flex-col overflow-hidden my-auto print:m-0 print:border-none print:shadow-none print:w-full print:max-h-none print:overflow-visible">
             {/* Control Bar (Hidden during Print) */}
-            <div className="bg-[#211B17] text-white p-3.5 flex items-center justify-between flex-shrink-0 z-10 print:hidden border-b border-slate-700">
+            <div className="bg-[color:var(--crm-text-primary)] text-white p-3.5 flex items-center justify-between flex-shrink-0 z-10 print:hidden border-b border-slate-700">
               <div className="flex items-center gap-2">
-                <Truck className="w-4 h-4 text-amber-400" />
+                <Truck className="w-4 h-4 text-crm-brand-600" />
                 <span className="font-bold text-xs">Official Delivery Challan Slip Preview</span>
                 <span className="text-[10px] px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 font-mono">
                   Ch. No: {viewChallan.challanNo}
@@ -1263,7 +1263,7 @@ function DispatchPageContent() {
                   className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
                   title="Toggle between authentic yellow paper and clean white"
                 >
-                  <Palette className="w-3.5 h-3.5 text-amber-300" />
+                  <Palette className="w-3.5 h-3.5 text-crm-brand-600" />
                   <span>{slipTheme === 'yellow' ? 'Yellow Paper Slip' : 'White Print'}</span>
                 </button>
 
@@ -1557,7 +1557,7 @@ export default function DispatchPage() {
     <Suspense
       fallback={
         <div className="p-8 text-center text-slate-500 font-semibold flex items-center justify-center gap-2">
-          <Loader2 className="w-5 h-5 text-amber-600 animate-spin" />
+          <Loader2 className="w-5 h-5 text-crm-brand-600 animate-spin" />
           <span>Loading Dispatch &amp; Delivery Challans...</span>
         </div>
       }
