@@ -1837,8 +1837,14 @@ export const api = {
       // GET sync status
       status: () => request<any>('/hr/punch-machine/sync/'),
       // POST trigger sync
-      sync: (data?: { sync_mode?: 'incremental' | 'date_range' | 'simulated' | 'historical_raw'; from_date?: string; to_date?: string; dry_run?: boolean }) =>
+      sync: (data?: { sync_mode?: 'incremental' | 'date_range' | 'simulated' | 'historical_raw'; from_date?: string; to_date?: string; dry_run?: boolean; action?: string }) =>
         request<any>('/hr/punch-machine/sync/', { method: 'POST', body: JSON.stringify(data || {}) }),
+      // Import all machine employees
+      importMachineEmployees: () =>
+        request<any>('/hr/punch-machine/sync/', { method: 'POST', body: JSON.stringify({ action: 'import_machine_employees' }) }),
+      // Save machine credentials
+      saveCredentials: (data: { corporate_id?: string; username?: string; password?: string; base_url?: string }) =>
+        request<any>('/hr/punch-machine/sync/', { method: 'POST', body: JSON.stringify({ action: 'save_credentials', ...data }) }),
       // Machine config CRUD
       configs: {
         list: () => request<any[]>('/hr/punch-machine-configs/'),

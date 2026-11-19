@@ -171,6 +171,14 @@ export default function AttendancePage() {
   // Regularizations State
   const [regularizations, setRegularizations] = useState<any[]>([]);
 
+  // Machine Credentials & Import State
+  const [corporateIdInput, setCorporateIdInput] = useState('');
+  const [usernameInput, setUsernameInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
+  const [baseUrlInput, setBaseUrlInput] = useState('https://api.etimeoffice.com/api');
+  const [isSavingCreds, setIsSavingCreds] = useState(false);
+  const [isImportingMachineStaff, setIsImportingMachineStaff] = useState(false);
+
   // Employee Detail Drawer State
   const [selectedEmployeeDetail, setSelectedEmployeeDetail] = useState<any>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -241,6 +249,62 @@ export default function AttendancePage() {
       console.error('Failed to load regularizations:', err);
     }
   }, []);
+
+  // Set initial credentials from machineStatus
+  useEffect(() => {
+    if (machineStatus) {
+      if (machineStatus.corporate_id) setCorporateIdInput(machineStatus.corporate_id);
+      if (machineStatus.username) setUsernameInput(machineStatus.username);
+      if (machineStatus.base_url) setBaseUrlInput(machineStatus.base_url);
+    }
+  }, [machineStatus]);
+
+  // Import All Employees From Machine API
+  const handleImportMachineEmployees = async () => {
+    setIsImportingMachineStaff(true);
+    try {
+      const res = await api.hr.punchMachine.importMachineEmployees();
+      if (res.success) {
+        setSuccessToast(res.message || 'Machine employees imported successfully!');
+        setTimeout(() => setSuccessToast(null), 5000);
+        await loadDailyAttendance(selectedDate);
+        await loadBiometricStatus();
+        if (activeTab === 'monthly') {
+          await loadMonthlyAttendance(selectedMonth);
+        }
+      } else {
+        setErrorToast(res.error || 'Failed to import machine employees.');
+        setTimeout(() => setErrorToast(null), 5000);
+      }
+    } catch (err: any) {
+      setErrorToast(err?.message || 'Error importing machine staff.');
+      setTimeout(() => setErrorToast(null), 5000);
+    } finally {
+      setIsImportingMachineStaff(false);
+    }
+  };
+
+  // Save Machine Credentials
+  const handleSaveCredentials = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingCreds(true);
+    try {
+      const res = await api.hr.punchMachine.saveCredentials({
+        corporate_id: corporateIdInput,
+        username: usernameInput,
+        password: passwordInput,
+        base_url: baseUrlInput,
+      });
+      setSuccessToast(res.message || 'Machine credentials saved successfully!');
+      setTimeout(() => setSuccessToast(null), 5000);
+      await loadBiometricStatus();
+    } catch (err: any) {
+      setErrorToast(err?.message || 'Failed to save machine credentials.');
+      setTimeout(() => setErrorToast(null), 5000);
+    } finally {
+      setIsSavingCreds(false);
+    }
+  };
 
   // Initial Data Load
   useEffect(() => {
@@ -459,6 +523,15 @@ export default function AttendancePage() {
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>eTimeOffice Online</span>
           </div>
+
+          <button
+            onClick={handleImportMachineEmployees}
+            disabled={isImportingMachineStaff}
+            className="flex items-center gap-2 px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white text-xs font-bold rounded-xl shadow-xs transition disabled:opacity-50 cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isImportingMachineStaff ? 'animate-spin' : ''}`} />
+            {isImportingMachineStaff ? 'Importing Staff...' : '📥 Import Machine Employees'}
+          </button>
 
           <button
             onClick={() => handleRunSync()}
@@ -795,6 +868,15 @@ export default function AttendancePage() {
                   </option>
                 ))}
               </select>
+
+              <button
+                onClick={handleImportMachineEmployees}
+                disabled={isImportingMachineStaff}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-xl shadow-2xs transition disabled:opacity-50 cursor-pointer"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isImportingMachineStaff ? 'animate-spin' : ''}`} />
+                {isImportingMachineStaff ? 'Importing...' : '📥 Sync Machine Staff'}
+              </button>
 
               <button
                 onClick={() => {
@@ -1301,6 +1383,84 @@ export default function AttendancePage() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Machine Credentials Setup Card */}
+          <div className="bg-[color:var(--crm-bg-card)] p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+              <div>
+                <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] uppercase tracking-wider">
+                  eTimeOffice Machine Credentials &amp; API Setup
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Enter the Corporate ID, Username, and Password provided by your biometric machine vendor.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleImportMachineEmployees}
+                disabled={isImportingMachineStaff}
+                className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-xs transition disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isImportingMachineStaff ? 'animate-spin' : ''}`} />
+                {isImportingMachineStaff ? 'Importing...' : '📥 Import All Staff from Machine'}
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCredentials} className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Corporate ID</label>
+                <input
+                  type="text"
+                  placeholder="e.g. support or company code"
+                  value={corporateIdInput}
+                  onChange={(e) => setCorporateIdInput(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-[color:var(--crm-bg-app)] font-mono font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Username</label>
+                <input
+                  type="text"
+                  placeholder="e.g. support"
+                  value={usernameInput}
+                  onChange={(e) => setUsernameInput(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-[color:var(--crm-bg-app)] font-mono font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Password</label>
+                <input
+                  type="password"
+                  placeholder="Enter Password"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-[color:var(--crm-bg-app)] font-mono font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Base API URL</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={baseUrlInput}
+                    onChange={(e) => setBaseUrlInput(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-[color:var(--crm-bg-app)] font-mono font-semibold"
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSavingCreds}
+                    className="px-3.5 py-2 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl transition cursor-pointer flex-shrink-0"
+                  >
+                    {isSavingCreds ? 'Saving...' : 'Save'}
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
 
           {/* Sync Trigger Controls Form */}
