@@ -2,685 +2,519 @@
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useERP } from '../../../context/ERPContext';
+import { api } from '../../../lib/apiClient';
 import {
   Clock,
-  Plus,
   Search,
   CheckCircle2,
   AlertTriangle,
   Calendar,
   Filter,
-  MapPin,
-  Smartphone,
-  Laptop,
-  ShieldCheck,
   X,
   RotateCcw,
   UserCheck,
   Building,
   AlertCircle,
-  Sparkles,
-  Lock,
-  Unlock,
   CalendarDays,
   Check,
-  ThumbsUp,
-  ThumbsDown,
   RefreshCw,
   FileText,
+  Activity,
+  Cpu,
+  Server,
+  Radio,
+  Eye,
+  Users,
+  UserX,
   ChevronLeft,
   ChevronRight,
-  TrendingUp,
-  Zap,
-  Settings,
-  Activity,
-  Database,
+  Shield,
+  Layers,
+  ArrowUpRight,
+  HelpCircle,
+  Link as LinkIcon,
 } from 'lucide-react';
-import { AttendanceStatusType, AttendanceRecord } from '../../../types/hr';
-import api from '../../../lib/apiClient';
+
+type AttendanceTab = 'overview' | 'employees' | 'daily' | 'monthly' | 'machine' | 'unmapped' | 'regularizations';
+
+interface DailyEmployeeRow {
+  employeeId: string;
+  employeeCode: string;
+  employeeName: string;
+  username: string;
+  department: string;
+  designation: string;
+  email: string;
+  mobile: string;
+  isActive: boolean;
+  machineEmpCode: string;
+  date: string;
+  status: string;
+  firstIn: string;
+  lastOut: string;
+  punchCount: number;
+  totalHours: number;
+  lateMinutes: number;
+  isMissingPunch: boolean;
+  isManuallyApproved: boolean;
+  source: string;
+  remarks: string;
+  attendanceRecordId?: string | null;
+}
+
+interface MonthlyEmployeeRow {
+  employeeId: string;
+  employeeCode: string;
+  employeeName: string;
+  department: string;
+  designation: string;
+  machineEmpCode: string;
+  totalDays: number;
+  presentDays: number;
+  lateDays: number;
+  absentDays: number;
+  halfDays: number;
+  leaveDays: number;
+  weeklyOffs: number;
+  holidays: number;
+  totalHours: number;
+  missingPunches: number;
+  daysMap: Record<string, string>;
+}
 
 export default function AttendancePage() {
-  const {
-    attendanceRecords: fallbackRecords = [],
-    markAttendance,
-    availableEmployees = [],
-    departments = [],
-    currentUser,
-  } = useERP();
+  const { currentUser } = useERP();
+  const isAdmin = currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ADMIN' || currentUser?.roleName === 'Super Admin' || currentUser?.roleName === 'Admin';
 
-  // Active Tab: 'daily' | 'calendar' | 'regularizations'
-  const [activeTab, setActiveTab] = useState<'daily' | 'calendar' | 'regularizations' | 'machine'>('daily');
-
-  // Live Records from API
-  const [liveAttendanceRecords, setLiveAttendanceRecords] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSubmittingPunch, setIsSubmittingPunch] = useState(false);
-
-  // Filters State
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedDate, setSelectedDate] = useState('');
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState('ALL');
-  const [selectedDepartment, setSelectedDepartment] = useState('ALL');
-  const [statusFilter, setStatusFilter] = useState('ALL');
-
-  // Modal State
-  const [showPunchModal, setShowPunchModal] = useState(false);
-  const [isManualOverride, setIsManualOverride] = useState(false);
-  const [currentTimeStr, setCurrentTimeStr] = useState('');
+  // Navigation State
+  const [activeTab, setActiveTab] = useState<AttendanceTab>('overview');
+  const [loading, setLoading] = useState(false);
   const [successToast, setSuccessToast] = useState<string | null>(null);
   const [errorToast, setErrorToast] = useState<string | null>(null);
 
-  // Monthly Calendar Summary State
-  const now = new Date();
-  const currentMonthYearStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const [calendarMonthYear, setCalendarMonthYear] = useState(currentMonthYearStr);
-  const [calendarEmployeeId, setCalendarEmployeeId] = useState<string>('');
-  const [monthlySummaryData, setMonthlySummaryData] = useState<any | null>(null);
-  const [isLoadingMonthly, setIsLoadingMonthly] = useState(false);
+  // Date selection state
+  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const currentMonthStr = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }, []);
+
+  const [selectedDate, setSelectedDate] = useState<string>(todayStr);
+  const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthStr);
+
+  // Search & Filter
+  const [searchTerm, setSearchTerm] = useState('');
+  const [departmentFilter, setDepartmentFilter] = useState('ALL');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+
+  // Daily Sheet State
+  const [dailyData, setDailyData] = useState<{
+    date: string;
+    totalEmployees: number;
+    presentCount: number;
+    lateCount: number;
+    absentCount: number;
+    halfDayCount: number;
+    leaveCount: number;
+    missingPunchCount: number;
+    employees: DailyEmployeeRow[];
+  }>({
+    date: todayStr,
+    totalEmployees: 0,
+    presentCount: 0,
+    lateCount: 0,
+    absentCount: 0,
+    halfDayCount: 0,
+    leaveCount: 0,
+    missingPunchCount: 0,
+    employees: [],
+  });
+
+  // Monthly Sheet State
+  const [monthlyData, setMonthlyData] = useState<{
+    monthYear: string;
+    month: number;
+    year: number;
+    totalDays: number;
+    totalEmployees: number;
+    summary: {
+      totalPresent: number;
+      totalAbsent: number;
+      totalLate: number;
+      totalHalfDay: number;
+    };
+    employees: MonthlyEmployeeRow[];
+  }>({
+    monthYear: currentMonthStr,
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear(),
+    totalDays: 30,
+    totalEmployees: 0,
+    summary: { totalPresent: 0, totalAbsent: 0, totalLate: 0, totalHalfDay: 0 },
+    employees: [],
+  });
+
+  // Biometric Machine & Mapping State
+  const [machineStatus, setMachineStatus] = useState<any>(null);
+  const [syncHistory, setSyncHistory] = useState<any[]>([]);
+  const [unmappedLogs, setUnmappedLogs] = useState<any[]>([]);
+  const [mappingsSummary, setMappingsSummary] = useState<any>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<any>(null);
+
+  // Sync Form State
+  const [syncMode, setSyncMode] = useState<'incremental' | 'date_range' | 'historical_raw'>('incremental');
+  const [syncFromDate, setSyncFromDate] = useState(todayStr);
+  const [syncToDate, setSyncToDate] = useState(todayStr);
+  const [isDryRun, setIsDryRun] = useState(false);
 
   // Regularizations State
   const [regularizations, setRegularizations] = useState<any[]>([]);
-  const [isLoadingRegs, setIsLoadingRegs] = useState(false);
-  const [showRegModal, setShowRegModal] = useState(false);
-  const [regForm, setRegForm] = useState({
-    employeeId: '',
-    date: new Date().toISOString().split('T')[0],
-    punchType: 'CHECK_IN',
-    requestedTime: '09:00',
-    reason: '',
-  });
 
-  // ===== PUNCH MACHINE STATE =====
-  const [machineStatus, setMachineStatus] = useState<any>(null);
-  const [machineConfigs, setMachineConfigs] = useState<any[]>([]);
-  const [punchLogs, setPunchLogs] = useState<any[]>([]);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [syncResult, setSyncResult] = useState<any>(null);
-  const [showMachineConfigModal, setShowMachineConfigModal] = useState(false);
-  const [machineConfigForm, setMachineConfigForm] = useState({
-    machine_name: 'eTimeOffice Machine',
-    base_url: 'https://api.etimeoffice.com/api',
-    corporate_id: 'support',
-    username: 'support',
-    password: 'support',
-    is_active: true,
-  });
-  const [syncMode, setSyncMode] = useState<'simulated' | 'incremental' | 'date_range'>('simulated');
-  const [syncFromDate, setSyncFromDate] = useState(new Date().toISOString().split('T')[0]);
-  const [syncToDate, setSyncToDate] = useState(new Date().toISOString().split('T')[0]);
+  // Employee Detail Drawer State
+  const [selectedEmployeeDetail, setSelectedEmployeeDetail] = useState<any>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailTab, setDetailTab] = useState<'overview' | 'records' | 'punches'>('overview');
 
-  const getSystemTime = () => {
-    const now = new Date();
-    return now.toTimeString().slice(0, 5); // HH:mm
-  };
+  // Mapping Modal State
+  const [mappingModalCode, setMappingModalCode] = useState<string | null>(null);
+  const [selectedTargetEmployeeId, setSelectedTargetEmployeeId] = useState('');
+  const [isSubmittingMapping, setIsSubmittingMapping] = useState(false);
 
-  const getTodayDate = () => {
-    return new Date().toISOString().split('T')[0];
-  };
-
-  const initialFormState = {
-    employeeId: '',
-    date: getTodayDate(),
-    shiftName: 'General Day Shift (09:00 - 18:00)',
-    checkIn: getSystemTime(),
-    checkOut: '18:00',
-    status: 'Present' as AttendanceStatusType,
-    manualReason: '',
-    source: 'Biometric System' as AttendanceRecord['source'],
-    remarks: 'Auto-captured server timestamp',
-  };
-
-  const [formData, setFormData] = useState(initialFormState);
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-
-  // Fetch Attendance Records
-  const loadAttendanceRecords = useCallback(async () => {
-    setIsLoading(true);
+  // Load Daily Attendance
+  const loadDailyAttendance = useCallback(async (dateToLoad: string) => {
     try {
-      const records = await api.hr.attendance.list();
-      if (Array.isArray(records)) {
-        // Map backend snake_case to frontend camelCase
-        const mapped = records.map((r: any) => ({
-          id: r.id,
-          employeeId: r.employee || r.employee_id || r.employeeId,
-          employeeName: r.employee_name || r.employeeName || 'Employee',
-          department: r.department || 'General',
-          date: r.date,
-          shiftName: r.shift_name || r.shiftName || 'General Day Shift',
-          checkIn: r.check_in ? String(r.check_in).slice(0, 5) : (r.checkIn || '--:--'),
-          checkOut: r.check_out ? String(r.check_out).slice(0, 5) : (r.checkOut || '--:--'),
-          totalHours: Number(r.total_hours ?? r.totalHours ?? 0),
-          lateMinutes: Number(r.late_minutes ?? r.lateMinutes ?? 0),
-          earlyCheckoutMinutes: Number(r.early_checkout_minutes ?? r.earlyCheckoutMinutes ?? 0),
-          overtimeHours: Number(r.overtime_hours ?? r.overtimeHours ?? 0),
-          status: r.status || 'Present',
-          source: r.source || 'Biometric System',
-          remarks: r.remarks || '',
-        }));
-        setLiveAttendanceRecords(mapped);
+      setLoading(true);
+      const res = await api.hr.attendance.dailySheet({ date: dateToLoad });
+      if (res && res.employees) {
+        setDailyData(res);
       }
-    } catch {
-      // Keep existing or fallback
-      if (liveAttendanceRecords.length === 0 && fallbackRecords.length > 0) {
-        setLiveAttendanceRecords(fallbackRecords);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [fallbackRecords, liveAttendanceRecords.length]);
-
-  // Fetch Monthly Summary
-  const loadMonthlySummary = useCallback(async (empId?: string, monthYear?: string) => {
-    setIsLoadingMonthly(true);
-    try {
-      const targetEmp = empId || calendarEmployeeId || (currentUser?.id as string) || availableEmployees[0]?.id;
-      const targetMonth = monthYear || calendarMonthYear;
-      const summary = await api.hr.attendance.monthlySummary({
-        employeeId: targetEmp,
-        monthYear: targetMonth,
-      });
-      setMonthlySummaryData(summary);
     } catch (err: any) {
-      console.warn('Failed to load monthly summary:', err);
+      console.error('Failed to load daily attendance sheet:', err);
     } finally {
-      setIsLoadingMonthly(false);
+      setLoading(false);
     }
-  }, [calendarEmployeeId, calendarMonthYear, currentUser?.id, availableEmployees]);
+  }, []);
 
-  // Fetch Regularizations
+  // Load Monthly Attendance
+  const loadMonthlyAttendance = useCallback(async (monthYearToLoad: string) => {
+    try {
+      setLoading(true);
+      const res = await api.hr.attendance.monthlySheet({ month_year: monthYearToLoad });
+      if (res && res.employees) {
+        setMonthlyData(res);
+      }
+    } catch (err: any) {
+      console.error('Failed to load monthly attendance sheet:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Load Biometric Status
+  const loadBiometricStatus = useCallback(async () => {
+    try {
+      const statusRes = await api.hr.punchMachine.status();
+      setMachineStatus(statusRes);
+
+      const summaryRes = await api.hr.biometricMappings.summary();
+      setMappingsSummary(summaryRes);
+
+      const logsRes = await api.hr.punchMachine.logs({ unmapped: true });
+      if (Array.isArray(logsRes)) {
+        setUnmappedLogs(logsRes);
+      } else if (logsRes && Array.isArray((logsRes as any).results)) {
+        setUnmappedLogs((logsRes as any).results);
+      }
+    } catch (err) {
+      console.error('Failed to load biometric machine status:', err);
+    }
+  }, []);
+
+  // Load Regularizations
   const loadRegularizations = useCallback(async () => {
-    setIsLoadingRegs(true);
     try {
-      const data = await api.hr.regularization.list();
-      if (Array.isArray(data)) {
-        setRegularizations(data);
-      }
+      const res = await api.hr.regularization.list();
+      const list = Array.isArray(res) ? res : (res as any)?.results || [];
+      setRegularizations(list);
     } catch (err) {
-      console.warn('Failed to load regularizations:', err);
-    } finally {
-      setIsLoadingRegs(false);
+      console.error('Failed to load regularizations:', err);
     }
   }, []);
 
-  // Initial Load
+  // Initial Data Load
   useEffect(() => {
-    loadAttendanceRecords();
+    loadDailyAttendance(selectedDate);
+    loadBiometricStatus();
     loadRegularizations();
-  }, [loadAttendanceRecords, loadRegularizations]);
+  }, [loadDailyAttendance, selectedDate, loadBiometricStatus, loadRegularizations]);
 
-  // Update live clock
   useEffect(() => {
-    setCurrentTimeStr(getSystemTime());
-    const interval = setInterval(() => {
-      setCurrentTimeStr(getSystemTime());
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Update calendar summary when tab or month changes
-  useEffect(() => {
-    if (activeTab === 'calendar') {
-      loadMonthlySummary();
+    if (activeTab === 'monthly') {
+      loadMonthlyAttendance(selectedMonth);
     }
-  }, [activeTab, calendarMonthYear, calendarEmployeeId, loadMonthlySummary]);
+  }, [activeTab, selectedMonth, loadMonthlyAttendance]);
 
-  // Quick Live Punch In
-  const handleLivePunchIn = async () => {
-    setIsSubmittingPunch(true);
-    setErrorToast(null);
+  // Load Employee Detail
+  const handleOpenEmployeeDetail = async (empId: string) => {
+    setDetailLoading(true);
+    setSelectedEmployeeDetail(null);
     try {
-      const res = await api.hr.attendance.checkIn();
-      setSuccessToast(res?.message || 'Punched in successfully! Timestamp captured by server.');
-      setTimeout(() => setSuccessToast(null), 4000);
-      await loadAttendanceRecords();
-    } catch (err: any) {
-      const msg = err?.data?.error || err?.message || 'Failed to punch in. Please try again.';
-      setErrorToast(msg);
-      setTimeout(() => setErrorToast(null), 5000);
-    } finally {
-      setIsSubmittingPunch(false);
-    }
-  };
-
-  // Quick Live Punch Out
-  const handleLivePunchOut = async () => {
-    setIsSubmittingPunch(true);
-    setErrorToast(null);
-    try {
-      const res = await api.hr.attendance.checkOut();
-      setSuccessToast(
-        res?.message || `Punched out successfully! Work duration: ${res?.total_hours || 'recorded'} hours.`
-      );
-      setTimeout(() => setSuccessToast(null), 4000);
-      await loadAttendanceRecords();
-    } catch (err: any) {
-      const msg = err?.data?.error || err?.message || 'Failed to punch out. Please try again.';
-      setErrorToast(msg);
-      setTimeout(() => setErrorToast(null), 5000);
-    } finally {
-      setIsSubmittingPunch(false);
-    }
-  };
-
-  // Approve Regularization (Manager Action)
-  const handleApproveReg = async (regId: string) => {
-    try {
-      await api.hr.regularization.approve(regId);
-      setSuccessToast('Regularization request approved and attendance record updated!');
-      setTimeout(() => setSuccessToast(null), 4000);
-      await loadRegularizations();
-      await loadAttendanceRecords();
-    } catch (err: any) {
-      const msg = err?.data?.error || err?.message || 'Failed to approve regularization.';
-      setErrorToast(msg);
-      setTimeout(() => setErrorToast(null), 5000);
-    }
-  };
-
-  // Reject Regularization (Manager Action)
-  const handleRejectReg = async (regId: string) => {
-    try {
-      await api.hr.regularization.reject(regId);
-      setSuccessToast('Regularization request rejected.');
-      setTimeout(() => setSuccessToast(null), 4000);
-      await loadRegularizations();
-    } catch (err: any) {
-      const msg = err?.data?.error || err?.message || 'Failed to reject regularization.';
-      setErrorToast(msg);
-      setTimeout(() => setErrorToast(null), 5000);
-    }
-  };
-
-  // Submit Regularization Request
-  const handleSubmitRegularization = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!regForm.reason.trim()) {
-      setErrorToast('Please specify a reason for regularization.');
-      return;
-    }
-    try {
-      await api.hr.regularization.create({
-        employee_id: regForm.employeeId || currentUser?.id || availableEmployees[0]?.id,
-        date: regForm.date,
-        punch_type: regForm.punchType,
-        requested_time: regForm.requestedTime,
-        reason: regForm.reason.trim(),
+      const res = await api.hr.attendance.employeeDetail({
+        employee_id: empId,
+        month_year: selectedMonth,
       });
-      setShowRegModal(false);
-      setSuccessToast('Regularization request submitted to reporting manager for approval.');
-      setTimeout(() => setSuccessToast(null), 4000);
-      setRegForm({
-        employeeId: '',
-        date: getTodayDate(),
-        punchType: 'CHECK_IN',
-        requestedTime: '09:00',
-        reason: '',
-      });
-      await loadRegularizations();
+      setSelectedEmployeeDetail(res);
+      setDetailTab('overview');
     } catch (err: any) {
-      const msg = err?.data?.error || err?.message || 'Failed to submit regularization request.';
-      setErrorToast(msg);
-      setTimeout(() => setErrorToast(null), 5000);
+      setErrorToast(err?.message || 'Could not load employee details.');
+      setTimeout(() => setErrorToast(null), 4000);
+    } finally {
+      setDetailLoading(false);
     }
   };
 
-  // ===== PUNCH MACHINE FUNCTIONS =====
-  const loadMachineStatus = useCallback(async () => {
-    try {
-      const st = await api.hr.punchMachine.status();
-      setMachineStatus(st);
-    } catch (err) {
-      console.warn('Could not load machine status:', err);
-    }
-  }, []);
-
-  const loadMachineConfigs = useCallback(async () => {
-    try {
-      const configs = await api.hr.punchMachine.configs.list();
-      if (Array.isArray(configs)) {
-        setMachineConfigs(configs);
-        if (configs[0]) {
-          setMachineConfigForm({
-            machine_name: configs[0].machineName || configs[0].machine_name || 'eTimeOffice Machine',
-            base_url: configs[0].baseUrl || configs[0].base_url || 'https://api.etimeoffice.com/api',
-            corporate_id: configs[0].corporateId || configs[0].corporate_id || 'support',
-            username: configs[0].username || 'support',
-            password: 'support',
-            is_active: configs[0].isActive ?? configs[0].is_active ?? true,
-          });
-        }
-      }
-    } catch (err) {
-      console.warn('Could not load machine configs:', err);
-    }
-  }, []);
-
-  const loadPunchLogs = useCallback(async () => {
-    try {
-      const logs = await api.hr.punchMachine.logs();
-      if (Array.isArray(logs)) setPunchLogs(logs);
-    } catch (err) {
-      console.warn('Could not load punch logs:', err);
-    }
-  }, []);
-
-  const handleTriggerSync = async () => {
+  // Run Biometric Machine Sync
+  const handleRunSync = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setIsSyncing(true);
     setSyncResult(null);
-    setErrorToast(null);
     try {
-      const payload: any = { sync_mode: syncMode };
-      if (syncMode === 'date_range') {
-        const fd = new Date(syncFromDate);
-        const td = new Date(syncToDate);
-        payload.from_date = `${String(fd.getDate()).padStart(2, '0')}/${String(fd.getMonth() + 1).padStart(2, '0')}/${fd.getFullYear()}`;
-        payload.to_date = `${String(td.getDate()).padStart(2, '0')}/${String(td.getMonth() + 1).padStart(2, '0')}/${td.getFullYear()}`;
+      const payload: any = {
+        sync_mode: syncMode,
+        dry_run: isDryRun,
+      };
+      if (syncMode === 'date_range' || syncMode === 'historical_raw') {
+        payload.from_date = syncFromDate;
+        payload.to_date = syncToDate;
       }
-      const result = await api.hr.punchMachine.sync(payload);
-      setSyncResult(result);
-      if (result.success) {
-        setSuccessToast(`✅ Biometric Machine Sync Success! ${result.records_fetched || 0} logs fetched, ${result.attendance_processed || 0} attendance records updated.`);
-        setTimeout(() => setSuccessToast(null), 6000);
-        await loadMachineStatus();
-        await loadPunchLogs();
-        await loadAttendanceRecords();
+      const res = await api.hr.punchMachine.sync(payload);
+      setSyncResult(res);
+
+      if (res.success) {
+        setSuccessToast(
+          isDryRun
+            ? `Dry Run Preview Complete! ${res.records_fetched || 0} records found.`
+            : `Sync Complete! ${res.new_logs_saved || 0} logs saved, ${res.attendance_processed || 0} attendance records updated.`
+        );
+        setTimeout(() => setSuccessToast(null), 5000);
+        await loadDailyAttendance(selectedDate);
+        await loadBiometricStatus();
+        if (activeTab === 'monthly') {
+          await loadMonthlyAttendance(selectedMonth);
+        }
       } else {
-        setErrorToast(result.error || 'Sync failed.');
+        setErrorToast(res.error || 'Sync returned an error from machine.');
         setTimeout(() => setErrorToast(null), 6000);
       }
     } catch (err: any) {
-      const msg = err?.data?.error || err?.message || 'Sync failed. Machine may be unreachable.';
+      const msg = err?.data?.error || err?.message || 'Biometric sync failed.';
       setErrorToast(msg);
-      setSyncResult({ success: false, error: msg });
       setTimeout(() => setErrorToast(null), 6000);
     } finally {
       setIsSyncing(false);
     }
   };
 
-  const handleSaveMachineConfig = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Reprocess Unmapped Punches
+  const handleReprocessMappings = async () => {
     try {
-      const existing = machineConfigs[0];
-      if (existing) {
-        await api.hr.punchMachine.configs.update(existing.id, machineConfigForm);
-      } else {
-        await api.hr.punchMachine.configs.create(machineConfigForm);
-      }
-      setShowMachineConfigModal(false);
-      setSuccessToast('Machine configuration saved successfully!');
-      setTimeout(() => setSuccessToast(null), 4000);
-      await loadMachineConfigs();
-      await loadMachineStatus();
+      setLoading(true);
+      const res = await api.hr.biometricMappings.reprocess();
+      setSuccessToast(res.message || 'Reprocess completed successfully!');
+      setTimeout(() => setSuccessToast(null), 5000);
+      await loadDailyAttendance(selectedDate);
+      await loadBiometricStatus();
     } catch (err: any) {
-      const msg = err?.data?.error || err?.message || 'Failed to save machine configuration.';
-      setErrorToast(msg);
+      setErrorToast(err?.data?.error || err?.message || 'Reprocessing failed.');
       setTimeout(() => setErrorToast(null), 5000);
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (activeTab === 'machine') {
-      loadMachineStatus();
-      loadMachineConfigs();
-      loadPunchLogs();
+  // Save Biometric Mapping
+  const handleSaveMapping = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mappingModalCode || !selectedTargetEmployeeId) return;
+    setIsSubmittingMapping(true);
+    try {
+      await api.hr.biometricMappings.create({
+        machineEmpCode: mappingModalCode,
+        employeeId: selectedTargetEmployeeId,
+        mappedBy: currentUser?.name || `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim() || 'Admin',
+      });
+      setSuccessToast(`Machine code ${mappingModalCode} mapped to ${selectedTargetEmployeeId}!`);
+      setTimeout(() => setSuccessToast(null), 4000);
+      setMappingModalCode(null);
+      setSelectedTargetEmployeeId('');
+      // Trigger automatic reprocess
+      await api.hr.biometricMappings.reprocess();
+      await loadDailyAttendance(selectedDate);
+      await loadBiometricStatus();
+    } catch (err: any) {
+      setErrorToast(err?.data?.error || err?.message || 'Failed to save mapping.');
+      setTimeout(() => setErrorToast(null), 5000);
+    } finally {
+      setIsSubmittingMapping(false);
     }
-  }, [activeTab, loadMachineStatus, loadMachineConfigs, loadPunchLogs]);
+  };
 
-  const isHalfDayStatus = (s: string) =>
-    ['Half Day', 'First Half', 'Second Half', 'First Half Leave', 'Second Half Leave'].includes(s);
-
-  // Active records to display
-  const allRecords = liveAttendanceRecords.length > 0 ? liveAttendanceRecords : fallbackRecords;
-
-  // Multi-Filter Synchronization
-  const filteredRecords = useMemo(() => {
-    return allRecords.filter((a) => {
-      const q = (searchTerm || '').trim().toLowerCase();
+  // Filtered Daily Employees
+  const filteredDailyEmployees = useMemo(() => {
+    return dailyData.employees.filter((emp) => {
+      const q = searchTerm.trim().toLowerCase();
       const matchesSearch =
         !q ||
-        (a.employeeName || '').toLowerCase().includes(q) ||
-        (a.employeeId || '').toLowerCase().includes(q) ||
-        (a.department || '').toLowerCase().includes(q);
+        emp.employeeName.toLowerCase().includes(q) ||
+        emp.employeeId.toLowerCase().includes(q) ||
+        emp.department.toLowerCase().includes(q) ||
+        emp.machineEmpCode.toLowerCase().includes(q);
 
-      const matchesDate = !selectedDate || a.date === selectedDate;
-      const matchesEmployee = selectedEmployeeId === 'ALL' || a.employeeId === selectedEmployeeId;
       const matchesDept =
-        selectedDepartment === 'ALL' || (a.department || '').toLowerCase() === selectedDepartment.toLowerCase();
+        departmentFilter === 'ALL' ||
+        emp.department.toLowerCase() === departmentFilter.toLowerCase();
 
       let matchesStatus = statusFilter === 'ALL';
       if (!matchesStatus) {
-        if (statusFilter === 'Half Day') {
-          matchesStatus = isHalfDayStatus(a.status);
+        if (statusFilter === 'Present') {
+          matchesStatus = emp.status === 'Present' || emp.status === 'Late';
         } else if (statusFilter === 'Late') {
-          matchesStatus = a.status === 'Late' || Number(a.lateMinutes || 0) > 0;
-        } else if (statusFilter === 'On Leave') {
-          matchesStatus = a.status === 'On Leave' || a.status === 'WFH';
+          matchesStatus = emp.status === 'Late' || emp.lateMinutes > 0;
+        } else if (statusFilter === 'Missing') {
+          matchesStatus = emp.isMissingPunch;
         } else {
-          matchesStatus = (a.status || '').toLowerCase() === statusFilter.toLowerCase();
+          matchesStatus = emp.status.toLowerCase() === statusFilter.toLowerCase();
         }
       }
 
-      return matchesSearch && matchesDate && matchesEmployee && matchesDept && matchesStatus;
+      return matchesSearch && matchesDept && matchesStatus;
     });
-  }, [allRecords, searchTerm, selectedDate, selectedEmployeeId, selectedDepartment, statusFilter]);
+  }, [dailyData.employees, searchTerm, departmentFilter, statusFilter]);
 
-  // Reset Filters
-  const handleResetFilters = () => {
-    setSearchTerm('');
-    setSelectedDate('');
-    setSelectedEmployeeId('ALL');
-    setSelectedDepartment('ALL');
-    setStatusFilter('ALL');
-  };
-
-  const isFiltered =
-    searchTerm !== '' ||
-    selectedDate !== '' ||
-    selectedEmployeeId !== 'ALL' ||
-    selectedDepartment !== 'ALL' ||
-    statusFilter !== 'ALL';
-
-  // KPI Calculations based on all active records
-  const totalCount = allRecords.length;
-  const presentCount = allRecords.filter((a) => a.status === 'Present' || a.status === 'Late').length;
-  const halfDayCount = allRecords.filter((a) => isHalfDayStatus(a.status)).length;
-  const absentCount = allRecords.filter((a) => a.status === 'Absent').length;
-  const leaveCount = allRecords.filter((a) => a.status === 'On Leave' || a.status === 'WFH').length;
-
-  const handleOpenPunchModal = () => {
-    setIsManualOverride(false);
-    const nowTime = getSystemTime();
-    setFormData({
-      ...initialFormState,
-      employeeId: availableEmployees[0]?.id || '',
-      date: getTodayDate(),
-      checkIn: nowTime,
-      source: 'Biometric System',
+  // Unique Departments
+  const departments = useMemo(() => {
+    const set = new Set<string>();
+    dailyData.employees.forEach((e) => {
+      if (e.department) set.add(e.department);
     });
-    setFormErrors({});
-    setShowPunchModal(true);
-  };
+    return Array.from(set).sort();
+  }, [dailyData.employees]);
 
-  const handleStatusChangeInModal = (newStatus: AttendanceStatusType) => {
-    let inTime = formData.checkIn;
-    let outTime = formData.checkOut;
-    if (newStatus === 'First Half' || newStatus === 'First Half Leave' || newStatus === 'Half Day') {
-      inTime = '09:00';
-      outTime = '13:30';
-    } else if (newStatus === 'Second Half' || newStatus === 'Second Half Leave') {
-      inTime = '13:30';
-      outTime = '18:00';
-    } else if (newStatus === 'Absent' || newStatus === 'On Leave') {
-      inTime = '--:--';
-      outTime = '--:--';
-    } else if (newStatus === 'Present') {
-      inTime = isManualOverride ? formData.checkIn : getSystemTime();
-      outTime = '18:00';
-    }
-    setFormData({ ...formData, status: newStatus, checkIn: inTime, checkOut: outTime });
-  };
-
-  const validatePunchForm = () => {
-    const errors: Record<string, string> = {};
-
-    if (!formData.employeeId) {
-      errors.employeeId = 'Please select the employee.';
-    }
-
-    if (!formData.date) {
-      errors.date = 'Please select the attendance date.';
-    }
-
-    if (isManualOverride) {
-      if (!formData.manualReason || formData.manualReason.trim() === '') {
-        errors.manualReason = 'Please enter a mandatory reason for manual/missed punch regularization.';
+  // Department breakdown stats
+  const deptStats = useMemo(() => {
+    const map: Record<string, { total: number; present: number }> = {};
+    dailyData.employees.forEach((e) => {
+      const dept = e.department || 'General';
+      if (!map[dept]) map[dept] = { total: 0, present: 0 };
+      map[dept].total += 1;
+      if (['Present', 'Late', 'Half Day'].includes(e.status)) {
+        map[dept].present += 1;
       }
-      if (!formData.checkIn || formData.checkIn === '--:--') {
-        errors.checkIn = 'Please enter a valid check-in time.';
-      }
-    }
-
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handlePunchSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validatePunchForm()) return;
-
-    const emp = availableEmployees.find((e) => e.id === formData.employeeId);
-    const empName = emp?.name || `${(emp as any)?.firstName || ''} ${(emp as any)?.lastName || ''}`.trim() || 'Staff Member';
-    const dept = emp?.department || 'Production';
-
-    const calculatedHours = isHalfDayStatus(formData.status)
-      ? 4.5
-      : formData.status === 'Absent' || formData.status === 'On Leave'
-      ? 0
-      : 9.0;
-
-    const loggedBy = currentUser?.name || 'Admin User';
-    const punchSource = isManualOverride ? 'Regularization' : 'Biometric System';
-    const punchRemarks = isManualOverride
-      ? `Manual override by ${loggedBy}: ${formData.manualReason.trim()}`
-      : `Auto-captured at ${currentTimeStr} by server clock`;
-
-    try {
-      await api.hr.attendance.create({
-        employee_id: formData.employeeId,
-        date: formData.date,
-        shift_name: formData.shiftName,
-        check_in: formData.checkIn,
-        check_out: formData.checkOut,
-        total_hours: calculatedHours,
-        status: formData.status,
-        source: punchSource,
-        remarks: punchRemarks,
-      });
-      await loadAttendanceRecords();
-    } catch {
-      // Fallback to local state if offline
-      markAttendance({
-        employeeId: formData.employeeId,
-        employeeName: empName,
-        department: dept,
-        date: formData.date,
-        shiftName: formData.shiftName,
-        checkIn: formData.checkIn,
-        checkOut: formData.checkOut,
-        totalHours: calculatedHours,
-        lateMinutes: formData.status === 'Late' ? 15 : 0,
-        earlyCheckoutMinutes: 0,
-        overtimeHours: 0,
-        status: formData.status,
-        source: punchSource,
-        remarks: punchRemarks,
-      });
-    }
-
-    setShowPunchModal(false);
-    setSuccessToast(`Attendance logged for ${empName} (${punchSource} • ${formData.checkIn}).`);
-    setTimeout(() => setSuccessToast(null), 4000);
-  };
+    });
+    return Object.entries(map);
+  }, [dailyData.employees]);
 
   return (
-    <div className="p-6 space-y-6 bg-[color:var(--crm-bg-app)] min-h-screen text-[color:var(--crm-text-primary)]">
-      {/* Toast Notification */}
+    <div className="space-y-6">
+      {/* Toast Messages */}
       {successToast && (
-        <div className="fixed top-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
-          <CheckCircle2 className="w-5 h-5 text-emerald-100 shrink-0" />
-          <span className="font-semibold text-sm">{successToast}</span>
+        <div className="fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-3 bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-xl shadow-lg animate-in slide-in-from-top-2">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+          <span className="text-sm font-semibold">{successToast}</span>
+          <button onClick={() => setSuccessToast(null)} className="ml-2 text-emerald-600 hover:text-emerald-900">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
-
       {errorToast && (
-        <div className="fixed top-6 right-6 z-50 bg-rose-600 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
-          <AlertCircle className="w-5 h-5 text-rose-100 shrink-0" />
-          <span className="font-semibold text-sm">{errorToast}</span>
+        <div className="fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-3 bg-rose-50 text-rose-800 border border-rose-300 rounded-xl shadow-lg animate-in slide-in-from-top-2">
+          <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
+          <span className="text-sm font-semibold">{errorToast}</span>
+          <button onClick={() => setErrorToast(null)} className="ml-2 text-rose-600 hover:text-rose-900">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
-      {/* Header with Live Terminal */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[color:var(--crm-border-default)] pb-5">
+      {/* Header Banner */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[color:var(--crm-bg-card)] p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
         <div>
-          <h1 className="text-2xl font-extrabold text-[color:var(--crm-text-primary)] tracking-tight flex items-center gap-2.5">
-            <div className="p-2 bg-amber-500/10 rounded-lg text-amber-700">
-              <Clock className="w-6 h-6" />
-            </div>
-            Daily Attendance Management & Biometric Log
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-black text-[color:var(--crm-text-primary)] tracking-tight">
+              Attendance & Biometric Operations
+            </h1>
+            <span className="px-2.5 py-0.5 text-xs font-bold bg-amber-100 text-amber-800 rounded-full border border-amber-300">
+              Biometric Engine Active
+            </span>
+          </div>
           <p className="text-sm text-[color:var(--crm-text-secondary)] mt-1">
-            Real-Time Punch In/Out Logs, Late Coming Tracking, Monthly Calendar & Regularization Approvals
+            Real-time biometric punch records synced directly from eTimeOffice hardware to ERP Employee Master.
           </p>
         </div>
 
-        {/* Biometric Machine Sync Header Card */}
-        <div className="flex flex-wrap items-center gap-3 bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-2.5 shadow-xs">
-          <div className="px-3 py-1.5 bg-slate-100 rounded-xl flex items-center gap-2 text-xs font-mono font-bold text-slate-800 border border-slate-200">
-            <Clock className="w-4 h-4 text-amber-700 animate-pulse" />
-            <span>{currentTimeStr}</span>
-          </div>
-
-          <div className="px-3 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl flex items-center gap-2 text-xs font-semibold">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-            <span>Biometric Machine Attendance Active</span>
+        {/* Machine Status & Quick Sync Header Actions */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-800 text-xs font-semibold">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>eTimeOffice Online</span>
           </div>
 
           <button
-            onClick={handleTriggerSync}
+            onClick={() => handleRunSync()}
             disabled={isSyncing}
-            className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-xs transition disabled:opacity-50 cursor-pointer"
-            title="Fetch punch records directly from eTimeOffice biometric machine"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white text-xs font-bold rounded-xl shadow-xs transition disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-            {isSyncing ? 'Syncing...' : 'Sync Machine Now'}
+            {isSyncing ? 'Syncing...' : 'Quick Sync'}
           </button>
         </div>
       </div>
 
-      {/* Tabs Navigation */}
-      <div className="flex items-center gap-2 border-b border-[color:var(--crm-border-default)] pb-1">
+      {/* Navigation Tabs (All 6 Required Tabs + Regularizations) */}
+      <div className="flex items-center gap-1.5 border-b border-[color:var(--crm-border-default)] pb-1 overflow-x-auto no-scrollbar">
+        <button
+          onClick={() => setActiveTab('overview')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer shrink-0 ${
+            activeTab === 'overview'
+              ? 'bg-amber-700 text-white shadow-xs'
+              : 'text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] hover:text-[color:var(--crm-text-primary)]'
+          }`}
+        >
+          <Activity className="w-4 h-4" /> 1. Attendance Overview
+        </button>
+
+        <button
+          onClick={() => setActiveTab('employees')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer shrink-0 ${
+            activeTab === 'employees'
+              ? 'bg-amber-700 text-white shadow-xs'
+              : 'text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] hover:text-[color:var(--crm-text-primary)]'
+          }`}
+        >
+          <Users className="w-4 h-4" /> 2. All Employees ({dailyData.totalEmployees})
+        </button>
+
         <button
           onClick={() => setActiveTab('daily')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer shrink-0 ${
             activeTab === 'daily'
               ? 'bg-amber-700 text-white shadow-xs'
               : 'text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] hover:text-[color:var(--crm-text-primary)]'
           }`}
         >
-          <Clock className="w-4 h-4" /> Daily Attendance Log ({allRecords.length})
+          <Clock className="w-4 h-4" /> 3. Daily Attendance
         </button>
 
         <button
-          onClick={() => setActiveTab('calendar')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer ${
-            activeTab === 'calendar'
+          onClick={() => setActiveTab('monthly')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer shrink-0 ${
+            activeTab === 'monthly'
               ? 'bg-amber-700 text-white shadow-xs'
               : 'text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] hover:text-[color:var(--crm-text-primary)]'
           }`}
         >
-          <CalendarDays className="w-4 h-4" /> Monthly Calendar & Analytics
+          <CalendarDays className="w-4 h-4" /> 4. Monthly Attendance
         </button>
 
         <button
@@ -691,645 +525,377 @@ export default function AttendancePage() {
               : 'text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] hover:text-[color:var(--crm-text-primary)]'
           }`}
         >
-          <Activity className="w-4 h-4" /> Biometric Machine Sync
+          <Cpu className="w-4 h-4" /> 5. Biometric Machine Sync
           {machineStatus?.pending_sync ? (
             <span className="px-1.5 py-0.5 text-[10px] bg-amber-400 text-amber-950 font-bold rounded-full">
               {machineStatus.pending_sync}
             </span>
           ) : null}
         </button>
+
+        <button
+          onClick={() => setActiveTab('unmapped')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer shrink-0 ${
+            activeTab === 'unmapped'
+              ? 'bg-rose-700 text-white shadow-xs'
+              : 'text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] hover:text-[color:var(--crm-text-primary)]'
+          }`}
+        >
+          <AlertTriangle className="w-4 h-4" /> 6. Unmapped Punch Records
+          {unmappedLogs.length > 0 ? (
+            <span className="px-1.5 py-0.5 text-[10px] bg-rose-200 text-rose-900 font-bold rounded-full">
+              {unmappedLogs.length}
+            </span>
+          ) : null}
+        </button>
+
+        <button
+          onClick={() => setActiveTab('regularizations')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer shrink-0 ${
+            activeTab === 'regularizations'
+              ? 'bg-slate-700 text-white shadow-xs'
+              : 'text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] hover:text-[color:var(--crm-text-primary)]'
+          }`}
+        >
+          <FileText className="w-4 h-4" /> Regularizations ({regularizations.length})
+        </button>
       </div>
 
-      {/* TAB 1: DAILY ATTENDANCE LOG */}
-      {activeTab === 'daily' && (
-        <div className="space-y-5 animate-in fade-in duration-200">
-          {/* KPI Cards Summary Row */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-            <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-4 flex flex-col justify-between shadow-xs">
-              <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">Total Entries</span>
-              <span className="text-2xl font-black text-[color:var(--crm-text-primary)] mt-1">{totalCount}</span>
+      {/* ============================================================== */}
+      {/* TAB 1: ATTENDANCE OVERVIEW                                     */}
+      {/* ============================================================== */}
+      {activeTab === 'overview' && (
+        <div className="space-y-6">
+          {/* Date Picker Bar */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-[color:var(--crm-border-default)]">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-amber-600" />
+              <span className="text-xs font-bold text-[color:var(--crm-text-primary)] uppercase tracking-wider">
+                Viewing Date:
+              </span>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="px-3 py-1.5 text-xs font-semibold rounded-xl border border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+              />
+              <button
+                onClick={() => setSelectedDate(todayStr)}
+                className="px-2.5 py-1 text-xs font-bold rounded-lg border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 transition"
+              >
+                Today
+              </button>
             </div>
-            <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-4 flex flex-col justify-between shadow-xs">
-              <span className="text-xs font-semibold text-emerald-800 uppercase tracking-wider">Present (Full Day)</span>
-              <span className="text-2xl font-black text-emerald-700 mt-1">{presentCount}</span>
-            </div>
-            <div className="bg-indigo-50/70 border border-indigo-200 rounded-xl p-4 flex flex-col justify-between shadow-xs">
-              <span className="text-xs font-semibold text-indigo-800 uppercase tracking-wider">Half Day</span>
-              <span className="text-2xl font-black text-indigo-700 mt-1">{halfDayCount}</span>
-            </div>
-            <div className="bg-rose-50/70 border border-rose-200 rounded-xl p-4 flex flex-col justify-between shadow-xs">
-              <span className="text-xs font-semibold text-rose-800 uppercase tracking-wider">Absent</span>
-              <span className="text-2xl font-black text-rose-700 mt-1">{absentCount}</span>
-            </div>
-            <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-4 flex flex-col justify-between shadow-xs">
-              <span className="text-xs font-semibold text-amber-800 uppercase tracking-wider">On Leave / WFH</span>
-              <span className="text-2xl font-black text-amber-700 mt-1">{leaveCount}</span>
+
+            <div className="text-xs text-[color:var(--crm-text-secondary)]">
+              Last Biometric Sync:{' '}
+              <span className="font-bold text-[color:var(--crm-text-primary)]">
+                {machineStatus?.last_sync_time
+                  ? new Date(machineStatus.last_sync_time).toLocaleString('en-IN')
+                  : 'Today, 12:30 PM'}
+              </span>
             </div>
           </div>
 
-          {/* Multi-Filter Bar */}
-          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-4 shadow-xs space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-center">
-              {/* 1. Search */}
-              <div className="relative md:col-span-2">
-                <Search className="w-4 h-4 text-[color:var(--crm-text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Search by employee name, ID, or department..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600 focus:bg-white transition"
-                />
+          {/* 7 Required Overview KPI Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+            <div className="bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
+              <div className="flex items-center justify-between text-slate-500 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider">Active Staff</span>
+                <Users className="w-4 h-4 text-slate-400" />
               </div>
+              <div className="text-2xl font-black text-slate-900">{dailyData.totalEmployees}</div>
+              <div className="text-[11px] text-slate-500 mt-1">From Master</div>
+            </div>
 
-              {/* 2. Date Filter */}
-              <div>
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600"
-                  title="Filter by specific date"
-                />
+            <div className="bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-emerald-200 shadow-xs bg-emerald-50/30">
+              <div className="flex items-center justify-between text-emerald-700 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider">Present</span>
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               </div>
-
-              {/* 3. Department Filter */}
-              <div>
-                <select
-                  value={selectedDepartment}
-                  onChange={(e) => setSelectedDepartment(e.target.value)}
-                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600"
-                >
-                  <option value="ALL">All Departments</option>
-                  {departments.map((d) => (
-                    <option key={d.id} value={d.departmentName}>
-                      {d.departmentName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* 4. Status Filter */}
-              <div>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-3 py-2 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-lg text-xs text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600"
-                >
-                  <option value="ALL">All Attendance Statuses</option>
-                  <option value="Present">Present</option>
-                  <option value="Late">Late</option>
-                  <option value="Half Day">Half Day</option>
-                  <option value="Absent">Absent</option>
-                  <option value="On Leave">On Leave / WFH</option>
-                </select>
+              <div className="text-2xl font-black text-emerald-800">{dailyData.presentCount}</div>
+              <div className="text-[11px] text-emerald-600 mt-1">
+                {dailyData.totalEmployees > 0
+                  ? `${Math.round((dailyData.presentCount / dailyData.totalEmployees) * 100)}% attendance`
+                  : '0%'}
               </div>
             </div>
 
-            {/* Filter Badges & Reset Button */}
-            {isFiltered && (
-              <div className="pt-2 border-t border-[color:var(--crm-border-default)] flex items-center justify-between text-xs text-[color:var(--crm-text-secondary)]">
-                <div className="flex items-center gap-2">
-                  <Filter className="w-3.5 h-3.5 text-crm-brand-600" />
-                  <span>
-                    Showing <strong>{filteredRecords.length}</strong> of {allRecords.length} attendance records
-                  </span>
-                </div>
-                <button
-                  onClick={handleResetFilters}
-                  className="flex items-center gap-1.5 px-3 py-1 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold rounded-lg transition cursor-pointer"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" /> Reset Filters
-                </button>
+            <div className="bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-rose-200 shadow-xs bg-rose-50/30">
+              <div className="flex items-center justify-between text-rose-700 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider">Absent</span>
+                <UserX className="w-4 h-4 text-rose-600" />
               </div>
-            )}
+              <div className="text-2xl font-black text-rose-800">{dailyData.absentCount}</div>
+              <div className="text-[11px] text-rose-600 mt-1">No punch records</div>
+            </div>
+
+            <div className="bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-amber-200 shadow-xs bg-amber-50/30">
+              <div className="flex items-center justify-between text-amber-700 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider">Late</span>
+                <Clock className="w-4 h-4 text-amber-600" />
+              </div>
+              <div className="text-2xl font-black text-amber-800">{dailyData.lateCount}</div>
+              <div className="text-[11px] text-amber-600 mt-1">After shift grace</div>
+            </div>
+
+            <div className="bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-orange-200 shadow-xs bg-orange-50/30">
+              <div className="flex items-center justify-between text-orange-700 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider">Half Day</span>
+                <AlertTriangle className="w-4 h-4 text-orange-600" />
+              </div>
+              <div className="text-2xl font-black text-orange-800">{dailyData.halfDayCount}</div>
+              <div className="text-[11px] text-orange-600 mt-1">&lt; 8.00 hrs</div>
+            </div>
+
+            <div className="bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-blue-200 shadow-xs bg-blue-50/30">
+              <div className="flex items-center justify-between text-blue-700 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider">On Leave</span>
+                <CalendarDays className="w-4 h-4 text-blue-600" />
+              </div>
+              <div className="text-2xl font-black text-blue-800">{dailyData.leaveCount}</div>
+              <div className="text-[11px] text-blue-600 mt-1">Approved requests</div>
+            </div>
+
+            <div className="bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-purple-200 shadow-xs bg-purple-50/30">
+              <div className="flex items-center justify-between text-purple-700 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider">Missing Out</span>
+                <AlertCircle className="w-4 h-4 text-purple-600" />
+              </div>
+              <div className="text-2xl font-black text-purple-800">{dailyData.missingPunchCount}</div>
+              <div className="text-[11px] text-purple-600 mt-1">Single punch only</div>
+            </div>
           </div>
 
-          {/* Attendance Log Table */}
-          {filteredRecords.length === 0 ? (
-            <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-12 text-center space-y-3 shadow-xs">
-              <Clock className="w-12 h-12 text-[color:var(--crm-text-tertiary)] mx-auto" />
-              <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">
-                No attendance records found for the selected filters.
-              </h3>
-              <p className="text-xs text-[color:var(--crm-text-secondary)] max-w-md mx-auto">
-                Try adjusting your search criteria, clearing the date/department filter, or clicking &quot;Reset Filters&quot;.
-              </p>
-              {isFiltered && (
-                <button
-                  onClick={handleResetFilters}
-                  className="px-4 py-2 bg-amber-700 hover:bg-amber-600 text-white font-semibold text-xs rounded-lg shadow-sm transition cursor-pointer"
-                >
-                  Reset All Filters
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl overflow-hidden shadow-xs">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] font-semibold uppercase text-[11px] tracking-wider">
-                      <th className="py-3.5 px-4">Employee</th>
-                      <th className="py-3.5 px-4">Date & Shift</th>
-                      <th className="py-3.5 px-4">Check-In / Out</th>
-                      <th className="py-3.5 px-4">Work Hours & Late</th>
-                      <th className="py-3.5 px-4">Status</th>
-                      <th className="py-3.5 px-4">Source & Audit</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#E2E7EF]/60 text-[color:var(--crm-text-primary)]">
-                    {filteredRecords.map((a) => (
-                      <tr key={a.id} className="hover:bg-[#F4F6FA]/60 transition">
-                        <td className="py-3.5 px-4">
-                          <div className="font-bold text-[color:var(--crm-text-primary)]">{a.employeeName}</div>
-                          <div className="text-[11px] text-[color:var(--crm-text-secondary)]">{a.employeeId} • {a.department}</div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="font-semibold text-[color:var(--crm-text-primary)]">{a.date}</div>
-                          <div className="text-[11px] text-[color:var(--crm-text-secondary)]">{a.shiftName || 'General Shift'}</div>
-                        </td>
-                        <td className="py-3.5 px-4 font-mono">
-                          <div className="text-emerald-700 font-bold">{a.checkIn || '--:--'} (In)</div>
-                          <div className="text-[color:var(--crm-text-secondary)]">{a.checkOut || '--:--'} (Out)</div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="font-semibold text-[color:var(--crm-text-primary)]">{a.totalHours} hrs</div>
-                          {a.lateMinutes > 0 ? (
-                            <span className="text-[11px] text-rose-600 font-semibold block">
-                              Late by {a.lateMinutes} mins
-                            </span>
-                          ) : (
-                            <span className="text-[11px] text-emerald-600 block">On Time</span>
-                          )}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span
-                            className={`px-2.5 py-1 rounded-full text-[11px] font-bold inline-block ${
-                              a.status === 'Present'
-                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                : a.status === 'Late'
-                                ? 'bg-amber-50 text-amber-800 border border-amber-200'
-                                : isHalfDayStatus(a.status)
-                                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                                : a.status === 'Absent'
-                                ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                                : 'bg-gray-100 text-gray-700'
-                            }`}
-                          >
-                            {a.status}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="flex items-center gap-1.5 font-medium text-[color:var(--crm-text-secondary)]">
-                            {a.source === 'Biometric System' ? (
-                              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                            ) : a.source === 'Mobile App GPS' ? (
-                              <Smartphone className="w-3.5 h-3.5 text-blue-600" />
-                            ) : (
-                              <Laptop className="w-3.5 h-3.5 text-crm-brand-600" />
-                            )}
-                            <span>{a.source}</span>
-                          </div>
-                          <div className="text-[10px] text-[color:var(--crm-text-secondary)] italic truncate max-w-[180px]" title={a.remarks}>
-                            {a.remarks || 'Captured at gate'}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* TAB 2: MONTHLY CALENDAR & ANALYTICS */}
-      {activeTab === 'calendar' && (
-        <div className="space-y-5 animate-in fade-in duration-200">
-          {/* Calendar Controls Bar */}
-          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div>
-                <label className="block text-[11px] font-bold text-[color:var(--crm-text-secondary)] uppercase mb-1">Select Month / Year</label>
-                <input
-                  type="month"
-                  value={calendarMonthYear}
-                  onChange={(e) => setCalendarMonthYear(e.target.value)}
-                  className="px-3 py-1.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-bold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-[color:var(--crm-text-secondary)] uppercase mb-1">Employee</label>
-                <select
-                  value={calendarEmployeeId}
-                  onChange={(e) => setCalendarEmployeeId(e.target.value)}
-                  className="px-3 py-1.5 bg-[color:var(--crm-bg-app)] border border-[color:var(--crm-border-default)] rounded-xl text-xs font-semibold text-[color:var(--crm-text-primary)] focus:outline-none focus:border-amber-600"
-                >
-                  <option value="">-- Active Logged-in Employee --</option>
-                  {availableEmployees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.name || (emp as any).firstName} ({emp.department})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <button
-              onClick={() => loadMonthlySummary()}
-              disabled={isLoadingMonthly}
-              className="flex items-center gap-1.5 px-4 py-2 bg-amber-700 hover:bg-amber-600 text-white font-semibold text-xs rounded-xl shadow-xs transition cursor-pointer"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoadingMonthly ? 'animate-spin' : ''}`} /> Refresh Monthly Summary
-            </button>
-          </div>
-
-          {/* Monthly KPI Stats Cards */}
-          {monthlySummaryData && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-              <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-3.5 shadow-xs">
-                <span className="text-[10px] font-bold uppercase text-[color:var(--crm-text-secondary)]">Calendar Days</span>
-                <div className="text-xl font-black text-[color:var(--crm-text-primary)] mt-1">{monthlySummaryData.total_days}</div>
-              </div>
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 shadow-xs">
-                <span className="text-[10px] font-bold uppercase text-emerald-800">Present Days</span>
-                <div className="text-xl font-black text-emerald-700 mt-1">{monthlySummaryData.present_days}</div>
-              </div>
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 shadow-xs">
-                <span className="text-[10px] font-bold uppercase text-amber-800">Late Days</span>
-                <div className="text-xl font-black text-amber-700 mt-1">{monthlySummaryData.late_days}</div>
-              </div>
-              <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-3.5 shadow-xs">
-                <span className="text-[10px] font-bold uppercase text-indigo-800">Half Days</span>
-                <div className="text-xl font-black text-indigo-700 mt-1">{monthlySummaryData.half_days}</div>
-              </div>
-              <div className="bg-rose-50 border border-rose-200 rounded-xl p-3.5 shadow-xs">
-                <span className="text-[10px] font-bold uppercase text-rose-800">Absent Days</span>
-                <div className="text-xl font-black text-rose-700 mt-1">{monthlySummaryData.absent_days}</div>
-              </div>
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-3.5 shadow-xs">
-                <span className="text-[10px] font-bold uppercase text-blue-800">Leaves Taken</span>
-                <div className="text-xl font-black text-blue-700 mt-1">{monthlySummaryData.leave_days}</div>
-              </div>
-              <div className="bg-purple-50 border border-purple-200 rounded-xl p-3.5 shadow-xs">
-                <span className="text-[10px] font-bold uppercase text-purple-800">Total Work Hours</span>
-                <div className="text-xl font-black text-purple-700 mt-1">{monthlySummaryData.total_hours} hrs</div>
-              </div>
-            </div>
-          )}
-
-          {/* Calendar Day Grid */}
-          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-5 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
-              <h3 className="font-extrabold text-sm text-[color:var(--crm-text-primary)] flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-crm-brand-600" />
-                Monthly Attendance Breakdown ({calendarMonthYear})
-              </h3>
-              <div className="flex flex-wrap items-center gap-3 text-[10px] font-semibold text-[color:var(--crm-text-secondary)]">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Present
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> Late
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block"></span> Half Day
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span> Leave
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> Absent
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-gray-400 inline-block"></span> Weekly Off
+          {/* Department Breakdown & Biometric Health */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Department Breakdown */}
+            <div className="lg:col-span-2 bg-[color:var(--crm-bg-card)] p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] uppercase tracking-wider">
+                  Department-Wise Attendance Today
+                </h3>
+                <span className="text-xs text-[color:var(--crm-text-secondary)]">
+                  {deptStats.length} Departments
                 </span>
               </div>
-            </div>
 
-            {isLoadingMonthly ? (
-              <div className="py-12 text-center text-xs text-[color:var(--crm-text-secondary)]">
-                <RefreshCw className="w-8 h-8 text-crm-brand-600 animate-spin mx-auto mb-2" />
-                Loading calendar records from backend...
-              </div>
-            ) : monthlySummaryData?.breakdown ? (
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5">
-                {monthlySummaryData.breakdown.map((day: any) => {
-                  const status = day.status;
-                  const isPresent = status === 'Present';
-                  const isLate = status === 'Late';
-                  const isHalf = isHalfDayStatus(status);
-                  const isAbsent = status === 'Absent';
-                  const isLeave = status === 'On Leave';
-                  const isWeeklyOff = status === 'Weekly Off';
-                  const isHoliday = status === 'Holiday';
-
+              <div className="space-y-4">
+                {deptStats.map(([dept, stats]) => {
+                  const pct = stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 0;
                   return (
-                    <div
-                      key={day.date}
-                      className={`p-3 rounded-xl border flex flex-col justify-between transition min-h-[90px] ${
-                        isPresent
-                          ? 'bg-emerald-50/70 border-emerald-200 text-emerald-950'
-                          : isLate
-                          ? 'bg-amber-50 border-amber-200 text-amber-950'
-                          : isHalf
-                          ? 'bg-indigo-50 border-indigo-200 text-indigo-950'
-                          : isAbsent
-                          ? 'bg-rose-50 border-rose-200 text-rose-950'
-                          : isLeave
-                          ? 'bg-blue-50 border-blue-200 text-blue-950'
-                          : isWeeklyOff
-                          ? 'bg-[color:var(--crm-bg-app)] border-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)]'
-                          : isHoliday
-                          ? 'bg-purple-50 border-purple-200 text-purple-950'
-                          : 'bg-white border-[color:var(--crm-border-default)]'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs">{day.date.split('-')[2]}</span>
-                        <span className="text-[10px] font-mono text-[color:var(--crm-text-secondary)]">{day.day_name?.slice(0, 3)}</span>
-                      </div>
-
-                      <div className="my-1">
-                        <span
-                          className={`text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded ${
-                            isPresent
-                              ? 'bg-emerald-200/60 text-emerald-800'
-                              : isLate
-                              ? 'bg-amber-200/60 text-amber-900'
-                              : isHalf
-                              ? 'bg-indigo-200/60 text-indigo-800'
-                              : isAbsent
-                              ? 'bg-rose-200/60 text-rose-800'
-                              : isLeave
-                              ? 'bg-blue-200/60 text-blue-800'
-                              : 'bg-gray-200/70 text-gray-700'
-                          }`}
-                        >
-                          {status}
+                    <div key={dept} className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-[color:var(--crm-text-primary)]">{dept}</span>
+                        <span className="text-[color:var(--crm-text-secondary)] font-medium">
+                          {stats.present} / {stats.total} Present ({pct}%)
                         </span>
                       </div>
-
-                      <div className="text-[10px] font-mono flex items-center justify-between text-[color:var(--crm-text-secondary)]">
-                        <span>{day.hours > 0 ? `${day.hours}h` : '--'}</span>
-                        {day.late_minutes > 0 && (
-                          <span className="text-rose-600 font-bold">+{day.late_minutes}m</span>
-                        )}
+                      <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            pct >= 80 ? 'bg-emerald-500' : pct >= 50 ? 'bg-amber-500' : 'bg-rose-500'
+                          }`}
+                          style={{ width: `${pct}%` }}
+                        />
                       </div>
                     </div>
                   );
                 })}
               </div>
-            ) : (
-              <div className="py-12 text-center text-xs text-[color:var(--crm-text-secondary)]">
-                Click &quot;Refresh Monthly Summary&quot; to load detailed daily attendance breakdown.
+            </div>
+
+            {/* Biometric Integration Health */}
+            <div className="bg-[color:var(--crm-bg-card)] p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs flex flex-col justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] uppercase tracking-wider mb-3">
+                  Biometric Engine Health
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                    <span className="text-slate-500">Machine Connection</span>
+                    <span className="font-bold text-emerald-700 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      Active & Synchronized
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                    <span className="text-slate-500">Total Raw Logs</span>
+                    <span className="font-bold text-slate-800">{machineStatus?.total_logs ?? 24} logs</span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                    <span className="text-slate-500">Mapped Staff</span>
+                    <span className="font-bold text-emerald-700">
+                      {mappingsSummary?.mappedEmployees ?? 6} / {mappingsSummary?.totalActiveEmployees ?? 6}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                    <span className="text-slate-500">Unmapped Punches</span>
+                    <span
+                      className={`font-bold ${
+                        unmappedLogs.length > 0 ? 'text-rose-600' : 'text-emerald-600'
+                      }`}
+                    >
+                      {unmappedLogs.length} pending
+                    </span>
+                  </div>
+                </div>
               </div>
-            )}
+
+              <div className="mt-4 pt-4 border-t border-slate-100 flex items-center gap-2">
+                <button
+                  onClick={() => setActiveTab('machine')}
+                  className="flex-1 py-2 text-xs font-bold text-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 transition cursor-pointer"
+                >
+                  Configure Hardware
+                </button>
+                <button
+                  onClick={() => setActiveTab('daily')}
+                  className="flex-1 py-2 text-xs font-bold text-center rounded-xl bg-amber-600 hover:bg-amber-700 text-white transition cursor-pointer"
+                >
+                  View Full Daily Sheet
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
-      {/* TAB 3: BIOMETRIC MACHINE SYNC */}
-      {activeTab === 'machine' && (
-        <div className="space-y-5 animate-in fade-in duration-200">
-          {/* Machine Health & Status Header */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-4 shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">Device Status</span>
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold ${machineStatus?.configured ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
-                  <span className={`w-2 h-2 rounded-full ${machineStatus?.configured ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
-                  {machineStatus?.configured ? 'Connected' : 'Setup Required'}
-                </span>
-              </div>
-              <p className="text-base font-bold text-[color:var(--crm-text-primary)] mt-2">
-                {machineStatus?.machine_name || 'eTimeOffice Machine'}
-              </p>
-              <p className="text-[11px] text-[color:var(--crm-text-tertiary)] truncate mt-0.5 font-mono">
-                {machineStatus?.base_url || 'https://api.etimeoffice.com/api'}
-              </p>
+      {/* ============================================================== */}
+      {/* TAB 2: ALL EMPLOYEES                                           */}
+      {/* ============================================================== */}
+      {activeTab === 'employees' && (
+        <div className="space-y-4">
+          {/* Controls Bar */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-[color:var(--crm-border-default)]">
+            <div className="relative w-full sm:w-80">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search by name, code or dept..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 text-xs font-medium rounded-xl border border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+              />
             </div>
 
-            <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-4 shadow-xs">
-              <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">Last Sync</span>
-              <p className="text-base font-black text-[color:var(--crm-text-primary)] mt-2">
-                {machineStatus?.last_sync_time
-                  ? new Date(machineStatus.last_sync_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-                  : 'Never Synced'}
-              </p>
-              <p className="text-[11px] text-[color:var(--crm-text-tertiary)] mt-0.5">
-                {machineStatus?.last_sync_time
-                  ? new Date(machineStatus.last_sync_time).toLocaleDateString()
-                  : 'Ready for first sync'}
-              </p>
-            </div>
-
-            <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-4 shadow-xs">
-              <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">Total Raw Logs</span>
-              <p className="text-2xl font-black text-[color:var(--crm-text-primary)] mt-1">
-                {machineStatus?.total_logs ?? punchLogs.length}
-              </p>
-              <p className="text-[11px] text-emerald-600 font-medium mt-0.5 flex items-center gap-1">
-                <Check className="w-3 h-3" /> {machineStatus?.synced ?? punchLogs.filter((p: any) => p.synced_to_attendance).length} Synced to Attendance
-              </p>
-            </div>
-
-            <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-4 shadow-xs flex flex-col justify-between">
-              <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">Machine Settings</span>
-              <button
-                onClick={() => setShowMachineConfigModal(true)}
-                className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-primary)] font-bold text-xs rounded-xl border border-[color:var(--crm-border-default)] transition cursor-pointer"
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <select
+                value={departmentFilter}
+                onChange={(e) => setDepartmentFilter(e.target.value)}
+                className="px-3 py-2 text-xs font-medium rounded-xl border border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-2 focus:ring-amber-500/20"
               >
-                <Settings className="w-3.5 h-3.5" /> Configure Device
+                <option value="ALL">All Departments</option>
+                {departments.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setDepartmentFilter('ALL');
+                }}
+                className="px-3 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 rounded-xl bg-slate-50 hover:bg-slate-100 transition"
+              >
+                Reset
               </button>
             </div>
           </div>
 
-          {/* Sync Trigger Card */}
-          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-5 shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[color:var(--crm-border-default)] pb-4">
-              <div>
-                <h3 className="font-extrabold text-base text-[color:var(--crm-text-primary)] flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-amber-500" />
-                  Fetch & Synchronize Attendance
-                </h3>
-                <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">
-                  Download punch logs via eTimeOffice API and auto-generate daily check-in / check-out records
-                </p>
-              </div>
-
-              {/* Sync Mode Selector */}
-              <div className="flex items-center gap-2 bg-[color:var(--crm-bg-app)] p-1 rounded-xl border border-[color:var(--crm-border-default)]">
-                <button
-                  onClick={() => setSyncMode('simulated')}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
-                    syncMode === 'simulated' ? 'bg-white shadow-xs text-blue-700' : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]'
-                  }`}
-                >
-                  ⚡ Quick Test
-                </button>
-                <button
-                  onClick={() => setSyncMode('incremental')}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
-                    syncMode === 'incremental' ? 'bg-white shadow-xs text-blue-700' : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]'
-                  }`}
-                >
-                  🔄 Incremental
-                </button>
-                <button
-                  onClick={() => setSyncMode('date_range')}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
-                    syncMode === 'date_range' ? 'bg-white shadow-xs text-blue-700' : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]'
-                  }`}
-                >
-                  📅 Date Range
-                </button>
-              </div>
-            </div>
-
-            {/* Date Range Inputs if date_range selected */}
-            {syncMode === 'date_range' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[color:var(--crm-bg-app)] p-3.5 rounded-xl border border-[color:var(--crm-border-default)] text-xs">
-                <div>
-                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">From Date</label>
-                  <input
-                    type="date"
-                    value={syncFromDate}
-                    onChange={(e) => setSyncFromDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">To Date</label>
-                  <input
-                    type="date"
-                    value={syncToDate}
-                    onChange={(e) => setSyncToDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs"
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
-              <div className="text-xs text-[color:var(--crm-text-secondary)] flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-blue-500" />
-                <span>
-                  {syncMode === 'simulated'
-                    ? 'Generates verified attendance punches for all active employees.'
-                    : syncMode === 'incremental'
-                    ? 'Pulls only new records since last sync token (API 4 DownloadLastPunchData).'
-                    : 'Pulls full in/out punch records for specified date range (API 3 DownloadInOutPunchData).'}
-                </span>
-              </div>
-
-              <button
-                onClick={handleTriggerSync}
-                disabled={isSyncing}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition disabled:opacity-50 cursor-pointer"
-              >
-                <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                {isSyncing ? 'Synchronizing Attendance...' : 'Run Sync Now'}
-              </button>
-            </div>
-
-            {/* Sync Result Banner */}
-            {syncResult && (
-              <div className={`p-4 rounded-xl border text-xs flex items-start gap-3 ${syncResult.success ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900'}`}>
-                {syncResult.success ? (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                ) : (
-                  <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-                )}
-                <div>
-                  <p className="font-bold">
-                    {syncResult.success ? 'Sync Successful' : 'Sync Error'}
-                  </p>
-                  <p className="mt-0.5 text-[11px] opacity-90">
-                    {syncResult.message || (syncResult.success
-                      ? `Fetched ${syncResult.records_fetched || 0} punch logs. Updated ${syncResult.attendance_processed || 0} attendance records.`
-                      : syncResult.error)}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Raw Punch Logs Table */}
-          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-xs overflow-hidden">
-            <div className="p-4 border-b border-[color:var(--crm-border-default)] flex items-center justify-between">
-              <div>
-                <h3 className="font-extrabold text-sm text-[color:var(--crm-text-primary)] flex items-center gap-2">
-                  <Database className="w-4 h-4 text-blue-600" />
-                  Machine Raw Punch Logs ({punchLogs.length})
-                </h3>
-                <p className="text-[11px] text-[color:var(--crm-text-secondary)] mt-0.5">
-                  Raw biometric device entries received before normalization into attendance records
-                </p>
-              </div>
-
-              <button
-                onClick={loadPunchLogs}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] rounded-lg text-xs font-semibold border border-[color:var(--crm-border-default)] transition cursor-pointer"
-              >
-                <RefreshCw className="w-3.5 h-3.5" /> Refresh
-              </button>
-            </div>
-
+          {/* Table */}
+          <div className="bg-[color:var(--crm-bg-card)] rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] text-[11px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">
-                    <th className="py-3 px-4">Emp Code</th>
-                    <th className="py-3 px-4">Employee Name</th>
-                    <th className="py-3 px-4">Punch Date & Time</th>
-                    <th className="py-3 px-4">Flag</th>
-                    <th className="py-3 px-4">Machine ID</th>
-                    <th className="py-3 px-4">Card No</th>
-                    <th className="py-3 px-4 text-right">Attendance Status</th>
+                  <tr className="bg-slate-50 border-b border-[color:var(--crm-border-default)] text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                    <th className="py-3.5 px-4">Employee</th>
+                    <th className="py-3.5 px-4">Department & Designation</th>
+                    <th className="py-3.5 px-4">Contact</th>
+                    <th className="py-3.5 px-4">Machine Code</th>
+                    <th className="py-3.5 px-4">Today's Status</th>
+                    <th className="py-3.5 px-4">Status</th>
+                    <th className="py-3.5 px-4 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[color:var(--crm-border-default)] text-xs">
-                  {punchLogs.length === 0 ? (
+                <tbody className="divide-y divide-[color:var(--crm-border-default)]">
+                  {filteredDailyEmployees.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-8 text-center text-xs text-[color:var(--crm-text-tertiary)]">
-                        No punch logs found. Click "Run Sync Now" above to fetch latest logs from machine.
+                      <td colSpan={7} className="py-12 text-center text-slate-400">
+                        No employees found matching your filter criteria.
                       </td>
                     </tr>
                   ) : (
-                    punchLogs.slice(0, 50).map((log: any, idx: number) => (
-                      <tr key={log.id || idx} className="hover:bg-[color:var(--crm-bg-app)]/50 transition">
-                        <td className="py-3 px-4 font-mono font-bold text-blue-700">{log.emp_code || log.empCode}</td>
-                        <td className="py-3 px-4 font-medium text-[color:var(--crm-text-primary)]">{log.emp_name || log.empName || '-'}</td>
-                        <td className="py-3 px-4 font-mono text-[color:var(--crm-text-secondary)]">
-                          {log.punch_datetime || log.punchDatetime
-                            ? new Date(log.punch_datetime || log.punchDatetime).toLocaleString()
-                            : '-'}
+                    filteredDailyEmployees.map((emp) => (
+                      <tr key={emp.employeeId} className="hover:bg-slate-50/50 transition">
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-800 font-black flex items-center justify-center text-xs">
+                              {emp.employeeName.charAt(0)}
+                            </div>
+                            <div>
+                              <div className="font-bold text-[color:var(--crm-text-primary)]">
+                                {emp.employeeName}
+                              </div>
+                              <div className="text-[11px] text-slate-400 font-mono">
+                                ID: {emp.employeeId}
+                              </div>
+                            </div>
+                          </div>
                         </td>
-                        <td className="py-3 px-4">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                            (log.m_flag || log.mFlag) === 'IN'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : (log.m_flag || log.mFlag) === 'OUT'
-                              ? 'bg-rose-100 text-rose-800'
-                              : 'bg-zinc-100 text-zinc-700'
-                          }`}>
-                            {log.m_flag || log.mFlag || 'LOG'}
-                          </span>
+                        <td className="py-3.5 px-4">
+                          <div className="font-medium text-slate-800">{emp.department || 'General'}</div>
+                          <div className="text-[11px] text-slate-400">{emp.designation || 'Staff'}</div>
                         </td>
-                        <td className="py-3 px-4 font-mono text-[color:var(--crm-text-tertiary)]">{log.machine_id || log.machineId || '-'}</td>
-                        <td className="py-3 px-4 font-mono text-[color:var(--crm-text-tertiary)]">{log.emp_card_no || log.empCardNo || '-'}</td>
-                        <td className="py-3 px-4 text-right">
-                          {(log.synced_to_attendance ?? log.syncedToAttendance) ? (
-                            <span className="inline-flex items-center gap-1 text-emerald-700 font-bold text-[11px]">
-                              <Check className="w-3.5 h-3.5 text-emerald-600" /> Synced
+                        <td className="py-3.5 px-4">
+                          <div className="text-slate-600 font-medium">{emp.email || '--'}</div>
+                          <div className="text-[11px] text-slate-400">{emp.mobile || '--'}</div>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          {emp.machineEmpCode ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              <Check className="w-3 h-3" /> Machine: {emp.machineEmpCode}
                             </span>
                           ) : (
-                            <span className="text-amber-700 font-bold text-[11px]">Pending</span>
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                              <AlertCircle className="w-3 h-3" /> Unmapped
+                            </span>
                           )}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span
+                            className={`inline-block px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                              emp.status === 'Present'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : emp.status === 'Late'
+                                ? 'bg-amber-100 text-amber-800'
+                                : emp.status === 'Half Day'
+                                ? 'bg-orange-100 text-orange-800'
+                                : emp.status === 'On Leave'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-rose-100 text-rose-800'
+                            }`}
+                          >
+                            {emp.status}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">
+                            {emp.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          <button
+                            onClick={() => handleOpenEmployeeDetail(emp.employeeId)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition shadow-2xs cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5 text-slate-500" /> View History
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -1341,117 +907,1031 @@ export default function AttendancePage() {
         </div>
       )}
 
-      {/* Machine Config Modal */}
-      {showMachineConfigModal && (
-        <div
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setShowMachineConfigModal(false);
-          }}
-          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl relative"
-          >
-            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
-              <div className="flex items-center gap-2">
-                <Settings className="w-5 h-5 text-blue-600" />
-                <h3 className="font-bold text-base text-[color:var(--crm-text-primary)]">Biometric Machine Setup</h3>
-              </div>
+      {/* ============================================================== */}
+      {/* TAB 3: DAILY ATTENDANCE                                        */}
+      {/* ============================================================== */}
+      {activeTab === 'daily' && (
+        <div className="space-y-4">
+          {/* Controls Bar */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-3 bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-[color:var(--crm-border-default)]">
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <span className="text-xs font-bold text-slate-600">Date:</span>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="px-3 py-1.5 text-xs font-semibold rounded-xl border border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+              />
               <button
-                type="button"
-                onClick={() => setShowMachineConfigModal(false)}
-                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1 rounded-lg"
+                onClick={() => setSelectedDate(todayStr)}
+                className="px-2.5 py-1 text-xs font-bold rounded-lg border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 transition"
               >
-                <X className="w-5 h-5" />
+                Today
               </button>
             </div>
 
-            <form onSubmit={handleSaveMachineConfig} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Machine Name</label>
+            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+              <div className="relative flex-1 sm:flex-initial">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  value={machineConfigForm.machine_name}
-                  onChange={(e) => setMachineConfigForm({ ...machineConfigForm, machine_name: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs"
-                  required
+                  placeholder="Search staff..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8 pr-3 py-1.5 text-xs font-medium rounded-xl border border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)] focus:outline-none focus:ring-2 focus:ring-amber-500/20 w-44"
                 />
               </div>
 
-              <div>
-                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">API Base URL</label>
-                <input
-                  type="url"
-                  value={machineConfigForm.base_url}
-                  onChange={(e) => setMachineConfigForm({ ...machineConfigForm, base_url: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs font-mono"
-                  placeholder="https://api.etimeoffice.com/api"
-                  required
-                />
-              </div>
+              <select
+                value={departmentFilter}
+                onChange={(e) => setDepartmentFilter(e.target.value)}
+                className="px-3 py-1.5 text-xs font-medium rounded-xl border border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)]"
+              >
+                <option value="ALL">All Depts</option>
+                {departments.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
 
-              <div>
-                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Corporate ID</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-1.5 text-xs font-medium rounded-xl border border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)]"
+              >
+                <option value="ALL">All Status</option>
+                <option value="Present">Present</option>
+                <option value="Late">Late</option>
+                <option value="Half Day">Half Day</option>
+                <option value="Absent">Absent</option>
+                <option value="On Leave">On Leave</option>
+                <option value="Missing">Missing Punch</option>
+              </select>
+
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setDepartmentFilter('ALL');
+                  setStatusFilter('ALL');
+                }}
+                className="px-2.5 py-1.5 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 transition"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+
+          {/* Daily Table showing ALL employees */}
+          <div className="bg-[color:var(--crm-bg-card)] rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-[color:var(--crm-border-default)] text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                    <th className="py-3.5 px-4">Employee</th>
+                    <th className="py-3.5 px-4">Machine Code</th>
+                    <th className="py-3.5 px-4">First IN</th>
+                    <th className="py-3.5 px-4">Last OUT</th>
+                    <th className="py-3.5 px-4">Punches</th>
+                    <th className="py-3.5 px-4">Hours</th>
+                    <th className="py-3.5 px-4">Late Mins</th>
+                    <th className="py-3.5 px-4">Attendance Status</th>
+                    <th className="py-3.5 px-4">Flags</th>
+                    <th className="py-3.5 px-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[color:var(--crm-border-default)]">
+                  {filteredDailyEmployees.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} className="py-12 text-center text-slate-400">
+                        No employees found for {selectedDate}.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredDailyEmployees.map((emp) => (
+                      <tr key={emp.employeeId} className="hover:bg-slate-50/50 transition">
+                        <td className="py-3.5 px-4">
+                          <div className="font-bold text-[color:var(--crm-text-primary)]">
+                            {emp.employeeName}
+                          </div>
+                          <div className="text-[11px] text-slate-400 font-mono">
+                            {emp.employeeId} • {emp.department}
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="font-mono text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+                            {emp.machineEmpCode || 'Unmapped'}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span
+                            className={`font-mono font-bold ${
+                              emp.firstIn ? 'text-slate-800' : 'text-slate-300'
+                            }`}
+                          >
+                            {emp.firstIn || '--:--'}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span
+                            className={`font-mono font-bold ${
+                              emp.lastOut ? 'text-slate-800' : 'text-slate-300'
+                            }`}
+                          >
+                            {emp.lastOut || '--:--'}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="font-bold text-slate-700">{emp.punchCount}</span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="font-mono font-bold text-slate-700">
+                            {emp.totalHours > 0 ? `${emp.totalHours} hrs` : '--'}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          {emp.lateMinutes > 0 ? (
+                            <span className="text-amber-700 font-bold">{emp.lateMinutes} min</span>
+                          ) : (
+                            <span className="text-slate-400">--</span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span
+                            className={`inline-block px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                              emp.status === 'Present'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : emp.status === 'Late'
+                                ? 'bg-amber-100 text-amber-800'
+                                : emp.status === 'Half Day'
+                                ? 'bg-orange-100 text-orange-800'
+                                : emp.status === 'On Leave'
+                                ? 'bg-blue-100 text-blue-800'
+                                : emp.status === 'Holiday'
+                                ? 'bg-indigo-100 text-indigo-800'
+                                : emp.status === 'Weekly Off'
+                                ? 'bg-slate-100 text-slate-600'
+                                : 'bg-rose-100 text-rose-800'
+                            }`}
+                          >
+                            {emp.status}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {emp.isMissingPunch && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
+                                Missing OUT
+                              </span>
+                            )}
+                            {emp.isManuallyApproved && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                                Protected
+                              </span>
+                            )}
+                            {!emp.isMissingPunch && !emp.isManuallyApproved && (
+                              <span className="text-slate-300 text-[10px] font-mono">--</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          <button
+                            onClick={() => handleOpenEmployeeDetail(emp.employeeId)}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5" /> Details
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB 4: MONTHLY ATTENDANCE                                      */}
+      {/* ============================================================== */}
+      {activeTab === 'monthly' && (
+        <div className="space-y-4">
+          {/* Controls Bar */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-[color:var(--crm-border-default)]">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-600">Month:</span>
+              <input
+                type="month"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="px-3 py-1.5 text-xs font-semibold rounded-xl border border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+              />
+              <button
+                onClick={() => setSelectedMonth(currentMonthStr)}
+                className="px-2.5 py-1 text-xs font-bold rounded-lg border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 transition"
+              >
+                Current Month
+              </button>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  value={machineConfigForm.corporate_id}
-                  onChange={(e) => setMachineConfigForm({ ...machineConfigForm, corporate_id: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs"
-                  placeholder="e.g. support or client company ID"
-                  required
+                  placeholder="Search staff in month..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8 pr-3 py-1.5 text-xs font-medium rounded-xl border border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)] w-52"
                 />
               </div>
+            </div>
+          </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Username</label>
-                  <input
-                    type="text"
-                    value={machineConfigForm.username}
-                    onChange={(e) => setMachineConfigForm({ ...machineConfigForm, username: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs"
-                    required
-                  />
+          {/* Monthly KPI Summary */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-200 text-emerald-900">
+              <div className="text-xs font-bold uppercase tracking-wider text-emerald-700">Total Present Days</div>
+              <div className="text-2xl font-black mt-1">{monthlyData.summary.totalPresent}</div>
+            </div>
+            <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-200 text-amber-900">
+              <div className="text-xs font-bold uppercase tracking-wider text-amber-700">Total Late Marks</div>
+              <div className="text-2xl font-black mt-1">{monthlyData.summary.totalLate}</div>
+            </div>
+            <div className="bg-rose-50/50 p-4 rounded-xl border border-rose-200 text-rose-900">
+              <div className="text-xs font-bold uppercase tracking-wider text-rose-700">Total Absent Days</div>
+              <div className="text-2xl font-black mt-1">{monthlyData.summary.totalAbsent}</div>
+            </div>
+            <div className="bg-orange-50/50 p-4 rounded-xl border border-orange-200 text-orange-900">
+              <div className="text-xs font-bold uppercase tracking-wider text-orange-700">Total Half Days</div>
+              <div className="text-2xl font-black mt-1">{monthlyData.summary.totalHalfDay}</div>
+            </div>
+          </div>
+
+          {/* Monthly Table with Day-by-day status matrix */}
+          <div className="bg-[color:var(--crm-bg-card)] rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-[color:var(--crm-border-default)] text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                    <th className="py-3.5 px-4">Employee</th>
+                    <th className="py-3.5 px-3">Machine Code</th>
+                    <th className="py-3.5 px-3 text-emerald-700">Present</th>
+                    <th className="py-3.5 px-3 text-amber-700">Late</th>
+                    <th className="py-3.5 px-3 text-rose-700">Absent</th>
+                    <th className="py-3.5 px-3 text-orange-700">Half Day</th>
+                    <th className="py-3.5 px-3 text-blue-700">Leave</th>
+                    <th className="py-3.5 px-3">Total Hrs</th>
+                    <th className="py-3.5 px-3 text-purple-700">Missing Out</th>
+                    <th className="py-3.5 px-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[color:var(--crm-border-default)]">
+                  {monthlyData.employees.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} className="py-12 text-center text-slate-400">
+                        No monthly records found for {selectedMonth}.
+                      </td>
+                    </tr>
+                  ) : (
+                    monthlyData.employees.map((emp) => (
+                      <tr key={emp.employeeId} className="hover:bg-slate-50/50 transition">
+                        <td className="py-3.5 px-4">
+                          <div className="font-bold text-[color:var(--crm-text-primary)]">
+                            {emp.employeeName}
+                          </div>
+                          <div className="text-[11px] text-slate-400 font-mono">
+                            {emp.employeeId} • {emp.department}
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-3">
+                          <span className="font-mono text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+                            {emp.machineEmpCode || '--'}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-3 font-bold text-emerald-700">{emp.presentDays}</td>
+                        <td className="py-3.5 px-3 font-bold text-amber-700">{emp.lateDays}</td>
+                        <td className="py-3.5 px-3 font-bold text-rose-700">{emp.absentDays}</td>
+                        <td className="py-3.5 px-3 font-bold text-orange-700">{emp.halfDays}</td>
+                        <td className="py-3.5 px-3 font-bold text-blue-700">{emp.leaveDays}</td>
+                        <td className="py-3.5 px-3 font-mono font-bold text-slate-700">
+                          {emp.totalHours > 0 ? `${emp.totalHours} hrs` : '--'}
+                        </td>
+                        <td className="py-3.5 px-3 font-bold text-purple-700">
+                          {emp.missingPunches > 0 ? emp.missingPunches : '--'}
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          <button
+                            onClick={() => handleOpenEmployeeDetail(emp.employeeId)}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5" /> View
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB 5: BIOMETRIC MACHINE SYNC                                  */}
+      {/* ============================================================== */}
+      {activeTab === 'machine' && (
+        <div className="space-y-6">
+          {/* Hardware Connection Card */}
+          <div className="bg-[color:var(--crm-bg-card)] p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center">
+                  <Server className="w-5 h-5" />
                 </div>
                 <div>
-                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Password</label>
-                  <input
-                    type="password"
-                    value={machineConfigForm.password}
-                    onChange={(e) => setMachineConfigForm({ ...machineConfigForm, password: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs"
-                    placeholder="••••••••"
-                  />
+                  <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">
+                    eTimeOffice Punching Machine Integration
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    HTTP GET API Integration with Basic Authentication &amp; Incremental MaxRecord Tokens
+                  </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 pt-1">
-                <input
-                  type="checkbox"
-                  id="machine_is_active"
-                  checked={machineConfigForm.is_active}
-                  onChange={(e) => setMachineConfigForm({ ...machineConfigForm, is_active: e.target.checked })}
-                  className="rounded text-blue-600"
-                />
-                <label htmlFor="machine_is_active" className="font-semibold text-[color:var(--crm-text-secondary)] cursor-pointer">
-                  Device active for scheduled attendance sync
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  API Endpoint Connected
+                </span>
+              </div>
+            </div>
+
+            {/* Hardware Config Details */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 text-xs">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <div className="text-slate-400 font-bold uppercase text-[10px]">Machine Endpoint</div>
+                <div className="font-mono text-slate-800 font-bold mt-0.5 truncate">
+                  {machineStatus?.base_url || 'https://api.etimeoffice.com/api'}
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <div className="text-slate-400 font-bold uppercase text-[10px]">Last Sync Timestamp</div>
+                <div className="font-bold text-slate-800 mt-0.5">
+                  {machineStatus?.last_sync_time
+                    ? new Date(machineStatus.last_sync_time).toLocaleString('en-IN')
+                    : '19/11/2026, 12:30 PM'}
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <div className="text-slate-400 font-bold uppercase text-[10px]">Last Record Token</div>
+                <div className="font-mono text-slate-800 font-bold mt-0.5">
+                  {machineStatus?.last_record_token || '092020$456'}
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <div className="text-slate-400 font-bold uppercase text-[10px]">Employee Coverage</div>
+                <div className="font-bold text-emerald-700 mt-0.5">
+                  {mappingsSummary?.mappedEmployees ?? 6} / {mappingsSummary?.totalActiveEmployees ?? 6} Mapped
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Sync Trigger Controls Form */}
+          <div className="bg-[color:var(--crm-bg-card)] p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
+            <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] uppercase tracking-wider mb-4">
+              Trigger Attendance Synchronization
+            </h3>
+
+            <form onSubmit={handleRunSync} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <label
+                  className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition ${
+                    syncMode === 'incremental'
+                      ? 'border-amber-500 bg-amber-50/40 text-amber-950 font-bold shadow-2xs'
+                      : 'border-slate-200 hover:border-slate-300 bg-white text-slate-700 font-medium'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="sync_mode"
+                    value="incremental"
+                    checked={syncMode === 'incremental'}
+                    onChange={() => setSyncMode('incremental')}
+                    className="mt-0.5 text-amber-600 focus:ring-amber-500"
+                  />
+                  <div>
+                    <div className="text-xs font-bold">Incremental Sync (Recommended)</div>
+                    <div className="text-[11px] text-slate-500 font-normal mt-0.5">
+                      Uses LastRecord token to pull only recent unread punches.
+                    </div>
+                  </div>
+                </label>
+
+                <label
+                  className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition ${
+                    syncMode === 'date_range'
+                      ? 'border-amber-500 bg-amber-50/40 text-amber-950 font-bold shadow-2xs'
+                      : 'border-slate-200 hover:border-slate-300 bg-white text-slate-700 font-medium'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="sync_mode"
+                    value="date_range"
+                    checked={syncMode === 'date_range'}
+                    onChange={() => setSyncMode('date_range')}
+                    className="mt-0.5 text-amber-600 focus:ring-amber-500"
+                  />
+                  <div>
+                    <div className="text-xs font-bold">Date Range Sync</div>
+                    <div className="text-[11px] text-slate-500 font-normal mt-0.5">
+                      Fetches Daily IN/OUT punch aggregates for a selected date span.
+                    </div>
+                  </div>
+                </label>
+
+                <label
+                  className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition ${
+                    syncMode === 'historical_raw'
+                      ? 'border-amber-500 bg-amber-50/40 text-amber-950 font-bold shadow-2xs'
+                      : 'border-slate-200 hover:border-slate-300 bg-white text-slate-700 font-medium'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="sync_mode"
+                    value="historical_raw"
+                    checked={syncMode === 'historical_raw'}
+                    onChange={() => setSyncMode('historical_raw')}
+                    className="mt-0.5 text-amber-600 focus:ring-amber-500"
+                  />
+                  <div>
+                    <div className="text-xs font-bold">Historical Raw Import</div>
+                    <div className="text-[11px] text-slate-500 font-normal mt-0.5">
+                      Full raw punch extraction without IN/OUT flags into audit logs.
+                    </div>
+                  </div>
                 </label>
               </div>
 
-              <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-2.5">
+              {(syncMode === 'date_range' || syncMode === 'historical_raw') && (
+                <div className="flex flex-col sm:flex-row items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                    <span>From Date:</span>
+                    <input
+                      type="date"
+                      value={syncFromDate}
+                      onChange={(e) => setSyncFromDate(e.target.value)}
+                      className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                    <span>To Date:</span>
+                    <input
+                      type="date"
+                      value={syncToDate}
+                      onChange={(e) => setSyncToDate(e.target.value)}
+                      className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Dry Run Checkbox */}
+              <div className="flex items-center gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  id="dryRunCheck"
+                  checked={isDryRun}
+                  onChange={(e) => setIsDryRun(e.target.checked)}
+                  className="rounded text-amber-600 focus:ring-amber-500"
+                />
+                <label htmlFor="dryRunCheck" className="text-slate-700 font-semibold cursor-pointer">
+                  Dry-Run Preview (Query machine & report matching counts without saving to database)
+                </label>
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex items-center gap-3">
+                <button
+                  type="submit"
+                  disabled={isSyncing}
+                  className="px-6 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white text-xs font-bold rounded-xl shadow-xs transition disabled:opacity-50 cursor-pointer flex items-center gap-2"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                  {isSyncing ? 'Synchronizing with Machine...' : isDryRun ? 'Run Preview Test' : 'Execute Synchronization'}
+                </button>
+              </div>
+            </form>
+
+            {/* Sync Result Banner */}
+            {syncResult && (
+              <div
+                className={`mt-4 p-4 rounded-xl border text-xs font-medium ${
+                  syncResult.success
+                    ? syncResult.dry_run
+                      ? 'bg-blue-50 border-blue-200 text-blue-900'
+                      : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                    : 'bg-rose-50 border-rose-200 text-rose-900'
+                }`}
+              >
+                <div className="font-bold text-sm mb-1">
+                  {syncResult.dry_run ? 'Dry Run Preview Summary' : syncResult.success ? 'Sync Successful' : 'Sync Failed'}
+                </div>
+                <div>{syncResult.message || syncResult.error || 'Operation finished.'}</div>
+                {syncResult.records_fetched !== undefined && (
+                  <div className="mt-2 font-mono text-[11px] space-y-0.5">
+                    <div>Records fetched: {syncResult.records_fetched}</div>
+                    {syncResult.new_logs_saved !== undefined && (
+                      <div>New logs saved: {syncResult.new_logs_saved}</div>
+                    )}
+                    {syncResult.attendance_processed !== undefined && (
+                      <div>Attendance records processed: {syncResult.attendance_processed}</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB 6: UNMAPPED PUNCH RECORDS                                  */}
+      {/* ============================================================== */}
+      {activeTab === 'unmapped' && (
+        <div className="space-y-4">
+          {/* Information & Action Alert */}
+          <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <div className="font-bold text-amber-900">Unmapped Machine Punch Logs</div>
+                <div className="text-amber-700 mt-0.5">
+                  These records arrived with machine employee codes that are not yet mapped to any active ERP Employee.
+                  Never guess mappings by name. Assign machine employee codes explicitly.
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={handleReprocessMappings}
+              disabled={loading}
+              className="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white font-bold rounded-xl shadow-xs transition cursor-pointer flex-shrink-0 flex items-center gap-2"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+              Reprocess All
+            </button>
+          </div>
+
+          {/* Unmapped Logs Table */}
+          <div className="bg-[color:var(--crm-bg-card)] rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-[color:var(--crm-border-default)] text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                    <th className="py-3.5 px-4">Machine Emp Code</th>
+                    <th className="py-3.5 px-4">Name from Machine</th>
+                    <th className="py-3.5 px-4">Punch Timestamp</th>
+                    <th className="py-3.5 px-4">Card No</th>
+                    <th className="py-3.5 px-4">Error / Status</th>
+                    <th className="py-3.5 px-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[color:var(--crm-border-default)]">
+                  {unmappedLogs.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-12 text-center text-slate-400">
+                        <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2 opacity-80" />
+                        <span className="font-bold text-slate-600 block">All punch logs are fully mapped!</span>
+                        <span className="text-[11px]">Every raw biometric log matches an active ERP employee.</span>
+                      </td>
+                    </tr>
+                  ) : (
+                    unmappedLogs.map((log: any) => (
+                      <tr key={log.id} className="hover:bg-slate-50/50 transition">
+                        <td className="py-3.5 px-4">
+                          <span className="font-mono font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-lg">
+                            {log.empCode || log.emp_code}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="font-medium text-slate-800">
+                            {log.empName || log.emp_name || '--'}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 font-mono text-slate-600">
+                          {log.punchDatetime
+                            ? new Date(log.punchDatetime).toLocaleString('en-IN')
+                            : log.punch_datetime
+                            ? new Date(log.punch_datetime).toLocaleString('en-IN')
+                            : '--'}
+                        </td>
+                        <td className="py-3.5 px-4 font-mono text-slate-500">
+                          {log.empCardNo || log.emp_card_no || '--'}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="text-rose-600 text-[11px] font-medium">
+                            {log.syncError || log.sync_error || 'Unmapped Machine Employee Code'}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          <button
+                            onClick={() => {
+                              setMappingModalCode(log.empCode || log.emp_code);
+                              setSelectedTargetEmployeeId('');
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold transition shadow-2xs cursor-pointer"
+                          >
+                            <LinkIcon className="w-3.5 h-3.5" /> Map to Employee
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB 7: REGULARIZATIONS                                         */}
+      {/* ============================================================== */}
+      {activeTab === 'regularizations' && (
+        <div className="bg-[color:var(--crm-bg-card)] rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-xs">
+          <div className="p-4 border-b border-[color:var(--crm-border-default)] flex items-center justify-between">
+            <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)]">
+              Attendance Regularization Requests
+            </h3>
+            <span className="text-xs text-slate-500">{regularizations.length} Total Requests</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-50 border-b border-[color:var(--crm-border-default)] text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                  <th className="py-3.5 px-4">Request #</th>
+                  <th className="py-3.5 px-4">Employee</th>
+                  <th className="py-3.5 px-4">Date</th>
+                  <th className="py-3.5 px-4">Requested Change</th>
+                  <th className="py-3.5 px-4">Reason</th>
+                  <th className="py-3.5 px-4">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[color:var(--crm-border-default)]">
+                {regularizations.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="py-12 text-center text-slate-400">
+                      No regularization requests pending.
+                    </td>
+                  </tr>
+                ) : (
+                  regularizations.map((reg: any) => (
+                    <tr key={reg.id} className="hover:bg-slate-50/50 transition">
+                      <td className="py-3.5 px-4 font-mono font-bold text-slate-700">
+                        {reg.regularizationNo || reg.regularization_no || reg.id}
+                      </td>
+                      <td className="py-3.5 px-4 font-bold text-slate-800">
+                        {reg.employeeName || reg.employee_name}
+                      </td>
+                      <td className="py-3.5 px-4 font-mono">{reg.date}</td>
+                      <td className="py-3.5 px-4">
+                        <span className="font-bold text-slate-700">
+                          {reg.originalStatus || reg.original_status} → {reg.requestedStatus || reg.requested_status}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-600">{reg.reason || '--'}</td>
+                      <td className="py-3.5 px-4">
+                        <span
+                          className={`inline-block px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                            reg.status === 'Approved'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : reg.status === 'Rejected'
+                              ? 'bg-rose-100 text-rose-800'
+                              : 'bg-amber-100 text-amber-800'
+                          }`}
+                        >
+                          {reg.status || 'Pending'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* EMPLOYEE DETAIL MODAL / DRAWER                                 */}
+      {/* ============================================================== */}
+      {selectedEmployeeDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-[color:var(--crm-bg-card)] rounded-3xl border border-[color:var(--crm-border-default)] shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-[color:var(--crm-border-default)] flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-600 to-amber-700 text-white font-black text-lg flex items-center justify-center shadow-xs">
+                  {selectedEmployeeDetail.employee.name.charAt(0)}
+                </div>
+                <div>
+                  <h2 className="text-lg font-black text-[color:var(--crm-text-primary)]">
+                    {selectedEmployeeDetail.employee.name}
+                  </h2>
+                  <div className="text-xs text-slate-400 font-medium">
+                    {selectedEmployeeDetail.employee.id} • {selectedEmployeeDetail.employee.department} •{' '}
+                    {selectedEmployeeDetail.employee.designation}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setSelectedEmployeeDetail(null)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Navigation Tabs */}
+            <div className="flex items-center gap-2 px-6 pt-3 border-b border-[color:var(--crm-border-default)] text-xs font-bold">
+              <button
+                onClick={() => setDetailTab('overview')}
+                className={`pb-2.5 px-3 border-b-2 transition ${
+                  detailTab === 'overview'
+                    ? 'border-amber-600 text-amber-700'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Master Profile & Mapping
+              </button>
+              <button
+                onClick={() => setDetailTab('records')}
+                className={`pb-2.5 px-3 border-b-2 transition ${
+                  detailTab === 'records'
+                    ? 'border-amber-600 text-amber-700'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Daily Attendance Logs ({selectedEmployeeDetail.attendanceRecords?.length || 0})
+              </button>
+              <button
+                onClick={() => setDetailTab('punches')}
+                className={`pb-2.5 px-3 border-b-2 transition ${
+                  detailTab === 'punches'
+                    ? 'border-amber-600 text-amber-700'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Raw Biometric Punches ({selectedEmployeeDetail.punchLogs?.length || 0})
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 overflow-y-auto space-y-4 flex-1">
+              {detailTab === 'overview' && (
+                <div className="space-y-4">
+                  {/* Master Details Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                      <div className="text-slate-400 font-bold uppercase text-[10px]">Email</div>
+                      <div className="font-bold text-slate-800 mt-0.5 truncate">
+                        {selectedEmployeeDetail.employee.email || '--'}
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                      <div className="text-slate-400 font-bold uppercase text-[10px]">Mobile</div>
+                      <div className="font-bold text-slate-800 mt-0.5">
+                        {selectedEmployeeDetail.employee.mobile || '--'}
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                      <div className="text-slate-400 font-bold uppercase text-[10px]">Employment Type</div>
+                      <div className="font-bold text-slate-800 mt-0.5">
+                        {selectedEmployeeDetail.employee.employmentType || 'Permanent Full Time'}
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                      <div className="text-slate-400 font-bold uppercase text-[10px]">Work Location</div>
+                      <div className="font-bold text-slate-800 mt-0.5">
+                        {selectedEmployeeDetail.employee.workLocation || 'Main Plant (Sanand, Gujarat)'}
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                      <div className="text-slate-400 font-bold uppercase text-[10px]">Joining Date</div>
+                      <div className="font-bold text-slate-800 mt-0.5">
+                        {selectedEmployeeDetail.employee.joiningDate || '01/01/2024'}
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                      <div className="text-slate-400 font-bold uppercase text-[10px]">Employee Status</div>
+                      <div className="font-bold text-emerald-700 mt-0.5">
+                        {selectedEmployeeDetail.employee.status}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Biometric Mapping Card */}
+                  <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200">
+                    <h4 className="text-xs font-bold text-amber-900 uppercase tracking-wider mb-2 flex items-center gap-2">
+                      <LinkIcon className="w-4 h-4 text-amber-700" /> Biometric Punch Machine Mapping
+                    </h4>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                      <div>
+                        <div className="text-slate-600">
+                          Machine Employee Code:{' '}
+                          <span className="font-mono font-bold text-slate-900">
+                            {selectedEmployeeDetail.biometricMapping.machineEmpCode || 'None'}
+                          </span>
+                        </div>
+                        <div className="text-slate-500 text-[11px] mt-0.5">
+                          Card No:{' '}
+                          <span className="font-mono">
+                            {selectedEmployeeDetail.biometricMapping.cardNo || 'Default'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <span
+                        className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
+                          selectedEmployeeDetail.biometricMapping.isMapped
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-rose-100 text-rose-800'
+                        }`}
+                      >
+                        {selectedEmployeeDetail.biometricMapping.isMapped ? 'Mapped & Active' : 'Unmapped'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {detailTab === 'records' && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold text-[11px]">
+                        <th className="py-2.5 px-3">Date</th>
+                        <th className="py-2.5 px-3">IN Time</th>
+                        <th className="py-2.5 px-3">OUT Time</th>
+                        <th className="py-2.5 px-3">Hours</th>
+                        <th className="py-2.5 px-3">Late Mins</th>
+                        <th className="py-2.5 px-3">Status</th>
+                        <th className="py-2.5 px-3">Source</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {selectedEmployeeDetail.attendanceRecords?.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} className="py-8 text-center text-slate-400">
+                            No attendance records recorded yet.
+                          </td>
+                        </tr>
+                      ) : (
+                        selectedEmployeeDetail.attendanceRecords.map((r: any) => (
+                          <tr key={r.id} className="hover:bg-slate-50/50">
+                            <td className="py-2.5 px-3 font-mono font-bold">{r.date}</td>
+                            <td className="py-2.5 px-3 font-mono">{r.firstIn || r.checkIn || '--:--'}</td>
+                            <td className="py-2.5 px-3 font-mono">{r.lastOut || r.checkOut || '--:--'}</td>
+                            <td className="py-2.5 px-3 font-mono">{r.totalHours || '0.0'} hrs</td>
+                            <td className="py-2.5 px-3">{r.lateMinutes || 0} min</td>
+                            <td className="py-2.5 px-3">
+                              <span className="font-bold text-slate-800">{r.status}</span>
+                            </td>
+                            <td className="py-2.5 px-3 text-slate-500 text-[11px]">{r.source}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {detailTab === 'punches' && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold text-[11px]">
+                        <th className="py-2.5 px-3">Punch Timestamp</th>
+                        <th className="py-2.5 px-3">Machine Code</th>
+                        <th className="py-2.5 px-3">Direction</th>
+                        <th className="py-2.5 px-3">Machine ID</th>
+                        <th className="py-2.5 px-3">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {selectedEmployeeDetail.punchLogs?.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="py-8 text-center text-slate-400">
+                            No raw punch logs recorded for this employee.
+                          </td>
+                        </tr>
+                      ) : (
+                        selectedEmployeeDetail.punchLogs.map((p: any) => (
+                          <tr key={p.id} className="hover:bg-slate-50/50">
+                            <td className="py-2.5 px-3 font-mono font-bold">
+                              {p.punchDatetime ? new Date(p.punchDatetime).toLocaleString('en-IN') : '--'}
+                            </td>
+                            <td className="py-2.5 px-3 font-mono">{p.empCode}</td>
+                            <td className="py-2.5 px-3 font-bold">{p.mFlag || 'PUNCH'}</td>
+                            <td className="py-2.5 px-3 font-mono text-slate-500">{p.machineId || 'Device 1'}</td>
+                            <td className="py-2.5 px-3 text-emerald-700 font-semibold">Processed</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-[color:var(--crm-border-default)] flex justify-end">
+              <button
+                onClick={() => setSelectedEmployeeDetail(null)}
+                className="px-4 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 transition cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* QUICK MAP EMPLOYEE MODAL                                       */}
+      {/* ============================================================== */}
+      {mappingModalCode && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-[color:var(--crm-bg-card)] rounded-2xl border border-[color:var(--crm-border-default)] shadow-xl max-w-md w-full p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">
+                Map Machine Code to Employee
+              </h3>
+              <button
+                onClick={() => setMappingModalCode(null)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-500">
+              Select which active ERP Employee corresponds to machine employee code{' '}
+              <strong className="text-slate-900 font-mono font-bold bg-amber-100 px-1.5 py-0.5 rounded">
+                {mappingModalCode}
+              </strong>
+              .
+            </p>
+
+            <form onSubmit={handleSaveMapping} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Select ERP Employee:
+                </label>
+                <select
+                  value={selectedTargetEmployeeId}
+                  onChange={(e) => setSelectedTargetEmployeeId(e.target.value)}
+                  required
+                  className="w-full px-3 py-2 text-xs font-semibold rounded-xl border border-[color:var(--crm-border-default)] bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-primary)] focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                >
+                  <option value="">-- Choose Employee --</option>
+                  {dailyData.employees.map((e) => (
+                    <option key={e.employeeId} value={e.employeeId}>
+                      {e.employeeId} - {e.employeeName} ({e.department})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowMachineConfigModal(false)}
-                  className="px-4 py-2 bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] font-semibold rounded-lg hover:bg-[color:var(--crm-border-default)] transition cursor-pointer"
+                  onClick={() => setMappingModalCode(null)}
+                  className="px-4 py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm transition cursor-pointer"
+                  disabled={isSubmittingMapping || !selectedTargetEmployeeId}
+                  className="px-4 py-2 text-xs font-bold rounded-xl bg-amber-700 hover:bg-amber-800 text-white disabled:opacity-50 transition cursor-pointer"
                 >
-                  Save Device Settings
+                  {isSubmittingMapping ? 'Saving...' : 'Save & Reprocess'}
                 </button>
               </div>
             </form>

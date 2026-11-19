@@ -1801,15 +1801,43 @@ export const api = {
       },
       myHistory: (employeeId?: string) =>
         request<any[]>(`/attendance-records/my-history/${employeeId ? `?employee_id=${employeeId}` : ''}`),
+      dailySheet: (params?: { date?: string }) => {
+        const q = new URLSearchParams();
+        if (params?.date) q.append('date', params.date);
+        const qs = q.toString() ? `?${q.toString()}` : '';
+        return request<any>(`/attendance-records/daily-sheet/${qs}`);
+      },
+      monthlySheet: (params?: { month_year?: string; month?: number; year?: number }) => {
+        const q = new URLSearchParams();
+        if (params?.month_year) q.append('month_year', params.month_year);
+        if (params?.month) q.append('month', String(params.month));
+        if (params?.year) q.append('year', String(params.year));
+        const qs = q.toString() ? `?${q.toString()}` : '';
+        return request<any>(`/attendance-records/monthly-sheet/${qs}`);
+      },
+      employeeDetail: (params: { employee_id: string; month_year?: string }) => {
+        const q = new URLSearchParams();
+        q.append('employee_id', params.employee_id);
+        if (params.month_year) q.append('month_year', params.month_year);
+        return request<any>(`/attendance-records/employee-detail/?${q.toString()}`);
+      },
       create: (data: any) => request<any>('/attendance-records/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/attendance-records/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: string) => request<any>(`/attendance-records/${id}/`, { method: 'DELETE' }),
+    },
+    biometricMappings: {
+      list: () => request<any[]>('/hr/biometric-mappings/'),
+      create: (data: any) => request<any>('/hr/biometric-mappings/', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id: string, data: any) => request<any>(`/hr/biometric-mappings/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+      delete: (id: string) => request<any>(`/hr/biometric-mappings/${id}/`, { method: 'DELETE' }),
+      summary: () => request<any>('/hr/biometric-mappings/summary/'),
+      reprocess: () => request<any>('/hr/biometric-mappings/reprocess/', { method: 'POST' }),
     },
     punchMachine: {
       // GET sync status
       status: () => request<any>('/hr/punch-machine/sync/'),
       // POST trigger sync
-      sync: (data?: { sync_mode?: 'incremental' | 'date_range' | 'simulated'; from_date?: string; to_date?: string }) =>
+      sync: (data?: { sync_mode?: 'incremental' | 'date_range' | 'simulated' | 'historical_raw'; from_date?: string; to_date?: string; dry_run?: boolean }) =>
         request<any>('/hr/punch-machine/sync/', { method: 'POST', body: JSON.stringify(data || {}) }),
       // Machine config CRUD
       configs: {
@@ -1819,13 +1847,15 @@ export const api = {
         delete: (id: string) => request<any>(`/hr/punch-machine-configs/${id}/`, { method: 'DELETE' }),
       },
       // Raw punch logs
-      logs: (params?: { emp_code?: string; synced?: boolean }) => {
+      logs: (params?: { emp_code?: string; synced?: boolean; unmapped?: boolean }) => {
         const q = new URLSearchParams();
         if (params?.emp_code) q.append('emp_code', params.emp_code);
         if (params?.synced !== undefined) q.append('synced_to_attendance', String(params.synced));
+        if (params?.unmapped) q.append('unmapped', 'true');
         const qs = q.toString() ? `?${q.toString()}` : '';
         return request<any[]>(`/hr/punch-logs/${qs}`);
       },
+      unmappedLogs: () => request<any[]>('/hr/punch-logs/unmapped/'),
     },
     leaveTypes: {
       list: () => request<any[]>('/leave-types/'),

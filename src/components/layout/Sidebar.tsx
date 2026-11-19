@@ -1078,22 +1078,132 @@ export function Sidebar() {
 
           {(hrOpen || sidebarCollapsed) && (
             <div className="ml-3.5 pl-2.5 my-1 border-l-2 border-[color:var(--crm-border-default)] space-y-0.5 animate-in slide-in-from-top-1 duration-150">
+              {/* HR */}
+              {!sidebarCollapsed && <div className="px-3 pt-1 text-[9px] font-semibold text-slate-500 uppercase tracking-wider">HR</div>}
+              <Link href="/hr/dashboard" className={subNavItemClass('/hr/dashboard')}>
+                <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>1. HR Dashboard</span>}
+              </Link>
+              <Link href="/hr/employees" className={subNavItemClass('/hr/employees')}>
+                <UserCheck className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>2. Employee Master</span>}
+              </Link>
+              <Link href="/hr/departments" className={subNavItemClass('/hr/departments')}>
+                <Building className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>3. Departments</span>}
+              </Link>
+              <Link href="/hr/designations" className={subNavItemClass('/hr/designations')}>
+                <Briefcase className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>4. Designations</span>}
+              </Link>
+              <Link href="/hr/documents" className={subNavItemClass('/hr/documents')}>
+                <FileText className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>5. Employee Documents</span>}
+              </Link>
+              <Link href="/hr/onboarding" className={subNavItemClass('/hr/onboarding')}>
+                <UserPlus className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>6. Employee Onboarding</span>}
+              </Link>
+              <Link href="/hr/transfers" className={subNavItemClass('/hr/transfers')}>
+                <Workflow className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>7. Employee Transfers</span>}
+              </Link>
+              <Link href="/hr/promotions" className={subNavItemClass('/hr/promotions')}>
+                <TrendingUp className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>8. Promotion & Increment</span>}
+              </Link>
+              <Link href="/hr/exits" className={subNavItemClass('/hr/exits')}>
+                <History className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>9. Resignation / Exit</span>}
+              </Link>
+              <Link href="/hr/settlement" className={subNavItemClass('/hr/settlement')}>
+                <Calculator className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>10. Full & Final Settlement</span>}
+              </Link>
+
+              {/* Attendance */}
+              {!sidebarCollapsed && <div className="px-3 pt-2 text-[9px] font-semibold text-slate-500 uppercase tracking-wider">Attendance</div>}
               <Link href="/hr/attendance" className={subNavItemClass('/hr/attendance')}>
                 <Clock className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
-                {!sidebarCollapsed && <span>1. Attendance Management</span>}
+                {!sidebarCollapsed && <span>11. Attendance</span>}
               </Link>
-              <Link href="/hr/leaves" className={subNavItemClass('/hr/leaves')}>
-                <FileCheck2 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
-                {!sidebarCollapsed && <span>2. Leave Management</span>}
+              <Link href="/hr/shifts" className={subNavItemClass('/hr/shifts')}>
+                <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>12. Shift Management</span>}
+              </Link>
+              <Link href="/hr/roster" className={subNavItemClass('/hr/roster')}>
+                <Calendar className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>13. Shift Roster</span>}
               </Link>
               <Link href="/hr/holidays" className={subNavItemClass('/hr/holidays')}>
                 <Sparkles className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
-                {!sidebarCollapsed && <span>3. Holiday Management</span>}
+                {!sidebarCollapsed && <span>14. Holiday Calendar</span>}
+              </Link>
+              <Link href="/hr/leaves" className={subNavItemClass('/hr/leaves')}>
+                <FileCheck2 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>15. Leave Management</span>}
+              </Link>
+              <Link href="/hr/leave-approvals" className={subNavItemClass('/hr/leave-approvals')}>
+                <CheckSquare className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>16. Leave Approvals</span>}
+              </Link>
+              <Link href="/hr/wfh" className={subNavItemClass('/hr/wfh')}>
+                <Compass className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>17. WFH / Remote Work</span>}
+              </Link>
+              <Link href="/hr/missed-punch" className={subNavItemClass('/hr/missed-punch')}>
+                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>18. Missed Punch</span>}
+              </Link>
+              <Link href="/hr/regularization" className={subNavItemClass('/hr/regularization')}>
+                <RotateCcw className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>19. Attendance Regularization</span>}
+              </Link>
+              <Link href="/hr/overtime" className={subNavItemClass('/hr/overtime')}>
+                <Zap className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>20. Overtime</span>}
+              </Link>
+              <Link href="/hr/early-checkout" className={subNavItemClass('/hr/early-checkout')}>
+                <History className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>21. Early Checkout</span>}
+              </Link>
+
+              {/* Payroll */}
+              {!sidebarCollapsed && <div className="px-3 pt-2 text-[9px] font-semibold text-slate-500 uppercase tracking-wider">Payroll</div>}
+              <Link href="/hr/payroll-dashboard" className={subNavItemClass('/hr/payroll-dashboard')}>
+                <LayoutDashboard className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>22. Payroll Dashboard</span>}
+              </Link>
+              <Link href="/hr/salary-structures" className={subNavItemClass('/hr/salary-structures')}>
+                <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>23. Salary Structure</span>}
+              </Link>
+              <Link href="/hr/salary-components" className={subNavItemClass('/hr/salary-components')}>
+                <Calculator className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>24. Salary Components</span>}
               </Link>
               <Link href="/hr/monthly-payroll" className={subNavItemClass('/hr/monthly-payroll')}>
                 <Banknote className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
-                {!sidebarCollapsed && <span>4. Salary Management</span>}
+                {!sidebarCollapsed && <span>25. Monthly Payroll</span>}
               </Link>
+              <Link href="/hr/payroll-approvals" className={subNavItemClass('/hr/payroll-approvals')}>
+                <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>26. Payroll Approval</span>}
+              </Link>
+              <Link href="/hr/advances" className={subNavItemClass('/hr/advances')}>
+                <Wallet className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>27. Employee Advances / Loans</span>}
+              </Link>
+              <Link href="/hr/reimbursements" className={subNavItemClass('/hr/reimbursements')}>
+                <Receipt className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>28. Reimbursements / Expenses</span>}
+              </Link>
+              <Link href="/hr/payslips" className={subNavItemClass('/hr/payslips')}>
+                <FileText className="w-3.5 h-3.5 flex-shrink-0 text-[color:var(--crm-text-tertiary)] group-hover:text-[color:var(--crm-text-primary)] transition-colors" />
+                {!sidebarCollapsed && <span>29. Payslips</span>}
+              </Link>
+
+
             </div>
           )}
         </div>
