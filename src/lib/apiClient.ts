@@ -1805,6 +1805,28 @@ export const api = {
       update: (id: string, data: any) => request<any>(`/attendance-records/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: string) => request<any>(`/attendance-records/${id}/`, { method: 'DELETE' }),
     },
+    punchMachine: {
+      // GET sync status
+      status: () => request<any>('/hr/punch-machine/sync/'),
+      // POST trigger sync
+      sync: (data?: { sync_mode?: 'incremental' | 'date_range' | 'simulated'; from_date?: string; to_date?: string }) =>
+        request<any>('/hr/punch-machine/sync/', { method: 'POST', body: JSON.stringify(data || {}) }),
+      // Machine config CRUD
+      configs: {
+        list: () => request<any[]>('/hr/punch-machine-configs/'),
+        create: (data: any) => request<any>('/hr/punch-machine-configs/', { method: 'POST', body: JSON.stringify(data) }),
+        update: (id: string, data: any) => request<any>(`/hr/punch-machine-configs/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+        delete: (id: string) => request<any>(`/hr/punch-machine-configs/${id}/`, { method: 'DELETE' }),
+      },
+      // Raw punch logs
+      logs: (params?: { emp_code?: string; synced?: boolean }) => {
+        const q = new URLSearchParams();
+        if (params?.emp_code) q.append('emp_code', params.emp_code);
+        if (params?.synced !== undefined) q.append('synced_to_attendance', String(params.synced));
+        const qs = q.toString() ? `?${q.toString()}` : '';
+        return request<any[]>(`/hr/punch-logs/${qs}`);
+      },
+    },
     leaveTypes: {
       list: () => request<any[]>('/leave-types/'),
       create: (data: any) => request<any>('/leave-types/', { method: 'POST', body: JSON.stringify(data) }),

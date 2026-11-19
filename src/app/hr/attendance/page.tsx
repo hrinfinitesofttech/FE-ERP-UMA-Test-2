@@ -31,6 +31,10 @@ import {
   ChevronLeft,
   ChevronRight,
   TrendingUp,
+  Zap,
+  Settings,
+  Activity,
+  Database,
 } from 'lucide-react';
 import { AttendanceStatusType, AttendanceRecord } from '../../../types/hr';
 import api from '../../../lib/apiClient';
@@ -45,7 +49,7 @@ export default function AttendancePage() {
   } = useERP();
 
   // Active Tab: 'daily' | 'calendar' | 'regularizations'
-  const [activeTab, setActiveTab] = useState<'daily' | 'calendar' | 'regularizations'>('daily');
+  const [activeTab, setActiveTab] = useState<'daily' | 'calendar' | 'regularizations' | 'machine'>('daily');
 
   // Live Records from API
   const [liveAttendanceRecords, setLiveAttendanceRecords] = useState<any[]>([]);
@@ -85,6 +89,25 @@ export default function AttendancePage() {
     requestedTime: '09:00',
     reason: '',
   });
+
+  // ===== PUNCH MACHINE STATE =====
+  const [machineStatus, setMachineStatus] = useState<any>(null);
+  const [machineConfigs, setMachineConfigs] = useState<any[]>([]);
+  const [punchLogs, setPunchLogs] = useState<any[]>([]);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<any>(null);
+  const [showMachineConfigModal, setShowMachineConfigModal] = useState(false);
+  const [machineConfigForm, setMachineConfigForm] = useState({
+    machine_name: 'eTimeOffice Machine',
+    base_url: 'https://api.etimeoffice.com/api',
+    corporate_id: 'support',
+    username: 'support',
+    password: 'support',
+    is_active: true,
+  });
+  const [syncMode, setSyncMode] = useState<'simulated' | 'incremental' | 'date_range'>('simulated');
+  const [syncFromDate, setSyncFromDate] = useState(new Date().toISOString().split('T')[0]);
+  const [syncToDate, setSyncToDate] = useState(new Date().toISOString().split('T')[0]);
 
   const getSystemTime = () => {
     const now = new Date();
@@ -300,6 +323,109 @@ export default function AttendancePage() {
       setTimeout(() => setErrorToast(null), 5000);
     }
   };
+
+  // ===== PUNCH MACHINE FUNCTIONS =====
+  const loadMachineStatus = useCallback(async () => {
+    try {
+      const st = await api.hr.punchMachine.status();
+      setMachineStatus(st);
+    } catch (err) {
+      console.warn('Could not load machine status:', err);
+    }
+  }, []);
+
+  const loadMachineConfigs = useCallback(async () => {
+    try {
+      const configs = await api.hr.punchMachine.configs.list();
+      if (Array.isArray(configs)) {
+        setMachineConfigs(configs);
+        if (configs[0]) {
+          setMachineConfigForm({
+            machine_name: configs[0].machineName || configs[0].machine_name || 'eTimeOffice Machine',
+            base_url: configs[0].baseUrl || configs[0].base_url || 'https://api.etimeoffice.com/api',
+            corporate_id: configs[0].corporateId || configs[0].corporate_id || 'support',
+            username: configs[0].username || 'support',
+            password: 'support',
+            is_active: configs[0].isActive ?? configs[0].is_active ?? true,
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('Could not load machine configs:', err);
+    }
+  }, []);
+
+  const loadPunchLogs = useCallback(async () => {
+    try {
+      const logs = await api.hr.punchMachine.logs();
+      if (Array.isArray(logs)) setPunchLogs(logs);
+    } catch (err) {
+      console.warn('Could not load punch logs:', err);
+    }
+  }, []);
+
+  const handleTriggerSync = async () => {
+    setIsSyncing(true);
+    setSyncResult(null);
+    setErrorToast(null);
+    try {
+      const payload: any = { sync_mode: syncMode };
+      if (syncMode === 'date_range') {
+        const fd = new Date(syncFromDate);
+        const td = new Date(syncToDate);
+        payload.from_date = `${String(fd.getDate()).padStart(2, '0')}/${String(fd.getMonth() + 1).padStart(2, '0')}/${fd.getFullYear()}`;
+        payload.to_date = `${String(td.getDate()).padStart(2, '0')}/${String(td.getMonth() + 1).padStart(2, '0')}/${td.getFullYear()}`;
+      }
+      const result = await api.hr.punchMachine.sync(payload);
+      setSyncResult(result);
+      if (result.success) {
+        setSuccessToast(`✅ Biometric Machine Sync Success! ${result.records_fetched || 0} logs fetched, ${result.attendance_processed || 0} attendance records updated.`);
+        setTimeout(() => setSuccessToast(null), 6000);
+        await loadMachineStatus();
+        await loadPunchLogs();
+        await loadAttendanceRecords();
+      } else {
+        setErrorToast(result.error || 'Sync failed.');
+        setTimeout(() => setErrorToast(null), 6000);
+      }
+    } catch (err: any) {
+      const msg = err?.data?.error || err?.message || 'Sync failed. Machine may be unreachable.';
+      setErrorToast(msg);
+      setSyncResult({ success: false, error: msg });
+      setTimeout(() => setErrorToast(null), 6000);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleSaveMachineConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const existing = machineConfigs[0];
+      if (existing) {
+        await api.hr.punchMachine.configs.update(existing.id, machineConfigForm);
+      } else {
+        await api.hr.punchMachine.configs.create(machineConfigForm);
+      }
+      setShowMachineConfigModal(false);
+      setSuccessToast('Machine configuration saved successfully!');
+      setTimeout(() => setSuccessToast(null), 4000);
+      await loadMachineConfigs();
+      await loadMachineStatus();
+    } catch (err: any) {
+      const msg = err?.data?.error || err?.message || 'Failed to save machine configuration.';
+      setErrorToast(msg);
+      setTimeout(() => setErrorToast(null), 5000);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'machine') {
+      loadMachineStatus();
+      loadMachineConfigs();
+      loadPunchLogs();
+    }
+  }, [activeTab, loadMachineStatus, loadMachineConfigs, loadPunchLogs]);
 
   const isHalfDayStatus = (s: string) =>
     ['Half Day', 'First Half', 'Second Half', 'First Half Leave', 'Second Half Leave'].includes(s);
@@ -540,6 +666,16 @@ export default function AttendancePage() {
           >
             <Plus className="w-3.5 h-3.5" /> Manual Punch
           </button>
+
+          <button
+            onClick={handleTriggerSync}
+            disabled={isSyncing}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-xs transition disabled:opacity-50 cursor-pointer"
+            title="Fetch punch records directly from eTimeOffice biometric machine"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Syncing...' : 'Sync Machine'}
+          </button>
         </div>
       </div>
 
@@ -569,13 +705,29 @@ export default function AttendancePage() {
 
         <button
           onClick={() => setActiveTab('regularizations')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer shrink-0 ${
             activeTab === 'regularizations'
               ? 'bg-amber-700 text-white shadow-xs'
               : 'text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] hover:text-[color:var(--crm-text-primary)]'
           }`}
         >
           <FileText className="w-4 h-4" /> Regularization Requests ({regularizations.length})
+        </button>
+
+        <button
+          onClick={() => setActiveTab('machine')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer shrink-0 ${
+            activeTab === 'machine'
+              ? 'bg-blue-700 text-white shadow-xs'
+              : 'text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] hover:text-[color:var(--crm-text-primary)]'
+          }`}
+        >
+          <Activity className="w-4 h-4" /> Biometric Machine Sync
+          {machineStatus?.pending_sync ? (
+            <span className="px-1.5 py-0.5 text-[10px] bg-amber-400 text-amber-950 font-bold rounded-full">
+              {machineStatus.pending_sync}
+            </span>
+          ) : null}
         </button>
       </div>
 
@@ -1070,6 +1222,255 @@ export default function AttendancePage() {
         </div>
       )}
 
+      {/* TAB 4: BIOMETRIC MACHINE SYNC */}
+      {activeTab === 'machine' && (
+        <div className="space-y-5 animate-in fade-in duration-200">
+          {/* Machine Health & Status Header */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-4 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">Device Status</span>
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold ${machineStatus?.configured ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                  <span className={`w-2 h-2 rounded-full ${machineStatus?.configured ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                  {machineStatus?.configured ? 'Connected' : 'Setup Required'}
+                </span>
+              </div>
+              <p className="text-base font-bold text-[color:var(--crm-text-primary)] mt-2">
+                {machineStatus?.machine_name || 'eTimeOffice Machine'}
+              </p>
+              <p className="text-[11px] text-[color:var(--crm-text-tertiary)] truncate mt-0.5 font-mono">
+                {machineStatus?.base_url || 'https://api.etimeoffice.com/api'}
+              </p>
+            </div>
+
+            <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-4 shadow-xs">
+              <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">Last Sync</span>
+              <p className="text-base font-black text-[color:var(--crm-text-primary)] mt-2">
+                {machineStatus?.last_sync_time
+                  ? new Date(machineStatus.last_sync_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                  : 'Never Synced'}
+              </p>
+              <p className="text-[11px] text-[color:var(--crm-text-tertiary)] mt-0.5">
+                {machineStatus?.last_sync_time
+                  ? new Date(machineStatus.last_sync_time).toLocaleDateString()
+                  : 'Ready for first sync'}
+              </p>
+            </div>
+
+            <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-4 shadow-xs">
+              <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">Total Raw Logs</span>
+              <p className="text-2xl font-black text-[color:var(--crm-text-primary)] mt-1">
+                {machineStatus?.total_logs ?? punchLogs.length}
+              </p>
+              <p className="text-[11px] text-emerald-600 font-medium mt-0.5 flex items-center gap-1">
+                <Check className="w-3 h-3" /> {machineStatus?.synced ?? punchLogs.filter((p: any) => p.synced_to_attendance).length} Synced to Attendance
+              </p>
+            </div>
+
+            <div className="bg-white border border-[color:var(--crm-border-default)] rounded-xl p-4 shadow-xs flex flex-col justify-between">
+              <span className="text-xs font-semibold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">Machine Settings</span>
+              <button
+                onClick={() => setShowMachineConfigModal(true)}
+                className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-primary)] font-bold text-xs rounded-xl border border-[color:var(--crm-border-default)] transition cursor-pointer"
+              >
+                <Settings className="w-3.5 h-3.5" /> Configure Device
+              </button>
+            </div>
+          </div>
+
+          {/* Sync Trigger Card */}
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl p-5 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[color:var(--crm-border-default)] pb-4">
+              <div>
+                <h3 className="font-extrabold text-base text-[color:var(--crm-text-primary)] flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-amber-500" />
+                  Fetch & Synchronize Attendance
+                </h3>
+                <p className="text-xs text-[color:var(--crm-text-secondary)] mt-0.5">
+                  Download punch logs via eTimeOffice API and auto-generate daily check-in / check-out records
+                </p>
+              </div>
+
+              {/* Sync Mode Selector */}
+              <div className="flex items-center gap-2 bg-[color:var(--crm-bg-app)] p-1 rounded-xl border border-[color:var(--crm-border-default)]">
+                <button
+                  onClick={() => setSyncMode('simulated')}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
+                    syncMode === 'simulated' ? 'bg-white shadow-xs text-blue-700' : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]'
+                  }`}
+                >
+                  ⚡ Quick Test
+                </button>
+                <button
+                  onClick={() => setSyncMode('incremental')}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
+                    syncMode === 'incremental' ? 'bg-white shadow-xs text-blue-700' : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]'
+                  }`}
+                >
+                  🔄 Incremental
+                </button>
+                <button
+                  onClick={() => setSyncMode('date_range')}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer ${
+                    syncMode === 'date_range' ? 'bg-white shadow-xs text-blue-700' : 'text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)]'
+                  }`}
+                >
+                  📅 Date Range
+                </button>
+              </div>
+            </div>
+
+            {/* Date Range Inputs if date_range selected */}
+            {syncMode === 'date_range' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[color:var(--crm-bg-app)] p-3.5 rounded-xl border border-[color:var(--crm-border-default)] text-xs">
+                <div>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">From Date</label>
+                  <input
+                    type="date"
+                    value={syncFromDate}
+                    onChange={(e) => setSyncFromDate(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">To Date</label>
+                  <input
+                    type="date"
+                    value={syncToDate}
+                    onChange={(e) => setSyncToDate(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+              <div className="text-xs text-[color:var(--crm-text-secondary)] flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-blue-500" />
+                <span>
+                  {syncMode === 'simulated'
+                    ? 'Generates verified attendance punches for all active employees.'
+                    : syncMode === 'incremental'
+                    ? 'Pulls only new records since last sync token (API 4 DownloadLastPunchData).'
+                    : 'Pulls full in/out punch records for specified date range (API 3 DownloadInOutPunchData).'}
+                </span>
+              </div>
+
+              <button
+                onClick={handleTriggerSync}
+                disabled={isSyncing}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition disabled:opacity-50 cursor-pointer"
+              >
+                <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                {isSyncing ? 'Synchronizing Attendance...' : 'Run Sync Now'}
+              </button>
+            </div>
+
+            {/* Sync Result Banner */}
+            {syncResult && (
+              <div className={`p-4 rounded-xl border text-xs flex items-start gap-3 ${syncResult.success ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900'}`}>
+                {syncResult.success ? (
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                ) : (
+                  <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                )}
+                <div>
+                  <p className="font-bold">
+                    {syncResult.success ? 'Sync Successful' : 'Sync Error'}
+                  </p>
+                  <p className="mt-0.5 text-[11px] opacity-90">
+                    {syncResult.message || (syncResult.success
+                      ? `Fetched ${syncResult.records_fetched || 0} punch logs. Updated ${syncResult.attendance_processed || 0} attendance records.`
+                      : syncResult.error)}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Raw Punch Logs Table */}
+          <div className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl shadow-xs overflow-hidden">
+            <div className="p-4 border-b border-[color:var(--crm-border-default)] flex items-center justify-between">
+              <div>
+                <h3 className="font-extrabold text-sm text-[color:var(--crm-text-primary)] flex items-center gap-2">
+                  <Database className="w-4 h-4 text-blue-600" />
+                  Machine Raw Punch Logs ({punchLogs.length})
+                </h3>
+                <p className="text-[11px] text-[color:var(--crm-text-secondary)] mt-0.5">
+                  Raw biometric device entries received before normalization into attendance records
+                </p>
+              </div>
+
+              <button
+                onClick={loadPunchLogs}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[color:var(--crm-bg-app)] hover:bg-[color:var(--crm-border-default)] text-[color:var(--crm-text-secondary)] rounded-lg text-xs font-semibold border border-[color:var(--crm-border-default)] transition cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" /> Refresh
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-[color:var(--crm-bg-app)] border-b border-[color:var(--crm-border-default)] text-[11px] font-bold text-[color:var(--crm-text-secondary)] uppercase tracking-wider">
+                    <th className="py-3 px-4">Emp Code</th>
+                    <th className="py-3 px-4">Employee Name</th>
+                    <th className="py-3 px-4">Punch Date & Time</th>
+                    <th className="py-3 px-4">Flag</th>
+                    <th className="py-3 px-4">Machine ID</th>
+                    <th className="py-3 px-4">Card No</th>
+                    <th className="py-3 px-4 text-right">Attendance Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[color:var(--crm-border-default)] text-xs">
+                  {punchLogs.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-8 text-center text-xs text-[color:var(--crm-text-tertiary)]">
+                        No punch logs found. Click "Run Sync Now" above to fetch latest logs from machine.
+                      </td>
+                    </tr>
+                  ) : (
+                    punchLogs.slice(0, 50).map((log: any, idx: number) => (
+                      <tr key={log.id || idx} className="hover:bg-[color:var(--crm-bg-app)]/50 transition">
+                        <td className="py-3 px-4 font-mono font-bold text-blue-700">{log.emp_code || log.empCode}</td>
+                        <td className="py-3 px-4 font-medium text-[color:var(--crm-text-primary)]">{log.emp_name || log.empName || '-'}</td>
+                        <td className="py-3 px-4 font-mono text-[color:var(--crm-text-secondary)]">
+                          {log.punch_datetime || log.punchDatetime
+                            ? new Date(log.punch_datetime || log.punchDatetime).toLocaleString()
+                            : '-'}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            (log.m_flag || log.mFlag) === 'IN'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : (log.m_flag || log.mFlag) === 'OUT'
+                              ? 'bg-rose-100 text-rose-800'
+                              : 'bg-zinc-100 text-zinc-700'
+                          }`}>
+                            {log.m_flag || log.mFlag || 'LOG'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 font-mono text-[color:var(--crm-text-tertiary)]">{log.machine_id || log.machineId || '-'}</td>
+                        <td className="py-3 px-4 font-mono text-[color:var(--crm-text-tertiary)]">{log.emp_card_no || log.empCardNo || '-'}</td>
+                        <td className="py-3 px-4 text-right">
+                          {(log.synced_to_attendance ?? log.syncedToAttendance) ? (
+                            <span className="inline-flex items-center gap-1 text-emerald-700 font-bold text-[11px]">
+                              <Check className="w-3.5 h-3.5 text-emerald-600" /> Synced
+                            </span>
+                          ) : (
+                            <span className="text-amber-700 font-bold text-[11px]">Pending</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Manual Punch Modal */}
       {showPunchModal && (
         <div
@@ -1323,6 +1724,124 @@ export default function AttendancePage() {
                   className="px-5 py-2.5 bg-amber-700 hover:bg-amber-600 text-white font-semibold text-xs rounded-lg shadow-md transition flex items-center gap-2 cursor-pointer"
                 >
                   <Clock className="w-4 h-4" /> Save Attendance
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Machine Config Modal */}
+      {showMachineConfigModal && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowMachineConfigModal(false);
+          }}
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border border-[color:var(--crm-border-default)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl relative"
+          >
+            <div className="flex items-center justify-between border-b border-[color:var(--crm-border-default)] pb-3">
+              <div className="flex items-center gap-2">
+                <Settings className="w-5 h-5 text-blue-600" />
+                <h3 className="font-bold text-base text-[color:var(--crm-text-primary)]">Biometric Machine Setup</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowMachineConfigModal(false)}
+                className="text-[color:var(--crm-text-secondary)] hover:text-[color:var(--crm-text-primary)] p-1 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveMachineConfig} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Machine Name</label>
+                <input
+                  type="text"
+                  value={machineConfigForm.machine_name}
+                  onChange={(e) => setMachineConfigForm({ ...machineConfigForm, machine_name: e.target.value })}
+                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">API Base URL</label>
+                <input
+                  type="url"
+                  value={machineConfigForm.base_url}
+                  onChange={(e) => setMachineConfigForm({ ...machineConfigForm, base_url: e.target.value })}
+                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs font-mono"
+                  placeholder="https://api.etimeoffice.com/api"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Corporate ID</label>
+                <input
+                  type="text"
+                  value={machineConfigForm.corporate_id}
+                  onChange={(e) => setMachineConfigForm({ ...machineConfigForm, corporate_id: e.target.value })}
+                  className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs"
+                  placeholder="e.g. support or client company ID"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Username</label>
+                  <input
+                    type="text"
+                    value={machineConfigForm.username}
+                    onChange={(e) => setMachineConfigForm({ ...machineConfigForm, username: e.target.value })}
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-[color:var(--crm-text-secondary)] mb-1">Password</label>
+                  <input
+                    type="password"
+                    value={machineConfigForm.password}
+                    onChange={(e) => setMachineConfigForm({ ...machineConfigForm, password: e.target.value })}
+                    className="w-full px-3 py-2 bg-white border border-[color:var(--crm-border-default)] rounded-lg text-xs"
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="machine_is_active"
+                  checked={machineConfigForm.is_active}
+                  onChange={(e) => setMachineConfigForm({ ...machineConfigForm, is_active: e.target.checked })}
+                  className="rounded text-blue-600"
+                />
+                <label htmlFor="machine_is_active" className="font-semibold text-[color:var(--crm-text-secondary)] cursor-pointer">
+                  Device active for scheduled attendance sync
+                </label>
+              </div>
+
+              <div className="pt-3 border-t border-[color:var(--crm-border-default)] flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowMachineConfigModal(false)}
+                  className="px-4 py-2 bg-[color:var(--crm-bg-app)] text-[color:var(--crm-text-secondary)] font-semibold rounded-lg hover:bg-[color:var(--crm-border-default)] transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm transition cursor-pointer"
+                >
+                  Save Device Settings
                 </button>
               </div>
             </form>
