@@ -792,12 +792,15 @@ async function fetchNetworkRequest<T>(
     }
   }
 
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  const headers: Record<string, string> = {
     Accept: 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...(options.headers || {}),
+    ...((options.headers as Record<string, string>) || {}),
   };
+  if (!isFormData && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   let body = options.body;
   if (body && typeof body === 'string' && (options.method === 'POST' || options.method === 'PATCH' || options.method === 'PUT')) {
@@ -1544,6 +1547,8 @@ export const api = {
       create: (data: any) => request<any>('/items/', { method: 'POST', body: JSON.stringify(data) }),
       update: (id: string, data: any) => request<any>(`/items/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
       delete: (id: string) => request<any>(`/items/${id}/`, { method: 'DELETE' }),
+      importExcel: (formData: FormData) => request<any>('/items/import-excel/', { method: 'POST', body: formData }),
+      importBatch: (items: any[]) => request<any>('/items/import-excel/', { method: 'POST', body: JSON.stringify({ items }) }),
     },
     categories: () => request<any[]>('/item-categories/'),
     uoms: () => request<any[]>('/uoms/'),
