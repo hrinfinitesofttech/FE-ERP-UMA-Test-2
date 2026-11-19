@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { useERP } from '../../../context/ERPContext';
 import { api } from '../../../lib/apiClient';
 import {
@@ -83,6 +84,7 @@ interface MonthlyEmployeeRow {
 }
 
 export default function AttendancePage() {
+  const router = useRouter();
   const { currentUser } = useERP();
   const isAdmin = currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'ADMIN' || currentUser?.roleName === 'Super Admin' || currentUser?.roleName === 'Admin';
 
@@ -319,23 +321,10 @@ export default function AttendancePage() {
     }
   }, [activeTab, selectedMonth, loadMonthlyAttendance]);
 
-  // Load Employee Detail
-  const handleOpenEmployeeDetail = async (empId: string) => {
-    setDetailLoading(true);
-    setSelectedEmployeeDetail(null);
-    try {
-      const res = await api.hr.attendance.employeeDetail({
-        employee_id: empId,
-        month_year: selectedMonth,
-      });
-      setSelectedEmployeeDetail(res);
-      setDetailTab('overview');
-    } catch (err: any) {
-      setErrorToast(err?.message || 'Could not load employee details.');
-      setTimeout(() => setErrorToast(null), 4000);
-    } finally {
-      setDetailLoading(false);
-    }
+  // Open Employee Attendance Detail Page
+  const handleOpenEmployeeDetail = (empId: string) => {
+    if (!empId) return;
+    router.push(`/hr/attendance/employee/${encodeURIComponent(empId)}`);
   };
 
   // Run Biometric Machine Sync
@@ -502,49 +491,35 @@ export default function AttendancePage() {
       )}
 
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[color:var(--crm-bg-card)] p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-black text-[color:var(--crm-text-primary)] tracking-tight">
-              Attendance & Biometric Operations
+              Employee Attendance
             </h1>
-            <span className="px-2.5 py-0.5 text-xs font-bold bg-amber-100 text-amber-800 rounded-full border border-amber-300">
-              Biometric Engine Active
+            <span className="px-2.5 py-0.5 text-xs font-bold bg-emerald-100 text-emerald-800 rounded-full border border-emerald-300">
+              Live Connected
             </span>
           </div>
           <p className="text-sm text-[color:var(--crm-text-secondary)] mt-1">
-            Real-time biometric punch records synced directly from eTimeOffice hardware to ERP Employee Master.
+            Real-time daily punch records, employee master directory and monthly attendance sheets.
           </p>
         </div>
 
-        {/* Machine Status & Quick Sync Header Actions */}
+        {/* Quick Sync Header Action */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-800 text-xs font-semibold">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>eTimeOffice Online</span>
-          </div>
-
-          <button
-            onClick={handleImportMachineEmployees}
-            disabled={isImportingMachineStaff}
-            className="flex items-center gap-2 px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white text-xs font-bold rounded-xl shadow-xs transition disabled:opacity-50 cursor-pointer"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isImportingMachineStaff ? 'animate-spin' : ''}`} />
-            {isImportingMachineStaff ? 'Importing Staff...' : '📥 Import Machine Employees'}
-          </button>
-
           <button
             onClick={() => handleRunSync()}
             disabled={isSyncing}
             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white text-xs font-bold rounded-xl shadow-xs transition disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-            {isSyncing ? 'Syncing...' : 'Quick Sync'}
+            {isSyncing ? 'Syncing...' : 'Sync Attendance'}
           </button>
         </div>
       </div>
 
-      {/* Navigation Tabs (All 6 Required Tabs + Regularizations) */}
+      {/* Navigation Tabs */}
       <div className="flex items-center gap-1.5 border-b border-[color:var(--crm-border-default)] pb-1 overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveTab('overview')}
@@ -591,38 +566,6 @@ export default function AttendancePage() {
         </button>
 
         <button
-          onClick={() => setActiveTab('machine')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer shrink-0 ${
-            activeTab === 'machine'
-              ? 'bg-blue-700 text-white shadow-xs'
-              : 'text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] hover:text-[color:var(--crm-text-primary)]'
-          }`}
-        >
-          <Cpu className="w-4 h-4" /> 5. Biometric Machine Sync
-          {machineStatus?.pending_sync ? (
-            <span className="px-1.5 py-0.5 text-[10px] bg-amber-400 text-amber-950 font-bold rounded-full">
-              {machineStatus.pending_sync}
-            </span>
-          ) : null}
-        </button>
-
-        <button
-          onClick={() => setActiveTab('unmapped')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer shrink-0 ${
-            activeTab === 'unmapped'
-              ? 'bg-rose-700 text-white shadow-xs'
-              : 'text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] hover:text-[color:var(--crm-text-primary)]'
-          }`}
-        >
-          <AlertTriangle className="w-4 h-4" /> 6. Unmapped Punch Records
-          {unmappedLogs.length > 0 ? (
-            <span className="px-1.5 py-0.5 text-[10px] bg-rose-200 text-rose-900 font-bold rounded-full">
-              {unmappedLogs.length}
-            </span>
-          ) : null}
-        </button>
-
-        <button
           onClick={() => setActiveTab('regularizations')}
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition cursor-pointer shrink-0 ${
             activeTab === 'regularizations'
@@ -630,7 +573,7 @@ export default function AttendancePage() {
               : 'text-[color:var(--crm-text-secondary)] hover:bg-[color:var(--crm-bg-app)] hover:text-[color:var(--crm-text-primary)]'
           }`}
         >
-          <FileText className="w-4 h-4" /> Regularizations ({regularizations.length})
+          <FileText className="w-4 h-4" /> 5. Regularizations ({regularizations.length})
         </button>
       </div>
 
@@ -640,7 +583,7 @@ export default function AttendancePage() {
       {activeTab === 'overview' && (
         <div className="space-y-6">
           {/* Date Picker Bar */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-[color:var(--crm-border-default)]">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[color:var(--crm-border-default)]">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-amber-600" />
               <span className="text-xs font-bold text-[color:var(--crm-text-primary)] uppercase tracking-wider">
@@ -672,7 +615,7 @@ export default function AttendancePage() {
 
           {/* 7 Required Overview KPI Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
-            <div className="bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
+            <div className="bg-white p-4 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
               <div className="flex items-center justify-between text-slate-500 mb-1">
                 <span className="text-[11px] font-bold uppercase tracking-wider">Active Staff</span>
                 <Users className="w-4 h-4 text-slate-400" />
@@ -681,7 +624,7 @@ export default function AttendancePage() {
               <div className="text-[11px] text-slate-500 mt-1">From Master</div>
             </div>
 
-            <div className="bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-emerald-200 shadow-xs bg-emerald-50/30">
+            <div className="bg-white p-4 rounded-2xl border border-emerald-200 shadow-xs bg-emerald-50/30">
               <div className="flex items-center justify-between text-emerald-700 mb-1">
                 <span className="text-[11px] font-bold uppercase tracking-wider">Present</span>
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
@@ -694,7 +637,7 @@ export default function AttendancePage() {
               </div>
             </div>
 
-            <div className="bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-rose-200 shadow-xs bg-rose-50/30">
+            <div className="bg-white p-4 rounded-2xl border border-rose-200 shadow-xs bg-rose-50/30">
               <div className="flex items-center justify-between text-rose-700 mb-1">
                 <span className="text-[11px] font-bold uppercase tracking-wider">Absent</span>
                 <UserX className="w-4 h-4 text-rose-600" />
@@ -703,7 +646,7 @@ export default function AttendancePage() {
               <div className="text-[11px] text-rose-600 mt-1">No punch records</div>
             </div>
 
-            <div className="bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-amber-200 shadow-xs bg-amber-50/30">
+            <div className="bg-white p-4 rounded-2xl border border-amber-200 shadow-xs bg-amber-50/30">
               <div className="flex items-center justify-between text-amber-700 mb-1">
                 <span className="text-[11px] font-bold uppercase tracking-wider">Late</span>
                 <Clock className="w-4 h-4 text-amber-600" />
@@ -712,7 +655,7 @@ export default function AttendancePage() {
               <div className="text-[11px] text-amber-600 mt-1">After shift grace</div>
             </div>
 
-            <div className="bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-orange-200 shadow-xs bg-orange-50/30">
+            <div className="bg-white p-4 rounded-2xl border border-orange-200 shadow-xs bg-orange-50/30">
               <div className="flex items-center justify-between text-orange-700 mb-1">
                 <span className="text-[11px] font-bold uppercase tracking-wider">Half Day</span>
                 <AlertTriangle className="w-4 h-4 text-orange-600" />
@@ -721,7 +664,7 @@ export default function AttendancePage() {
               <div className="text-[11px] text-orange-600 mt-1">&lt; 8.00 hrs</div>
             </div>
 
-            <div className="bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-blue-200 shadow-xs bg-blue-50/30">
+            <div className="bg-white p-4 rounded-2xl border border-blue-200 shadow-xs bg-blue-50/30">
               <div className="flex items-center justify-between text-blue-700 mb-1">
                 <span className="text-[11px] font-bold uppercase tracking-wider">On Leave</span>
                 <CalendarDays className="w-4 h-4 text-blue-600" />
@@ -730,7 +673,7 @@ export default function AttendancePage() {
               <div className="text-[11px] text-blue-600 mt-1">Approved requests</div>
             </div>
 
-            <div className="bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-purple-200 shadow-xs bg-purple-50/30">
+            <div className="bg-white p-4 rounded-2xl border border-purple-200 shadow-xs bg-purple-50/30">
               <div className="flex items-center justify-between text-purple-700 mb-1">
                 <span className="text-[11px] font-bold uppercase tracking-wider">Missing Out</span>
                 <AlertCircle className="w-4 h-4 text-purple-600" />
@@ -743,7 +686,7 @@ export default function AttendancePage() {
           {/* Department Breakdown & Biometric Health */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Department Breakdown */}
-            <div className="lg:col-span-2 bg-[color:var(--crm-bg-card)] p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
+            <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] uppercase tracking-wider">
                   Department-Wise Attendance Today
@@ -779,7 +722,7 @@ export default function AttendancePage() {
             </div>
 
             {/* Biometric Integration Health */}
-            <div className="bg-[color:var(--crm-bg-card)] p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs flex flex-col justify-between">
+            <div className="bg-white p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs flex flex-col justify-between">
               <div>
                 <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] uppercase tracking-wider mb-3">
                   Biometric Engine Health
@@ -843,7 +786,7 @@ export default function AttendancePage() {
       {activeTab === 'employees' && (
         <div className="space-y-4">
           {/* Controls Bar */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-[color:var(--crm-border-default)]">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[color:var(--crm-border-default)]">
             <div className="relative w-full sm:w-80">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
@@ -891,7 +834,7 @@ export default function AttendancePage() {
           </div>
 
           {/* Table */}
-          <div className="bg-[color:var(--crm-bg-card)] rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-xs">
+          <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
@@ -914,7 +857,11 @@ export default function AttendancePage() {
                     </tr>
                   ) : (
                     filteredDailyEmployees.map((emp) => (
-                      <tr key={emp.employeeId} className="hover:bg-slate-50/50 transition">
+                      <tr
+                        key={emp.employeeId}
+                        onClick={() => handleOpenEmployeeDetail(emp.employeeId)}
+                        className="hover:bg-amber-50/40 cursor-pointer transition"
+                      >
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-800 font-black flex items-center justify-center text-xs">
@@ -976,7 +923,7 @@ export default function AttendancePage() {
                             onClick={() => handleOpenEmployeeDetail(emp.employeeId)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition shadow-2xs cursor-pointer"
                           >
-                            <Eye className="w-3.5 h-3.5 text-slate-500" /> View History
+                            <Eye className="w-3.5 h-3.5 text-amber-700" /> View Attendance
                           </button>
                         </td>
                       </tr>
@@ -995,7 +942,7 @@ export default function AttendancePage() {
       {activeTab === 'daily' && (
         <div className="space-y-4">
           {/* Controls Bar */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-3 bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-[color:var(--crm-border-default)]">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[color:var(--crm-border-default)]">
             <div className="flex items-center gap-2 w-full md:w-auto">
               <span className="text-xs font-bold text-slate-600">Date:</span>
               <input
@@ -1065,7 +1012,7 @@ export default function AttendancePage() {
           </div>
 
           {/* Daily Table showing ALL employees */}
-          <div className="bg-[color:var(--crm-bg-card)] rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-xs">
+          <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
@@ -1091,7 +1038,11 @@ export default function AttendancePage() {
                     </tr>
                   ) : (
                     filteredDailyEmployees.map((emp) => (
-                      <tr key={emp.employeeId} className="hover:bg-slate-50/50 transition">
+                      <tr
+                        key={emp.employeeId}
+                        onClick={() => handleOpenEmployeeDetail(emp.employeeId)}
+                        className="hover:bg-amber-50/40 cursor-pointer transition"
+                      >
                         <td className="py-3.5 px-4">
                           <div className="font-bold text-[color:var(--crm-text-primary)]">
                             {emp.employeeName}
@@ -1200,7 +1151,7 @@ export default function AttendancePage() {
       {activeTab === 'monthly' && (
         <div className="space-y-4">
           {/* Controls Bar */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[color:var(--crm-bg-card)] p-4 rounded-2xl border border-[color:var(--crm-border-default)]">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[color:var(--crm-border-default)]">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-slate-600">Month:</span>
               <input
@@ -1252,7 +1203,7 @@ export default function AttendancePage() {
           </div>
 
           {/* Monthly Table with Day-by-day status matrix */}
-          <div className="bg-[color:var(--crm-bg-card)] rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-xs">
+          <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
@@ -1278,7 +1229,11 @@ export default function AttendancePage() {
                     </tr>
                   ) : (
                     monthlyData.employees.map((emp) => (
-                      <tr key={emp.employeeId} className="hover:bg-slate-50/50 transition">
+                      <tr
+                        key={emp.employeeId}
+                        onClick={() => handleOpenEmployeeDetail(emp.employeeId)}
+                        className="hover:bg-amber-50/40 cursor-pointer transition"
+                      >
                         <td className="py-3.5 px-4">
                           <div className="font-bold text-[color:var(--crm-text-primary)]">
                             {emp.employeeName}
@@ -1322,308 +1277,6 @@ export default function AttendancePage() {
       )}
 
       {/* ============================================================== */}
-      {/* TAB 5: BIOMETRIC MACHINE SYNC                                  */}
-      {/* ============================================================== */}
-      {activeTab === 'machine' && (
-        <div className="space-y-6">
-          {/* Hardware Connection Card */}
-          <div className="bg-[color:var(--crm-bg-card)] p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center">
-                  <Server className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">
-                    eTimeOffice Punching Machine Integration
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    HTTP GET API Integration with Basic Authentication &amp; Incremental MaxRecord Tokens
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  API Endpoint Connected
-                </span>
-              </div>
-            </div>
-
-            {/* Hardware Config Details */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 text-xs">
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                <div className="text-slate-400 font-bold uppercase text-[10px]">Machine Endpoint</div>
-                <div className="font-mono text-slate-800 font-bold mt-0.5 truncate">
-                  {machineStatus?.base_url || 'https://api.etimeoffice.com/api'}
-                </div>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                <div className="text-slate-400 font-bold uppercase text-[10px]">Last Sync Timestamp</div>
-                <div className="font-bold text-slate-800 mt-0.5">
-                  {machineStatus?.last_sync_time
-                    ? new Date(machineStatus.last_sync_time).toLocaleString('en-IN')
-                    : '19/11/2026, 12:30 PM'}
-                </div>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                <div className="text-slate-400 font-bold uppercase text-[10px]">Last Record Token</div>
-                <div className="font-mono text-slate-800 font-bold mt-0.5">
-                  {machineStatus?.last_record_token || '092020$456'}
-                </div>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                <div className="text-slate-400 font-bold uppercase text-[10px]">Employee Coverage</div>
-                <div className="font-bold text-emerald-700 mt-0.5">
-                  {mappingsSummary?.mappedEmployees ?? 6} / {mappingsSummary?.totalActiveEmployees ?? 6} Mapped
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Machine Credentials Setup Card */}
-          <div className="bg-[color:var(--crm-bg-card)] p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
-              <div>
-                <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] uppercase tracking-wider">
-                  eTimeOffice Machine Credentials &amp; API Setup
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Enter the Corporate ID, Username, and Password provided by your biometric machine vendor.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleImportMachineEmployees}
-                disabled={isImportingMachineStaff}
-                className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-xs transition disabled:opacity-50 flex items-center gap-2 cursor-pointer"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isImportingMachineStaff ? 'animate-spin' : ''}`} />
-                {isImportingMachineStaff ? 'Importing...' : '📥 Import All Staff from Machine'}
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveCredentials} className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Corporate ID</label>
-                <input
-                  type="text"
-                  placeholder="e.g. support or company code"
-                  value={corporateIdInput}
-                  onChange={(e) => setCorporateIdInput(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-[color:var(--crm-bg-app)] font-mono font-semibold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Username</label>
-                <input
-                  type="text"
-                  placeholder="e.g. support"
-                  value={usernameInput}
-                  onChange={(e) => setUsernameInput(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-[color:var(--crm-bg-app)] font-mono font-semibold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Password</label>
-                <input
-                  type="password"
-                  placeholder="Enter Password"
-                  value={passwordInput}
-                  onChange={(e) => setPasswordInput(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-[color:var(--crm-bg-app)] font-mono font-semibold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Base API URL</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={baseUrlInput}
-                    onChange={(e) => setBaseUrlInput(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-[color:var(--crm-bg-app)] font-mono font-semibold"
-                  />
-                  <button
-                    type="submit"
-                    disabled={isSavingCreds}
-                    className="px-3.5 py-2 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl transition cursor-pointer flex-shrink-0"
-                  >
-                    {isSavingCreds ? 'Saving...' : 'Save'}
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-
-          {/* Sync Trigger Controls Form */}
-          <div className="bg-[color:var(--crm-bg-card)] p-6 rounded-2xl border border-[color:var(--crm-border-default)] shadow-xs">
-            <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)] uppercase tracking-wider mb-4">
-              Trigger Attendance Synchronization
-            </h3>
-
-            <form onSubmit={handleRunSync} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <label
-                  className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition ${
-                    syncMode === 'incremental'
-                      ? 'border-amber-500 bg-amber-50/40 text-amber-950 font-bold shadow-2xs'
-                      : 'border-slate-200 hover:border-slate-300 bg-white text-slate-700 font-medium'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="sync_mode"
-                    value="incremental"
-                    checked={syncMode === 'incremental'}
-                    onChange={() => setSyncMode('incremental')}
-                    className="mt-0.5 text-amber-600 focus:ring-amber-500"
-                  />
-                  <div>
-                    <div className="text-xs font-bold">Incremental Sync (Recommended)</div>
-                    <div className="text-[11px] text-slate-500 font-normal mt-0.5">
-                      Uses LastRecord token to pull only recent unread punches.
-                    </div>
-                  </div>
-                </label>
-
-                <label
-                  className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition ${
-                    syncMode === 'date_range'
-                      ? 'border-amber-500 bg-amber-50/40 text-amber-950 font-bold shadow-2xs'
-                      : 'border-slate-200 hover:border-slate-300 bg-white text-slate-700 font-medium'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="sync_mode"
-                    value="date_range"
-                    checked={syncMode === 'date_range'}
-                    onChange={() => setSyncMode('date_range')}
-                    className="mt-0.5 text-amber-600 focus:ring-amber-500"
-                  />
-                  <div>
-                    <div className="text-xs font-bold">Date Range Sync</div>
-                    <div className="text-[11px] text-slate-500 font-normal mt-0.5">
-                      Fetches Daily IN/OUT punch aggregates for a selected date span.
-                    </div>
-                  </div>
-                </label>
-
-                <label
-                  className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition ${
-                    syncMode === 'historical_raw'
-                      ? 'border-amber-500 bg-amber-50/40 text-amber-950 font-bold shadow-2xs'
-                      : 'border-slate-200 hover:border-slate-300 bg-white text-slate-700 font-medium'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="sync_mode"
-                    value="historical_raw"
-                    checked={syncMode === 'historical_raw'}
-                    onChange={() => setSyncMode('historical_raw')}
-                    className="mt-0.5 text-amber-600 focus:ring-amber-500"
-                  />
-                  <div>
-                    <div className="text-xs font-bold">Historical Raw Import</div>
-                    <div className="text-[11px] text-slate-500 font-normal mt-0.5">
-                      Full raw punch extraction without IN/OUT flags into audit logs.
-                    </div>
-                  </div>
-                </label>
-              </div>
-
-              {(syncMode === 'date_range' || syncMode === 'historical_raw') && (
-                <div className="flex flex-col sm:flex-row items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200">
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-                    <span>From Date:</span>
-                    <input
-                      type="date"
-                      value={syncFromDate}
-                      onChange={(e) => setSyncFromDate(e.target.value)}
-                      className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white"
-                    />
-                  </div>
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-                    <span>To Date:</span>
-                    <input
-                      type="date"
-                      value={syncToDate}
-                      onChange={(e) => setSyncToDate(e.target.value)}
-                      className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Dry Run Checkbox */}
-              <div className="flex items-center gap-2 text-xs">
-                <input
-                  type="checkbox"
-                  id="dryRunCheck"
-                  checked={isDryRun}
-                  onChange={(e) => setIsDryRun(e.target.checked)}
-                  className="rounded text-amber-600 focus:ring-amber-500"
-                />
-                <label htmlFor="dryRunCheck" className="text-slate-700 font-semibold cursor-pointer">
-                  Dry-Run Preview (Query machine & report matching counts without saving to database)
-                </label>
-              </div>
-
-              {/* Submit Button */}
-              <div className="flex items-center gap-3">
-                <button
-                  type="submit"
-                  disabled={isSyncing}
-                  className="px-6 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white text-xs font-bold rounded-xl shadow-xs transition disabled:opacity-50 cursor-pointer flex items-center gap-2"
-                >
-                  <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                  {isSyncing ? 'Synchronizing with Machine...' : isDryRun ? 'Run Preview Test' : 'Execute Synchronization'}
-                </button>
-              </div>
-            </form>
-
-            {/* Sync Result Banner */}
-            {syncResult && (
-              <div
-                className={`mt-4 p-4 rounded-xl border text-xs font-medium ${
-                  syncResult.success
-                    ? syncResult.dry_run
-                      ? 'bg-blue-50 border-blue-200 text-blue-900'
-                      : 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                    : 'bg-rose-50 border-rose-200 text-rose-900'
-                }`}
-              >
-                <div className="font-bold text-sm mb-1">
-                  {syncResult.dry_run ? 'Dry Run Preview Summary' : syncResult.success ? 'Sync Successful' : 'Sync Failed'}
-                </div>
-                <div>{syncResult.message || syncResult.error || 'Operation finished.'}</div>
-                {syncResult.records_fetched !== undefined && (
-                  <div className="mt-2 font-mono text-[11px] space-y-0.5">
-                    <div>Records fetched: {syncResult.records_fetched}</div>
-                    {syncResult.new_logs_saved !== undefined && (
-                      <div>New logs saved: {syncResult.new_logs_saved}</div>
-                    )}
-                    {syncResult.attendance_processed !== undefined && (
-                      <div>Attendance records processed: {syncResult.attendance_processed}</div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ============================================================== */}
       {/* TAB 6: UNMAPPED PUNCH RECORDS                                  */}
       {/* ============================================================== */}
       {activeTab === 'unmapped' && (
@@ -1652,7 +1305,7 @@ export default function AttendancePage() {
           </div>
 
           {/* Unmapped Logs Table */}
-          <div className="bg-[color:var(--crm-bg-card)] rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-xs">
+          <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
@@ -1727,7 +1380,7 @@ export default function AttendancePage() {
       {/* TAB 7: REGULARIZATIONS                                         */}
       {/* ============================================================== */}
       {activeTab === 'regularizations' && (
-        <div className="bg-[color:var(--crm-bg-card)] rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-xs">
+        <div className="bg-white rounded-2xl border border-[color:var(--crm-border-default)] overflow-hidden shadow-xs">
           <div className="p-4 border-b border-[color:var(--crm-border-default)] flex items-center justify-between">
             <h3 className="text-sm font-bold text-[color:var(--crm-text-primary)]">
               Attendance Regularization Requests
@@ -1795,19 +1448,19 @@ export default function AttendancePage() {
       {/* EMPLOYEE DETAIL MODAL / DRAWER                                 */}
       {/* ============================================================== */}
       {selectedEmployeeDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-[color:var(--crm-bg-card)] rounded-3xl border border-[color:var(--crm-border-default)] shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden">
             {/* Modal Header */}
-            <div className="p-6 border-b border-[color:var(--crm-border-default)] flex items-start justify-between">
+            <div className="p-6 bg-white border-b border-slate-100 flex items-start justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-600 to-amber-700 text-white font-black text-lg flex items-center justify-center shadow-xs">
                   {selectedEmployeeDetail.employee.name.charAt(0)}
                 </div>
                 <div>
-                  <h2 className="text-lg font-black text-[color:var(--crm-text-primary)]">
+                  <h2 className="text-lg font-black text-slate-900">
                     {selectedEmployeeDetail.employee.name}
                   </h2>
-                  <div className="text-xs text-slate-400 font-medium">
+                  <div className="text-xs text-slate-500 font-medium">
                     {selectedEmployeeDetail.employee.id} • {selectedEmployeeDetail.employee.department} •{' '}
                     {selectedEmployeeDetail.employee.designation}
                   </div>
@@ -1823,12 +1476,12 @@ export default function AttendancePage() {
             </div>
 
             {/* Modal Navigation Tabs */}
-            <div className="flex items-center gap-2 px-6 pt-3 border-b border-[color:var(--crm-border-default)] text-xs font-bold">
+            <div className="flex items-center gap-2 px-6 pt-3 bg-slate-50 border-b border-slate-200 text-xs font-bold">
               <button
                 onClick={() => setDetailTab('overview')}
-                className={`pb-2.5 px-3 border-b-2 transition ${
+                className={`pb-2.5 px-3 border-b-2 transition cursor-pointer ${
                   detailTab === 'overview'
-                    ? 'border-amber-600 text-amber-700'
+                    ? 'border-amber-600 text-amber-700 font-bold'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
                 }`}
               >
@@ -1836,9 +1489,9 @@ export default function AttendancePage() {
               </button>
               <button
                 onClick={() => setDetailTab('records')}
-                className={`pb-2.5 px-3 border-b-2 transition ${
+                className={`pb-2.5 px-3 border-b-2 transition cursor-pointer ${
                   detailTab === 'records'
-                    ? 'border-amber-600 text-amber-700'
+                    ? 'border-amber-600 text-amber-700 font-bold'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
                 }`}
               >
@@ -1846,9 +1499,9 @@ export default function AttendancePage() {
               </button>
               <button
                 onClick={() => setDetailTab('punches')}
-                className={`pb-2.5 px-3 border-b-2 transition ${
+                className={`pb-2.5 px-3 border-b-2 transition cursor-pointer ${
                   detailTab === 'punches'
-                    ? 'border-amber-600 text-amber-700'
+                    ? 'border-amber-600 text-amber-700 font-bold'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
                 }`}
               >
@@ -1857,7 +1510,7 @@ export default function AttendancePage() {
             </div>
 
             {/* Modal Content */}
-            <div className="p-6 overflow-y-auto space-y-4 flex-1">
+            <div className="p-6 bg-white overflow-y-auto space-y-4 flex-1">
               {detailTab === 'overview' && (
                 <div className="space-y-4">
                   {/* Master Details Grid */}
@@ -2020,10 +1673,10 @@ export default function AttendancePage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-[color:var(--crm-border-default)] flex justify-end">
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">
               <button
                 onClick={() => setSelectedEmployeeDetail(null)}
-                className="px-4 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 transition cursor-pointer"
+                className="px-5 py-2 text-xs font-bold rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 transition cursor-pointer shadow-xs"
               >
                 Close
               </button>
@@ -2036,10 +1689,10 @@ export default function AttendancePage() {
       {/* QUICK MAP EMPLOYEE MODAL                                       */}
       {/* ============================================================== */}
       {mappingModalCode && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-[color:var(--crm-bg-card)] rounded-2xl border border-[color:var(--crm-border-default)] shadow-xl max-w-md w-full p-6 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-[color:var(--crm-text-primary)]">
+              <h3 className="text-base font-bold text-slate-900">
                 Map Machine Code to Employee
               </h3>
               <button

@@ -1815,9 +1815,20 @@ export const api = {
         const qs = q.toString() ? `?${q.toString()}` : '';
         return request<any>(`/attendance-records/monthly-sheet/${qs}`);
       },
-      employeeDetail: (params: { employee_id: string; month_year?: string }) => {
+      employeeDetail: (params: {
+        employee_id: string;
+        from_date?: string;
+        to_date?: string;
+        month?: number;
+        year?: number;
+        month_year?: string;
+      }) => {
         const q = new URLSearchParams();
         q.append('employee_id', params.employee_id);
+        if (params.from_date) q.append('from_date', params.from_date);
+        if (params.to_date) q.append('to_date', params.to_date);
+        if (params.month) q.append('month', String(params.month));
+        if (params.year) q.append('year', String(params.year));
         if (params.month_year) q.append('month_year', params.month_year);
         return request<any>(`/attendance-records/employee-detail/?${q.toString()}`);
       },
