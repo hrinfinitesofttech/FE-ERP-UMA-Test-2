@@ -26,6 +26,7 @@ import {
   ChevronRight,
   Info,
   SlidersHorizontal,
+  ArrowUpDown,
   X
 } from 'lucide-react';
 
@@ -66,6 +67,7 @@ export default function EmployeeAttendanceDetailPage() {
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedRawPunchDate, setSelectedRawPunchDate] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc');
 
   // Fetch Attendance Details
   const loadEmployeeAttendance = useCallback(
@@ -143,6 +145,11 @@ export default function EmployeeAttendanceDetailPage() {
       toStr = `${prevY}-${mStr}-${String(last).padStart(2, '0')}`;
       setSelectedMonth(prevM + 1);
       setSelectedYear(prevY);
+    } else if (presetKey === 'sept_2026') {
+      fromStr = '2026-09-01';
+      toStr = '2026-09-30';
+      setSelectedMonth(9);
+      setSelectedYear(2026);
     } else if (presetKey === 'oct_2026') {
       fromStr = `2026-10-01`;
       toStr = `2026-10-31`;
@@ -181,10 +188,10 @@ export default function EmployeeAttendanceDetailPage() {
     loadEmployeeAttendance(fromStr, toStr);
   };
 
-  // Filtered Days
+  // Filtered and Sorted Days
   const filteredDays = useMemo(() => {
     if (!data?.days) return [];
-    return data.days.filter((day: any) => {
+    const list = data.days.filter((day: any) => {
       // Status filter
       if (statusFilter !== 'ALL') {
         if (statusFilter === 'MISSING') {
@@ -208,7 +215,15 @@ export default function EmployeeAttendanceDetailPage() {
 
       return true;
     });
-  }, [data?.days, statusFilter, searchQuery]);
+
+    // Apply sort direction
+    return list.slice().sort((a: any, b: any) => {
+      if (sortDirection === 'desc') {
+        return (b.date || '').localeCompare(a.date || '');
+      }
+      return (a.date || '').localeCompare(b.date || '');
+    });
+  }, [data?.days, statusFilter, searchQuery, sortDirection]);
 
   // Raw Punches for Selected Date
   const rawPunchesForSelectedDate = useMemo(() => {
@@ -471,6 +486,17 @@ export default function EmployeeAttendanceDetailPage() {
             </button>
 
             <button
+              onClick={() => handleApplyPreset('sept_2026')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                activePreset === 'sept_2026'
+                  ? 'bg-amber-700 text-white shadow-2xs'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+              }`}
+            >
+              September 2026
+            </button>
+
+            <button
               onClick={() => handleApplyPreset('oct_2026')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                 activePreset === 'oct_2026'
@@ -693,15 +719,26 @@ export default function EmployeeAttendanceDetailPage() {
             )}
           </div>
 
-          <div className="relative w-full sm:w-64">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search date, status, remarks..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-amber-500/20 font-medium"
-            />
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              onClick={() => setSortDirection(prev => (prev === 'desc' ? 'asc' : 'desc'))}
+              className="px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 transition flex items-center gap-1.5 cursor-pointer shrink-0"
+              title="Click to toggle date sort order"
+            >
+              <ArrowUpDown className="w-3.5 h-3.5 text-amber-700" />
+              <span>{sortDirection === 'desc' ? 'Newest First' : 'Oldest First'}</span>
+            </button>
+
+            <div className="relative w-full sm:w-64">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search date, status, remarks..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-amber-500/20 font-medium"
+              />
+            </div>
           </div>
         </div>
 
