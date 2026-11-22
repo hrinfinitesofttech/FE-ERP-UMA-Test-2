@@ -174,7 +174,7 @@ export function EmployeeFormModal({
           password: 'password123',
           forcePasswordChange: true,
           dataScope: 'own',
-          assignedModules: defaultDept?.assignedModules || ['crm'],
+          assignedModules: [],
           canAssignTasks: false,
           canApproveLeaves: false,
           canManageAttendance: false,
@@ -188,13 +188,10 @@ export function EmployeeFormModal({
   // Handle department change & trigger auto-seeding
   const handleDepartmentChange = (newDeptId: string) => {
     const dept = departments.find((d) => d.id === newDeptId || d.code?.toLowerCase() === newDeptId.toLowerCase());
-    const deptModules = dept?.assignedModules || [];
-
     setFormData((prev) => ({
       ...prev,
       departmentId: newDeptId,
-      // For new employee or switched department, align assigned modules with department defaults
-      assignedModules: deptModules.length > 0 ? deptModules : prev.assignedModules,
+      // Modules are never auto-selected; admin picks them explicitly.
     }));
   };
 
@@ -208,28 +205,19 @@ export function EmployeeFormModal({
     else if (!nameRegex.test(fn)) errs.firstName = 'Letters only.';
     else if (fn.length < 2) errs.firstName = 'At least 2 characters.';
 
+    // Only First Name is mandatory. Everything else is optional,
+    // but if a value IS entered it must still be well-formed.
     const ln = formData.lastName.trim();
-    if (!ln) errs.lastName = 'Last name is required.';
-    else if (!nameRegex.test(ln)) errs.lastName = 'Letters only.';
+    if (ln && !nameRegex.test(ln)) errs.lastName = 'Letters only.';
 
     const cleanMobile = formData.mobile.replace(/\D/g, '');
-    if (!cleanMobile) errs.mobile = 'Mobile number is required.';
-    else if (cleanMobile.length !== 10) errs.mobile = 'Must be exactly 10 digits.';
+    if (cleanMobile && cleanMobile.length !== 10) errs.mobile = 'Must be exactly 10 digits.';
 
     const em = formData.email.trim();
-    if (!em) errs.email = 'Email is required.';
-    else if (!emailRegex.test(em)) errs.email = 'Valid email required (e.g. name@uma.com).';
-
-    if (!formData.username.trim()) {
-      errs.username = 'Username is required.';
-    }
+    if (em && !emailRegex.test(em)) errs.email = 'Valid email required (e.g. name@uma.com).';
 
     if (!isEditing && (!formData.password || formData.password.length < 6)) {
       errs.password = 'Password must be at least 6 characters.';
-    }
-
-    if (formData.address.trim().length < 10) {
-      errs.address = 'Address must be at least 10 characters long.';
     }
 
     setErrors(errs);
@@ -248,8 +236,14 @@ export function EmployeeFormModal({
     const mgr = employees.find((emp) => emp.id === formData.reportingManagerId);
     const role = roles.find((r) => r.id === formData.roleId);
 
+    // Username is optional in the form: generate one from the first name if left blank
+    const autoUsername =
+      formData.username.trim() ||
+      `${formData.firstName.trim().toLowerCase().replace(/[^a-z0-9]/g, '')}${Date.now().toString().slice(-4)}`;
+
     const payload: any = {
       ...formData,
+      username: autoUsername,
       mobile: cleanMobile,
       phone: cleanMobile,
       departmentName: dept?.name || '',
@@ -399,7 +393,7 @@ export function EmployeeFormModal({
 
               <div>
                 <label className="block text-xs font-semibold text-stone-700 mb-1">
-                  Last Name <span className="text-red-500">*</span>
+                  Last Name
                 </label>
                 <input
                   type="text"
@@ -416,7 +410,7 @@ export function EmployeeFormModal({
 
               <div>
                 <label className="block text-xs font-semibold text-stone-700 mb-1">
-                  Mobile Number (10 digits) <span className="text-red-500">*</span>
+                  Mobile Number (10 digits)
                 </label>
                 <input
                   type="tel"
@@ -434,7 +428,7 @@ export function EmployeeFormModal({
 
               <div>
                 <label className="block text-xs font-semibold text-stone-700 mb-1">
-                  Email Address <span className="text-red-500">*</span>
+                  Email Address
                 </label>
                 <input
                   type="email"
@@ -495,7 +489,7 @@ export function EmployeeFormModal({
 
               <div className="md:col-span-2">
                 <label className="block text-xs font-semibold text-stone-700 mb-1">
-                  Residential Address <span className="text-red-500">*</span>
+                  Residential Address
                 </label>
                 <textarea
                   rows={2}
@@ -723,7 +717,7 @@ export function EmployeeFormModal({
 
                 <div>
                   <span className="text-[11px] font-semibold text-stone-600 block mb-1">
-                    Inherited Default Modules:
+                    Department Default Modules (applied only if no modules are selected below):
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedDepartment?.assignedModules?.length ? (
@@ -733,7 +727,7 @@ export function EmployeeFormModal({
                           className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-800 border border-blue-200 rounded text-xs font-medium"
                         >
                           <Check className="w-3 h-3 text-blue-600" />
-                          <span>{m} (Inherited)</span>
+                          <span>{m}</span>
                         </span>
                       ))
                     ) : (
@@ -750,8 +744,8 @@ export function EmployeeFormModal({
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                   {ERP_MODULES.map((mod) => {
-                    const isInherited = selectedDepartment?.assignedModules?.includes(mod.id);
-                    const isChecked = formData.assignedModules.includes(mod.id) || isInherited;
+                    const isDeptDefault = selectedDepartment?.assignedModules?.includes(mod.id);
+                    const isChecked = formData.assignedModules.includes(mod.id);
 
                     return (
                       <label
@@ -765,7 +759,6 @@ export function EmployeeFormModal({
                           type="checkbox"
                           checked={isChecked}
                           onChange={(e) => {
-                            if (isInherited) return; // cannot uncheck inherited dept defaults here
                             if (e.target.checked) {
                               setFormData({ ...formData, assignedModules: [...formData.assignedModules, mod.id] });
                             } else {
@@ -775,7 +768,7 @@ export function EmployeeFormModal({
                           className="w-3.5 h-3.5 text-crm-brand-700 rounded border-stone-300"
                         />
                         <span className="truncate">{mod.name}</span>
-                        {isInherited && (
+                        {isDeptDefault && (
                           <span className="ml-auto text-[9px] bg-blue-100 text-blue-700 px-1 py-0.2 rounded font-medium">
                             Dept
                           </span>
